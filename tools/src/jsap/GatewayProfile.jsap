@@ -1,0 +1,513 @@
+{
+	"parameters": {
+		"host": "wot.arces.unibo.it",
+		"path": "/sparql",
+		"scheme": "http",
+		"port": 8000,
+		"securequery": {
+			"port": 8443,
+			"scheme": "https"
+		},
+		"secureupdate": {
+			"port": 8443,
+			"scheme": "https"
+		},
+		"subscribe": {
+			"scheme": "ws",
+			"port": 9000
+		},
+		"securesubscribe": {
+			"scheme": "wss",
+			"port": 9443,
+			"path": "/secure/sparql"
+		},
+		"authorizationserver": {
+			"port": 8443,
+			"scheme": "https",
+			"register": "/oauth/register",
+			"tokenrequest": "/oauth/token"
+		}
+	},
+	"namespaces": {
+		"iot": "http://wot.arces.unibo.it/IoTGateway#",
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+		"rdfs": "http://www.w3.org/2000/01/rdf-schema#"
+	},
+	"updates": {
+		"DELETE_ALL": {
+			"sparql": "DELETE { ?s ?p ?o } WHERE { ?s ?p ?o }"
+		},
+		"DELETE_MP_MAPPING": {
+			"sparql": "DELETE { ?mapping ?p ?o } WHERE { ?mapping ?p ?o . ?mapping rdf:type iot:MP-Mapping }",
+			"forcedBindings": {
+				"mapping": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		},
+		"DELETE_MN_MAPPING": {
+			"sparql": "DELETE { ?mapping ?p ?o } WHERE { ?mapping ?p ?o . ?mapping rdf:type iot:MN-Mapping }",
+			"forcedBindings": {
+				"mapping": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		},
+		"DELETE_RESOURCE_PENDING_REQUEST": {
+			"sparql": "DELETE { ?request ?p ?o } WHERE { ?request ?p ?o . ?request rdf:type iot:Resource-Pending-Request }",
+			"forcedBindings": {
+				"request": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		},
+		"DELETE_RESOURCE_REQUEST": {
+			"sparql": "DELETE { ?request ?p ?o } WHERE { ?request ?p ?o . ?request rdf:type iot:Resource-Request }",
+			"forcedBindings": {
+				"request": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		},
+		"DELETE_MN_REQUEST": {
+			"sparql": "DELETE { ?request ?p ?o } WHERE { ?request ?p ?o . ?request rdf:type iot:MN-Request }",
+			"forcedBindings": {
+				"request": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		},
+		"DELETE_RESOURCE_RESPONSE": {
+			"sparql": "DELETE { ?response ?p ?o } WHERE { ?reponse ?p ?o . ?response rdf:type iot:Resource-Response }",
+			"forcedBindings": {
+				"response": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		},
+		"DELETE_MN_RESPONSE": {
+			"sparql": "DELETE { ?response ?p ?o } WHERE { ?reponse ?p ?o . ?response rdf:type iot:MN-Response }",
+			"forcedBindings": {
+				"response": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		},
+		"DELETE_REQUEST_RESPONSE": {
+			"sparql": "DELETE { ?request ?p ?o . ?response ?p1 ?o1} WHERE { ?request ?p ?o . ?response ?p1 ?o1 . ?request rdf:type iot:MP-Request . ?response rdf:type iot:MP-Response }",
+			"forcedBindings": {
+				"response": {
+					"type": "uri",
+					"value": ""
+				},
+				"request": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_RESOURCE": {
+			"sparql": "INSERT DATA {?resource rdf:type iot:Resource . ?resource iot:hasValue ?value}",
+			"forcedBindings": {
+				"resource": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_MP_MAPPING": {
+			"sparql": "INSERT DATA { 
+    	?mapping rdf:type iot:MP-Mapping . 
+     	?mapping iot:hasProtocol ?protocol . 
+     	?mapping iot:hasResource ?resource . 
+     	?mapping iot:hasAction ?action . 
+     	?mapping iot:hasValue ?value . 
+     	?mapping iot:hasMPRequestPattern ?requestPattern . 
+     	?mapping iot:hasMPResponsePattern ?responsePattern }",
+			"forcedBindings": {
+				"mapping": {
+					"type": "uri",
+					"value": ""
+				},
+				"protocol": {
+					"type": "uri",
+					"value": ""
+				},
+				"resource": {
+					"type": "uri",
+					"value": ""
+				},
+				"action": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				},
+				"requestPattern": {
+					"type": "literal",
+					"value": ""
+				},
+				"responsePattern": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_MP_REQUEST": {
+			"sparql": "INSERT DATA { 
+    	?request rdf:type iot:MP-Request . 
+    	?request iot:hasProtocol ?protocol . 
+    	?request iot:hasMPRequestString ?value }",
+			"forcedBindings": {
+				"request": {
+					"type": "uri",
+					"value": ""
+				},
+				"protocol": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_MP_RESPONSE": {
+			"sparql": "INSERT DATA { 
+      	?response iot:generatedBy ?request . 
+      	?response rdf:type iot:MP-Response . 
+      	?response iot:hasMPResponseString ?value }",
+			"forcedBindings": {
+				"request": {
+					"type": "uri",
+					"value": ""
+				},
+				"response": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_MN_REQUEST": {
+			"sparql": "INSERT DATA { 
+      	?request rdf:type iot:MN-Request . 
+      	?request iot:hasNetwork ?network . 
+      	?request iot:hasMNRequestString ?value }",
+			"forcedBindings": {
+				"request": {
+					"type": "uri",
+					"value": ""
+				},
+				"network": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_MN_RESPONSE": {
+			"sparql": "INSERT DATA { 
+    	?response rdf:type iot:MN-Response . 
+    	?response iot:hasNetwork ?network . 
+    	?response iot:hasMNResponseString ?value }",
+			"forcedBindings": {
+				"response": {
+					"type": "uri",
+					"value": ""
+				},
+				"network": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_MN_MAPPING": {
+			"sparql": "INSERT DATA { 
+    	?mapping rdf:type iot:MN-Mapping . 
+    	?mapping iot:hasNetwork ?network . 
+    	?mapping iot:hasResource ?resource . 
+      	?mapping iot:hasAction ?action . 
+      	?mapping iot:hasValue ?value . 
+      	?mapping iot:hasMNRequestPattern ?requestPattern . 
+      	?mapping iot:hasMNResponsePattern ?responsePattern }",
+			"forcedBindings": {
+				"mapping": {
+					"type": "uri",
+					"value": ""
+				},
+				"network": {
+					"type": "uri",
+					"value": ""
+				},
+				"resource": {
+					"type": "uri",
+					"value": ""
+				},
+				"action": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				},
+				"requestPattern": {
+					"type": "literal",
+					"value": ""
+				},
+				"responsePattern": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_RESOURCE_PENDING_REQUEST": {
+			"sparql": "INSERT DATA { 
+      	?request rdf:type iot:Resource-Pending-Request . 
+      	?request iot:hasValue ?value . 
+      	?request iot:hasAction ?action . 
+      	?request iot:hasResource ?resource }",
+			"forcedBindings": {
+				"request": {
+					"type": "uri",
+					"value": ""
+				},
+				"action": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_RESOURCE_RESPONSE": {
+			"sparql": "INSERT DATA { 
+      	?response rdf:type iot:Resource-Response . 
+      	?response iot:hasAction ?action . 
+      	?response iot:hasResource ?resource . 
+      	?response iot:hasValue ?value }",
+			"forcedBindings": {
+				"response": {
+					"type": "uri",
+					"value": ""
+				},
+				"action": {
+					"type": "uri",
+					"value": ""
+				},
+				"resource": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"INSERT_RESOURCE_REQUEST": {
+			"sparql": "INSERT DATA { 
+      	?request rdf:type iot:Resource-Request . 
+      	?request iot:hasValue ?value . 
+      	?request iot:hasAction ?action . 
+      	?request iot:hasResource ?resource }",
+			"forcedBindings": {
+				"request": {
+					"type": "uri",
+					"value": ""
+				},
+				"action": {
+					"type": "uri",
+					"value": ""
+				},
+				"resource": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"UPDATE_RESOURCE": {
+			"sparql": "DELETE { ?resource iot:hasValue ?oldValue }
+  		INSERT { ?resource rdf:type iot:Resource . ?resource iot:hasValue ?value }
+  		WHERE { OPTIONAL {?resource iot:hasValue ?oldValue . ?resource rdf:type iot:Resource} }",
+			"forcedBindings": {
+				"resource": {
+					"type": "uri",
+					"value": ""
+				},
+				"value": {
+					"type": "literal",
+					"value": ""
+				}
+			}
+		},
+		"UPDATE_MN_MAPPING": {
+			"sparql": "DELETE { ?mapping ?pred ?obj }
+  		INSERT { ?mapping rdf:type iot:MN-Mapping . 
+      	?mapping iot:hasNetwork ?network . 
+      	?mapping iot:hasResource ?resource . 
+      	?mapping iot:hasAction ?action . 
+      	?mapping iot:hasValue ?value . 
+      	?mapping iot:hasMNRequestPattern ?requestPattern . 
+      	?mapping iot:hasMNResponsePattern ?responsePattern }
+  		WHERE { ?mapping ?pred ?obj . ?mapping rdf:type iot:MN-Mapping }",
+			"forcedBindings": {
+				"mapping": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		},
+		"UPDATE_MP_MAPPING": {
+			"sparql": "DELETE { ?mapping ?pred ?obj }
+  		INSERT { ?mapping rdf:type iot:MP-Mapping . 
+      	?mapping iot:hasProtocol ?protocol . 
+      	?mapping iot:hasResource ?resource . 
+      	?mapping iot:hasAction ?action . 
+      	?mapping iot:hasValue ?value . 
+      	?mapping iot:hasMPRequestPattern ?requestPattern . 
+      	?mapping iot:hasMPResponsePattern ?responsePattern }
+  		WHERE { ?mapping ?pred ?obj . ?mapping rdf:type iot:MP-Mapping }",
+			"forcedBindings": {
+				"mapping": {
+					"type": "uri",
+					"value": ""
+				}
+			}
+		}
+	},
+	"subscribes": {
+		"MP_REQUEST": {
+			"sparql": "SELECT ?request ?protocol ?value WHERE { 
+    	?request rdf:type iot:MP-Request . 
+    	?request iot:hasProtocol ?protocol . 
+    	?request iot:hasMPRequestString ?value }",
+			"forcedBindings": {
+			}
+		},
+		"MP_RESPONSE": {
+			"sparql": "SELECT ?response ?request ?value ?protocol WHERE { 
+      	?response rdf:type iot:MP-Response . 
+      	?response iot:generatedBy ?request . 
+      	?response iot:hasMPResponseString ?value . 
+      	?request iot:hasProtocol ?protocol }",
+			"forcedBindings": {
+			}
+		},
+		"MP_MAPPING": {
+			"sparql": "SELECT ?mapping ?protocol ?requestPattern ?responsePattern ?resource ?action ?value WHERE { 
+      	?mapping rdf:type iot:MP-Mapping . 
+      	?mapping iot:hasProtocol ?protocol . 
+      	?mapping iot:hasResource ?resource . 
+      	?mapping iot:hasAction ?action . 
+      	?mapping iot:hasValue ?value . 
+      	?mapping iot:hasMPRequestPattern ?requestPattern . 
+      	?mapping iot:hasMPResponsePattern ?responsePattern }",
+			"forcedBindings": {
+			}
+		},
+		"MN_REQUEST": {
+			"sparql": "SELECT ?request ?value ?network WHERE { 
+      	?request rdf:type iot:MN-Request . 
+      	?request iot:hasNetwork ?network . 
+      	?request iot:hasMNRequestString ?value }",
+			"forcedBindings": {
+			}
+		},
+		"MN_RESPONSE": {
+			"sparql": "SELECT ?response ?network ?value WHERE { 
+	    ?response rdf:type iot:MN-Response . 
+	    ?response iot:hasNetwork ?network . 
+	    ?response iot:hasMNResponseString ?value }",
+			"forcedBindings": {
+			}
+		},
+		"MN_MAPPING": {
+			"sparql": "SELECT ?mapping ?network ?requestPattern ?responsePattern ?resource ?action ?value WHERE { 
+      	?mapping rdf:type iot:MN-Mapping . 
+      	?mapping iot:hasNetwork ?network . 
+      	?mapping iot:hasResource ?resource . 
+      	?mapping iot:hasAction ?action . 
+      	?mapping iot:hasValue ?value . 
+      	?mapping iot:hasMNRequestPattern ?requestPattern . 
+      	?mapping iot:hasMNResponsePattern ?responsePattern }",
+			"forcedBindings": {
+			}
+		},
+		"RESOURCE_REQUEST": {
+			"sparql": "SELECT ?request ?value ?action ?resource WHERE { 
+	   	?request rdf:type iot:Resource-Request . 
+	   	?request iot:hasValue ?value . 
+	    ?request iot:hasAction ?action . 
+	    ?request iot:hasResource ?resource }",
+			"forcedBindings": {
+			}
+		},
+		"RESOURCE_RESPONSE": {
+			"sparql": "SELECT ?response ?action ?resource ?value WHERE { 
+	    ?response rdf:type iot:Resource-Response . 
+	    ?response iot:hasAction ?action . 
+	    ?response iot:hasResource ?resource . 
+	    ?response iot:hasValue ?value }",
+			"forcedBindings": {
+			}
+		},
+		"RESOURCE_PENDING_REQUEST": {
+			"sparql": "SELECT ?request ?resource ?action ?value WHERE { 
+	    ?request rdf:type iot:Resource-Pending-Request . 
+	    ?request iot:hasValue ?value . 
+	    ?request iot:hasAction ?action . 
+	    ?request iot:hasResource ?resource }",
+			"forcedBindings": {
+			}
+		},
+		"RESOURCE": {
+			"sparql": "SELECT ?resource ?value WHERE {
+			?resource rdf:type iot:Resource .
+			?resource iot:hasValue ?value }",
+			"forcedBindings": {
+			}
+		},
+		"ALL": {
+			"sparql": "SELECT ?s ?p ?o WHERE { ?s ?p ?o }",
+			"forcedBindings": {
+			}
+		},
+		"COAP_RESOURCE": {
+			"sparql": "SELECT ?resource WHERE { ?mapping rdf:type iot:MP-Mapping . ?mapping iot:hasProtocol iot:COAP . ?mapping iot:hasResource ?resource }",
+			"forcedBindings": {
+			}
+		}
+	}
+}

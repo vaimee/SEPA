@@ -1,0 +1,79 @@
+{
+	"parameters": {
+		"host": "wot.arces.unibo.it",
+		"path": "/sparql",
+		"scheme": "http",
+		"port": 8000,
+		"securequery": {
+			"port": 8443,
+			"scheme": "https"
+		},
+		"secureupdate": {
+			"port": 8443,
+			"scheme": "https"
+		},
+		"subscribe": {
+			"scheme": "ws",
+			"port": 9000
+		},
+		"securesubscribe": {
+			"scheme": "wss",
+			"port": 9443,
+			"path": "/secure/sparql"
+		},
+		"authorizationserver": {
+			"port": 8443,
+			"scheme": "https",
+			"register": "/oauth/register",
+			"tokenrequest": "/oauth/token"
+		}
+	},
+	"namespaces": {
+		"chat": "http://www.arces.unibo.it/chat#",
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	},
+	"updates": {
+		"ADD_MESSAGE": {
+			"sparql": "delete {?message chat:message ?oldText} insert {?message rdf:type chat:Message . ?message chat:user ?nickname . ?message chat:message ?text} where {OPTIONAL{?message rdf:type chat:Message . ?message chat:message ?oldText . ?message chat:user ?nickname}}",
+			"forcedBindings": {
+				"text": {
+					"type": "literal",
+					"value": ""
+				},
+				"nickname": {
+					"type": "literal",
+					"value": ""
+				},
+				"message": {
+					"type": "uri",
+					"value": ""
+				}
+			},
+			"id": "ADD_MESSAGE"
+		},
+		"REMOVE_MESSAGE": {
+			"sparql": "delete {?message chat:message ?text . ?message rdf:type chat:Message . ?message chat:user ?nickname} where {?message chat:message ?text . ?message chat:user ?nickname . ?message rdf:type chat:Message}",
+			"forcedBindings": {
+				"nickname": {
+					"type": "literal",
+					"value": ""
+				}
+			},
+			"id": "REMOVE_MESSAGE"
+		}
+	},
+	"subscribes": {
+		"MESSAGE": {
+			"sparql": "select ?nickname ?text ?message where {?message rdf:type chat:Message . ?message chat:message ?text . ?message chat:user ?nickname}",
+			"forcedBindings": {
+			},
+			"id": "MESSAGE"
+		},
+		"NICKNAME": {
+			"sparql": "select ?nickname where {?message chat:user ?nickname}",
+			"forcedBindings": {
+			},
+			"id": "NICKNAME"
+		}
+	}
+}
