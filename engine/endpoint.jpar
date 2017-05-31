@@ -1,0 +1,1 @@
+{"parameters":{"host":"localhost","port":9999,"scheme":"http","path":"/blazegraph/namespace/kb/sparql","query":{"method":"POST","format":"JSON"},"update":{"method":"URL_ENCODED_POST","format":"HTML"}}}
