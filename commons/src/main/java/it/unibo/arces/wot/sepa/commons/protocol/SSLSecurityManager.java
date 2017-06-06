@@ -22,33 +22,26 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
+import java.security.*;
+import java.security.cert.*;
+import java.util.Calendar;
+import java.util.Date;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import javax.security.auth.x500.X500Principal;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import org.bouncycastle.x509.X509V1CertificateGenerator;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.sun.net.httpserver.HttpsConfigurator;
-
-import sun.security.tools.keytool.CertAndKeyGen;
-import sun.security.x509.X500Name;
 
 
 /**
@@ -281,44 +274,62 @@ public class SSLSecurityManager {
 		    try {
 		    	// Create new JKS
 		    	keyStore.load(null,null);
-		    	
-		    	/*
+
+		    	X509Certificate[] chain = new X509Certificate[1];
+
+		    	// Create key and certificate
+
+				KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
+				gen.initialize(1024);
+				final KeyPair keyPair = gen.genKeyPair();
+
+				Date startDate = new Date();     // time from which certificate is valid
+
+				Calendar c = Calendar.getInstance();
+				c.setTime(startDate);
+				c.add(Calendar.YEAR, 1);
+
+				Date expiryDate = c.getTime();      // time after which certificate is not valid
+
+
+				X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
+				/*
 		    	 * RFC 1779 or RFC 2253 style
-		    	 * 
+		    	 *
 		    	commonName - common name of a person, e.g. "Vivette Davis"
 		    	organizationUnit - small organization name, e.g. "Purchasing"
 		    	organizationName - large organization name, e.g. "Onizuka, Inc."
 		    	localityName - locality (city) name, e.g. "Palo Alto"
 		    	stateName - state name, e.g. "California"
 		    	country - two letter country code, e.g. "CH"
-		    	
+
 		    	https://www.ietf.org/rfc/rfc3280.txt
-		    	
+
 		    	Subject Alternative Name
 		    	https://tools.ietf.org/html/rfc5280#section-4.2.1.6
-		    	
+
 		    	*/
-		    	X500Name name;
-		    	long expires = 365*24*3600; //seconds (default: 1 year)
-		    	X509Certificate[] chain = new X509Certificate[1];
-		    	
-		    	// Create key and certificate
-		    	CertAndKeyGen gen = new CertAndKeyGen("RSA","SHA1WithRSA");
-		    	  		    	
-			    // Set key entry			    
-			    name = new X500Name("Luca Roffia",
-			    		   "Web of Things Research Group",
-			    		    "ARCES - University of Bologna",
-			    		    "Bologna",
-			    		    "Italy",
-			    		    "IT");
-			   
-			    gen.generate(1024);	  			    
-			    chain[0]=gen.getSelfCertificate(name, expires);
-		    	keyStore.setKeyEntry(keyAlias, gen.getPrivateKey(), keyPassword.toCharArray(), chain);
+				X500Principal              dnName = new X500Principal("CN=Luca Roffia," +
+						"OU=Web of Things Research Group," +
+						"O=ARCES - University of Bologna," +
+						"L=Bologna," +
+						"ST=Italy," +
+						"C=IT");
+
+				certGen.setIssuerDN(dnName);
+				certGen.setNotBefore(startDate);
+				certGen.setNotAfter(expiryDate);
+				certGen.setSubjectDN(dnName);                       // note: same as issuer
+				certGen.setPublicKey(keyPair.getPublic());
+				certGen.setSignatureAlgorithm("SHA1WithRSA");
+				X509Certificate cert = certGen.generate(keyPair.getPrivate(), "BC");
+
+
+			    chain[0]=cert;
+		    	keyStore.setKeyEntry(keyAlias, keyPair.getPrivate(), keyPassword.toCharArray(), chain);
 		    	
 		    	// Set certificate entry	
-				keyStore.setCertificateEntry(certificate, gen.getSelfCertificate(name, expires));
+				keyStore.setCertificateEntry(certificate, cert);
 				
 				// Save JKS
 				keyStore.store(new FileOutputStream(keystoreFilename), storePassword.toCharArray());
