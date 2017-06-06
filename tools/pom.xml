@@ -59,5 +59,7 @@
 			<version>0.7.0</version>
 		</dependency>
 	</dependencies>
-
+	<properties>
+		<maven.deploy.skip>true</maven.deploy.skip>
+	</properties>
 </project>

@@ -9,6 +9,9 @@
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+
+			<maven.deploy.skip>true</maven.deploy.skip>
+
 	</properties>
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
@@ -71,4 +74,5 @@
 			<version>0.7.0</version>
 		</dependency>
 	</dependencies>
+
 </project>
