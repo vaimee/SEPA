@@ -51,5 +51,11 @@
 			<scope>compile</scope>
         </dependency>
     </dependencies>
-
+	<distributionManagement>
+		<repository>
+			<id>bintray-arces-wot-sepa-java-libs</id>
+			<name>arces-wot-sepa-java-libs</name>
+			<url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/client-api/;publish=1</url>
+		</repository>
+	</distributionManagement>
 </project>

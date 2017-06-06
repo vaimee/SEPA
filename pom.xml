@@ -19,9 +19,15 @@
   	<connection>https://github.com/arces-wot/sepa.git</connection>
   	<developerConnection>https://github.com/arces-wot/sepa.git</developerConnection>
   </scm>
-
   <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
         <maven.compiler.target>1.7</maven.compiler.target>
   </properties>
+    <distributionManagement>
+        <repository>
+            <id>bintray-arces-wot-sepa-java-libs</id>
+            <name>arces-wot-sepa-java-libs</name>
+            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/sepa/;publish=1</url>
+        </repository>
+    </distributionManagement>
 </project>
