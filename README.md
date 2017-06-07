@@ -32,4 +32,6 @@ SEPA stands for *SPARQL Event Processing Architecture* and it is promoted and ma
 
 ## License
 
-TODO: Write license
+SEPA Engine is released under the [GNU GENERAL PUBLIC LICENSE](https://github.com/arces-wot/SEPA/blob/master/engine/LICENSE)
+
+SEPA APIs are released under the  [GNU LESSER GENERAL PUBLIC LICENSE](https://github.com/arces-wot/SEPA/blob/master/client-api/LICENSE)
