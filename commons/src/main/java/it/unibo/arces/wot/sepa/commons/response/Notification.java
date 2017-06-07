@@ -27,9 +27,10 @@ import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
  * Language)
  *
  * The JSON serialization looks like:
- *
+ * {@code
  * { "spuid" : "SPUID" , "sequence" : "SEQUENTIAL NUMBER", "results" : <JSON
  * Notification Results> }
+ * }
  * 
  */
 

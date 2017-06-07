@@ -56,7 +56,7 @@ public class TokenHandler implements TokenHandlerMBean {
 	
 	/**
 	 * Returns a new token if more tokens are available or -1 otherwise
-	 * @returns an int representing the token
+	 * @return  an int representing the token
 	 */
 	public int getToken()
 	{
@@ -84,7 +84,7 @@ public class TokenHandler implements TokenHandlerMBean {
 
 	/**
 	 * Release an used token
-	 * @returns true if success, false if the token to be released has not been acquired
+	 * @return true if success, false if the token to be released has not been acquired
 	 */
 	public boolean releaseToken(Integer token)
 	{	

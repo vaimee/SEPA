@@ -14,10 +14,42 @@
   </modules>
   <name>SEPA Project</name>
   <url>https://github.com/arces-wot/sepa.git</url>
+  <licenses>
+      <license>
+          <name>GNU Lesser General Public License v3.0</name>
+          <url>https://www.gnu.org/licenses/lgpl-3.0.en.html</url>
+      </license>
+  </licenses>
+  <developers>
+      <developer>
+          <name>Luca Roffia</name>
+          <email>luca.roffia@unibo.it</email>
+          <organization>Web of Things research group of ARCES</organization>
+          <organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+      </developer>
+      <developer>
+          <name>Fabio Viola</name>
+          <email>fabio.viola@unibo.it</email>
+          <organization>Web of Things research group of ARCES</organization>
+          <organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+      </developer>
+      <developer>
+          <name>Francesco Antoniazzi</name>
+          <email>francesco.antoniazzi@unibo.it</email>
+          <organization>Web of Things research group of ARCES</organization>
+          <organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+      </developer>
+      <developer>
+          <name>Cristiano Aguzzi</name>
+          <email>cristiano.aguzzi@studio.unibo.it</email>
+          <organization>Web of Things research group of ARCES</organization>
+          <organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+      </developer>
+  </developers>
   <scm>
-  	<url>https://github.com/arces-wot/sepa.git</url>
-  	<connection>https://github.com/arces-wot/sepa.git</connection>
-  	<developerConnection>https://github.com/arces-wot/sepa.git</developerConnection>
+      <connection>scm:git:git://github.com/arces-wot/sepa.git</connection>
+      <developerConnection>scm:git:ssh://github.com/arces-wot/sepa.git</developerConnection>
+      <url>https://github.com/arces-wot/SEPA</url>
   </scm>
   <properties>
         <maven.compiler.source>1.7</maven.compiler.source>
@@ -27,7 +59,49 @@
         <repository>
             <id>bintray-arces-wot-sepa-java-libs</id>
             <name>arces-wot-sepa-java-libs</name>
-            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/sepa/;publish=1</url>
+            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/${artifactId}/;publish=1</url>
         </repository>
     </distributionManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

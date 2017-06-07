@@ -77,7 +77,7 @@ public class RequestResponseHandler {
 	
 	/**
 	 * This method add a response (e.g, UPDATE, QUERY, SUBSCRIBE, UNSUBSCRIBE)
-	 * 
+	 * @param response
 	 * @see Response
 	* */
 	public void addResponse(Response response) {
@@ -106,7 +106,7 @@ public class RequestResponseHandler {
 	
 	/**
 	 * This method add a notification sent by a SPU
-	 * 
+	 * @param notification
 	 * @see Notification
 	* */
 	public void addNotification(Notification notification) {
@@ -118,8 +118,11 @@ public class RequestResponseHandler {
 	
 	/**
 	 * This method is used by producers (e.g. HTTP Gate) to add a request (e.g, UPDATE, QUERY, SUBSCRIBE, UNSUBSCRIBE). The registered listener will receive a notification when the request will be completed
-	 * 
-	 * @see Request, ResponseListener
+	 * @param req
+	 * @param listener
+	 *
+	 * @see Request
+	 * @see RequestResponseHandler
 	* */
 	public void addRequest(Request req,ResponseAndNotificationListener listener) {
 		logger.debug(">> "+req.toString());

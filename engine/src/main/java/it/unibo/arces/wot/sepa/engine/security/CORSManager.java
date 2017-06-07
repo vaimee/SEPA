@@ -37,9 +37,9 @@ public class CORSManager {
 	 * Process a CORS (Cross-Origin Resource Sharing) pre-flight request. <br>
 	 * 	 
 	 * References:<br>
-	 * <a href="https://www.w3.org/TR/cors">CORS<a/><br>
-	 * <a href="https://www.w3.org/wiki/CORS">CORS wiki<a/><br>
-	 * <a href="https://fetch.spec.whatwg.org/">CORS specification<a/><br>
+	 * <a href="https://www.w3.org/TR/cors">CORS</a><br>
+	 * <a href="https://www.w3.org/wiki/CORS">CORS wiki</a><br>
+	 * <a href="https://fetch.spec.whatwg.org/">CORS specification</a><br>
 	 *
 	 * @param httpExchange the http exchange
 	 * @return true, if the pre-flight request has been successfully handled
