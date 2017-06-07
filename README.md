@@ -20,12 +20,18 @@ TODO: Write usage instructions
 
 ## History
 
-TODO: Write history
+SEPA has been inspired and influenced by [Smart-M3](https://sourceforge.net/projects/smart-m3/). SEPA authors have been involved in the development of Smart-M3 since its [origin](https://artemis-ia.eu/project/4-sofia.html). 
+
+The main differences beetween SEPA and Smart-M3 are the protocol (now compliant with the [SPARQL 1.1 Protocol](https://www.w3.org/TR/sparql11-protocol/)) and the introduction of a security layer (based on TLS and JSON Web Token for client authentication). 
+
+All the SEPA software components have been implemented from scratch.
 
 ## Credits
 
-TODO: Write credits
+SEPA stands for *SPARQL Event Processing Architecture* and it is promoted and maintained by the [**Web of Things Research Group**](http://wot.arces.unibo.it) @ [**ARCES**](http://www.arces.unibo.it), the *Advanced Research Center on Electronic Systems "Ercole De Castro"* of the [**University of Bologna**](http://www.unibo.it).
 
 ## License
 
-TODO: Write license
+SEPA Engine is released under the [GNU GENERAL PUBLIC LICENSE](https://github.com/arces-wot/SEPA/blob/master/engine/LICENSE)
+
+SEPA APIs are released under the  [GNU LESSER GENERAL PUBLIC LICENSE](https://github.com/arces-wot/SEPA/blob/master/client-api/LICENSE)
