@@ -20,11 +20,11 @@ TODO: Write usage instructions
 
 ## History
 
-TODO: Write history
+SEPA has been inspired and influenced by [Smart-M3](https://sourceforge.net/projects/smart-m3/). SEPA authors have been involved in the development of Smart-M3 since its origin. The main differences beetween SEPA and Smart-M3 are the protocol (now compliant with the W3C SPARQL 1.1 Protocol) and the introduction of a security layer (based on TLS and JSON Web Token). Because of that, both the server (aka SIB in Smart-M3) and client API (aka KPI in Smart-M3) have been implemented from scratch.
 
 ## Credits
 
-TODO: Write credits
+SEPA stands for *SPARQL Event Processing Architecture* and it is promoted and maintained by the [**Web of Things Research Group**](http://wot.arces.unibo.it) @ [**ARCES**](http://www.arces.unibo.it), the *Advanced Research Center on Electronic Systems "Ercole De Castro"* of the [**University of Bologna**](http://www.unibo.it).
 
 ## License
 
