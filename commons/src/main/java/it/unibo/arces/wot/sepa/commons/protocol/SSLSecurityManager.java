@@ -32,8 +32,6 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import javax.security.auth.x500.X500Principal;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -49,7 +47,7 @@ import org.glassfish.tyrus.client.SslEngineConfigurator;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.RSAKey;
-import com.sun.net.httpserver.HttpsConfigurator;
+//import com.sun.net.httpserver.HttpsConfigurator;
 
 
 /**
@@ -122,7 +120,7 @@ public class SSLSecurityManager {
 	/**
 	 * The Class SEPAHttpsConfigurator.
 	 */
-	public class SEPAHttpsConfigurator extends HttpsConfigurator {
+	public class SEPAHttpsConfigurator {
 
 		/**
 		 * Instantiates a new SEPA HTTPS configurator.
@@ -130,7 +128,6 @@ public class SSLSecurityManager {
 		 * @param sslContext the SSL context
 		 */
 		public SEPAHttpsConfigurator(SSLContext sslContext) throws IllegalArgumentException {
-			super(sslContext);
 			if (sslContext == null) throw new IllegalArgumentException();
 		}
 	}
@@ -369,5 +366,9 @@ public class SSLSecurityManager {
 			return null;
 		}
 		return jwk;
+	}
+
+	public SSLContext getSSLContext() {
+		return sslContext;
 	}
 }

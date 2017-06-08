@@ -50,7 +50,6 @@ public class Processor extends Observable implements Observer {
 	public Processor(SPARQL11Properties properties) throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {	
 		//Create SPARQL 1.1 interface
 		endpoint = new SPARQL11Protocol(properties);
-		logger.info(endpoint.toString());
 		
 		//Create processor to manage (optimize) QUERY and UPDATE request
 		queryProcessor = new QueryProcessor(endpoint);

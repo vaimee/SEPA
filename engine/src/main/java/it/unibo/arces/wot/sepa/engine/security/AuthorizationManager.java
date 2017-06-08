@@ -28,6 +28,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
 
+import javax.net.ssl.SSLContext;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -54,8 +56,6 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-
-import com.sun.net.httpserver.HttpsConfigurator;
 
 import it.unibo.arces.wot.sepa.engine.beans.SEPABeans;
 import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
@@ -109,9 +109,9 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		
 	}
 	
-	public HttpsConfigurator getHttpsConfigurator() {
+	/*public HttpsConfigurator getHttpsConfigurator() {
 		return sManager.getHttpsConfigurator();
-	} 
+	} */
 	
 	private void securityCheck(String identity) {
 		logger.debug("*** Security check ***");
@@ -573,5 +573,9 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	@Override
 	public void setSubject(String sub) {
 		this.subject = sub;
+	}
+
+	public SSLContext getSSLContext() {
+		return sManager.getSSLContext();
 	}	
 }

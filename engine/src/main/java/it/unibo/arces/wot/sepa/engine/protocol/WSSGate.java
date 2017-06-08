@@ -67,17 +67,19 @@ public class WSSGate extends WSGate {
 			server.start();
 		} catch (IOException e) {
 			logger.fatal("Failed to start SECURE WebSocket gate on port "+properties.getSecureSubscribePort()+ " "+e.getMessage());
-			System.exit(1);
+			started = false;
 		}
+        
+        if (!started) return false;
         
         String host = "localhost";
 	    try {
-			host = InetAddress.getLocalHost().getHostName();
+			host = InetAddress.getLocalHost().getHostAddress();
 		} catch (UnknownHostException e) {
 			logger.warn(e.getMessage());
 		}
 	    
-	    logger.info("Listening for SECURE SPARQL SUBSCRIBE/UNSUBSCRIBE on wss://"+host+":"+properties.getSecureSubscribePort()+properties.getSecureSubscribePath());
+	    System.out.println("Listening for SECURE SPARQL SUBSCRIBE/UNSUBSCRIBE on wss://"+host+":"+properties.getSecureSubscribePort()+properties.getSecureSubscribePath());
 		
 		//Start the keep alive thread
 		if (properties.getKeepAlivePeriod() > 0) new KeepAlive().start();

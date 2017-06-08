@@ -21,14 +21,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.logging.Level;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.engine.beans.SEPABeans;
@@ -48,8 +46,6 @@ import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 * */
 
 public class Engine extends Thread implements EngineMBean {
-	private static final Logger logger = LogManager.getLogger("Engine");
-	
 	//Properties, logging
 	private EngineProperties engineProperties = null;
 	private SPARQL11Properties endpointProperties = null;
@@ -74,39 +70,54 @@ public class Engine extends Thread implements EngineMBean {
 	private AuthorizationManager am = new AuthorizationManager("sepa.jks","*sepa.jks*","SepaKey","*SepaKey*","SepaCertificate");
 	
 	public static void main(String[] args) throws IllegalArgumentException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, FileNotFoundException, NoSuchElementException, IOException {
+		//Set Grizzly logging level
+		java.util.logging.Logger grizzlyNetworkListener = java.util.logging.Logger.getLogger("org.glassfish.grizzly.http.server.NetworkListener");
+		java.util.logging.Logger grizzlyHttpServer = java.util.logging.Logger.getLogger("org.glassfish.grizzly.http.server.HttpServer");
+		grizzlyNetworkListener.setLevel(Level.SEVERE);
+		grizzlyHttpServer.setLevel(Level.SEVERE);
+		
 		System.out.println("##########################################################################################");
-		System.out.println("# SEPA Engine Ver 0.6  Copyright (C) 2016-2017                                           #");
+		System.out.println("# SEPA Engine Ver 0.7.0  Copyright (C) 2016-2017                                         #");
 		System.out.println("# University of Bologna (Italy)                                                          #");
 		System.out.println("#                                                                                        #");
 		System.out.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");                                    
 		System.out.println("# This is free software, and you are welcome to redistribute it under certain conditions #");
 		System.out.println("# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #");
 		System.out.println("#                                                                                        #");
-		System.out.println("# GitHub: https://github.com/vaimee/sepatools                                            #");
+		System.out.println("# GitHub: https://github.com/arces-wot/sepa                                              #");
 		System.out.println("# Web: http://wot.arces.unibo.it                                                         #");
 		System.out.println("##########################################################################################");
 		System.out.println("");		
-		System.out.println("Dependencies");
-		System.out.println("com.google.code.gson          2.8.0       Apache 2.0");
-		System.out.println("com.nimbusds                  4.34.2      The Apache Software License, Version 2.0");
-		System.out.println("commons-io                    2.5         Apache License, Version 2.0");
-		System.out.println("commons-logging               1.2         The Apache Software License, Version 2.0");
-		System.out.println("org.apache.httpcomponents     4.5.3       Apache License, Version 2.0");
-		System.out.println("org.apache.httpcomponents     4.4.6       Apache License, Version 2.0");
-		System.out.println("org.apache.logging.log4j      2.8.1       Apache License, Version 2.0");
-		System.out.println("org.bouncycastle              1.56        Bouncy Castle Licence");
-		System.out.println("org.eclipse.paho              1.1.1       Eclipse Public License - Version 1.0");
-		System.out.println("org.glassfish.grizzly         2.3.30      CDDL+GPL");
-		System.out.println("org.glassfish.tyrus.bundles   1.13.1      Dual license consisting of the CDDL v1.1 and GPL v2");
-		System.out.println("org.jdom                      2.0.6       Similar to Apache License but with the acknowledgment clause removed");
-		System.out.println("");
+		System.out.println("--------------------------------- Maven dependencies -------------------------------------");
+		System.out.println("<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->"
+				+ "\n<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->"
+				
+				+ "\n<!-- https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client -->"
+				+ "\n<!-- https://mvnrepository.com/artifact/org.glassfish.grizzly/grizzly-websockets-server -->"
+
+				+ "\n<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->"
+				+ "\n<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->"
+				
+				+ "\n<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->"
+				
+				+ "\n<!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->"
+				+ "\n<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->");
 		
 		//Engine creation and initialization
 		Engine engine = new Engine();
 		engine.init();
+	
+		System.out.println("--------------------- SPARQL 1.1 Secure Event Protocol handlers --------------------------");
 		
 		//Starting main engine thread
 		engine.start();
+		
+		//Welcome message
+		System.out.println("");
+		System.out.println("*****************************************************************************************");
+		System.out.println("*                      SEPA Engine Ver 0.7.0 is up and running                          *");
+		System.out.println("*                                 Let Things Talk                                       *");
+		System.out.println("*****************************************************************************************");
 	}
 	
 	public Engine() {
@@ -117,7 +128,6 @@ public class Engine extends Thread implements EngineMBean {
 	public void start() {
 		
 		this.setName("SEPA Engine");
-		logger.info("SUB Engine starting...");	
 		
 		//Scheduler
 		scheduler.start();
@@ -131,8 +141,6 @@ public class Engine extends Thread implements EngineMBean {
 		secureWebsocketApp.start();
 		
 		super.start();
-		logger.info("SUB Engine started");	
-		System.out.println("");	
 		
 		startDate = new Date();
 	}
