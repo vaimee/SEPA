@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
+import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.*;
 import java.util.Calendar;
@@ -36,7 +37,14 @@ import javax.security.auth.x500.X500Principal;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import org.bouncycastle.x509.X509V1CertificateGenerator;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.X509CertificateHolder;
+import org.bouncycastle.cert.X509v1CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
 
 import com.nimbusds.jose.JOSEException;
@@ -255,7 +263,6 @@ public class SSLSecurityManager {
 	 * @param certificate the certificate
 	 * @return true, if the certificate is successfully loaded
 	 */
-	
 	private boolean openKeyStore(String keystoreFilename,String storePassword,String keyPassword,String keyAlias,String certificate) {
 		// JKS instance
 		try {
@@ -291,8 +298,8 @@ public class SSLSecurityManager {
 
 				Date expiryDate = c.getTime();      // time after which certificate is not valid
 
-
-				X509V1CertificateGenerator certGen = new X509V1CertificateGenerator();
+				SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
+				BigInteger serialNumber = BigInteger.valueOf(System.currentTimeMillis());
 				/*
 		    	 * RFC 1779 or RFC 2253 style
 		    	 *
@@ -309,31 +316,33 @@ public class SSLSecurityManager {
 		    	https://tools.ietf.org/html/rfc5280#section-4.2.1.6
 
 		    	*/
-				X500Principal              dnName = new X500Principal("CN=Luca Roffia," +
+				X500Name name = new X500Name("CN=Luca Roffia," +
 						"OU=Web of Things Research Group," +
 						"O=ARCES - University of Bologna," +
 						"L=Bologna," +
 						"ST=Italy," +
 						"C=IT");
+				X509v1CertificateBuilder certbuild = new X509v1CertificateBuilder(name,serialNumber,startDate,
+						expiryDate,name,subPubKeyInfo);
 
-				certGen.setIssuerDN(dnName);
-				certGen.setNotBefore(startDate);
-				certGen.setNotAfter(expiryDate);
-				certGen.setSubjectDN(dnName);                       // note: same as issuer
-				certGen.setPublicKey(keyPair.getPublic());
-				certGen.setSignatureAlgorithm("SHA1WithRSA");
-				X509Certificate cert = certGen.generate(keyPair.getPrivate(), "BC");
+				ContentSigner sigGen = new JcaContentSignerBuilder("SHA1WithRSAEncryption").setProvider("BC").build(keyPair.getPrivate());
+
+				final X509CertificateHolder holder = certbuild.build(sigGen);
 
 
-			    chain[0]=cert;
+				chain[0]=new JcaX509CertificateConverter().getCertificate(holder);
+
 		    	keyStore.setKeyEntry(keyAlias, keyPair.getPrivate(), keyPassword.toCharArray(), chain);
 		    	
 		    	// Set certificate entry	
-				keyStore.setCertificateEntry(certificate, cert);
+				keyStore.setCertificateEntry(certificate, chain[0]);
 				
 				// Save JKS
 				keyStore.store(new FileOutputStream(keystoreFilename), storePassword.toCharArray());
-			} catch (KeyStoreException | InvalidKeyException | CertificateException | SignatureException | NoSuchAlgorithmException | NoSuchProviderException | IOException e1) {
+			} catch (KeyStoreException |  CertificateException | NoSuchAlgorithmException  | IOException e1) {
+				logger.error(e1.getMessage());
+				return false;
+			} catch (OperatorCreationException e1) {
 				logger.error(e1.getMessage());
 				return false;
 			}

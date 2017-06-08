@@ -223,7 +223,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	
 	/**
 	 * POST https://wot.arces.unibo.it:8443/oauth/token
-	 * 
+	 * {@code
 	 * Accept: application/json
 	 * Content-Type: application/json
 	 * 
@@ -231,19 +231,22 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	 * "client_identity": ”<ClientIdentity>", 
 	 * "grant_types": ["client_credentials"] 
 	 * }
-	 * 
+	 * }
 	 * Response example:
+	 * {@code
 	 * { 	"client_id": "889d02cf-16dd-4934-9341-a754088faxyz",
 	 * 		"client_secret": "ahd5MU42J0hIxPXzhUhjJHt2d0Oc5M6B644CtuwUlE9zpSuF14-kXYZ",
 	 * 		"signature" : JWK RSA public key (can be used to verify the signature),
 	 * 		"authorized" : Boolean
 	 * }
-	 * 
+	 * }
 	 * In case of error, the following applies:
+	 * {@code
 	 * {
 	 * 		"code": Error code,
 	 * 		"body": "Error details" (optional)
 	 * 
+	 * }
 	 * }
 	 * */
 	public Response register(String identity) {
