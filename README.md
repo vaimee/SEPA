@@ -4,7 +4,11 @@ SEPA is a publish-subscribe architecture designed to support information level i
 
 ## Installation
 
-TODO: Describe the installation process
+1) Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar)
+2) Unzip the archive
+3) Open a teminal and move to the unzipped folder
+4) Run `java -jar `
+
 
 ## Usage
 
