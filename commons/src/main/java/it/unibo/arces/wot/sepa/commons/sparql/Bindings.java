@@ -29,13 +29,13 @@ import com.google.gson.JsonObject;
  * This class represents a query solution of a SPARQL 1.1 Query
  * 
  * An example of the internal representation as JSON object follows:
- * 
+ * {@code
  * { "x" : { "type": "bnode", "value": "r2" }, "hpage" : { "type": "uri",
  * "value": "http://work.example.org/alice/" }, "blurb" : { "datatype":
  * "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral", "type": "literal",
  * "value": "<p xmlns=\"http://www.w3.org/1999/xhtml\">My name is <b>alice</b>
  * </p>
- * " }, "name" : { "type": "literal", "value": "Bob", "xml:lang": "en" } }
+ * " }, "name" : { "type": "literal", "value": "Bob", "xml:lang": "en" } }}
  * 
  */
 
