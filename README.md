@@ -28,7 +28,7 @@ All the SEPA software components have been implemented from scratch.
 
 ## Credits
 
-SEPA stands for *SPARQL Event Processing Architecture* and it is promoted and maintained by the [**Web of Things Research Group**](http://wot.arces.unibo.it) @ [**ARCES**](http://www.arces.unibo.it), the *Advanced Research Center on Electronic Systems "Ercole De Castro"* of the [**University of Bologna**](http://www.unibo.it).
+SEPA stands for *SPARQL Event Processing Architecture*. SEPA is promoted and maintained by the [**Web of Things Research Group**](http://wot.arces.unibo.it) @ [**ARCES**](http://www.arces.unibo.it), the *Advanced Research Center on Electronic Systems "Ercole De Castro"* of the [**University of Bologna**](http://www.unibo.it).
 
 ## License
 
