@@ -16,14 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.security;
+package it.unibo.arces.wot.sepa.engine.security; 
 
-import java.util.List;
+import org.apache.http.Header;
+import org.apache.http.nio.protocol.HttpAsyncExchange;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.sun.net.httpserver.HttpExchange;
+//import com.sun.net.httpserver.HttpExchange;
 
 /**
  * The Class CORSManager.
@@ -44,8 +45,8 @@ public class CORSManager {
 	 * @param httpExchange the http exchange
 	 * @return true, if the pre-flight request has been successfully handled
 	 */
-	public static boolean processCORSRequest(HttpExchange httpExchange){
-		if(httpExchange.getRequestMethod().toUpperCase().equals("OPTIONS")) {
+	public static boolean processCORSRequest(HttpAsyncExchange httpExchange){
+		if(httpExchange.getRequest().getRequestLine().getMethod().toUpperCase().equals("OPTIONS")) {
 			logger.debug("CORS pre-flight request");
 	
 			/*
@@ -53,11 +54,11 @@ public class CORSManager {
 			 */
 			
 			String allowOrigin = null;
-			if (!httpExchange.getRequestHeaders().containsKey("Origin")) return false;
-			List<String> origins = httpExchange.getRequestHeaders().get("Origin");
-			if (origins.size() != 1) return false;
 			
-			allowOrigin = origins.get(0);	
+			Header[] origins = httpExchange.getRequest().getHeaders("Origin" );
+			if (origins.length != 1) return false;
+			
+			allowOrigin = origins[0].getValue();	
 			if(!allowedOrigin(allowOrigin)) return false;
 			
 			/*
@@ -67,11 +68,11 @@ public class CORSManager {
 			 */
 			
 			String allowMethod = null;
-			if (!httpExchange.getRequestHeaders().containsKey("Access-Control-Request-Method")) return false;
-			List<String> methods = httpExchange.getRequestHeaders().get("Access-Control-Request-Method");
-			if (methods.size() != 1) return false;
 			
-			allowMethod = methods.get(0);		
+			Header[] methods = httpExchange.getRequest().getHeaders("Access-Control-Request-Method" );
+			if (methods.length != 1) return false;
+			
+			allowMethod = methods[0].getValue();		
 			if(!allowedMethod(allowMethod)) return false;
 			
 			/*
@@ -81,12 +82,10 @@ public class CORSManager {
 			 */
 			
 			String fieldNames = "";
-			if (httpExchange.getRequestHeaders().containsKey("Access-Control-Request-Headers")) {
-				List<String> headers = httpExchange.getRequestHeaders().get("Access-Control-Request-Headers");
-				for (String temp : headers) {
-					if (fieldNames.equals("")) fieldNames = temp;
-					else fieldNames = fieldNames +","+temp;
-				}		
+			Header[] headers = httpExchange.getRequest().getHeaders("Access-Control-Request-Headers");		
+			for (Header temp : headers) {
+				if (fieldNames.equals("")) fieldNames = temp.getValue();
+				else fieldNames = fieldNames +","+temp.getValue();	
 			}
 			
 			/*
@@ -94,24 +93,42 @@ public class CORSManager {
 			 * and add a single Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
 			 * Otherwise, add a single Access-Control-Allow-Origin header, with either the value of the Origin header or the string "*" as value.
 			 */
-			if (allowOrigin != null) httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", allowOrigin);
+			if (allowOrigin != null) httpExchange.getResponse().addHeader("Access-Control-Allow-Origin", allowOrigin);
 			
 			/*
 			 * If method is a simple method this step may be skipped.
 			 * Add one or more Access-Control-Allow-Methods headers consisting of (a subset of) the list of methods.
 			 */
-			if (allowMethod != null) httpExchange.getResponseHeaders().add("Access-Control-Allow-Methods", allowMethod);
+			if (allowMethod != null) httpExchange.getResponse().addHeader("Access-Control-Allow-Methods", allowMethod);
 			
 			/*
 			 * If each of the header field-names is a simple header and none is Content-Type, this step may be skipped.
 			 * Add one or more Access-Control-Allow-Headers headers consisting of (a subset of) the list of headers.
 			 */
 			filterHeaders(fieldNames);
-			if (!fieldNames.equals(""))httpExchange.getResponseHeaders().add("Access-Control-Allow-Headers", fieldNames);		   
+			if (!fieldNames.equals("")) httpExchange.getResponse().addHeader("Access-Control-Allow-Headers", fieldNames);		   
 			    		
 			return true;
 		}
-		else return accessControlAllowOrigin(httpExchange);
+		else {
+			/*
+			 * If the Origin header is not present terminate this set of steps. The request is outside the scope of this specification.
+			 */
+			
+			String allowOrigin = null;
+			
+			Header[] origins = httpExchange.getRequest().getHeaders("Origin" );
+			if (origins.length == 0) return true;
+			if (origins.length > 1) return false;
+			
+			allowOrigin = origins[0].getValue();	
+			
+			boolean allowed = allowedOrigin(allowOrigin);
+			
+			if (allowed) httpExchange.getResponse().addHeader("Access-Control-Allow-Origin", allowOrigin);
+			
+			return allowed;
+		}
 	}
 	
 	/*
@@ -119,7 +136,6 @@ public class CORSManager {
 	 */	
 	private static void filterHeaders(String allowHeaders) {
 		//TODO filter headers
-		
 	}
 
 	/*
@@ -138,28 +154,7 @@ public class CORSManager {
 		return true;
 	}
 
-	/**
-	 * 
-	 * @param httpExchange
-	 * @return true if the <em>Origin</em> header contains an allowed origin or if it is empty. If the
-	 * origin header is not empty and that origin is allowed, the method adds the <em>Access-Control-Allow-Origin</em> header with that value.
-	 */
-	private static boolean accessControlAllowOrigin(HttpExchange httpExchange){
-		String allowOrigin = null;
-		if (!httpExchange.getRequestHeaders().containsKey("Origin")) return true;
-		List<String> origins = httpExchange.getRequestHeaders().get("Origin");
-		if (origins.size() != 1) return true;
-		
-		allowOrigin = origins.get(0);	
-		
-		boolean allowed = allowedOrigin(allowOrigin);
-		
-		if (allowed) httpExchange.getResponseHeaders().add("Access-Control-Allow-Origin", allowOrigin);
-		
-		return allowed;
-	}
-
-	public static boolean isPreFlightRequest(HttpExchange httpExchange) {
-		return httpExchange.getRequestMethod().equalsIgnoreCase("OPTIONS");
+	public static boolean isPreFlightRequest(HttpAsyncExchange httpExchange) {
+		return httpExchange.getRequest().getRequestLine().getMethod().equalsIgnoreCase("OPTIONS");
 	}
 }
