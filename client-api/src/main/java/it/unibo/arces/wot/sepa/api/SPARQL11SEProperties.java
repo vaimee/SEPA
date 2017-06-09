@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.api;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -32,13 +33,14 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.util.encoders.Base64Encoder;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 
-import sun.misc.*;
+//import sun.misc.*;
 
 /**
  * The Class SPARQL11SEProperties.
@@ -71,6 +73,10 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	private String authorization = null;
 	private String id = null;
 	private String secret = null;
+	
+	//Base64 encoding-decoding
+	static Base64Encoder base64 = new Base64Encoder();
+	static ByteArrayOutputStream out64 = new ByteArrayOutputStream();
 	
 	/** The Constant logger. */
 	private static final Logger logger = LogManager.getLogger("SPARQL11SEProperties");
@@ -188,7 +194,12 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 				id = SEPAEncryption.decrypt(doc.get("security").getAsJsonObject().get("client_id").getAsString());
 				secret = SEPAEncryption.decrypt(doc.get("security").getAsJsonObject().get("client_secret").getAsString());
 				try {
-					authorization = new BASE64Encoder().encode((id + ":" + secret).getBytes("UTF-8"));
+					//authorization = new BASE64Encoder().encode((id + ":" + secret).getBytes("UTF-8"));
+					Base64Encoder base64 = new Base64Encoder();
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					byte[] toEncode = (id + ":" + secret).getBytes("UTF-8");
+					base64.encode(toEncode,0,toEncode.length,out);
+					authorization= out.toString("UTF-8");
 					
 					//TODO need a "\n", why?
 					authorization = authorization.replace("\n", "");
@@ -311,8 +322,11 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		this.id = id;
 		this.secret = secret;
 		
-		try {
-			authorization = new BASE64Encoder().encode((id + ":" + secret).getBytes("UTF-8"));
+		try {			
+			byte[] toEncode = (id + ":" + secret).getBytes("UTF-8");
+			
+			base64.encode(toEncode,0,toEncode.length,out64);
+			authorization= out64.toString("UTF-8");
 			
 			//TODO need a "\n", why?
 			authorization = authorization.replace("\n", "");
@@ -396,13 +410,17 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
     	 *
     	 * @param Data the data
     	 * @return the string
+	     * @throws IOException 
     	 */
-    	public static String encrypt(String Data) {
+    	public static String encrypt(String Data) throws IOException {
 			try {
 				Cipher c = Cipher.getInstance(ALGO);
 				c.init(Cipher.ENCRYPT_MODE, key);
 				byte[] encVal = c.doFinal(Data.getBytes());
-				return new BASE64Encoder().encode(encVal);
+				
+				base64.encode(encVal,0,encVal.length,out64);
+				
+				return out64.toString("UTF-8");
 			} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
 				logger.fatal(e.getMessage());
 				return null;
@@ -419,7 +437,10 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 			try {
 				Cipher c = Cipher.getInstance(ALGO);
 				c.init(Cipher.DECRYPT_MODE, key);
-				byte[] decordedValue = new BASE64Decoder().decodeBuffer(encryptedData);
+				
+				base64.decode(encryptedData, out64);			
+				byte[] decordedValue = out64.toByteArray();
+
 				byte[] decValue = c.doFinal(decordedValue);
 		        return new String(decValue);
 			} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | BadPaddingException e) {

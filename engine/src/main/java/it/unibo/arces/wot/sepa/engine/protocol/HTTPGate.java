@@ -20,18 +20,33 @@ package it.unibo.arces.wot.sepa.engine.protocol;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
-import java.util.List;
 
-import org.apache.commons.io.IOUtils;
+import java.nio.charset.Charset;
+
+//import com.sun.net.httpserver.*;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpEntityEnclosingRequest;
+import org.apache.http.HttpException;
+import org.apache.http.HttpRequest;
+import org.apache.http.ParseException;
+import org.apache.http.impl.nio.bootstrap.HttpServer;
+import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
+import org.apache.http.nio.entity.NStringEntity;
+import org.apache.http.nio.protocol.BasicAsyncResponseProducer;
+import org.apache.http.nio.protocol.HttpAsyncExchange;
+import org.apache.http.nio.protocol.HttpAsyncRequestConsumer;
+import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
+import org.apache.http.protocol.HttpContext;
+import org.apache.http.util.EntityUtils;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import com.sun.net.httpserver.*;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -90,6 +105,8 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 
 	private int failedTransactions = 0;
 
+	protected boolean started = true;
+
 	/**
 	 * Instantiates a new HTTP gate.
 	 *
@@ -114,6 +131,16 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 
 		this.properties = properties;
 		this.scheduler = scheduler;
+		
+		updateServer = ServerBootstrap.bootstrap().setListenerPort(properties.getUpdatePort())
+				.registerHandler(properties.getUpdatePath(), new SPARQLHandler(properties.getUpdatePath()))
+				.registerHandler("/echo", new EchoHandler()).create();
+
+		if (properties.getQueryPort() != properties.getUpdatePort()) {
+			queryServer = ServerBootstrap.bootstrap().setListenerPort(properties.getUpdatePort())
+					.registerHandler(properties.getQueryPath(), new SPARQLHandler(properties.getQueryPath()))
+					.registerHandler("/echo", new EchoHandler()).create();
+		} else queryServer = updateServer;
 	}
 
 	/*
@@ -123,7 +150,7 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 	 */
 	@Override
 	public void run() {
-
+		if (!started) return;
 		try {
 			updateServer.wait();
 			queryServer.wait();
@@ -145,41 +172,28 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 		SEPABeans.registerMBean(mBeanName, this);
 
 		try {
-			updateServer = HttpServer.create(new InetSocketAddress(properties.getUpdatePort()), 0);
-			if (properties.getQueryPort() != properties.getUpdatePort())
-				queryServer = HttpServer.create(new InetSocketAddress(properties.getQueryPort()), 0);
-			else
-				queryServer = updateServer;
+			updateServer.start();
+
+			if (queryServer != updateServer) queryServer.start();
+
 		} catch (IOException e) {
 			logger.fatal(e.getMessage());
-			System.exit(1);
+			started = false;
 		}
 
-		updateServer.createContext(properties.getUpdatePath(), new SPARQLHandler());
-		updateServer.createContext("/echo", new EchoHandler());
-		updateServer.setExecutor(null);
-		updateServer.start();
+		if (started) {
+			String host = "localhost";
+			try {
+				host = InetAddress.getLocalHost().getHostAddress();
+			} catch (UnknownHostException e) {
+				logger.warn(e.getMessage());
+			}
 
-		if (queryServer != updateServer) {
-			queryServer.createContext(properties.getQueryPath(), new SPARQLHandler());
-			queryServer.createContext("/echo", new EchoHandler());
-			queryServer.setExecutor(null);
-			queryServer.start();
+			System.out.println("Listening for SPARQL UPDATES on https://" + host + ":" + properties.getUpdatePort()
+					+ properties.getUpdatePath());
+			System.out.println("Listening for SPARQL QUERIES on https://" + host + ":" + properties.getQueryPort()
+					+ properties.getQueryPath());
 		}
-
-		logger.info("HTTP gate started");
-
-		String host = "localhost";
-		try {
-			host = InetAddress.getLocalHost().getHostName();
-		} catch (UnknownHostException e) {
-			logger.warn(e.getMessage());
-		}
-
-		logger.info("Listening for SPARQL UPDATES on https://" + host + ":" + properties.getUpdatePort()
-				+ properties.getUpdatePath());
-		logger.info("Listening for SPARQL QUERIES on https://" + host + ":" + properties.getQueryPort()
-				+ properties.getQueryPath());
 	}
 
 	/*
@@ -190,10 +204,6 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 	@Override
 	public void interrupt() {
 		logger.info("Kill signal received...stopping HTTP servers...");
-		if (updateServer != null)
-			updateServer.stop(0);
-		if (queryServer != null)
-			queryServer.stop(0);
 		super.interrupt();
 	}
 
@@ -228,61 +238,6 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 	}
 
 	/**
-	 * Builds the echo response.
-	 *
-	 * @param exchange
-	 *            the exchange
-	 * @return the json object
-	 */
-	private JsonObject buildEchoResponse(HttpExchange exchange) {
-		JsonObject json = new JsonObject();
-
-		json.add("method", new JsonPrimitive(exchange.getRequestMethod().toUpperCase()));
-		json.add("protocol", new JsonPrimitive(exchange.getProtocol()));
-
-		JsonObject headers = new JsonObject();
-		for (String header : exchange.getRequestHeaders().keySet()) {
-			headers.add(header, new JsonPrimitive(exchange.getRequestHeaders().get(header).toString()));
-		}
-		json.add("headers", headers);
-
-		String body = "";
-		try {
-			body = IOUtils.toString(exchange.getRequestBody(), "UTF-8");
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-			body = e.getMessage();
-		}
-		json.add("body", new JsonPrimitive(body));
-
-		json.add("contextPath", new JsonPrimitive(exchange.getHttpContext().getPath()));
-		if (exchange.getRequestURI().getQuery() != null)
-			json.add("query", new JsonPrimitive(exchange.getRequestURI().getQuery()));
-
-		return json;
-	}
-
-	/**
-	 * Echo request.
-	 *
-	 * @param exchange
-	 *            the HTTP exchange information
-	 */
-	private void echoRequest(HttpExchange exchange) {
-		JsonObject json = buildEchoResponse(exchange);
-
-		if (!CORSManager.processCORSRequest(exchange)) {
-			failureResponse(exchange, ErrorResponse.UNAUTHORIZED, "CORS origin not allowed");
-			return;
-		}
-
-		if (CORSManager.isPreFlightRequest(exchange))
-			sendResponse(exchange, 204, null);
-		else
-			sendResponse(exchange, 200, json.toString());
-	}
-
-	/**
 	 * Failure response.
 	 *
 	 * @param exchange
@@ -292,15 +247,49 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 	 * @param responseBody
 	 *            the response body
 	 */
-	protected void failureResponse(HttpExchange exchange, int httpResponseCode, String responseBody) {
+	protected void failureResponse(HttpAsyncExchange exchange, int httpResponseCode, String responseBody) {
 		failedTransactions++;
-		
-		JsonObject json = buildEchoResponse(exchange);
+
+		JsonObject json = buildEchoResponse(exchange.getRequest());
 
 		json.add("body", new JsonPrimitive(responseBody));
 		json.add("code", new JsonPrimitive(httpResponseCode));
 
 		sendResponse(exchange, httpResponseCode, json.toString());
+	}
+
+	/**
+	 * Builds the echo response.
+	 *
+	 * @param exchange
+	 *            the exchange
+	 * @return the json object
+	 */
+
+	private JsonObject buildEchoResponse(HttpRequest request) {
+		JsonObject json = new JsonObject();
+
+		json.add("method", new JsonPrimitive(request.getRequestLine().getMethod().toUpperCase()));
+		json.add("protocol", new JsonPrimitive(request.getProtocolVersion().getProtocol()));
+
+		JsonObject headers = new JsonObject();
+
+		for (Header header : request.getAllHeaders()) {
+			headers.add(header.getName(), new JsonPrimitive(header.getValue()));
+		}
+		json.add("headers", headers);
+
+		String body = "";
+		HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+		try {
+			body = EntityUtils.toString(entity, Charset.forName("UTF-8"));
+		} catch (ParseException | IOException e) {
+			body = e.getLocalizedMessage();
+		}
+
+		json.add("body", new JsonPrimitive(body));
+
+		return json;
 	}
 
 	/**
@@ -313,85 +302,75 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 	 * @param response
 	 *            the response
 	 */
-	protected void sendResponse(HttpExchange exchange, int httpResponseCode, String response) {
+	protected void sendResponse(HttpAsyncExchange exchange, int httpResponseCode, String response) {
 		logger.info("<< HTTP response (" + httpResponseCode + ") " + response);
 
-		// UTF-8
-		byte[] out = null;
-		if (response != null) {
-			try {
-				out = response.getBytes("UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				logger.error(e.getMessage());
-			}
-		}
+		exchange.getResponse().addHeader("Content-Type", "application/json");
+		exchange.getResponse().setStatusCode(httpResponseCode);
 
 		try {
-			if (out != null) {
-				String contentType = "application/json";
-				List<String> types;
-				if ((types = exchange.getRequestHeaders().get("Accept")) != null) {
-					if (!types.isEmpty())
-						contentType = types.get(0);
-				}
-				exchange.getResponseHeaders().add("Content-Type", contentType);
-				exchange.sendResponseHeaders(httpResponseCode, out.length);
-			} else
-				exchange.sendResponseHeaders(httpResponseCode, -1);
-		} catch (IOException e) {
-			logger.error(e.getMessage());
+			exchange.getResponse().setEntity(new NStringEntity(response));
+		} catch (UnsupportedEncodingException e) {
+			exchange.getResponse().setStatusCode(ErrorResponse.INTERNAL_SERVER_ERROR);
 		}
 
-		try {
-			if (out != null)
-				exchange.getResponseBody().write(out, 0, out.length);
-			// else exchange.getResponseBody().write(new byte[]{0},0,1);
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-		}
-
-		try {
-			exchange.getResponseBody().close();
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-		}
+		exchange.submitResponse(new BasicAsyncResponseProducer(exchange.getResponse()));
 	}
 
 	/**
 	 * The Class EchoHandler.
 	 */
-	public class EchoHandler implements HttpHandler {
+	public class EchoHandler implements HttpAsyncRequestHandler<HttpRequest> { // HttpHandler
+																				// {
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * com.sun.net.httpserver.HttpHandler#handle(com.sun.net.httpserver.
-		 * HttpExchange)
-		 */
 		@Override
-		public void handle(HttpExchange exchange) throws IOException {
-			echoRequest(exchange);
+		public void handle(HttpRequest request, HttpAsyncExchange exchange, HttpContext context)
+				throws HttpException, IOException {
+			JsonObject json = buildEchoResponse(request);
+
+			if (!CORSManager.processCORSRequest(exchange)) {
+				failureResponse(exchange, ErrorResponse.UNAUTHORIZED, "CORS origin not allowed");
+				return;
+			}
+
+			if (CORSManager.isPreFlightRequest(exchange))
+				sendResponse(exchange, 204, null);
+			else
+				sendResponse(exchange, 200, json.toString());
+
+		}
+
+		@Override
+		public HttpAsyncRequestConsumer<HttpRequest> processRequest(HttpRequest request, HttpContext context)
+				throws HttpException, IOException {
+
+			return null;
 		}
 	}
 
 	/**
 	 * The Class SPARQLHandler.
 	 */
-	public class SPARQLHandler implements HttpHandler {
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see
-		 * com.sun.net.httpserver.HttpHandler#handle(com.sun.net.httpserver.
-		 * HttpExchange)
-		 */
+	public class SPARQLHandler implements HttpAsyncRequestHandler<HttpRequest> {
+
+		public SPARQLHandler(String updatePath) {
+			logger.debug("SPARQL handler created on " + updatePath);
+		}
+
 		@Override
-		public void handle(HttpExchange httpExchange) throws IOException {
+		public void handle(HttpRequest request, HttpAsyncExchange exchange, HttpContext context)
+				throws HttpException, IOException {
 			logger.info(">> HTTP request");
 			transactions += 1;
-			//execute.submit(new HTTPRequestProcessor(httpExchange));
-			new HTTPRequestProcessor(httpExchange).start();
+			new HTTPRequestProcessor(exchange).start();
+
+		}
+
+		@Override
+		public HttpAsyncRequestConsumer<HttpRequest> processRequest(HttpRequest arg0, HttpContext arg1)
+				throws HttpException, IOException {
+
+			return null;
 		}
 
 		/**
@@ -400,7 +379,7 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 		class HTTPRequestProcessor extends Thread implements ResponseAndNotificationListener {
 
 			/** The HTTP exchange. */
-			private HttpExchange httpExchange;
+			private HttpAsyncExchange httpExchange;
 
 			/** The response. */
 			private Response response = null;
@@ -411,7 +390,7 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 			 * @param httpExchange
 			 *            the http exchange
 			 */
-			public HTTPRequestProcessor(HttpExchange httpExchange) {
+			public HTTPRequestProcessor(HttpAsyncExchange httpExchange) {
 				this.httpExchange = httpExchange;
 			}
 
@@ -454,15 +433,15 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 			 * @see QueryRequest
 			 * @see UpdateRequest
 			 */
-			private Request parseSPARQL11(HttpExchange httpExchange) {
-				switch (httpExchange.getRequestMethod().toUpperCase()) {
+			private Request parseSPARQL11(HttpAsyncExchange httpExchange) {
+				switch (httpExchange.getRequest().getRequestLine().getMethod().toUpperCase()) {
 				case "GET":
 					logger.debug("query via GET");
-					if (httpExchange.getRequestURI().getQuery() == null) {
+					if (httpExchange.getRequest().getRequestLine().getUri().contains("query=")) {
 						failureResponse(httpExchange, 400, "query is null");
 						return null;
 					}
-					String[] query = httpExchange.getRequestURI().getQuery().split("&");
+					String[] query = httpExchange.getRequest().getRequestLine().getUri().split("&");
 					for (String param : query) {
 						String[] value = param.split("=");
 						if (value[0].equals("query")) {
@@ -484,21 +463,25 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 							return new QueryRequest(token, sparql);
 						}
 					}
-					failureResponse(httpExchange, 400,
-							"Wrong query format: " + httpExchange.getRequestURI().getQuery());
+					failureResponse(httpExchange, 400, "Wrong format: " + httpExchange.getRequest().getRequestLine());
 					return null;
 
 				case "POST":
 					String body = null;
+					HttpEntity entity = ((HttpEntityEnclosingRequest) httpExchange.getRequest()).getEntity();
 					try {
-						body = IOUtils.toString(httpExchange.getRequestBody(), "UTF-8");
-					} catch (IOException e) {
-						logger.error(e.getMessage());
-						failureResponse(httpExchange, 400, e.getMessage());
+						body = EntityUtils.toString(entity, Charset.forName("UTF-8"));
+					} catch (ParseException | IOException e) {
+						body = e.getLocalizedMessage();
+					}
+
+					if (httpExchange.getRequest().getHeaders("Content-Type").length != 1) {
+						logger.error("Content-Type is missing");
+						failureResponse(httpExchange, ErrorResponse.BAD_REQUEST, "Content-Type is missing");
 						return null;
 					}
 
-					if (httpExchange.getRequestHeaders().get("Content-Type").contains("application/sparql-query")) {
+					if (httpExchange.getRequest().getHeaders("Content-Type")[0].equals("application/sparql-query")) {
 						logger.debug("query via POST directly");
 						queryTransactions++;
 
@@ -510,8 +493,8 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 							return null;
 						}
 						return new QueryRequest(token, body);
-					}
-					if (httpExchange.getRequestHeaders().get("Content-Type").contains("application/sparql-update")) {
+					} else if (httpExchange.getRequest().getHeaders("Content-Type")[0]
+							.equals("application/sparql-update")) {
 						logger.debug("update via POST directly");
 						updateTransactions++;
 
@@ -523,10 +506,8 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 							return null;
 						}
 						return new UpdateRequest(token, body);
-					}
-
-					if (httpExchange.getRequestHeaders().get("Content-Type")
-							.contains("application/x-www-form-urlencoded")) {
+					} else if (httpExchange.getRequest().getHeaders("Content-Type")[0]
+							.equals("application/x-www-form-urlencoded")) {
 						String decodedBody;
 						try {
 							decodedBody = URLDecoder.decode(body, "UTF-8");
@@ -575,8 +556,10 @@ public class HTTPGate extends Thread implements HTTPGateMBean {
 					return null;
 				}
 
-				logger.error("UNSUPPORTED METHOD: " + httpExchange.getRequestMethod().toUpperCase());
-				failureResponse(httpExchange, 400, "Unsupported method: " + httpExchange.getRequestMethod());
+				logger.error(
+						"UNSUPPORTED METHOD: " + httpExchange.getRequest().getRequestLine().getMethod().toUpperCase());
+				failureResponse(httpExchange, 400,
+						"Unsupported method: " + httpExchange.getRequest().getRequestLine().getMethod().toUpperCase());
 
 				return null;
 			}

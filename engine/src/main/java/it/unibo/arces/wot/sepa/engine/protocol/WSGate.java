@@ -71,6 +71,8 @@ public class WSGate extends WebSocketApplication {
 	protected EngineProperties properties;
 	protected Scheduler scheduler;
 	
+	protected boolean started = true;
+	
 	//Collection of active sockets
 	protected HashMap<WebSocket,SEPAResponseListener> activeSockets = new HashMap<WebSocket,SEPAResponseListener>();
 	
@@ -154,15 +156,15 @@ public class WSGate extends WebSocketApplication {
 		return null;
 	}
 	
-	public WSGate(EngineProperties properties,Scheduler scheduler) {
+	public WSGate(EngineProperties properties,Scheduler scheduler) throws IllegalArgumentException {
 		if (scheduler == null) {
 			logger.fatal("Scheduler is null");
-			System.exit(1);
+			throw new IllegalArgumentException("Scheduler is null");
 		}
 		
 		if (properties == null) {
 			logger.fatal("Properties are null");
-			System.exit(1);
+			throw new IllegalArgumentException("Properties are null");
 		}
 		
 		this.properties = properties;
@@ -184,17 +186,19 @@ public class WSGate extends WebSocketApplication {
 			server.start();
 		} catch (IOException e) {
 			logger.fatal("Failed to start WebSocket gate on port "+properties.getSubscribePort()+ " "+e.getMessage());
-			System.exit(1);
+			started = false;
 		}
+        
+        if (!started) return false;
         
         String host = "localhost";
 	    try {
-			host = InetAddress.getLocalHost().getHostName();
+			host = InetAddress.getLocalHost().getHostAddress();
 		} catch (UnknownHostException e) {
 			logger.warn(e.getMessage());
 		}
 	    
-	    logger.info("Listening for SPARQL SUBSCRIBE/UNSUBSCRIBE on ws://"+host+":"+properties.getSubscribePort()+properties.getSubscribePath());
+	    System.out.println("Listening for SPARQL SUBSCRIBE/UNSUBSCRIBE on ws://"+host+":"+properties.getSubscribePort()+properties.getSubscribePath());
 		
 		//Start the keep alive thread
 		if (properties.getKeepAlivePeriod() > 0) new KeepAlive().start();
