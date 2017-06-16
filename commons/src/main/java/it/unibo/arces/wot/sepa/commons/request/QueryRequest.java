@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.commons.request;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents a request to perform a SPARQL 1.1 Query
  * 

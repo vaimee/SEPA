@@ -19,6 +19,7 @@ package it.unibo.arces.wot.sepa.commons.response;
 
 import com.google.gson.JsonPrimitive;
 
+// TODO: Auto-generated Javadoc
 /**
  * It represents a generic error. If it applies, the use of HTTP status codes is RECOMMENDED 
  * (<b><a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html">RFC 2616</a></b>)<br><br>
@@ -75,8 +76,8 @@ public class ErrorResponse extends Response {
 	/**
 	 * Instantiates a new error response.
 	 *
-	 * @param status the token
-	 * @param string the code
+	 * @param code the code
+	 * @param message the message
 	 */
 	public ErrorResponse(int code,String message) {
 		super();

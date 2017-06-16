@@ -22,6 +22,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class RegistrationRequest.
  */
@@ -43,7 +44,9 @@ public class RegistrationRequest {
 	}
 	
 	/**
-	 * {"client_identity":"id","grant_types":["client_credentials"]}
+	 * {"client_identity":"id","grant_types":["client_credentials"]}.
+	 *
+	 * @return the string
 	 */
 	public String toString() {
 		return json.toString();

@@ -17,6 +17,7 @@
 */
 package it.unibo.arces.wot.sepa.commons.request;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents a generic request (i.e., QUERY, UPDATE, SUBSCRIBE,
  * UNSUBSCRIBE)

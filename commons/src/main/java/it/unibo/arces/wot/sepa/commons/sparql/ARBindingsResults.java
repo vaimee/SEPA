@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.commons.sparql;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents the content of a SEPA notification
  * 
