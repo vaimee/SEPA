@@ -4,16 +4,17 @@ SEPA is a publish-subscribe architecture designed to support information level i
 
 ## Installation
 
-1) Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar)
-2) Unzip the archive
-3) Open a teminal and move to the unzipped folder
-4) Run `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`
-5) Open a new terminal and run `jconsole` and connect to localhost:5555 with `root:root` credentials. This allows to montior and control the engine using JMX
-6) Download [Blazegraph](https://sourceforge.net/projects/bigdata/files/latest/download) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
+- Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) and run it `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`
+
+- Download [Blazegraph](https://sourceforge.net/projects/bigdata/files/latest/download) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
+
+## Configuration
+
+The SEPA engine uses to JSON configuration files: `engine.jpar` and `endpoint.jpar` (a default version of these files is provided with the [SEPA Engine release](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar). The default version of these file configure the SEPA engine as follows:
+- using a local running instance of Blazegraph as SPARQL 1.1 Protocol Service
+- accepting SPARQL 1.1 SE Protocol requests at the following URLs:
 
 ## Usage
-
-TODO: Write usage instructions
 
 ## Contributing
 
