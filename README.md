@@ -11,19 +11,19 @@ SEPA is a publish-subscribe architecture designed to support information level i
 ## Configuration
 
 The SEPA engine uses two JSON configuration files: `engine.jpar` and `endpoint.jpar`. The default versions of these files (included in the   [SEPA Engine release](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) distribution) configure the engine as follows:
-- to use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service]((https://www.w3.org/TR/sparql11-protocol/)
-- to use the following URLs for incoming [SPARQL 1.1 SE Protocol]((https://wot.arces.unibo.it/TR/sparql11-se-protocol/) requests:
+- to use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service](https://www.w3.org/TR/sparql11-protocol/)
+- to use the following URLs for incoming [SPARQL 1.1 SE Protocol](https://wot.arces.unibo.it/TR/sparql11-se-protocol/) requests:
 
-1. Query: http://192.168.1.12:8000/query
-2. Update: http://192.168.1.12:8000/update
-3. Subscribe/Unsubscribe: ws://192.168.1.12:9000/subscribe
+1. Query: http://localhost:8000/query
+2. Update: http://localhost:8000/update
+3. Subscribe/Unsubscribe: ws://localhost:9000/subscribe
 
-4. SECURE Query: https://192.168.1.12:8443/secure/query
-5. SECURE Update: https://192.168.1.12:8443/secure/update
-6. SECURE Subscribe/Unsubscribe: wss://192.168.1.12:9443/secure/subscribe 
+4. SECURE Query: https://localhost:8443/secure/query
+5. SECURE Update: https://localhost:8443/secure/update
+6. SECURE Subscribe/Unsubscribe: wss://localhost:9443/secure/subscribe 
 
-7. Regitration: https://192.168.1.12:8443/oauth/register
-8. Token request: https://192.168.1.12:8443/oauth/token
+7. Regitration: https://localhost:8443/oauth/register
+8. Token request: https://localhost:8443/oauth/token
 
 ## Usage
 
