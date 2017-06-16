@@ -3,7 +3,17 @@ package it.unibo.arces.wot.sepa.tools;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.NoSuchElementException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,7 +32,7 @@ public class GarbageCollector extends Aggregator {
 	
 	private static GarbageCollector chatServer;
 	
-	public GarbageCollector(ApplicationProfile appProfile, String subscribeID, String updateID) {
+	public GarbageCollector(ApplicationProfile appProfile, String subscribeID, String updateID) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 		super(appProfile,subscribeID, updateID);
 	}
 
@@ -45,13 +55,30 @@ public class GarbageCollector extends Aggregator {
 		}	
 	}
 	
-	public static void main(String[] args) throws FileNotFoundException, NoSuchElementException, IOException, URISyntaxException {
+	public static void main(String[] args) {
 		
-		ApplicationProfile profile = new ApplicationProfile("GarbageCollector.jsap");
+		ApplicationProfile profile = null;
+		try {
+			profile = new ApplicationProfile("GarbageCollector.jsap");
+		} catch (NoSuchElementException | IOException | InvalidKeyException | IllegalArgumentException | NullPointerException | ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+			logger.fatal(e1.getLocalizedMessage());
+			System.exit(1);
+		}
 		
-		chatServer = new GarbageCollector(profile,"GARBAGE","REMOVE");
+		try {
+			chatServer = new GarbageCollector(profile,"GARBAGE","REMOVE");
+		} catch (UnrecoverableKeyException | KeyManagementException | IllegalArgumentException | KeyStoreException
+				| NoSuchAlgorithmException | CertificateException | IOException | URISyntaxException e1) {
+			logger.fatal(e1.getLocalizedMessage());
+			System.exit(1);
+		}
 		
-		if (chatServer.subscribe(null) == null) return;
+		try {
+			if (chatServer.subscribe(null) == null) return;
+		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+			logger.fatal(e1.getLocalizedMessage());
+			System.exit(1);
+		}
 		
 		logger.info("Up and running");
 		logger.info("Press any key to exit...");

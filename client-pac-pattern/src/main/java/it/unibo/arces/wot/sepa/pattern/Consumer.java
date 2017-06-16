@@ -21,7 +21,17 @@ package it.unibo.arces.wot.sepa.pattern;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.NoSuchElementException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -146,7 +156,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		}
 	}
 	
-	public Consumer(ApplicationProfile appProfile,String subscribeID) throws IllegalArgumentException {
+	public Consumer(ApplicationProfile appProfile,String subscribeID) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 		super(appProfile);
 
 		if (appProfile == null || subscribeID == null) {
@@ -162,11 +172,11 @@ public abstract class Consumer extends Client implements IConsumer {
 		sparqlSubscribe = appProfile.subscribe(subscribeID);			
 	}
 	
-	public Consumer(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException {
+	public Consumer(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
 		super(jparFile);
 	}
 
-	public String subscribe(Bindings forcedBindings) throws IOException, URISyntaxException {
+	public String subscribe(Bindings forcedBindings) throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		if (sparqlSubscribe == null) {
 			logger.fatal( "SPARQL SUBSCRIBE not defined");
 			 return null;
@@ -199,7 +209,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		
 	}
 	 
-	public boolean unsubscribe() throws IOException, URISyntaxException {
+	public boolean unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		logger.debug("UNSUBSCRIBE "+subID);
 		
 		if (protocolClient == null) {

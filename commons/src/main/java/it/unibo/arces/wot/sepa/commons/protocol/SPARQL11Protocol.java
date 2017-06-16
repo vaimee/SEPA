@@ -284,7 +284,7 @@ An update request can be:
 	protected HttpUriRequest buildRequest(SPARQLPrimitive op,HTTPMethod method,QueryResultsFormat format,String sparql) {
 		URI uri = null;
 		HttpUriRequest httpRequest = null;
-		String query = "";
+		String query = null;
 		String contentType = "";
 		ByteArrayEntity body = null;
 		String accept = "application/json";
@@ -394,36 +394,26 @@ An update request can be:
 			}	
 		}
 		
-		//Parameters MAY be different for query and update
+		//Path MAY be different for query and update
+		String path;
 		if (op.equals(SPARQLPrimitive.QUERY)) {
-			try {
-				uri = new URI(properties.getQueryScheme(),
-						   null,
-						   properties.getHost(),
-						   properties.getQueryPort(),
-						   properties.getQueryPath(),
-						   query,
-						   null);
-			} catch (URISyntaxException e) {
-				logger.error("Error on creating request URI "+e.getMessage());
-				return null;
-			}	
+			path = properties.getQueryPath();
 		}
 		else {
-			try {
-				uri = new URI(properties.getUpdateScheme(),
-						   null,
-						   properties.getHost(),
-						   properties.getUpdatePort(),
-						   properties.getUpdatePath(),
-						   query,
-						   null);
-			} catch (URISyntaxException e) {
-				logger.error("Error on creating request URI "+e.getMessage());
-				return null;
-			}
+			path = properties.getUpdatePath();
 		}
-		
+		try {
+			uri = new URI("http",
+					   null,
+					   properties.getHost(),
+					   properties.getHttpPort(),
+					   path,
+					   query,
+					   null);
+		} catch (URISyntaxException e) {
+			logger.error("Error on creating request URI "+e.getMessage());
+			return null;
+		}
 		
 		
 		//GET or POST

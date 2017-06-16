@@ -31,6 +31,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 
 import javax.swing.JFrame;
@@ -52,6 +58,9 @@ import org.apache.logging.log4j.Logger;
 
 import javax.swing.JPanel;
 import javax.swing.JList;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -117,7 +126,7 @@ public class Dashboard {
 	
 	class DashboardClient extends GenericClient {
 
-		public DashboardClient(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException{
+		public DashboardClient(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException{
 			super(jparFile);	
 		}
 		
@@ -635,14 +644,22 @@ public class Dashboard {
 
 	/**
 	 * Create the application.
+	 * @throws BadPaddingException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws NoSuchPaddingException 
+	 * @throws ClassCastException 
+	 * @throws NullPointerException 
+	 * @throws InvalidKeyException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws IllegalArgumentException 
 	 */
-	public Dashboard() {		
+	public Dashboard() throws InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IllegalArgumentException, NoSuchAlgorithmException {		
 		initialize();
 		
 		loadSAP(null);
 	}
 	
-	private boolean loadSAP(String file) {
+	private boolean loadSAP(String file) throws InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IllegalArgumentException, NoSuchAlgorithmException {
 		if (file == null) {
 			FileInputStream in = null;
 			try {
@@ -705,11 +722,11 @@ public class Dashboard {
 		}
 		
 		textFieldIP.setText(appProfile.getHost());
-		textFieldUPort.setText(String.format("%d", appProfile.getUpdatePort()));
-		textFieldSPort.setText(String.format("%d", appProfile.getSubscribePort()));
+		textFieldUPort.setText(String.format("%d", appProfile.getHttpPort()));
+		textFieldSPort.setText(String.format("%d", appProfile.getWsPort()));
 		txtFieldPath.setText(appProfile.getUpdatePath());
-		textFieldUPortSecure.setText(String.format("%d", appProfile.getUpdateSecurePort()));
-		textFieldSPortSecure.setText(String.format("%d", appProfile.getSubscribeSecurePort()));
+		textFieldUPortSecure.setText(String.format("%d", appProfile.getHttpsPort()));
+		textFieldSPortSecure.setText(String.format("%d", appProfile.getWssPort()));
 		
 		//Enable all the buttons
 		btnUpdate.setEnabled(true);
@@ -718,7 +735,7 @@ public class Dashboard {
 		
 		try {
 			kp = new DashboardClient(file);
-		} catch (IllegalArgumentException | NoSuchElementException | IOException e) {
+		} catch (IllegalArgumentException | NoSuchElementException | IOException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException | URISyntaxException e) {
 			logger.error(e.getMessage());
 			return false;
 		} 
@@ -921,28 +938,34 @@ public class Dashboard {
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					String fileName = fc.getSelectedFile().getPath();
 					
-					if(loadSAP(fileName)) { 
-					
-						FileOutputStream out = null;
-						try {
-							out = new FileOutputStream("dashboard.properties");
-						} catch (FileNotFoundException e3) {
-							logger.error(e3.getMessage());
-							return;
-						}
+					try {
+						if(loadSAP(fileName)) { 
 						
-						Properties sapFile = new Properties();
-						sapFile.put("appProfile", fileName);
-						try {
-							sapFile.store(out,"Dashboard properties");
-						} catch (IOException e1) {
-							logger.error(e1.getMessage());
+							FileOutputStream out = null;
+							try {
+								out = new FileOutputStream("dashboard.properties");
+							} catch (FileNotFoundException e3) {
+								logger.error(e3.getMessage());
+								return;
+							}
+							
+							Properties sapFile = new Properties();
+							sapFile.put("appProfile", fileName);
+							try {
+								sapFile.store(out,"Dashboard properties");
+							} catch (IOException e1) {
+								logger.error(e1.getMessage());
+							}
+							try {
+								out.close();
+							} catch (IOException e2) {
+								logger.error(e2.getMessage());
+							}
 						}
-						try {
-							out.close();
-						} catch (IOException e2) {
-							logger.error(e2.getMessage());
-						}
+					} catch (InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException
+							| IllegalBlockSizeException | BadPaddingException | IllegalArgumentException
+							| NoSuchAlgorithmException e1) {
+						logger.error(e1.getLocalizedMessage());
 					}
 					
 				}
@@ -1265,7 +1288,7 @@ public class Dashboard {
 					
 					try {
 						response = kp.subscribe(prefixes()+query, forced);
-					} catch (IOException | URISyntaxException e1) {
+					} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
 						lblInfo.setText("Subscription failed: "+e1.getMessage());
 						return;
 					}
@@ -1283,7 +1306,7 @@ public class Dashboard {
 						if (kp.unsubscribe()) {
 							lblInfo.setText("Unsubscribed");	
 						}
-					} catch (IOException | URISyntaxException e1) {
+					} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
 						lblInfo.setText(e1.getMessage());	
 					}
 					

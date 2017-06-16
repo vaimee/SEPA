@@ -3,11 +3,21 @@ package it.unibo.arces.wot.sepa.tools;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,13 +73,29 @@ public class StressTest {
 		logger.info("*** UPDATE *** #"+index+" "+period+" ms ("+publishingEnded.getCount()+")");
 	}
 
-	public static void main(String[] args) throws FileNotFoundException, NoSuchElementException, IOException, IllegalArgumentException, URISyntaxException {
+	public static void main(String[] args)  {
 		for (int i = 0; i < nConsumers; i++) {
-			new Thread(new StressTest().new Subscriber("client.jpar", i)).start();
+			try {
+				new Thread(new StressTest().new Subscriber("client.jpar", i)).start();
+			} catch (UnrecoverableKeyException | KeyManagementException | IllegalArgumentException
+					| NoSuchElementException | KeyStoreException | NoSuchAlgorithmException | CertificateException
+					| IOException | URISyntaxException | InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
+				
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
 
 		for (int i = 0; i < nProducers; i++) {
-			new Thread(new StressTest().new Publisher("client.jpar", i, producerUpdates)).start();
+			try {
+				new Thread(new StressTest().new Publisher("client.jpar", i, producerUpdates)).start();
+			} catch (UnrecoverableKeyException | KeyManagementException | IllegalArgumentException
+					| NoSuchElementException | KeyStoreException | NoSuchAlgorithmException | CertificateException
+					| IOException | InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | URISyntaxException e) {
+				
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
 
 		try {
@@ -90,7 +116,7 @@ public class StressTest {
 		private int index = 0;
 
 		public Subscriber(String jparFile, int i)
-				throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, URISyntaxException {
+				throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, URISyntaxException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 			super(jparFile);
 			index = i;
 			previous = new Date();
@@ -139,7 +165,7 @@ public class StressTest {
 		public int nUpdate = 0;
 
 		public Publisher(String jparFile, int i, int nu)
-				throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException {
+				throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
 			super(jparFile);
 			index = i;
 			nUpdate = nu;

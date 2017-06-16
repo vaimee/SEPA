@@ -19,154 +19,276 @@ package it.unibo.arces.wot.sepa.engine.core;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Date;
 import java.util.NoSuchElementException;
 import java.util.logging.Level;
+import java.util.regex.PatternSyntaxException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.nimbusds.jose.JOSEException;
+
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-import it.unibo.arces.wot.sepa.engine.beans.SEPABeans;
+
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
-import it.unibo.arces.wot.sepa.engine.protocol.HTTPGate;
-import it.unibo.arces.wot.sepa.engine.protocol.HTTPSGate;
-import it.unibo.arces.wot.sepa.engine.protocol.WSGate;
-import it.unibo.arces.wot.sepa.engine.protocol.WSSGate;
+
+import it.unibo.arces.wot.sepa.engine.protocol.http.HttpServer;
+import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsServer;
+import it.unibo.arces.wot.sepa.engine.protocol.websocket.SubscribeServer;
+import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureSubscribeServer;
+
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
 /**
- * This class represents the SPARQL Subscription (SUB) Engine of the Semantic Event Processing Architecture (SEPA)
+ * This class represents the SPARQL Subscription (SUB) Engine of the Semantic
+ * Event Processing Architecture (SEPA)
  * 
-* @author Luca Roffia (luca.roffia@unibo.it)
-* @version 0.6
-* */
+ * @author Luca Roffia (luca.roffia@unibo.it)
+ * @version 0.6
+ */
 
 public class Engine extends Thread implements EngineMBean {
-	//Properties, logging
+	// Properties, logging
+	private static final Logger logger = LogManager.getLogger("Engine");
 	private EngineProperties engineProperties = null;
 	private SPARQL11Properties endpointProperties = null;
-	
-	//JMX properties
-	private static Date startDate; 
-	
-	//Primitives scheduler/dispatcher
+
+	// JMX properties
+	private static Date startDate;
+
+	// Primitives scheduler/dispatcher
 	private Scheduler scheduler = null;
-	
-	//Primitives processor
+
+	// Primitives processor
 	private Processor processor = null;
+
+	// SPARQL 1.1 Protocol handler
+	private HttpServer httpGate = null;
+
+	// SPARQL 1.1 SE Protocol handler
+	private SubscribeServer wsServer;
+	private SecureSubscribeServer wssServer;
+	private HttpsServer httpsGate = null;
+
+	//Outh 2.0 Authorization Server
+	private static AuthorizationManager oauth;
+	private static String storeName ="sepa.jks";
+	private static String storePassword ="sepa2017";
+	private static String jwtAlias = "sepakey";
+	private static String jwtPassword ="sepa2017";
+	private static String serverCertificate = "sepacert";
+
+	private static void printUsage() {
+		System.out.println("Usage:");
+		System.out.println("java [JMX] -jar sepa-engine.jar [OPTIONS]");
+		System.out.println("");
+		System.out.println("JMX:");
+		System.out.println("-Dcom.sun.management.config.file=jmx.properties : to enable JMX remote managment");
+		System.out.println("OPTIONS:");
+		System.out.println("-help : to print this help");
+		System.out.println("-storename=<name> : file name of the JKS     (default: sepa.jks)");
+		System.out.println("-storepwd=<pwd> : password of the JKS        (default: sepa2017)");
+		System.out.println("-alias=<jwt> : alias for the JWT key      	 (default: sepakey)");
+		System.out.println("-aliaspwd=<pwd> : password of the JWT key    (default: sepa2017)");
+		System.out.println("-certificate=<crt> : name of the certificate (default: sepacert)");
+		
+	}
+	private static void parsingArgument(String[] args) throws PatternSyntaxException {
+		String[] tmp;
+		for (String arg : args) {
+			if (arg.equals("-help")) {
+				printUsage();
+				return;
+			}
+			if (arg.startsWith("-")) {
+				tmp = arg.split("=");
+				switch(tmp[0]) {
+				case "-storename":
+					storeName = tmp[1];
+					break;
+				case "-storepwd":		
+					storePassword = tmp[1];
+					break;
+				case "-alias":
+					jwtAlias = tmp[1];
+					break;
+				case "-aliaspwd":
+					jwtPassword = tmp[1];
+					break;
+				case "-certificate":		
+					serverCertificate = tmp[1];
+					break;
+				default:
+					break;
+				}
+			}
+		}
+	}
 	
-	//SPARQL 1.1 Protocol handler
-	private HTTPGate httpGate = null;
-	private HTTPSGate httpsGate = null;
-	
-	//SPARQL 1.1 SE Protocol handler
-	private WSGate websocketApp;
-	private WSSGate secureWebsocketApp;
-	
-	private AuthorizationManager am = new AuthorizationManager("sepa.jks","*sepa.jks*","SepaKey","*SepaKey*","SepaCertificate");
-	
-	public static void main(String[] args) throws IllegalArgumentException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, FileNotFoundException, NoSuchElementException, IOException {
+	public static void main(String[] args) {
 		//Set Grizzly logging level
-		java.util.logging.Logger grizzlyNetworkListener = java.util.logging.Logger.getLogger("org.glassfish.grizzly.http.server.NetworkListener");
-		java.util.logging.Logger grizzlyHttpServer = java.util.logging.Logger.getLogger("org.glassfish.grizzly.http.server.HttpServer");
+		java.util.logging.Logger grizzlyNetworkListener = java.util.logging.Logger
+				.getLogger("org.glassfish.grizzly.http.server.NetworkListener");
+		java.util.logging.Logger grizzlyHttpServer = java.util.logging.Logger
+				.getLogger("org.glassfish.grizzly.http.server.HttpServer");
 		grizzlyNetworkListener.setLevel(Level.SEVERE);
 		grizzlyHttpServer.setLevel(Level.SEVERE);
-		
-		System.out.println("##########################################################################################");
-		System.out.println("# SEPA Engine Ver 0.7.0  Copyright (C) 2016-2017                                         #");
-		System.out.println("# University of Bologna (Italy)                                                          #");
-		System.out.println("#                                                                                        #");
-		System.out.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");                                    
-		System.out.println("# This is free software, and you are welcome to redistribute it under certain conditions #");
-		System.out.println("# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #");
-		System.out.println("#                                                                                        #");
-		System.out.println("# GitHub: https://github.com/arces-wot/sepa                                              #");
-		System.out.println("# Web: http://wot.arces.unibo.it                                                         #");
-		System.out.println("##########################################################################################");
-		System.out.println("");		
-		System.out.println("--------------------------------- Maven dependencies -------------------------------------");
+
+		//Command arguments
+		parsingArgument(args);
+				
+		System.out
+				.println("##########################################################################################");
+		System.out
+				.println("# SEPA Engine Ver 0.7.5  Copyright (C) 2016-2017                                         #");
+		System.out
+				.println("# University of Bologna (Italy)                                                          #");
+		System.out
+				.println("#                                                                                        #");
+		System.out
+				.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
+		System.out
+				.println("# This is free software, and you are welcome to redistribute it under certain conditions #");
+		System.out
+				.println("# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #");
+		System.out
+				.println("#                                                                                        #");
+		System.out
+				.println("# GitHub: https://github.com/arces-wot/sepa                                              #");
+		System.out
+				.println("# Web: http://wot.arces.unibo.it                                                         #");
+		System.out
+				.println("# WiKi: https: // github.com/arces-wot/SEPA/wiki                                         #");
+		System.out
+				.println("##########################################################################################");
+		System.out.println("");
+		System.out
+				.println("--------------------------------- Maven dependencies -------------------------------------");
 		System.out.println("<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->"
 				+ "\n<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->"
-				
-				+ "\n<!-- https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client -->"
+
 				+ "\n<!-- https://mvnrepository.com/artifact/org.glassfish.grizzly/grizzly-websockets-server -->"
 
 				+ "\n<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->"
 				+ "\n<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->"
-				
+
 				+ "\n<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->"
-				
+
 				+ "\n<!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->"
 				+ "\n<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->");
 		
-		//Engine creation and initialization
+		// Engine creation and initialization
 		Engine engine = new Engine();
-		engine.init();
-	
-		System.out.println("--------------------- SPARQL 1.1 Secure Event Protocol handlers --------------------------");
+
+		//OAUTH 2.0 Authorization Manager
+		try {
+			oauth = new AuthorizationManager(storeName, storePassword, jwtAlias, jwtPassword,serverCertificate);
+		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
+				| CertificateException | IOException | JOSEException e1) {
+			logger.fatal(e1.getLocalizedMessage());
+			System.exit(1);
+		}
 		
-		//Starting main engine thread
+		// Initialize
+		try {
+			engine.init();
+		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException
+				| NotCompliantMBeanException | UnrecoverableKeyException | KeyManagementException
+				| IllegalArgumentException | NoSuchElementException | KeyStoreException | NoSuchAlgorithmException
+				| CertificateException | IOException | JOSEException | InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
+			logger.fatal(e.getMessage());
+			System.exit(1);
+		}
+
+		// Starting main engine thread
 		engine.start();
-		
-		//Welcome message
+
+		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
 		System.out.println("*                      SEPA Engine Ver 0.7.0 is up and running                          *");
 		System.out.println("*                                 Let Things Talk                                       *");
 		System.out.println("*****************************************************************************************");
 	}
-	
+
 	public Engine() {
-		SEPABeans.registerMBean("SEPA:type=Engine",this);		
+		SEPABeans.registerMBean("SEPA:type=Engine", this);
 	}
-	
+
 	@Override
 	public void start() {
-		
+
 		this.setName("SEPA Engine");
-		
-		//Scheduler
+
+		// Scheduler
 		scheduler.start();
+
+		// SPARQL 1.1 Protocol handler
+		new Thread(httpGate).start();
 		
-		//SPARQL 1.1 Protocol handlers
-		httpGate.start();
-		httpsGate.start();
+		// SPARQL 1.1 SE Protocol handler
+		new Thread(httpsGate).start();
+
+		wsServer.start();
 		
-		//SPARQL 1.1 SE Protocol handler for WebSocket based subscriptions
-		websocketApp.start();
-		secureWebsocketApp.start();
-		
+		wssServer.start();
+
 		super.start();
-		
+
 		startDate = new Date();
 	}
-	
-	public boolean init() throws IllegalArgumentException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, FileNotFoundException, NoSuchElementException, IOException {			
-		//Initialize SPARQL 1.1 processing service properties
+
+	public boolean init() throws IllegalArgumentException, MalformedObjectNameException, InstanceAlreadyExistsException,
+			MBeanRegistrationException, NotCompliantMBeanException, FileNotFoundException, NoSuchElementException,
+			IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
+			CertificateException, JOSEException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		// Initialize SPARQL 1.1 processing service properties
 		endpointProperties = new SPARQL11Properties("endpoint.jpar");
-		
-		//Initialize SPARQL 1.1 SE processing service properties
+
+		// Initialize SPARQL 1.1 SE processing service properties
 		engineProperties = new EngineProperties("engine.jpar");
-		
-		//SPARQL 1.1 SE request processor
+
+		// SPARQL 1.1 SE request processor
 		processor = new Processor(endpointProperties);
+
+		// SPARQL 1.1 SE request scheduler
+		scheduler = new Scheduler(engineProperties, processor);
+
+		// SPARQL 1.1 Protocol
+		System.out
+				.println("---------- SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)  ---------------");
+		httpGate = new HttpServer(engineProperties, scheduler);
+
+		// SPARQL 1.1 SE Protocol
+		System.out.println("");
+		System.out
+				.println("------ SPARQL SE 1.1 Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)  -----");
+		wsServer = new SubscribeServer(engineProperties, scheduler);
 		
-		//SPARQL 1.1 SE request scheduler
-		scheduler = new Scheduler(engineProperties,processor);
+		httpsGate = new HttpsServer(engineProperties, scheduler, oauth);
 		
-		//SPARQL 1.1 Protocol handlers
-		httpGate = new HTTPGate(engineProperties,scheduler);
-		httpsGate = new HTTPSGate(engineProperties,scheduler,am);
-		
-		//SPARQL 1.1 SE Protocol handler for WebSocket based subscriptions
-		websocketApp = new WSGate(engineProperties,scheduler);
-		secureWebsocketApp = new WSSGate(engineProperties,scheduler,am);
-		        
-        return true;
+		wssServer = new SecureSubscribeServer(engineProperties, scheduler, oauth);
+
+		return true;
 	}
 
 	@Override

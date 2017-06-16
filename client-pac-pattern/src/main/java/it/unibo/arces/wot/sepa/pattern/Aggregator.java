@@ -20,7 +20,18 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.NoSuchElementException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,7 +46,7 @@ public abstract class Aggregator extends Consumer implements IAggregator {
 	
 	private static final Logger logger = LogManager.getLogger("Aggregator");
 	
-	public Aggregator(ApplicationProfile appProfile,String subscribeID,String updateID) throws IllegalArgumentException {
+	public Aggregator(ApplicationProfile appProfile,String subscribeID,String updateID) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 		super(appProfile,subscribeID);
 		
 		if (appProfile == null || subscribeID == null || updateID == null){
@@ -51,7 +62,7 @@ public abstract class Aggregator extends Consumer implements IAggregator {
 		sparqlUpdate = appProfile.update(updateID);
 	} 
 		
-	public Aggregator(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException {
+	public Aggregator(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
 		super(jparFile);
 	}
 

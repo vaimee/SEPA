@@ -1,4 +1,4 @@
-/* JMX interface for the authorization manager
+/* JMX class for the HTTP gate
  * 
  * Author: Luca Roffia (luca.roffia@unibo.it)
 
@@ -16,34 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.security;
+package it.unibo.arces.wot.sepa.engine.protocol.http;
 
-import java.util.HashMap;
-
-public interface AuthorizationManagerMBean {
-	void addAuthorizedIdentity(String id);
-
-	void removeAuthorizedIdentity(String id);
-
-	HashMap<String, Boolean> getAuthorizedIdentities();
-
-	long getTokenExpiringPeriod();
-
-	void setTokenExpiringPeriod(long period);
-
-	String getIssuer();
-
-	void setIssuer(String issuer);
-
-	String getHttpsAudience();
-
-	void setHttpsAudience(String audience);
-
-	String getWssAudience();
-
-	void setWssAudience(String audience);
-
-	String getSubject();
-
-	void setSubject(String sub);
+public interface HttpsRequestHandlerMBean extends HttpRequestHandlerMBean{
+	
+	public String getRegisterPath();
+	
+	public String getTokenRequestPath();
+	
+	public long getRegitrationRequests();
+	
+	public long getAccessTokenRequests();
 }

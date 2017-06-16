@@ -20,9 +20,20 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Set;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -77,7 +88,7 @@ public abstract class Client implements IClient {
 		return ret;
 	}
 	
-	public Client(ApplicationProfile appProfile) throws IllegalArgumentException {
+	public Client(ApplicationProfile appProfile) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 		if (appProfile == null) {
 			logger.fatal("Application profile is null. Client cannot be initialized");
 			throw new IllegalArgumentException("Application profile is null");
@@ -90,7 +101,7 @@ public abstract class Client implements IClient {
 		addNamespaces(appProfile);
 	}
 	
-	public Client(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException {
+	public Client(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
 		protocolClient = new SPARQL11SEProtocol(new SPARQL11SEProperties(jparFile));
 	}
 

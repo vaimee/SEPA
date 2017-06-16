@@ -33,10 +33,12 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 
 public class Processor extends Observable implements Observer {
@@ -92,8 +94,10 @@ public class Processor extends Observable implements Observer {
 	public void processUnsubscribe(UnsubscribeRequest req) {
 		logger.debug("*Process* "+req.toString());
 		String spuid = spuManager.processUnsubscribe(req);
-		UnsubscribeResponse res = new UnsubscribeResponse(req.getToken(),spuid);
-		
+		Response res = null;
+		if (spuid != null) res = new UnsubscribeResponse(req.getToken(),spuid);
+		else res = new ErrorResponse(req.getToken(),HttpStatus.SC_BAD_REQUEST,"SPUID not found: "+req.getSubscribeUUID());
+			
 		//Send response back
 		logger.debug("<< "+res.toString());
 		setChanged();
