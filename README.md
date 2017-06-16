@@ -4,7 +4,7 @@ SEPA is a publish-subscribe architecture designed to support information level i
 
 ## Installation
 
-- Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) and run it: `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`
+- Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) and run it: `java -jar engine-x.y.z.jar`
 
 - Download [Blazegraph](https://sourceforge.net/projects/bigdata/files/latest/download) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
 
@@ -21,13 +21,13 @@ The SEPA engine uses two JSON configuration files: `engine.jpar` and `endpoint.j
 7. Regitration: https://localhost:8443/oauth/register
 8. Token request: https://localhost:8443/oauth/token
 
-The engine uses a JKS for storing the keys and certificates for SSL and JWT signing/verification. A default `sepa.jks` is provided and can be accessed using both for the store and for the key the default password: `sepa2017`. The Java [Keytool](https://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html) can be used to create, access and modify a JKS.
+The engine uses a JKS for storing the keys and certificates for SSL and JWT signing/verification. A default `sepa.jks` is provided including a single X.509 certificate (the password for both the store and the key is: `sepa2017`).
 
 ## Usage
 
-The SEPA engine allows to use a user generated JKS. Run `java -jar engine-x.y.z.jar -help` for a list of options. 
+The SEPA engine allows to use a user generated JKS. Run `java -jar engine-x.y.z.jar -help` for a list of options. The Java [Keytool](https://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html) can be used to create, access and modify a JKS.
 
-The SEPA engine is also distributed with a default JMX configuration `jmx.properties` (including the `jmxremote.password` and `jmxremote.access` files for password and user grants). Using [`jconsole`](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) is it possible to monitor and control the most important engine parameters. By default, the port `5555` is used and the `root:root` credentials grant full control (read/write). 
+The SEPA engine is also distributed with a default JMX configuration `jmx.properties` (including the `jmxremote.password` and `jmxremote.access` files for password and user grants). To enable remote JMX, the engine must be run as follows: `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`. Using [`jconsole`](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) is possible to monitor and control the most important engine parameters. By default, the port is `5555` and the `root:root` credentials grant full control (read/write). 
 
 ## Contributing
 
