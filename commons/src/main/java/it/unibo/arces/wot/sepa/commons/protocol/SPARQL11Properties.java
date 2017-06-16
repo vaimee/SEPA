@@ -39,29 +39,27 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
-/*
-{
-parameters": {
-		"host": "localhost",
-		"ports":{
-		 	"http" : 9999
-		 },
-		"paths": {
-			"update" : "/blazegraph/namespace/kb/sparql",
-			"query" : "/blazegraph/namespace/kb/sparql"
-		},
-		"methods": {
-			"query": "POST",
-			"update": "URL_ENCODED_POST"
-		},
-		"formats" : {
-			"update" : "HTML",
-			"query" : "JSON"
-		}
-	}
-}
-
+// TODO: Auto-generated Javadoc
+/**
+ * The Class SPARQL11Properties includes all the properties needed to connect to a SPARQL 1.1 Protocol Service: the URLs used by queries and updates (scheme, host, port and path),
+ * the HTTP method used by the primitives (GET, POST or URL_ENCODED_POST) and the format of the results (JSON, XML, HTML, CSV) 
+ 
+ * 
+ <pre>
+ { parameters": 
+   { "host": "localhost", 
+     "ports":{ "http" : 9999 }, 
+     "paths": {
+       "update" : "/blazegraph/namespace/kb/sparql",
+       "query" : "/blazegraph/namespace/kb/sparql" }, 
+     "methods": { 
+       "query": "POST", 
+       "update": "URL_ENCODED_POST" }, 
+     "formats" : { 
+       "update" : "HTML", 
+       "query" : "JSON" } } }</pre>
  */
+
 public class SPARQL11Properties {
 
 	/** The Constant logger. */
@@ -124,20 +122,28 @@ public class SPARQL11Properties {
 	/** The doc. */
 	protected JsonObject doc = new JsonObject();
 
+	/** The host. */
 	private String host;
 
+	/** The http port. */
 	private int httpPort;
 
+	/** The update path. */
 	private String updatePath;
 
+	/** The query path. */
 	private String queryPath;
 
+	/** The update method. */
 	private String updateMethod;
 
+	/** The update results format. */
 	private String updateResultsFormat;
 
+	/** The query method. */
 	private String queryMethod;
 
+	/** The query results format. */
 	private String queryResultsFormat;
 
 	/**
@@ -151,16 +157,26 @@ public class SPARQL11Properties {
 	 *             the no such element exception
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
-	 * @throws BadPaddingException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws ClassCastException 
-	 * @throws NullPointerException 
-	 * @throws InvalidKeyException 
-	 * @throws NumberFormatException 
+	 * @throws NumberFormatException
+	 *             the number format exception
+	 * @throws InvalidKeyException
+	 *             the invalid key exception
+	 * @throws NullPointerException
+	 *             the null pointer exception
+	 * @throws ClassCastException
+	 *             the class cast exception
+	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
+	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
+	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
+	 * @throws BadPaddingException
+	 *             the bad padding exception
 	 */
-	public SPARQL11Properties(String propertiesFile) throws FileNotFoundException, NoSuchElementException, IOException, NumberFormatException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public SPARQL11Properties(String propertiesFile) throws FileNotFoundException, NoSuchElementException, IOException,
+			NumberFormatException, InvalidKeyException, NullPointerException, ClassCastException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		this.propertiesFile = propertiesFile;
 
 		loadProperties();
@@ -175,31 +191,18 @@ public class SPARQL11Properties {
 		return doc.toString();
 	}
 
-	/*
-{
-parameters": {
-		"host": "localhost",
-		"ports":{
-		 	"http" : 9999
-		 },
-		"paths": {
-			"update" : "/blazegraph/namespace/kb/sparql",
-			"query" : "/blazegraph/namespace/kb/sparql"
-		},
-		"methods": {
-			"query": "POST",
-			"update": "URL_ENCODED_POST"
-		},
-		"formats" : {
-			"update" : "HTML",
-			"query" : "JSON"
-		}
-	}
-}
+	/**
+	 * Defaults. 
+	 * 
+	 * { parameters": { "host": "localhost", "ports":{ "http" : 9999
+	 * }, "paths": { "update" : "/blazegraph/namespace/kb/sparql", "query" :
+	 * "/blazegraph/namespace/kb/sparql" }, "methods": { "query": "POST",
+	 * "update": "URL_ENCODED_POST" }, "formats" : { "update" : "HTML", "query"
+	 * : "JSON" } } }
 	 */
 	protected void defaults() {
 		parameters.add("host", new JsonPrimitive("localhost"));
-		
+
 		JsonObject ports = new JsonObject();
 		ports.add("http", new JsonPrimitive(9999));
 		parameters.add("ports", ports);
@@ -218,7 +221,7 @@ parameters": {
 		formats.add("query", new JsonPrimitive("JSON"));
 		formats.add("update", new JsonPrimitive("HTML"));
 		parameters.add("formats", formats);
-		
+
 		doc.add("parameters", parameters);
 	}
 
@@ -231,16 +234,26 @@ parameters": {
 	 *             the no such element exception
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
-	 * @throws BadPaddingException 
-	 * @throws IllegalBlockSizeException 
-	 * @throws NoSuchPaddingException 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws ClassCastException 
-	 * @throws NullPointerException 
-	 * @throws InvalidKeyException 
-	 * @throws NumberFormatException 
+	 * @throws NumberFormatException
+	 *             the number format exception
+	 * @throws InvalidKeyException
+	 *             the invalid key exception
+	 * @throws NullPointerException
+	 *             the null pointer exception
+	 * @throws ClassCastException
+	 *             the class cast exception
+	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
+	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
+	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
+	 * @throws BadPaddingException
+	 *             the bad padding exception
 	 */
-	protected void loadProperties() throws FileNotFoundException, NoSuchElementException, IOException, NumberFormatException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	protected void loadProperties() throws FileNotFoundException, NoSuchElementException, IOException,
+			NumberFormatException, InvalidKeyException, NullPointerException, ClassCastException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		FileReader in = null;
 		try {
 			in = new FileReader(propertiesFile);
@@ -251,7 +264,7 @@ parameters": {
 					throw new NoSuchElementException("parameters key is missing");
 				}
 				parameters = doc.get("parameters").getAsJsonObject();
-				
+
 				setParameters();
 			}
 			if (in != null)
@@ -271,23 +284,54 @@ parameters": {
 		}
 	}
 
-	protected void setParameters() throws NullPointerException, ClassCastException, IOException, NumberFormatException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	/**
+	 * Sets the parameters.
+	 *
+	 * @throws NullPointerException
+	 *             the null pointer exception
+	 * @throws ClassCastException
+	 *             the class cast exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws NumberFormatException
+	 *             the number format exception
+	 * @throws InvalidKeyException
+	 *             the invalid key exception
+	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
+	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
+	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
+	 * @throws BadPaddingException
+	 *             the bad padding exception
+	 */
+	protected void setParameters()
+			throws NullPointerException, ClassCastException, IOException, NumberFormatException, InvalidKeyException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		host = parameters.get("host").getAsString();
-		
-		for (Entry<String,JsonElement> elem : parameters.get("ports").getAsJsonObject().entrySet()){
-			if(elem.getKey().equals("http")) httpPort = elem.getValue().getAsInt();
+
+		for (Entry<String, JsonElement> elem : parameters.get("ports").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("http"))
+				httpPort = elem.getValue().getAsInt();
 		}
-		for (Entry<String,JsonElement> elem : parameters.get("paths").getAsJsonObject().entrySet()){
-			if(elem.getKey().equals("update")) updatePath = elem.getValue().getAsString();
-			if(elem.getKey().equals("query")) queryPath = elem.getValue().getAsString();
+		for (Entry<String, JsonElement> elem : parameters.get("paths").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("update"))
+				updatePath = elem.getValue().getAsString();
+			if (elem.getKey().equals("query"))
+				queryPath = elem.getValue().getAsString();
 		}
-		for (Entry<String,JsonElement> elem : parameters.get("methods").getAsJsonObject().entrySet()){
-			if(elem.getKey().equals("update")) updateMethod = elem.getValue().getAsString().toUpperCase();
-			if(elem.getKey().equals("query")) queryMethod = elem.getValue().getAsString().toUpperCase();
+		for (Entry<String, JsonElement> elem : parameters.get("methods").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("update"))
+				updateMethod = elem.getValue().getAsString().toUpperCase();
+			if (elem.getKey().equals("query"))
+				queryMethod = elem.getValue().getAsString().toUpperCase();
 		}
-		for (Entry<String,JsonElement> elem : parameters.get("formats").getAsJsonObject().entrySet()){
-			if(elem.getKey().equals("update")) updateResultsFormat = elem.getValue().getAsString().toUpperCase();
-			if(elem.getKey().equals("query")) queryResultsFormat = elem.getValue().getAsString().toUpperCase();
+		for (Entry<String, JsonElement> elem : parameters.get("formats").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("update"))
+				updateResultsFormat = elem.getValue().getAsString().toUpperCase();
+			if (elem.getKey().equals("query"))
+				queryResultsFormat = elem.getValue().getAsString().toUpperCase();
 		}
 	}
 
@@ -365,7 +409,6 @@ parameters": {
 			return UpdateResultsFormat.JSON;
 		}
 	}
-
 
 	/**
 	 * Gets the query path.

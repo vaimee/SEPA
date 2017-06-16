@@ -19,6 +19,7 @@ package it.unibo.arces.wot.sepa.commons.request;
 
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents the request of performing a SPARQL 1.1 Subscribe
 * */

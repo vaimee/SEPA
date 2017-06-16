@@ -23,6 +23,7 @@ import java.util.Date;
 
 import com.google.gson.JsonPrimitive;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents the ping message sent on every active websocket (see SPARQL 1.1 Subscription Language)
  *

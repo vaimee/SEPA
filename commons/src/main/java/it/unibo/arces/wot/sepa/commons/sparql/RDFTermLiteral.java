@@ -22,6 +22,7 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class RDFTermLiteral.
  */

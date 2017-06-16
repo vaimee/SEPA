@@ -44,6 +44,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class SSLSecurityManager.
  * 
@@ -130,11 +131,34 @@ public class SSLSecurityManager implements HostnameVerifier {
 
 	/** The JAVA key store. */
 	KeyStore keystore;
+	
+	/** The ssl context. */
 	SSLContext sslContext;
+	
+	/** The protocol. */
 	String protocol;
+	
+	/** The storename. */
 	private String storename;
+	
+	/** The password. */
 	private String password;
 	
+	/**
+	 * Instantiates a new SSL security manager.
+	 *
+	 * @param protocol the protocol
+	 * @param jksName the jks name
+	 * @param jksPassword the jks password
+	 * @param keyPassword the key password
+	 * @throws KeyStoreException the key store exception
+	 * @throws NoSuchAlgorithmException the no such algorithm exception
+	 * @throws CertificateException the certificate exception
+	 * @throws FileNotFoundException the file not found exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws UnrecoverableKeyException the unrecoverable key exception
+	 * @throws KeyManagementException the key management exception
+	 */
 	public SSLSecurityManager(String protocol, String jksName, String jksPassword, String keyPassword)
 			throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException,
 			IOException, UnrecoverableKeyException, KeyManagementException {
@@ -166,19 +190,53 @@ public class SSLSecurityManager implements HostnameVerifier {
 		this.protocol = protocol;
 	}
 
+	/**
+	 * Gets the SSL context.
+	 *
+	 * @return the SSL context
+	 * @throws NoSuchAlgorithmException the no such algorithm exception
+	 * @throws KeyManagementException the key management exception
+	 */
 	public SSLContext getSSLContext() throws NoSuchAlgorithmException, KeyManagementException {
 		return sslContext;
 	}
 
+	/**
+	 * Gets the key store.
+	 *
+	 * @return the key store
+	 */
 	public KeyStore getKeyStore() {
 		return keystore;
 	}
 
+	/**
+	 * Creates the SSL socket.
+	 *
+	 * @return the socket
+	 * @throws KeyStoreException the key store exception
+	 * @throws NoSuchAlgorithmException the no such algorithm exception
+	 * @throws CertificateException the certificate exception
+	 * @throws FileNotFoundException the file not found exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws UnrecoverableKeyException the unrecoverable key exception
+	 * @throws KeyManagementException the key management exception
+	 */
 	public Socket createSSLSocket() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
 			FileNotFoundException, IOException, UnrecoverableKeyException, KeyManagementException {
 		return sslContext.getSocketFactory().createSocket();
 	}
 
+	/**
+	 * Gets the SSL http client.
+	 *
+	 * @return the SSL http client
+	 * @throws KeyManagementException the key management exception
+	 * @throws NoSuchAlgorithmException the no such algorithm exception
+	 * @throws KeyStoreException the key store exception
+	 * @throws CertificateException the certificate exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public CloseableHttpClient getSSLHttpClient()
 			throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException,
 			IOException {
@@ -197,6 +255,9 @@ public class SSLSecurityManager implements HostnameVerifier {
 		return HttpClients.custom().setSSLSocketFactory(sslsf).build();
 	}
 
+	/* (non-Javadoc)
+	 * @see javax.net.ssl.HostnameVerifier#verify(java.lang.String, javax.net.ssl.SSLSession)
+	 */
 	@Override
 	public boolean verify(String hostname, SSLSession session) {
 		// TODO IMPORTANT Verify X.509 certificate

@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>it.unibo.arces.wot</groupId>
   <artifactId>sepa</artifactId>
-  <version>0.7.0</version>
+  <version>0.7.5</version>
   <packaging>pom</packaging>
   <description>The project aims at developing a SPARQL Event Processing Architecture using JAVA technologies, including APIs and tools</description>
   <modules>
@@ -104,4 +104,8 @@
             </plugin>
         </plugins>
     </build>
+    <organization>
+    	<name>Web of Things Research Group @ ARCES</name>
+    	<url>https://http://wot.arces.unibo.it/</url>
+    </organization>
 </project>
