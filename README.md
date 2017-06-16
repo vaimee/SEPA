@@ -10,7 +10,8 @@ SEPA is a publish-subscribe architecture designed to support information level i
 
 ## Configuration
 
-The SEPA engine uses two JSON configuration files: `engine.jpar` and `endpoint.jpar` (included in the [SEPA Engine release](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) distribution). The default version of `endpoint.jpar` configure the engine to use use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service](https://www.w3.org/TR/sparql11-protocol/).
+The SEPA engine uses two JSON configuration files: `engine.jpar` and `endpoint.jpar` (included in the [SEPA Engine release](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) distribution). 
+The default version of `endpoint.jpar` configures the engine to use use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service](https://www.w3.org/TR/sparql11-protocol/).
 ```json
 {
 	"parameters": {
@@ -33,7 +34,7 @@ The SEPA engine uses two JSON configuration files: `engine.jpar` and `endpoint.j
 	}
 }
 ```
-of these files configure the engine as to use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service](https://www.w3.org/TR/sparql11-protocol/) and to use the following URLs for incoming [SPARQL 1.1 SE Protocol](https://wot.arces.unibo.it/TR/sparql11-se-protocol/) requests:
+The default version of  `engine.jpar` configures the engine to listen for for incoming [SPARQL 1.1 SE Protocol](https://wot.arces.unibo.it/TR/sparql11-se-protocol/) requests at the following URLs:
 
 1. Query: http://localhost:8000/query
 2. Update: http://localhost:8000/update
@@ -43,7 +44,32 @@ of these files configure the engine as to use a local running instance of Blazeg
 6. SECURE Subscribe/Unsubscribe: wss://localhost:9443/secure/subscribe 
 7. Regitration: https://localhost:8443/oauth/register
 8. Token request: https://localhost:8443/oauth/token
-
+```json
+{
+	"parameters": {
+		"timeouts": {
+			"scheduling": 0,
+			"queueSize": 1000,
+			"keepalive": 5000,
+			"http": 5000
+		},
+		"ports": {
+			"http": 8000,
+			"ws": 9000,
+			"https": 8443,
+			"wss": 9443
+		},
+		"paths": {
+			"update": "/update",
+			"query": "/query",
+			"subscribe": "/subscribe",
+			"register": "/oauth/register",
+			"tokenRequest": "/oauth/token",
+			"securePath" : "/secure"
+		}
+	}
+}
+```
 The engine uses a JKS for storing the keys and certificates for SSL and JWT signing/verification. A default `sepa.jks` is provided including a single X.509 certificate (the password for both the store and the key is: `sepa2017`).
 
 ## Usage
