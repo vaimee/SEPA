@@ -186,7 +186,7 @@ public class Engine extends Thread implements EngineMBean {
 		System.out.println("<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->"
 				+ "\n<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->"
 
-				+ "\n<!-- https://mvnrepository.com/artifact/org.glassfish.grizzly/grizzly-websockets-server -->"
+				+ "\n<!-- https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket -->"
 
 				+ "\n<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->"
 				+ "\n<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->"
@@ -194,6 +194,7 @@ public class Engine extends Thread implements EngineMBean {
 				+ "\n<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->"
 
 				+ "\n<!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->"
+				
 				+ "\n<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->");
 		
 		// Engine creation and initialization
