@@ -7,7 +7,8 @@ SEPA is a publish-subscribe architecture designed to support information level i
 1) Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar)
 2) Unzip the archive
 3) Open a teminal and move to the unzipped folder
-4) Run `java -jar `
+4) Run `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar
+5) Open a new terminal and run `jconsole` and connect to localhost:5555 with `root:root` credentials
 
 
 ## Usage
