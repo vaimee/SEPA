@@ -4,15 +4,26 @@ SEPA is a publish-subscribe architecture designed to support information level i
 
 ## Installation
 
-- Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) and run it `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`
+- Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) and run it: `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`
 
 - Download [Blazegraph](https://sourceforge.net/projects/bigdata/files/latest/download) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
 
 ## Configuration
 
-The SEPA engine uses to JSON configuration files: `engine.jpar` and `endpoint.jpar` (a default version of these files is provided with the [SEPA Engine release](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar). The default version of these file configure the SEPA engine as follows:
-- using a local running instance of Blazegraph as SPARQL 1.1 Protocol Service
-- accepting SPARQL 1.1 SE Protocol requests at the following URLs:
+The SEPA engine uses two JSON configuration files: `engine.jpar` and `endpoint.jpar`. The default versions of these files (included in the   [SEPA Engine release](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) distribution) configure the engine as follows:
+- to use a local running instance of Blazegraph as SPARQL 1.1 Protocol Service
+- to use the following URLs for incoming SPARQL 1.1 SE Protocol requests:
+---------- SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)  ---------------
+1. Query URL: http://192.168.1.12:8000/query
+2. Update URL: http://192.168.1.12:8000/update
+
+------ SPARQL SE 1.1 Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)  -----
+3. Subscribe on: ws://192.168.1.12:9000/subscribe
+4. SECURE Query URL: https://192.168.1.12:8443/secure/query
+5. SECURE Update URL: https://192.168.1.12:8443/secure/update
+6. Regitration URL: https://192.168.1.12:8443/oauth/register
+7. Token request URL: https://192.168.1.12:8443/oauth/token
+8. SECURE Subscribe on: wss://192.168.1.12:9443/secure/subscribe
 
 ## Usage
 
