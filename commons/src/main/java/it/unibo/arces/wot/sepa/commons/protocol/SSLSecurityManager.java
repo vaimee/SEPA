@@ -18,357 +18,189 @@
 
 package it.unibo.arces.wot.sepa.commons.protocol;
 
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import java.math.BigInteger;
-import java.security.*;
-import java.security.cert.*;
-import java.util.Calendar;
-import java.util.Date;
+import java.net.Socket;
+
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.X509v1CertificateBuilder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.glassfish.tyrus.client.SslEngineConfigurator;
-
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.jwk.RSAKey;
-//import com.sun.net.httpserver.HttpsConfigurator;
-
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContexts;
 
 /**
  * The Class SSLSecurityManager.
+ * 
+ * * ### Key and Certificate Storage ###
+ * 
+ * The Java platform provides for long-term persistent storage of cryptographic
+ * keys and certificates via key and certificate stores. Specifically, the
+ * java.security.KeyStore class represents a key store, a secure repository of
+ * cryptographic keys and/or trusted certificates (to be used, for example,
+ * during certification path validation), and the java.security.cert.CertStore
+ * class represents a certificate store, a public and potentially vast
+ * repository of unrelated and typically untrusted certificates. A CertStore may
+ * also store CRLs.
+ * 
+ * KeyStore and CertStore implementations are distinguished by types. The Java
+ * platform includes the standard PKCS11 and PKCS12 key store types (whose
+ * implementations are compliant with the corresponding PKCS specifications from
+ * RSA Security). It also contains a proprietary file-based key store type
+ * called JKS (which stands for "Java Key Store"), and a type called DKS
+ * ("Domain Key Store") which is a collection of keystores that are presented as
+ * a single logical keystore.
+ * 
+ * ### PKI Tools ###
+ * 
+ * There are two built-in tools for working with keys, certificates, and key
+ * stores:
+ * 
+ * keytool is used to create and manage key stores. It can
+ * 
+ * - Create public/private key pairs
+ * 
+ * - Display, import, and export X.509 v1, v2, and v3 certificates stored as
+ * files
+ * 
+ * - Create self-signed certificates
+ * 
+ * ### Secure Communication ###
+ * 
+ * The data that travels across a network can be accessed by someone who is not
+ * the intended recipient. When the data includes private information, such as
+ * passwords and credit card numbers, steps must be taken to make the data
+ * unintelligible to unauthorized parties. It is also important to ensure that
+ * you are sending the data to the appropriate party, and that the data has not
+ * been modified, either intentionally or unintentionally, during transport.
+ * 
+ * Cryptography forms the basis required for secure communication, and that is
+ * described in Section 4. The Java platform also provides API support and
+ * provider implementations for a number of standard secure communication
+ * protocols.
+ * 
+ * ### SSL/TLS ###
+ * 
+ * The Java platform provides APIs and an implementation of the SSL and TLS
+ * protocols that includes functionality for data encryption, message integrity,
+ * server authentication, and optional client authentication. Applications can
+ * use SSL/TLS to provide for the secure passage of data between two peers over
+ * any application protocol, such as HTTP on top of TCP/IP.
+ * 
+ * The javax.net.ssl.SSLSocket class represents a network socket that
+ * encapsulates SSL/TLS support on top of a normal stream socket
+ * (java.net.Socket). Some applications might want to use alternate data
+ * transport abstractions (e.g., New-I/O); the javax.net.ssl.SSLEngine class is
+ * available to produce and consume SSL/TLS packets.
+ * 
+ * The Java platform also includes APIs that support the notion of pluggable
+ * (provider-based) key managers and trust managers. A key manager is
+ * encapsulated by the javax.net.ssl.KeyManager class, and manages the keys used
+ * to perform authentication. A trust manager is encapsulated by the
+ * TrustManager class (in the same package), and makes decisions about who to
+ * trust based on certificates in the key store it manages.
+ * 
+ * The Java platform includes a built-in provider that implements the SSL/TLS
+ * protocols:
+ * 
+ * SSLv3 TLSv1 TLSv1.1 TLSv1.2
  */
-public class SSLSecurityManager {
-	
-	/** The KeyManagerFactory used to generate keys. */
-	private KeyManagerFactory kmf;
-	
-	/** The TrustManagerFactory. */
-	private TrustManagerFactory tmf;
-	
-	/** The SSL context. */
-	private SSLContext sslContext;
-	
-	/** The protocol (e.g., SSL,TLSv1,...). */
-	private String protocol =  "TLSv1";
-	
+public class SSLSecurityManager implements HostnameVerifier {
+
+	// /** The SSL context. */
+	// private SSLContext sslContext;
+	//
+	// /** The protocol (e.g., SSL,TLSv1,...). */
+	// private String protocol = "TLSv1";
+
 	/** The JAVA key store. */
-	//JKS
-	private KeyStore keyStore = null;
+	KeyStore keystore;
+	SSLContext sslContext;
+	String protocol;
+	private String storename;
+	private String password;
 	
-	/** The HTTPS config. */
-	//HTTPS
-	private SEPAHttpsConfigurator httpsConfig;
-	
-	/** The WSS config. */
-	//WSS
-	private SEPAWssConfigurator wssConfig;
-	
-	/** The logger. */
-	private Logger logger = LogManager.getLogger("SecurityManager");
-	
-	/**
-	 * The Class SEPAWssConfigurator.
-	 */
-	public class SEPAWssConfigurator extends SslEngineConfigurator {
-		
-		/**
-		 * Instantiates a new SEPA Secure Websocket configurator.
-		 *
-		 * @param sslContext the SSL context
-		 * @param client if true, a client configuration is created
-		 * @param hostVerificationEnabled if true, the configuration allows to verify the hostname in the SSL certificate
-		 * @param hostnameVerifier allows to specify a custom hostname verifier. If null, the default hostname verification is used (based on the SSL certificate)
-		 */
-		public SEPAWssConfigurator(SSLContext sslContext,boolean client,boolean hostVerificationEnabled,HostnameVerifier hostnameVerifier) throws IllegalArgumentException {
-			super(sslContext,client,false,false);
-			if (sslContext == null) throw new IllegalArgumentException();
-			
-			this.setHostVerificationEnabled(hostVerificationEnabled);
-			if (hostVerificationEnabled) {
-				if (hostnameVerifier != null) this.setHostnameVerifier(hostnameVerifier);
-			}
-		}
-		
-		/**
-		 * Instantiates a new SEPA Secure Websocket configurator.
-		 *
-		 * @param sslContext the SSL context
-		 * @param client must be true to create a client configuration
-		 */
-		public SEPAWssConfigurator(SSLContext sslContext,boolean client) throws IllegalArgumentException {
-			super(sslContext,client,false,false);
-			if (sslContext == null) throw new IllegalArgumentException();
-		}
-	}
-	
-	/**
-	 * The Class SEPAHttpsConfigurator.
-	 */
-	public class SEPAHttpsConfigurator {
+	public SSLSecurityManager(String protocol, String jksName, String jksPassword, String keyPassword)
+			throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException,
+			IOException, UnrecoverableKeyException, KeyManagementException {
 
-		/**
-		 * Instantiates a new SEPA HTTPS configurator.
-		 *
-		 * @param sslContext the SSL context
-		 */
-		public SEPAHttpsConfigurator(SSLContext sslContext) throws IllegalArgumentException {
-			if (sslContext == null) throw new IllegalArgumentException();
-		}
-	}
-	
-	/**
-	 * Instantiates a new SSL security manager.
-	 *
-	 * @param keystoreFileName the keystore file name
-	 * @param keystorePwd the keystore password
-	 * @param keyAlias the key alias
-	 * @param keyPwd the key password
-	 * @param certificate the X.509 certificate
-	 * @param client if true, a client configuration is created
-	 * @param hostVerificationEnabled if true, the configuration allows to verify the hostname in the SSL certificate
-	 * @param hostnameVerifier allows to specify a custom hostname verifier. If null, the default hostname verification is used (based on the SSL certificate)
-	 * @throws IllegalArgumentException the illegal argument exception
-	 */
-	/*
-	 * Instantiates a new SSL security manager.
-	 *
-	 * @param keystoreFileName the keystore file name
-	 * @param keystorePwd the keystore password
-	 * @param keyAlias the key alias
-	 * @param keyPwd the key password
-	 * @param certificate the X.509 certificate
-	 *  @param client if true, a client configuration is created
-	 * @param hostVerificationEnabled if true, the configuration allows to verify the hostname in the SSL certificate
-	 * @param hostnameVerifier allows to specify a custom hostname verifier. If null, the default hostname verification is used (based on the SSL certificate)
-	 */
-	public SSLSecurityManager(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate,boolean client,boolean hostVerificationEnabled,HostnameVerifier hostnameVerifier) throws IllegalArgumentException {
+		// Arguments check
+		if (jksName == null || jksPassword == null)
+			throw new IllegalArgumentException("JKS name or password are null");
+
+		// Initialize SSL context
+		File f = new File(jksName);
+		if (!f.exists() || f.isDirectory())
+			throw new KeyStoreException(jksName + " not found");
+
+		keystore = KeyStore.getInstance("JKS");
+		keystore.load(new FileInputStream(jksName), jksPassword.toCharArray());
+
+		KeyManagerFactory kmfactory = KeyManagerFactory.getInstance("SunX509");
+		kmfactory.init(keystore, keyPassword.toCharArray());
+
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+		tmf.init(keystore);
+
+		sslContext = SSLContext.getInstance(protocol);
+		sslContext.init(kmfactory.getKeyManagers(), tmf.getTrustManagers(), null);
 		
-		// Load certificate
-		if (!loadCertificate(keystoreFileName,keystorePwd,keyPwd,keyAlias,certificate)) {
-			logger.error("Failed to load SSL/TLS certificate");
-			return;
-		}
-		
-		// Create SSL context 
-		try {
-			sslContext = SSLContext.getInstance(protocol);
-		} catch (NoSuchAlgorithmException e) {
-			 logger.error(e.getMessage());
-			return;
-		}	
-		try {
-			sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-		} catch (KeyManagementException e) {
-			 logger.error(e.getMessage());
-			return;
-		}
-		
-		httpsConfig = new SEPAHttpsConfigurator(sslContext);
-		
-		wssConfig =  new SEPAWssConfigurator(sslContext,client,hostVerificationEnabled,hostnameVerifier);
-	}
-	
-	/**
-	 * Gets the HTTPS configurator.
-	 *
-	 * @return the HTTPS configurator
-	 */
-	public SEPAHttpsConfigurator getHttpsConfigurator(){
-		return httpsConfig;
-	}
-	
-	/**
-	 * Gets the Secure Websocket configurator.
-	 *
-	 * @return the Secure Websocket configurator
-	 */
-	public SEPAWssConfigurator getWssConfigurator() {
-		return wssConfig;
-	}
-	
-	/**
-	 * Load certificate.
-	 *
-	 * @param keystoreFilename the keystore filename
-	 * @param storePassword the store password
-	 * @param keyPassword the key password
-	 * @param key the key
-	 * @param certificate the certificate
-	 * @return true, if the certificate is successfully loaded
-	 */
-	private boolean loadCertificate(String keystoreFilename,String storePassword,String keyPassword,String key,String certificate) {
-		// Open or create the JKS
-		if (!openKeyStore(keystoreFilename, storePassword, keyPassword, key, certificate)) {
-			logger.error("Keystore "+keystoreFilename+ " can not be opened or created");
-			return false;
-		}		
-		
-		// Setup the key manager factory
-		try {
-			kmf = KeyManagerFactory.getInstance("SunX509");
-		} catch (NoSuchAlgorithmException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
-		try {
-			kmf.init(keyStore, keyPassword.toCharArray());
-		} catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
-		
-		// Setup the trust manager factory
-		try {
-			tmf = TrustManagerFactory.getInstance("SunX509");
-		} catch (NoSuchAlgorithmException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
-		try {
-			tmf.init(keyStore);
-		} catch (KeyStoreException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
-		
-		return true;
+		this.protocol = protocol;
+		this.storename = jksName;
+		this.password = jksPassword;
+		this.protocol = protocol;
 	}
 
-	/**
-	 * Open key store.
-	 *
-	 * @param keystoreFilename the keystore filename
-	 * @param storePassword the store password
-	 * @param keyPassword the key password
-	 * @param keyAlias the key alias
-	 * @param certificate the certificate
-	 * @return true, if the certificate is successfully loaded
-	 */
-	private boolean openKeyStore(String keystoreFilename,String storePassword,String keyPassword,String keyAlias,String certificate) {
-		// JKS instance
-		try {
-			keyStore = KeyStore.getInstance("JKS");
-		} catch (KeyStoreException e) {
-			logger.fatal(e.getMessage());
-			return false;
-		}
-		
-		// Load keystore
-		try {
-			keyStore.load(new FileInputStream(keystoreFilename),storePassword.toCharArray());
-		} catch (NoSuchAlgorithmException | CertificateException | IOException e) {
-			logger.error(e.getMessage());	    
-		    		     
-		    try {
-		    	// Create new JKS
-		    	keyStore.load(null,null);
-
-		    	X509Certificate[] chain = new X509Certificate[1];
-
-		    	// Create key and certificate
-
-				KeyPairGenerator gen = KeyPairGenerator.getInstance("RSA");
-				gen.initialize(1024);
-				final KeyPair keyPair = gen.genKeyPair();
-
-				Date startDate = new Date();     // time from which certificate is valid
-
-				Calendar c = Calendar.getInstance();
-				c.setTime(startDate);
-				c.add(Calendar.YEAR, 1);
-
-				Date expiryDate = c.getTime();      // time after which certificate is not valid
-
-				SubjectPublicKeyInfo subPubKeyInfo = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
-				BigInteger serialNumber = BigInteger.valueOf(System.currentTimeMillis());
-				/*
-		    	 * RFC 1779 or RFC 2253 style
-		    	 *
-		    	commonName - common name of a person, e.g. "Vivette Davis"
-		    	organizationUnit - small organization name, e.g. "Purchasing"
-		    	organizationName - large organization name, e.g. "Onizuka, Inc."
-		    	localityName - locality (city) name, e.g. "Palo Alto"
-		    	stateName - state name, e.g. "California"
-		    	country - two letter country code, e.g. "CH"
-
-		    	https://www.ietf.org/rfc/rfc3280.txt
-
-		    	Subject Alternative Name
-		    	https://tools.ietf.org/html/rfc5280#section-4.2.1.6
-
-		    	*/
-				X500Name name = new X500Name("CN=Luca Roffia," +
-						"OU=Web of Things Research Group," +
-						"O=ARCES - University of Bologna," +
-						"L=Bologna," +
-						"ST=Italy," +
-						"C=IT");
-				X509v1CertificateBuilder certbuild = new X509v1CertificateBuilder(name,serialNumber,startDate,
-						expiryDate,name,subPubKeyInfo);
-
-				ContentSigner sigGen = new JcaContentSignerBuilder("SHA1WithRSAEncryption").setProvider("BC").build(keyPair.getPrivate());
-
-				final X509CertificateHolder holder = certbuild.build(sigGen);
-
-
-				chain[0]=new JcaX509CertificateConverter().getCertificate(holder);
-
-		    	keyStore.setKeyEntry(keyAlias, keyPair.getPrivate(), keyPassword.toCharArray(), chain);
-		    	
-		    	// Set certificate entry	
-				keyStore.setCertificateEntry(certificate, chain[0]);
-				
-				// Save JKS
-				keyStore.store(new FileOutputStream(keystoreFilename), storePassword.toCharArray());
-			} catch (KeyStoreException |  CertificateException | NoSuchAlgorithmException  | IOException e1) {
-				logger.error(e1.getMessage());
-				return false;
-			} catch (OperatorCreationException e1) {
-				logger.error(e1.getMessage());
-				return false;
-			}
-		}
-		
-		return true;
-	}
-
-	/**
-	 * Gets the RSA Key from the keystore.
-	 *
-	 * @param keyAlias the key alias
-	 * @param keyPwd the key password
-	 * @return the RSAKey
-	 * 
-	 * @see RSAKey
-	 */
-	public RSAKey getJWK(String keyAlias,String keyPwd) {
-		RSAKey jwk = null;
-		try {
-			jwk = RSAKey.load(keyStore, keyAlias, keyPwd.toCharArray());
-		} catch (KeyStoreException | JOSEException e) {
-			logger.error(e.getMessage());
-			return null;
-		}
-		return jwk;
-	}
-
-	public SSLContext getSSLContext() {
+	public SSLContext getSSLContext() throws NoSuchAlgorithmException, KeyManagementException {
 		return sslContext;
+	}
+
+	public KeyStore getKeyStore() {
+		return keystore;
+	}
+
+	public Socket createSSLSocket() throws KeyStoreException, NoSuchAlgorithmException, CertificateException,
+			FileNotFoundException, IOException, UnrecoverableKeyException, KeyManagementException {
+		return sslContext.getSocketFactory().createSocket();
+	}
+
+	public CloseableHttpClient getSSLHttpClient()
+			throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException,
+			IOException {
+		// Trust own CA and all self-signed certificates
+		SSLContext sslcontext = null;
+
+		sslcontext = SSLContexts.custom()
+				.loadTrustMaterial(new File(storename), password.toCharArray(), new TrustSelfSignedStrategy()).build();
+
+		// Allow TLSv1 protocol only
+		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext, new String[] { protocol }, null,
+				this);
+
+		// SSLConnectionSocketFactory sslSocketFactory = getSSLConnectionSocketFactory(protocol,storeName, password);
+			
+		return HttpClients.custom().setSSLSocketFactory(sslsf).build();
+	}
+
+	@Override
+	public boolean verify(String hostname, SSLSession session) {
+		// TODO IMPORTANT Verify X.509 certificate
+
+		return true;
 	}
 }

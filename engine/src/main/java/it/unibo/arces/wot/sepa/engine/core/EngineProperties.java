@@ -32,27 +32,42 @@ import com.google.gson.JsonPrimitive;
 import org.apache.logging.log4j.LogManager;
 
 /**
- * {"parameters":{ "timeouts":{ "scheduling":0, "queuesize":1000,
- * "keepalive":5000, "http":5000}, "path":"/sparql", "scheme":"http",
- * "port":8000, "securequery":{"port":8443,"scheme":"https"},
- * "secureupdate":{"port":8443,"scheme":"https"},
- * "subscribe":{"scheme":"ws","port":9000},
- * "securesubscribe":{"scheme":"wss","port":9443,"path":"/secure/sparql"},
- * "authorizationserver":{ "port":8443, "scheme":"https",
- * "register":"/oauth/register", "tokenrequest":"/oauth/token" } } }
- * 
- * @author Luca Roffia
- *
+ {
+	"parameters": {
+		"timeouts": {
+			"scheduling": 0,
+			"queueSize": 1000,
+			"keepalive": 5000,
+			"http": 5000
+		},
+		"ports": {
+			"http": 8000,
+			"ws": 9000,
+			"https": 8443,
+			"wss": 9443
+		},
+		"paths": {
+			"update": "/update",
+			"query": "/query",
+			"subscribe": "/subscribe",
+			"unsubscribe": "/unsubscribe",
+			"register": "/oauth/register",
+			"tokenRequest": "/oauth/token",
+			"securePath" : "/secure"
+		}
+	}
+}
  */
 public class EngineProperties {
 	private static final Logger logger = LogManager.getLogger("EngineProperties");
 
-	private String defaultsFileName = "engine.defaults";
+	private String defaultsFileName = "defaults.jpar";
 	private String propertiesFile = "engine.jpar";
 
 	private JsonObject properties = new JsonObject();
 
-	public EngineProperties(String propertiesFile) throws NoSuchElementException, IOException {
+	public EngineProperties(String propertiesFile) throws IllegalArgumentException,NoSuchElementException, IOException {
+		if (propertiesFile == null) throw new IllegalArgumentException("Properties file is null");
 		this.propertiesFile = propertiesFile;
 
 		loadProperties();
@@ -64,50 +79,52 @@ public class EngineProperties {
 		// Engine timeouts
 		JsonObject timeouts = new JsonObject();
 		timeouts.add("scheduling", new JsonPrimitive(0));
-		timeouts.add("queuesize", new JsonPrimitive(1000));
+		timeouts.add("queueSize", new JsonPrimitive(1000));
 		timeouts.add("keepalive", new JsonPrimitive(5000));
 		timeouts.add("http", new JsonPrimitive(5000));
 		parameters.add("timeouts", timeouts);
 
-		// Default path, scheme and port
-		parameters.add("path", new JsonPrimitive("/sparql"));
-		parameters.add("scheme", new JsonPrimitive("http"));
-		parameters.add("port", new JsonPrimitive(8000));
-
-		// Secure query
-		JsonObject secureQuery = new JsonObject();
-		secureQuery.add("port", new JsonPrimitive(8443));
-		secureQuery.add("scheme", new JsonPrimitive("https"));
-		parameters.add("securequery", secureQuery);
-
-		// Secure update
-		JsonObject secureUpdate = new JsonObject();
-		secureUpdate.add("port", new JsonPrimitive(8443));
-		secureUpdate.add("scheme", new JsonPrimitive("https"));
-		parameters.add("secureupdate", secureUpdate);
-
-		// Subscribe
-		JsonObject subscribe = new JsonObject();
-		subscribe.add("scheme", new JsonPrimitive("ws"));
-		subscribe.add("port", new JsonPrimitive(9000));
-		parameters.add("subscribe", subscribe);
-
-		// Secure subscribe
-		JsonObject secureSubscribe = new JsonObject();
-		secureSubscribe.add("scheme", new JsonPrimitive("wss"));
-		secureSubscribe.add("port", new JsonPrimitive(9443));
-		secureSubscribe.add("path", new JsonPrimitive("/secure/sparql"));
-		parameters.add("securesubscribe", secureSubscribe);
-
-		// Authorization server
-		JsonObject authServer = new JsonObject();
-		authServer.add("port", new JsonPrimitive(8443));
-		authServer.add("scheme", new JsonPrimitive("https"));
-		authServer.add("register", new JsonPrimitive("/oauth/register"));
-		authServer.add("tokenrequest", new JsonPrimitive("/oauth/token"));
-		parameters.add("authorizationserver", authServer);
-
+		// Ports
+		JsonObject ports = new JsonObject();
+		ports.add("http", new JsonPrimitive(8000));
+		ports.add("https", new JsonPrimitive(8443));
+		ports.add("ws", new JsonPrimitive(9000));
+		ports.add("wss", new JsonPrimitive(9443));
+		parameters.add("ports", ports);
+		
+		// URI patterns
+		JsonObject paths = new JsonObject();
+		parameters.add("securePath", new JsonPrimitive("/secure"));
+		paths.add("update", new JsonPrimitive("/update"));
+		paths.add("query", new JsonPrimitive("/query"));
+		paths.add("subscribe", new JsonPrimitive("/subscribe"));
+		paths.add("unsubscribe", new JsonPrimitive("/unsubscribe"));
+		paths.add("register", new JsonPrimitive("/oauth/register"));
+		paths.add("tokenRequest", new JsonPrimitive("/oauth/token"));
+		parameters.add("paths", paths);
+		
 		properties.add("parameters", parameters);
+	}
+	
+	protected boolean checkParameters() throws IllegalStateException, ClassCastException {
+		properties.get("timeouts").getAsJsonObject().get("scheduling").getAsInt();
+		properties.get("timeouts").getAsJsonObject().get("queueSize").getAsInt();
+		properties.get("timeouts").getAsJsonObject().get("keepalive").getAsInt();
+		properties.get("timeouts").getAsJsonObject().get("http").getAsInt();
+		
+		properties.get("ports").getAsJsonObject().get("http").getAsInt();
+		properties.get("ports").getAsJsonObject().get("https").getAsInt();
+		properties.get("ports").getAsJsonObject().get("ws").getAsInt();
+		properties.get("ports").getAsJsonObject().get("wss").getAsInt();
+		
+		properties.get("paths").getAsJsonObject().get("securePath").getAsString();
+		properties.get("paths").getAsJsonObject().get("update").getAsString();
+		properties.get("paths").getAsJsonObject().get("query").getAsString();
+		properties.get("paths").getAsJsonObject().get("subscribe").getAsString();
+		properties.get("paths").getAsJsonObject().get("register").getAsString();
+		properties.get("paths").getAsJsonObject().get("tokenRequest").getAsString();
+		
+		return true;
 	}
 
 	private void loadProperties() throws NoSuchElementException, IOException {
@@ -121,6 +138,8 @@ public class EngineProperties {
 					throw new NoSuchElementException("parameters key is missing");
 				}
 				properties = properties.get("parameters").getAsJsonObject();
+				
+				if(!checkParameters()) throw new NoSuchElementException("JPAR missing parameter");
 			}
 			if (in != null)
 				in.close();
@@ -146,39 +165,24 @@ public class EngineProperties {
 	}
 
 	private int getParameter(String rootKey, String nestedKey, int def) {
-		if (rootKey == null) {
-			if (properties.get(nestedKey) != null)
-				return properties.get(nestedKey).getAsInt();
-			return def;
+		try {
+			if (rootKey == null) return def;
+			if (nestedKey == null) return properties.get(rootKey).getAsInt();
+			return properties.get(rootKey).getAsJsonObject().get(nestedKey).getAsInt();
+		} catch (Exception e) {
 		}
-		if (properties.get(rootKey) != null) {
-			if (properties.get(rootKey).getAsJsonObject().get(nestedKey) != null)
-				return properties.get(rootKey).getAsJsonObject().get(nestedKey).getAsInt();
-
-		}
-		if (properties.get(nestedKey) != null)
-			return properties.get(nestedKey).getAsInt();
-
-		logger.warn(rootKey + " or " + nestedKey + " keys not found");
+		
 		return def;
 	}
 
 	private String getParameter(String rootKey, String nestedKey, String def) {
-		if (rootKey == null) {
-			if (properties.get(nestedKey) != null)
-				return properties.get(nestedKey).getAsString();
-			else
-				return def;
+		try {
+			if (rootKey == null) return def;
+			if (nestedKey == null) return properties.get(rootKey).getAsString();
+			return properties.get(rootKey).getAsJsonObject().get(nestedKey).getAsString();
+		} catch (Exception e) {
 		}
-		if (properties.get(rootKey) != null) {
-			if (properties.get(rootKey).getAsJsonObject().get(nestedKey) != null)
-				return properties.get(rootKey).getAsJsonObject().get(nestedKey).getAsString();
-
-		}
-		if (properties.get(nestedKey) != null)
-			return properties.get(nestedKey).getAsString();
-
-		logger.warn(rootKey + " or " + nestedKey + " keys not found");
+		
 		return def;
 	}
 
@@ -186,79 +190,56 @@ public class EngineProperties {
 		return getParameter("timeouts", "http", 0);
 	}
 
-	public int getSubscribePort() {
-		return getParameter("subscribe", "port", 9000);
-	}
-
-	public int getSecureUpdatePort() {
-		return getParameter("secureupdate", "port", 8443);
-	}
-
-	public int getSecureSubscribePort() {
-		return getParameter("securesubscribe", "port", 9443);
-	}
-
-	public int getUpdatePort() {
-		return getParameter("update", "port", 8000);
-	}
-
 	public long getSchedulingTimeout() {
 		return getParameter("timeouts", "scheduling", 5000);
 	}
 
 	public int getSchedulingQueueSize() {
-		return getParameter("timeouts", "queuesize", 1000);
+		return getParameter("timeouts", "queueSize", 1000);
 	}
 
 	public int getKeepAlivePeriod() {
 		return getParameter("timeouts", "keepalive", 5000);
 	}
 
-	public String getUpdatePath() {
-		return getParameter("update", "path", "/sparql");
+	public int getWsPort() {
+		return getParameter("ports", "ws", 9000);
 	}
 
-	public String getSecureUpdatePath() {
-		return getParameter("secureupdate", "path", "/sparql");
+	public int getHttpPort() {
+		return getParameter("ports", "http", 8000);
+	}
+
+	public int getHttpsPort() {
+		return getParameter("ports", "https", 8443);
+	}
+
+	public int getWssPort() {
+		return getParameter("ports", "wss", 9443);
+	}
+	
+	public String getUpdatePath() {
+		return getParameter("paths", "update", "/update");
 	}
 
 	public String getSubscribePath() {
-		return getParameter("subscribe", "path", "/sparql");
-	}
-
-	public String getSecureSubscribePath() {
-		return getParameter("securesubscribe", "path", "/secure/sparql");
-	}
-
-	public String getRegisterPath() {
-		return getParameter("authorizationserver", "register", "/oauth/register");
-	}
-
-	public String getTokenRequestPath() {
-		return getParameter("authorizationserver", "tokenrequest", "/oauth/token");
+		return getParameter("paths", "subscribe", "/subscribe");
 	}
 
 	public String getQueryPath() {
-		return getParameter("query", "path", "/sparql");
+		return getParameter("paths", "query", "/query");
+	}
+	
+	public String getRegisterPath() {
+		return getParameter("paths", "register", "/oauth/register");
 	}
 
-	public int getQueryPort() {
-		return getParameter("query", "port", 8000);
+	public String getTokenRequestPath() {
+		return getParameter("paths", "tokenRequest", "/oauth/token");
 	}
 
-	public String getSecureQueryPath() {
-		return getParameter("securequery", "path", "/sparql");
+	public String getSecurePath() {
+		return getParameter("paths", "securePath", "/secure");
 	}
-
-	public int getSecureQueryPort() {
-		return getParameter("securequery", "port", 8443);
-	}
-
-	public int getAuthorizationServerPort() {
-		return getParameter("authorizationserver", "port", 8443);
-	}
-
-	public int getAuthorizationServerScheme() {
-		return getParameter("authorizationserver", "https", 8443);
-	}
+	
 }

@@ -18,6 +18,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,7 +41,7 @@ public class Producer extends Client implements IProducer {
 	
 	private static final Logger logger = LogManager.getLogger("GenericClient");
 	
-	public Producer(ApplicationProfile appProfile,String updateID) throws IllegalArgumentException {
+	public Producer(ApplicationProfile appProfile,String updateID) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 		super(appProfile);
 		
 		if (appProfile == null) {

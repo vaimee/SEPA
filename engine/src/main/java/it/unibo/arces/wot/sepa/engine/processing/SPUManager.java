@@ -29,20 +29,19 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
-import it.unibo.arces.wot.sepa.engine.beans.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 
 public class SPUManager extends Observable implements Observer,SPUManagerMBean{
 	private static final Logger logger = LogManager.getLogger("SPUManager");
 	private SPARQL11Protocol endpoint;
 	private HashMap<String,SPU> spus = new HashMap<String,SPU>();
-	protected static String mBeanName = "SEPA:type=SPUManager";
 	
 	//Sequential update processing
 	private static int subscriptionsChecked = 0;
 	
 	public SPUManager(SPARQL11Protocol endpoint) {
 		this.endpoint = endpoint;
-		SEPABeans.registerMBean(mBeanName, this);
+		SEPABeans.registerMBean("SEPA:type=Subscriptions", this);
 	}
 	
 	public void processSubscribe(SubscribeRequest req) {
@@ -70,6 +69,7 @@ public class SPUManager extends Observable implements Observer,SPUManagerMBean{
 				spus.get(spuid).stopRunning();
 				spus.remove(spuid);
 			}
+			else return null;
 		}
 		
 		return spuid;
