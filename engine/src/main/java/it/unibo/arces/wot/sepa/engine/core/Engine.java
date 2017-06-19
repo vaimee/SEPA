@@ -17,7 +17,6 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
@@ -161,7 +160,7 @@ public class Engine extends Thread implements EngineMBean {
 		System.out
 				.println("# SEPA Engine Ver 0.7.5  Copyright (C) 2016-2017                                         #");
 		System.out
-				.println("# University of Bologna (Italy)                                                          #");
+				.println("# Web of Things Research @ ARCES - University of Bologna (Italy)                         #");
 		System.out
 				.println("#                                                                                        #");
 		System.out
@@ -173,11 +172,11 @@ public class Engine extends Thread implements EngineMBean {
 		System.out
 				.println("#                                                                                        #");
 		System.out
-				.println("# GitHub: https://github.com/arces-wot/sepa                                              #");
+				.println("# GITHUB: https://github.com/arces-wot/sepa                                              #");
 		System.out
-				.println("# Web: http://wot.arces.unibo.it                                                         #");
+				.println("# WEB: http://wot.arces.unibo.it                                                         #");
 		System.out
-				.println("# WiKi: https: // github.com/arces-wot/SEPA/wiki                                         #");
+				.println("# WIKI: https: // github.com/arces-wot/SEPA/wiki                                         #");
 		System.out
 				.println("##########################################################################################");
 		System.out.println("");
@@ -211,11 +210,11 @@ public class Engine extends Thread implements EngineMBean {
 		
 		// Initialize
 		try {
-			engine.init();
+			if (!engine.init()) System.exit(1);
 		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException
 				| NotCompliantMBeanException | UnrecoverableKeyException | KeyManagementException
 				| IllegalArgumentException | NoSuchElementException | KeyStoreException | NoSuchAlgorithmException
-				| CertificateException | IOException | JOSEException | InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
+				| CertificateException | IOException  | NullPointerException | ClassCastException  e) {
 			logger.fatal(e.getMessage());
 			System.exit(1);
 		}
@@ -226,7 +225,7 @@ public class Engine extends Thread implements EngineMBean {
 		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
-		System.out.println("*                      SEPA Engine Ver 0.7.0 is up and running                          *");
+		System.out.println("*                      SEPA Engine Ver 0.7.5 is up and running                          *");
 		System.out.println("*                                 Let Things Talk                                       *");
 		System.out.println("*****************************************************************************************");
 	}
@@ -258,15 +257,27 @@ public class Engine extends Thread implements EngineMBean {
 		startDate = new Date();
 	}
 
-	public boolean init() throws IllegalArgumentException, MalformedObjectNameException, InstanceAlreadyExistsException,
-			MBeanRegistrationException, NotCompliantMBeanException, FileNotFoundException, NoSuchElementException,
-			IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
-			CertificateException, JOSEException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public boolean init() throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 		// Initialize SPARQL 1.1 processing service properties
-		endpointProperties = new SPARQL11Properties("endpoint.jpar");
+		boolean propertiesFound = true;
+		try {
+			endpointProperties = new SPARQL11Properties("endpoint.jpar");
+		} catch (NumberFormatException | InvalidKeyException | NoSuchElementException | NullPointerException
+				| ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
+				| BadPaddingException | IOException e) {
+			logger.warn("Open and modify JPAR file and run again the engine");
+			propertiesFound = false;
+		}
 
 		// Initialize SPARQL 1.1 SE processing service properties
-		engineProperties = new EngineProperties("engine.jpar");
+		try {
+			engineProperties = new EngineProperties("engine.jpar");
+		} catch (IllegalArgumentException | NoSuchElementException | IOException e) {
+			logger.warn("Open and modify JPAR file and run again the engine");
+			propertiesFound = false;
+		}
+		
+		if (!propertiesFound) return false;
 
 		// SPARQL 1.1 SE request processor
 		processor = new Processor(endpointProperties);
