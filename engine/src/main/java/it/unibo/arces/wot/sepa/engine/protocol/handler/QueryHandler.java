@@ -44,9 +44,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerInterface;
                                   using-named-graph-uri (0 or more)
  * </pre>
  * 
- * @param httpExchange
- *            the HTTP exchange information
- * @return the corresponding request (update or query), otherwise null
+ *
  * 
  * @see QueryRequest
  * @see UpdateRequest
