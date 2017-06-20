@@ -16,16 +16,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.protocol;
+package it.unibo.arces.wot.sepa.engine.protocol.http;
 
-public interface HTTPGateMBean {
+public interface HttpRequestHandlerMBean {
 
-	public long getTotalTransactions();
-	public long getQueryTransactions();
-	public long getUpdateTransactions();
-	public long getFailedTransactions();
-	
 	public long getTimeout();
+
 	public void setTimeout(long t);
 	
+	public String getQueryPath();
+	
+	public String getUpdatePath();
+	
+	public long getQueryRequests();
+
+	public long getUpdateRequests();
 }

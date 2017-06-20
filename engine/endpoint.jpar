@@ -1,1 +1,20 @@
-{"parameters":{"host":"localhost","port":9999,"scheme":"http","path":"/blazegraph/namespace/kb/sparql","query":{"method":"POST","format":"JSON"},"update":{"method":"URL_ENCODED_POST","format":"HTML"}}}
+{
+	"parameters": {
+		"host": "localhost",
+		"ports": {
+			"http": 9999
+		},
+		"paths": {
+			"update": "/blazegraph/namespace/kb/sparql",
+			"query": "/blazegraph/namespace/kb/sparql"
+		},
+		"methods": {
+			"query": "POST",
+			"update": "URL_ENCODED_POST"
+		},
+		"formats": {
+			"update": "HTML",
+			"query": "JSON"
+		}
+	}
+}

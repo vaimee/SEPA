@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.commons.sparql;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonObject;
 
+// TODO: Auto-generated Javadoc
 /**
  * The Class RDFTerm.
  */

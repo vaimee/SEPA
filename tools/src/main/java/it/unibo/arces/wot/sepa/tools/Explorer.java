@@ -1,5 +1,13 @@
 package it.unibo.arces.wot.sepa.tools;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.HashMap;
 
 import javax.swing.table.DefaultTableModel;
@@ -21,7 +29,7 @@ public class Explorer {
 		OWLClassNodeModel domain; 
 		OWLClassNodeModel range;
 		
-		public PropertyMonitor(ApplicationProfile appProfile, String subscribeID) {
+		public PropertyMonitor(ApplicationProfile appProfile, String subscribeID) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 			super(appProfile, subscribeID);
 		}
 
@@ -89,7 +97,7 @@ public class Explorer {
 		private HashMap<String,OWLClassNodeModel> treeMap = new HashMap<String,OWLClassNodeModel>();
 		OWLClassNodeModel root;
 		
-		public ClassMonitor(ApplicationProfile appProfile, String subscribeID) {
+		public ClassMonitor(ApplicationProfile appProfile, String subscribeID) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 			super(appProfile, subscribeID);
 		}
 

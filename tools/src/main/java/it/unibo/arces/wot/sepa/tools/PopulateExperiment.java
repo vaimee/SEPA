@@ -2,10 +2,21 @@ package it.unibo.arces.wot.sepa.tools;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.NoSuchElementException;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+
 public class PopulateExperiment extends SmartLightingBenchmark {
-	public PopulateExperiment() throws FileNotFoundException, NoSuchElementException, IOException {
+	public PopulateExperiment() throws FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
 		super();
 	}
 
@@ -50,8 +61,20 @@ public class PopulateExperiment extends SmartLightingBenchmark {
 		
 	}
 	
-	public static void main(String[] args) throws FileNotFoundException, NoSuchElementException, IOException {
-		benchmark = new PopulateExperiment();
-		benchmark.run(true,true,5000);
+	public static void main(String[] args)  {
+		try {
+			benchmark = new PopulateExperiment();
+		} catch (UnrecoverableKeyException | KeyManagementException | NoSuchElementException | IllegalArgumentException
+				| KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | URISyntaxException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+		try {
+			benchmark.run(true,true,5000);
+		} catch (UnrecoverableKeyException | KeyManagementException | IllegalArgumentException | KeyStoreException
+				| NoSuchAlgorithmException | CertificateException | IOException | InvalidKeyException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | URISyntaxException e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
 	}
 }

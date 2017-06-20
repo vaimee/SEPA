@@ -23,7 +23,7 @@ import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.engine.beans.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 
 import org.apache.logging.log4j.LogManager;
@@ -51,7 +51,7 @@ public class TokenHandler implements TokenHandlerMBean {
 		
 		for (int i=0; i < getSchedulingQueueSize(); i++) jar.addElement(i);
 		
-		SEPABeans.registerMBean("SEPA:type=TokenHandler",this);
+		SEPABeans.registerMBean("SEPA:type=Scheduler",this);
 	}
 	
 	/**

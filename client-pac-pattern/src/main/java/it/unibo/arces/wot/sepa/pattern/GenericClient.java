@@ -21,7 +21,17 @@ package it.unibo.arces.wot.sepa.pattern;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.NoSuchElementException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,7 +46,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 public abstract class GenericClient extends Aggregator {	
 	private static final Logger logger = LogManager.getLogger("GenericClient");
 	
-	public GenericClient(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException {
+	public GenericClient(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
 		super(jparFile);	
 	}
 	
@@ -63,12 +73,12 @@ public abstract class GenericClient extends Aggregator {
 		return ((QueryResponse)response).getBindingsResults();
 	}
 	
-	public String subscribe(String SPARQL_SUBSCRIBE,Bindings forced) throws IOException, URISyntaxException {	
+	public String subscribe(String SPARQL_SUBSCRIBE,Bindings forced) throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {	
 		sparqlSubscribe = SPARQL_SUBSCRIBE;
 		return super.subscribe(forced);
 	}
 	 
-	public boolean unsubscribe() throws IOException, URISyntaxException {
+	public boolean unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		return super.unsubscribe();
 	}
 }

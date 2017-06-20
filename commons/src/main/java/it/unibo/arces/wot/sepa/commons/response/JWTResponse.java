@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.commons.response;
 
 import com.google.gson.JsonPrimitive;
 
+// TODO: Auto-generated Javadoc
 /**
  * Produce JWT compliant with WoT W3C recommendations
  * 

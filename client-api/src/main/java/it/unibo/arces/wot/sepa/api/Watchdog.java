@@ -23,11 +23,9 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import javax.websocket.DeploymentException;
-
 import org.apache.logging.log4j.LogManager;
 
-class WebsocketWatchdog extends Thread {
+public class Watchdog extends Thread {
 	
 	private long pingPeriod = 0;
 	private long firstPing = 0;
@@ -40,12 +38,12 @@ class WebsocketWatchdog extends Thread {
 	private static final Logger logger = LogManager.getLogger("WebsocketWatchdog");
 	
 	private INotificationHandler handler = null;
-	private WebsocketClientEndpoint wsClient;
+	private Websocket wsClient;
 	private String sparql;
 	private String token;
 	private String alias;
 	
-	public WebsocketWatchdog(INotificationHandler handler, WebsocketClientEndpoint wsClient,String sparql,String alias,String token) {
+	public Watchdog(INotificationHandler handler, Websocket wsClient,String sparql,String alias,String token) {
 		this.handler = handler;
 		this.wsClient = wsClient;
 		this.sparql = sparql;
@@ -53,7 +51,7 @@ class WebsocketWatchdog extends Thread {
 		this.alias = alias;
 	}
 	
-	public WebsocketWatchdog(INotificationHandler handler, WebsocketClientEndpoint wsClient,String sparql,String alias) {
+	public Watchdog(INotificationHandler handler, Websocket wsClient,String sparql,String alias) {
 		this.handler = handler;
 		this.wsClient = wsClient;
 		this.sparql = sparql;
@@ -61,7 +59,7 @@ class WebsocketWatchdog extends Thread {
 		this.alias = alias;
 	}
 	
-	public WebsocketWatchdog(INotificationHandler handler, WebsocketClientEndpoint wsClient,String sparql) {
+	public Watchdog(INotificationHandler handler, Websocket wsClient,String sparql) {
 		this.handler = handler;
 		this.wsClient = wsClient;
 		this.sparql = sparql;
@@ -103,14 +101,14 @@ class WebsocketWatchdog extends Thread {
 		return pingReceived;
 	}
 	
-	private synchronized boolean subscribing() throws DeploymentException, IOException, URISyntaxException {
+	private synchronized boolean subscribing() throws IOException, URISyntaxException {
 		logger.debug("Subscribing...");
 		if (wsClient == null) {
 			logger.warn("Websocket client is null");
 			return false;
 		}
 		while(state == SubscriptionState.BROKEN_SOCKET) {
-			if (wsClient.isConnected()) wsClient.close();
+			if (wsClient.isOpen()) wsClient.close();
 			
 			wsClient.subscribe(sparql,alias,token,handler);
 			
@@ -141,7 +139,7 @@ class WebsocketWatchdog extends Thread {
 			
 			try {
 				if(!subscribing()) return;
-			} catch (DeploymentException | IOException | URISyntaxException e) {
+			} catch (IOException | URISyntaxException e) {
 				logger.error(e.getMessage());
 				return;
 			}

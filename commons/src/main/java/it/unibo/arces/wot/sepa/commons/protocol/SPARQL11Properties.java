@@ -22,21 +22,44 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+// TODO: Auto-generated Javadoc
 /**
- * {"parameters":{ "host":"localhost", "port":9999, "scheme":"http",
- * "path":"/blazegraph/namespace/kb/sparql",
- * "query":{"method":"POST","format":"JSON"},
- * "update":{"method":"URL_ENCODED_POST","format":"HTML"}}}.
+ * The Class SPARQL11Properties includes all the properties needed to connect to a SPARQL 1.1 Protocol Service: the URLs used by queries and updates (scheme, host, port and path),
+ * the HTTP method used by the primitives (GET, POST or URL_ENCODED_POST) and the format of the results (JSON, XML, HTML, CSV) 
+ 
+ * 
+ <pre>
+ { parameters": 
+   { "host": "localhost", 
+     "ports":{ "http" : 9999 }, 
+     "paths": {
+       "update" : "/blazegraph/namespace/kb/sparql",
+       "query" : "/blazegraph/namespace/kb/sparql" }, 
+     "methods": { 
+       "query": "POST", 
+       "update": "URL_ENCODED_POST" }, 
+     "formats" : { 
+       "update" : "HTML", 
+       "query" : "JSON" } } }</pre>
  */
+
 public class SPARQL11Properties {
 
 	/** The Constant logger. */
@@ -88,7 +111,7 @@ public class SPARQL11Properties {
 
 	/** The defaults file name. */
 	// Properties file
-	protected String defaultsFileName = "endpoint.defaults";
+	protected String defaultsFileName = "defaults.jpar";
 
 	/** The properties file. */
 	protected String propertiesFile = "endpoint.jpar";
@@ -98,6 +121,30 @@ public class SPARQL11Properties {
 
 	/** The doc. */
 	protected JsonObject doc = new JsonObject();
+
+	/** The host. */
+	private String host;
+
+	/** The http port. */
+	private int httpPort;
+
+	/** The update path. */
+	private String updatePath;
+
+	/** The query path. */
+	private String queryPath;
+
+	/** The update method. */
+	private String updateMethod;
+
+	/** The update results format. */
+	private String updateResultsFormat;
+
+	/** The query method. */
+	private String queryMethod;
+
+	/** The query results format. */
+	private String queryResultsFormat;
 
 	/**
 	 * Instantiates a new SPARQL 11 properties.
@@ -110,8 +157,26 @@ public class SPARQL11Properties {
 	 *             the no such element exception
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
+	 * @throws NumberFormatException
+	 *             the number format exception
+	 * @throws InvalidKeyException
+	 *             the invalid key exception
+	 * @throws NullPointerException
+	 *             the null pointer exception
+	 * @throws ClassCastException
+	 *             the class cast exception
+	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
+	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
+	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
+	 * @throws BadPaddingException
+	 *             the bad padding exception
 	 */
-	public SPARQL11Properties(String propertiesFile) throws FileNotFoundException, NoSuchElementException, IOException {
+	public SPARQL11Properties(String propertiesFile) throws FileNotFoundException, NoSuchElementException, IOException,
+			NumberFormatException, InvalidKeyException, NullPointerException, ClassCastException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		this.propertiesFile = propertiesFile;
 
 		loadProperties();
@@ -127,23 +192,35 @@ public class SPARQL11Properties {
 	}
 
 	/**
-	 * Defaults.
+	 * Defaults. 
+	 * 
+	 * { parameters": { "host": "localhost", "ports":{ "http" : 9999
+	 * }, "paths": { "update" : "/blazegraph/namespace/kb/sparql", "query" :
+	 * "/blazegraph/namespace/kb/sparql" }, "methods": { "query": "POST",
+	 * "update": "URL_ENCODED_POST" }, "formats" : { "update" : "HTML", "query"
+	 * : "JSON" } } }
 	 */
 	protected void defaults() {
 		parameters.add("host", new JsonPrimitive("localhost"));
-		parameters.add("port", new JsonPrimitive(9999));
-		parameters.add("scheme", new JsonPrimitive("http"));
-		parameters.add("path", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
 
-		JsonObject query = new JsonObject();
-		query.add("method", new JsonPrimitive("POST"));
-		query.add("format", new JsonPrimitive("JSON"));
-		parameters.add("query", query);
+		JsonObject ports = new JsonObject();
+		ports.add("http", new JsonPrimitive(9999));
+		parameters.add("ports", ports);
 
-		JsonObject update = new JsonObject();
-		update.add("method", new JsonPrimitive("URL_ENCODED_POST"));
-		update.add("format", new JsonPrimitive("HTML"));
-		parameters.add("update", update);
+		JsonObject paths = new JsonObject();
+		paths.add("query", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
+		paths.add("update", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
+		parameters.add("paths", paths);
+
+		JsonObject methods = new JsonObject();
+		methods.add("query", new JsonPrimitive("POST"));
+		methods.add("update", new JsonPrimitive("URL_ENCODED_POST"));
+		parameters.add("methods", methods);
+
+		JsonObject formats = new JsonObject();
+		formats.add("query", new JsonPrimitive("JSON"));
+		formats.add("update", new JsonPrimitive("HTML"));
+		parameters.add("formats", formats);
 
 		doc.add("parameters", parameters);
 	}
@@ -157,8 +234,26 @@ public class SPARQL11Properties {
 	 *             the no such element exception
 	 * @throws IOException
 	 *             Signals that an I/O exception has occurred.
+	 * @throws NumberFormatException
+	 *             the number format exception
+	 * @throws InvalidKeyException
+	 *             the invalid key exception
+	 * @throws NullPointerException
+	 *             the null pointer exception
+	 * @throws ClassCastException
+	 *             the class cast exception
+	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
+	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
+	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
+	 * @throws BadPaddingException
+	 *             the bad padding exception
 	 */
-	protected void loadProperties() throws FileNotFoundException, NoSuchElementException, IOException {
+	protected void loadProperties() throws FileNotFoundException, NoSuchElementException, IOException,
+			NumberFormatException, InvalidKeyException, NullPointerException, ClassCastException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		FileReader in = null;
 		try {
 			in = new FileReader(propertiesFile);
@@ -169,6 +264,8 @@ public class SPARQL11Properties {
 					throw new NoSuchElementException("parameters key is missing");
 				}
 				parameters = doc.get("parameters").getAsJsonObject();
+
+				setParameters();
 			}
 			if (in != null)
 				in.close();
@@ -188,6 +285,57 @@ public class SPARQL11Properties {
 	}
 
 	/**
+	 * Sets the parameters.
+	 *
+	 * @throws NullPointerException
+	 *             the null pointer exception
+	 * @throws ClassCastException
+	 *             the class cast exception
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 * @throws NumberFormatException
+	 *             the number format exception
+	 * @throws InvalidKeyException
+	 *             the invalid key exception
+	 * @throws NoSuchAlgorithmException
+	 *             the no such algorithm exception
+	 * @throws NoSuchPaddingException
+	 *             the no such padding exception
+	 * @throws IllegalBlockSizeException
+	 *             the illegal block size exception
+	 * @throws BadPaddingException
+	 *             the bad padding exception
+	 */
+	protected void setParameters()
+			throws NullPointerException, ClassCastException, IOException, NumberFormatException, InvalidKeyException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		host = parameters.get("host").getAsString();
+
+		for (Entry<String, JsonElement> elem : parameters.get("ports").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("http"))
+				httpPort = elem.getValue().getAsInt();
+		}
+		for (Entry<String, JsonElement> elem : parameters.get("paths").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("update"))
+				updatePath = elem.getValue().getAsString();
+			if (elem.getKey().equals("query"))
+				queryPath = elem.getValue().getAsString();
+		}
+		for (Entry<String, JsonElement> elem : parameters.get("methods").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("update"))
+				updateMethod = elem.getValue().getAsString().toUpperCase();
+			if (elem.getKey().equals("query"))
+				queryMethod = elem.getValue().getAsString().toUpperCase();
+		}
+		for (Entry<String, JsonElement> elem : parameters.get("formats").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("update"))
+				updateResultsFormat = elem.getValue().getAsString().toUpperCase();
+			if (elem.getKey().equals("query"))
+				queryResultsFormat = elem.getValue().getAsString().toUpperCase();
+		}
+	}
+
+	/**
 	 * Store properties.
 	 *
 	 * @param propertiesFile
@@ -202,89 +350,12 @@ public class SPARQL11Properties {
 	}
 
 	/**
-	 * Gets a integer parameter from the JSON file. The following cases are
-	 * supported:
-	 *
-	 * {"nestedKey":value} {"rootKey" : {"nestedKey : value"}} {"rootKey" : {} ,
-	 * "nestedKey" : value}
-	 * 
-	 * @param rootKey
-	 *            the root key
-	 * @param nestedKey
-	 *            the nested key
-	 * @param def
-	 *            the default to be returned if none of the previous cases is
-	 *            matched
-	 * @return the parameter as integer value
-	 */
-	protected int getParameter(String rootKey, String nestedKey, int def) {
-		if (rootKey == null) {
-			if (parameters.get(nestedKey) != null)
-				return parameters.get(nestedKey).getAsInt();
-			return def;
-		}
-		if (parameters.get(rootKey) != null) {
-			if (parameters.get(rootKey).getAsJsonObject().get(nestedKey) != null)
-				return parameters.get(rootKey).getAsJsonObject().get(nestedKey).getAsInt();
-
-		}
-		if (parameters.get(nestedKey) != null)
-			return parameters.get(nestedKey).getAsInt();
-
-		logger.warn(rootKey + " or " + nestedKey + " keys not found");
-		return def;
-	}
-
-	/**
-	 * Gets a string parameter from the JSON file. The following cases are
-	 * supported:
-	 * 
-	 * {"nestedKey":value} {"rootKey" : {"nestedKey : value"}} {"rootKey" : {} ,
-	 * "nestedKey" : value}
-	 *
-	 * @param rootKey
-	 *            the root key
-	 * @param nestedKey
-	 *            the nested key
-	 * @param def
-	 *            the default to be returned if none of the previous cases is
-	 *            matched
-	 * @return the parameter as string
-	 */
-	protected String getParameter(String rootKey, String nestedKey, String def) {
-		if (rootKey == null) {
-			if (parameters.get(nestedKey) != null)
-				return parameters.get(nestedKey).getAsString();
-			return def;
-		}
-		if (parameters.get(rootKey) != null) {
-			if (parameters.get(rootKey).getAsJsonObject().get(nestedKey) != null)
-				return parameters.get(rootKey).getAsJsonObject().get(nestedKey).getAsString();
-
-		}
-		if (parameters.get(nestedKey) != null)
-			return parameters.get(nestedKey).getAsString();
-
-		logger.warn(rootKey + " or " + nestedKey + " keys not found");
-		return def;
-	}
-
-	/**
 	 * Gets the host.
 	 *
 	 * @return the host (default is localhost)
 	 */
 	public String getHost() {
-		return getParameter(null, "host", "localhost");
-	}
-
-	/**
-	 * Gets the update scheme.
-	 *
-	 * @return the update scheme (default is http)
-	 */
-	public String getUpdateScheme() {
-		return getParameter("update", "scheme", "http");
+		return host;
 	}
 
 	/**
@@ -292,8 +363,8 @@ public class SPARQL11Properties {
 	 *
 	 * @return the update port (default is 9999)
 	 */
-	public int getUpdatePort() {
-		return getParameter("update", "port", 9999);
+	public int getHttpPort() {
+		return httpPort;
 	}
 
 	/**
@@ -302,7 +373,7 @@ public class SPARQL11Properties {
 	 * @return the update path (default is /blazegraph/namespace/kb/sparql)
 	 */
 	public String getUpdatePath() {
-		return getParameter("update", "path", "/blazegraph/namespace/kb/sparql");
+		return updatePath;
 	}
 
 	/**
@@ -313,7 +384,7 @@ public class SPARQL11Properties {
 	 * @see HTTPMethod
 	 */
 	public HTTPMethod getUpdateMethod() {
-		switch (getParameter("update", "method", "URL_ENCODED_POST")) {
+		switch (updateMethod) {
 		case "POST":
 			return HTTPMethod.POST;
 		case "URL_ENCODED_POST":
@@ -329,7 +400,7 @@ public class SPARQL11Properties {
 	 * @return the update results format (JSON, HTML)
 	 */
 	public UpdateResultsFormat getUpdateResultsFormat() {
-		switch (getParameter("update", "format", "JSON")) {
+		switch (updateResultsFormat) {
 		case "JSON":
 			return UpdateResultsFormat.JSON;
 		case "HTML":
@@ -340,30 +411,12 @@ public class SPARQL11Properties {
 	}
 
 	/**
-	 * Gets the query scheme.
-	 *
-	 * @return the query scheme (default is http)
-	 */
-	public String getQueryScheme() {
-		return getParameter("query", "scheme", "http");
-	}
-
-	/**
-	 * Gets the query port.
-	 *
-	 * @return the query port (default is 9999)
-	 */
-	public int getQueryPort() {
-		return getParameter("query", "port", 9999);
-	}
-
-	/**
 	 * Gets the query path.
 	 *
 	 * @return the query path (default is /blazegraph/namespace/kb/sparql)
 	 */
 	public String getQueryPath() {
-		return getParameter("query", "path", "/blazegraph/namespace/kb/sparql");
+		return queryPath;
 	}
 
 	/**
@@ -374,7 +427,7 @@ public class SPARQL11Properties {
 	 * @see HTTPMethod
 	 */
 	public HTTPMethod getQueryMethod() {
-		switch (getParameter("query", "method", "POST")) {
+		switch (queryMethod) {
 		case "POST":
 			return HTTPMethod.POST;
 		case "GET":
@@ -394,7 +447,7 @@ public class SPARQL11Properties {
 	 * @see QueryResultsFormat
 	 */
 	public QueryResultsFormat getQueryResultsFormat() {
-		switch (getParameter("query", "format", "JSON")) {
+		switch (queryResultsFormat) {
 		case "JSON":
 			return QueryResultsFormat.JSON;
 		case "XML":

@@ -14,6 +14,9 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -22,10 +25,17 @@ import javax.net.ssl.TrustManagerFactory;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
 import java.security.KeyPair;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
@@ -149,7 +159,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	    }
 	}
 	
-	public MQTTAdapter(ApplicationProfile appProfile, String updateID) {
+	public MQTTAdapter(ApplicationProfile appProfile, String updateID) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 		super(appProfile, updateID);
 		
 		try 
@@ -231,12 +241,24 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		return created;
 	}
 
-	public static void main(String[] args) throws FileNotFoundException, NoSuchElementException, IOException {
+	public static void main(String[] args) {
 		//SEPALogger.loadSettings();
 		
-		ApplicationProfile profile = new ApplicationProfile("MQTTAdapter.jsap");
+		ApplicationProfile profile = null;
+		try {
+			profile = new ApplicationProfile("MQTTAdapter.jsap");
+		} catch (NoSuchElementException | IOException | InvalidKeyException | IllegalArgumentException | NullPointerException | ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+			logger.fatal(e1.getLocalizedMessage());
+			System.exit(1);
+		}
 		
-		adapter = new MQTTAdapter(profile,"UPDATE");
+		try {
+			adapter = new MQTTAdapter(profile,"UPDATE");
+		} catch (UnrecoverableKeyException | KeyManagementException | IllegalArgumentException | KeyStoreException
+				| NoSuchAlgorithmException | CertificateException | IOException | URISyntaxException e1) {
+			logger.fatal(e1.getLocalizedMessage());
+			System.exit(1);
+		}
 		
 		if (!adapter.join()) return;
 		

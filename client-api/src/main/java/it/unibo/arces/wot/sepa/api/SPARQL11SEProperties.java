@@ -21,50 +21,49 @@ package it.unibo.arces.wot.sepa.api;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 
 import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.Map.Entry;
 
-import javax.crypto.*;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.bouncycastle.util.encoders.Base64Encoder;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 
-//import sun.misc.*;
-
 /**
  * The Class SPARQL11SEProperties.
  * 
- * {"parameters":{
-	"host":"localhost",
-	"port":8000,
-	"scheme":"http",
-	"path":"/sparql",
-	"query":{"method":"POST","format":"JSON"},
-	"update":{"method":"URL_ENCODED_POST","format":"HTML"},
-	"subscribe":{"port":9000,"scheme":"ws"},
-	"securesubscribe":{"port":9443,"scheme":"wss","path":"/secure/sparql"},
-	"secureupdate":{"port":8443,"scheme":"https"},
-	"securequery":{"port":8443,"scheme":"https"},
-	"authorizationserver":{
-		"register":"/oauth/register","requesttoken":"/oauth/token",
-		"port":8443,"scheme":"https"},
-	"security":{
-		"client_id":"2onesV7vDw9TvXTBt6JlrD0MV6f8eU+Xd8hqTpyok0PcnuFi19HwGTOwdJ56uZDR",
-		"client_secret":"qp6AulTNzU3jMdUY45+eNgQ3+iilVaBuAADR64w9vqmVYtzk814g2x5ZLAgngT7s",
-		"jwt":"xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+3Adk0TRGMLTGccxJUiJyyc2yRaVage8/Tz\ndZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR1\n5LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIh\nydKJWfupSsIpj+KmOAjcfC9/tTs3K5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M\n1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYne1Mbui7F238uxPBhm\nGoMoSnd7dpaVGHZK9Kfa97HuiKN8s2SfRBcyLOnlBczjgQAaKYdJRUXndWQhPIu1W0oZUxH//6Kx\nA+cquekGC+mzeC8QscLmuwOkBaYIX2Va9600gErGqtHisgNwUUH/g73zjO4pD+xLL/cXuudp89Vq\nu+FyVDOqH5GoCX3G4PMPXLoVuBm4Zt2yQdPvpshH3mrGJsPxS8f1PeVnR6Iy5Wbc8a5jiGYHljbs\n0498sKRA0rko/LHSCZwQwuKwuMd110ZvvmQhBUX/23appJ1Wj9hrS1/G5mPXvFQGuZGf+dgynvPT\njeF4RZQVcsfY7jxTwxVC0VRq7dRIncRgmNOHmfKBA18h9fd6gix5RYEX69NvPKEolFyy2wJJxaci\nwW1ub235Gzd/gn+hnNox1g2rIKPu5XY6ttF0L5HwQmk8aYhusOY=",
-		"expires":"gVpKtUqSbe+km85RCBcsBQ==",
-		"type":"XPrHEX2xHy+5IuXHPHigMw=="}}
+ * { "parameters": { "host": "localhost", "ports": { "http": 8000, "ws": 9000,
+ * "https": 8443, "wss": 9443 }, "paths": { "update": "/update", "query":
+ * "/query", "subscribe": "/subscribe", "securePath": "/secure", "register":
+ * "/oauth/register", "tokenRequest": "/oauth/token" }, "security": {
+ * "clientId":
+ * "NjA3YjA5NjMtMjIyYy00MTVmLWFhYTEtM2ZhMjIzMTlkM2NhOmM3ZjcxZGRmLWFmNTctNDY0ZC05MjViLWRjNWQ4MTA4ZmEyMw==+MsPJeSo0/Py4oMBai+7XPEdfVEAzU5G3AiiAdT5Kh75xG47x+843PTaTg7FPBrU",
+ * "clientSecret":
+ * "NjA3YjA5NjMtMjIyYy00MTVmLWFhYTEtM2ZhMjIzMTlkM2NhOmM3ZjcxZGRmLWFmNTctNDY0ZC05MjViLWRjNWQ4MTA4ZmEyMw==+MsPJeSo0/Py4oMBai+7XPEdfVEAzU5G3AiiAdT5Kh75xG47x+843PTaTg7FPBrU72cwZ5VCUzjLOlxbM3hJL7eZpGPVdgzVxwYPZpktzA3ou8FgWd48FuBhE8nSlO6j",
+ * "jwt":
+ * "NjA3YjA5NjMtMjIyYy00MTVmLWFhYTEtM2ZhMjIzMTlkM2NhOmM3ZjcxZGRmLWFmNTctNDY0ZC05MjViLWRjNWQ4MTA4ZmEyMw==+MsPJeSo0/Py4oMBai+7XPEdfVEAzU5G3AiiAdT5Kh75xG47x+843PTaTg7FPBrU72cwZ5VCUzjLOlxbM3hJL7eZpGPVdgzVxwYPZpktzA3ou8FgWd48FuBhE8nSlO6jxabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfun6peA2iw+Yzgy++JvqYcNK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkWldw9We4PoULmmCLsYMJhsZXJGTP7Ts2MJvFfhzLpNL7RUMQFh1SgaUw0DDIfhMzhOux8BQ+F7uOGlugo40Eudeoa44m53VQ6Oagup1VnQGQL99rytyAOMbIxeplhO0sHO9K1qxIma7n12grTP/OX+2z715+eQ0GVaWla2uK1JKQyc0nVfY4fg9zApFTrmvsVvET1WCV8SCPO9Eb3ngKzMfrOATYiVTFgkvxW8ILYMjBTTpT/mxs7h+m2x+dUyYHf0dO6ijEwC+4RbAD3G9no7DYxZ6vwE1rgdgjKMO8FDB70btp5wDLC/Ix4ODpjjcEC+5QjFYqLVx1hHcO3OofKlkDTW8SZC2ja+Y0e+DxQBP4KQNicqbb6nHtVquc7evcL7qiBubPC0vCgC0rnG/KnwAuM20poF+9wdxQIRAbEM7FKShSUOUKWiFuwrGwmDo8=03GyA/KHCksRpbTE427Duw==XPrHEX2xHy+5IuXHPHigMw==xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfv8OLnSINurvOL38hvfHCFsK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkWldw9We4PoULmmCLsYMJh2V85wkVIZ+xfygiqcn0BDZ0wcyjgOsLXBmegg4oeHQ/hOux8BQ+F7uOGlugo40Eudeoa44m53VQ6Oagup1VnQGQL99rytyAOMbIxeplhO0sHO9K1qxIma7n12grTP/OX+2z715+eQ0GVaWla2uK1JKQyc0nVfY4fg9zApFTrmvt7rSSsKqJWuEEPG7XZz8sb5eyV+03bXZ3gtEDElHkpTqgEkE1i97ssq+xQ8FQxQorLmtYAPTbAlAdq0WYKCLqf82XYa0/BQxsSDolYh6LyzhVZFSw38B9M8SZoUy1o2TKgLkwqhbWqSOMqSHadZc1GgudYeL6jnT15YoMDxSgh2ipp9xqfEg14hftHUjnn+eVvbFSrB0/64yhNcy8QEpOTugfcXUOdX/QZFUYYfk0z+pX3VK6kDBvsGt1Gu1OiHUE=s7busLq+ySuYDqnFWs2/lg==XPrHEX2xHy+5IuXHPHigMw==xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfsP07Rrw5G3cPYZKKp1RLZyK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYke9XGiRtdWCLU/9WQpwUqWD1tYwAEOHOn0qZK0z17hqCgkaOp/sLyIGq4J047Pc+HhOux8BQ+F7uOGlugo40Eudeoa44m53VQ6Oagup1VnQGQL99rytyAOMbIxeplhO0sHO9K1qxIma7n12grTP/OX+2z715+eQ0GVaWla2uK1JKQyc0nVfY4fg9zApFTrmvsUoMF/UIVlrrGwX+ghtGDJtG2OuBC/KY5hLtHN3G7lzmlmSehTw2ec40BqxcLCf2yCmjRSb1xnf+2NtiidKa3qdnk8f2epx/i1vcnG6PLOkSNdJryKVIQSi38X1A/gNtp7hWs97JuVihxDUblVOLWX4TqBDzet8ZvSxxguP+KBGn1CUczRUI28novZLU1KpWTHH64nNLLSLVHuTaQP3mQgisGofYLYhzsW/dnz7OgpbARFXipZ1smUaGbfGSn06sU=",
+ * "expires":
+ * "NjA3YjA5NjMtMjIyYy00MTVmLWFhYTEtM2ZhMjIzMTlkM2NhOmM3ZjcxZGRmLWFmNTctNDY0ZC05MjViLWRjNWQ4MTA4ZmEyMw==+MsPJeSo0/Py4oMBai+7XPEdfVEAzU5G3AiiAdT5Kh75xG47x+843PTaTg7FPBrU72cwZ5VCUzjLOlxbM3hJL7eZpGPVdgzVxwYPZpktzA3ou8FgWd48FuBhE8nSlO6jxabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfun6peA2iw+Yzgy++JvqYcNK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkWldw9We4PoULmmCLsYMJhsZXJGTP7Ts2MJvFfhzLpNL7RUMQFh1SgaUw0DDIfhMzhOux8BQ+F7uOGlugo40Eudeoa44m53VQ6Oagup1VnQGQL99rytyAOMbIxeplhO0sHO9K1qxIma7n12grTP/OX+2z715+eQ0GVaWla2uK1JKQyc0nVfY4fg9zApFTrmvsVvET1WCV8SCPO9Eb3ngKzMfrOATYiVTFgkvxW8ILYMjBTTpT/mxs7h+m2x+dUyYHf0dO6ijEwC+4RbAD3G9no7DYxZ6vwE1rgdgjKMO8FDB70btp5wDLC/Ix4ODpjjcEC+5QjFYqLVx1hHcO3OofKlkDTW8SZC2ja+Y0e+DxQBP4KQNicqbb6nHtVquc7evcL7qiBubPC0vCgC0rnG/KnwAuM20poF+9wdxQIRAbEM7FKShSUOUKWiFuwrGwmDo8=03GyA/KHCksRpbTE427Duw==XPrHEX2xHy+5IuXHPHigMw==xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfv8OLnSINurvOL38hvfHCFsK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkWldw9We4PoULmmCLsYMJh2V85wkVIZ+xfygiqcn0BDZ0wcyjgOsLXBmegg4oeHQ/hOux8BQ+F7uOGlugo40Eudeoa44m53VQ6Oagup1VnQGQL99rytyAOMbIxeplhO0sHO9K1qxIma7n12grTP/OX+2z715+eQ0GVaWla2uK1JKQyc0nVfY4fg9zApFTrmvt7rSSsKqJWuEEPG7XZz8sb5eyV+03bXZ3gtEDElHkpTqgEkE1i97ssq+xQ8FQxQorLmtYAPTbAlAdq0WYKCLqf82XYa0/BQxsSDolYh6LyzhVZFSw38B9M8SZoUy1o2TKgLkwqhbWqSOMqSHadZc1GgudYeL6jnT15YoMDxSgh2ipp9xqfEg14hftHUjnn+eVvbFSrB0/64yhNcy8QEpOTugfcXUOdX/QZFUYYfk0z+pX3VK6kDBvsGt1Gu1OiHUE=s7busLq+ySuYDqnFWs2/lg==XPrHEX2xHy+5IuXHPHigMw==xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfsP07Rrw5G3cPYZKKp1RLZyK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYke9XGiRtdWCLU/9WQpwUqWD1tYwAEOHOn0qZK0z17hqCgkaOp/sLyIGq4J047Pc+HhOux8BQ+F7uOGlugo40Eudeoa44m53VQ6Oagup1VnQGQL99rytyAOMbIxeplhO0sHO9K1qxIma7n12grTP/OX+2z715+eQ0GVaWla2uK1JKQyc0nVfY4fg9zApFTrmvsUoMF/UIVlrrGwX+ghtGDJtG2OuBC/KY5hLtHN3G7lzmlmSehTw2ec40BqxcLCf2yCmjRSb1xnf+2NtiidKa3qdnk8f2epx/i1vcnG6PLOkSNdJryKVIQSi38X1A/gNtp7hWs97JuVihxDUblVOLWX4TqBDzet8ZvSxxguP+KBGn1CUczRUI28novZLU1KpWTHH64nNLLSLVHuTaQP3mQgisGofYLYhzsW/dnz7OgpbARFXipZ1smUaGbfGSn06sU=C8gpZPX8vmBkyVufxJn4/g==",
+ * "type":
+ * "NjA3YjA5NjMtMjIyYy00MTVmLWFhYTEtM2ZhMjIzMTlkM2NhOmM3ZjcxZGRmLWFmNTctNDY0ZC05MjViLWRjNWQ4MTA4ZmEyMw==+MsPJeSo0/Py4oMBai+7XPEdfVEAzU5G3AiiAdT5Kh75xG47x+843PTaTg7FPBrU72cwZ5VCUzjLOlxbM3hJL7eZpGPVdgzVxwYPZpktzA3ou8FgWd48FuBhE8nSlO6jxabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfun6peA2iw+Yzgy++JvqYcNK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkWldw9We4PoULmmCLsYMJhsZXJGTP7Ts2MJvFfhzLpNL7RUMQFh1SgaUw0DDIfhMzhOux8BQ+F7uOGlugo40Eudeoa44m53VQ6Oagup1VnQGQL99rytyAOMbIxeplhO0sHO9K1qxIma7n12grTP/OX+2z715+eQ0GVaWla2uK1JKQyc0nVfY4fg9zApFTrmvsVvET1WCV8SCPO9Eb3ngKzMfrOATYiVTFgkvxW8ILYMjBTTpT/mxs7h+m2x+dUyYHf0dO6ijEwC+4RbAD3G9no7DYxZ6vwE1rgdgjKMO8FDB70btp5wDLC/Ix4ODpjjcEC+5QjFYqLVx1hHcO3OofKlkDTW8SZC2ja+Y0e+DxQBP4KQNicqbb6nHtVquc7evcL7qiBubPC0vCgC0rnG/KnwAuM20poF+9wdxQIRAbEM7FKShSUOUKWiFuwrGwmDo8=03GyA/KHCksRpbTE427Duw==XPrHEX2xHy+5IuXHPHigMw==xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfv8OLnSINurvOL38hvfHCFsK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkWldw9We4PoULmmCLsYMJh2V85wkVIZ+xfygiqcn0BDZ0wcyjgOsLXBmegg4oeHQ/hOux8BQ+F7uOGlugo40Eudeoa44m53VQ6Oagup1VnQGQL99rytyAOMbIxeplhO0sHO9K1qxIma7n12grTP/OX+2z715+eQ0GVaWla2uK1JKQyc0nVfY4fg9zApFTrmvt7rSSsKqJWuEEPG7XZz8sb5eyV+03bXZ3gtEDElHkpTqgEkE1i97ssq+xQ8FQxQorLmtYAPTbAlAdq0WYKCLqf82XYa0/BQxsSDolYh6LyzhVZFSw38B9M8SZoUy1o2TKgLkwqhbWqSOMqSHadZc1GgudYeL6jnT15YoMDxSgh2ipp9xqfEg14hftHUjnn+eVvbFSrB0/64yhNcy8QEpOTugfcXUOdX/QZFUYYfk0z+pX3VK6kDBvsGt1Gu1OiHUE=s7busLq+ySuYDqnFWs2/lg==XPrHEX2xHy+5IuXHPHigMw==xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfsP07Rrw5G3cPYZKKp1RLZyK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYke9XGiRtdWCLU/9WQpwUqWD1tYwAEOHOn0qZK0z17hqCgkaOp/sLyIGq4J047Pc+HhOux8BQ+F7uOGlugo40Eudeoa44m53VQ6Oagup1VnQGQL99rytyAOMbIxeplhO0sHO9K1qxIma7n12grTP/OX+2z715+eQ0GVaWla2uK1JKQyc0nVfY4fg9zApFTrmvsUoMF/UIVlrrGwX+ghtGDJtG2OuBC/KY5hLtHN3G7lzmlmSehTw2ec40BqxcLCf2yCmjRSb1xnf+2NtiidKa3qdnk8f2epx/i1vcnG6PLOkSNdJryKVIQSi38X1A/gNtp7hWs97JuVihxDUblVOLWX4TqBDzet8ZvSxxguP+KBGn1CUczRUI28novZLU1KpWTHH64nNLLSLVHuTaQP3mQgisGofYLYhzsW/dnz7OgpbARFXipZ1smUaGbfGSn06sU=C8gpZPX8vmBkyVufxJn4/g==XPrHEX2xHy+5IuXHPHigMw=="
+ * } } } }
  */
 public class SPARQL11SEProperties extends SPARQL11Properties {
 	private long expires = 0;
@@ -73,22 +72,30 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	private String authorization = null;
 	private String id = null;
 	private String secret = null;
-	
-	//Base64 encoding-decoding
-	static Base64Encoder base64 = new Base64Encoder();
+
+	private int httpsPort;
+	private int wsPort;
+	private int wssPort;
+
+	private String subscribePath;
+	private String registerPath;
+	private String tokenRequestPath;
+	private String securePath;
+
 	static ByteArrayOutputStream out64 = new ByteArrayOutputStream();
-	
+
 	/** The Constant logger. */
 	private static final Logger logger = LogManager.getLogger("SPARQL11SEProperties");
+
 	/**
-	 * The new primitives introduced by the SPARQL 1.1 SE Protocol are: 
+	 * The new primitives introduced by the SPARQL 1.1 SE Protocol are:
 	 * 
 	 * SECUREUPDATE,SECUREQUERY,SUBSCRIBE,SECURESUBSCRIBE,UNSUBSCRIBE,SECUREUNSUBSCRIBE,REGISTER,REQUESTTOKEN
 	 * 
 	 * 
-	* @author Luca Roffia (luca.roffia@unibo.it)
-	* @version 0.1
-	* */
+	 * @author Luca Roffia (luca.roffia@unibo.it)
+	 * @version 0.1
+	 */
 	public enum SPARQL11SEPrimitive {
 		/** A secure update primitive */
 		SECUREUPDATE,
@@ -103,165 +110,176 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		/** A register primitive. */
 		REGISTER,
 		/** A request token primitive. */
-		REQUESTTOKEN, 
-		 /** A secure query primitive. */
-		 SECUREQUERY};
-		
+		REQUESTTOKEN,
+		/** A secure query primitive. */
+		SECUREQUERY
+	};
+
 	/**
 	 * Instantiates a new SPARQL 11 SE properties.
 	 *
-	 * @param propertiesFile the properties file
-	 * @param secret the secret
-	 * @throws IOException 
-	 * @throws NoSuchElementException 
-	 * @throws FileNotFoundException 
+	 * @param propertiesFile
+	 *            the properties file
+	 * @param secret
+	 *            the secret
+	 * @throws IOException
+	 * @throws NoSuchElementException
+	 * @throws FileNotFoundException
+	 * @throws BadPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws NoSuchPaddingException
+	 * @throws NoSuchAlgorithmException
+	 * @throws ClassCastException
+	 * @throws NullPointerException
+	 * @throws InvalidKeyException
+	 * @throws NumberFormatException
 	 */
-	public SPARQL11SEProperties(String propertiesFile,byte[] secret) throws FileNotFoundException, NoSuchElementException, IOException {
+	public SPARQL11SEProperties(String propertiesFile, byte[] secret)
+			throws FileNotFoundException, NoSuchElementException, IOException, NumberFormatException,
+			InvalidKeyException, NullPointerException, ClassCastException, NoSuchAlgorithmException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		super(propertiesFile);
 		SEPAEncryption.init(secret);
 	}
-	
+
 	/**
 	 * Instantiates a new SPARQL 11 SE properties.
 	 *
-	 * @param propertiesFile the properties file
-	 * @throws IOException 
-	 * @throws NoSuchElementException 
-	 * @throws FileNotFoundException 
+	 * @param propertiesFile
+	 *            the properties file
+	 * @throws IOException
+	 * @throws NoSuchElementException
+	 * @throws FileNotFoundException
+	 * @throws BadPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws NoSuchPaddingException
+	 * @throws NoSuchAlgorithmException
+	 * @throws ClassCastException
+	 * @throws NullPointerException
+	 * @throws InvalidKeyException
 	 */
-	public SPARQL11SEProperties(String propertiesFile) throws FileNotFoundException, NoSuchElementException, IOException {
-		this(propertiesFile,null);
+	public SPARQL11SEProperties(String propertiesFile) throws IllegalArgumentException, FileNotFoundException,
+			NoSuchElementException, IOException, InvalidKeyException, NullPointerException, ClassCastException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		this(propertiesFile, null);
+		if (propertiesFile == null)
+			throw new IllegalArgumentException("Argument is null");
 	}
-	
+
 	public String toString() {
 		return parameters.toString();
 	}
-	
+
 	@Override
 	protected void defaults() {
 		super.defaults();
-		
-		JsonObject subscribe = new JsonObject();
-		subscribe.add("port", new JsonPrimitive(9000));
-		subscribe.add("scheme", new JsonPrimitive("ws"));
-		subscribe.add("path", new JsonPrimitive("/sparql"));
-		parameters.add("subscribe", subscribe);
-		
-		JsonObject securesubscribe = new JsonObject();
-		securesubscribe.add("port", new JsonPrimitive(9443));
-		securesubscribe.add("scheme", new JsonPrimitive("wss"));
-		securesubscribe.add("path", new JsonPrimitive("/secure/sparql"));
-		parameters.add("securesubscribe", securesubscribe);
-		
-		JsonObject secureUpdate = new JsonObject();
-		secureUpdate.add("port", new JsonPrimitive(8443));
-		secureUpdate.add("scheme", new JsonPrimitive("https"));
-		parameters.add("secureupdate", secureUpdate);
-		
-		JsonObject secureQuery = new JsonObject();
-		secureQuery.add("port", new JsonPrimitive(8443));
-		secureQuery.add("scheme", new JsonPrimitive("https"));
-		parameters.add("securequery", secureQuery);
-		
-		JsonObject register = new JsonObject();
-		register.add("register", new JsonPrimitive("/oauth/register"));
-		register.add("requesttoken", new JsonPrimitive("/oauth/token"));
-		register.add("port", new JsonPrimitive(8443));
-		register.add("scheme", new JsonPrimitive("https"));
-		parameters.add("authorizationserver", register);
+
+		JsonObject ports = parameters.get("ports").getAsJsonObject();
+		ports.add("https", new JsonPrimitive(8443));
+		ports.add("ws", new JsonPrimitive(9000));
+		ports.add("wss", new JsonPrimitive(9443));
+
+		JsonObject paths = parameters.get("paths").getAsJsonObject();
+		paths.add("subscribe", new JsonPrimitive("/subscribe"));
+		paths.add("register", new JsonPrimitive("/oauth/register"));
+		paths.add("tokenRequest", new JsonPrimitive("/oauth/token"));
+		paths.add("securePath", new JsonPrimitive("/secure"));
 	}
-	
-	protected void loadProperties() throws FileNotFoundException, NoSuchElementException, IOException{
-		super.loadProperties();
-		
-		if (doc.get("security") != null) {
-			if (doc.get("security").getAsJsonObject().get("expires") != null) 
-				expires = Long.decode(SEPAEncryption.decrypt(doc.get("security").getAsJsonObject().get("expires").getAsString()));
-			else
-				expires = 0;
-			
-			if (doc.get("security").getAsJsonObject().get("jwt") != null) 
-				jwt = SEPAEncryption.decrypt(doc.get("security").getAsJsonObject().get("jwt").getAsString());
-			else
-				jwt = null;
-			
-			if (doc.get("security").getAsJsonObject().get("type") != null) 
-				tokenType =  SEPAEncryption.decrypt(doc.get("security").getAsJsonObject().get("type").getAsString());
-			else
-				tokenType = null;
-			
-			if (doc.get("security").getAsJsonObject().get("client_id") != null && doc.get("security").getAsJsonObject().get("client_secret") != null ) {
-				id = SEPAEncryption.decrypt(doc.get("security").getAsJsonObject().get("client_id").getAsString());
-				secret = SEPAEncryption.decrypt(doc.get("security").getAsJsonObject().get("client_secret").getAsString());
-				try {
-					//authorization = new BASE64Encoder().encode((id + ":" + secret).getBytes("UTF-8"));
-					Base64Encoder base64 = new Base64Encoder();
-					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					byte[] toEncode = (id + ":" + secret).getBytes("UTF-8");
-					base64.encode(toEncode,0,toEncode.length,out);
-					authorization= out.toString("UTF-8");
-					
-					//TODO need a "\n", why?
-					authorization = authorization.replace("\n", "");
-				} catch (UnsupportedEncodingException e) {
-					logger.error(e.getMessage());
-				}	
+
+	@Override
+	protected void setParameters()
+			throws NullPointerException, ClassCastException, IOException, NumberFormatException, InvalidKeyException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		super.setParameters();
+
+		for (Entry<String, JsonElement> elem : parameters.get("ports").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("https"))
+				httpsPort = elem.getValue().getAsInt();
+			if (elem.getKey().equals("ws"))
+				wsPort = elem.getValue().getAsInt();
+			if (elem.getKey().equals("wss"))
+				wssPort = elem.getValue().getAsInt();
+		}
+		for (Entry<String, JsonElement> elem : parameters.get("paths").getAsJsonObject().entrySet()) {
+			if (elem.getKey().equals("subscribe"))
+				subscribePath = elem.getValue().getAsString();
+			if (elem.getKey().equals("register"))
+				registerPath = elem.getValue().getAsString();
+			if (elem.getKey().equals("tokenRequest"))
+				tokenRequestPath = elem.getValue().getAsString();
+			if (elem.getKey().equals("securePath"))
+				securePath = elem.getValue().getAsString();
+		}
+
+		String encryptedValue;
+		if (parameters.get("security") != null) {
+			if (parameters.get("security").getAsJsonObject().get("expires") != null){
+				encryptedValue = parameters.get("security").getAsJsonObject().get("expires").getAsString();
+				expires = Long.decode(SEPAEncryption.decrypt(encryptedValue));
 			}
 			else
+				expires = 0;
+
+			if (parameters.get("security").getAsJsonObject().get("jwt") != null) {
+				encryptedValue = parameters.get("security").getAsJsonObject().get("jwt").getAsString();
+				jwt = SEPAEncryption.decrypt(encryptedValue);
+			}
+			else
+				jwt = null;
+
+			if (parameters.get("security").getAsJsonObject().get("type") != null) {
+				encryptedValue = parameters.get("security").getAsJsonObject().get("type").getAsString();
+				tokenType = SEPAEncryption.decrypt(encryptedValue);
+			}
+			else
+				tokenType = null;
+
+			if (parameters.get("security").getAsJsonObject().get("client_did") != null
+					&& parameters.get("security").getAsJsonObject().get("client_secret") != null) {
+				encryptedValue = parameters.get("security").getAsJsonObject().get("client_id").getAsString();
+				id = SEPAEncryption.decrypt(encryptedValue);
+				
+				encryptedValue = parameters.get("security").getAsJsonObject().get("client_secret").getAsString();
+				secret = SEPAEncryption.decrypt(encryptedValue);
+				
+				authorization = Base64.getEncoder().encode((id + ":" + secret).getBytes("UTF-8")).toString();
+
+				// TODO need a "\n", why?
+				authorization = authorization.replace("\n", "");
+
+			} else
 				authorization = null;
 		}
 	}
-	
-	public int getSubscribePort() {
-		return getParameter("subscribe","port",9000);
+
+	public String getSecurePath() {
+		return securePath;
 	}
-	
+
+	public int getWsPort() {
+		return wsPort;
+	}
+
 	public String getSubscribePath() {
-		return getParameter("subscribe","path","/sparql");
-	}
-	
-	public String getSubscribeScheme() {
-		return getParameter("subscribe","scheme","ws");
-	}
-	
-	public int getSubscribeSecurePort(){
-		return getParameter("securesubscribe","port",9443);
-	}
-	
-	public int getUpdateSecurePort(){
-		return getParameter("secureupdate","port",8443);
-	}
-	
-	public int getQuerySecurePort() {
-		return getParameter("securequery","port",8443);
+		return subscribePath;
 	}
 
-	public String getRegistrationScheme() {
-		return getParameter("authorizationserver","scheme","https");
+	public int getWssPort() {
+		return wssPort;
 	}
 
-	public String getRequestTokenScheme() {
-		return getParameter("authorizationserver","scheme","https");
-	}
-	
-	public String getRegistrationPath() {
-		return getParameter("authorizationserver","register","/oauth/register");
-	}
-	
-	public String getRequestTokenPath() {
-		return getParameter("authorizationserver","requesttoken","/oauth/token");
-	}
-	 
-	public int getRegistrationPort() {
-		return getParameter("authorizationserver","port",8443);
+	public int getHttpsPort() {
+		return httpsPort;
 	}
 
-	public int getRequestTokenPort() {
-		return getParameter("authorizationserver","port",8443);
+	public String getRegisterPath() {
+		return registerPath;
 	}
-	
-	
-	
+
+	public String getTokenRequestPath() {
+		return tokenRequestPath;
+	}
+
 	/**
 	 * Checks if is token expired.
 	 *
@@ -270,25 +288,26 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	public boolean isTokenExpired() {
 		return (new Date().getTime() >= expires);
 	}
-	
+
 	/**
 	 * Gets the expiring seconds.
 	 *
 	 * @return the expiring seconds
 	 */
 	public long getExpiringSeconds() {
-		long seconds = ((expires - new Date().getTime())/1000);
-		if (seconds < 0) seconds = 0;
+		long seconds = ((expires - new Date().getTime()) / 1000);
+		if (seconds < 0)
+			seconds = 0;
 		return seconds;
 	}
-	
+
 	/**
 	 * Gets the access token.
 	 *
 	 * @return the access token
 	 */
 	public String getAccessToken() {
-		return jwt;	
+		return jwt;
 	}
 
 	/**
@@ -299,184 +318,163 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	public String getTokenType() {
 		return tokenType;
 	}
-	
+
 	/**
 	 * Gets the basic authorization.
 	 *
 	 * @return the basic authorization
 	 */
-	public String getBasicAuthorization() {	
+	public String getBasicAuthorization() {
 		return authorization;
 	}
-	
+
 	/**
 	 * Sets the credentials.
 	 *
-	 * @param id the username
-	 * @param secret the password
-	 * @throws IOException 
+	 * @param id
+	 *            the username
+	 * @param secret
+	 *            the password
+	 * @throws IOException
+	 * @throws BadPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws NoSuchPaddingException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeyException
 	 */
-	public void setCredentials(String id,String secret) throws IOException {	
-		logger.debug("Set credentials Id: "+id+" Secret:"+secret);
-		
+	public void setCredentials(String id, String secret) throws IOException, InvalidKeyException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		logger.debug("Set credentials Id: " + id + " Secret:" + secret);
+
 		this.id = id;
 		this.secret = secret;
-		
-		try {			
-			byte[] toEncode = (id + ":" + secret).getBytes("UTF-8");
-			
-			base64.encode(toEncode,0,toEncode.length,out64);
-			authorization= out64.toString("UTF-8");
-			
-			//TODO need a "\n", why?
-			authorization = authorization.replace("\n", "");
-		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
-		}
-		
-		//Save on file the encrypted version	
-		if (parameters.get("security")==null) {
+
+		authorization = new String(Base64.getEncoder().encode((id + ":" + secret).getBytes("UTF-8")));
+
+		// TODO need a "\n", why?
+		//authorization = authorization.replace("\n", "");
+
+		// Save on file the encrypted version
+		if (parameters.get("security") == null) {
 			JsonObject credentials = new JsonObject();
-			credentials.add("client_id",new JsonPrimitive(SEPAEncryption.encrypt(id)));
-			credentials.add("client_secret",new JsonPrimitive(SEPAEncryption.encrypt(secret)));		
-			parameters.add("security",credentials);
+			credentials.add("client_id", new JsonPrimitive(SEPAEncryption.encrypt(id)));
+			credentials.add("client_secret", new JsonPrimitive(SEPAEncryption.encrypt(secret)));
+			parameters.add("security", credentials);
+		} else {
+			parameters.get("security").getAsJsonObject().add("client_id", new JsonPrimitive(SEPAEncryption.encrypt(id)));
+			parameters.get("security").getAsJsonObject().add("client_secret",
+					new JsonPrimitive(SEPAEncryption.encrypt(secret)));
 		}
-		else {
-			parameters.get("security").getAsJsonObject().add("client_id",new JsonPrimitive(SEPAEncryption.encrypt(id)));
-			parameters.get("security").getAsJsonObject().add("client_secret",new JsonPrimitive(SEPAEncryption.encrypt(secret)));	
-		}
-		
+
 		storeProperties(propertiesFile);
 	}
-	
+
 	/**
 	 * Sets the JWT.
 	 *
-	 * @param jwt the JSON Web Token
-	 * @param expires the date when the token will expire
-	 * @param type the token type (e.g., bearer)
-	 * @throws IOException 
+	 * @param jwt
+	 *            the JSON Web Token
+	 * @param expires
+	 *            the date when the token will expire
+	 * @param type
+	 *            the token type (e.g., bearer)
+	 * @throws IOException
+	 * @throws BadPaddingException
+	 * @throws IllegalBlockSizeException
+	 * @throws NoSuchPaddingException
+	 * @throws NoSuchAlgorithmException
+	 * @throws InvalidKeyException
 	 */
-	public void setJWT(String jwt, Date expires,String type) throws IOException {	
-		
+	public void setJWT(String jwt, Date expires, String type) throws IOException, InvalidKeyException,
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+
 		this.jwt = jwt;
 		this.expires = expires.getTime();
 		this.tokenType = type;
-		
-		//Save on file the encrypted version
-		if (parameters.get("security")==null) {
+
+		// Save on file the encrypted version
+		if (parameters.get("security") == null) {
 			JsonObject credentials = new JsonObject();
-			credentials.add("jwt",new JsonPrimitive(SEPAEncryption.encrypt(jwt)));
-			credentials.add("expires",new JsonPrimitive(SEPAEncryption.encrypt(String.format("%d", expires.getTime()))));
-			credentials.add("type",new JsonPrimitive(SEPAEncryption.encrypt(type)));	
-			parameters.add("security",credentials);
+			credentials.add("jwt", new JsonPrimitive(SEPAEncryption.encrypt(jwt)));
+			credentials.add("expires",
+					new JsonPrimitive(SEPAEncryption.encrypt(String.format("%d", expires.getTime()))));
+			credentials.add("type", new JsonPrimitive(SEPAEncryption.encrypt(type)));
+			parameters.add("security", credentials);
+		} else {
+			parameters.get("security").getAsJsonObject().add("jwt", new JsonPrimitive(SEPAEncryption.encrypt(jwt)));
+			parameters.get("security").getAsJsonObject().add("expires",
+					new JsonPrimitive(SEPAEncryption.encrypt(String.format("%d", expires.getTime()))));
+			parameters.get("security").getAsJsonObject().add("type", new JsonPrimitive(SEPAEncryption.encrypt(type)));
 		}
-		else {
-			parameters.get("security").getAsJsonObject().add("jwt",new JsonPrimitive(SEPAEncryption.encrypt(jwt)));
-			parameters.get("security").getAsJsonObject().add("expires",new JsonPrimitive(SEPAEncryption.encrypt(String.format("%d", expires.getTime()))));
-			parameters.get("security").getAsJsonObject().add("type",new JsonPrimitive(SEPAEncryption.encrypt(type)));	
-		}
-				
+
 		storeProperties(propertiesFile);
 	}
-	
+
 	/**
 	 * The Class SEPAEncryption.
 	 */
 	private static class SEPAEncryption {
-		
+
 		/** The Constant ALGO. */
-		//AES 128 bits (16 bytes)
+		// AES 128 bits (16 bytes)
 		private static final String ALGO = "AES";
-	    
-    	/** The key value. */
-    	private static byte[] keyValue = new byte[] { '0', '1', 'R', 'a', 'v', 'a', 'm','i', '!', 'I', 'e','2', '3', '7', 'A', 'N' };
-	    
-    	/** The key. */
-    	private static Key key = new SecretKeySpec(keyValue, ALGO);
-		
-	    /**
-    	 * Inits the.
-    	 *
-    	 * @param secret the secret
-    	 */
-    	private static void init(byte[] secret) {
-	    	if (secret != null && secret.length == 16) keyValue = secret;
-	    	key = new SecretKeySpec(keyValue, ALGO);
-	    }
-	    
-	    /**
-    	 * Encrypt.
-    	 *
-    	 * @param Data the data
-    	 * @return the string
-	     * @throws IOException 
-    	 */
-    	public static String encrypt(String Data) throws IOException {
-			try {
-				Cipher c = Cipher.getInstance(ALGO);
-				c.init(Cipher.ENCRYPT_MODE, key);
-				byte[] encVal = c.doFinal(Data.getBytes());
-				
-				base64.encode(encVal,0,encVal.length,out64);
-				
-				return out64.toString("UTF-8");
-			} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-				logger.fatal(e.getMessage());
-				return null;
-			}
+
+		/** The key value. */
+		private static byte[] keyValue = new byte[] { '0', '1', 'R', 'a', 'v', 'a', 'm', 'i', '!', 'I', 'e', '2', '3',
+				'7', 'A', 'N' };
+
+		/** The key. */
+		private static Key key = new SecretKeySpec(keyValue, ALGO);
+
+		/**
+		 * Inits the.
+		 *
+		 * @param secret
+		 *            the secret
+		 */
+		private static void init(byte[] secret) {
+			if (secret != null && secret.length == 16)
+				keyValue = secret;
+			key = new SecretKeySpec(keyValue, ALGO);
 		}
-		
+
+		/**
+		 * Encrypt.
+		 *
+		 * @param Data
+		 *            the data
+		 * @return the string
+		 * @throws IOException
+		 * @throws NoSuchPaddingException
+		 * @throws NoSuchAlgorithmException
+		 * @throws InvalidKeyException
+		 * @throws BadPaddingException
+		 * @throws IllegalBlockSizeException
+		 */
+		public static String encrypt(String Data) throws IOException, NoSuchAlgorithmException, NoSuchPaddingException,
+				InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+			Cipher c = Cipher.getInstance(ALGO);
+			c.init(Cipher.ENCRYPT_MODE, key);
+			return new String(Base64.getEncoder().encode(c.doFinal(Data.getBytes("UTF-8"))));
+		}
+
 		/**
 		 * Decrypt.
 		 *
-		 * @param encryptedData the encrypted data
+		 * @param encryptedData
+		 *            the encrypted data
 		 * @return the string
+		 * @throws NoSuchPaddingException
+		 * @throws NoSuchAlgorithmException
+		 * @throws InvalidKeyException
+		 * @throws BadPaddingException
+		 * @throws IllegalBlockSizeException
 		 */
-		public static String decrypt(String encryptedData) {
-			try {
-				Cipher c = Cipher.getInstance(ALGO);
-				c.init(Cipher.DECRYPT_MODE, key);
-				
-				base64.decode(encryptedData, out64);			
-				byte[] decordedValue = out64.toByteArray();
-
-				byte[] decValue = c.doFinal(decordedValue);
-		        return new String(decValue);
-			} catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IOException | IllegalBlockSizeException | BadPaddingException e) {
-				logger.fatal(e.getMessage());
-				return null;
-			}
-	    }
+		public static String decrypt(String encryptedData) throws NoSuchAlgorithmException, NoSuchPaddingException,
+				InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
+			Cipher c = Cipher.getInstance(ALGO);
+			c.init(Cipher.DECRYPT_MODE, key);
+			return new String(c.doFinal(Base64.getDecoder().decode(encryptedData)));
+		}
 	}
-
-	public String getSecureQueryScheme() {
-		return getParameter("securequery","scheme","https");
-	}
-
-	public String getSecureUpdateScheme() {
-		return getParameter("secureupdate","scheme","https");
-	}
-
-	public Object getSecureSubscribeScheme() {
-		return getParameter("securesubscribe","scheme","wss");
-	}
-
-	public String getSecureUpdatePath() {
-		return getParameter("secureupdate","path","/sparql");
-	}
-
-	public String getSecureQueryPath() {
-		return getParameter("securequery","path","/sparql");
-	}
-
-	public int getSecureSubscribePort() {
-		return getParameter("securesubscribe","port",9443);
-	}
-
-	public String getSecureSubscribePath() {
-		return getParameter("securesubscribe","path","/secure/sparql");
-	}
-
-	
 }

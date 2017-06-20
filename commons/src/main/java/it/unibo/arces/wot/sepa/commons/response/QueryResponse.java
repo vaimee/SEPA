@@ -22,6 +22,7 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents the results of a SPARQL 1.1 Query
  */

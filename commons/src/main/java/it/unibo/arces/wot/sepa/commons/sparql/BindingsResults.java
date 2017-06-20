@@ -26,6 +26,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents the results of a SPARQL 1.1 Query
  * 

@@ -22,17 +22,28 @@ import java.util.HashMap;
 
 public interface AuthorizationManagerMBean {
 	void addAuthorizedIdentity(String id);
+
 	void removeAuthorizedIdentity(String id);
-	HashMap<String,Boolean> getAuthorizedIdentities();
-	
+
+	HashMap<String, Boolean> getAuthorizedIdentities();
+
 	long getTokenExpiringPeriod();
+
 	void setTokenExpiringPeriod(long period);
+
 	String getIssuer();
+
 	void setIssuer(String issuer);
+
 	String getHttpsAudience();
+
 	void setHttpsAudience(String audience);
+
 	String getWssAudience();
+
 	void setWssAudience(String audience);
+
 	String getSubject();
+
 	void setSubject(String sub);
 }
