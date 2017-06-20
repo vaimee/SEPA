@@ -19,6 +19,7 @@ package it.unibo.arces.wot.sepa.commons.response;
 
 import com.google.gson.JsonObject;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents the response to a generic request.
 * */

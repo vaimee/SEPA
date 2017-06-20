@@ -4,7 +4,7 @@
     <parent>
         <groupId>it.unibo.arces.wot</groupId>
         <artifactId>sepa</artifactId>
-        <version>0.7.0</version>
+        <version>0.7.5</version>
     </parent>
     <artifactId>engine</artifactId>
     <properties>
@@ -106,13 +106,6 @@
 			<version>2.8.0</version>
 		</dependency>
 
-		<!-- https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client -->
-		<dependency>
-			<groupId>org.glassfish.tyrus.bundles</groupId>
-			<artifactId>tyrus-standalone-client</artifactId>
-			<version>1.13.1</version>
-		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->
 		<dependency>
 			<groupId>com.nimbusds</groupId>
@@ -126,20 +119,26 @@
 			<version>2.5</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.glassfish.grizzly/grizzly-websockets-server -->
-		<dependency>
+		<!--  <dependency>
 			<groupId>org.glassfish.grizzly</groupId>
 			<artifactId>grizzly-websockets-server</artifactId>
 			<version>2.3.30</version>
 		</dependency>
+		-->
+		<dependency>
+			<groupId>org.java-websocket</groupId>
+			<artifactId>Java-WebSocket</artifactId>
+			<version>1.3.4</version>
+		</dependency>
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>
 			<artifactId>commons</artifactId>
-			<version>0.7.0</version>
+			<version>0.7.5</version>
 		</dependency>
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>
 			<artifactId>client-api</artifactId>
-			<version>0.7.0</version>
+			<version>0.7.5</version>
 		</dependency>
 
 	</dependencies>

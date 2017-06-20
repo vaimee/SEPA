@@ -1,11 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>it.unibo.arces.wot</groupId>
-    <artifactId>sepa</artifactId>
-    <version>0.7.0</version>
-  </parent>
-  <artifactId>client-api</artifactId>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>it.unibo.arces.wot</groupId>
+		<artifactId>sepa</artifactId>
+		<version>0.7.5</version>
+	</parent>
+	<artifactId>client-api</artifactId>
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
 		<dependency>
@@ -19,11 +20,10 @@
 			<artifactId>log4j-core</artifactId>
 			<version>2.8.1</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.glassfish.tyrus.bundles/tyrus-standalone-client -->
 		<dependency>
-			<groupId>org.glassfish.tyrus.bundles</groupId>
-			<artifactId>tyrus-standalone-client</artifactId>
-			<version>1.13.1</version>
+			<groupId>org.java-websocket</groupId>
+			<artifactId>Java-WebSocket</artifactId>
+			<version>1.3.4</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
 		<dependency>
@@ -44,11 +44,10 @@
 			<version>4.4.6</version>
 		</dependency>
 
-        <dependency>
-            <groupId>it.unibo.arces.wot</groupId>
-            <artifactId>commons</artifactId>
-            <version>0.7.0</version>
-			<scope>compile</scope>
-        </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>it.unibo.arces.wot</groupId>
+			<artifactId>commons</artifactId>
+			<version>0.7.5</version>
+		</dependency>
+	</dependencies>
 </project>

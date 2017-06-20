@@ -20,10 +20,16 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -61,11 +67,11 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 }
 */
 public class ApplicationProfile extends SPARQL11SEProperties {	
-	public ApplicationProfile(String propertiesFile) throws FileNotFoundException, NoSuchElementException, IOException {
+	public ApplicationProfile(String propertiesFile) throws FileNotFoundException, NoSuchElementException, IOException, InvalidKeyException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		super(propertiesFile);
 	}
 
-	public ApplicationProfile(String propertiesFile,byte[] secret) throws FileNotFoundException, NoSuchElementException, IOException {
+	public ApplicationProfile(String propertiesFile,byte[] secret) throws FileNotFoundException, NoSuchElementException, IOException, NumberFormatException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		super(propertiesFile,secret);	
 	}
 	

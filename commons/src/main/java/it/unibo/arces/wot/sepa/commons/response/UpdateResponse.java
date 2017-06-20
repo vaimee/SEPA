@@ -21,6 +21,7 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents the response of a SPARQL 1.1 Update
  */

@@ -18,6 +18,14 @@
 
 package it.unibo.arces.wot.sepa.engine.security;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
@@ -30,10 +38,13 @@ import java.util.UUID;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.http.Header;
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
+//import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -57,12 +68,12 @@ import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
-import it.unibo.arces.wot.sepa.engine.beans.SEPABeans;
 import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 
 public class AuthorizationManager implements AuthorizationManagerMBean {
 	
@@ -109,10 +120,6 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		
 	}
 	
-	/*public HttpsConfigurator getHttpsConfigurator() {
-		return sManager.getHttpsConfigurator();
-	} */
-	
 	private void securityCheck(String identity) {
 		logger.debug("*** Security check ***");
 		//Add identity
@@ -152,25 +159,37 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		removeAuthorizedIdentity(identity);
 	}
 
-	private boolean init(String keyAlias,String keyPwd){		
+	/**
+	 * Gets the RSA Key from the keystore.
+	 *
+	 * @param keyAlias
+	 *            the key alias
+	 * @param keyPwd
+	 *            the key password
+	 * @return the RSAKey
+	 * @throws JOSEException 
+	 * @throws KeyStoreException 
+	 *
+	 * @see RSAKey
+	 */
+	public RSAKey getJWK(String keyAlias, String keyPwd) throws KeyStoreException, JOSEException {
+		RSAKey jwk = null;
+
+		jwk = RSAKey.load(sManager.getKeyStore(), keyAlias, keyPwd.toCharArray());
+
+		return jwk;
+	}
+	
+	private boolean init(KeyStore keyStore,String keyAlias,String keyPwd) throws KeyStoreException, JOSEException{		
 		// Load the key from the key store
-		RSAKey jwk = sManager.getJWK(keyAlias,keyPwd);
+		RSAKey jwk = RSAKey.load(keyStore, keyAlias, keyPwd.toCharArray());
 						
 		//Get the private and public keys to sign and verify
 		RSAPrivateKey privateKey;
 		RSAPublicKey publicKey;
-		try {
-			privateKey = jwk.toRSAPrivateKey();
-		} catch (JOSEException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
-		try {
-			publicKey = jwk.toRSAPublicKey();
-		} catch (JOSEException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
+		
+		privateKey = jwk.toRSAPrivateKey();
+		publicKey = jwk.toRSAPublicKey();
 		
 		// Create RSA-signer with the private key
 		signer = new RSASSASigner(privateKey);
@@ -193,15 +212,57 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		return true;
 	}
 	
-	public AuthorizationManager(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) {	
-		SEPABeans.registerMBean("SEPA:type=AuthorizationManager",this);	
+	public AuthorizationManager(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException {	
+		SEPABeans.registerMBean("SEPA:type=Security",this);	
 		
-		sManager = new SSLSecurityManager(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate,false,true,null);
-		init(keyAlias, keyPwd);
+		//sManager = new SSLSecurityManager(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate,false,true,null);
+		sManager = new SSLSecurityManager("TLSv1",keystoreFileName, keystorePwd,keyPwd);
+		init(sManager.getKeyStore(),keyAlias, keyPwd);
 		
 		securityCheck(UUID.randomUUID().toString());
 	}
 	
+	/**
+	 * Operation when receiving a HTTP request at a protected endpoint
+	 * 
+	 * 1. Check if the request contains an Authorization header. 2. Check if the
+	 * request contains an Authorization: Bearer-header with non-null/empty
+	 * contents 3. Check if the value of the Authorization: Bearer-header is a
+	 * JWT object 4. Check if the JWT object is signed 5. Check if the signature
+	 * of the JWT object is valid. This is to be checked with AS public
+	 * signature verification key 6. Check the contents of the JWT object 7.
+	 * Check if the value of "iss" is
+	 * https://wot.arces.unibo.it:8443/oauth/token 8. Check if the value of
+	 * "aud" contains https://wot.arces.unibo.it:8443/sparql 9. Accept the
+	 * request as well as "sub" as the originator of the request and process it
+	 * as usual
+	 * 
+	 * *** Respond with 401 if not
+	 */
+	public boolean authorizeRequest(HttpRequest request) {
+		// Extract Bearer authorization
+		Header[] bearer = request.getHeaders("Authorization");
+
+		if (bearer.length != 1) {
+			logger.error("Authorization header is missing or multiple");
+			return false;
+		}
+		if (!bearer[0].getValue().startsWith("Bearer ")) {
+			logger.error("Authorization must be \"Bearer JWT\"");
+			return false;
+		}
+
+		// ******************
+		// JWT validation
+		// ******************
+		String jwt = bearer[0].getValue().split(" ")[1];
+
+		Response valid = validateToken(jwt);
+
+		if (valid.getClass().equals(ErrorResponse.class)) return false;
+		
+		return true;
+	}
 	private boolean authorizeIdentity(String id) {
 		logger.debug("Authorize identity:"+id);
 		
@@ -234,8 +295,8 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	 * }
 	 * Response example:
 	 * {@code
-	 * { 	"client_id": "889d02cf-16dd-4934-9341-a754088faxyz",
-	 * 		"client_secret": "ahd5MU42J0hIxPXzhUhjJHt2d0Oc5M6B644CtuwUlE9zpSuF14-kXYZ",
+	 * { 	"clientId": "889d02cf-16dd-4934-9341-a754088faxyz",
+	 * 		"clientSecret": "ahd5MU42J0hIxPXzhUhjJHt2d0Oc5M6B644CtuwUlE9zpSuF14-kXYZ",
 	 * 		"signature" : JWK RSA public key (can be used to verify the signature),
 	 * 		"authorized" : Boolean
 	 * }
@@ -255,7 +316,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		//Check if entity is authorized to request credentials
 		if (!authorizeIdentity(identity)) {
 			logger.error("Not authorized identity "+identity);
-			return new ErrorResponse(ErrorResponse.UNAUTHORIZED,"Not authorized identity "+identity);
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Not authorized identity "+identity);
 		}
 		
 		String client_id = null;
@@ -312,17 +373,17 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		}
 		catch (IllegalArgumentException e) {
 			logger.error("Not authorized");
-			return new ErrorResponse(0,ErrorResponse.UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		String decodedCredentials = new String(decoded);
 		String[] clientID = decodedCredentials.split(":");
 		if (clientID==null){
 			logger.error("Wrong Basic authorization");
-			return new ErrorResponse(0,ErrorResponse.UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		if (clientID.length != 2) {
 			logger.error("Wrong Basic authorization");
-			return new ErrorResponse(0,ErrorResponse.UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		
 		String id = decodedCredentials.split(":")[0];
@@ -332,12 +393,12 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		//Verify credentials
 		if (!credentials.containsKey(id)) {
 			logger.error("Client id: "+id+" is not registered");
-			return new ErrorResponse(0,ErrorResponse.UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		
 		if (!credentials.get(id).equals(secret)) {
 			logger.error("Wrong secret: "+secret+ " for client id: "+id);
-			return new ErrorResponse(0,ErrorResponse.UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		
 		//Check is a token has been release for this client
@@ -348,7 +409,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 			logger.debug("Check token expiration: "+now+" > "+expires+ " ?");
 			if(now.before(expires)) {
 				logger.warn("Token is not expired");
-				return new ErrorResponse(0,ErrorResponse.BAD_REQUEST,"Token is not expired");
+				return new ErrorResponse(0,HttpStatus.SC_BAD_REQUEST,"Token is not expired");
 			}
 		}
 		
@@ -453,13 +514,13 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 			signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), JWTClaimsSet.parse(jwtClaims.toString()));
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(0,ErrorResponse.INTERNAL_SERVER_ERROR,"Error on signing JWT (1)");
+			return new ErrorResponse(0,HttpStatus.SC_INTERNAL_SERVER_ERROR,"Error on signing JWT (1)");
 		}
 		try {
 			signedJWT.sign(signer);
 		} catch (JOSEException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(0,ErrorResponse.INTERNAL_SERVER_ERROR,"Error on signing JWT (2)");
+			return new ErrorResponse(0,HttpStatus.SC_INTERNAL_SERVER_ERROR,"Error on signing JWT (2)");
 		}
 						
 		//Add the token to the released tokens
@@ -476,14 +537,14 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		try {
 			signedJWT = SignedJWT.parse(accessToken);
 		} catch (ParseException e) {
-			return new ErrorResponse(ErrorResponse.UNAUTHORIZED,e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,e.getMessage());
 		}
 
 		try {
-			 if(!signedJWT.verify(verifier)) return new ErrorResponse(ErrorResponse.UNAUTHORIZED);
+			 if(!signedJWT.verify(verifier)) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED);
 			 
 		} catch (JOSEException e) {
-			return new ErrorResponse(ErrorResponse.UNAUTHORIZED,e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,e.getMessage());
 		}
 		
 		// Process the token
@@ -491,23 +552,24 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		try {
 			claimsSet = jwtProcessor.process(accessToken, context);
 		} catch (ParseException | BadJOSEException | JOSEException e) {
-			return new ErrorResponse(ErrorResponse.INTERNAL_SERVER_ERROR,e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,e.getMessage());
 		}
 		
 		//Check token expiration
 		Date now = new Date();
-		if (now.after(claimsSet.getExpirationTime())) return new ErrorResponse(0,ErrorResponse.UNAUTHORIZED,"Token is expired "+claimsSet.getExpirationTime());
+		if (now.after(claimsSet.getExpirationTime())) return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Token is expired "+claimsSet.getExpirationTime());
 			
-		if (now.before(claimsSet.getNotBeforeTime())) return new ErrorResponse(0,ErrorResponse.UNAUTHORIZED,"Token can not be used before: "+claimsSet.getNotBeforeTime());	
+		if (now.before(claimsSet.getNotBeforeTime())) return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Token can not be used before: "+claimsSet.getNotBeforeTime());	
 				
 		return new JWTResponse(accessToken,"bearer",now.getTime()-claimsSet.getExpirationTime().getTime());
 	}
 
+	/*
 	public SSLEngineConfigurator getWssConfigurator() {
 		SSLEngineConfigurator config = new SSLEngineConfigurator(sManager.getWssConfigurator().getSslContext(), false, false, false);
 		return config;
 	}
-
+*/
 	
 	@Override
 	public long getTokenExpiringPeriod() {
@@ -575,7 +637,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		this.subject = sub;
 	}
 
-	public SSLContext getSSLContext() {
+	public SSLContext getSSLContext() throws KeyManagementException, NoSuchAlgorithmException {
 		return sManager.getSSLContext();
 	}	
 }

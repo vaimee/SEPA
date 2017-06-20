@@ -4,15 +4,79 @@ SEPA is a publish-subscribe architecture designed to support information level i
 
 ## Installation
 
-1) Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar)
-2) Unzip the archive
-3) Open a teminal and move to the unzipped folder
-4) Run `java -jar `
+- Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) and run it: `java -jar engine-x.y.z.jar`
 
+- Download [Blazegraph](https://sourceforge.net/projects/bigdata/files/latest/download) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
+
+## Configuration
+
+The SEPA engine uses two JSON configuration files: `engine.jpar` and `endpoint.jpar` (included in the [SEPA Engine release](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) distribution). 
+The default version of `endpoint.jpar` configures the engine to use use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service](https://www.w3.org/TR/sparql11-protocol/).
+```json
+{
+	"parameters": {
+		"host": "localhost",
+		"ports": {
+			"http": 9999
+		},
+		"paths": {
+			"update": "/blazegraph/namespace/kb/sparql",
+			"query": "/blazegraph/namespace/kb/sparql"
+		},
+		"methods": {
+			"query": "POST",
+			"update": "URL_ENCODED_POST"
+		},
+		"formats": {
+			"update": "HTML",
+			"query": "JSON"
+		}
+	}
+}
+```
+The default version of  `engine.jpar` configures the engine to listen for for incoming [SPARQL 1.1 SE Protocol](https://wot.arces.unibo.it/TR/sparql11-se-protocol/) requests at the following URLs:
+
+1. Query: http://localhost:8000/query
+2. Update: http://localhost:8000/update
+3. Subscribe/Unsubscribe: ws://localhost:9000/subscribe
+4. SECURE Query: https://localhost:8443/secure/query
+5. SECURE Update: https://localhost:8443/secure/update
+6. SECURE Subscribe/Unsubscribe: wss://localhost:9443/secure/subscribe 
+7. Regitration: https://localhost:8443/oauth/register
+8. Token request: https://localhost:8443/oauth/token
+```json
+{
+	"parameters": {
+		"timeouts": {
+			"scheduling": 0,
+			"queueSize": 1000,
+			"keepalive": 5000,
+			"http": 5000
+		},
+		"ports": {
+			"http": 8000,
+			"ws": 9000,
+			"https": 8443,
+			"wss": 9443
+		},
+		"paths": {
+			"update": "/update",
+			"query": "/query",
+			"subscribe": "/subscribe",
+			"register": "/oauth/register",
+			"tokenRequest": "/oauth/token",
+			"securePath" : "/secure"
+		}
+	}
+}
+```
+The engine uses a JKS for storing the keys and certificates for [SSL](http://docs.oracle.com/cd/E19509-01/820-3503/6nf1il6ek/index.html) and [JWT](https://tools.ietf.org/html/rfc7519) signing/verification. A default `sepa.jks` is provided including a single X.509 certificate (the password for both the store and the key is: `sepa2017`).
 
 ## Usage
 
-TODO: Write usage instructions
+The SEPA engine allows to use a user generated JKS. Run `java -jar engine-x.y.z.jar -help` for a list of options. The Java [Keytool](https://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html) can be used to create, access and modify a JKS.
+
+The SEPA engine is also distributed with a default [JMX](http://www.oracle.com/technetwork/articles/java/javamanagement-140525.html) configuration `jmx.properties` (including the `jmxremote.password` and `jmxremote.access` files for password and user grants). To enable remote JMX, the engine must be run as follows: `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`. Using [`jconsole`](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) is possible to monitor and control the most important engine parameters. By default, the port is `5555` and the `root:root` credentials grant full control (read/write). 
 
 ## Contributing
 

@@ -2,11 +2,22 @@ package it.unibo.arces.wot.sepa.tools;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,7 +38,7 @@ public class RealTimeIoTResourceUpdate {
 	
 	public class ProducerThread extends Producer implements Runnable {
 		
-		public ProducerThread(ApplicationProfile appProfile, String updateID) {
+		public ProducerThread(ApplicationProfile appProfile, String updateID) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 			super(appProfile, updateID);
 		}
 
@@ -44,13 +55,25 @@ public class RealTimeIoTResourceUpdate {
 		}
 	}
 	
-	public static void main(String[] args) throws FileNotFoundException, NoSuchElementException, IOException {
-		ApplicationProfile app = new ApplicationProfile("sapexamples/GatewayProfile.jsap");
+	public static void main(String[] args)  {
+		ApplicationProfile app = null;
+		try {
+			app = new ApplicationProfile("sapexamples/GatewayProfile.jsap");
+		} catch (NoSuchElementException | IOException | InvalidKeyException | IllegalArgumentException | NullPointerException | ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+			logger.fatal(e1.getLocalizedMessage());
+			System.exit(1);
+		}
 		
 		///Thread th = null;
 		
 		for (int i=0; i < nThreads; i++) {
-			producers.execute(new RealTimeIoTResourceUpdate().new ProducerThread(app,"UPDATE_RESOURCE"));
+			try {
+				producers.execute(new RealTimeIoTResourceUpdate().new ProducerThread(app,"UPDATE_RESOURCE"));
+			} catch (UnrecoverableKeyException | KeyManagementException | IllegalArgumentException | KeyStoreException
+					| NoSuchAlgorithmException | CertificateException | IOException | URISyntaxException e) {
+				logger.fatal(e.getLocalizedMessage());
+				System.exit(1);
+			}
 			//th = new Thread(new RealTimeIoTResourceUpdate().new ProducerThread(app,"UPDATE_RESOURCE"));
 			//th.setName("S"+i);
 			//th.start();

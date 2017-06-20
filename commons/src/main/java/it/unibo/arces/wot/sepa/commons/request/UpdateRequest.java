@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.commons.request;
 
 import it.unibo.arces.wot.sepa.commons.request.Request;
 
+// TODO: Auto-generated Javadoc
 /**
  * This class represents the request to perform a SPARQL 1.1 Update
 * */

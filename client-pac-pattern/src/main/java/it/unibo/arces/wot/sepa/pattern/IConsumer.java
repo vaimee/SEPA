@@ -20,14 +20,20 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public interface IConsumer extends IClient {	
-	String subscribe(Bindings forcedBindings) throws IOException, URISyntaxException;
-	boolean unsubscribe() throws IOException, URISyntaxException;
+	String subscribe(Bindings forcedBindings) throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException;
+	boolean unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException;
 	
 	void onResults(ARBindingsResults results);
 	void onAddedResults(BindingsResults results);

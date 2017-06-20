@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.commons.response;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 
+// TODO: Auto-generated Javadoc
 /**
  * {"client_id":"5b60a155-bada-4499-bc6f-26b4d37bc1ef",
  * "client_secret":"40e18d77-421c-48ce-a44a-14da1238e923", "signature":

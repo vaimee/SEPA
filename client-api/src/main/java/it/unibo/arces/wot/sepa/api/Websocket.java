@@ -18,141 +18,95 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.api;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
 
-import javax.websocket.ClientEndpointConfig;
-import javax.websocket.DeploymentException;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import org.glassfish.tyrus.client.ClientManager;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 
-public class WebsocketClientEndpoint extends Endpoint implements MessageHandler.Whole<String> {
+public class Websocket extends WebSocketClient {
 	protected Logger logger = LogManager.getLogger("WebsocketClientEndpoint");
 	
-	private Session wsClientSession = null;;
-	protected ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
-	protected ClientManager client = ClientManager.createClient();
-	
 	private String sparql;
-	private String wsUrl;
 	private String jwt;
 	private String alias;
 	
 	private INotificationHandler handler;
-	private WebsocketWatchdog watchDog = null;
+	//private Watchdog watchDog = null;
 	
-	public WebsocketClientEndpoint(String wsUrl) {
-		this.wsUrl = wsUrl;
+	public Websocket(String wsUrl,boolean ssl) throws URISyntaxException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException {
+		super(new URI(wsUrl));
+		if (ssl) {
+			SSLSecurityManager sm = new SSLSecurityManager("TLS","sepa.jks","sepa2017","sepa2017");
+			setSocket(sm.createSSLSocket());
+		}
 	}
 	
 	private void sendSubscribeRequest() {
-		if (wsClientSession == null) {
-			logger.error("Session is null");
-			return;
-		}
+		logger.debug("@sendRequest");
+		if (!isOpen()) return;
 		
-		try {
-    		JsonObject request = new JsonObject();
-			request.add("subscribe", new JsonPrimitive(sparql));
-			if (alias != null) request.add("alias", new JsonPrimitive(alias));
-			else logger.debug("Alias is null");
-			if (jwt != null) request.add("authorization", new JsonPrimitive(jwt));
-			else logger.debug("Authorization is null");
-			logger.debug(request.toString());
-			
-			wsClientSession.getBasicRemote().sendText(request.toString());
-		} 
-		catch (IOException e) {
-			logger.error(e.getMessage());
-		}	
-	}
-	
-	@Override
-	public void onOpen(Session session, EndpointConfig config) {
-		logger.debug("@onOpen");
+		JsonObject request = new JsonObject();
+		request.add("subscribe", new JsonPrimitive(sparql));
+		if (alias != null) request.add("alias", new JsonPrimitive(alias));
+		else logger.debug("Alias is null");
+		if (jwt != null) request.add("authorization", new JsonPrimitive("Bearer "+jwt));
+		else logger.debug("Authorization is null");
+		logger.debug(request.toString());
 		
-		wsClientSession = session;
-    	wsClientSession.addMessageHandler(this);	
-    	
-    	sendSubscribeRequest();
-	}
-
-	private void connect() throws DeploymentException, IOException, URISyntaxException {
-		logger.debug("Connect to server: "+wsUrl);
-		
-		client.connectToServer(this,cec, new URI(wsUrl));
-	}
-	
-	boolean isConnected() {
-		if (wsClientSession == null) return false;
-		return wsClientSession.isOpen();
+		send(request.toString());	
 	}
 	
 	public void subscribe(String sparql,String alias,String jwt,INotificationHandler handler) throws IOException, URISyntaxException {
+		logger.debug("@subscribe");
+		
 		this.handler = handler;
 		this.sparql = sparql;
 		this.alias = alias;
 		this.jwt = jwt;
-		
-		if (!isConnected())
-			try {
-				connect();
-			} catch (DeploymentException e) {
-				throw new IOException(e.getMessage());
-			}
+			
+		if (!isOpen()) connect();
 		else sendSubscribeRequest();
-		
-		//Start watchdog
-		if (watchDog == null) watchDog = new WebsocketWatchdog(handler,this,sparql); 
 	}
 	
 	public void unsubscribe(String spuid,String jwt) throws IOException, URISyntaxException {
 		logger.debug("unsubscribe");
 		
-		if (!isConnected())
-			try {
-				connect();
-			} catch (DeploymentException e) {
-				throw new IOException(e.getMessage());
-			}
+		if (!isOpen()) return;
+		else {
 		
 			JsonObject request = new JsonObject();
 			if (spuid != null) request.add("unsubscribe", new JsonPrimitive(spuid));
-			if (jwt != null) request.add("authorization", new JsonPrimitive(jwt));
+			if (jwt != null) request.add("authorization", new JsonPrimitive("Bearer "+jwt));
 			
-			wsClientSession.getBasicRemote().sendText(request.toString());
-	}
-	
-	public boolean close() {
-		try {
-			wsClientSession.close();
-		} catch (IOException e) {
-			logger.debug(e.getMessage());
-			return false;
+			send(request.toString());
 		}
-		return true;
 	}
 
 	@Override
 	public void onMessage(String message) {
-		logger.debug("Message: "+message);
+		logger.debug(message);
 		if (handler == null) {
 			logger.warn("Notification handler is NULL");
 			return;
@@ -175,7 +129,7 @@ public class WebsocketClientEndpoint extends Endpoint implements MessageHandler.
 	  	  	if(notify.get("ping") != null) {
 	  	  		handler.onPing();
 	  	  		
-	  	  		watchDog.ping();
+	  	  		//watchDog.ping();
 	  	  		return;
 	  	  	}
 			 
@@ -187,8 +141,8 @@ public class WebsocketClientEndpoint extends Endpoint implements MessageHandler.
 	
 	  	  		handler.onSubscribeConfirm(response);
 	  	  	
-	  	  		if (!watchDog.isAlive()) watchDog.start();
-	  	  		watchDog.subscribed();
+//	  	  		if (!watchDog.isAlive()) watchDog.start();
+//	  	  		watchDog.subscribed();
 	  	  		return;
 	  	  	}
 	  	  	
@@ -196,18 +150,32 @@ public class WebsocketClientEndpoint extends Endpoint implements MessageHandler.
 	  	  	if (notify.get("unsubscribed") != null) {
 	  	  		handler.onUnsubscribeConfirm(new UnsubscribeResponse(0,notify.get("unsubscribed").getAsString()));
 	  	  		
-	  	  		try {
-					wsClientSession.close();
-				} catch (IOException e) {
-					logger.error(e.getMessage());
-				}
-	  	  	
-	  	  		watchDog.unsubscribed();
+//	  	  		//super.close();	  	  	
+//	  	  		watchDog.unsubscribed();
 	  	  		return;
 	  	  	}
 	  	  	
 	  	  	//Notification
 	  	  	if (notify.get("results") != null) handler.onSemanticEvent(new Notification(notify));	
 		}
+	}
+
+	@Override
+	public void onClose(int arg0, String arg1, boolean arg2) {
+		logger.debug("@onClose");	
+	}
+
+	@Override
+	public void onError(Exception arg0) {
+		logger.debug("@onError: "+arg0.getLocalizedMessage());
+		
+	}
+
+	@Override
+	public void onOpen(ServerHandshake handshakedata) {
+		logger.debug("@onOpen");
+		sendSubscribeRequest();
+		//Start watchdog
+		//if (watchDog == null) watchDog = new Watchdog(handler,this,sparql); 
 	}
 }
