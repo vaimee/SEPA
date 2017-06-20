@@ -16,8 +16,8 @@ import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-import it.unibo.arces.wot.sepa.engine.scheduling.RequestResponseHandler.ResponseAndNotificationListener;
 import it.unibo.arces.wot.sepa.engine.protocol.http.Utilities;
+import it.unibo.arces.wot.sepa.engine.scheduling.ResponseAndNotificationListener;
 import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerInterface;
 
 public abstract class SPARQL11Handler extends Thread implements ResponseAndNotificationListener {

@@ -75,7 +75,7 @@ public class GarbageCollector extends Aggregator {
 		
 		try {
 			if (chatServer.subscribe(null) == null) return;
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			logger.fatal(e1.getLocalizedMessage());
 			System.exit(1);
 		}

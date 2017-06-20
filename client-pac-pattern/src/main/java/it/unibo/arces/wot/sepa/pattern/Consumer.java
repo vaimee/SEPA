@@ -40,7 +40,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
-import it.unibo.arces.wot.sepa.api.INotificationHandler;
+
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
@@ -51,112 +51,104 @@ import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 
 public abstract class Consumer extends Client implements IConsumer {
 	protected String sparqlSubscribe = null;
-	protected String subID ="";
+	protected String subID = "";
 	protected boolean onSubscribe = true;
 	protected int DEFAULT_SUBSCRIPTION_TIMEOUT = 3000;
 	protected SubcribeConfirmSync subConfirm;
-	
-	private NotificationHandler handler = new NotificationHandler();
-	
-	private static final Logger logger = LogManager.getLogger("Consumer");
-	
-	class NotificationHandler implements INotificationHandler {
 
+	protected DefaultNotificationHandler handler = new DefaultNotificationHandler() {
+		@Override
 		public void onSemanticEvent(Notification notify) {
 			ARBindingsResults results = notify.getARBindingsResults();
-			
+
 			BindingsResults added = results.getAddedBindings();
 			BindingsResults removed = results.getRemovedBindings();
 
-			//Replace prefixes
+			// Replace prefixes
 			for (Bindings bindings : added.getBindings()) {
-				for(String var : bindings.getVariables()) {
+				for (String var : bindings.getVariables()) {
 					if (bindings.isURI(var)) {
-						for(String prefix : URI2PrefixMap.keySet())
-							if(bindings.getBindingValue(var).startsWith(prefix)) {
-								bindings.addBinding(var, new RDFTermURI(bindings.getBindingValue(var).replace(prefix, URI2PrefixMap.get(prefix)+":")));
+						for (String prefix : URI2PrefixMap.keySet())
+							if (bindings.getBindingValue(var).startsWith(prefix)) {
+								bindings.addBinding(var, new RDFTermURI(bindings.getBindingValue(var).replace(prefix,
+										URI2PrefixMap.get(prefix) + ":")));
 								break;
 							}
 					}
 				}
 			}
 			for (Bindings bindings : removed.getBindings()) {
-				for(String var : bindings.getVariables()) {
+				for (String var : bindings.getVariables()) {
 					if (bindings.isURI(var)) {
-						for(String prefix : URI2PrefixMap.keySet())
-							if(bindings.getBindingValue(var).startsWith(prefix)) {
-								bindings.addBinding(var, new RDFTermURI(bindings.getBindingValue(var).replace(prefix, URI2PrefixMap.get(prefix)+":")));
+						for (String prefix : URI2PrefixMap.keySet())
+							if (bindings.getBindingValue(var).startsWith(prefix)) {
+								bindings.addBinding(var, new RDFTermURI(bindings.getBindingValue(var).replace(prefix,
+										URI2PrefixMap.get(prefix) + ":")));
 								break;
 							}
 					}
 				}
 			}
-			
+
 			if (onSubscribe) {
 				onSubscribe = false;
 				onSubscribe(added);
 				return;
 			}
-			
-			//Dispatch different notifications based on notify content
-			if (!added.isEmpty()) onAddedResults(added);
-			if (!removed.isEmpty()) onRemovedResults(removed);
+
+			// Dispatch different notifications based on notify content
+			if (!added.isEmpty())
+				onAddedResults(added);
+			if (!removed.isEmpty())
+				onRemovedResults(removed);
 			onResults(results);
-			
+
 		}
 
+		@Override
 		public void onSubscribeConfirm(SubscribeResponse response) {
-			logger.debug("Subscribe confirmed "+response.getSpuid()+ " alias: "+response.getAlias());
+			logger.debug("Subscribe confirmed " + response.getSpuid() + " alias: " + response.getAlias());
 			subConfirm.notifySubscribeConfirm(response.getSpuid());
 		}
 
+		@Override
 		public void onUnsubscribeConfirm(UnsubscribeResponse response) {
-			logger.debug("Unsubscribe confirmed "+response.getSpuid());
+			logger.debug("Unsubscribe confirmed " + response.getSpuid());
 			onUnsubscribe();
 		}
+	};
 
-		public void onPing() {
-			logger.debug("Ping");
-			
-		}
+	private static final Logger logger = LogManager.getLogger("Consumer");
 
-		public void onBrokenSubscription() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		public void onError(ErrorResponse errorResponse) {
-			// TODO Auto-generated method stub
-			
-		}	
-	}
-	
-	protected class SubcribeConfirmSync {		
+	protected class SubcribeConfirmSync {
 		private String subID = "";
-		
+
 		public synchronized String waitSubscribeConfirm(int timeout) {
-			
-			if (!subID.equals("")) return subID;
-			
+
+			if (!subID.equals(""))
+				return subID;
+
 			try {
 				logger.debug("Wait for subscribe confirm...");
 				wait(timeout);
 			} catch (InterruptedException e) {
-	
+
 			}
-			
+
 			return subID;
 		}
-		
+
 		public synchronized void notifySubscribeConfirm(String spuid) {
 			logger.debug("Notify confirm!");
-			
+
 			subID = spuid;
 			notifyAll();
 		}
 	}
-	
-	public Consumer(ApplicationProfile appProfile,String subscribeID) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+
+	public Consumer(ApplicationProfile appProfile, String subscribeID)
+			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 		super(appProfile);
 
 		if (appProfile == null || subscribeID == null) {
@@ -166,63 +158,75 @@ public abstract class Consumer extends Client implements IConsumer {
 
 		if (appProfile.subscribe(subscribeID) == null) {
 			logger.fatal("SUBSCRIBE ID " + subscribeID + " not found in " + appProfile.getFileName());
-			throw new IllegalArgumentException("SUBSCRIBE ID " + subscribeID + " not found in " + appProfile.getFileName());
+			throw new IllegalArgumentException(
+					"SUBSCRIBE ID " + subscribeID + " not found in " + appProfile.getFileName());
 		}
+
+		sparqlSubscribe = appProfile.subscribe(subscribeID);
 		
-		sparqlSubscribe = appProfile.subscribe(subscribeID);			
+		protocolClient.setNotificationHandler(handler);
 	}
-	
-	public Consumer(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
+
+	public Consumer(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException,
+			IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
+			CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, URISyntaxException {
 		super(jparFile);
+		
+		protocolClient.setNotificationHandler(handler);
 	}
 
-	public String subscribe(Bindings forcedBindings) throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public String subscribe(Bindings forcedBindings)
+			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		if (sparqlSubscribe == null) {
-			logger.fatal( "SPARQL SUBSCRIBE not defined");
-			 return null;
-		 }
-		 
-		 if (protocolClient == null) {
-			 logger.fatal("Client not initialized");
-			 return null;
-		 }
-		
-		String sparql = prefixes() + replaceBindings(sparqlSubscribe,forcedBindings);
-		
-		logger.debug("<SUBSCRIBE> ==> "+sparql);
-	
-		onSubscribe = true;
-		
-		subConfirm = new SubcribeConfirmSync();
-		
-		Response response = protocolClient.subscribe(new SubscribeRequest(sparql), handler);
+			logger.fatal("SPARQL SUBSCRIBE not defined");
+			return null;
+		}
 
-		logger.debug(response.toString());
-		
-		if(response.getClass().equals(ErrorResponse.class)) return null;
-		
-		logger.debug("Wait for subscribe confirm...");
-		
-		subID = subConfirm.waitSubscribeConfirm(DEFAULT_SUBSCRIPTION_TIMEOUT);
-		
-		return subID;
-		
-	}
-	 
-	public boolean unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		logger.debug("UNSUBSCRIBE "+subID);
-		
 		if (protocolClient == null) {
 			logger.fatal("Client not initialized");
-			 return false;
-		 }
-		
+			return null;
+		}
+
+		String sparql = prefixes() + replaceBindings(sparqlSubscribe, forcedBindings);
+
+		logger.debug("<SUBSCRIBE> ==> " + sparql);
+
+		onSubscribe = true;
+
+		subConfirm = new SubcribeConfirmSync();
+
+		Response response = protocolClient.subscribe(new SubscribeRequest(sparql));
+
+		logger.debug(response.toString());
+
+		if (response.getClass().equals(ErrorResponse.class))
+			return null;
+
+		subID = subConfirm.waitSubscribeConfirm(DEFAULT_SUBSCRIPTION_TIMEOUT);
+
+		return subID;
+
+	}
+
+	public boolean unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+		logger.debug("UNSUBSCRIBE " + subID);
+
+		if (protocolClient == null) {
+			logger.fatal("Client not initialized");
+			return false;
+		}
+
 		Response response;
 
 		response = protocolClient.unsubscribe(new UnsubscribeRequest(subID));
 
 		logger.debug(response.toString());
-		
+
 		return !(response.getClass().equals(ErrorResponse.class));
 	}
 }

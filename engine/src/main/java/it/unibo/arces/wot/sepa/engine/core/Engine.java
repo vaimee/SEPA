@@ -50,8 +50,8 @@ import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpServer;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsServer;
-import it.unibo.arces.wot.sepa.engine.protocol.websocket.SubscribeServer;
-import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureSubscribeServer;
+import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
+import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
@@ -84,8 +84,8 @@ public class Engine extends Thread implements EngineMBean {
 	private HttpServer httpGate = null;
 
 	// SPARQL 1.1 SE Protocol handler
-	private SubscribeServer wsServer;
-	private SecureSubscribeServer wssServer;
+	private WebsocketServer wsServer;
+	private SecureWebsocketServer wssServer;
 	private HttpsServer httpsGate = null;
 
 	//Outh 2.0 Authorization Server
@@ -294,11 +294,11 @@ public class Engine extends Thread implements EngineMBean {
 		System.out.println("");
 		System.out
 				.println("------ SPARQL SE 1.1 Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)  -----");
-		wsServer = new SubscribeServer(engineProperties, scheduler);
+		wsServer = new WebsocketServer(engineProperties.getWsPort(),engineProperties.getSubscribePath(),engineProperties.getKeepAlivePeriod(), scheduler);
 		
 		httpsGate = new HttpsServer(engineProperties, scheduler, oauth);
 		
-		wssServer = new SecureSubscribeServer(engineProperties, scheduler, oauth);
+		wssServer = new SecureWebsocketServer(engineProperties.getWssPort(),engineProperties.getSecurePath()+engineProperties.getSubscribePath(),engineProperties.getKeepAlivePeriod(), scheduler, oauth);
 
 		return true;
 	}

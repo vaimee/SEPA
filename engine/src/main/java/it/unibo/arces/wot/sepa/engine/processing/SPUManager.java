@@ -66,7 +66,7 @@ public class SPUManager extends Observable implements Observer,SPUManagerMBean{
 		
 		synchronized(spus){
 			if (spus.containsKey(spuid)){
-				spus.get(spuid).stopRunning();
+				spus.get(spuid).terminate();
 				spus.remove(spuid);
 			}
 			else return null;

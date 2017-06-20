@@ -22,6 +22,11 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 
 import org.apache.logging.log4j.LogManager;
 
@@ -101,16 +106,16 @@ public class Watchdog extends Thread {
 		return pingReceived;
 	}
 	
-	private synchronized boolean subscribing() throws IOException, URISyntaxException {
+	private synchronized boolean subscribing() throws IOException, URISyntaxException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
 		logger.debug("Subscribing...");
 		if (wsClient == null) {
 			logger.warn("Websocket client is null");
 			return false;
 		}
 		while(state == SubscriptionState.BROKEN_SOCKET) {
-			if (wsClient.isOpen()) wsClient.close();
+			//if (wsClient.isOpen()) wsClient.close();
 			
-			wsClient.subscribe(sparql,alias,token,handler);
+			wsClient.subscribe(sparql,alias,token);
 			
 			try {
 				wait(DEFAULT_SUBSCRIPTION_DELAY);
@@ -139,7 +144,7 @@ public class Watchdog extends Thread {
 			
 			try {
 				if(!subscribing()) return;
-			} catch (IOException | URISyntaxException e) {
+			} catch (IOException | URISyntaxException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
 				logger.error(e.getMessage());
 				return;
 			}

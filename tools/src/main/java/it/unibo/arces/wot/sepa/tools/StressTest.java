@@ -79,7 +79,7 @@ public class StressTest {
 				new Thread(new StressTest().new Subscriber("client.jpar", i)).start();
 			} catch (UnrecoverableKeyException | KeyManagementException | IllegalArgumentException
 					| NoSuchElementException | KeyStoreException | NoSuchAlgorithmException | CertificateException
-					| IOException | URISyntaxException | InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
+					| InterruptedException | IOException | URISyntaxException | InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
 				
 				e.printStackTrace();
 				System.exit(1);
@@ -116,7 +116,7 @@ public class StressTest {
 		private int index = 0;
 
 		public Subscriber(String jparFile, int i)
-				throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, URISyntaxException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+				throws InterruptedException, IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, URISyntaxException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 			super(jparFile);
 			index = i;
 			previous = new Date();
