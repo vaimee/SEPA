@@ -1288,7 +1288,7 @@ public class Dashboard {
 					
 					try {
 						response = kp.subscribe(prefixes()+query, forced);
-					} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+					} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 						lblInfo.setText("Subscription failed: "+e1.getMessage());
 						return;
 					}
@@ -1306,7 +1306,7 @@ public class Dashboard {
 						if (kp.unsubscribe()) {
 							lblInfo.setText("Unsubscribed");	
 						}
-					} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+					} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 						lblInfo.setText(e1.getMessage());	
 					}
 					

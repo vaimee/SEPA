@@ -49,10 +49,6 @@ import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 
 public class RequestResponseHandler {
 	private static final Logger logger = LogManager.getLogger("RequestResponseHandler");
-
-	public interface ResponseAndNotificationListener {
-		public void notify(Response response);
-	}
 	
 	//Request queues
 	private ConcurrentLinkedQueue<UpdateRequest> 		updateRequestQueue = new ConcurrentLinkedQueue<UpdateRequest>();

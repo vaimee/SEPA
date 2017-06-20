@@ -1,13 +1,9 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-
-import java.util.HashMap;
 
 import org.apache.http.HttpStatus;
 
@@ -15,9 +11,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import org.java_websocket.WebSocket;
-import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
-import org.java_websocket.server.WebSocketServer;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
@@ -25,38 +19,23 @@ import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.protocol.handler.SubscribeHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
-public class SecureSubscribeServer extends WebSocketServer {
+public class SecureWebsocketServer extends WebsocketServer {
 	private AuthorizationManager oauth;
-	private Logger logger = LogManager.getLogger("SecureSubscribeServer");
-	protected Scheduler scheduler;
-	private KeepAlive ping = null;
-	protected HashMap<WebSocket, WebsocketListener> activeSockets = new HashMap<WebSocket, WebsocketListener>();
-	
-	public SecureSubscribeServer(EngineProperties properties, Scheduler scheduler, AuthorizationManager oauth)
+	private Logger logger = LogManager.getLogger("SecureWebsocketServer");
+
+	public SecureWebsocketServer(int port, String path, int keepAlive, Scheduler scheduler, AuthorizationManager oauth)
 			throws IllegalArgumentException, UnknownHostException, KeyManagementException, NoSuchAlgorithmException {
-		super( new InetSocketAddress( properties.getWssPort() ) );
-		
-		if (properties == null || scheduler == null)
-			throw new IllegalArgumentException("One or more arguments are null");
-		
-		this.scheduler = scheduler;
-		
-		if (properties.getKeepAlivePeriod() > 0) {
-			ping = new KeepAlive(properties.getKeepAlivePeriod(), activeSockets);
-			ping.start();
-		}
-		
+		super(port, path, keepAlive, scheduler);
+
+		if (oauth == null)
+			throw new IllegalArgumentException("Authorization manager is null");
+
 		this.oauth = oauth;
 
 		setWebSocketFactory(new DefaultSSLWebSocketServerFactory(oauth.getSSLContext()));
-		
-		System.out.println("SECURE Subscribe on: wss://" + InetAddress.getLocalHost().getHostAddress() + ":"
-				+ properties.getWssPort() + properties.getSecurePath()+properties.getSubscribePath());
 	}
 
 	@Override
@@ -72,7 +51,7 @@ public class SecureSubscribeServer extends WebSocketServer {
 			return;
 		}
 
-		new SubscribeHandler(scheduler, conn, message, activeSockets).start();
+		super.onMessage(conn, message);
 
 	}
 
@@ -104,32 +83,21 @@ public class SecureSubscribeServer extends WebSocketServer {
 	}
 
 	@Override
-	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-		logger.debug("@onConnect");
-
-		WebsocketListener listener = new WebsocketListener(conn, scheduler, activeSockets);
-
-		synchronized (activeSockets) {
-			activeSockets.put(conn, listener);
-		}	
-	}
-
-	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void onStart() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 }

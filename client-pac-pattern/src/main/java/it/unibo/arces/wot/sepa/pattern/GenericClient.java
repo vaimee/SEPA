@@ -73,12 +73,12 @@ public abstract class GenericClient extends Aggregator {
 		return ((QueryResponse)response).getBindingsResults();
 	}
 	
-	public String subscribe(String SPARQL_SUBSCRIBE,Bindings forced) throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {	
+	public String subscribe(String SPARQL_SUBSCRIBE,Bindings forced) throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {	
 		sparqlSubscribe = SPARQL_SUBSCRIBE;
 		return super.subscribe(forced);
 	}
 	 
-	public boolean unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public boolean unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		return super.unsubscribe();
 	}
 }

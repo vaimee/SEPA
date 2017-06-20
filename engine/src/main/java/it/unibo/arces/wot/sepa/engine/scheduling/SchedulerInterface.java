@@ -19,7 +19,6 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
 import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.engine.scheduling.RequestResponseHandler.ResponseAndNotificationListener;
 
 public interface SchedulerInterface {
 

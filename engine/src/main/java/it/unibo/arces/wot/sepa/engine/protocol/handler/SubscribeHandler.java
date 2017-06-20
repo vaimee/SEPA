@@ -16,7 +16,8 @@ import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketListener;
+
+import it.unibo.arces.wot.sepa.engine.scheduling.ResponseAndNotificationListener;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SubscribeHandler extends Thread {
@@ -24,7 +25,7 @@ public class SubscribeHandler extends Thread {
 	private Scheduler scheduler;
 	private WebSocket socket;
 	private String text;
-	private HashMap<WebSocket, WebsocketListener> activeSockets;
+	private HashMap<WebSocket, ResponseAndNotificationListener> activeSockets;
 	
 	/* SPARQL 1.1 Subscribe language 
 	 * 
@@ -34,11 +35,13 @@ public class SubscribeHandler extends Thread {
 	 * 
 	 * If security is not required (i.e., ws), authorization key MAY be missing
 	 * */
-	public SubscribeHandler(Scheduler scheduler,WebSocket socket,String text,HashMap<WebSocket, WebsocketListener> activeSockets) {
+	public SubscribeHandler(Scheduler scheduler,WebSocket socket,String text,HashMap<WebSocket, ResponseAndNotificationListener> activeSockets) throws IllegalArgumentException {
 		this.scheduler = scheduler;
 		this.socket = socket;
 		this.text = text;
 		this.activeSockets = activeSockets;
+		
+		if (scheduler == null || socket == null || text == null || activeSockets == null) throw new IllegalArgumentException("One or more arguments are null");
 	}
 	public void run() {
 		int token = scheduler.getToken();
@@ -56,7 +59,7 @@ public class SubscribeHandler extends Thread {
 		}
 		if (request == null) {
 			logger.debug("Not supported request: " + text);
-			ErrorResponse response = new ErrorResponse(token, HttpStatus.SC_BAD_REQUEST, "Not supported request: ");
+			ErrorResponse response = new ErrorResponse(token, HttpStatus.SC_BAD_REQUEST, "Not supported request: "+text);
 			socket.send(response.toString());
 
 			scheduler.releaseToken(token);

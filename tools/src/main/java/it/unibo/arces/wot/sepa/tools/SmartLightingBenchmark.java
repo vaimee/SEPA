@@ -144,7 +144,7 @@ public abstract class SmartLightingBenchmark {
 			long startTime = System.nanoTime();
 			try {
 				subID=super.subscribe(bindings);
-			} catch (IOException | URISyntaxException e) {
+			} catch (IOException| InterruptedException | URISyntaxException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e) {
 				logger.error(e.getMessage());
 				return false;
 			}
@@ -221,7 +221,7 @@ public abstract class SmartLightingBenchmark {
 			long startTime = System.nanoTime();
 			try {
 				subID=super.subscribe(bindings);
-			} catch (IOException | URISyntaxException e) {
+			} catch (IOException| InterruptedException | URISyntaxException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e) {
 				logger.error(e.getMessage());
 				return false;
 			}
@@ -456,7 +456,7 @@ public abstract class SmartLightingBenchmark {
 		for (LampSubscription sub : lampSubs) {
 			try {
 				sub.unsubscribe();
-			} catch (IOException | URISyntaxException e) {
+			} catch (IOException | URISyntaxException| InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e) {
 				logger.error(e.getMessage());
 			}
 			sub.terminate();
@@ -464,7 +464,7 @@ public abstract class SmartLightingBenchmark {
 		for (RoadSubscription sub : roadSubs) {
 			try {
 				sub.unsubscribe();
-			} catch (IOException | URISyntaxException e) {
+			} catch (IOException | URISyntaxException| InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e) {
 				logger.error(e.getMessage());
 			}
 			sub.terminate();

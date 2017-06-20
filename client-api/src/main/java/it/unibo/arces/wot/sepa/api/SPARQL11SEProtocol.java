@@ -84,15 +84,22 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	private Websocket wssClient;
 
 	private SSLSecurityManager sm = new SSLSecurityManager("TLSv1","sepa.jks","sepa2017","sepa2017");
+	
 	protected SPARQL11SEProperties properties = null;
 
 	public SPARQL11SEProtocol(SPARQL11SEProperties properties)
 			throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-		this(properties, "sepa.jks", "sepa2017");
+		this(properties,null, "sepa.jks", "sepa2017");
+	}
+	
+	public SPARQL11SEProtocol(SPARQL11SEProperties properties,INotificationHandler handler)
+			throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		this(properties,handler, "sepa.jks", "sepa2017");
 	}
 
-	public SPARQL11SEProtocol(SPARQL11SEProperties properties, String jksName, String jksPassword)
+	public SPARQL11SEProtocol(SPARQL11SEProperties properties, INotificationHandler handler,String jksName, String jksPassword)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 		super(properties);
@@ -109,9 +116,9 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 		// Create WebSocket clients (secure and not)
 		wsClient = new Websocket(
-				"ws://" + properties.getHost() + ":" + properties.getWsPort() + properties.getSubscribePath(), false);
+				"ws://" + properties.getHost() + ":" + properties.getWsPort() + properties.getSubscribePath(), false,handler);
 		wssClient = new Websocket("wss://" + properties.getHost() + ":" + properties.getWssPort()
-				+ properties.getSecurePath() + properties.getSubscribePath(), true);
+				+ properties.getSecurePath() + properties.getSubscribePath(), true,handler);
 
 		// HTTP response handler
 		responseHandler = new ResponseHandler<String>() {
@@ -146,78 +153,72 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	}
 
 	// SPARQL 1.1 SE Subscribe Primitive
-	public Response subscribe(SubscribeRequest request, INotificationHandler handler)
+	public Response subscribe(SubscribeRequest request)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug(request.toString());
-		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SUBSCRIBE, request, handler);
+		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SUBSCRIBE, request);
 	}
 
 	// SPARQL 1.1 SE Unsubscribe Primitive
 	public Response unsubscribe(UnsubscribeRequest request) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug(request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.UNSUBSCRIBE, request);
 	}
 
 	// SPARQL 1.1 SE SECURE Subscribe Primitive
-	public Response secureSubscribe(SubscribeRequest request, INotificationHandler handler)
+	public Response secureSubscribe(SubscribeRequest request)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("SECURE " + request.toString());
-		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SECURESUBSCRIBE, request, handler);
+		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SECURESUBSCRIBE, request);
 	}
 
 	// SPARQL 1.1 SE SECURE Unsubscribe Primitive
 	public Response secureUnsubscribe(UnsubscribeRequest request)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("SECURE " + request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SECUREUNSUBSCRIBE, request);
 	}
 
 	// SPARQL 1.1 SE SECURE Update Primitive
 	public Response secureUpdate(UpdateRequest request) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("SECURE " + request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SECUREUPDATE, request);
 	}
 
 	// SPARQL 1.1 SE SECURE Query Primitive
 	public Response secureQuery(QueryRequest request) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("SECURE " + request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SECUREQUERY, request);
 	}
 
 	// Registration to the Authorization Server (AS)
 	public Response register(String identity) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("REGISTER " + identity);
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.REGISTER, identity);
 	}
 
 	// Token request to the Authorization Server (AS)
 	public Response requestToken() throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.REQUESTTOKEN);
-	}
-
-	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op, Object request)
-			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		return executeSPARQL11SEPrimitive(op, request, null);
 	}
 
 	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		return executeSPARQL11SEPrimitive(op, null, null);
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+		return executeSPARQL11SEPrimitive(op, null);
 	}
 
-	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op, Object request, INotificationHandler handler)
+	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op, Object request)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		// Create the HTTPS request
 		URI uri;
 		String path = null;
@@ -232,7 +233,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		switch (op) {
 		case SUBSCRIBE:
 			SubscribeRequest subscribe = (SubscribeRequest) request;
-			wsClient.subscribe(subscribe.getSPARQL(), subscribe.getAlias(), null, handler);
+			wsClient.subscribe(subscribe.getSPARQL(), subscribe.getAlias(), null);
 
 			return new SubscribeResponse();
 		case UNSUBSCRIBE:
@@ -242,8 +243,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			return new UnsubscribeResponse();
 		case SECURESUBSCRIBE:
 			SubscribeRequest securesubscribe = (SubscribeRequest) request;
-			wssClient.subscribe(securesubscribe.getSPARQL(), securesubscribe.getAlias(), properties.getAccessToken(),
-					handler);
+			wssClient.subscribe(securesubscribe.getSPARQL(), securesubscribe.getAlias(), properties.getAccessToken());
 
 			return new SubscribeResponse();
 		case SECUREUNSUBSCRIBE:
@@ -446,5 +446,16 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		}
 
 		return new ErrorResponse(0, HttpStatus.SC_INTERNAL_SERVER_ERROR, "Response unknown: " + response);
+	}
+
+	
+	public void setNotificationHandler(INotificationHandler handler) {
+		if (handler == null) {
+			logger.fatal("Notification handler is null. Client cannot be initialized");
+			throw new IllegalArgumentException("Notificaton handler is null");
+		}
+		
+		wsClient.setNotificationHandler(handler);
+		wssClient.setNotificationHandler(handler);
 	}
 }

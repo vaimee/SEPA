@@ -38,35 +38,18 @@ import javax.crypto.NoSuchPaddingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.api.INotificationHandler;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 
 public abstract class Client implements IClient {	
-	protected HashMap<String,String> URI2PrefixMap = new HashMap<String,String>();
+	protected static HashMap<String,String> URI2PrefixMap = new HashMap<String,String>();
 	protected HashMap<String,String> prefix2URIMap = new HashMap<String,String>();
 	
 	protected SPARQL11SEProtocol protocolClient = null;
 	
 	private static final Logger logger = LogManager.getLogger("Client");
-		
-	/*protected void addNamespace(String prefix,String uri){
-		if (prefix2URIMap.containsKey(prefix)) removeNamespace(prefix);
-		URI2PrefixMap.put(uri, prefix);
-		prefix2URIMap.put(prefix, uri);
-	}
-		
-	protected void removeNamespace(String prefix){
-		if (!prefix2URIMap.containsKey(prefix)) return;
-		String rmURI = prefix2URIMap.get(prefix);
-		URI2PrefixMap.remove(rmURI);
-		prefix2URIMap.remove(prefix);
-	}
-	
-	protected void clearNamespaces() {
-		URI2PrefixMap.clear();
-		prefix2URIMap.clear();
-	}*/
 	
 	private void addNamespaces(ApplicationProfile appProfile) {
 		Set<String> prefixes = appProfile.getPrefixes();
@@ -101,10 +84,36 @@ public abstract class Client implements IClient {
 		addNamespaces(appProfile);
 	}
 	
+	public Client(ApplicationProfile appProfile,INotificationHandler handler) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		if (appProfile == null) {
+			logger.fatal("Application profile is null. Client cannot be initialized");
+			throw new IllegalArgumentException("Application profile is null");
+		}
+		if (handler == null) {
+			logger.fatal("Notification handler is null. Client cannot be initialized");
+			throw new IllegalArgumentException("Notificaton handler is null");
+		}
+		
+		logger.debug("SEPA parameters: "+appProfile.printParameters());
+		
+		protocolClient = new SPARQL11SEProtocol(appProfile,handler);
+		
+		addNamespaces(appProfile);
+	}
+	
 	public Client(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
 		protocolClient = new SPARQL11SEProtocol(new SPARQL11SEProperties(jparFile));
 	}
 
+	public Client(String jparFile,INotificationHandler handler) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
+		if (handler == null) {
+			logger.fatal("Notification handler is null. Client cannot be initialized");
+			throw new IllegalArgumentException("Notificaton handler is null");
+		}
+		
+		protocolClient = new SPARQL11SEProtocol(new SPARQL11SEProperties(jparFile),handler);
+	}
+	
 	protected String replaceBindings(String sparql, Bindings bindings){
 		if (bindings == null || sparql == null) return sparql;
 		

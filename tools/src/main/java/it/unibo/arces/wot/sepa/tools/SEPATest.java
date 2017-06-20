@@ -56,7 +56,6 @@ import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 public class SEPATest {
 	protected static final Logger logger = LogManager.getLogger("SEPATest");
 	protected static Results results = new SEPATest().new Results();
-	protected static TestNotificationHandler handler = new TestNotificationHandler();
 
 	// Subscription variables
 	protected static boolean subscribeConfirmReceived = false;
@@ -66,8 +65,12 @@ public class SEPATest {
 	protected static boolean notificationReceived = false;
 	protected static Object sync = new Object();
 
+	//SPARQL 1.1 SE Protocol client
 	protected static SPARQL11SEProtocol client;
 	protected static SPARQL11SEProperties properties;
+	
+	//Subscriptions handler
+	protected static TestNotificationHandler handler = new TestNotificationHandler();
 
 	protected static final long subscribeConfirmDelay = 2000;
 	protected static final long pingDelay = 5000;
@@ -175,7 +178,7 @@ public class SEPATest {
 
 	protected static boolean updateTest(String sparql, boolean secure)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		notificationReceived = false;
 
 		UpdateRequest update = new UpdateRequest(sparql);
@@ -198,7 +201,7 @@ public class SEPATest {
 
 	protected static boolean queryTest(String sparql, String utf8, boolean secure)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		QueryRequest query = new QueryRequest(sparql);
 
 		if (!secure)
@@ -236,7 +239,7 @@ public class SEPATest {
 
 	protected static boolean subscribeTest(String sparql, boolean secure)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		subscribeConfirmReceived = false;
 		notificationReceived = false;
 
@@ -250,9 +253,9 @@ public class SEPATest {
 		Response response;
 
 		if (!secure)
-			response = client.subscribe(sub, handler);
+			response = client.subscribe(sub);
 		else
-			response = client.secureSubscribe(sub, handler);
+			response = client.secureSubscribe(sub);
 
 		logger.debug(response.toString());
 
@@ -308,7 +311,7 @@ public class SEPATest {
 
 	protected static boolean unsubscribeTest(String spuid, boolean secure)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		unsubscriptionConfirmReceived = false;
 
 		UnsubscribeRequest unsub = new UnsubscribeRequest(spuid);
@@ -339,14 +342,14 @@ public class SEPATest {
 	}
 
 	protected static boolean registrationTest(String id) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		Response response;
 		response = client.register(id);
 		return !response.getClass().equals(ErrorResponse.class);
 	}
 
 	protected static boolean requestAccessTokenTest() throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		Response response;
 		response = client.requestToken();
 
@@ -374,12 +377,7 @@ public class SEPATest {
 			System.exit(1);
 		}
 
-//		try {
-//			test();
-//		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
-//				| BadPaddingException e2) {
-//			logger.error(e2.getLocalizedMessage());
-//		}
+		client.setNotificationHandler(handler);
 
 		logger.warn("**********************************************************");
 		logger.warn("***     SPARQL 1.1 SE Protocol Service test suite      ***");
@@ -413,7 +411,7 @@ public class SEPATest {
 					"prefix test:<http://www.vaimee.com/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"測試\"} where {?s ?p ?o}",
 					false);
 		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -427,7 +425,7 @@ public class SEPATest {
 		try {
 			ret = queryTest("select ?o where {?s ?p ?o}", "測試", false);
 		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -441,7 +439,7 @@ public class SEPATest {
 		try {
 			ret = subscribeTest("select ?o where {?s ?p ?o}", false);
 		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -481,7 +479,7 @@ public class SEPATest {
 					"prefix test:<http://www.vaimee.com/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"ვაიმეე\"} where {?s ?p ?o}",
 					false);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -503,7 +501,7 @@ public class SEPATest {
 		try {
 			ret = unsubscribeTest(spuid, false);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -538,7 +536,7 @@ public class SEPATest {
 		try {
 			ret = registrationTest("SEPATest");
 		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -552,7 +550,7 @@ public class SEPATest {
 		try {
 			ret = !registrationTest("RegisterMePlease");
 		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -566,7 +564,7 @@ public class SEPATest {
 		try {
 			ret = requestAccessTokenTest();
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -581,7 +579,7 @@ public class SEPATest {
 			try {
 				ret = !requestAccessTokenTest();
 			} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 				ret = false;
 				logger.error(e1.getMessage());
 			}
@@ -604,7 +602,7 @@ public class SEPATest {
 			try {
 				ret = requestAccessTokenTest();
 			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 				ret = false;
 				logger.error(e1.getMessage());
 			}
@@ -621,7 +619,7 @@ public class SEPATest {
 			try {
 				requestAccessTokenTest();
 			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 				ret = false;
 				logger.error(e1.getMessage());
 			}
@@ -630,7 +628,7 @@ public class SEPATest {
 					"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"ვაიმეე\"} where {?s ?p ?o}",
 					true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -652,7 +650,7 @@ public class SEPATest {
 					"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"vaimee!\"} where {?s ?p ?o}",
 					true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -667,14 +665,14 @@ public class SEPATest {
 			try {
 				requestAccessTokenTest();
 			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 				ret = false;
 				logger.error(e1.getMessage());
 			}
 		try {
 			ret = queryTest("select ?o where {?s ?p ?o}", "ვაიმეე", true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -694,7 +692,7 @@ public class SEPATest {
 		try {
 			ret = !queryTest("select ?o where {?s ?p ?o}", "ვაიმეე", true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -709,14 +707,14 @@ public class SEPATest {
 			try {
 				requestAccessTokenTest();
 			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 				ret = false;
 				logger.error(e1.getMessage());
 			}
 		try {
 			ret = subscribeTest("select ?o where {?s ?p ?o}", true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -755,7 +753,7 @@ public class SEPATest {
 			try {
 				requestAccessTokenTest();
 			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 				ret = false;
 				logger.error(e1.getMessage());
 			}
@@ -764,7 +762,7 @@ public class SEPATest {
 					"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"卢卡\"} where {?s ?p ?o}",
 					true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException | InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -792,7 +790,7 @@ public class SEPATest {
 		try {
 			ret = unsubscribeTest(spuid, true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -814,14 +812,14 @@ public class SEPATest {
 			try {
 				requestAccessTokenTest();
 			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 				ret = false;
 				logger.error(e1.getMessage());
 			}
 		try {
 			ret = unsubscribeTest(spuid, true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e1) {
+				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
@@ -857,7 +855,7 @@ public class SEPATest {
 		try {
 			ret = subscribeTest("select ?o where {?s ?p ?o}", true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
+				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e) {
 			ret = false;
 			logger.error(e.getMessage());
 		}

@@ -69,7 +69,7 @@ public abstract class SPU extends Observable implements Runnable {
 		//spuData.offer(subscription);
 	}
 	
-	public synchronized void stopRunning() {
+	public synchronized void terminate() {
 		running = false;
 		notifyAll();
 	}
