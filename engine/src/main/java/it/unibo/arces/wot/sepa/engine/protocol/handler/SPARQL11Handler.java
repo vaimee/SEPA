@@ -36,7 +36,7 @@ public abstract class SPARQL11Handler extends Thread implements ResponseAndNotif
 	/**
 	 * Instantiates a new running.
 	 *
-	 * @param httpExchange
+	 * @param  exchange
 	 *            the http exchange
 	 */
 	public SPARQL11Handler(HttpRequest request, HttpAsyncExchange exchange, HttpContext context,
