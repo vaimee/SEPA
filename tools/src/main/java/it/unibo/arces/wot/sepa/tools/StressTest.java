@@ -31,9 +31,9 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
 public class StressTest {
 	private static final Logger logger = LogManager.getLogger("StressTest");
-	static int nConsumers = 10;
-	static int nProducers = 20;
-	static int producerUpdates = 10;
+	static int nConsumers = 1;
+	static int nProducers = 1;
+	static int producerUpdates = 1;
 
 	static CountDownLatch publishingEnded = new CountDownLatch(nProducers * producerUpdates);
 	static CountDownLatch notificationEnded = new CountDownLatch(nProducers * producerUpdates * nConsumers);
