@@ -85,6 +85,8 @@ public class WebsocketServer extends WebSocketServer {
 		 */
 		logger.debug("@onFragment " + fragment);
 		
+		//TODO StringBuilder?
+		//TODO Multiple message multiplexed?
 		if (fragmentedMessages.get(conn) == null) fragmentedMessages.put(conn, new String(fragment.getPayloadData().array(),Charset.forName("UTF-8")));
 		else fragmentedMessages.put(conn, fragmentedMessages.get(conn) + new String(fragment.getPayloadData().array(),Charset.forName("UTF-8")));
 		
@@ -98,13 +100,11 @@ public class WebsocketServer extends WebSocketServer {
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
-		// TODO Auto-generated method stub
-
+		logger.debug("@onError " + ex);
 	}
 
 	@Override
 	public void onStart() {
-		// TODO Auto-generated method stub
-
+		logger.debug("@onStart");
 	}
 }

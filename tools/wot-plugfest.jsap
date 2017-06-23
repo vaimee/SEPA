@@ -1,6 +1,6 @@
 {
 	"parameters": {
-		"host": "192.168.1.100",
+		"host": "wot.arces.unibo.it",
 		"ports": {
 			"http": 8000,
 			"https": 8443,
@@ -32,51 +32,22 @@
 		}
 	},
 	"namespaces": {
-		"chat": "http://www.arces.unibo.it/chat#",
-		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+		"wot": "http://www.arces.unibo.it/wot#",
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+		"td": "http://w3c.github.io/wot/w3c-wot-td-ontology.owl#",
+		"dul": "http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#"
 	},
 	"updates": {
-		"ADD_MESSAGE": {
-			"sparql": "delete {?message chat:message ?oldText} insert {?message rdf:type chat:Message . ?message chat:user ?nickname . ?message chat:message ?text} where {OPTIONAL{?message rdf:type chat:Message . ?message chat:message ?oldText . ?message chat:user ?nickname}}",
-			"forcedBindings": {
-				"text": {
-					"type": "literal",
-					"value": ""
-				},
-				"nickname": {
-					"type": "literal",
-					"value": ""
-				},
-				"message": {
-					"type": "uri",
-					"value": ""
-				}
-			},
-			"id": "ADD_MESSAGE"
-		},
-		"REMOVE_MESSAGE": {
-			"sparql": "delete {?message chat:message ?text . ?message rdf:type chat:Message . ?message chat:user ?nickname} where {?message chat:message ?text . ?message chat:user ?nickname . ?message rdf:type chat:Message}",
-			"forcedBindings": {
-				"nickname": {
+		"LCD": {
+			"sparql": "DELETE {wot:INPUT_1 dul:hasDataValue ?oldValue} INSERT {wot:INPUT_1 dul:hasDataValue ?value} WHERE {wot:RaspiLCD rdf:type td:Action. wot:RaspiLCD wot:hasInstance wot:INSTANCE_1. wot:INSTANCE_1 rdf:type wot:ActionInstance. wot:INSTANCE_1 td:hasInput wot:INPUT_1 . wot:INPUT_1 dul:hasDataValue ?oldValue}"
+		,"forcedBindings": {
+				"value": {
 					"type": "literal",
 					"value": ""
 				}
-			},
-			"id": "REMOVE_MESSAGE"
+			}
 		}
 	},
 	"subscribes": {
-		"MESSAGE": {
-			"sparql": "select ?nickname ?text ?message where {?message rdf:type chat:Message . ?message chat:message ?text . ?message chat:user ?nickname}",
-			"forcedBindings": {
-			},
-			"id": "MESSAGE"
-		},
-		"NICKNAME": {
-			"sparql": "select ?nickname where {?message chat:user ?nickname}",
-			"forcedBindings": {
-			},
-			"id": "NICKNAME"
-		}
 	}
 }

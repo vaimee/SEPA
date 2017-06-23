@@ -249,8 +249,6 @@ public class Dashboard {
 	
 	static Dashboard window;
 	private JTextField textFieldIP;
-	private JTextField textFieldSPort;
-	private JTextField txtFieldPath;
 	private JTable updateForcedBindings;
 	private JTable subscribeForcedBindings;
 	private static JTable bindingsResultsTable;
@@ -273,9 +271,7 @@ public class Dashboard {
 	
 	ApplicationProfile appProfile;
 	
-	private JTextField textFieldUPort;
-	private JTextField textFieldUPortSecure;
-	private JTextField textFieldSPortSecure;
+	private JTextField textFieldFilePath;
 	
 	static class ForcedBindingsTableModel extends AbstractTableModel {
 		/**
@@ -699,7 +695,7 @@ public class Dashboard {
 			return false;
 		}
 		
-		frmSepaDashboard.setTitle("SEPA Dashboard Ver 0.7.0 " + " - " + file);
+		frmSepaDashboard.setTitle("SEPA Dashboard Ver 0.7.5 " + " - " + file);
 		
 		//Loading namespaces
 		for(String prefix : appProfile.getPrefixes()) {
@@ -722,11 +718,7 @@ public class Dashboard {
 		}
 		
 		textFieldIP.setText(appProfile.getHost());
-		textFieldUPort.setText(String.format("%d", appProfile.getHttpPort()));
-		textFieldSPort.setText(String.format("%d", appProfile.getWsPort()));
-		txtFieldPath.setText(appProfile.getUpdatePath());
-		textFieldUPortSecure.setText(String.format("%d", appProfile.getHttpsPort()));
-		textFieldSPortSecure.setText(String.format("%d", appProfile.getWssPort()));
+		textFieldFilePath.setText(String.format("%d", appProfile.getHttpPort()));
 		
 		//Enable all the buttons
 		btnUpdate.setEnabled(true);
@@ -827,14 +819,15 @@ public class Dashboard {
 		gbc_configuration.gridy = 0;
 		SPARQLPanel.add(configuration, gbc_configuration);
 		GridBagLayout gbl_configuration = new GridBagLayout();
-		gbl_configuration.columnWidths = new int[]{37, 134, 0, 77, 77, 38, 72, 75, 33, 78, 37, 0};
+		gbl_configuration.columnWidths = new int[]{37, 134, 74, 33, 37, 0};
 		gbl_configuration.rowHeights = new int[]{26, 0};
-		gbl_configuration.columnWeights = new double[]{0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+		gbl_configuration.columnWeights = new double[]{0.0, 1.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
 		gbl_configuration.rowWeights = new double[]{0.0, Double.MIN_VALUE};
 		configuration.setLayout(gbl_configuration);
 		
 		JLabel lblIp = new JLabel("URL");
 		GridBagConstraints gbc_lblIp = new GridBagConstraints();
+		gbc_lblIp.anchor = GridBagConstraints.WEST;
 		gbc_lblIp.insets = new Insets(0, 0, 0, 5);
 		gbc_lblIp.gridx = 0;
 		gbc_lblIp.gridy = 0;
@@ -842,7 +835,6 @@ public class Dashboard {
 		
 		textFieldIP = new JTextField();
 		textFieldIP.setEditable(false);
-		textFieldIP.setText(appProperties.getProperty("ip"));
 		GridBagConstraints gbc_textFieldIP = new GridBagConstraints();
 		gbc_textFieldIP.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textFieldIP.insets = new Insets(0, 0, 0, 5);
@@ -850,83 +842,6 @@ public class Dashboard {
 		gbc_textFieldIP.gridy = 0;
 		configuration.add(textFieldIP, gbc_textFieldIP);
 		textFieldIP.setColumns(10);
-		
-		JLabel lblUpdate = new JLabel("UPort");
-		GridBagConstraints gbc_lblUpdate = new GridBagConstraints();
-		gbc_lblUpdate.anchor = GridBagConstraints.EAST;
-		gbc_lblUpdate.insets = new Insets(0, 0, 0, 5);
-		gbc_lblUpdate.gridx = 2;
-		gbc_lblUpdate.gridy = 0;
-		configuration.add(lblUpdate, gbc_lblUpdate);
-		
-		textFieldUPort = new JTextField();
-		textFieldUPort.setEditable(false);
-		textFieldUPort.setText(appProperties.getProperty("updatePort"));
-		GridBagConstraints gbc_textFieldUPort = new GridBagConstraints();
-		gbc_textFieldUPort.insets = new Insets(0, 0, 0, 5);
-		gbc_textFieldUPort.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textFieldUPort.gridx = 3;
-		gbc_textFieldUPort.gridy = 0;
-		configuration.add(textFieldUPort, gbc_textFieldUPort);
-		textFieldUPort.setColumns(10);
-		
-		textFieldUPortSecure = new JTextField();
-		GridBagConstraints gbc_textFieldUPortSecure = new GridBagConstraints();
-		gbc_textFieldUPortSecure.insets = new Insets(0, 0, 0, 5);
-		gbc_textFieldUPortSecure.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textFieldUPortSecure.gridx = 4;
-		gbc_textFieldUPortSecure.gridy = 0;
-		configuration.add(textFieldUPortSecure, gbc_textFieldUPortSecure);
-		textFieldUPortSecure.setColumns(10);
-		
-		JLabel lblPort = new JLabel("SPort");
-		GridBagConstraints gbc_lblPort = new GridBagConstraints();
-		gbc_lblPort.anchor = GridBagConstraints.WEST;
-		gbc_lblPort.insets = new Insets(0, 0, 0, 5);
-		gbc_lblPort.gridx = 5;
-		gbc_lblPort.gridy = 0;
-		configuration.add(lblPort, gbc_lblPort);
-		
-		textFieldSPort = new JTextField();
-		textFieldSPort.setEditable(false);
-		textFieldSPort.setText(appProperties.getProperty("subscribePort"));
-		GridBagConstraints gbc_textFieldSPort = new GridBagConstraints();
-		gbc_textFieldSPort.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textFieldSPort.anchor = GridBagConstraints.NORTH;
-		gbc_textFieldSPort.insets = new Insets(0, 0, 0, 5);
-		gbc_textFieldSPort.gridx = 6;
-		gbc_textFieldSPort.gridy = 0;
-		configuration.add(textFieldSPort, gbc_textFieldSPort);
-		textFieldSPort.setColumns(10);
-		
-		textFieldSPortSecure = new JTextField();
-		GridBagConstraints gbc_textFieldSPortSecure = new GridBagConstraints();
-		gbc_textFieldSPortSecure.insets = new Insets(0, 0, 0, 5);
-		gbc_textFieldSPortSecure.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textFieldSPortSecure.gridx = 7;
-		gbc_textFieldSPortSecure.gridy = 0;
-		configuration.add(textFieldSPortSecure, gbc_textFieldSPortSecure);
-		textFieldSPortSecure.setColumns(10);
-		
-		JLabel lblName = new JLabel("PATH");
-		GridBagConstraints gbc_lblName = new GridBagConstraints();
-		gbc_lblName.anchor = GridBagConstraints.WEST;
-		gbc_lblName.insets = new Insets(0, 0, 0, 5);
-		gbc_lblName.gridx = 8;
-		gbc_lblName.gridy = 0;
-		configuration.add(lblName, gbc_lblName);
-		
-		txtFieldPath = new JTextField();
-		txtFieldPath.setEditable(false);
-		txtFieldPath.setText(appProperties.getProperty("path"));
-		GridBagConstraints gbc_txtFieldPath = new GridBagConstraints();
-		gbc_txtFieldPath.fill = GridBagConstraints.HORIZONTAL;
-		gbc_txtFieldPath.anchor = GridBagConstraints.NORTH;
-		gbc_txtFieldPath.insets = new Insets(0, 0, 0, 5);
-		gbc_txtFieldPath.gridx = 9;
-		gbc_txtFieldPath.gridy = 0;
-		configuration.add(txtFieldPath, gbc_txtFieldPath);
-		txtFieldPath.setColumns(10);
 		
 		JButton btnLoadXmlProfile = new JButton("Load SAP profile");
 		btnLoadXmlProfile.addActionListener(new ActionListener() {
@@ -949,10 +864,10 @@ public class Dashboard {
 								return;
 							}
 							
-							Properties sapFile = new Properties();
-							sapFile.put("appProfile", fileName);
+							appProperties = new Properties();
+							appProperties.put("appProfile", fileName);
 							try {
-								sapFile.store(out,"Dashboard properties");
+								appProperties.store(out,"Dashboard properties");
 							} catch (IOException e1) {
 								logger.error(e1.getMessage());
 							}
@@ -961,6 +876,8 @@ public class Dashboard {
 							} catch (IOException e2) {
 								logger.error(e2.getMessage());
 							}
+							
+							
 						}
 					} catch (InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException
 							| IllegalBlockSizeException | BadPaddingException | IllegalArgumentException
@@ -971,10 +888,28 @@ public class Dashboard {
 				}
 			}
 		});
+		
+		JLabel lblUpdate = new JLabel("Application profile");
+		GridBagConstraints gbc_lblUpdate = new GridBagConstraints();
+		gbc_lblUpdate.anchor = GridBagConstraints.WEST;
+		gbc_lblUpdate.insets = new Insets(0, 0, 0, 5);
+		gbc_lblUpdate.gridx = 2;
+		gbc_lblUpdate.gridy = 0;
+		configuration.add(lblUpdate, gbc_lblUpdate);
+		
+		textFieldFilePath = new JTextField();
+		textFieldFilePath.setEditable(false);
+		GridBagConstraints gbc_textFieldFilePath = new GridBagConstraints();
+		gbc_textFieldFilePath.insets = new Insets(0, 0, 0, 5);
+		gbc_textFieldFilePath.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textFieldFilePath.gridx = 3;
+		gbc_textFieldFilePath.gridy = 0;
+		configuration.add(textFieldFilePath, gbc_textFieldFilePath);
+		textFieldFilePath.setColumns(10);
 		GridBagConstraints gbc_btnLoadXmlProfile = new GridBagConstraints();
 		gbc_btnLoadXmlProfile.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnLoadXmlProfile.anchor = GridBagConstraints.NORTH;
-		gbc_btnLoadXmlProfile.gridx = 10;
+		gbc_btnLoadXmlProfile.gridx = 4;
 		gbc_btnLoadXmlProfile.gridy = 0;
 		configuration.add(btnLoadXmlProfile, gbc_btnLoadXmlProfile);
 		
