@@ -55,11 +55,13 @@ public class CORSManager {
 			
 			String allowOrigin = null;
 			
-			Header[] origins = httpExchange.getRequest().getHeaders("Origin" );
+			Header[] origins = httpExchange.getRequest().getHeaders("Origin");
 			if (origins.length != 1) return false;
 			
 			allowOrigin = origins[0].getValue();	
+			logger.debug("Check origin: "+allowOrigin);
 			if(!allowedOrigin(allowOrigin)) return false;
+			logger.debug("Origin: "+allowOrigin+ " ALLOWED");
 			
 			/*
 			 * Let method be the value as result of parsing the Access-Control-Request-Method header.
@@ -74,6 +76,7 @@ public class CORSManager {
 			
 			allowMethod = methods[0].getValue();		
 			if(!allowedMethod(allowMethod)) return false;
+			logger.debug("Method: "+allowMethod+ " ALLOWED");
 			
 			/*
 			 * Let header field-names be the values as result of parsing the Access-Control-Request-Headers headers.
@@ -107,7 +110,9 @@ public class CORSManager {
 			 */
 			filterHeaders(fieldNames);
 			if (!fieldNames.equals("")) httpExchange.getResponse().addHeader("Access-Control-Allow-Headers", fieldNames);		   
-			    		
+			
+			for (Header head : httpExchange.getResponse().getAllHeaders())
+				logger.debug("Header: ",head.getName());
 			return true;
 		}
 		else {
