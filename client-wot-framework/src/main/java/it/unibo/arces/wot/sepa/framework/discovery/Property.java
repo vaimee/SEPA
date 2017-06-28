@@ -1,5 +1,5 @@
 package it.unibo.arces.wot.sepa.framework.discovery;
 
-public class Events {
+public class Property {
 
 }

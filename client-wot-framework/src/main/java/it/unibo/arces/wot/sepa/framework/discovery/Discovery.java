@@ -9,6 +9,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Observable;
 
@@ -27,16 +28,16 @@ public class Discovery extends Observable {
 	
 	private GetAllThings getAllThings;
 	
-	public enum DiscoveryEventType {ALL_THINGS,ALL_SENSORS,ALL_ACTUATORS,ALL_EVENTS,ALL_ACTIONS,ALL_PROPERTIES};
+	public enum DiscoveryEventType {THINGS,EVENTS,ACTIONS,PROPERTIES};
 	
 	public class DiscoveryEvent {
 		private DiscoveryEventType type;
-		private DiscoveryContent content;
+		private HashSet<DiscoveredElement> results;
 		private boolean added;
 		
-		public DiscoveryEvent(DiscoveryEventType type,DiscoveryContent content,boolean added) {
+		public DiscoveryEvent(DiscoveryEventType type,HashSet<DiscoveredElement> results,boolean added) {
 			this.type = type;
-			this.content = content;
+			this.results = results;
 			this.added = added;
 		}
 		
@@ -44,8 +45,8 @@ public class Discovery extends Observable {
 			return type;
 		}
 		
-		public DiscoveryContent getcontent(){
-			return content;
+		public HashSet<DiscoveredElement> getResults(){
+			return results;
 		}
 		
 		public boolean isAdded() {
