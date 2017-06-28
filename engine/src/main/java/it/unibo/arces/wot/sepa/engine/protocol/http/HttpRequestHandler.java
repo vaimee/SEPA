@@ -76,7 +76,7 @@ public class HttpRequestHandler implements HttpAsyncRequestHandler<HttpRequest>,
 		}
 
 		if (CORSManager.isPreFlightRequest(httpExchange)) {
-			Utilities.sendResponse(httpExchange, 204, null);
+			Utilities.sendResponse(httpExchange, 204, "");
 			return;
 		}
 
