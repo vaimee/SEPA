@@ -1,5 +1,5 @@
 package it.unibo.arces.wot.sepa.framework;
 
-public class EventListener {
+public class Action {
 
 }
