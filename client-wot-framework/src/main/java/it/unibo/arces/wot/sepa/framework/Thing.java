@@ -1,10 +1,10 @@
-package it.unibo.arces.wot.sepa.framework.discovery;
+package it.unibo.arces.wot.sepa.framework;
 
 import java.util.HashSet;
 
-import it.unibo.arces.wot.sepa.framework.Context;
+import it.unibo.arces.wot.sepa.framework.discovery.Discoverable;
 
-public class Thing extends DiscoveredElement {
+public class Thing extends Discoverable {
 	
 	private String uri;
 	private Context context;

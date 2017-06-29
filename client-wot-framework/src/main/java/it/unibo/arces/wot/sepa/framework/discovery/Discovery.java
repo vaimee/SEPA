@@ -32,10 +32,10 @@ public class Discovery extends Observable {
 	
 	public class DiscoveryEvent {
 		private DiscoveryEventType type;
-		private HashSet<DiscoveredElement> results;
+		private HashSet<Discoverable> results;
 		private boolean added;
 		
-		public DiscoveryEvent(DiscoveryEventType type,HashSet<DiscoveredElement> results,boolean added) {
+		public DiscoveryEvent(DiscoveryEventType type,HashSet<Discoverable> results,boolean added) {
 			this.type = type;
 			this.results = results;
 			this.added = added;
@@ -45,7 +45,7 @@ public class Discovery extends Observable {
 			return type;
 		}
 		
-		public HashSet<DiscoveredElement> getResults(){
+		public HashSet<Discoverable> getResults(){
 			return results;
 		}
 		

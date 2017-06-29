@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.framework;
+package it.unibo.arces.wot.sepa.framework.interaction;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -10,7 +10,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.NoSuchElementException;
-import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -22,11 +21,12 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
-public class EventPublisher extends Producer {
+public class EventPublisher {
 	private ApplicationProfile app;
 	
-	private String event;
+	private String thing;
 	private EventPubliserWithOutput publisherWithOutput;
+	private EventPubliserWithoutOutput publisherWithoutOutput;
 	
 	class EventPubliserWithOutput extends Producer {
 
@@ -35,32 +35,40 @@ public class EventPublisher extends Producer {
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 			super(app, "POST_NEW_EVENT_WITH_OUTPUT");
 		}
-		
 	}
 	
-	public EventPublisher(String event)
+	class EventPubliserWithoutOutput extends Producer {
+
+		public EventPubliserWithoutOutput()
+				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+			super(app, "POST_NEW_EVENT_WITHOUT_OUTPUT");
+		}
+	}
+	
+	public EventPublisher(String thingURI)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		super(new ApplicationProfile("td.jsap"), "POST_NEW_EVENT_WITHOUT_OUTPUT");
 		
 		this.app = new ApplicationProfile("td.jsap");
-		this.event = event;
+		this.thing = thingURI;
 		this.publisherWithOutput = new EventPubliserWithOutput();
+		this.publisherWithoutOutput = new EventPubliserWithoutOutput();
 	}
 	
-	public void post() {
+	public void post(String eventURI) {
 		Bindings bind = new Bindings();
-		bind.addBinding("event", new RDFTermURI(event));
-		bind.addBinding("newInstance", new RDFTermURI("wot:"+UUID.randomUUID()));
-		update(bind);
+		bind.addBinding("event", new RDFTermURI(eventURI));
+		bind.addBinding("thing", new RDFTermURI(thing));
+		publisherWithoutOutput.update(bind);
 	}
 
-	public void post(String value) {
+	public void post(String eventURI,String value,String dataTypeURI) {
 		Bindings bind = new Bindings();
-		bind.addBinding("event", new RDFTermURI(event));
-		bind.addBinding("newInstance", new RDFTermURI("wot:"+UUID.randomUUID()));
-		bind.addBinding("eNewOutput", new RDFTermURI("wot:"+UUID.randomUUID()));
-		bind.addBinding("newValue", new RDFTermLiteral(value));
+		bind.addBinding("thing", new RDFTermURI(thing));
+		bind.addBinding("event", new RDFTermURI(eventURI));
+		bind.addBinding("value", new RDFTermLiteral(value));
+		bind.addBinding("dataTypeURI", new RDFTermURI(dataTypeURI));
 		publisherWithOutput.update(bind);
 	}
 

@@ -27,8 +27,10 @@ public class WebsocketServer extends WebSocketServer {
 	protected HashMap<WebSocket, ResponseAndNotificationListener> activeSockets = new HashMap<WebSocket, ResponseAndNotificationListener>();
 	protected HashMap<WebSocket, HashSet<String>> activeSubscriptions = new HashMap<WebSocket, HashSet<String>>();
 
-	protected String scheme = "ws://";
-
+	protected String getWelcomeMessage() {
+		return  "Subscribe on: ws://%s:%d%s";
+	}
+	
 	// Fragmentation support
 	private HashMap<WebSocket, String> fragmentedMessages = new HashMap<WebSocket, String>();
 
@@ -47,7 +49,7 @@ public class WebsocketServer extends WebSocketServer {
 		ping = new KeepAlive(keepAlive, activeSockets, activeSubscriptions, scheduler);
 		ping.start();
 
-		System.out.println("Subscribe on: " + scheme + InetAddress.getLocalHost().getHostAddress() + ":" + port + path);
+		System.out.println(String.format(getWelcomeMessage(),InetAddress.getLocalHost().getHostAddress(),port,path));
 	}
 
 	@Override
