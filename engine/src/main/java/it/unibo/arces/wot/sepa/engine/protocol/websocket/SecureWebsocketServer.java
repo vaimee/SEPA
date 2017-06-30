@@ -26,6 +26,11 @@ public class SecureWebsocketServer extends WebsocketServer {
 	private AuthorizationManager oauth;
 	private Logger logger = LogManager.getLogger("SecureWebsocketServer");
 
+	@Override
+	protected  String getWelcomeMessage() {
+		return "SECURE Subscribe on: wss://%s:%d%s";
+	}
+	
 	public SecureWebsocketServer(int port, String path, int keepAlive, Scheduler scheduler, AuthorizationManager oauth)
 			throws IllegalArgumentException, UnknownHostException, KeyManagementException, NoSuchAlgorithmException {
 		super(port, path, keepAlive, scheduler);

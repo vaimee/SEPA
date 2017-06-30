@@ -21,7 +21,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
-public class TDPublisher extends Producer { 
+public class ThingDescription { 
 	private ApplicationProfile app;
 	
 	private PropertyPublisher properties;
@@ -30,13 +30,13 @@ public class TDPublisher extends Producer {
 	private PropertyChangeEventPublisher propertyChangeEvents;
 	private TargetPropertyPublisher targetProperties;
 	private ProtocolPublisher protocols;
+	private ThingDescriptionPublisher thingDescription;
 	
 	private RDFTermURI thing;
 	
-	public TDPublisher(String thingURI,String name,String locationURI,String typeURI)
+	public ThingDescription(String thingURI,String name)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		super(new ApplicationProfile("td.jsap"), "INIT_TD");
 		
 		app = new ApplicationProfile("td.jsap");
 		
@@ -45,17 +45,16 @@ public class TDPublisher extends Producer {
 		this.events = new EventPublisher();
 		this.propertyChangeEvents = new PropertyChangeEventPublisher();
 		this.targetProperties = new TargetPropertyPublisher();
+		this.thingDescription = new ThingDescriptionPublisher();
 		
 		Bindings bind = new Bindings();
 		thing = new RDFTermURI(thingURI);
 		bind.addBinding("thing", thing);
 		bind.addBinding("thingName", new RDFTermLiteral(name));
-		bind.addBinding("newThingLocation", new RDFTermURI(locationURI));
-		bind.addBinding("thingType", new RDFTermURI(typeURI));
-		update(bind);
+		thingDescription.update(bind);
 	}
 	
-	public void addProperty(String propertyUUID,String propertyUUIDName,String propertyUUIDStability,String propertyUUIDWritability,String propertyUUIDValueType,String propertyUUIDValueTypeContent){	
+	public void addProperty(String propertyUUID,String propertyUUIDName,String dataTypeURI,String propertyUUIDStability,String propertyUUIDWritability,String propertyUUIDValueType,String propertyUUIDValueTypeContent){	
 		Bindings bind = new Bindings();
 		bind.addBinding("thing", thing);
 		bind.addBinding("propertyUUID", new RDFTermURI(propertyUUID));
@@ -63,6 +62,7 @@ public class TDPublisher extends Producer {
 		bind.addBinding("propertyUUIDStability", new RDFTermURI(propertyUUIDStability));
 		bind.addBinding("propertyUUIDWritability", new RDFTermLiteral(propertyUUIDWritability));
 		bind.addBinding("propertyUUIDValueType", new RDFTermURI(propertyUUIDValueType));
+		bind.addBinding("dataTypeURI", new RDFTermURI(dataTypeURI));
 		bind.addBinding("propertyUUIDValueTypeContent", new RDFTermLiteral(propertyUUIDValueTypeContent));
 		properties.update(bind);
 	}
@@ -103,6 +103,15 @@ public class TDPublisher extends Producer {
 		bind.addBinding("actionUUID", new RDFTermURI(actionUUID));
 		bind.addBinding("protocolUUID", new RDFTermURI(protocolUUID));
 		protocols.update(bind);
+	}
+	
+	class ThingDescriptionPublisher extends Producer {
+
+		public ThingDescriptionPublisher()
+				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+			super(app, "INIT_TD");
+		}		
 	}
 	
 	class PropertyPublisher extends Producer {
