@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.framework;
+package it.unibo.arces.wot.sepa.framework.interaction;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -55,12 +55,13 @@ public class ActionPublisher extends Producer {
 		update(bind);
 	}
 
-	public void post(String value) {
+	public void post(String value,String dataTypeURI) {
 		Bindings bind = new Bindings();
 		bind.addBinding("action", new RDFTermURI(action));
 		bind.addBinding("newInstance", new RDFTermURI("wot:"+UUID.randomUUID()));
 		bind.addBinding("newInput", new RDFTermURI("wot:"+UUID.randomUUID()));
 		bind.addBinding("newValue", new RDFTermLiteral(value));
+		bind.addBinding("dataTypeURI", new RDFTermURI(dataTypeURI));
 		publisherWithInput.update(bind);
 	}
 }
