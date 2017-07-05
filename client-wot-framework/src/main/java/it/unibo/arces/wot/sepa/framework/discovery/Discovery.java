@@ -77,7 +77,7 @@ public class Discovery extends Observable {
 		public GetAllThings()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "GET_ALL_THINGS");
+			super(app, "ALL_THINGS");
 		}
 
 		@Override

@@ -33,7 +33,7 @@ public class EventPublisher {
 		public EventPubliserWithOutput()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "POST_NEW_EVENT_WITH_OUTPUT");
+			super(app, "POST_EVENT_WITH_OUTPUT");
 		}
 	}
 	
@@ -42,7 +42,7 @@ public class EventPublisher {
 		public EventPubliserWithoutOutput()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "POST_NEW_EVENT_WITHOUT_OUTPUT");
+			super(app, "POST_EVENT");
 		}
 	}
 	
@@ -63,12 +63,11 @@ public class EventPublisher {
 		publisherWithoutOutput.update(bind);
 	}
 
-	public void post(String eventURI,String value,String dataTypeURI) {
+	public void post(String eventURI,String value) {
 		Bindings bind = new Bindings();
 		bind.addBinding("thing", new RDFTermURI(thing));
 		bind.addBinding("event", new RDFTermURI(eventURI));
 		bind.addBinding("value", new RDFTermLiteral(value));
-		bind.addBinding("dataTypeURI", new RDFTermURI(dataTypeURI));
 		publisherWithOutput.update(bind);
 	}
 

@@ -26,7 +26,9 @@ public class ThingDescription {
 	
 	private PropertyPublisher properties;
 	private ActionPublisher actions;
+	private ActionWithInputPublisher actionsWithInput;
 	private EventPublisher events;
+	private EventWithOutputPublisher eventsWithOutput;
 	private PropertyChangeEventPublisher propertyChangeEvents;
 	private TargetPropertyPublisher targetProperties;
 	private ProtocolPublisher protocols;
@@ -42,7 +44,9 @@ public class ThingDescription {
 		
 		this.properties = new PropertyPublisher();
 		this.actions = new ActionPublisher();
+		this.actionsWithInput = new ActionWithInputPublisher();
 		this.events = new EventPublisher();
+		this.eventsWithOutput = new EventWithOutputPublisher();
 		this.propertyChangeEvents = new PropertyChangeEventPublisher();
 		this.targetProperties = new TargetPropertyPublisher();
 		this.thingDescription = new ThingDescriptionPublisher();
@@ -50,58 +54,78 @@ public class ThingDescription {
 		Bindings bind = new Bindings();
 		thing = new RDFTermURI(thingURI);
 		bind.addBinding("thing", thing);
-		bind.addBinding("thingName", new RDFTermLiteral(name));
+		bind.addBinding("name", new RDFTermLiteral(name));
 		thingDescription.update(bind);
 	}
 	
-	public void addProperty(String propertyUUID,String propertyUUIDName,String dataTypeURI,String propertyUUIDStability,String propertyUUIDWritability,String propertyUUIDValueType,String propertyUUIDValueTypeContent){	
+	public void addProperty(String property,String name,String dataType,String stability,String writable,String value){	
 		Bindings bind = new Bindings();
 		bind.addBinding("thing", thing);
-		bind.addBinding("propertyUUID", new RDFTermURI(propertyUUID));
-		bind.addBinding("propertyUUIDName", new RDFTermLiteral(propertyUUIDName));
-		bind.addBinding("propertyUUIDStability", new RDFTermURI(propertyUUIDStability));
-		bind.addBinding("propertyUUIDWritability", new RDFTermLiteral(propertyUUIDWritability));
-		bind.addBinding("propertyUUIDValueType", new RDFTermURI(propertyUUIDValueType));
-		bind.addBinding("dataTypeURI", new RDFTermURI(dataTypeURI));
-		bind.addBinding("propertyUUIDValueTypeContent", new RDFTermLiteral(propertyUUIDValueTypeContent));
+		bind.addBinding("property", new RDFTermURI(property));
+		bind.addBinding("name", new RDFTermLiteral(name));
+		bind.addBinding("stability", new RDFTermURI(stability));
+		bind.addBinding("writable", new RDFTermLiteral(writable));
+		bind.addBinding("dataType", new RDFTermURI(dataType));
+		bind.addBinding("value", new RDFTermLiteral(value));
 		properties.update(bind);
 	}
 	
-	public void addAction(String actionUUID,String actionUUIDName){	
+	public void addAction(String action,String name,String protocol){	
 		Bindings bind = new Bindings();
 		bind.addBinding("thing", thing);
-		bind.addBinding("actionUUID", new RDFTermURI(actionUUID));
-		bind.addBinding("actionUUIDName", new RDFTermLiteral(actionUUIDName));
+		bind.addBinding("action", new RDFTermURI(action));
+		bind.addBinding("name", new RDFTermLiteral(name));
+		bind.addBinding("protocol", new RDFTermURI(protocol));
 		actions.update(bind);
 	}
-
-	public void addEvent(String eventUUID,String eventUUIDName){	
+	
+	public void addAction(String action,String name,String protocol,String dataType){	
 		Bindings bind = new Bindings();
 		bind.addBinding("thing", thing);
-		bind.addBinding("eventUUID", new RDFTermURI(eventUUID));
-		bind.addBinding("eventUUIDName", new RDFTermLiteral(eventUUIDName));
+		bind.addBinding("action", new RDFTermURI(action));
+		bind.addBinding("name", new RDFTermLiteral(name));
+		bind.addBinding("protocol", new RDFTermURI(protocol));
+		bind.addBinding("dataType", new RDFTermURI(dataType));
+		actionsWithInput.update(bind);
+	}
+
+	public void addEvent(String event,String name){	
+		Bindings bind = new Bindings();
+		bind.addBinding("thing", thing);
+		bind.addBinding("event", new RDFTermURI(event));
+		bind.addBinding("name", new RDFTermLiteral(name));
 		events.update(bind);
 	}
 	
-	public void addPropertyChangedEvent(String eventUUID,String eventUUIDName){	
+	public void addEvent(String event,String name,String dataType){	
 		Bindings bind = new Bindings();
 		bind.addBinding("thing", thing);
-		bind.addBinding("eventUUID", new RDFTermURI(eventUUID));
-		bind.addBinding("eventUUIDName", new RDFTermLiteral(eventUUIDName));
+		bind.addBinding("event", new RDFTermURI(event));
+		bind.addBinding("name", new RDFTermLiteral(name));
+		bind.addBinding("dataType", new RDFTermURI(dataType));
+		eventsWithOutput.update(bind);
+	}
+	
+	public void addPropertyChangedEvent(String event,String name,String dataType){	
+		Bindings bind = new Bindings();
+		bind.addBinding("thing", thing);
+		bind.addBinding("event", new RDFTermURI(event));
+		bind.addBinding("name", new RDFTermLiteral(name));
+		bind.addBinding("dataType", new RDFTermURI(dataType));
 		propertyChangeEvents.update(bind);
 	}
 	
-	public void addTargetProperty(String action_OR_event,String targetPropertyUUID){	
+	public void addTargetProperty(String action_OR_event,String property){	
 		Bindings bind = new Bindings();
 		bind.addBinding("action_OR_event", new RDFTermURI(action_OR_event));
-		bind.addBinding("targetPropertyUUID", new RDFTermURI(targetPropertyUUID));
+		bind.addBinding("property", new RDFTermURI(property));
 		targetProperties.update(bind);
 	}
 	
-	public void addProtocol(String actionUUID,String protocolUUID){	
+	public void addProtocol(String action,String protocol){	
 		Bindings bind = new Bindings();
-		bind.addBinding("actionUUID", new RDFTermURI(actionUUID));
-		bind.addBinding("protocolUUID", new RDFTermURI(protocolUUID));
+		bind.addBinding("action", new RDFTermURI(action));
+		bind.addBinding("protocol", new RDFTermURI(protocol));
 		protocols.update(bind);
 	}
 	
@@ -110,7 +134,7 @@ public class ThingDescription {
 		public ThingDescriptionPublisher()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "INIT_TD");
+			super(app, "TD_INIT");
 		}		
 	}
 	
@@ -119,7 +143,7 @@ public class ThingDescription {
 		public PropertyPublisher()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "ADD_PROPERTY");
+			super(app, "TD_ADD_PROPERTY");
 		}		
 	}
 	
@@ -128,7 +152,16 @@ public class ThingDescription {
 		public ActionPublisher()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "ADD_ACTION");
+			super(app, "TD_ADD_ACTION");
+		}		
+	}
+	
+	class ActionWithInputPublisher extends Producer {
+
+		public ActionWithInputPublisher()
+				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+			super(app, "TD_ADD_ACTION_WITH_INPUT");
 		}		
 	}
 	
@@ -137,7 +170,16 @@ public class ThingDescription {
 		public EventPublisher()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "ADD_EVENT");
+			super(app, "TD_ADD_EVENT");
+		}		
+	}
+	
+	class EventWithOutputPublisher extends Producer {
+
+		public EventWithOutputPublisher()
+				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+			super(app, "TD_ADD_EVENT_WITH_OUTPUT");
 		}		
 	}
 	
@@ -146,7 +188,7 @@ public class ThingDescription {
 		public PropertyChangeEventPublisher()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "ADD_PROPERTY_CHANGED_EVENT");
+			super(app, "TD_ADD_PROPERTY_CHANGED_EVENT");
 		}		
 	}
 	
@@ -155,7 +197,7 @@ public class ThingDescription {
 		public TargetPropertyPublisher()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "APPEND_TARGET_PROPERTY_TO_ACTION_OR_EVENT");
+			super(app, "TD_APPEND_TARGET_PROPERTY_TO_ACTION_OR_EVENT");
 		}		
 	}
 	
@@ -164,7 +206,7 @@ public class ThingDescription {
 		public ProtocolPublisher()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "APPEND_ACCESS_PROTOCOL_TO_ACTION");
+			super(app, "TD_APPEND_ACCESS_PROTOCOL_TO_ACTION");
 		}		
 	}
 }

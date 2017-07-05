@@ -70,7 +70,7 @@ public class Producer extends Client implements IProducer {
 		 logger.debug("<UPDATE> "+ SPARQL_ID+" ==> "+sparql);
 		 
 		 Response response = protocolClient.update(new UpdateRequest(sparql));
-		 logger.debug(response.toString());
+
 		 
 		 return !(response.getClass().equals(ErrorResponse.class));
 		 

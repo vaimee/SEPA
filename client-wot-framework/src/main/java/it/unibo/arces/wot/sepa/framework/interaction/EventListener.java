@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -27,14 +28,14 @@ import it.unibo.arces.wot.sepa.pattern.Consumer;
 
 public abstract class EventListener {
 	private ApplicationProfile app;
-	private HashMap<String,HashMap<String,ThingEventListener>> thingEventListener;
-	private HashMap<String,AllEventListener> allEventListener;
+	private HashMap<String,HashMap<String,ThingEventListener>> thingEventListener = new HashMap<String,HashMap<String,ThingEventListener>>();
+	private HashMap<String,AllEventListener> allEventListener = new HashMap<String,AllEventListener>();
 	
 	public abstract void onEvent(Set<Event> events);
 	
 	public void startListeningForEvent(String eventURI) throws InvalidKeyException, UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, IOException, URISyntaxException, InterruptedException {
 		if (allEventListener.containsKey(eventURI)) return;
-		AllEventListener listener = new AllEventListener();
+		AllEventListener listener = new AllEventListener(eventURI);
 		allEventListener.put(eventURI, listener);
 		Bindings bindings = new Bindings();
 		bindings.addBinding("event", new RDFTermURI(eventURI));
@@ -51,7 +52,7 @@ public abstract class EventListener {
 		if (thingEventListener.containsKey(thingURI)) {
 			HashMap<String,ThingEventListener> thingEvents = thingEventListener.get(thingURI);
 			if (thingEvents.containsKey(eventURI)) return;
-			ThingEventListener listener = new ThingEventListener();
+			ThingEventListener listener = new ThingEventListener(thingURI,eventURI);
 			thingEvents.put(eventURI, listener);
 			Bindings bindings = new Bindings();
 			bindings.addBinding("event", new RDFTermURI(eventURI));
@@ -60,7 +61,7 @@ public abstract class EventListener {
 		}
 		else {
 			HashMap<String,ThingEventListener> thingEvents = new HashMap<String,ThingEventListener>();
-			ThingEventListener listener = new ThingEventListener();
+			ThingEventListener listener = new ThingEventListener(thingURI,eventURI);
 			thingEvents.put(eventURI, listener);
 			Bindings bindings = new Bindings();
 			bindings.addBinding("event", new RDFTermURI(eventURI));
@@ -78,10 +79,14 @@ public abstract class EventListener {
 	}
 	
 	class AllEventListener extends Consumer {
-		public AllEventListener()
+		private String event;
+		
+		public AllEventListener(String event)
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-			super(app, "SUBSCRIBE_TO_EVENT");
+			super(app, "EVENT");
+			
+			this.event = event;
 		}
 
 		@Override
@@ -89,10 +94,15 @@ public abstract class EventListener {
 			
 		}
 
-		//Variables: ?thing ?instance ?timeStamp ?eOutput ?outputValue
+		//Variables: ?thing ?timeStamp OPTIONAL : ?value
 		@Override
 		public void onAddedResults(BindingsResults results) {
-			
+			HashSet<Event> ret = new HashSet<Event>();
+			for(Bindings bindings : results.getBindings()) {
+				bindings.getBindingValue("thing");
+				ret.add(new Event(event,bindings.getBindingValue("thing"),bindings.getBindingValue("timeStamp"),bindings.getBindingValue("value")));
+			}
+			onEvent(ret);
 		}
 
 		@Override
@@ -113,40 +123,47 @@ public abstract class EventListener {
 	}
 	
 	class ThingEventListener extends Consumer {
-
-		public ThingEventListener()
+		private String thing;
+		private String event;
+		
+		public ThingEventListener(String thing,String event)
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-			super(app, "SUBSCRIBE_TO_THING_EVENT");
+			super(app, "THING_EVENT");
+			
+			this.thing = thing;
+			this.event = event;
 		}
 
 		@Override
 		public void onResults(ARBindingsResults results) {
-			// TODO Auto-generated method stub
 			
 		}
-
+		
+		//Variables: ?timeStamp OPTIONAL : ?value
 		@Override
 		public void onAddedResults(BindingsResults results) {
-			// TODO Auto-generated method stub
-			
+			HashSet<Event> ret = new HashSet<Event>();
+			for(Bindings bindings : results.getBindings()) {
+				bindings.getBindingValue("thing");
+				ret.add(new Event(thing,event,bindings.getBindingValue("timeStamp"),bindings.getBindingValue("value")));
+			}
+			onEvent(ret);	
 		}
 
 		@Override
 		public void onRemovedResults(BindingsResults results) {
-			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
 		public void onSubscribe(BindingsResults results) {
-			// TODO Auto-generated method stub
+			onAddedResults(results);
 			
 		}
 
 		@Override
 		public void onUnsubscribe() {
-			// TODO Auto-generated method stub
 			
 		}
 		

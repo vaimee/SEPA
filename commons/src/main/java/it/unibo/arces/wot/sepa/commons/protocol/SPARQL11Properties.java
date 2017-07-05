@@ -41,11 +41,13 @@ import com.google.gson.JsonPrimitive;
 
 // TODO: Auto-generated Javadoc
 /**
- * The Class SPARQL11Properties includes all the properties needed to connect to a SPARQL 1.1 Protocol Service: the URLs used by queries and updates (scheme, host, port and path),
- * the HTTP method used by the primitives (GET, POST or URL_ENCODED_POST) and the format of the results (JSON, XML, HTML, CSV) 
- 
+ * The Class SPARQL11Properties includes all the properties needed to connect to
+ * a SPARQL 1.1 Protocol Service: the URLs used by queries and updates (scheme,
+ * host, port and path), the HTTP method used by the primitives (GET, POST or
+ * URL_ENCODED_POST) and the format of the results (JSON, XML, HTML, CSV)
  * 
- <pre>
+ * 
+ * <pre>
  { parameters": 
    { "host": "localhost", 
      "ports":{ "http" : 9999 }, 
@@ -57,7 +59,8 @@ import com.google.gson.JsonPrimitive;
        "update": "URL_ENCODED_POST" }, 
      "formats" : { 
        "update" : "HTML", 
-       "query" : "JSON" } } }</pre>
+       "query" : "JSON" } } }
+ * </pre>
  */
 
 public class SPARQL11Properties {
@@ -192,10 +195,10 @@ public class SPARQL11Properties {
 	}
 
 	/**
-	 * Defaults. 
+	 * Defaults.
 	 * 
-	 * { parameters": { "host": "localhost", "ports":{ "http" : 9999
-	 * }, "paths": { "update" : "/blazegraph/namespace/kb/sparql", "query" :
+	 * { parameters": { "host": "localhost", "ports":{ "http" : 9999 }, "paths":
+	 * { "update" : "/blazegraph/namespace/kb/sparql", "query" :
 	 * "/blazegraph/namespace/kb/sparql" }, "methods": { "query": "POST",
 	 * "update": "URL_ENCODED_POST" }, "formats" : { "update" : "HTML", "query"
 	 * : "JSON" } } }
@@ -321,17 +324,29 @@ public class SPARQL11Properties {
 			if (elem.getKey().equals("query"))
 				queryPath = elem.getValue().getAsString();
 		}
-		for (Entry<String, JsonElement> elem : parameters.get("methods").getAsJsonObject().entrySet()) {
-			if (elem.getKey().equals("update"))
-				updateMethod = elem.getValue().getAsString().toUpperCase();
-			if (elem.getKey().equals("query"))
-				queryMethod = elem.getValue().getAsString().toUpperCase();
+		if (parameters.get("methods") != null) {
+			for (Entry<String, JsonElement> elem : parameters.get("methods").getAsJsonObject().entrySet()) {
+				if (elem.getKey().equals("update"))
+					updateMethod = elem.getValue().getAsString().toUpperCase();
+				if (elem.getKey().equals("query"))
+					queryMethod = elem.getValue().getAsString().toUpperCase();
+			}
 		}
-		for (Entry<String, JsonElement> elem : parameters.get("formats").getAsJsonObject().entrySet()) {
-			if (elem.getKey().equals("update"))
-				updateResultsFormat = elem.getValue().getAsString().toUpperCase();
-			if (elem.getKey().equals("query"))
-				queryResultsFormat = elem.getValue().getAsString().toUpperCase();
+		else {
+			updateMethod = "POST";
+			queryMethod = "POST";
+		}
+		if (parameters.get("formats") != null) {
+			for (Entry<String, JsonElement> elem : parameters.get("formats").getAsJsonObject().entrySet()) {
+				if (elem.getKey().equals("update"))
+					updateResultsFormat = elem.getValue().getAsString().toUpperCase();
+				if (elem.getKey().equals("query"))
+					queryResultsFormat = elem.getValue().getAsString().toUpperCase();
+			}
+		}
+		else {
+			updateResultsFormat = "JSON";
+			queryResultsFormat = "JSON";
 		}
 	}
 
