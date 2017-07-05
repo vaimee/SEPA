@@ -25,6 +25,9 @@ import java.awt.Font;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,6 +46,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 
 import javax.swing.event.TableModelListener;
@@ -50,6 +54,7 @@ import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
@@ -61,18 +66,18 @@ import javax.swing.JList;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
+
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
+
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Set;
@@ -101,14 +106,16 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import javax.swing.border.TitledBorder;
 import java.awt.Checkbox;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.ItemEvent;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 
 public class Dashboard {
 	private static final Logger logger = LogManager.getLogger("Dashboard");
 	
-	Properties appProperties = new Properties();
+	private Properties appProperties = new Properties();
 	
 	private DefaultTableModel namespacesDM;
 	private String namespacesHeader[] = new String[] {"Prefix", "URI"};
@@ -124,7 +131,7 @@ public class Dashboard {
 	
 	private DashboardClient kp;
 	
-	class DashboardClient extends GenericClient {
+	private class DashboardClient extends GenericClient {
 
 		public DashboardClient(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException{
 			super(jparFile);	
@@ -178,7 +185,7 @@ public class Dashboard {
 		}
 	}
 	
-	class SortedListModel extends AbstractListModel<String> {
+	private class SortedListModel extends AbstractListModel<String> {
 
 		  /**
 		 * 
@@ -205,39 +212,9 @@ public class Dashboard {
 		    }
 		  }
 
-		  public void addAll(String elements[]) {
-		    Collection<String> c = Arrays.asList(elements);
-		    model.addAll(c);
-		    fireContentsChanged(this, 0, getSize());
-		  }
-
 		  public void clear() {
 		    model.clear();
 		    fireContentsChanged(this, 0, getSize());
-		  }
-
-		  public boolean contains(Object element) {
-		    return model.contains(element);
-		  }
-
-		  public Object firstElement() {
-		    return model.first();
-		  }
-
-		  public Iterator<String> iterator() {
-		    return model.iterator();
-		  }
-
-		  public Object lastElement() {
-		    return model.last();
-		  }
-
-		  public boolean removeElement(Object element) {
-		    boolean removed = model.remove(element);
-		    if (removed) {
-		      fireContentsChanged(this, 0, getSize());
-		    }
-		    return removed;
 		  }
 		}
 	
@@ -251,7 +228,7 @@ public class Dashboard {
 	private JTextField textFieldIP;
 	private JTable updateForcedBindings;
 	private JTable subscribeForcedBindings;
-	private static JTable bindingsResultsTable;
+	private JTable bindingsResultsTable;
 	private JTable namespacesTable;
 
 	private JLabel lblInfo;
@@ -263,7 +240,7 @@ public class Dashboard {
 	private JButton btnQuery;
 	private Checkbox qNameCheckbox;
 	private JPanel resultsPanel;
-	private static JCheckBox chckbxAutoscroll;
+	private JCheckBox chckbxAutoscroll;
 	private JLabel spuidLabel;
 	
 	private JList<String> updatesList;
@@ -273,7 +250,36 @@ public class Dashboard {
 	
 	private JTextField textFieldFilePath;
 	
-	static class ForcedBindingsTableModel extends AbstractTableModel {
+	private class CopyAction extends AbstractAction {
+
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 5927169526678239559L;
+
+		/**
+         * {@inheritDoc}
+         */
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final JTable tbl = (JTable) e.getSource();
+            final int row = tbl.getSelectedRow();
+            final int col = tbl.getSelectedColumn();
+            if (row >= 0 && col >= 0) {
+                final TableCellRenderer renderer = tbl.getCellRenderer(row, col);
+                final Component comp = tbl.prepareRenderer(renderer, row, col);
+                if (comp instanceof JLabel) {
+                    final String toCopy = ((JLabel) comp).getText();
+                    final StringSelection selection = new StringSelection(toCopy);
+                    final Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    clipboard.setContents(selection, selection);
+                }
+            }
+        }
+
+    }
+	
+	private class ForcedBindingsTableModel extends AbstractTableModel {
 		/**
 		 * 
 		 */
@@ -358,7 +364,7 @@ public class Dashboard {
 		}
 	}
 	
-	static class BindingValue {
+	private class BindingValue {
 		private boolean added = true;
 		private String value;
 		private boolean literal = true; 
@@ -383,7 +389,7 @@ public class Dashboard {
 		}
 	}
 	
-	static class BindingsTableModel extends AbstractTableModel {
+	private class BindingsTableModel extends AbstractTableModel {
 
 		private static final long serialVersionUID = 2698789913874225961L;
 		
@@ -519,40 +525,9 @@ public class Dashboard {
 			
 			super.fireTableDataChanged();
 		}
-		
-		public void setRemovedResults(BindingsResults bindingsResults) {
-			if (bindingsResults == null) return;
-			
-			Date date = new Date();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-			String timestamp = sdf.format(date);
-			
-			Set<String> vars = bindingsResults.getVariables();
-			
-			if (!columns.containsAll(vars) || columns.size() != vars.size()) {
-				columns.clear();
-				vars.add("");
-				columns.addAll(vars);
-				super.fireTableStructureChanged();
-			}			
-			
-			for (Bindings sol : bindingsResults.getBindings()) {
-				HashMap<String,BindingValue> row = new HashMap<String,BindingValue>();
-				for (String var : sol.getVariables()) {
-					row.put(var, new BindingValue(sol.getBindingValue(var),sol.isLiteral(var),false));
-				}
-				row.put("", new BindingValue(timestamp,false,false));
-				rows.add(row);
-			}
-				
-			if(chckbxAutoscroll.isSelected()) bindingsResultsTable.changeSelection(bindingsResultsTable.getRowCount() - 1, 0, false, false);
-			
-			super.fireTableDataChanged();
-
-		}
 	}
 	
-	static class BindingsRender extends DefaultTableCellRenderer {		
+	private class BindingsRender extends DefaultTableCellRenderer {		
 		private static final long serialVersionUID = 3932800852596396532L;
 		
 		DefaultTableModel namespaces;
@@ -1330,7 +1305,9 @@ public class Dashboard {
 		bindingsResults.setViewportView(bindingsResultsTable);
 		bindingsResultsTable.setDefaultRenderer(Object.class, bindingsRender);
 		bindingsResultsTable.setAutoCreateRowSorter(true);
-		
+		bindingsResultsTable.registerKeyboardAction(new CopyAction(), KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()), JComponent.WHEN_FOCUSED);
+		bindingsResultsTable.setCellSelectionEnabled(true);
+		 
 		JPanel panel_1 = new JPanel();
 		GridBagConstraints gbc_panel_1 = new GridBagConstraints();
 		gbc_panel_1.fill = GridBagConstraints.BOTH;

@@ -55,7 +55,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 		"person" : {"type":"uri", "value":""},
 		"name" : {"type":"literal", "value":""}}}
     },    
-    "subscribes": {
+    "queries": {
 	"CLASS_INSTANCES":{
 	    "sparql":"SELECT ?s WHERE { ?s rdf:type ?class }",
 	    "forcedBindings": {
@@ -72,12 +72,10 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	}
 
 	public ApplicationProfile(String propertiesFile,byte[] secret) throws FileNotFoundException, NoSuchElementException, IOException, NumberFormatException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		super(propertiesFile,secret);	
+		super(propertiesFile,secret);
 	}
 	
 	protected Logger logger = LogManager.getLogger("SAP");	
-
-	private String fileName;
 	
 	/**
 	  "updates": {
@@ -98,7 +96,7 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	
 	public String subscribe(String subscribeID) {
 		JsonElement elem = null;
-		if ((elem = doc.get("subscribes")) != null) 
+		if ((elem = doc.get("queries")) != null) 
 			if ((elem = elem.getAsJsonObject().get(subscribeID))!=null)
 				if ((elem = elem.getAsJsonObject().get("sparql"))!=null) return elem.getAsString();
 		return null;
@@ -117,7 +115,7 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	public Set<String> getSubscribeIds() {
 		JsonElement elem;
 		HashSet<String> ret = new HashSet<String>();
-		if((elem = doc.get("subscribes"))!=null)
+		if((elem = doc.get("queries"))!=null)
 			for (Entry<String, JsonElement> key :elem.getAsJsonObject().entrySet()){
 				ret.add(key.getKey());
 			}
@@ -159,7 +157,7 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	public Bindings subscribeBindings(String selectedValue) {
 		JsonElement elem;
 		Bindings ret = new Bindings();
-		if ((elem = doc.get("subscribes")) !=null)
+		if ((elem = doc.get("queries")) !=null)
 			if((elem = elem.getAsJsonObject().get(selectedValue))!=null)
 				if((elem = elem.getAsJsonObject().get("forcedBindings"))!=null) {
 					for (Entry<String, JsonElement> binding : elem.getAsJsonObject().entrySet()) {
@@ -204,7 +202,7 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	}
 
 	public String getFileName() {
-		return fileName;
+		return propertiesFile;
 	}
 
 	public String printParameters() {

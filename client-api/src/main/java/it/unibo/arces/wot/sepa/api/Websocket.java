@@ -155,7 +155,7 @@ public class Websocket {
 
 			@Override
 			public void onError(Exception ex) {
-				logger.debug("@onError");
+				logger.debug("@onError "+ex.getMessage());
 			}
 
 		};

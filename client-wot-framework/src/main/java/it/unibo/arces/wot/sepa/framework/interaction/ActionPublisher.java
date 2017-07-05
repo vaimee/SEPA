@@ -33,7 +33,7 @@ public class ActionPublisher extends Producer {
 		public ActionPubliserWithInput()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "POST_ACTION_REQUEST_WITH_INPUT");
+			super(app, "POST_ACTION_WITH_INPUT");
 		}
 		
 	}
@@ -41,7 +41,7 @@ public class ActionPublisher extends Producer {
 	public ActionPublisher(String action)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		super(new ApplicationProfile("td.jsap"), "POST_ACTION_REQUEST_WITHOUT_INPUT");
+		super(new ApplicationProfile("td.jsap"), "POST_ACTION");
 		
 		this.app = new ApplicationProfile("td.jsap");
 		this.action = action;
@@ -58,10 +58,7 @@ public class ActionPublisher extends Producer {
 	public void post(String value,String dataTypeURI) {
 		Bindings bind = new Bindings();
 		bind.addBinding("action", new RDFTermURI(action));
-		bind.addBinding("newInstance", new RDFTermURI("wot:"+UUID.randomUUID()));
-		bind.addBinding("newInput", new RDFTermURI("wot:"+UUID.randomUUID()));
-		bind.addBinding("newValue", new RDFTermLiteral(value));
-		bind.addBinding("dataTypeURI", new RDFTermURI(dataTypeURI));
+		bind.addBinding("value", new RDFTermLiteral(value));
 		publisherWithInput.update(bind);
 	}
 }
