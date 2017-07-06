@@ -31,16 +31,16 @@ public class RFIDWebThing extends TagsReader {
 	private ThingDescription td;
 	private EventPublisher event;
 
-	//URIs and names
+	// URIs and names
 	private final String pingEventURI = "wot:Ping";
 	private final String pingEventName = "RFID Ping";
 	private final String tagsPollChangedURI = "wot:RFIDReading";
 	private final String tagsPollChangedName = "RFID Reading";
 	private final String thingURIPrefix = "wot:LABID_RFID_READER_";
 	private final String thingName = "ARCES RFID UID:";
-	
+
 	private CheckerWithHysteresis tagsChecker = new CheckerWithHysteresis(false);
-	
+
 	public RFIDWebThing(String port) throws IOException, UnrecoverableKeyException, KeyManagementException,
 			InvalidKeyException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException,
 			CertificateException, NoSuchElementException, NullPointerException, ClassCastException,
@@ -49,43 +49,49 @@ public class RFIDWebThing extends TagsReader {
 
 		// Publish the Thing Description
 		String thingURI = thingURIPrefix + getReaderUID();
-		td = new ThingDescription(thingURI,thingName+getReaderUID());
+		td = new ThingDescription(thingURI, thingName + getReaderUID());
 		td.addEvent(tagsPollChangedURI, tagsPollChangedName, "xsd:string");
-		td.addEvent(pingEventURI,pingEventName);
+		td.addEvent(pingEventURI, pingEventName);
 
 		// Create the event generator
 		event = new EventPublisher(thingURI);
 	}
 
 	public static void main(String[] args) throws IOException {
-
-		boolean searching = true;
-		String[] portNames = null;
-		int port = 0;
-
 		Scanner in = new Scanner(System.in);
-		while (searching) {
-			// 0 - /dev/tty.usbserial-000012FD
-			portNames = SerialPortList.getPortNames();
-			if (portNames.length == 0) {
-				System.out.println("No serial ports found...press CTRL+C to exit");
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					in.close();
-					return;
-				}
-			} else {
-				System.out.println("Choose one of the following serial ports: (0 no selection)");
-				for (int i = 0; i < portNames.length; i++) {
-					System.out.printf("%d - %s\n", i + 1, portNames[i]);
-				}
+		boolean searching = true;
+		String portName = "";
 
-				port = in.nextInt() - 1;
+		System.out.println("Number of arguments: " + args.length);
+		
+		if (args.length == 1) {
+			portName = args[0];
+		} else {
+			
+			while (searching) {
+				// 0 - /dev/tty.usbserial-000012FD
+				String[] portNames = SerialPortList.getPortNames();
+				if (portNames.length == 0) {
+					System.out.println("No serial ports found...press CTRL+C to exit");
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						in.close();
+						return;
+					}
+				} else {
+					System.out.println("Choose one of the following serial ports: (0 no selection)");
+					for (int i = 0; i < portNames.length; i++) {
+						System.out.printf("%d - %s\n", i + 1, portNames[i]);
+					}
 
-				if (port >= 0) {
-					System.out.printf("Selected port: %s\n", portNames[port]);
-					searching = false;
+					int port = in.nextInt() - 1;
+
+					if (port >= 0) {
+						System.out.printf("Selected port: %s\n", portNames[port]);
+						searching = false;
+						portName = portNames[port];
+					}
 				}
 			}
 		}
@@ -93,7 +99,7 @@ public class RFIDWebThing extends TagsReader {
 		// Web Thing adapter
 		RFIDWebThing adapter;
 		try {
-			adapter = new RFIDWebThing(portNames[port]);
+			adapter = new RFIDWebThing(portName);
 		} catch (UnrecoverableKeyException | KeyManagementException | InvalidKeyException | IllegalArgumentException
 				| KeyStoreException | NoSuchAlgorithmException | CertificateException | NoSuchElementException
 				| NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException
@@ -119,7 +125,7 @@ public class RFIDWebThing extends TagsReader {
 
 	@Override
 	public void onPing() {
-		logger.info("Event: "+pingEventURI);
+		logger.info("Event: " + pingEventURI);
 		event.post(pingEventURI);
 	}
 
@@ -132,14 +138,14 @@ public class RFIDWebThing extends TagsReader {
 			if (tagsPoll.equals(""))
 				tagsPoll += tag;
 			else
-				tagsPoll += "|" + tag;	
+				tagsPoll += "|" + tag;
 		}
-		
+
 		if (tagsPoll.equals(""))
 			tagsPoll = "EMPTY";
-		
+
 		if (tagsChecker.isChanged()) {
-			logger.info("Event: "+tagsPollChangedURI);
+			logger.info("Event: " + tagsPollChangedURI);
 			event.post(tagsPollChangedURI, tagsPoll);
 		}
 	}
