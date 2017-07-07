@@ -55,7 +55,7 @@ public class ActionManager {
 	}
 	
 	public void setBlinking(boolean on) {
-		if (on) actionOnLEDFrequency.post("{\"frequency\":5}", "xsd:integer");
+		if (on) actionOnLEDFrequency.post("{\"frequency\":3}", "xsd:integer");
 		else actionOnLEDFrequency.post("{\"frequency\":0}", "xsd:integer");
 	}
 
