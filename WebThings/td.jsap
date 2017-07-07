@@ -382,6 +382,23 @@
 					"value":""
 				}
 			}
+		},
+		"UPDATE_DISCOVER":
+		{
+			"sparql":" DELETE { ?thing wot:isDiscoverable ?oldValue } INSERT {  ?thing wot:isDiscoverable ?value } WHERE {?thing wot:isDiscoverable ?oldValue}",
+			"forcedBindings":
+			{
+				"value":
+				{
+					"type":"literal",
+					"value":""
+				},
+				"thing":
+				{
+					"type":"uri",
+					"value":""
+				}
+			}
 		}
 	},
 	"queries":
