@@ -20,7 +20,7 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
-
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -105,6 +105,24 @@ public class GarbageCollector extends Aggregator {
 
 	@Override
 	public void onUnsubscribe() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onKeepAlive() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onBrokenSubscription() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSubscriptionError(ErrorResponse errorResponse) {
 		// TODO Auto-generated method stub
 		
 	}

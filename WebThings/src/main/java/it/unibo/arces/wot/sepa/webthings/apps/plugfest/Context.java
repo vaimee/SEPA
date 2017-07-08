@@ -10,7 +10,9 @@ import java.util.Set;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 public class Context {
 	private CONTEXT_TYPE activeContextType;
@@ -42,12 +44,20 @@ public class Context {
 	public Context() throws FileNotFoundException {
 		colors.put("E0:02:22:0C:47:08:C2:C6", COLOR.RED);
 		colors.put("E0:02:22:0C:47:08:BA:57", COLOR.GREEN);
-		colors.put("E0:02:22:0C:47:08:C2:C5", COLOR.BLUE);
-
+		colors.put("E0:02:22:0C:47:08:9A:95", COLOR.BLUE);
+		
 		cards.put("E0:02:22:0C:47:08:BA:47", false); // Q
 		cards.put("E0:02:22:0C:47:08:BA:58", false); // J
 		cards.put("E0:02:22:0C:47:08:BA:48", true); // Jolly
 
+		addUserID("TAG1");
+		setUserName("TAG1","User1");
+		setUserAuthorization("TAG1",true);
+		
+		addUserID("TAG2");
+		setUserName("TAG2","User2");
+		setUserAuthorization("TAG2",false);
+		
 		loadUsers();
 	}
 
@@ -68,7 +78,12 @@ public class Context {
 			return;
 		}
 		if (in != null) {
-			db = new JsonParser().parse(in).getAsJsonObject();
+			try{
+				db = new JsonParser().parse(in).getAsJsonObject();
+			}
+			catch (JsonParseException | IllegalStateException e) {
+				return;
+			}
 
 			for (Entry<String, JsonElement> record : db.entrySet()) {
 				String id = record.getKey();
@@ -82,6 +97,13 @@ public class Context {
 
 	private void storeUsers() throws IOException {
 		FileWriter out = new FileWriter("usersDB.json");
+		db = new JsonObject();
+		for (String uid : users.keySet()) {
+			JsonObject user = new JsonObject();
+			user.add("user", new JsonPrimitive(users.get(uid)));
+			user.add("authorized", new JsonPrimitive(authorizations.get(uid)));
+			db.add(uid, user);
+		}
 		out.write(db.toString());
 		out.close();
 	}
@@ -134,5 +156,17 @@ public class Context {
 	public boolean isAuthorized(String id) {
 		if (authorizations.containsKey(id)) return authorizations.get(id);
 		return false;
+	}
+
+	public boolean isNewUser(String tag) {
+		return !users.containsValue(tag);
+	}
+
+	public boolean isColor(String tag) {
+		return colors.containsKey(tag);
+	}
+
+	public boolean isCard(String tag) {
+		return cards.containsKey(tag);
 	}
 }

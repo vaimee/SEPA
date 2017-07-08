@@ -9,7 +9,7 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
-import java.awt.BorderLayout;
+
 import javax.swing.JPanel;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -46,13 +46,13 @@ import javax.swing.table.AbstractTableModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.webthings.apps.plugfest.Context.COLOR;
 import it.unibo.arces.wot.sepa.webthings.apps.plugfest.Context.CONTEXT_TYPE;
 
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import javax.swing.JTable;
 import javax.swing.JScrollPane;
+import javax.swing.border.LineBorder;
 
 public class Demo {
 	protected static final Logger logger = LogManager.getLogger("WoTDemo");
@@ -85,6 +85,10 @@ public class Demo {
 
 	// Context
 	Context context;
+	private JPanel infoPanel;
+	private JLabel infoLabel;
+	private JLabel onOffLabel;
+	private JPanel panelOnOff;
 
 	private class DemoEventManager extends EventManager {
 
@@ -98,51 +102,52 @@ public class Demo {
 
 		@Override
 		public void onPlayCards(boolean win) {
+			Set<COLOR> colors = new HashSet<COLOR>();
+			
 			if (win) {
 				backgroundLabel.setIcon(yesIcon);
 				chooseCardLabel.setText("$$$ You won $$$");
-				actionManager.setText("$$$$ YOU $$$$$$$$$$$ WON $$$$$");
+				
+				actionManager.setText("$$$$$ YOU $$$$$$$$$$$ WON $$$$$$");
+				colors.add(COLOR.GREEN);
+				actionManager.setColors(colors);
 
 			} else {
 				backgroundLabel.setIcon(noIcon);
 				chooseCardLabel.setText("You lost");
+				
 				actionManager.setText(":-( :-( :-( :-(     YOU LOST   ");
+				colors.add(COLOR.RED);
+				actionManager.setColors(colors);
+				
 			}
 		}
 
 		@Override
 		public void onEmpty() {
-			Set<COLOR> colors = new HashSet<COLOR>();
-
+			actionManager.clearColors();
+			
 			switch (context.getActiveContextType()) {
 
 			case CARDS:
 				backgroundLabel.setIcon(backgroundIcon);
 				chooseCardLabel.setText("Choose your card");
-
-				colors.add(COLOR.BLUE);
-
-				actionManager.setColors(colors);
-				actionManager.setBlinking(true);
+				
 				actionManager.setText("Choose your card");
 				break;
+			
 			case COLORS:
 				panelColorRed.setVisible(false);
 				panelColorGreen.setVisible(false);
 				panelColorBlue.setVisible(false);
-
-				colors.add(COLOR.GREEN);
-
-				actionManager.setColors(colors);
-				actionManager.setBlinking(true);
+				
 				actionManager.setText("Play with colors");
 				break;
+			
 			case USERS:
 				rfidLabel.setText("---");
 
 				actionManager.setText("Pass a user TAG");
-				actionManager.clearColors();
-				actionManager.setBlinking(false);
 				break;
 			}
 		}
@@ -165,6 +170,7 @@ public class Demo {
 				panelColorBlue.setVisible(false);
 
 			actionManager.setColors(colors);
+			//actionManager.setBlinking(false);
 		}
 
 		@Override
@@ -178,15 +184,30 @@ public class Demo {
 			color.add(COLOR.RED);
 
 			actionManager.setColors(color);
+			//actionManager.setBlinking(true);
+			
 			actionManager.setText("Too many TAGS");
 		}
 
 		@Override
 		public void onRFIDTag(String tag) {
-			if (context.addUserID(tag)) {
+			if (context.isNewUser(tag) && !context.isColor(tag) && !context.isCard(tag)) {
 				// New user
+				context.addUserID(tag);
+				
 				usersDM.addUserID(tag);
 				rfidLabel.setText(tag);
+				actionManager.clearColors();
+				
+				actionManager.setText(tag);
+				return;	
+			}
+			if (context.isColor(tag) || context.isCard(tag)) {
+				//Not allowed
+				Set<COLOR> color = new HashSet<COLOR>();
+				color.add(COLOR.RED);
+				actionManager.setColors(color);
+				actionManager.setText("Do you wanna play with colors or cards?");
 				return;
 			}
 
@@ -204,18 +225,39 @@ public class Demo {
 			actionManager.setText(text);
 		}
 
+		@Override
+		public void onConnectionStatus(Boolean on) {
+			if (on) {
+				onOffLabel.setText("ONLINE");
+				panelOnOff.setBackground(Color.GREEN);
+			}
+			else {
+				onOffLabel.setText("OFFLINE");
+				panelOnOff.setBackground(Color.RED);
+			}
+			
+		}
+
+		@Override
+		public void onConnectionError(ErrorResponse error) {
+			// TODO Auto-generated method stub
+			
+		}
+
 	}
 
-	private class UsersTableModel extends AbstractTableModel {//implements TableModelListener {
+	class UsersTableModel extends AbstractTableModel {// implements
+																// TableModelListener
+																// {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 2300692096939701619L;
 
-		private HashMap<Integer,String> rows = new HashMap<Integer,String>();
-		private HashMap<String,Integer> records = new  HashMap<String,Integer>();
-		private HashMap<Integer,String> users = new HashMap<Integer,String>();
-		private HashMap<Integer,Boolean> authorized = new HashMap<Integer,Boolean>();
+		private HashMap<Integer, String> rows = new HashMap<Integer, String>();
+		private HashMap<String, Integer> records = new HashMap<String, Integer>();
+		private HashMap<Integer, String> users = new HashMap<Integer, String>();
+		private HashMap<Integer, Boolean> authorized = new HashMap<Integer, Boolean>();
 
 		private HashMap<Integer, String> columns = new HashMap<Integer, String>();
 
@@ -226,27 +268,30 @@ public class Demo {
 		}
 
 		public void addUserID(String id) {
-			if(records.containsKey(id)) return;
-			
+			if (records.containsKey(id))
+				return;
+
 			rows.put(getRowCount(), id);
 			records.put(id, getRowCount());
-			
+
 			super.fireTableDataChanged();
 		}
 
 		public void setUserName(String id, String name) {
-			if(!records.containsKey(id)) return;
-			
+			if (!records.containsKey(id))
+				return;
+
 			users.put(records.get(id), name);
-			
+
 			super.fireTableDataChanged();
 		}
 
 		public void setUserAuthorization(String id, Boolean auth) {
-			if(!records.containsKey(id)) return;
-			
+			if (!records.containsKey(id))
+				return;
+
 			authorized.put(records.get(id), auth);
-			
+
 			super.fireTableDataChanged();
 		}
 
@@ -293,9 +338,11 @@ public class Demo {
 			switch (columnIndex) {
 			case 0:
 				authorized.put(rowIndex, (Boolean) aValue);
+				context.setUserAuthorization((String) getValueAt(rowIndex,1), (Boolean) aValue);
 				break;
 			case 2:
 				users.put(rowIndex, (String) aValue);
+				context.setUserName((String) getValueAt(rowIndex,1), (String) aValue);
 				break;
 			}
 		}
@@ -316,17 +363,6 @@ public class Demo {
 		public void removeTableModelListener(TableModelListener l) {
 			super.removeTableModelListener(l);
 		}
-
-//		@Override
-//		public void tableChanged(TableModelEvent e) {
-//			super.fireTableChanged(e);
-////			int row = e.getFirstRow();
-////			int column = e.getColumn();
-////			TableModel model = (TableModel) e.getSource();
-////			String columnName = model.getColumnName(column);
-////			Object data = model.getValueAt(row, column);
-//
-//		}
 	}
 
 	/**
@@ -371,6 +407,7 @@ public class Demo {
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException,
 			NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException,
 			IllegalBlockSizeException, BadPaddingException, IOException, URISyntaxException, InterruptedException {
+		
 		initialize();
 
 		context = new Context();
@@ -384,6 +421,10 @@ public class Demo {
 			usersDM.setUserName(id, context.getUserName(id));
 			usersDM.setUserAuthorization(id, context.isAuthorized(id));
 		}
+		
+		actionManager.clearColors();
+		actionManager.setText("Play with colors");
+		infoLabel.setText("WoT PlugFest - Dusseldorf - 9 July 2017 - Let Things Talk");
 	}
 
 	/**
@@ -393,14 +434,43 @@ public class Demo {
 		frmWebOfThings = new JFrame();
 		frmWebOfThings.setResizable(false);
 		frmWebOfThings.setTitle("Web of Things Demo - Dusseldorf PlugFest");
-		frmWebOfThings.setBounds(0, 0, 640, 640);
+		frmWebOfThings.setBounds(0, 0, 1366, 768);
 		frmWebOfThings.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		GridBagLayout gridBagLayout = new GridBagLayout();
+		gridBagLayout.columnWidths = new int[] { 640, 0 };
+		gridBagLayout.rowHeights = new int[] { 720, 34, 0 };
+		gridBagLayout.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
+		gridBagLayout.rowWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
+		frmWebOfThings.getContentPane().setLayout(gridBagLayout);
 
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		frmWebOfThings.getContentPane().add(tabbedPane, BorderLayout.CENTER);
+		try {
+			backgroundIcon = new ImageIcon(ImageIO.read(new File("background.jpg")));
+		} catch (IOException e) {
+			backgroundLabel.setText("background.jpg not found");
+		}
+
+		try {
+			yesIcon = new ImageIcon(ImageIO.read(new File("yes.png")));
+		} catch (IOException e) {
+			backgroundLabel.setText("yes.png not found");
+		}
+
+		try {
+			noIcon = new ImageIcon(ImageIO.read(new File("no.png")));
+		} catch (IOException e) {
+			backgroundLabel.setText("no.png not found");
+		}
+
+		JTabbedPane contextSelectPanel = new JTabbedPane(JTabbedPane.TOP);
+		GridBagConstraints gbc_contextSelectPanel = new GridBagConstraints();
+		gbc_contextSelectPanel.insets = new Insets(0, 0, 5, 0);
+		gbc_contextSelectPanel.fill = GridBagConstraints.BOTH;
+		gbc_contextSelectPanel.gridx = 0;
+		gbc_contextSelectPanel.gridy = 0;
+		frmWebOfThings.getContentPane().add(contextSelectPanel, gbc_contextSelectPanel);
 
 		JPanel panelRGBGame = new JPanel();
-		tabbedPane.addTab("RGB Game", null, panelRGBGame, null);
+		contextSelectPanel.addTab("RGB Game", null, panelRGBGame, null);
 		panelRGBGame.setLayout(new GridLayout(0, 1, 0, 0));
 
 		panelColorRed = new JPanel();
@@ -416,7 +486,7 @@ public class Demo {
 		panelRGBGame.add(panelColorBlue);
 
 		JPanel panelUsersID = new JPanel();
-		tabbedPane.addTab("Users identification", null, panelUsersID, null);
+		contextSelectPanel.addTab("Users identification", null, panelUsersID, null);
 		GridBagLayout gbl_panelUsersID = new GridBagLayout();
 		gbl_panelUsersID.columnWidths = new int[] { 0, 0 };
 		gbl_panelUsersID.rowHeights = new int[] { 0, 0, 0 };
@@ -441,22 +511,11 @@ public class Demo {
 
 		usersTable = new JTable(usersDM);
 		scrollPane.setViewportView(usersTable);
-		//usersTable.getModel().addTableModelListener(usersDM);
 
 		JPanel panelCards = new JPanel();
-		panelCards.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.isAltDown())
-					backgroundLabel.setIcon(backgroundIcon);
-				else if (e.getClickCount() == 1)
-					backgroundLabel.setIcon(noIcon);
-				else
-					backgroundLabel.setIcon(yesIcon);
-			}
-		});
+
 		panelCards.setBorder(new EmptyBorder(5, 5, 5, 5));
-		tabbedPane.addTab("Three cards game", null, panelCards, null);
+		contextSelectPanel.addTab("Three cards game", null, panelCards, null);
 		GridBagLayout gbl_panelCards = new GridBagLayout();
 		gbl_panelCards.columnWidths = new int[] { 61, 0 };
 		gbl_panelCards.rowHeights = new int[] { 16, 0, 0 };
@@ -467,7 +526,7 @@ public class Demo {
 		backgroundLabel = new JLabel("");
 		GridBagConstraints gbc_backgroundLabel = new GridBagConstraints();
 		gbc_backgroundLabel.insets = new Insets(0, 0, 5, 0);
-		gbc_backgroundLabel.anchor = GridBagConstraints.NORTHWEST;
+		gbc_backgroundLabel.anchor = GridBagConstraints.NORTH;
 		gbc_backgroundLabel.gridx = 0;
 		gbc_backgroundLabel.gridy = 0;
 		panelCards.add(backgroundLabel, gbc_backgroundLabel);
@@ -480,40 +539,63 @@ public class Demo {
 		gbc_chooseCardLabel.gridy = 1;
 		panelCards.add(chooseCardLabel, gbc_chooseCardLabel);
 
-		try {
-			backgroundIcon = new ImageIcon(ImageIO.read(new File("background.jpg")));
-		} catch (IOException e) {
-			backgroundLabel.setText("background.jpg not found");
-		}
-
-		try {
-			yesIcon = new ImageIcon(ImageIO.read(new File("yes.png")));
-		} catch (IOException e) {
-			backgroundLabel.setText("yes.png not found");
-		}
-
-		try {
-			noIcon = new ImageIcon(ImageIO.read(new File("no.png")));
-		} catch (IOException e) {
-			backgroundLabel.setText("no.png not found");
-		}
-
 		backgroundLabel.setIcon(backgroundIcon);
 
-		tabbedPane.addChangeListener(new ChangeListener() {
+		infoPanel = new JPanel();
+		GridBagConstraints gbc_infoPanel = new GridBagConstraints();
+		gbc_infoPanel.fill = GridBagConstraints.BOTH;
+		gbc_infoPanel.gridx = 0;
+		gbc_infoPanel.gridy = 1;
+		frmWebOfThings.getContentPane().add(infoPanel, gbc_infoPanel);
+		GridBagLayout gbl_infoPanel = new GridBagLayout();
+		gbl_infoPanel.columnWidths = new int[] { 409, 723, 0, 0 };
+		gbl_infoPanel.rowHeights = new int[] { 43, 0 };
+		gbl_infoPanel.columnWeights = new double[] { 1.0, 1.0, 1.0, Double.MIN_VALUE };
+		gbl_infoPanel.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
+		infoPanel.setLayout(gbl_infoPanel);
+
+		infoLabel = new JLabel("Info");
+		infoLabel.setFont(new Font("Lucida Grande", Font.BOLD, 15));
+		GridBagConstraints gbc_infoLabel = new GridBagConstraints();
+		gbc_infoLabel.insets = new Insets(0, 0, 0, 5);
+		gbc_infoLabel.gridx = 0;
+		gbc_infoLabel.gridy = 0;
+		infoPanel.add(infoLabel, gbc_infoLabel);
+		
+		panelOnOff = new JPanel();
+		panelOnOff.setBorder(new LineBorder(new Color(0, 0, 0), 3));
+		panelOnOff.setBackground(Color.RED);
+		GridBagConstraints gbc_panelOnOff = new GridBagConstraints();
+		gbc_panelOnOff.fill = GridBagConstraints.BOTH;
+		gbc_panelOnOff.gridx = 2;
+		gbc_panelOnOff.gridy = 0;
+		infoPanel.add(panelOnOff, gbc_panelOnOff);
+
+		onOffLabel = new JLabel("OFFLINE");
+		onOffLabel.setHorizontalAlignment(SwingConstants.CENTER);
+		panelOnOff.add(onOffLabel);
+		onOffLabel.setForeground(Color.BLACK);
+		onOffLabel.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+		onOffLabel.setBackground(Color.BLACK);
+
+		contextSelectPanel.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				System.out.println("Tab: " + tabbedPane.getSelectedIndex());
-				switch (tabbedPane.getSelectedIndex()) {
+				System.out.println("Tab: " + contextSelectPanel.getSelectedIndex());
+				actionManager.clearColors();
+				switch (contextSelectPanel.getSelectedIndex()) {
 				case 0:
 					context.setActiveContextType(CONTEXT_TYPE.COLORS);
+					
 					actionManager.setText("Play with colors");
 					break;
 				case 1:
 					context.setActiveContextType(CONTEXT_TYPE.USERS);
-					actionManager.setText("Place your ID tag");
+					
+					actionManager.setText("Place a user TAG");
 					break;
 				case 2:
 					context.setActiveContextType(CONTEXT_TYPE.CARDS);
+					
 					actionManager.setText("Choose your card");
 					break;
 				}

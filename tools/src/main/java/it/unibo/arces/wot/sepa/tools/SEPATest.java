@@ -125,7 +125,7 @@ public class SEPATest {
 	protected static class TestNotificationHandler implements INotificationHandler {
 
 		@Override
-		public void onBrokenSubscription() {
+		public void onBrokenSocket() {
 			logger.debug("Broken subscription");
 		}
 

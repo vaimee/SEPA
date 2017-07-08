@@ -31,6 +31,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -42,6 +43,11 @@ public interface IConsumer extends IClient {
 	void onResults(ARBindingsResults results);
 	void onAddedResults(BindingsResults results);
 	void onRemovedResults(BindingsResults results);
+	
 	void onSubscribe(BindingsResults results);
 	void onUnsubscribe();
+	
+	public void onKeepAlive();
+	public void onBrokenSubscription();
+	public void onSubscriptionError(ErrorResponse errorResponse);
 }

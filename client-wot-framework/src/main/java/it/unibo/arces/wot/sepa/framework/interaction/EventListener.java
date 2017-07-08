@@ -18,6 +18,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -32,6 +33,8 @@ public abstract class EventListener {
 	private HashMap<String,AllEventListener> allEventListener = new HashMap<String,AllEventListener>();
 	
 	public abstract void onEvent(Set<Event> events);
+	public abstract void onConnectionStatus(Boolean on);
+	public abstract void onConnectionError(ErrorResponse error);
 	
 	public void startListeningForEvent(String eventURI) throws InvalidKeyException, UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, IOException, URISyntaxException, InterruptedException {
 		if (allEventListener.containsKey(eventURI)) return;
@@ -119,6 +122,24 @@ public abstract class EventListener {
 		@Override
 		public void onUnsubscribe() {
 			
+		}
+
+		@Override
+		public void onKeepAlive() {
+			onConnectionStatus(true);
+			
+		}
+
+		@Override
+		public void onBrokenSubscription() {
+			onConnectionStatus(false);
+			
+		}
+
+		@Override
+		public void onSubscriptionError(ErrorResponse errorResponse) {
+			onConnectionError(errorResponse);
+			
 		}	
 	}
 	
@@ -164,6 +185,24 @@ public abstract class EventListener {
 
 		@Override
 		public void onUnsubscribe() {
+			
+		}
+
+		@Override
+		public void onKeepAlive() {
+			onConnectionStatus(true);
+			
+		}
+
+		@Override
+		public void onBrokenSubscription() {
+			onConnectionStatus(false);
+			
+		}
+
+		@Override
+		public void onSubscriptionError(ErrorResponse errorResponse) {
+			onConnectionError(errorResponse);
 			
 		}
 		

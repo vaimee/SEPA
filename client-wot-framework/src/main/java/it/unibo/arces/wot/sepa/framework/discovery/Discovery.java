@@ -17,6 +17,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
@@ -105,6 +106,24 @@ public class Discovery extends Observable {
 
 		@Override
 		public void onUnsubscribe() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onKeepAlive() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onBrokenSubscription() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onSubscriptionError(ErrorResponse errorResponse) {
 			// TODO Auto-generated method stub
 			
 		}

@@ -62,5 +62,6 @@ public class ActionManager {
 	public void clearColors() {
 		HashSet<COLOR> empty = new HashSet<COLOR>();
 		setColors(empty);	
+		//setBlinking(false);
 	}
 }

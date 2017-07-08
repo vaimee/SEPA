@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Consumer;
 import it.unibo.arces.wot.sepa.pattern.Producer;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -201,6 +202,24 @@ public abstract class SmartLightingBenchmark {
 			// TODO Auto-generated method stub
 			
 		}
+
+		@Override
+		public void onKeepAlive() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onBrokenSubscription() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onSubscriptionError(ErrorResponse errorResponse) {
+			// TODO Auto-generated method stub
+			
+		}
 		
 	}
 	
@@ -275,6 +294,24 @@ public abstract class SmartLightingBenchmark {
 
 		@Override
 		public void onUnsubscribe() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onKeepAlive() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onBrokenSubscription() {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void onSubscriptionError(ErrorResponse errorResponse) {
 			// TODO Auto-generated method stub
 			
 		}	
