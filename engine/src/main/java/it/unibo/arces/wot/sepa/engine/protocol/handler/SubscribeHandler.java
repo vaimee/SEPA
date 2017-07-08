@@ -1,6 +1,7 @@
 package it.unibo.arces.wot.sepa.engine.protocol.handler;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -25,7 +26,7 @@ public class SubscribeHandler extends Thread {
 	private Scheduler scheduler;
 	private WebSocket socket;
 	private String text;
-	private HashMap<WebSocket, ResponseAndNotificationListener> activeSockets;
+	private ConcurrentHashMap<WebSocket, ResponseAndNotificationListener> activeSockets;
 	
 	/* SPARQL 1.1 Subscribe language 
 	 * 
@@ -35,7 +36,7 @@ public class SubscribeHandler extends Thread {
 	 * 
 	 * If security is not required (i.e., ws), authorization key MAY be missing
 	 * */
-	public SubscribeHandler(Scheduler scheduler,WebSocket socket,String text,HashMap<WebSocket, ResponseAndNotificationListener> activeSockets) throws IllegalArgumentException {
+	public SubscribeHandler(Scheduler scheduler,WebSocket socket,String text,ConcurrentHashMap<WebSocket, ResponseAndNotificationListener> activeSockets) throws IllegalArgumentException {
 		this.scheduler = scheduler;
 		this.socket = socket;
 		this.text = text;

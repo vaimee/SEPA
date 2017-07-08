@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,8 +25,8 @@ public class WebsocketServer extends WebSocketServer {
 	protected Scheduler scheduler;
 	protected KeepAlive ping = null;
 
-	protected HashMap<WebSocket, ResponseAndNotificationListener> activeSockets = new HashMap<WebSocket, ResponseAndNotificationListener>();
-	protected HashMap<WebSocket, HashSet<String>> activeSubscriptions = new HashMap<WebSocket, HashSet<String>>();
+	protected ConcurrentHashMap<WebSocket, ResponseAndNotificationListener> activeSockets = new ConcurrentHashMap<WebSocket, ResponseAndNotificationListener>();
+	protected ConcurrentHashMap<WebSocket, HashSet<String>> activeSubscriptions = new ConcurrentHashMap<WebSocket, HashSet<String>>();
 
 	protected String getWelcomeMessage() {
 		return  "Subscribe on: ws://%s:%d%s";

@@ -69,7 +69,7 @@ public interface INotificationHandler {
 	 * Broken subscription. This method is called if the Websocket connection
 	 * has been lost
 	 */
-	public void onBrokenSubscription();
+	public void onBrokenSocket();
 
 	/**
 	 * On error.

@@ -448,7 +448,6 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		return new ErrorResponse(0, HttpStatus.SC_INTERNAL_SERVER_ERROR, "Response unknown: " + response);
 	}
 
-	
 	public void setNotificationHandler(INotificationHandler handler) {
 		if (handler == null) {
 			logger.fatal("Notification handler is null. Client cannot be initialized");

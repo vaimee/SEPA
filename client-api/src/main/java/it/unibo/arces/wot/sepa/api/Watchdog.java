@@ -31,122 +31,162 @@ import java.security.cert.CertificateException;
 import org.apache.logging.log4j.LogManager;
 
 public class Watchdog extends Thread {
-	
+
 	private long pingPeriod = 0;
 	private long firstPing = 0;
 	private long DEFAULT_PING_PERIOD = 5000;
 	private long DEFAULT_SUBSCRIPTION_DELAY = 5000;
-	
-	private boolean pingReceived = false;		
-	private SubscriptionState state = SubscriptionState.UNSUBSCRIBED;
+
+	private boolean pingReceived = false;
+	private SubscriptionState state = SubscriptionState.INIT;
+	private FireBrokenSubscription fire = null;
 	
 	private static final Logger logger = LogManager.getLogger("WebsocketWatchdog");
-	
+
 	private INotificationHandler handler = null;
 	private Websocket wsClient;
 	private String sparql;
 	private String token;
 	private String alias;
-	
-	public Watchdog(INotificationHandler handler, Websocket wsClient,String sparql,String alias,String token) {
+
+	public Watchdog(INotificationHandler handler, Websocket wsClient, String sparql, String alias, String token) {
 		this.handler = handler;
 		this.wsClient = wsClient;
 		this.sparql = sparql;
 		this.token = token;
 		this.alias = alias;
 	}
-	
-	public Watchdog(INotificationHandler handler, Websocket wsClient,String sparql,String alias) {
+
+	public Watchdog(INotificationHandler handler, Websocket wsClient, String sparql, String alias) {
 		this.handler = handler;
 		this.wsClient = wsClient;
 		this.sparql = sparql;
 		this.token = null;
 		this.alias = alias;
 	}
-	
-	public Watchdog(INotificationHandler handler, Websocket wsClient,String sparql) {
+
+	public Watchdog(INotificationHandler handler, Websocket wsClient, String sparql) {
 		this.handler = handler;
 		this.wsClient = wsClient;
 		this.sparql = sparql;
 		this.token = null;
 		this.alias = null;
 	}
-	
-	public synchronized void ping() {
-		logger.debug("Ping!");
-		pingReceived = true;
-		if (firstPing == 0) firstPing = System.currentTimeMillis();
-		else {
-			pingPeriod = System.currentTimeMillis() - firstPing;	
-			firstPing = 0;
-			logger.debug("Ping period: "+pingPeriod);
-		}
-		notifyAll();
-	}
-	
-	public void subscribed() {
-		state = SubscriptionState.SUBSCRIBED;
-		logger.debug("Subscribed");
-	}
-	
-	public void unsubscribed() {
-		state = SubscriptionState.UNSUBSCRIBED;
-		logger.debug("Unsubscribed");
-	}
-	
-	private synchronized boolean waitPing() {
-		logger.debug("Wait ping...");
-		pingReceived = false;
-		try {
-			if (pingPeriod != 0) wait(pingPeriod*3/2);
-			else wait(DEFAULT_PING_PERIOD*3/2);
-		} catch (InterruptedException e) {
 
-		}	
-		return pingReceived;
-	}
-	
-	private synchronized boolean subscribing() throws IOException, URISyntaxException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
-		logger.debug("Subscribing...");
-		if (wsClient == null) {
-			logger.warn("Websocket client is null");
-			return false;
+	private class FireBrokenSubscription extends Thread {
+		private long sleep;
+
+		public FireBrokenSubscription(long timeout) {
+			sleep = timeout;
 		}
-		while(state == SubscriptionState.BROKEN_SOCKET) {
-			//if (wsClient.isOpen()) wsClient.close();
-			
-			wsClient.subscribe(sparql,alias,token);
-			
+
+		public void run() {
+			pingReceived = false;
+
 			try {
-				wait(DEFAULT_SUBSCRIPTION_DELAY);
+				Thread.sleep(sleep);
 			} catch (InterruptedException e) {
+				logger.debug("Broken alert interrupted");
+				return;
+			}
 
+			if (!pingReceived) {
+				if (handler != null)
+					handler.onBrokenSocket();
+
+				synchronized (state) {
+					state = SubscriptionState.BROKEN_SOCKET;
+				}
 			}
 		}
-		return (state == SubscriptionState.SUBSCRIBED);
 	}
-	
+
+	public synchronized void ping() {
+		logger.debug("Ping!");
+
+		pingReceived = true;
+
+		if (firstPing == 0)
+			firstPing = System.currentTimeMillis();
+		else {
+			pingPeriod = System.currentTimeMillis() - firstPing;
+			firstPing = 0;
+			logger.debug("Ping period: " + pingPeriod);
+		}
+		
+		if (fire!=null) fire.interrupt();
+	}
+
+	public void subscribed() {
+		synchronized (state) {
+			state = SubscriptionState.SUBSCRIBED;
+		}
+		logger.debug("Subscribed");
+	}
+
+	public void unsubscribed() {
+		synchronized (state) {
+			state = SubscriptionState.UNSUBSCRIBED;
+		}
+		logger.debug("Unsubscribed");
+	}
+
 	public void run() {
+		logger.debug("Calculate ping period...");
 		try {
-			Thread.sleep(DEFAULT_PING_PERIOD*5/2);
+			Thread.sleep(DEFAULT_PING_PERIOD * 5 / 2);
 		} catch (InterruptedException e) {
 			logger.warn(e.getMessage());
 			return;
 		}
 		
-		while(true){
-			while (waitPing()) {}
+		while (true) {
+			logger.debug("State: " + state);
+			switch (state) {
 			
-			if (state == SubscriptionState.SUBSCRIBED) {
-				if (handler != null) handler.onBrokenSubscription();
-				state = SubscriptionState.BROKEN_SOCKET;
-			}
+			case SUBSCRIBED:
+				logger.debug("Wait for ping...");
+
+				fire = new FireBrokenSubscription(pingPeriod*3/2);
+				fire.start();
+				try {
+					synchronized (fire) {
+						fire.wait();
+					}
+				} catch (InterruptedException e1) {
+					logger.debug(e1.getMessage());
+				}
+				break;
 			
-			try {
-				if(!subscribing()) return;
-			} catch (IOException | URISyntaxException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
-				logger.error(e.getMessage());
-				return;
+			case BROKEN_SOCKET:
+				logger.warn("Broken socket: try to recover subscription...");
+
+				try {
+					wsClient.subscribe(sparql, alias, token);
+				} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException
+						| NoSuchAlgorithmException | CertificateException | IOException | URISyntaxException
+						| InterruptedException e1) {
+					logger.warn(e1.getMessage());
+				}
+
+				try {
+					Thread.sleep(DEFAULT_SUBSCRIPTION_DELAY);
+				} catch (InterruptedException e) {
+					logger.warn(e.getMessage());
+					return;
+				}
+
+				break;
+			default:
+				logger.debug("Sleep for a while...");
+				
+				try {
+					Thread.sleep(DEFAULT_PING_PERIOD * 5 / 2);
+				} catch (InterruptedException e) {
+					logger.warn(e.getMessage());
+					return;
+				}
+				break;
 			}
 		}
 	}

@@ -19,6 +19,7 @@ import javax.crypto.NoSuchPaddingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -144,6 +145,23 @@ public class StatusMonitor extends Aggregator implements Runnable{
 				status.get(thing).resetPing();
 			}
 		}
+		
+	}
+
+	@Override
+	public void onKeepAlive() {
+		logger.info("Keepalive!");
+		
+	}
+
+	@Override
+	public void onBrokenSubscription() {
+		logger.warn("Broken subscription");
+	}
+
+	@Override
+	public void onSubscriptionError(ErrorResponse errorResponse) {
+		logger.error(errorResponse);
 		
 	}
 	

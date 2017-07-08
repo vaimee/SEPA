@@ -54,15 +54,15 @@ public class Websocket {
 	private WebSocketClient socket;
 	private SSLSecurityManager sm;
 
-	// //private Watchdog watchDog = null;
+	private Watchdog watchDog = null;
 
-	public Websocket(String wsUrl, boolean ssl,INotificationHandler handler)
+	public Websocket(String wsUrl, boolean ssl, INotificationHandler handler)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException {
-		
+
 		if (wsUrl == null)
 			throw new IllegalArgumentException("URL is null");
-		
+
 		this.handler = handler;
 		this.wsUrl = wsUrl;
 		this.ssl = ssl;
@@ -72,7 +72,7 @@ public class Websocket {
 	private void createWebsocket(String url, boolean ssl)
 			throws URISyntaxException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, InterruptedException {
-		
+
 		if (socket != null)
 			return;
 
@@ -86,7 +86,7 @@ public class Websocket {
 			@Override
 			public void onMessage(String message) {
 				logger.debug("@onMessage " + message);
-				
+
 				if (handler == null) {
 					logger.error("Notification handler is NULL");
 					return;
@@ -95,23 +95,11 @@ public class Websocket {
 				synchronized (handler) {
 					JsonObject notify = new JsonParser().parse(message).getAsJsonObject();
 
-					// Error
-					if (notify.get("code") != null) {
-						ErrorResponse error;
-						if (notify.get("body") != null)
-							error = new ErrorResponse(notify.get("code").getAsInt(), notify.get("body").getAsString());
-						else
-							error = new ErrorResponse(notify.get("code").getAsInt(), "");
-
-						handler.onError(error);
-						return;
-					}
-
 					// Ping
 					if (notify.get("ping") != null) {
 						handler.onPing();
 
-						// watchDog.ping();
+						watchDog.ping();
 						return;
 					}
 
@@ -126,8 +114,7 @@ public class Websocket {
 
 						handler.onSubscribeConfirm(response);
 
-						// if (!watchDog.isAlive()) watchDog.start();
-						// watchDog.subscribed();
+						watchDog.subscribed();
 						return;
 					}
 
@@ -136,14 +123,28 @@ public class Websocket {
 						handler.onUnsubscribeConfirm(
 								new UnsubscribeResponse(0, notify.get("unsubscribed").getAsString()));
 
-						// //super.close();
-						// watchDog.unsubscribed();
+						// super.close();
+						watchDog.unsubscribed();
 						return;
 					}
 
 					// Notification
-					if (notify.get("results") != null)
+					if (notify.get("results") != null) {
 						handler.onSemanticEvent(new Notification(notify));
+						return;
+					}
+
+					// Error
+					if (notify.get("code") != null) {
+						ErrorResponse error;
+						if (notify.get("body") != null)
+							error = new ErrorResponse(notify.get("code").getAsInt(), notify.get("body").getAsString());
+						else
+							error = new ErrorResponse(notify.get("code").getAsInt(), "");
+
+						handler.onError(error);
+						return;
+					}
 				}
 
 			}
@@ -155,22 +156,21 @@ public class Websocket {
 
 			@Override
 			public void onError(Exception ex) {
-				logger.debug("@onError "+ex.getMessage());
+				logger.debug("@onError " + ex.getMessage());
 			}
 
 		};
 
 		if (ssl)
 			socket.setSocket(sm.createSSLSocket());
-		
-		socket.connectBlocking();
 
+		socket.connectBlocking();
 	}
 
 	public void subscribe(String sparql, String alias, String jwt)
 			throws IOException, URISyntaxException, InterruptedException, UnrecoverableKeyException,
 			KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
-		
+
 		logger.debug("@subscribe");
 
 		if (sparql == null)
@@ -181,39 +181,44 @@ public class Websocket {
 		if (socket == null)
 			throw new IOException("Websocket is null");
 
-		//Create SPARQL 1.1 Subscribe request
+		if (watchDog == null) {
+			watchDog = new Watchdog(handler, this, sparql, alias, jwt);
+			watchDog.start();
+		}
+
+		// Create SPARQL 1.1 Subscribe request
 		JsonObject request = new JsonObject();
 		request.add("subscribe", new JsonPrimitive(sparql));
-		
+
 		if (alias != null)
 			request.add("alias", new JsonPrimitive(alias));
 		else
 			logger.debug("Alias is null");
-		
+
 		if (jwt != null)
 			request.add("authorization", new JsonPrimitive("Bearer " + jwt));
 		else
 			logger.debug("Authorization is null");
 		logger.debug(request.toString());
 
-		//Send request
+		// Send request
 		socket.send(request.toString());
-		
-		//Send fragmented request
-//		byte[] req = request.toString().getBytes("UTF-8");
-//		ByteBuffer buffer = ByteBuffer.allocate(1);
-//		buffer.limit(1);
-//		for (int i=0; i < req.length; i++) {
-//			buffer.rewind();
-//			buffer.put(req[i]);
-//			buffer.rewind();
-//			socket.sendFragmentedFrame(Opcode.TEXT, buffer, (i == req.length-1));
-//		}
+
+		// Send fragmented request (test)
+		// byte[] req = request.toString().getBytes("UTF-8");
+		// ByteBuffer buffer = ByteBuffer.allocate(1);
+		// buffer.limit(1);
+		// for (int i=0; i < req.length; i++) {
+		// buffer.rewind();
+		// buffer.put(req[i]);
+		// buffer.rewind();
+		// socket.sendFragmentedFrame(Opcode.TEXT, buffer, (i == req.length-1));
+		// }
 	}
 
-	public void unsubscribe(String spuid, String jwt)
-			throws IllegalArgumentException, IOException, URISyntaxException, UnrecoverableKeyException,
-			KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InterruptedException {
+	public void unsubscribe(String spuid, String jwt) throws IllegalArgumentException, IOException, URISyntaxException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
+			CertificateException, InterruptedException {
 		logger.debug("@unsubscribe");
 
 		if (spuid == null)
@@ -224,11 +229,11 @@ public class Websocket {
 		if (socket == null)
 			throw new IOException("Websocket is null");
 
-		//Create SPARQL 1.1 Unsubscribe request
+		// Create SPARQL 1.1 Unsubscribe request
 		JsonObject request = new JsonObject();
 		if (spuid != null)
 			request.add("unsubscribe", new JsonPrimitive(spuid));
-		
+
 		if (jwt != null)
 			request.add("authorization", new JsonPrimitive("Bearer " + jwt));
 
@@ -240,8 +245,8 @@ public class Websocket {
 			logger.fatal("Notification handler is null. Client cannot be initialized");
 			throw new IllegalArgumentException("Notificaton handler is null");
 		}
-		
+
 		this.handler = handler;
-		
+
 	}
 }

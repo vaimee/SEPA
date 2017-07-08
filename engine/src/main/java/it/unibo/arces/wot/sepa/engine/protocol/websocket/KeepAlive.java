@@ -1,10 +1,9 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
 import java.nio.channels.NotYetConnectedException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap.KeySetView;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,20 +18,21 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class KeepAlive extends Thread {
 	private long timeout;
-	
-	private HashMap<WebSocket, ResponseAndNotificationListener> activeSockets;
-	private HashMap<WebSocket, HashSet<String>>  activeSubscriptions;
+
+	private ConcurrentHashMap<WebSocket, ResponseAndNotificationListener> activeSockets;
+	private ConcurrentHashMap<WebSocket, HashSet<String>> activeSubscriptions;
 	private Scheduler scheduler;
-	
-	private final Logger logger = LogManager.getLogger("KeepAlive");	
-	
-	public KeepAlive(long timeout,HashMap<WebSocket, ResponseAndNotificationListener> activeSockets,HashMap<WebSocket, HashSet<String>> activeSubscriptions,Scheduler scheduler){
+
+	private final Logger logger = LogManager.getLogger("KeepAlive");
+
+	public KeepAlive(long timeout, ConcurrentHashMap<WebSocket, ResponseAndNotificationListener> activeSockets,
+			ConcurrentHashMap<WebSocket, HashSet<String>> activeSubscriptions, Scheduler scheduler) {
 		this.timeout = timeout;
 		this.activeSockets = activeSockets;
 		this.activeSubscriptions = activeSubscriptions;
 		this.scheduler = scheduler;
 	}
-	
+
 	public void run() {
 		while (true) {
 			try {
@@ -43,46 +43,55 @@ public class KeepAlive extends Thread {
 
 			// Send heart beat on each active socket to detect broken
 			// sockets
-			ArrayList<WebSocket> brokenSockets = new ArrayList<WebSocket>();
-			
+			KeySetView<WebSocket, ResponseAndNotificationListener> activeSocketToBeChecked;
+
 			synchronized (activeSockets) {
-				for (WebSocket socket : activeSockets.keySet()) {
-					// Send ping only on sockets with active subscriptions
+				activeSocketToBeChecked = activeSockets.keySet();
+			}
+
+			for (WebSocket socket : activeSocketToBeChecked) {
+
+				// Send ping only on sockets with active subscriptions
+				synchronized (activeSubscriptions) {
 					if (activeSubscriptions.get(socket).size() == 0)
 						continue;
+				}
 
-					try {
-						Ping ping = new Ping();
-						socket.send(ping.toString());	
+				try {
+					Ping ping = new Ping();
+					socket.send(ping.toString());
+				} catch (WebsocketNotConnectedException | NotYetConnectedException e) {
+					synchronized(activeSubscriptions) {
+						unsubscribeAll(activeSubscriptions.get(socket));
+						activeSubscriptions.remove(socket);
 					}
-					catch(WebsocketNotConnectedException | NotYetConnectedException e) {
-						logger.debug("Broken socket: remove all active subscriptions");
-						unsubscribeAll(socket);
-						brokenSockets.add(socket);
+					synchronized (activeSockets) {
+						activeSockets.remove(socket);
 					}
 				}
 				
-				for (WebSocket broken : brokenSockets) {
-					activeSockets.remove(broken);
-					activeSubscriptions.remove(broken);
-				}
+				
 			}
 		}
 	}
-	
-	private void unsubscribeAll(WebSocket socket) {
+
+	private void unsubscribeAll(HashSet<String> subIDSet) {
 		logger.debug("@unsubscribeAll");
 
-		Iterator<String> it = activeSubscriptions.get(socket).iterator();
+		// synchronized (activeSubscriptions) {
+		// HashSet<String> subIDSet = activeSubscriptions.get(socket);
+		// }
 
-		while (it.hasNext()) {
+		for (String subId : subIDSet) {
 			int token = scheduler.getToken();
 			if (token == -1) {
 				logger.error("No more tokens");
 				continue;
 			}
 			logger.debug(">> Scheduling UNSUBSCRIBE request #" + token);
-			scheduler.addRequest(new UnsubscribeRequest(token, it.next()), activeSockets.get(socket));
+
+			scheduler.addRequest(new UnsubscribeRequest(token, subId), null);
 		}
+
 	}
 }
