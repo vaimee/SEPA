@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.webthings.rfidreader;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
@@ -19,9 +20,13 @@ import javax.crypto.NoSuchPaddingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.framework.ThingDescription;
 import it.unibo.arces.wot.sepa.framework.interaction.EventPublisher;
-
+import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.pattern.Producer;
 import jssc.SerialPortList;
 
 public class RFIDWebThing extends TagsReader {
@@ -34,11 +39,13 @@ public class RFIDWebThing extends TagsReader {
 	// URIs and names
 	private final String pingEventURI = "wot:Ping";
 	private final String pingEventName = "RFID Ping";
-	private final String tagsPollChangedURI = "wot:RFIDReading";
-	private final String tagsPollChangedName = "RFID Reading";
+	private final String rfidReadingEvent = "wot:RFIDReading";
+	private final String rfidReadingEventName = "RFID Reading";
 	private final String thingURIPrefix = "wot:LABID_RFID_READER_";
 	private final String thingName = "ARCES RFID UID:";
 
+	DiscoveryPatch patch = new DiscoveryPatch();
+	
 	private CheckerWithHysteresis tagsChecker = new CheckerWithHysteresis(false);
 
 	public RFIDWebThing(String port) throws IOException, UnrecoverableKeyException, KeyManagementException,
@@ -50,11 +57,11 @@ public class RFIDWebThing extends TagsReader {
 		// Publish the Thing Description
 		String thingURI = thingURIPrefix + getReaderUID();
 		td = new ThingDescription(thingURI, thingName + getReaderUID());
-		td.addEvent(tagsPollChangedURI, tagsPollChangedName, "xsd:string");
+		td.addEvent(rfidReadingEvent, rfidReadingEventName, "xsd:string");
 		td.addEvent(pingEventURI, pingEventName);
 
 		// Create the event generator
-		event = new EventPublisher(thingURI);
+		event = new EventPublisher(thingURI); 
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -123,10 +130,29 @@ public class RFIDWebThing extends TagsReader {
 		System.exit(0);
 	}
 
+	class DiscoveryPatch extends Producer {
+
+		public DiscoveryPatch()
+				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			super(new ApplicationProfile("td.jsap"), "UPDATE_DISCOVER");
+		}
+		
+		public void setDiscoverable(String thing) {
+			Bindings bindings = new Bindings();
+			bindings.addBinding("thing",new RDFTermURI(thing));
+			bindings.addBinding("value",new RDFTermLiteral("true"));
+			update(bindings);
+		}
+		
+	}
 	@Override
 	public void onPing() {
 		logger.info("Event: " + pingEventURI);
 		event.post(pingEventURI);
+		
+		//PATCH for discovery
+		patch.setDiscoverable(thingURIPrefix);
 	}
 
 	@Override
@@ -145,8 +171,8 @@ public class RFIDWebThing extends TagsReader {
 			tagsPoll = "EMPTY";
 
 		if (tagsChecker.isChanged()) {
-			logger.info("Event: " + tagsPollChangedURI);
-			event.post(tagsPollChangedURI, tagsPoll);
+			logger.info("Event: " + rfidReadingEvent);
+			event.post(rfidReadingEvent, tagsPoll);
 		}
 	}
 

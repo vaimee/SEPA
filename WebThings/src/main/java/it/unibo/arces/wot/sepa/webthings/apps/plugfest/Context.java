@@ -50,13 +50,13 @@ public class Context {
 		cards.put("E0:02:22:0C:47:08:BA:58", false); // J
 		cards.put("E0:02:22:0C:47:08:BA:48", true); // Jolly
 
-		addUserID("TAG1");
-		setUserName("TAG1","User1");
-		setUserAuthorization("TAG1",true);
-		
-		addUserID("TAG2");
-		setUserName("TAG2","User2");
-		setUserAuthorization("TAG2",false);
+//		addUserID("TAG1");
+//		setUserName("TAG1","User1");
+//		setUserAuthorization("TAG1",true);
+//		
+//		addUserID("TAG2");
+//		setUserName("TAG2","User2");
+//		setUserAuthorization("TAG2",false);
 		
 		loadUsers();
 	}
@@ -159,7 +159,7 @@ public class Context {
 	}
 
 	public boolean isNewUser(String tag) {
-		return !users.containsValue(tag);
+		return !users.containsKey(tag);
 	}
 
 	public boolean isColor(String tag) {
