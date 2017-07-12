@@ -1,1 +1,13 @@
-{"TAG1":{"user":"User1","authorized":true},"TAG2":{"user":"User2","authorized":false}}
+{
+	"E0:02:22:0C:47:08:C2:D5" : {
+		"user" : "Luca Roffia" ,
+		"authorized" : true}
+	 ,
+	"E0:02:22:0C:47:08:C7:F9" : {
+		"user" : "Fabio Viola" ,
+		"authorized" : true}
+	 ,
+	"E0:02:22:0C:47:08:C7:FA" : {
+		"user" : "Francesco Antoniazzi" ,
+		"authorized" : true}
+}

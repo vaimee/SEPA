@@ -146,7 +146,6 @@ public class Demo {
 			
 			case USERS:
 				rfidLabel.setText("---");
-
 				actionManager.setText("Pass a user TAG");
 				break;
 			}
@@ -184,14 +183,21 @@ public class Demo {
 			color.add(COLOR.RED);
 
 			actionManager.setColors(color);
-			//actionManager.setBlinking(true);
-			
 			actionManager.setText("Too many TAGS");
 		}
 
 		@Override
 		public void onRFIDTag(String tag) {
-			if (context.isNewUser(tag) && !context.isColor(tag) && !context.isCard(tag)) {
+			if (context.isColor(tag) || context.isCard(tag)) {
+				//Not allowed
+				Set<COLOR> color = new HashSet<COLOR>();
+				color.add(COLOR.RED);
+				actionManager.setColors(color);
+				actionManager.setText("Wanna play with colors or cards?");
+				return;
+			}
+			
+			if (context.isNewUser(tag)) {
 				// New user
 				context.addUserID(tag);
 				
@@ -202,17 +208,11 @@ public class Demo {
 				actionManager.setText(tag);
 				return;	
 			}
-			if (context.isColor(tag) || context.isCard(tag)) {
-				//Not allowed
-				Set<COLOR> color = new HashSet<COLOR>();
-				color.add(COLOR.RED);
-				actionManager.setColors(color);
-				actionManager.setText("Do you wanna play with colors or cards?");
-				return;
-			}
+			
 
 			Set<COLOR> color = new HashSet<COLOR>();
 			String text = "";
+			
 			if (context.isAuthorized(tag)) {
 				color.add(COLOR.GREEN);
 				text = context.getUserName(tag);
@@ -220,7 +220,9 @@ public class Demo {
 				color.add(COLOR.RED);
 				text = tag;
 			}
+			
 			rfidLabel.setText(text);
+			
 			actionManager.setColors(color);
 			actionManager.setText(text);
 		}
@@ -434,7 +436,7 @@ public class Demo {
 		frmWebOfThings = new JFrame();
 		frmWebOfThings.setResizable(false);
 		frmWebOfThings.setTitle("Web of Things Demo - Dusseldorf PlugFest");
-		frmWebOfThings.setBounds(0, 0, 1366, 768);
+		frmWebOfThings.setBounds(0, 0, 1366, 700);
 		frmWebOfThings.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 640, 0 };
@@ -444,13 +446,13 @@ public class Demo {
 		frmWebOfThings.getContentPane().setLayout(gridBagLayout);
 
 		try {
-			backgroundIcon = new ImageIcon(ImageIO.read(new File("background.jpg")));
+			backgroundIcon = new ImageIcon(ImageIO.read(new File("resources/background.jpg")));
 		} catch (IOException e) {
 			backgroundLabel.setText("background.jpg not found");
 		}
 
 		try {
-			yesIcon = new ImageIcon(ImageIO.read(new File("yes.png")));
+			yesIcon = new ImageIcon(ImageIO.read(new File("resources/yes.png")));
 		} catch (IOException e) {
 			backgroundLabel.setText("yes.png not found");
 		}

@@ -1,5 +1,39 @@
 package it.unibo.arces.wot.sepa.framework;
 
+/**
+ * 
+ * {
+        "@type": ["Event"],
+        "name": "change",
+        "outputData": {
+            "type":"object",
+            "properties": {
+              "operationStatus": {
+                "type": "boolean"
+              },
+              "operationMode": {
+                "type": "string"
+              },
+              "desiredTemp": {
+                "type": "number",
+                "minimun": 16,
+                "maximum": 30
+              },
+              "windVolumeLevel": {
+                "type": "number",
+                "minimun": 0,
+                "maximum": 8
+              }
+            }
+        },
+        "link": [{
+          "href": "change",
+          "mediaType": "application/json"
+        }
+        
+ * @author luca
+ *
+ */
 public class Event {
 	private String event;
 	private String thing;

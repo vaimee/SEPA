@@ -183,7 +183,8 @@ public class Websocket {
 
 		if (watchDog == null) {
 			watchDog = new Watchdog(handler, this, sparql, alias, jwt);
-			watchDog.start();
+			
+			//watchDog.start();
 		}
 
 		// Create SPARQL 1.1 Subscribe request

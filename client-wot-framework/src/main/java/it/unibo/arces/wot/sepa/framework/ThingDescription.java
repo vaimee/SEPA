@@ -63,7 +63,7 @@ public class ThingDescription {
 		bind.addBinding("thing", thing);
 		bind.addBinding("property", new RDFTermURI(property));
 		bind.addBinding("name", new RDFTermLiteral(name));
-		bind.addBinding("stability", new RDFTermURI(stability));
+		bind.addBinding("stability", new RDFTermLiteral(stability));
 		bind.addBinding("writable", new RDFTermLiteral(writable));
 		bind.addBinding("dataType", new RDFTermURI(dataType));
 		bind.addBinding("value", new RDFTermLiteral(value));

@@ -7,6 +7,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 
 import javax.crypto.BadPaddingException;
@@ -27,31 +28,46 @@ import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 
 public class BrokenSubscription extends Thread implements INotificationHandler {
 	protected static Logger logger = LogManager.getLogger("BrokenSubscription");
-	
+
 	SPARQL11SEProperties properties;
 	SPARQL11SEProtocol client;
-	
+
+	static HashSet<BrokenSubscription> threadPoll = new HashSet<BrokenSubscription>();
+
 	public static void main(String[] args) {
 		BrokenSubscription test = null;
 		try {
-			test = new BrokenSubscription();
-			test.start();
+			for (int i = 0; i < 100; i++) {
+				test = new BrokenSubscription();
+				test.start();
+				threadPoll.add(test);
+			}
 		} catch (InvalidKeyException | UnrecoverableKeyException | KeyManagementException | IllegalArgumentException
 				| NoSuchElementException | NullPointerException | ClassCastException | NoSuchAlgorithmException
 				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException
 				| CertificateException | IOException | URISyntaxException | InterruptedException e) {
 			logger.error(e);
 		}
+		
 		try {
-			synchronized(test) {
-				test.wait();
+			synchronized (test) {
+				Thread.sleep(5000);
 			}
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.debug(e);
+		}
+		for (BrokenSubscription sub: threadPoll) {
+			try {
+				synchronized (test) {
+					Thread.sleep((long) (Math.random()*100));
+				}
+			} catch (InterruptedException e) {
+				logger.debug(e);
+			}
+			sub.interrupt();
 		}
 	}
-	
+
 	@Override
 	public void run() {
 		try {
@@ -61,48 +77,49 @@ public class BrokenSubscription extends Thread implements INotificationHandler {
 				| CertificateException | IOException | URISyntaxException | InterruptedException e) {
 			logger.error(e);
 		}
-		while(true) {
-			
-		}
 	}
-	
-	public BrokenSubscription() throws InvalidKeyException, IllegalArgumentException, FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException, URISyntaxException, InterruptedException {
+
+	public BrokenSubscription()
+			throws InvalidKeyException, IllegalArgumentException, FileNotFoundException, NoSuchElementException,
+			NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException,
+			KeyManagementException, KeyStoreException, CertificateException, URISyntaxException, InterruptedException {
 		SPARQL11SEProperties properties = new SPARQL11SEProperties("test.jpar");
-		client = new SPARQL11SEProtocol(properties,this);	
+		client = new SPARQL11SEProtocol(properties, this);
 	}
 
 	@Override
 	public void onSemanticEvent(Notification notify) {
-		logger.info("onSemanticEvent: "+notify);
+		logger.info("onSemanticEvent: " + notify);
 	}
 
 	@Override
 	public void onSubscribeConfirm(SubscribeResponse response) {
-		logger.info("onSubscribeConfirm: "+response);
-		
+		logger.info("onSubscribeConfirm: " + response);
+
 	}
 
 	@Override
 	public void onUnsubscribeConfirm(UnsubscribeResponse response) {
-		logger.info("onUnsubscribeConfirm: "+response);
-		
+		logger.info("onUnsubscribeConfirm: " + response);
+
 	}
 
 	@Override
 	public void onPing() {
 		logger.info("onPing");
-		
+
 	}
 
 	@Override
 	public void onBrokenSocket() {
 		logger.info("onBrokenSocket");
-		
+
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		logger.info("onError: "+errorResponse);
-		
+		logger.info("onError: " + errorResponse);
+
 	}
 }
