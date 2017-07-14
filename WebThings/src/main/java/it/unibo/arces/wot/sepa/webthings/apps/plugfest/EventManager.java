@@ -21,8 +21,8 @@ import javax.crypto.NoSuchPaddingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.framework.Event;
-import it.unibo.arces.wot.sepa.framework.interaction.EventListener;
+import it.unibo.arces.wot.framework.elements.Event;
+import it.unibo.arces.wot.framework.interaction.EventListener;
 import it.unibo.arces.wot.sepa.webthings.apps.plugfest.Context.COLOR;
 
 public abstract class EventManager extends EventListener {

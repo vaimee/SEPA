@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.framework.interaction;
+package it.unibo.arces.wot.framework.interaction;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -18,12 +18,12 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import it.unibo.arces.wot.framework.elements.Event;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
-import it.unibo.arces.wot.sepa.framework.Event;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Consumer;
 
@@ -212,4 +212,8 @@ public abstract class EventListener {
 		app = new ApplicationProfile("td.jsap");
 	}
 
+	public EventListener(ApplicationProfile app) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+		this.app = app;
+	}
+	
 }

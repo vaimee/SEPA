@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.framework.interaction;
+package it.unibo.arces.wot.framework.interaction;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -21,54 +22,53 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
-public class EventPublisher {
+public class ActionPublisher extends Producer {
 	private ApplicationProfile app;
 	
-	private String thing;
-	private EventPubliserWithOutput publisherWithOutput;
-	private EventPubliserWithoutOutput publisherWithoutOutput;
+	private String action;
+	private ActionPubliserWithInput publisherWithInput;
 	
-	class EventPubliserWithOutput extends Producer {
+	class ActionPubliserWithInput extends Producer {
 
-		public EventPubliserWithOutput()
+		public ActionPubliserWithInput()
 				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "POST_EVENT_WITH_OUTPUT");
+			super(app, "POST_ACTION_WITH_INPUT");
 		}
+		
 	}
 	
-	class EventPubliserWithoutOutput extends Producer {
-
-		public EventPubliserWithoutOutput()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-			super(app, "POST_EVENT");
-		}
-	}
-	
-	public EventPublisher(String thingURI)
+	public ActionPublisher(String action)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		super(new ApplicationProfile("td.jsap"), "POST_ACTION");
 		
 		this.app = new ApplicationProfile("td.jsap");
-		this.thing = thingURI;
-		this.publisherWithOutput = new EventPubliserWithOutput();
-		this.publisherWithoutOutput = new EventPubliserWithoutOutput();
+		this.action = action;
+		this.publisherWithInput = new ActionPubliserWithInput();
 	}
 	
-	public void post(String eventURI) {
+	public ActionPublisher(ApplicationProfile app,String action)
+			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		super(new ApplicationProfile("td.jsap"), "POST_ACTION");
+		
+		this.app = app;
+		this.action = action;
+		this.publisherWithInput = new ActionPubliserWithInput();
+	}
+	
+	public void post() {
 		Bindings bind = new Bindings();
-		bind.addBinding("event", new RDFTermURI(eventURI));
-		bind.addBinding("thing", new RDFTermURI(thing));
-		publisherWithoutOutput.update(bind);
+		bind.addBinding("action", new RDFTermURI(action));
+		bind.addBinding("newInstance", new RDFTermURI("wot:"+UUID.randomUUID()));
+		update(bind);
 	}
 
-	public void post(String eventURI,String value) {
+	public void post(String value,String dataTypeURI) {
 		Bindings bind = new Bindings();
-		bind.addBinding("thing", new RDFTermURI(thing));
-		bind.addBinding("event", new RDFTermURI(eventURI));
+		bind.addBinding("action", new RDFTermURI(action));
 		bind.addBinding("value", new RDFTermLiteral(value));
-		publisherWithOutput.update(bind);
+		publisherWithInput.update(bind);
 	}
-
 }

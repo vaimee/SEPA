@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.framework.interaction;
+package it.unibo.arces.wot.framework.interaction;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,14 +16,12 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import it.unibo.arces.wot.framework.elements.Action;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
-
-import it.unibo.arces.wot.sepa.framework.Action;
-
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Consumer;
 
@@ -53,7 +51,7 @@ public abstract class ActionListener {
 		@Override
 		public void onAddedResults(BindingsResults results) {
 			for(Bindings bindings : results.getBindings()) {
-				
+				//TODO to be implemented
 			}
 			
 		}
@@ -113,5 +111,9 @@ public abstract class ActionListener {
 	
 	public ActionListener() throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {	
 		app = new ApplicationProfile("td.jsap");
+	}
+	
+	public ActionListener(ApplicationProfile app) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {	
+		this.app = app; 
 	}
 }
