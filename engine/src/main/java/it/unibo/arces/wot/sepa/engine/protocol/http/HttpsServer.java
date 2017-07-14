@@ -37,6 +37,8 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
 public class HttpsServer implements Runnable {
+	private static final long shutdownTimeout = 5000L;
+
 	protected Logger logger = LogManager.getLogger("HttpServer");
 
 	// Create server-side I/O reactor
@@ -115,5 +117,14 @@ public class HttpsServer implements Runnable {
 		} catch (IOException e) {
 			logger.error(e.getLocalizedMessage());
 		}
+	}
+
+	public void shutdown() {
+		try {
+			ioReactor.shutdown(shutdownTimeout);
+		} catch (IOException e) {
+			logger.warn(e.getMessage());
+		}
+		logger.info("HTTPS reactor stopped");
 	}
 }

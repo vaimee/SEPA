@@ -1,8 +1,8 @@
-package it.unibo.arces.wot.sepa.framework;
+package it.unibo.arces.wot.framework.elements;
 
 import java.util.HashSet;
 
-import it.unibo.arces.wot.sepa.framework.discovery.Discoverable;
+import it.unibo.arces.wot.framework.discovery.Discoverable;
 
 public class Thing extends Discoverable {
 	

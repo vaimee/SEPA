@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.framework;
+package it.unibo.arces.wot.framework;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,12 +36,11 @@ public class ThingDescription {
 	
 	private RDFTermURI thing;
 	
-	public ThingDescription(String thingURI,String name)
+	public ThingDescription(ApplicationProfile app,String thingURI,String name)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		
-		app = new ApplicationProfile("td.jsap");
-		
+		this.app = app;		
 		this.properties = new PropertyPublisher();
 		this.actions = new ActionPublisher();
 		this.actionsWithInput = new ActionWithInputPublisher();
@@ -56,6 +55,12 @@ public class ThingDescription {
 		bind.addBinding("thing", thing);
 		bind.addBinding("name", new RDFTermLiteral(name));
 		thingDescription.update(bind);
+	}
+	
+	public ThingDescription(String thingURI,String name)
+			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		this(new ApplicationProfile("td.jsap"),thingURI,name);
 	}
 	
 	public void addProperty(String property,String name,String dataType,String stability,String writable,String value){	

@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.framework.discovery;
+package it.unibo.arces.wot.framework.discovery;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -60,7 +60,11 @@ public class Discovery extends Observable {
 	}
 	
 	public Discovery() throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException, URISyntaxException{
-		app = new ApplicationProfile("td.jsap");
+		this(new ApplicationProfile("td.jsap"));
+	}
+	
+	public Discovery(ApplicationProfile app) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException, URISyntaxException{
+		this.app = app;
 		
 		getAllThings = new GetAllThings();
 	}

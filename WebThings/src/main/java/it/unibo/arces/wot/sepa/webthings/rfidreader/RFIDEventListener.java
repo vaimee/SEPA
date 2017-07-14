@@ -15,9 +15,9 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
+import it.unibo.arces.wot.framework.elements.Event;
+import it.unibo.arces.wot.framework.interaction.EventListener;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.framework.Event;
-import it.unibo.arces.wot.sepa.framework.interaction.EventListener;
 
 public class RFIDEventListener extends EventListener {
 

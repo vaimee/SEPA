@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.framework;
+package it.unibo.arces.wot.framework.elements;
 
 /**
  * 

@@ -13,7 +13,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import it.unibo.arces.wot.sepa.framework.ThingDescription;
+import it.unibo.arces.wot.framework.ThingDescription;
 
 public class TDPublisher {
 	JsonObject td;

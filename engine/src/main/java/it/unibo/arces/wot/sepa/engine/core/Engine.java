@@ -68,6 +68,7 @@ import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 public class Engine extends Thread implements EngineMBean {
 	// Properties, logging
 	private static final Logger logger = LogManager.getLogger("Engine");
+	private static final int wsShutdownTimeout = 5000;
 	private EngineProperties engineProperties = null;
 	private SPARQL11Properties endpointProperties = null;
 
@@ -82,18 +83,20 @@ public class Engine extends Thread implements EngineMBean {
 
 	// SPARQL 1.1 Protocol handler
 	private HttpServer httpGate = null;
+	private Thread httpGateThread = null;
 
 	// SPARQL 1.1 SE Protocol handler
 	private WebsocketServer wsServer;
 	private SecureWebsocketServer wssServer;
 	private HttpsServer httpsGate = null;
+	private Thread httpsGateThread = null;
 
-	//Outh 2.0 Authorization Server
+	// Outh 2.0 Authorization Server
 	private static AuthorizationManager oauth;
-	private static String storeName ="sepa.jks";
-	private static String storePassword ="sepa2017";
+	private static String storeName = "sepa.jks";
+	private static String storePassword = "sepa2017";
 	private static String jwtAlias = "sepakey";
-	private static String jwtPassword ="sepa2017";
+	private static String jwtPassword = "sepa2017";
 	private static String serverCertificate = "sepacert";
 
 	private static void printUsage() {
@@ -109,8 +112,9 @@ public class Engine extends Thread implements EngineMBean {
 		System.out.println("-alias=<jwt> : alias for the JWT key      	 (default: sepakey)");
 		System.out.println("-aliaspwd=<pwd> : password of the JWT key    (default: sepa2017)");
 		System.out.println("-certificate=<crt> : name of the certificate (default: sepacert)");
-		
+
 	}
+
 	private static void parsingArgument(String[] args) throws PatternSyntaxException {
 		String[] tmp;
 		for (String arg : args) {
@@ -120,11 +124,11 @@ public class Engine extends Thread implements EngineMBean {
 			}
 			if (arg.startsWith("-")) {
 				tmp = arg.split("=");
-				switch(tmp[0]) {
+				switch (tmp[0]) {
 				case "-storename":
 					storeName = tmp[1];
 					break;
-				case "-storepwd":		
+				case "-storepwd":
 					storePassword = tmp[1];
 					break;
 				case "-alias":
@@ -133,7 +137,7 @@ public class Engine extends Thread implements EngineMBean {
 				case "-aliaspwd":
 					jwtPassword = tmp[1];
 					break;
-				case "-certificate":		
+				case "-certificate":
 					serverCertificate = tmp[1];
 					break;
 				default:
@@ -142,9 +146,9 @@ public class Engine extends Thread implements EngineMBean {
 			}
 		}
 	}
-	
+
 	public static void main(String[] args) {
-		//Set Grizzly logging level
+		// Set Grizzly logging level
 		java.util.logging.Logger grizzlyNetworkListener = java.util.logging.Logger
 				.getLogger("org.glassfish.grizzly.http.server.NetworkListener");
 		java.util.logging.Logger grizzlyHttpServer = java.util.logging.Logger
@@ -152,13 +156,13 @@ public class Engine extends Thread implements EngineMBean {
 		grizzlyNetworkListener.setLevel(Level.SEVERE);
 		grizzlyHttpServer.setLevel(Level.SEVERE);
 
-		//Command arguments
+		// Command arguments
 		parsingArgument(args);
-				
+
 		System.out
 				.println("##########################################################################################");
 		System.out
-				.println("# SEPA Engine Ver 0.7.5  Copyright (C) 2016-2017                                         #");
+				.println("# SEPA Engine Ver 0.7.6  Copyright (C) 2016-2017                                         #");
 		System.out
 				.println("# Web of Things Research @ ARCES - University of Bologna (Italy)                         #");
 		System.out
@@ -193,28 +197,29 @@ public class Engine extends Thread implements EngineMBean {
 				+ "\n<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->"
 
 				+ "\n<!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->"
-				
+
 				+ "\n<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->");
-		
+
 		// Engine creation and initialization
 		Engine engine = new Engine();
 
-		//OAUTH 2.0 Authorization Manager
+		// OAUTH 2.0 Authorization Manager
 		try {
-			oauth = new AuthorizationManager(storeName, storePassword, jwtAlias, jwtPassword,serverCertificate);
+			oauth = new AuthorizationManager(storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
 		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
 				| CertificateException | IOException | JOSEException e1) {
 			logger.fatal(e1.getLocalizedMessage());
 			System.exit(1);
 		}
-		
+
 		// Initialize
 		try {
-			if (!engine.init()) System.exit(1);
+			if (!engine.init())
+				System.exit(1);
 		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException
 				| NotCompliantMBeanException | UnrecoverableKeyException | KeyManagementException
 				| IllegalArgumentException | NoSuchElementException | KeyStoreException | NoSuchAlgorithmException
-				| CertificateException | IOException  | NullPointerException | ClassCastException  e) {
+				| CertificateException | IOException | NullPointerException | ClassCastException e) {
 			logger.fatal(e.getMessage());
 			System.exit(1);
 		}
@@ -225,9 +230,12 @@ public class Engine extends Thread implements EngineMBean {
 		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
-		System.out.println("*                      SEPA Engine Ver 0.7.5 is up and running                          *");
+		System.out.println("*                      SEPA Engine Ver 0.7.6 is up and running                          *");
 		System.out.println("*                                 Let Things Talk                                       *");
 		System.out.println("*****************************************************************************************");
+
+		// Attach CTRL+C hook
+		Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(engine));
 	}
 
 	public Engine() {
@@ -235,29 +243,56 @@ public class Engine extends Thread implements EngineMBean {
 	}
 
 	@Override
-	public void start() {
-
-		this.setName("SEPA Engine");
+	public void run() {
+		logger.info("Starting...");
+		setName("SEPA Engine");
+		startDate = new Date();
 
 		// Scheduler
 		scheduler.start();
 
 		// SPARQL 1.1 Protocol handler
-		new Thread(httpGate).start();
-		
+		httpGateThread = new Thread(httpGate);
+		httpGateThread.start();
+
 		// SPARQL 1.1 SE Protocol handler
-		new Thread(httpsGate).start();
+		httpsGateThread = new Thread(httpsGate);
+		httpsGateThread.start();
 
 		wsServer.start();
-		
+
 		wssServer.start();
-
-		super.start();
-
-		startDate = new Date();
 	}
 
-	public boolean init() throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
+	public void shutdown() {
+		logger.info("Stopping...");
+		
+		logger.info("Stopping scheduler...");
+		scheduler.interrupt();
+		
+		logger.info("Stopping HTTP gate...");
+		httpGate.shutdown();
+		
+		logger.info("Stopping HTTPS gate...");
+		httpsGate.shutdown();
+		
+		try {
+			logger.info("Stopping WS gate...");
+			wsServer.stop(wsShutdownTimeout);
+		} catch (InterruptedException e) {
+			logger.warn(e.getMessage());
+		}
+		try {
+			logger.info("Stopping WSS gate...");
+			wssServer.stop(wsShutdownTimeout);
+		} catch (InterruptedException e) {
+			logger.warn(e.getMessage());
+		}
+	}
+	
+	public boolean init() throws MalformedObjectNameException, InstanceAlreadyExistsException,
+			MBeanRegistrationException, NotCompliantMBeanException, UnrecoverableKeyException, KeyManagementException,
+			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException {
 		// Initialize SPARQL 1.1 processing service properties
 		boolean propertiesFound = true;
 		try {
@@ -276,8 +311,9 @@ public class Engine extends Thread implements EngineMBean {
 			logger.warn("Open and modify JPAR file and run again the engine");
 			propertiesFound = false;
 		}
-		
-		if (!propertiesFound) return false;
+
+		if (!propertiesFound)
+			return false;
 
 		// SPARQL 1.1 SE request processor
 		processor = new Processor(endpointProperties);
@@ -294,11 +330,14 @@ public class Engine extends Thread implements EngineMBean {
 		System.out.println("");
 		System.out
 				.println("------ SPARQL SE 1.1 Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)  -----");
-		wsServer = new WebsocketServer(engineProperties.getWsPort(),engineProperties.getSubscribePath(),engineProperties.getKeepAlivePeriod(), scheduler);
-		
+		wsServer = new WebsocketServer(engineProperties.getWsPort(), engineProperties.getSubscribePath(),
+				engineProperties.getKeepAlivePeriod(), scheduler);
+
 		httpsGate = new HttpsServer(engineProperties, scheduler, oauth);
-		
-		wssServer = new SecureWebsocketServer(engineProperties.getWssPort(),engineProperties.getSecurePath()+engineProperties.getSubscribePath(),engineProperties.getKeepAlivePeriod(), scheduler, oauth);
+
+		wssServer = new SecureWebsocketServer(engineProperties.getWssPort(),
+				engineProperties.getSecurePath() + engineProperties.getSubscribePath(),
+				engineProperties.getKeepAlivePeriod(), scheduler, oauth);
 
 		return true;
 	}

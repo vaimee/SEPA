@@ -123,12 +123,6 @@ import org.apache.http.ssl.SSLContexts;
  */
 public class SSLSecurityManager implements HostnameVerifier {
 
-	// /** The SSL context. */
-	// private SSLContext sslContext;
-	//
-	// /** The protocol (e.g., SSL,TLSv1,...). */
-	// private String protocol = "TLSv1";
-
 	/** The JAVA key store. */
 	KeyStore keystore;
 	

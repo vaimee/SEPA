@@ -1,6 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.protocol.handler;
 
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpStatus;

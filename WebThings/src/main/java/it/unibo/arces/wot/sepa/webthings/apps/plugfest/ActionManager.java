@@ -17,7 +17,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import it.unibo.arces.wot.sepa.framework.interaction.ActionPublisher;
+import it.unibo.arces.wot.framework.interaction.ActionPublisher;
 import it.unibo.arces.wot.sepa.webthings.apps.plugfest.Context.COLOR;
 
 public class ActionManager {
