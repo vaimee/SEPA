@@ -54,8 +54,8 @@ public class MQTTWebThing implements MqttCallback {
 	public static HashMap<String, String> debugHash = new HashMap<String, String>();
 	private HashMap<String, String> topicResponseCache = new HashMap<String, String>();
 
-	private String serverURI = "ssl://giove.mars:8883";
-	private String[] topicsFilter = { "arces/servers/#" };
+	private String serverURI = null;
+	private String[] topicsFilter = { "#" };
 	private boolean sslEnabled = false;
 	private String clientID = "MQTTWebThing";
 
