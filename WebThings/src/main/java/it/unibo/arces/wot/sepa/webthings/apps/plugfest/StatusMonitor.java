@@ -43,14 +43,8 @@ public class StatusMonitor extends Aggregator implements Runnable{
 		public void setOn() {
 			this.status = true;
 		}
-		public void setOff() {
-			this.status = false;
-		}
 		public boolean pingReceived() {
 			return ping;
-		}
-		public void setPing() {
-			this.ping = true;
 		}
 		public void resetPing() {
 			this.ping = false;
