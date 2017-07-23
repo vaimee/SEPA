@@ -243,7 +243,6 @@ public class Dashboard {
 	private JFrame frmSepaDashboard;
 	
 	static Dashboard window;
-	private JTextField textFieldIP;
 	private JTable updateForcedBindings;
 	private JTable subscribeForcedBindings;
 	private JTable bindingsResultsTable;
@@ -265,8 +264,24 @@ public class Dashboard {
 	private JList<String> subscribesList;
 	
 	ApplicationProfile appProfile;
-	
-	private JTextField textFieldFilePath;
+
+	private JLabel labelHttpPort;
+
+	private JLabel labelHttpsPort;
+
+	private JLabel labelWsPort;
+
+	private JLabel labelWssPort;
+
+	private JLabel labelUpdatePath;
+
+	private JLabel labelQueryPath;
+
+	private JLabel labelSubscribePath;
+
+	private JLabel labelUrl;
+
+	private JLabel labelSecurePath;
 	
 	private class CopyAction extends AbstractAction {
 
@@ -710,20 +725,29 @@ public class Dashboard {
 			subscribeListDM.add(subscribe);
 		}
 		
-		textFieldIP.setText(appProfile.getHost());
-		textFieldFilePath.setText(String.format("%d", appProfile.getHttpPort()));
-		
-		//Enable all the buttons
-		btnUpdate.setEnabled(true);
-		btnSubscribe.setEnabled(true);
-		btnQuery.setEnabled(true);
-		
 		try {
 			kp = new DashboardClient(file);
 		} catch (IllegalArgumentException | NoSuchElementException | IOException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException | URISyntaxException e) {
 			logger.error(e.getMessage());
 			return false;
 		} 
+		
+		//Enable all the buttons
+		btnUpdate.setEnabled(true);
+		btnSubscribe.setEnabled(true);
+		btnQuery.setEnabled(true);
+		
+		labelUrl.setText(appProfile.getHost());
+		
+		labelHttpPort.setText(String.format("%s", appProfile.getHttpPort()));
+		labelHttpsPort.setText(String.format("%s", appProfile.getHttpsPort()));
+		labelWsPort.setText(String.format("%s", appProfile.getWsPort()));
+		labelWssPort.setText(String.format("%s", appProfile.getWssPort()));
+		
+		labelUpdatePath.setText(appProfile.getUpdatePath());
+		labelQueryPath.setText(appProfile.getQueryPath());
+		labelSubscribePath.setText(appProfile.getSubscribePath());
+		labelSecurePath.setText(appProfile.getSecurePath());
 			
 		return true;
 	}
@@ -812,29 +836,20 @@ public class Dashboard {
 		gbc_configuration.gridy = 0;
 		SPARQLPanel.add(configuration, gbc_configuration);
 		GridBagLayout gbl_configuration = new GridBagLayout();
-		gbl_configuration.columnWidths = new int[]{37, 134, 74, 33, 37, 0};
-		gbl_configuration.rowHeights = new int[]{26, 0};
-		gbl_configuration.columnWeights = new double[]{0.0, 1.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
-		gbl_configuration.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+		gbl_configuration.columnWidths = new int[]{46, 45, 31, 20, 0, 24, 0, 0, 0, 0, 0, 0, 37, 0};
+		gbl_configuration.rowHeights = new int[]{26, 0, 0};
+		gbl_configuration.columnWeights = new double[]{0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+		gbl_configuration.rowWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
 		configuration.setLayout(gbl_configuration);
 		
-		JLabel lblIp = new JLabel("URL");
-		GridBagConstraints gbc_lblIp = new GridBagConstraints();
-		gbc_lblIp.anchor = GridBagConstraints.WEST;
-		gbc_lblIp.insets = new Insets(0, 0, 0, 5);
-		gbc_lblIp.gridx = 0;
-		gbc_lblIp.gridy = 0;
-		configuration.add(lblIp, gbc_lblIp);
-		
-		textFieldIP = new JTextField();
-		textFieldIP.setEditable(false);
-		GridBagConstraints gbc_textFieldIP = new GridBagConstraints();
-		gbc_textFieldIP.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textFieldIP.insets = new Insets(0, 0, 0, 5);
-		gbc_textFieldIP.gridx = 1;
-		gbc_textFieldIP.gridy = 0;
-		configuration.add(textFieldIP, gbc_textFieldIP);
-		textFieldIP.setColumns(10);
+		JLabel label1 = new JLabel("URL:");
+		label1.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+		GridBagConstraints gbc_label1 = new GridBagConstraints();
+		gbc_label1.anchor = GridBagConstraints.EAST;
+		gbc_label1.insets = new Insets(0, 0, 5, 5);
+		gbc_label1.gridx = 0;
+		gbc_label1.gridy = 0;
+		configuration.add(label1, gbc_label1);
 		
 		JButton btnLoadXmlProfile = new JButton("Load SAP profile");
 		btnLoadXmlProfile.addActionListener(new ActionListener() {
@@ -882,29 +897,147 @@ public class Dashboard {
 			}
 		});
 		
-		JLabel lblUpdate = new JLabel("Application profile");
+		labelUrl = new JLabel("localhost");
+		GridBagConstraints gbc_labelUrl = new GridBagConstraints();
+		gbc_labelUrl.anchor = GridBagConstraints.WEST;
+		gbc_labelUrl.insets = new Insets(0, 0, 5, 5);
+		gbc_labelUrl.gridx = 1;
+		gbc_labelUrl.gridy = 0;
+		configuration.add(labelUrl, gbc_labelUrl);
+		
+		JLabel label2 = new JLabel("http:");
+		label2.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+		GridBagConstraints gbc_label2 = new GridBagConstraints();
+		gbc_label2.insets = new Insets(0, 0, 5, 5);
+		gbc_label2.gridx = 2;
+		gbc_label2.gridy = 0;
+		configuration.add(label2, gbc_label2);
+		
+		labelHttpPort = new JLabel("8000");
+		GridBagConstraints gbc_labelHttpPort = new GridBagConstraints();
+		gbc_labelHttpPort.anchor = GridBagConstraints.WEST;
+		gbc_labelHttpPort.insets = new Insets(0, 0, 5, 5);
+		gbc_labelHttpPort.gridx = 3;
+		gbc_labelHttpPort.gridy = 0;
+		configuration.add(labelHttpPort, gbc_labelHttpPort);
+		
+		JLabel lblWs = new JLabel("ws:");
+		lblWs.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+		GridBagConstraints gbc_lblWs = new GridBagConstraints();
+		gbc_lblWs.insets = new Insets(0, 0, 5, 5);
+		gbc_lblWs.gridx = 4;
+		gbc_lblWs.gridy = 0;
+		configuration.add(lblWs, gbc_lblWs);
+		
+		labelWsPort = new JLabel("9000");
+		GridBagConstraints gbc_labelWsPort = new GridBagConstraints();
+		gbc_labelWsPort.anchor = GridBagConstraints.WEST;
+		gbc_labelWsPort.insets = new Insets(0, 0, 5, 5);
+		gbc_labelWsPort.gridx = 5;
+		gbc_labelWsPort.gridy = 0;
+		configuration.add(labelWsPort, gbc_labelWsPort);
+		
+		JLabel lblUpdate = new JLabel("update:");
+		lblUpdate.setFont(new Font("Lucida Grande", Font.BOLD, 13));
 		GridBagConstraints gbc_lblUpdate = new GridBagConstraints();
-		gbc_lblUpdate.anchor = GridBagConstraints.WEST;
-		gbc_lblUpdate.insets = new Insets(0, 0, 0, 5);
-		gbc_lblUpdate.gridx = 2;
+		gbc_lblUpdate.insets = new Insets(0, 0, 5, 5);
+		gbc_lblUpdate.gridx = 6;
 		gbc_lblUpdate.gridy = 0;
 		configuration.add(lblUpdate, gbc_lblUpdate);
 		
-		textFieldFilePath = new JTextField();
-		textFieldFilePath.setEditable(false);
-		GridBagConstraints gbc_textFieldFilePath = new GridBagConstraints();
-		gbc_textFieldFilePath.insets = new Insets(0, 0, 0, 5);
-		gbc_textFieldFilePath.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textFieldFilePath.gridx = 3;
-		gbc_textFieldFilePath.gridy = 0;
-		configuration.add(textFieldFilePath, gbc_textFieldFilePath);
-		textFieldFilePath.setColumns(10);
+		labelUpdatePath = new JLabel("/update");
+		GridBagConstraints gbc_labelUpdatepath = new GridBagConstraints();
+		gbc_labelUpdatepath.anchor = GridBagConstraints.WEST;
+		gbc_labelUpdatepath.insets = new Insets(0, 0, 5, 5);
+		gbc_labelUpdatepath.gridx = 7;
+		gbc_labelUpdatepath.gridy = 0;
+		configuration.add(labelUpdatePath, gbc_labelUpdatepath);
+		
+		JLabel lblQuery = new JLabel("query:");
+		lblQuery.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+		GridBagConstraints gbc_lblQuery = new GridBagConstraints();
+		gbc_lblQuery.insets = new Insets(0, 0, 5, 5);
+		gbc_lblQuery.gridx = 8;
+		gbc_lblQuery.gridy = 0;
+		configuration.add(lblQuery, gbc_lblQuery);
+		
+		labelQueryPath = new JLabel("/query");
+		GridBagConstraints gbc_labelQueryPath = new GridBagConstraints();
+		gbc_labelQueryPath.anchor = GridBagConstraints.WEST;
+		gbc_labelQueryPath.insets = new Insets(0, 0, 5, 5);
+		gbc_labelQueryPath.gridx = 9;
+		gbc_labelQueryPath.gridy = 0;
+		configuration.add(labelQueryPath, gbc_labelQueryPath);
+		
+		JLabel lblSubscribe = new JLabel("subscribe:");
+		lblSubscribe.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+		GridBagConstraints gbc_lblSubscribe = new GridBagConstraints();
+		gbc_lblSubscribe.insets = new Insets(0, 0, 5, 5);
+		gbc_lblSubscribe.gridx = 10;
+		gbc_lblSubscribe.gridy = 0;
+		configuration.add(lblSubscribe, gbc_lblSubscribe);
+		
+		labelSubscribePath = new JLabel("/subscribe");
+		GridBagConstraints gbc_labelSubscribePath = new GridBagConstraints();
+		gbc_labelSubscribePath.anchor = GridBagConstraints.WEST;
+		gbc_labelSubscribePath.insets = new Insets(0, 0, 5, 5);
+		gbc_labelSubscribePath.gridx = 11;
+		gbc_labelSubscribePath.gridy = 0;
+		configuration.add(labelSubscribePath, gbc_labelSubscribePath);
 		GridBagConstraints gbc_btnLoadXmlProfile = new GridBagConstraints();
-		gbc_btnLoadXmlProfile.fill = GridBagConstraints.HORIZONTAL;
-		gbc_btnLoadXmlProfile.anchor = GridBagConstraints.NORTH;
-		gbc_btnLoadXmlProfile.gridx = 4;
+		gbc_btnLoadXmlProfile.insets = new Insets(0, 0, 5, 0);
+		gbc_btnLoadXmlProfile.anchor = GridBagConstraints.NORTHEAST;
+		gbc_btnLoadXmlProfile.gridx = 12;
 		gbc_btnLoadXmlProfile.gridy = 0;
 		configuration.add(btnLoadXmlProfile, gbc_btnLoadXmlProfile);
+		
+		JLabel label3 = new JLabel("https:");
+		label3.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+		GridBagConstraints gbc_label3 = new GridBagConstraints();
+		gbc_label3.insets = new Insets(0, 0, 0, 5);
+		gbc_label3.gridx = 2;
+		gbc_label3.gridy = 1;
+		configuration.add(label3, gbc_label3);
+		
+		labelHttpsPort = new JLabel("8443");
+		GridBagConstraints gbc_labelHttpsPort = new GridBagConstraints();
+		gbc_labelHttpsPort.anchor = GridBagConstraints.WEST;
+		gbc_labelHttpsPort.insets = new Insets(0, 0, 0, 5);
+		gbc_labelHttpsPort.gridx = 3;
+		gbc_labelHttpsPort.gridy = 1;
+		configuration.add(labelHttpsPort, gbc_labelHttpsPort);
+		
+		JLabel lblWss = new JLabel("wss:");
+		lblWss.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+		GridBagConstraints gbc_lblWss = new GridBagConstraints();
+		gbc_lblWss.insets = new Insets(0, 0, 0, 5);
+		gbc_lblWss.gridx = 4;
+		gbc_lblWss.gridy = 1;
+		configuration.add(lblWss, gbc_lblWss);
+		
+		labelWssPort = new JLabel("9443");
+		GridBagConstraints gbc_labelWssPort = new GridBagConstraints();
+		gbc_labelWssPort.anchor = GridBagConstraints.WEST;
+		gbc_labelWssPort.insets = new Insets(0, 0, 0, 5);
+		gbc_labelWssPort.gridx = 5;
+		gbc_labelWssPort.gridy = 1;
+		configuration.add(labelWssPort, gbc_labelWssPort);
+		
+		JLabel lblNewLabel = new JLabel("secure:");
+		lblNewLabel.setFont(new Font("Lucida Grande", Font.BOLD, 13));
+		GridBagConstraints gbc_lblNewLabel = new GridBagConstraints();
+		gbc_lblNewLabel.insets = new Insets(0, 0, 0, 5);
+		gbc_lblNewLabel.gridx = 6;
+		gbc_lblNewLabel.gridy = 1;
+		configuration.add(lblNewLabel, gbc_lblNewLabel);
+		
+		labelSecurePath = new JLabel("/secure");
+		GridBagConstraints gbc_labelSecurePath = new GridBagConstraints();
+		gbc_labelSecurePath.anchor = GridBagConstraints.WEST;
+		gbc_labelSecurePath.insets = new Insets(0, 0, 0, 5);
+		gbc_labelSecurePath.gridx = 7;
+		gbc_labelSecurePath.gridy = 1;
+		configuration.add(labelSecurePath, gbc_labelSecurePath);
 		
 		JPanel namespaces = new JPanel();
 		namespaces.setBorder(new TitledBorder(null, "Namespaces", TitledBorder.LEADING, TitledBorder.TOP, null, null));

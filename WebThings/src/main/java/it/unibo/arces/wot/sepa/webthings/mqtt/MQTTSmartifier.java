@@ -1,7 +1,7 @@
 package it.unibo.arces.wot.sepa.webthings.mqtt;
 
 import java.io.FileNotFoundException;
-import java.io.FileReader;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
@@ -10,7 +10,11 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -28,15 +32,21 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
+import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
+import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class MQTTSmartifier implements MqttCallback {
-	private MqttClient mqttClient;
-
 	private static final Logger logger = LogManager.getLogger("MQTTSmartifier");
-
+	
+	private MqttClient mqttClient;
+	private MqttConnectOptions options;
+	
 	private boolean created = false;
 
 	private String serverURI = null;
@@ -44,57 +54,155 @@ public class MQTTSmartifier implements MqttCallback {
 	private boolean sslEnabled = false;
 	private String clientID = "MQTTSmartifier";
 
-	private SSLSecurityManager sm = new SSLSecurityManager("TLSv1","sepa.jks","sepa2017","sepa2017");
+	//SEPA
+	private SSLSecurityManager sm = new SSLSecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017");
+	private ApplicationProfile app;
+	private Producer observationCreator;
+	private Producer observationUpdater;
 	
-	public MQTTSmartifier(String jsonFile) throws UnrecoverableKeyException, KeyManagementException, InvalidKeyException,
+	//Current observation and topics matching hash
+	private HashMap<String,JsonObject> observationMap = new HashMap<String,JsonObject>();
+	private HashMap<MQTTTopic,String> topicMap = new HashMap<MQTTTopic,String>();
+	
+	class MQTTTopic {
+		private Pattern topic;
+		private Matcher matcher;
+		private String pattern;
+		
+		public MQTTTopic(String pattern) {
+			topic = Pattern.compile(pattern);
+			this.pattern = pattern;
+		}
+		
+		public String getPattern() {
+			return pattern;
+			
+		} 
+		@Override
+		public boolean equals(Object obj) {
+			if (!obj.getClass().equals(this.getClass())) return false;
+			matcher = topic.matcher(((MQTTTopic)obj).getPattern());
+			return matcher.find();
+		}
+		
+		public String getMatching() {
+			int nGroups = matcher.groupCount();
+			if (nGroups == 3) return matcher.group(2);
+			return "value";
+		}
+	}
+	
+	public MQTTSmartifier(String jsap) throws UnrecoverableKeyException, KeyManagementException, InvalidKeyException,
 			IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
 			FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, URISyntaxException {
 
-		loadJSON(jsonFile);
+		app = new ApplicationProfile(jsap);
+		
+		observationCreator = new Producer(app,"ADD_OBSERVATION");
+		observationUpdater = new Producer(app,"UPDATE_OBSERVATION_VALUE");
+		
+		parseExtendedData(app.getExtendedData());
+	}
+	
+	private void addObservation(String observation,String comment,String label,String location, String unit,String topic){
+		Bindings bindings = new Bindings();
+		bindings.addBinding("observation", new RDFTermURI(observation.replace("/", "-")));
+		bindings.addBinding("comment", new RDFTermLiteral(comment));
+		bindings.addBinding("label", new RDFTermLiteral(label));
+		bindings.addBinding("location", new RDFTermURI(location));
+		bindings.addBinding("unit", new RDFTermURI(unit));
+		observationCreator.update(bindings);
+		
+		observationMap.put(observation, new JsonObject());
+		topicMap.put(new MQTTTopic(topic), observation);
 	}
 
-	private void loadJSON(String fileName) throws IOException {
-		FileReader in = null;
+	private void updateObservationValue(String observation,String value){
+		Bindings bindings = new Bindings();
+		bindings.addBinding("observation", new RDFTermURI(observation.replace("/", "-")));
+		bindings.addBinding("value", new RDFTermLiteral(value));
+		observationUpdater.update(bindings);	
+	}
 
-		in = new FileReader(fileName);
+	private void parseExtendedData(JsonObject extended) throws IOException {
+		if (extended == null)
+			throw new IllegalArgumentException();
 
-		if (in != null) {
-			JsonObject root = new JsonParser().parse(in).getAsJsonObject();
-			
-			//MQTT
-			JsonObject mqtt =  root.get("mqtt").getAsJsonObject();
+		// MQTT
+		JsonObject mqtt = extended.get("mqtt").getAsJsonObject();
 
-			String url = mqtt.get("url").getAsString();
-			int port = mqtt.get("port").getAsInt();
-			JsonArray topics = mqtt.get("topics").getAsJsonArray();
+		String url = mqtt.get("url").getAsString();
+		int port = mqtt.get("port").getAsInt();
+		JsonArray topics = mqtt.get("topics").getAsJsonArray();
 
-			topicsFilter = new String[topics.size()];
-			int i = 0;
-			for (JsonElement topic : topics) {
-				topicsFilter[i] = topic.getAsString();
-				i++;
-			}
-
-			if (mqtt.get("ssl") != null) this.sslEnabled = mqtt.get("ssl").getAsBoolean();
-			else this.sslEnabled = false;
-			
-			if (sslEnabled){
-				serverURI = "ssl://" + url + ":" + String.format("%d", port);
-			} else {
-				serverURI = "tcp://" + url + ":" + String.format("%d", port);
-			}
-			
-			//Semantic mappings
-			
+		topicsFilter = new String[topics.size()];
+		int i = 0;
+		for (JsonElement topic : topics) {
+			topicsFilter[i] = topic.getAsString();
+			i++;
 		}
-		if (in != null)
-			in.close();
+
+		if (mqtt.get("ssl") != null)
+			this.sslEnabled = mqtt.get("ssl").getAsBoolean();
+		else
+			this.sslEnabled = false;
+
+		if (sslEnabled) {
+			serverURI = "ssl://" + url + ":" + String.format("%d", port);
+		} else {
+			serverURI = "tcp://" + url + ":" + String.format("%d", port);
+		}
+
+		// Semantic mappings
+		JsonObject mappings = extended.get("semantic-mappings").getAsJsonObject();
+		
+		for (Entry<String,JsonElement> mapping : mappings.entrySet()) {
+			String topic = mapping.getKey();
+			
+			String observation = mapping.getValue().getAsJsonObject().get("observation").getAsString();
+			String unit = mapping.getValue().getAsJsonObject().get("unit").getAsString();
+			String location = mapping.getValue().getAsJsonObject().get("location").getAsString();
+			String comment = mapping.getValue().getAsJsonObject().get("comment").getAsString();
+			String label = mapping.getValue().getAsJsonObject().get("label").getAsString();
+		
+			addObservation(observation,comment,label,location,unit,topic);	
+		}
+		
 	}
 
 	@Override
 	public void connectionLost(Throwable arg0) {
-		logger.error(arg0.getMessage());
+		logger.error("Connection lost: "+arg0.getMessage());
+		
+		while (true) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
+				
+			}
+			
+			logger.warn("Connecting...");
+			try {
+				mqttClient.connect(options);
+			} catch (MqttException e) {
+				logger.fatal("Failed to connect: "+e.getMessage());
+				continue;
+			}
+
+			logger.warn("Subscribing...");
+			try {
+				mqttClient.subscribe(topicsFilter);
+			} catch (MqttException e) {
+				logger.fatal("Failed to subscribe " + e.getMessage());
+				continue;
+			}
+			
+			break;
+		}
+		
+		logger.info("Connected and subscribed!");
+		
 	}
 
 	@Override
@@ -106,20 +214,33 @@ public class MQTTSmartifier implements MqttCallback {
 	public void messageArrived(String topic, MqttMessage value) throws Exception {
 		logger.debug(topic + " " + value.toString());
 
-	
+		MQTTTopic matching = new MQTTTopic(topic);
+		
+		for (Entry<MQTTTopic,String> topicPattern :topicMap.entrySet()) {
+			if (topicPattern.getKey().equals(matching)) {
+				String observation = topicPattern.getValue();
+				JsonObject observationObject = observationMap.get(observation);
+				String valueKey = topicPattern.getKey().getMatching();
+				
+				observationObject.add(valueKey,new JsonPrimitive(value.toString()));
+				
+				updateObservationValue(observation,observationObject.toString());
+				break;
+			}
+		}
 	}
 
 	public static void main(String[] args) throws IOException, URISyntaxException, UnrecoverableKeyException,
 			KeyManagementException, InvalidKeyException, IllegalArgumentException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, NoSuchElementException, NullPointerException,
 			ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-
+	      
 		if (args.length != 1) {
 			logger.error("Please specify the JSAP file (.jsap)");
 			System.exit(1);
 		}
 
-		MQTTWebThing adapter = new MQTTWebThing(args[0]);
+		MQTTSmartifier adapter = new MQTTSmartifier(args[0]);
 
 		if (adapter.start()) {
 			logger.info("Press any key to exit...");
@@ -141,18 +262,19 @@ public class MQTTSmartifier implements MqttCallback {
 			return created;
 		}
 
+		mqttClient.setCallback(this);
+		
+		options = new MqttConnectOptions();
+		if (sslEnabled) {
+			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
+		}
+		
 		try {
-			MqttConnectOptions options = new MqttConnectOptions();
-			if (sslEnabled) {
-				options.setSocketFactory(sm.getSSLContext().getSocketFactory());
-			}
 			mqttClient.connect(options);
 		} catch (MqttException e) {
 			logger.fatal(e.getMessage());
 			return created;
 		}
-
-		mqttClient.setCallback(this);
 
 		try {
 			mqttClient.subscribe(topicsFilter);
