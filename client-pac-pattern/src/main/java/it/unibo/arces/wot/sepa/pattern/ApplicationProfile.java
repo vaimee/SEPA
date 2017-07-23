@@ -75,8 +75,12 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 		super(propertiesFile,secret);
 	}
 	
-	protected Logger logger = LogManager.getLogger("SAP");	
+	protected Logger logger = LogManager.getLogger("JSAP");	
 	
+	public JsonObject getExtendedData(){
+		if (doc.get("extended") == null) return null;
+		return doc.get("extended").getAsJsonObject();
+	}
 	/**
 	  "updates": {
 		"ADD_PERSON":{
