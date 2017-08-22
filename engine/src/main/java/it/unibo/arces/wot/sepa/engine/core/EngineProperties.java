@@ -72,6 +72,10 @@ public class EngineProperties {
 
 		loadProperties();
 	}
+	
+	public String toString() {
+		return properties.toString();
+	}
 
 	protected void defaults() {
 		JsonObject parameters = new JsonObject();

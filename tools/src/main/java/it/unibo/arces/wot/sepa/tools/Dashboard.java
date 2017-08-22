@@ -45,7 +45,6 @@ import java.text.SimpleDateFormat;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 
@@ -114,6 +113,8 @@ import javax.swing.JComponent;
 
 public class Dashboard {
 	private static final Logger logger = LogManager.getLogger("Dashboard");
+
+	private static final String versionLabel = "SEPA Dashboard Ver 0.9.7";
 	
 	private Properties appProperties = new Properties();
 	
@@ -670,6 +671,8 @@ public class Dashboard {
 				in = new FileInputStream("dashboard.properties");
 			} catch (FileNotFoundException e) {
 				logger.warn(e.getMessage());
+				lblInfo.setText("Error: "+e.getMessage());
+				frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
 				return false;
 			}
 			
@@ -678,12 +681,30 @@ public class Dashboard {
 				sapFile.load(in);
 			} catch (IOException e) {
 				logger.error(e.getMessage());
+				lblInfo.setText("Error: "+e.getMessage());
+				frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
 				return false;
 			}
 			String path = sapFile.getProperty("appProfile");
-			if (path == null) return false;
+			if (path == null) {
+				lblInfo.setText("Error: path in dashboard.properties is null");
+				frmSepaDashboard.setTitle(versionLabel + " - " + "path in dashboard.properties is null");
+				return false;
+			}
 			file = path;
 		}
+		
+		labelUrl.setText("---");
+		
+		labelHttpPort.setText("---");
+		labelHttpsPort.setText("---");
+		labelWsPort.setText("---");
+		labelWssPort.setText("---");
+		
+		labelUpdatePath.setText("---");
+		labelQueryPath.setText("---");
+		labelSubscribePath.setText("---");
+		labelSecurePath.setText("---");
 		
 		SPARQLSubscribe.setText("");
 		SPARQLUpdate.setText("");
@@ -700,10 +721,21 @@ public class Dashboard {
 			appProfile = new ApplicationProfile(file);
 		} catch (NoSuchElementException | IOException e) {
 			logger.error(e.getMessage());
+			lblInfo.setText("Error: "+e.getMessage());
+			frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
 			return false;
 		}
+			
+		try {
+			kp = new DashboardClient(file);
+		} catch (IllegalArgumentException | NoSuchElementException | IOException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException | URISyntaxException e) {
+			logger.error(e.getMessage());
+			lblInfo.setText("Error: "+e.getMessage());
+			frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
+			return false;
+		} 
 		
-		frmSepaDashboard.setTitle("SEPA Dashboard Ver 0.7.5 " + " - " + file);
+		frmSepaDashboard.setTitle(versionLabel + " - " + file);
 		
 		//Loading namespaces
 		for(String prefix : appProfile.getPrefixes()) {
@@ -725,13 +757,6 @@ public class Dashboard {
 			subscribeListDM.add(subscribe);
 		}
 		
-		try {
-			kp = new DashboardClient(file);
-		} catch (IllegalArgumentException | NoSuchElementException | IOException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException | URISyntaxException e) {
-			logger.error(e.getMessage());
-			return false;
-		} 
-		
 		//Enable all the buttons
 		btnUpdate.setEnabled(true);
 		btnSubscribe.setEnabled(true);
@@ -748,7 +773,9 @@ public class Dashboard {
 		labelQueryPath.setText(appProfile.getQueryPath());
 		labelSubscribePath.setText(appProfile.getSubscribePath());
 		labelSecurePath.setText(appProfile.getSecurePath());
-			
+		
+		lblInfo.setText("JSAP loaded");
+		
 		return true;
 	}
 	
@@ -809,7 +836,7 @@ public class Dashboard {
 		propertiesDM.setColumnIdentifiers(propertiesHeader);
 		
 		frmSepaDashboard = new JFrame();
-		frmSepaDashboard.setTitle("SEPA Dashboard Ver 0.7.0");
+		frmSepaDashboard.setTitle(versionLabel);
 		frmSepaDashboard.setBounds(100, 100, 925, 768);
 		frmSepaDashboard.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmSepaDashboard.getContentPane().setLayout(new BorderLayout(0, 0));
@@ -897,7 +924,7 @@ public class Dashboard {
 			}
 		});
 		
-		labelUrl = new JLabel("localhost");
+		labelUrl = new JLabel("---");
 		GridBagConstraints gbc_labelUrl = new GridBagConstraints();
 		gbc_labelUrl.anchor = GridBagConstraints.WEST;
 		gbc_labelUrl.insets = new Insets(0, 0, 5, 5);
@@ -913,7 +940,7 @@ public class Dashboard {
 		gbc_label2.gridy = 0;
 		configuration.add(label2, gbc_label2);
 		
-		labelHttpPort = new JLabel("8000");
+		labelHttpPort = new JLabel("---");
 		GridBagConstraints gbc_labelHttpPort = new GridBagConstraints();
 		gbc_labelHttpPort.anchor = GridBagConstraints.WEST;
 		gbc_labelHttpPort.insets = new Insets(0, 0, 5, 5);
@@ -929,7 +956,7 @@ public class Dashboard {
 		gbc_lblWs.gridy = 0;
 		configuration.add(lblWs, gbc_lblWs);
 		
-		labelWsPort = new JLabel("9000");
+		labelWsPort = new JLabel("---");
 		GridBagConstraints gbc_labelWsPort = new GridBagConstraints();
 		gbc_labelWsPort.anchor = GridBagConstraints.WEST;
 		gbc_labelWsPort.insets = new Insets(0, 0, 5, 5);
@@ -945,7 +972,7 @@ public class Dashboard {
 		gbc_lblUpdate.gridy = 0;
 		configuration.add(lblUpdate, gbc_lblUpdate);
 		
-		labelUpdatePath = new JLabel("/update");
+		labelUpdatePath = new JLabel("---");
 		GridBagConstraints gbc_labelUpdatepath = new GridBagConstraints();
 		gbc_labelUpdatepath.anchor = GridBagConstraints.WEST;
 		gbc_labelUpdatepath.insets = new Insets(0, 0, 5, 5);
@@ -961,7 +988,7 @@ public class Dashboard {
 		gbc_lblQuery.gridy = 0;
 		configuration.add(lblQuery, gbc_lblQuery);
 		
-		labelQueryPath = new JLabel("/query");
+		labelQueryPath = new JLabel("---");
 		GridBagConstraints gbc_labelQueryPath = new GridBagConstraints();
 		gbc_labelQueryPath.anchor = GridBagConstraints.WEST;
 		gbc_labelQueryPath.insets = new Insets(0, 0, 5, 5);
@@ -977,7 +1004,7 @@ public class Dashboard {
 		gbc_lblSubscribe.gridy = 0;
 		configuration.add(lblSubscribe, gbc_lblSubscribe);
 		
-		labelSubscribePath = new JLabel("/subscribe");
+		labelSubscribePath = new JLabel("---");
 		GridBagConstraints gbc_labelSubscribePath = new GridBagConstraints();
 		gbc_labelSubscribePath.anchor = GridBagConstraints.WEST;
 		gbc_labelSubscribePath.insets = new Insets(0, 0, 5, 5);
@@ -999,7 +1026,7 @@ public class Dashboard {
 		gbc_label3.gridy = 1;
 		configuration.add(label3, gbc_label3);
 		
-		labelHttpsPort = new JLabel("8443");
+		labelHttpsPort = new JLabel("---");
 		GridBagConstraints gbc_labelHttpsPort = new GridBagConstraints();
 		gbc_labelHttpsPort.anchor = GridBagConstraints.WEST;
 		gbc_labelHttpsPort.insets = new Insets(0, 0, 0, 5);
@@ -1015,7 +1042,7 @@ public class Dashboard {
 		gbc_lblWss.gridy = 1;
 		configuration.add(lblWss, gbc_lblWss);
 		
-		labelWssPort = new JLabel("9443");
+		labelWssPort = new JLabel("---");
 		GridBagConstraints gbc_labelWssPort = new GridBagConstraints();
 		gbc_labelWssPort.anchor = GridBagConstraints.WEST;
 		gbc_labelWssPort.insets = new Insets(0, 0, 0, 5);
@@ -1031,7 +1058,7 @@ public class Dashboard {
 		gbc_lblNewLabel.gridy = 1;
 		configuration.add(lblNewLabel, gbc_lblNewLabel);
 		
-		labelSecurePath = new JLabel("/secure");
+		labelSecurePath = new JLabel("---");
 		GridBagConstraints gbc_labelSecurePath = new GridBagConstraints();
 		gbc_labelSecurePath.anchor = GridBagConstraints.WEST;
 		gbc_labelSecurePath.insets = new Insets(0, 0, 0, 5);

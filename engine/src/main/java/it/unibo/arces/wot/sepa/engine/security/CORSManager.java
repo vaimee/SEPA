@@ -20,11 +20,8 @@ package it.unibo.arces.wot.sepa.engine.security;
 
 import org.apache.http.Header;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-//import com.sun.net.httpserver.HttpExchange;
 
 /**
  * The Class CORSManager.
@@ -45,8 +42,8 @@ public class CORSManager {
 	 * @param httpExchange the http exchange
 	 * @return true, if the pre-flight request has been successfully handled
 	 */
-	public static boolean processCORSRequest(HttpAsyncExchange httpExchange){
-		if(httpExchange.getRequest().getRequestLine().getMethod().toUpperCase().equals("OPTIONS")) {
+	public static boolean processCORSRequest(HttpAsyncExchange exchange){
+		if(exchange.getRequest().getRequestLine().getMethod().toUpperCase().equals("OPTIONS")) {
 			logger.debug("CORS pre-flight request");
 	
 			/*
@@ -55,7 +52,7 @@ public class CORSManager {
 			
 			String allowOrigin = null;
 			
-			Header[] origins = httpExchange.getRequest().getHeaders("Origin");
+			Header[] origins = exchange.getRequest().getHeaders("Origin");
 			if (origins.length != 1) return false;
 			
 			allowOrigin = origins[0].getValue();	
@@ -71,7 +68,7 @@ public class CORSManager {
 			
 			String allowMethod = null;
 			
-			Header[] methods = httpExchange.getRequest().getHeaders("Access-Control-Request-Method" );
+			Header[] methods = exchange.getRequest().getHeaders("Access-Control-Request-Method" );
 			if (methods.length != 1) return false;
 			
 			allowMethod = methods[0].getValue();		
@@ -85,7 +82,7 @@ public class CORSManager {
 			 */
 			
 			String fieldNames = "";
-			Header[] headers = httpExchange.getRequest().getHeaders("Access-Control-Request-Headers");		
+			Header[] headers = exchange.getRequest().getHeaders("Access-Control-Request-Headers");		
 			for (Header temp : headers) {
 				if (fieldNames.equals("")) fieldNames = temp.getValue();
 				else fieldNames = fieldNames +","+temp.getValue();	
@@ -96,22 +93,22 @@ public class CORSManager {
 			 * and add a single Access-Control-Allow-Credentials header with the case-sensitive string "true" as value.
 			 * Otherwise, add a single Access-Control-Allow-Origin header, with either the value of the Origin header or the string "*" as value.
 			 */
-			if (allowOrigin != null) httpExchange.getResponse().addHeader("Access-Control-Allow-Origin", allowOrigin);
+			if (allowOrigin != null) exchange.getResponse().addHeader("Access-Control-Allow-Origin", allowOrigin);
 			
 			/*
 			 * If method is a simple method this step may be skipped.
 			 * Add one or more Access-Control-Allow-Methods headers consisting of (a subset of) the list of methods.
 			 */
-			if (allowMethod != null) httpExchange.getResponse().addHeader("Access-Control-Allow-Methods", allowMethod);
+			if (allowMethod != null) exchange.getResponse().addHeader("Access-Control-Allow-Methods", allowMethod);
 			
 			/*
 			 * If each of the header field-names is a simple header and none is Content-Type, this step may be skipped.
 			 * Add one or more Access-Control-Allow-Headers headers consisting of (a subset of) the list of headers.
 			 */
 			filterHeaders(fieldNames);
-			if (!fieldNames.equals("")) httpExchange.getResponse().addHeader("Access-Control-Allow-Headers", fieldNames);		   
+			if (!fieldNames.equals("")) exchange.getResponse().addHeader("Access-Control-Allow-Headers", fieldNames);		   
 			
-			for (Header head : httpExchange.getResponse().getAllHeaders())
+			for (Header head : exchange.getResponse().getAllHeaders())
 				logger.debug("Header: ",head.getName());
 			return true;
 		}
@@ -122,7 +119,7 @@ public class CORSManager {
 			
 			String allowOrigin = null;
 			
-			Header[] origins = httpExchange.getRequest().getHeaders("Origin" );
+			Header[] origins = exchange.getRequest().getHeaders("Origin" );
 			if (origins.length == 0) return true;
 			if (origins.length > 1) return false;
 			
@@ -130,7 +127,7 @@ public class CORSManager {
 			
 			boolean allowed = allowedOrigin(allowOrigin);
 			
-			if (allowed) httpExchange.getResponse().addHeader("Access-Control-Allow-Origin", allowOrigin);
+			if (allowed) exchange.getResponse().addHeader("Access-Control-Allow-Origin", allowOrigin);
 			
 			return allowed;
 		}
@@ -159,7 +156,7 @@ public class CORSManager {
 		return true;
 	}
 
-	public static boolean isPreFlightRequest(HttpAsyncExchange httpExchange) {
-		return httpExchange.getRequest().getRequestLine().getMethod().equalsIgnoreCase("OPTIONS");
+	public static boolean isPreFlightRequest(HttpAsyncExchange exchange) {
+		return exchange.getRequest().getRequestLine().getMethod().equalsIgnoreCase("OPTIONS");
 	}
 }

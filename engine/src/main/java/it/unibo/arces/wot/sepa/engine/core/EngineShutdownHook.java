@@ -5,6 +5,7 @@ public class EngineShutdownHook extends Thread {
 	
 	public EngineShutdownHook(Engine engine) {
 		this.engine = engine;
+		this.setName("SEPA Shutdown hook");
 	}
 	
 	public void run() {

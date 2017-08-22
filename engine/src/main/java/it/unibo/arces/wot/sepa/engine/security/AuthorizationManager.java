@@ -73,9 +73,11 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.AuthorizationManagerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 
 public class AuthorizationManager implements AuthorizationManagerMBean {
+	private static final Logger logger = LogManager.getLogger("AuthorizationManager");
 	
 	//TODO: CLIENTS DB to be made persistent
 	//IDENTITY ==> ID
@@ -98,16 +100,6 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	private ConfigurableJWTProcessor<SEPASecurityContext> jwtProcessor;
 	private SEPASecurityContext context = new SEPASecurityContext();
 	private SSLSecurityManager sManager;
-	
-	//JMX Access
-	private HashMap<String,Boolean> authorizedIdentities = new HashMap<String,Boolean>();
-	private long expiring = 5; 												
-	private String issuer = "https://wot.arces.unibo.it:8443/oauth/token"; 		
-	private String httpsAudience = "https://wot.arces.unibo.it:8443/sparql"; 	
-	private String wssAudience ="wss://wot.arces.unibo.it:9443/sparql";  		
-	private String subject = "SEPATest";										
-	
-	private static final Logger logger = LogManager.getLogger("AuthorizationManager");
 	
 	/**
 	Security context. Provides additional information necessary for processing a JOSE object.
@@ -213,7 +205,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	}
 	
 	public AuthorizationManager(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException {	
-		SEPABeans.registerMBean("SEPA:type=Security",this);	
+		SEPABeans.registerMBean("SEPA:type=AuthorizationManager",this);	
 		
 		//sManager = new SSLSecurityManager(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate,false,true,null);
 		sManager = new SSLSecurityManager("TLSv1",keystoreFileName, keystorePwd,keyPwd);
@@ -269,16 +261,16 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		//TODO: WARNING! TO BE REMOVED IN PRODUCTION. ONLY FOR TESTING.
 		if (id.equals("SEPATest")) {
 			logger.warn("SEPATest authorized! Setting expiring token period to 5 seconds");
-			authorizedIdentities.put(id, true);
-			expiring = 5;
+			AuthorizationManagerBeans.addAuthorizedIdentity(id);
+			AuthorizationManagerBeans.setTokenExpiringPeriod(5);
 			return true;
 		}
 		
-		if(!authorizedIdentities.containsKey(id)) return false;
+		if(!AuthorizationManagerBeans.getAuthorizedIdentities().containsKey(id)) return false;
 		
-		if(!authorizedIdentities.get(id)) return false;
+		if(!AuthorizationManagerBeans.getAuthorizedIdentities().get(id)) return false;
 		
-		authorizedIdentities.put(id, false);
+		AuthorizationManagerBeans.getAuthorizedIdentities().put(id, false);
 		return true;
 	}
 	
@@ -425,7 +417,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	   The "iss" value is a case-sensitive string containing a StringOrURI
 	   value.  Use of this claim is OPTIONAL.*/
 		 
-		 claimsSetBuilder.issuer(issuer);
+		 claimsSetBuilder.issuer(AuthorizationManagerBeans.getIssuer());
 		 
 	 /* 4.1.2.  "sub" (Subject) Claim
 
@@ -437,7 +429,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	   "sub" value is a case-sensitive string containing a StringOrURI
 	   value.  Use of this claim is OPTIONAL.*/
 		 
-		 claimsSetBuilder.subject(subject);
+		 claimsSetBuilder.subject(AuthorizationManagerBeans.getSubject());
 		
 	 /* 4.1.3.  "aud" (Audience) Claim
 
@@ -454,8 +446,8 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	   Use of this claim is OPTIONAL.*/
 		 
 		 ArrayList<String> audience = new ArrayList<String>();
-		 audience.add(httpsAudience);
-		 audience.add(wssAudience);
+		 audience.add(AuthorizationManagerBeans.getHttpsAudience());
+		 audience.add(AuthorizationManagerBeans.getWssAudience());
 		 claimsSetBuilder.audience(audience);
 		
 		/* 4.1.4.  "exp" (Expiration Time) Claim
@@ -468,7 +460,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	   a few minutes, to account for clock skew.  Its value MUST be a number
 	   containing a NumericDate value.  Use of this claim is OPTIONAL.*/
 		
-		 claimsSetBuilder.expirationTime(new Date(timestamp+(expiring*1000)));
+		 claimsSetBuilder.expirationTime(new Date(timestamp+(AuthorizationManagerBeans.getTokenExpiringPeriod()*1000)));
 		
 		/*4.1.5.  "nbf" (Not Before) Claim
 
@@ -526,7 +518,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		//Add the token to the released tokens
 		clientClaims.put(id, jwtClaims);
 		
-		return new JWTResponse(signedJWT.serialize(),"bearer",expiring);
+		return new JWTResponse(signedJWT.serialize(),"bearer",AuthorizationManagerBeans.getTokenExpiringPeriod());
 	}
 	
 	public Response validateToken(String accessToken) {
@@ -573,68 +565,68 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	
 	@Override
 	public long getTokenExpiringPeriod() {
-		return expiring;
+		return AuthorizationManagerBeans.getTokenExpiringPeriod();
 	}
 	
 
 	@Override
 	public void setTokenExpiringPeriod(long period) {
-		expiring = period;
+		AuthorizationManagerBeans.setTokenExpiringPeriod(period);
 	}
 
 	@Override
 	public void addAuthorizedIdentity(String id) {
-		authorizedIdentities.put(id, true);
+		AuthorizationManagerBeans.getAuthorizedIdentities().put(id, true);
 	}
 
 	@Override
 	public void removeAuthorizedIdentity(String id) {
-		authorizedIdentities.remove(id);
+		AuthorizationManagerBeans.getAuthorizedIdentities().remove(id);
 	}
 
 	@Override
 	public HashMap<String, Boolean> getAuthorizedIdentities() {
-		return authorizedIdentities;
+		return AuthorizationManagerBeans.getAuthorizedIdentities();
 	}
 
 	@Override
 	public String getIssuer() {
-		return issuer;
+		return AuthorizationManagerBeans.getIssuer();
 	}
 
 	@Override
 	public void setIssuer(String issuer) {
-		this.issuer = issuer;
+		AuthorizationManagerBeans.setIssuer(issuer);
 	}
 
 	@Override
 	public String getHttpsAudience() {
-		return httpsAudience;
+		return AuthorizationManagerBeans.getHttpsAudience();
 	}
 
 	@Override
 	public void setHttpsAudience(String audience) {
-		this.httpsAudience = audience;
+		AuthorizationManagerBeans.setHttpsAudience(audience);
 	}
 
 	@Override
 	public String getWssAudience() {
-		return wssAudience;
+		return AuthorizationManagerBeans.getWssAudience();
 	}
 
 	@Override
 	public void setWssAudience(String audience) {
-		this.wssAudience = audience;
+		AuthorizationManagerBeans.setWssAudience(audience);
 	}
 
 	@Override
 	public String getSubject() {
-		return this.subject;
+		return AuthorizationManagerBeans.getSubject();
 	}
 
 	@Override
 	public void setSubject(String sub) {
-		this.subject = sub;
+		AuthorizationManagerBeans.setSubject(sub);
 	}
 
 	public SSLContext getSSLContext() throws KeyManagementException, NoSuchAlgorithmException {

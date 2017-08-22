@@ -18,9 +18,22 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import java.util.HashMap;
+import java.util.NoSuchElementException;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.Vector;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
@@ -29,196 +42,210 @@ import javax.management.NotCompliantMBeanException;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
 /**
  * This class represents the scheduler of the SPARQL Event Processing Engine
-* */
+ */
 
-public class Scheduler extends Thread implements Observer,SchedulerInterface {
+public class Scheduler extends Observable implements Runnable, Observer, SchedulerMBean {
 	private static final Logger logger = LogManager.getLogger("Scheduler");
 
-	private RequestResponseHandler requestHandler;
-	private TokenHandler tokenHandler;
+	// Request tokens
+	private Vector<Integer> tokens = new Vector<Integer>();
+
+	// Primitive processor
 	private Processor processor;
-	
-	private UpdateScheduler updateScheduler = new UpdateScheduler();
-	private SubscribeScheduler subscribeScheduler = new SubscribeScheduler();
-	private UnsubscribeScheduler unsubscribeScheduler = new UnsubscribeScheduler();
-	private QueryScheduler queryScheduler = new QueryScheduler();
-		
-	private boolean running = true;
-	
-	public Scheduler(EngineProperties properties,Processor processor) throws IllegalArgumentException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {
+
+	// Request queue
+	private ConcurrentLinkedQueue<ScheduledRequest> requestQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
+
+	// Subscribers
+	private HashMap<String, ResponseAndNotificationListener> subscribers = new HashMap<String, ResponseAndNotificationListener>();
+
+	// Properties reference
+	private EngineProperties properties;
+
+	public Scheduler(EngineProperties properties)
+			throws IllegalArgumentException, MalformedObjectNameException, InstanceAlreadyExistsException,
+			MBeanRegistrationException, NotCompliantMBeanException, InvalidKeyException, FileNotFoundException,
+			NoSuchElementException, NullPointerException, ClassCastException, NoSuchAlgorithmException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, URISyntaxException {
 		if (properties == null) {
 			logger.error("Properties are null");
 			throw new IllegalArgumentException("Properties are null");
 		}
-		
-		if (processor == null) {
-			logger.error("Processor is null");
-			throw new IllegalArgumentException("Processor is null");
-		}
-		
-		requestHandler = new RequestResponseHandler(properties);
-		tokenHandler = new TokenHandler(properties);
-		
-		this.processor = processor;
-		this.processor.addObserver(this);
-	}	
-	
-	private class UpdateScheduler extends Thread {
-		@Override
-		public void run() {
-			while(running){
-				UpdateRequest req = requestHandler.waitUpdateRequest();				
-				
-				//Process UPDATE
-				logger.debug(">> "+req.toString());
-				processor.processUpdate(req);
-			}
-		}
-		
-		@Override
-		public void start() {
-			this.setName("Update Scheduler");
-			super.start();
-		}
-	}
-	
-	private class QueryScheduler extends Thread {
-		@Override
-		public void run() {
-			while(running){
-				QueryRequest req = requestHandler.waitQueryRequest();
-				
-				//Process QUERY
-				logger.debug(">> "+req.toString());
-				processor.processQuery(req);
-			}
-		}
-		
-		@Override
-		public void start() {
-			this.setName("Query Scheduler");
-			super.start();
-		}
-	}
+		this.properties = properties;
 
-	private class SubscribeScheduler extends Thread {
-		@Override
-		public void run() {
-			while(running){
-				SubscribeRequest req = requestHandler.waitSubscribeRequest();
-				
-				//Process SUBSCRIBE
-				logger.debug(">> "+req.toString());
-				processor.processSubscribe(req);
-			}
-		}
-		
-		@Override
-		public void start() {
-			this.setName("Subscribe Scheduler");
-			super.start();
-		}
-	}
-	
-	private class UnsubscribeScheduler extends Thread {
-		@Override
-		public void run() {			
-			while(running){
-				UnsubscribeRequest req = requestHandler.waitUnsubscribeRequest();				
-				
-				//Process UNSUBSCRIBE
-				logger.debug(">> "+req.toString());
-				processor.processUnsubscribe(req);
-			}
-		}
-		
-		@Override
-		public void start() {
-			this.setName("Unsubscribe Scheduler");
-			super.start();
-		}
-	}
-	
-	@Override
-	public void start() {
-		this.setName("SEPA Scheduler");
-		
-		updateScheduler.start();
-		subscribeScheduler.start();
-		unsubscribeScheduler.start();
-		queryScheduler.start();
+		// Init tokens
+		for (int i = 0; i < properties.getSchedulingQueueSize(); i++)
+			tokens.addElement(i);
+
+		// SPARQL 1.1 SE request processor
+		processor = new Processor();
+		processor.addObserver(this);
+
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
 	@Override
 	public void update(Observable o, Object arg) {
-		//Notification
+		// Notification
 		if (arg.getClass().equals(Notification.class)) {
 			Notification notify = (Notification) arg;
-			requestHandler.addNotification(notify);
-			logger.debug("<< NOTIFICATION "+notify.toString());
+			logger.debug("<< notify: " + notify.toString());
+
+			subscribers.get(notify.getSPUID()).notify(notify);
 		}
-		//Query response
-		else if (arg.getClass().equals(QueryResponse.class)) {
-			QueryResponse query = (QueryResponse) arg;
-			requestHandler.addResponse(query);
-			logger.debug("<< QUERY RESPONSE #"+query.getToken()+" "+query.toString());
-		}
-		//Update response
-		else if (arg.getClass().equals(UpdateResponse.class)) {
-			UpdateResponse update = (UpdateResponse) arg;
-			requestHandler.addResponse(update);
-			logger.debug("<< UPDATE RESPONSE #"+update.getToken()+" "+update.toString());
-		}
-		//Subscribe response
-		else if (arg.getClass().equals(SubscribeResponse.class)) {
-			SubscribeResponse subscribe = (SubscribeResponse) arg;
-			requestHandler.addResponse(subscribe);
-			logger.debug("<< SUBSCRIBE RESPONSE #"+subscribe.getToken()+" "+subscribe.toString());
-		}
-		//Unsubscribe response
-		else if (arg.getClass().equals(UnsubscribeResponse.class)) {
-			UnsubscribeResponse unsubscribe = (UnsubscribeResponse) arg;
-			requestHandler.addResponse(unsubscribe);
-			logger.debug("<< UNSUBSCRIBE RESPONSE #"+unsubscribe.getToken()+" "+unsubscribe.toString());
-		}
-		//Error response
-		else if (arg.getClass().equals(ErrorResponse.class)) {
-			ErrorResponse error = (ErrorResponse) arg;
-			requestHandler.addResponse(error);
-			logger.error("<< ERROR #"+error.getToken()+ " " +error.toString());
-		}
+	}
+
+	public int schedule(Request request, ResponseAndNotificationListener listener) {
+		// Get token
+		int token = getToken();
+		if (token == -1) {
+			SchedulerBeans.newRequest(true);
+			
+			logger.error("Too many pending requests");
+			listener.notify(new ErrorResponse(request.getToken(), 500, "Too many pending requests"));
+		} 
 		else {
-			logger.warn("<< Unknown response: "+arg.toString());
+			SchedulerBeans.newRequest(false);
+
+			synchronized (requestQueue) {
+				requestQueue.offer(new ScheduledRequest(token, request, listener));
+				requestQueue.notify();
+			}
+		}
+
+		return token;
+	}
+
+	@Override
+	public void run() {
+		while (true) {
+			ScheduledRequest request = null;
+			while ((request = requestQueue.poll()) == null) {
+				synchronized (requestQueue) {
+					try {
+						requestQueue.wait();
+					} catch (InterruptedException e) {
+						logger.error(e.getMessage());
+					}
+				}
+			}
+
+			// Request processing
+			Response ret = processor.process(request.getRequest());
+
+			// JMX
+			SchedulerBeans.updateCounters(request);
+
+			// Release token
+			releaseToken(ret.getToken());
+
+			// Response notification
+			if (request.getListener() != null)
+				request.getListener().notify(ret);
+
+			// Subscriptions
+			if (ret.getClass().equals(SubscribeResponse.class)) {
+				if (request.getListener() != null)
+					subscribers.put(((SubscribeResponse) ret).getSpuid(), request.getListener());
+			} else if (ret.getClass().equals(UnsubscribeResponse.class)) {
+				subscribers.remove(((UnsubscribeResponse) ret).getSpuid());
+			}
 		}
 	}
 
-	public int getToken() {
-		return tokenHandler.getToken();
+	/**
+	 * Returns a new token if more tokens are available or -1 otherwise
+	 * 
+	 * @return an int representing the token
+	 */
+	private synchronized int getToken() {
+		Integer token;
+
+		if (tokens.size() == 0) {
+			logger.error("No tokens available");
+			return -1;
+		}
+
+		token = tokens.get(0);
+		tokens.removeElementAt(0);
+
+		logger.debug("Get token #" + token + " (Available: " + tokens.size() + ")");
+
+		SchedulerBeans.updateQueueSize(properties.getSchedulingQueueSize(), tokens.size());
+
+		return token;
 	}
 
-	public void addRequest(Request request, ResponseAndNotificationListener listener) {
-		requestHandler.addRequest(request, listener);
+	/**
+	 * Release an used token
+	 * 
+	 * @return true if success, false if the token to be released has not been
+	 *         acquired
+	 */
+	private synchronized boolean releaseToken(Integer token) {
+		if (token == -1)
+			return false;
+
+		boolean ret = true;
+
+		if (tokens.contains(token)) {
+			ret = false;
+			logger.warn("Request to release a unused token: " + token + " (Available tokens: " + tokens.size() + ")");
+		} else {
+			tokens.insertElementAt(token, tokens.size());
+			logger.debug("Release token #" + token + " (Available: " + tokens.size() + ")");
+
+			SchedulerBeans.updateQueueSize(properties.getSchedulingQueueSize(), tokens.size());
+		}
+
+		return ret;
 	}
 
-	public void releaseToken(int token) {
-		if (token == -1) return;
-		tokenHandler.releaseToken(token);
+	@Override
+	public String getRequests() {
+		return SchedulerBeans.getRequests();
 	}
 
+	@Override
+	public String getPendingRequests() {
+		return SchedulerBeans.getPendingRequests();
+	}
+
+	@Override
+	public String getUpdateTimings() {
+		return SchedulerBeans.getUpdateTimings();
+	}
+
+	@Override
+	public String getQueryTimings() {
+		return SchedulerBeans.getQueryTimings();
+	}
+
+	@Override
+	public String getSubscribeTimings() {
+		return SchedulerBeans.getSubscribeTimings();
+	}
+
+	@Override
+	public String getUnsubscribeTimings() {
+		return SchedulerBeans.getUnsubscribeTimings();
+	}
+
+	@Override
+	public void reset() {
+		SchedulerBeans.reset();
+	}
 }

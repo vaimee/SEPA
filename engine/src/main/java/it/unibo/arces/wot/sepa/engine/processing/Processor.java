@@ -18,9 +18,18 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.NoSuchElementException;
 import java.util.Observable;
 import java.util.Observer;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
@@ -30,84 +39,114 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 
-public class Processor extends Observable implements Observer {
-	
-	private QueryProcessor queryProcessor;
-	private UpdateProcessor updateProcessor;	
-	private SPUManager spuManager;
-	private SPARQL11Protocol endpoint;
+public class Processor extends Observable implements Observer,ProcessorMBean {
 	private static final Logger logger = LogManager.getLogger("Processor");
 	
-	public Processor(SPARQL11Properties properties) throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException {	
-		//Create SPARQL 1.1 interface
-		endpoint = new SPARQL11Protocol(properties);
-		
-		//Create processor to manage (optimize) QUERY and UPDATE request
+	private QueryProcessor queryProcessor;
+	private UpdateProcessor updateProcessor;
+
+	private SPUManager spuManager;
+	private SPARQL11Protocol endpoint;
+	
+	public Processor() throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException,
+			NotCompliantMBeanException, InvalidKeyException, FileNotFoundException, NoSuchElementException,
+			NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException,
+			IllegalBlockSizeException, BadPaddingException, IOException, IllegalArgumentException, URISyntaxException {
+		// Create SPARQL 1.1 interface
+		SPARQL11Properties endpointProperties = new SPARQL11Properties("endpoint.jpar");
+		endpoint = new SPARQL11Protocol(endpointProperties);
+
+		// Create processor to manage (optimize) QUERY and UPDATE request
 		queryProcessor = new QueryProcessor(endpoint);
 		updateProcessor = new UpdateProcessor(endpoint);
-				
-		//Subscriptions manager
+
+		// Subscriptions manager
 		spuManager = new SPUManager(endpoint);
 		spuManager.addObserver(this);
-	}
-	
-	public void processQuery(QueryRequest req) {
-		logger.debug("*Process* "+req.toString());
-		Response res = queryProcessor.process(req);
 		
-		//Send response back
-		logger.debug("<< "+res.toString());
-		setChanged();
-		notifyObservers(res);
-	}
-	
-	public void processUpdate(UpdateRequest req) {
-		logger.debug("*Process* "+req.toString());
-		Response res = updateProcessor.process(req);
+		SEPABeans.registerMBean("SEPA:type="+this.getClass().getSimpleName(), this);
 		
-		//Send response back
-		logger.debug("<< "+res.toString());
-		setChanged();
-		notifyObservers(res);
-				
-		//Subscriptions processing
-		logger.debug("*** Process subscriptions ***");
-		if (res.getClass().equals(UpdateResponse.class)) spuManager.processUpdate((UpdateResponse)res);	
-	}
-	
-	public void processSubscribe(SubscribeRequest req){
-		logger.debug("*Process* "+req.toString());
-		spuManager.processSubscribe(req);
-	}
-	
-	public void processUnsubscribe(UnsubscribeRequest req) {
-		logger.debug("*Process* "+req.toString());
-		String spuid = spuManager.processUnsubscribe(req);
-		Response res = null;
-		if (spuid != null) res = new UnsubscribeResponse(req.getToken(),spuid);
-		else res = new ErrorResponse(req.getToken(),HttpStatus.SC_BAD_REQUEST,"SPUID not found: "+req.getSubscribeUUID());
-			
-		//Send response back
-		logger.debug("<< "+res.toString());
-		setChanged();
-		notifyObservers(res);
+		ProcessorBeans.setEndpoint(endpointProperties);
 	}
 
 	@Override
 	public void update(Observable o, Object arg) {
-		logger.debug("<< SPU MANAGER notification ");
+		logger.debug("<< SPU manager " + arg.toString());
 		setChanged();
 		notifyObservers(arg);
+	}
+
+	public Response process(Request request) {
+		logger.debug("*Process* " + request.toString());
+		
+		ProcessorBeans.newRequest(request);
+
+		Response res = null;
+		
+		if (request.getClass().equals(UpdateRequest.class)) {
+			res = updateProcessor.process((UpdateRequest) request);
+			
+			if (res.getClass().equals(UpdateResponse.class)){
+				logger.debug("*** Subscriptions processing ***");
+				spuManager.processUpdate((UpdateResponse) res);
+			}
+		} 
+		else if (request.getClass().equals(QueryRequest.class)) {
+			res = queryProcessor.process((QueryRequest) request);
+		}
+		else if (request.getClass().equals(SubscribeRequest.class)) {
+			res = spuManager.processSubscribe((SubscribeRequest) request);
+		}  
+		else if (request.getClass().equals(UnsubscribeRequest.class)) {
+			res = spuManager.processUnsubscribe((UnsubscribeRequest) request);
+		} 
+		else {
+			logger.error("Unsupported request: " + request.toString());
+			res = new ErrorResponse(request.getToken(), 500, "Unsupported request: " + request.toString());
+		}
+		
+		return res;
+	}
+
+	@Override
+	public String getEndpointProperties() {
+		return ProcessorBeans.getEndpointProperties();
+	}
+
+	@Override
+	public String getRequests() {
+		return ProcessorBeans.getRequests();
+	}
+
+	@Override
+	public void resetQueryTimings() {
+		ProcessorBeans.resetQueryTimings();
+	}
+
+	@Override
+	public void resetUpdateTimings() {
+		ProcessorBeans.resetUpdateTimings();
+	}
+
+	@Override
+	public String getQueryTimings() {
+		return ProcessorBeans.getQueryTimings();
+	}
+
+	@Override
+	public String getUpdateTimings() {
+		return ProcessorBeans.getUpdateTimings();
 	}
 }

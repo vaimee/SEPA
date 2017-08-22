@@ -65,8 +65,6 @@ public abstract class SPU extends Observable implements Runnable {
 		uuid = prefix + UUID.randomUUID().toString();
 		this.subscribe = subscribe;
 		this.queryProcessor = new QueryProcessor(endpoint);
-		
-		//spuData.offer(subscription);
 	}
 	
 	public synchronized void terminate() {
@@ -83,7 +81,6 @@ public abstract class SPU extends Observable implements Runnable {
 	public abstract Notification process(UpdateResponse update);
 	
 	public synchronized void subscriptionCheck(UpdateResponse res) {
-		//subscription.update = res;
 		updateQueue.offer(res);
 		notifyAll();
 	}

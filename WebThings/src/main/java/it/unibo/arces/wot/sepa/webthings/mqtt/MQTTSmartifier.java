@@ -46,13 +46,11 @@ public class MQTTSmartifier implements MqttCallback {
 	
 	private MqttClient mqttClient;
 	private MqttConnectOptions options;
-	
-	private boolean created = false;
 
 	private String serverURI = null;
 	private String[] topicsFilter = { "#" };
 	private boolean sslEnabled = false;
-	private String clientID = "MQTTSmartifier";
+	private String clientID = null;
 
 	//SEPA
 	private SSLSecurityManager sm = new SSLSecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017");
@@ -184,7 +182,7 @@ public class MQTTSmartifier implements MqttCallback {
 			
 			logger.warn("Connecting...");
 			try {
-				mqttClient.connect(options);
+				mqttClient.connect();
 			} catch (MqttException e) {
 				logger.fatal("Failed to connect: "+e.getMessage());
 				continue;
@@ -233,7 +231,7 @@ public class MQTTSmartifier implements MqttCallback {
 	public static void main(String[] args) throws IOException, URISyntaxException, UnrecoverableKeyException,
 			KeyManagementException, InvalidKeyException, IllegalArgumentException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, NoSuchElementException, NullPointerException,
-			ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, MqttException {
 	      
 		if (args.length != 1) {
 			logger.error("Please specify the JSAP file (.jsap)");
@@ -242,56 +240,35 @@ public class MQTTSmartifier implements MqttCallback {
 
 		MQTTSmartifier adapter = new MQTTSmartifier(args[0]);
 
-		if (adapter.start()) {
-			logger.info("Press any key to exit...");
-			System.in.read();
-			adapter.stop();
-			logger.info("Stopped");
-		} else {
-			logger.fatal("NOT running");
-			logger.info("Press any key to exit...");
-			System.in.read();
-		}
+		adapter.start();
+		
+		logger.info("Press any key to exit...");
+		System.in.read();
+		
+		adapter.stop();
+		
+		logger.info("Stopped");	
 	}
 
-	public boolean start() throws KeyManagementException, NoSuchAlgorithmException {
-		try {
-			mqttClient = new MqttClient(serverURI, clientID);
-		} catch (MqttException e) {
-			logger.fatal("Failed to create MQTT client " + e.getMessage());
-			return created;
-		}
-
-		mqttClient.setCallback(this);
+	public void start() throws KeyManagementException, NoSuchAlgorithmException, MqttException {
+		//Create client
+		clientID = MqttClient.generateClientId();
+		mqttClient = new MqttClient(serverURI, clientID);
 		
+		//Connect
 		options = new MqttConnectOptions();
-		if (sslEnabled) {
-			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
-		}
+		if (sslEnabled) options.setSocketFactory(sm.getSSLContext().getSocketFactory());
+		mqttClient.connect(options);	
 		
-		try {
-			mqttClient.connect(options);
-		} catch (MqttException e) {
-			logger.fatal(e.getMessage());
-			return created;
-		}
-
-		try {
-			mqttClient.subscribe(topicsFilter);
-		} catch (MqttException e) {
-			logger.fatal("Failed to subscribe " + e.getMessage());
-			return created;
-		}
+		//Subscribe
+		mqttClient.setCallback(this);
+		mqttClient.subscribe(topicsFilter);
 
 		String topics = "";
 		for (int i = 0; i < topicsFilter.length; i++)
 			topics += "\"" + topicsFilter[i] + "\" ";
 
 		logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topics);
-
-		created = true;
-
-		return created;
 	}
 
 	public void stop() {

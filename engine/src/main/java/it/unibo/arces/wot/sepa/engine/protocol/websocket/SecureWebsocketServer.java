@@ -27,13 +27,13 @@ public class SecureWebsocketServer extends WebsocketServer {
 	private Logger logger = LogManager.getLogger("SecureWebsocketServer");
 
 	@Override
-	protected  String getWelcomeMessage() {
-		return "SECURE Subscribe on: wss://%s:%d%s";
+	protected String getWelcomeMessage() {
+		return "Secure Subscribe     | wss://%s:%d%s";
 	}
-	
-	public SecureWebsocketServer(int port, String path, int keepAlive, Scheduler scheduler, AuthorizationManager oauth)
+
+	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,int keepAlivePeriod)
 			throws IllegalArgumentException, UnknownHostException, KeyManagementException, NoSuchAlgorithmException {
-		super(port, path, keepAlive, scheduler);
+		super(port, path, scheduler,keepAlivePeriod);
 
 		if (oauth == null)
 			throw new IllegalArgumentException("Authorization manager is null");
@@ -46,11 +46,13 @@ public class SecureWebsocketServer extends WebsocketServer {
 	@Override
 	public void onMessage(WebSocket conn, String message) {
 		logger.debug("@onMessage " + message);
-
+		
 		// JWT Validation
 		Response validation = validateToken(message);
 		if (validation.getClass().equals(ErrorResponse.class)) {
 			// Not authorized
+			jmx.onNotAuthorizedRequest();
+			
 			logger.warn("NOT AUTHORIZED");
 			conn.send(validation.toString());
 			return;
@@ -89,20 +91,26 @@ public class SecureWebsocketServer extends WebsocketServer {
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-		// TODO Auto-generated method stub
-
+		super.onClose(conn, code, reason, remote);
 	}
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
-		// TODO Auto-generated method stub
-
+		super.onError(conn, ex);
 	}
 
 	@Override
 	public void onStart() {
-		// TODO Auto-generated method stub
-
+		System.out.println(welcomeMessage);
+		
+		synchronized(this) {
+			notify();
+		}
+	}
+	
+	@Override
+	public String getRequests() {
+		return jmx.getRequests(true);
 	}
 
 }

@@ -1,19 +1,19 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>it.unibo.arces.wot</groupId>
-        <artifactId>sepa</artifactId>
-        <version>0.7.5</version>
-    </parent>
-    <artifactId>engine</artifactId>
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.deploy.skip>true</maven.deploy.skip>
-    </properties>
-    <build>
-        <plugins>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>it.unibo.arces.wot</groupId>
+		<artifactId>sepa</artifactId>
+		<version>0.7.5</version>
+	</parent>
+	<artifactId>engine</artifactId>
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.deploy.skip>true</maven.deploy.skip>
+	</properties>
+	<build>
+		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -28,7 +28,8 @@
 						<configuration>
 							<transformers>
 								<!-- add Main-Class to manifest file -->
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>it.unibo.arces.wot.sepa.engine.core.Engine</mainClass>
 								</transformer>
 							</transformers>
@@ -55,6 +56,8 @@
 			<artifactId>httpcore-nio</artifactId>
 			<version>4.4.6</version>
 		</dependency>
+
+
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -94,12 +97,8 @@
 			<version>2.5</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.glassfish.grizzly/grizzly-websockets-server -->
-		<!--  <dependency>
-			<groupId>org.glassfish.grizzly</groupId>
-			<artifactId>grizzly-websockets-server</artifactId>
-			<version>2.3.30</version>
-		</dependency>
-		-->
+		<!-- <dependency> <groupId>org.glassfish.grizzly</groupId> <artifactId>grizzly-websockets-server</artifactId> 
+			<version>2.3.30</version> </dependency> -->
 		<dependency>
 			<groupId>org.java-websocket</groupId>
 			<artifactId>Java-WebSocket</artifactId>

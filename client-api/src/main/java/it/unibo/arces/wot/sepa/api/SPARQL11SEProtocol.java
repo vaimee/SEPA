@@ -38,15 +38,12 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.ParseException;
-import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
-
-
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import org.apache.logging.log4j.LogManager;
@@ -59,8 +56,6 @@ import com.google.gson.JsonParser;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SPARQL11SEPrimitive;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.QueryResultsFormat;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.SPARQLPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.RegistrationRequest;
@@ -83,23 +78,22 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	private Websocket wsClient;
 	private Websocket wssClient;
 
-	private SSLSecurityManager sm = new SSLSecurityManager("TLSv1","sepa.jks","sepa2017","sepa2017");
-	
 	protected SPARQL11SEProperties properties = null;
 
 	public SPARQL11SEProtocol(SPARQL11SEProperties properties)
 			throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-		this(properties,null, "sepa.jks", "sepa2017");
-	}
-	
-	public SPARQL11SEProtocol(SPARQL11SEProperties properties,INotificationHandler handler)
-			throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-		this(properties,handler, "sepa.jks", "sepa2017");
+		this(properties, null, "sepa.jks", "sepa2017");
 	}
 
-	public SPARQL11SEProtocol(SPARQL11SEProperties properties, INotificationHandler handler,String jksName, String jksPassword)
+	public SPARQL11SEProtocol(SPARQL11SEProperties properties, INotificationHandler handler)
+			throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		this(properties, handler, "sepa.jks", "sepa2017");
+	}
+
+	public SPARQL11SEProtocol(SPARQL11SEProperties properties, INotificationHandler handler, String jksName,
+			String jksPassword)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 		super(properties);
@@ -111,33 +105,12 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 		this.properties = properties;
 
-		// Create secure HTTP client
-		httpclient = sm.getSSLHttpClient();
-
 		// Create WebSocket clients (secure and not)
 		wsClient = new Websocket(
-				"ws://" + properties.getHost() + ":" + properties.getWsPort() + properties.getSubscribePath(), false,handler);
+				"ws://" + properties.getHost() + ":" + properties.getWsPort() + properties.getSubscribePath(), false,
+				handler);
 		wssClient = new Websocket("wss://" + properties.getHost() + ":" + properties.getWssPort()
-				+ properties.getSecurePath() + properties.getSubscribePath(), true,handler);
-
-		// HTTP response handler
-		responseHandler = new ResponseHandler<String>() {
-			@Override
-			public String handleResponse(final HttpResponse response) {
-				String body = null;
-
-				HttpEntity entity = response.getEntity();
-
-				try {
-					body = EntityUtils.toString(entity, Charset.forName("UTF-8"));
-				} catch (ParseException e) {
-					body = e.getMessage();
-				} catch (IOException e) {
-					body = e.getMessage();
-				}
-				return body;
-			}
-		};
+				+ properties.getSecurePath() + properties.getSubscribePath(), true, handler);
 	}
 
 	// SPARQL 1.1 Update Primitive
@@ -155,14 +128,17 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	// SPARQL 1.1 SE Subscribe Primitive
 	public Response subscribe(SubscribeRequest request)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug(request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SUBSCRIBE, request);
 	}
 
 	// SPARQL 1.1 SE Unsubscribe Primitive
-	public Response unsubscribe(UnsubscribeRequest request) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	public Response unsubscribe(UnsubscribeRequest request)
+			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug(request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.UNSUBSCRIBE, request);
 	}
@@ -170,7 +146,8 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	// SPARQL 1.1 SE SECURE Subscribe Primitive
 	public Response secureSubscribe(SubscribeRequest request)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("SECURE " + request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SECURESUBSCRIBE, request);
 	}
@@ -178,47 +155,58 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	// SPARQL 1.1 SE SECURE Unsubscribe Primitive
 	public Response secureUnsubscribe(UnsubscribeRequest request)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("SECURE " + request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SECUREUNSUBSCRIBE, request);
 	}
 
 	// SPARQL 1.1 SE SECURE Update Primitive
-	public Response secureUpdate(UpdateRequest request) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	public Response secureUpdate(UpdateRequest request)
+			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("SECURE " + request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SECUREUPDATE, request);
 	}
 
 	// SPARQL 1.1 SE SECURE Query Primitive
-	public Response secureQuery(QueryRequest request) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	public Response secureQuery(QueryRequest request)
+			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("SECURE " + request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SECUREQUERY, request);
 	}
 
 	// Registration to the Authorization Server (AS)
-	public Response register(String identity) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	public Response register(String identity)
+			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("REGISTER " + identity);
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.REGISTER, identity);
 	}
 
 	// Token request to the Authorization Server (AS)
-	public Response requestToken() throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	public Response requestToken()
+			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.REQUESTTOKEN);
 	}
 
 	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
+			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		return executeSPARQL11SEPrimitive(op, null);
 	}
 
 	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op, Object request)
-			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+			throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
+			CertificateException, IOException, URISyntaxException, InterruptedException, InvalidKeyException,
+			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		// Create the HTTPS request
 		URI uri;
 		String path = null;
@@ -321,68 +309,37 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		logger.debug("Request: " + httpRequest);
 
 		// HTTP request execution
-		String response = null;
+		final CloseableHttpClient httpclient = new SSLSecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017")
+				.getSSLHttpClient();
+		CloseableHttpResponse response = null;
+		String jsonResponse = null;
 
-		long timing = System.nanoTime();
+		try {
+			long timing = System.nanoTime();
 
-		response = httpclient.execute(httpRequest, responseHandler);
+			response = httpclient.execute(httpRequest);
 
-		timing = System.nanoTime() - timing;
+			timing = System.nanoTime() - timing;
 
-		if (op.equals(SPARQL11SEPrimitive.REGISTER))
-			logger.info("REGISTER " + timing / 1000000 + " ms");
-		else if (op.equals(SPARQL11SEPrimitive.REQUESTTOKEN))
-			logger.info("TOKEN " + timing / 1000000 + " ms");
-		else if (op.equals(SPARQL11SEPrimitive.SECUREQUERY))
-			logger.info("SECURE_QUERY " + timing / 1000000 + " ms");
-		else if (op.equals(SPARQL11SEPrimitive.SECUREUPDATE))
-			logger.info("SECURE_UPDATE " + timing / 1000000 + " ms");
+			logger.debug("Response: " + response);
+			if (op.equals(SPARQL11SEPrimitive.REGISTER))
+				logger.info("REGISTER " + timing / 1000000 + " ms");
+			else if (op.equals(SPARQL11SEPrimitive.REQUESTTOKEN))
+				logger.info("TOKEN " + timing / 1000000 + " ms");
+			else if (op.equals(SPARQL11SEPrimitive.SECUREQUERY))
+				logger.info("SECURE_QUERY " + timing / 1000000 + " ms");
+			else if (op.equals(SPARQL11SEPrimitive.SECUREUPDATE))
+				logger.info("SECURE_UPDATE " + timing / 1000000 + " ms");
 
-		logger.debug(response);
+			HttpEntity entity = response.getEntity();
+			jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
+			EntityUtils.consume(entity);
+		} finally {
+			response.close();
+		}
 
 		// Parsing the response
-		return parseSPARQL11SEResponse(response, op);
-	}
-
-	/**
-	 * Parse SPARQL 1.1 Query and Update
-	 * 
-	 * Update and error responses are serialized as JSON objects:
-	 * 
-	 * {"code": HTTP Return Code, "body": "Message body"}
-	 */
-
-	@Override
-	protected Response parseEndpointResponse(int token, String jsonResponse, SPARQLPrimitive op,
-			QueryResultsFormat format) {
-		if (token != -1)
-			logger.debug("Parse endpoint response #" + token + " " + jsonResponse);
-		else
-			logger.debug("Parse endpoint response " + jsonResponse);
-
-		JsonObject json = null;
-		try {
-			json = new JsonParser().parse(jsonResponse).getAsJsonObject();
-		} catch (JsonParseException | IllegalStateException e) {
-			// An update response is not forced to be JSON
-			if (op.equals(SPARQLPrimitive.UPDATE))
-				return new UpdateResponse(token, jsonResponse);
-
-			logger.error(e.getMessage());
-			return new ErrorResponse(token, HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-		}
-
-		if (json.get("code") != null) {
-			if (json.get("code").getAsInt() >= 400)
-				return new ErrorResponse(token, json.get("code").getAsInt(), json.get("body").getAsString());
-		}
-
-		if (op.equals(SPARQLPrimitive.UPDATE))
-			return new UpdateResponse(token, json.get("body").getAsString());
-		if (op.equals(SPARQLPrimitive.QUERY))
-			return new QueryResponse(token, json);
-
-		return new ErrorResponse(token, HttpStatus.SC_INTERNAL_SERVER_ERROR, jsonResponse);
+		return parseSPARQL11SEResponse(jsonResponse, op);
 	}
 
 	protected Response parseSPARQL11SEResponse(String response, SPARQL11SEPrimitive op) throws InvalidKeyException,
@@ -453,7 +410,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			logger.fatal("Notification handler is null. Client cannot be initialized");
 			throw new IllegalArgumentException("Notificaton handler is null");
 		}
-		
+
 		wsClient.setNotificationHandler(handler);
 		wssClient.setNotificationHandler(handler);
 	}
