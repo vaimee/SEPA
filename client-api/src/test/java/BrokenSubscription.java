@@ -86,6 +86,7 @@ public class BrokenSubscription extends Thread implements INotificationHandler {
 			KeyManagementException, KeyStoreException, CertificateException, URISyntaxException, InterruptedException {
 		SPARQL11SEProperties properties = new SPARQL11SEProperties("test.jpar");
 		client = new SPARQL11SEProtocol(properties, this);
+		this.setName("SEPA Broken subscription");
 	}
 
 	@Override

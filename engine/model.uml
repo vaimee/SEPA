@@ -1,0 +1,1122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xmi:XMI xmi:version="20131001" xmlns:xmi="http://www.omg.org/spec/XMI/20131001" xmlns:PapyrusJava="http://www.eclipse.org/papyrus/PapyrusJava/1" xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:uml="http://www.eclipse.org/uml2/5.0.0/UML">
+  <uml:Model xmi:id="_Hth0QHwcEeeVeLfqA8A3TQ" name="SEPAEngin">
+    <packagedElement xmi:type="uml:Activity" xmi:id="_Hx5W4HwcEeeVeLfqA8A3TQ" name="Activity1"/>
+    <packagedElement xmi:type="uml:Interaction" xmi:id="_HyzV0HwcEeeVeLfqA8A3TQ" name="Interaction1"/>
+    <packagedElement xmi:type="uml:Package" xmi:id="_3rSNwHwdEeejctaAm7VITQ" name="engine">
+      <packagedElement xmi:type="uml:Package" xmi:id="_3yKR0HwdEeejctaAm7VITQ" name="it">
+        <packagedElement xmi:type="uml:Package" xmi:id="_3yLf8HwdEeejctaAm7VITQ" name="unibo">
+          <packagedElement xmi:type="uml:Package" xmi:id="_3yMHAHwdEeejctaAm7VITQ" name="arces">
+            <packagedElement xmi:type="uml:Package" xmi:id="_3yMHAXwdEeejctaAm7VITQ" name="wot">
+              <packagedElement xmi:type="uml:Package" xmi:id="_3yMuEHwdEeejctaAm7VITQ" name="sepa">
+                <packagedElement xmi:type="uml:Package" xmi:id="_3yN8MHwdEeejctaAm7VITQ" name="engine">
+                  <packagedElement xmi:type="uml:Package" xmi:id="_3yPxYHwdEeejctaAm7VITQ" name="bean"/>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_36z3gHwdEeejctaAm7VITQ" name="core">
+                    <packagedElement xmi:type="uml:Class" xmi:id="_3_xQAHwdEeejctaAm7VITQ" name="IllegalArgumentException"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4ABusHwdEeejctaAm7VITQ" name="IllegalStateException"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4AGnMHwdEeejctaAm7VITQ" name="ClassCastException"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_48f50HwkEeejctaAm7VITQ" name="Engine" visibility="public">
+                      <generalization xmi:type="uml:Generalization" xmi:id="_48hH8HwkEeejctaAm7VITQ" general="_361ssHwdEeejctaAm7VITQ"/>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_48vxcHwkEeejctaAm7VITQ" name="scheduler" visibility="private" type="_48suIHwkEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_48vxcXwkEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>null</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_48zb0XwkEeejctaAm7VITQ" name="processor" visibility="private" type="_48wYgXwkEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_480C4HwkEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>null</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_483tQXwkEeejctaAm7VITQ" name="httpGate" visibility="private" type="_480p8XwkEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_484UUHwkEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>null</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_484UUXwkEeejctaAm7VITQ" name="httpGateThread" visibility="private" type="_361ssHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_4847YHwkEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>null</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_489M0HwkEeejctaAm7VITQ" name="wsServer" visibility="private" type="_4847YnwkEeejctaAm7VITQ" isUnique="false"/>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_49BeQHwkEeejctaAm7VITQ" name="wssServer" visibility="private" type="_489z4HwkEeejctaAm7VITQ" isUnique="false"/>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_49EhkHwkEeejctaAm7VITQ" name="httpsGate" visibility="private" type="_49CFUHwkEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_49EhkXwkEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>null</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_49FIoHwkEeejctaAm7VITQ" name="httpsGateThread" visibility="private" type="_361ssHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_49FIoXwkEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>null</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_49IzAHwkEeejctaAm7VITQ" name="oauth" visibility="private" isStatic="true" type="_49FvsHwkEeejctaAm7VITQ" isUnique="false"/>
+                      <interfaceRealization xmi:type="uml:InterfaceRealization" xmi:id="_48kyUHwkEeejctaAm7VITQ" name="Engine implements EngineMBean" client="_48f50HwkEeejctaAm7VITQ" supplier="_48hH8XwkEeejctaAm7VITQ" contract="_48hH8XwkEeejctaAm7VITQ"/>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_49NEcHwkEeejctaAm7VITQ" name="printUsage">
+                        <language>JAVA</language>
+                        <body>
+    System.out.println(&quot;Usage:&quot;);
+    System.out.println(&quot;java [JMX] -jar sepa-engine.jar [OPTIONS]&quot;);
+    System.out.println(&quot;&quot;);
+    System.out.println(&quot;JMX:&quot;);
+    System.out.println(&quot;-Dcom.sun.management.config.file=jmx.properties : to enable JMX remote managment&quot;);
+    System.out.println(&quot;OPTIONS:&quot;);
+    System.out.println(&quot;-help : to print this help&quot;);
+    System.out.println(&quot;-storename=&lt;name> : file name of the JKS     (default: sepa.jks)&quot;);
+    System.out.println(&quot;-storepwd=&lt;pwd> : password of the JKS        (default: sepa2017)&quot;);
+    System.out.println(&quot;-alias=&lt;jwt> : alias for the JWT key      	 (default: sepakey)&quot;);
+    System.out.println(&quot;-aliaspwd=&lt;pwd> : password of the JWT key    (default: sepa2017)&quot;);
+    System.out.println(&quot;-certificate=&lt;crt> : name of the certificate (default: sepacert)&quot;);
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_49PgsHwkEeejctaAm7VITQ" name="parsingArgument">
+                        <language>JAVA</language>
+                        <body>
+    String[] tmp;
+    for (String arg : args) {
+        if (arg.equals(&quot;-help&quot;)) {
+            printUsage();
+            return;
+        }
+        if (arg.startsWith(&quot;-&quot;)) {
+            tmp = arg.split(&quot;=&quot;);
+            switch(tmp[0]) {
+                case &quot;-storename&quot;:
+                    storeName = tmp[1];
+                    break;
+                case &quot;-storepwd&quot;:
+                    storePassword = tmp[1];
+                    break;
+                case &quot;-alias&quot;:
+                    jwtAlias = tmp[1];
+                    break;
+                case &quot;-aliaspwd&quot;:
+                    jwtPassword = tmp[1];
+                    break;
+                case &quot;-certificate&quot;:
+                    serverCertificate = tmp[1];
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_49Qu0HwkEeejctaAm7VITQ" name="main">
+                        <language>JAVA</language>
+                        <body>
+    // Set Grizzly logging level
+    java.util.logging.Logger grizzlyNetworkListener = java.util.logging.Logger.getLogger(&quot;org.glassfish.grizzly.http.server.NetworkListener&quot;);
+    java.util.logging.Logger grizzlyHttpServer = java.util.logging.Logger.getLogger(&quot;org.glassfish.grizzly.http.server.HttpServer&quot;);
+    grizzlyNetworkListener.setLevel(Level.SEVERE);
+    grizzlyHttpServer.setLevel(Level.SEVERE);
+    // Command arguments
+    parsingArgument(args);
+    System.out.println(&quot;##########################################################################################&quot;);
+    System.out.println(&quot;# SEPA Engine Ver 0.7.6  Copyright (C) 2016-2017                                         #&quot;);
+    System.out.println(&quot;# Web of Things Research @ ARCES - University of Bologna (Italy)                         #&quot;);
+    System.out.println(&quot;#                                                                                        #&quot;);
+    System.out.println(&quot;# This program comes with ABSOLUTELY NO WARRANTY                                         #&quot;);
+    System.out.println(&quot;# This is free software, and you are welcome to redistribute it under certain conditions #&quot;);
+    System.out.println(&quot;# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #&quot;);
+    System.out.println(&quot;#                                                                                        #&quot;);
+    System.out.println(&quot;# GITHUB: https://github.com/arces-wot/sepa                                              #&quot;);
+    System.out.println(&quot;# WEB: http://wot.arces.unibo.it                                                         #&quot;);
+    System.out.println(&quot;# WIKI: https: // github.com/arces-wot/SEPA/wiki                                         #&quot;);
+    System.out.println(&quot;##########################################################################################&quot;);
+    System.out.println(&quot;&quot;);
+    System.out.println(&quot;--------------------------------- Maven dependencies -------------------------------------&quot;);
+    System.out.println(&quot;&lt;!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->&quot; + &quot;\n&lt;!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->&quot; + &quot;\n&lt;!-- https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket -->&quot; + &quot;\n&lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->&quot; + &quot;\n&lt;!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->&quot; + &quot;\n&lt;!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->&quot; + &quot;\n&lt;!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->&quot; + &quot;\n&lt;!-- https://mvnrepository.com/artifact/commons-io/commons-io -->&quot;);
+    // Engine creation and initialization
+    Engine engine = new Engine();
+    // OAUTH 2.0 Authorization Manager
+    try {
+        oauth = new AuthorizationManager(storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
+    } catch (UnrecoverableKeyExceptionKeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | JOSEException |  e1) {
+        logger.fatal(e1.getLocalizedMessage());
+        System.exit(1);
+    }
+    // Initialize
+    try {
+        if (!engine.init())
+            System.exit(1);
+    } catch (MalformedObjectNameExceptionInstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException | UnrecoverableKeyException | KeyManagementException | IllegalArgumentException | NoSuchElementException | KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | NullPointerException | ClassCastException |  e) {
+        logger.fatal(e.getMessage());
+        System.exit(1);
+    }
+    // Starting main engine thread
+    engine.start();
+    // Welcome message
+    System.out.println(&quot;&quot;);
+    System.out.println(&quot;*****************************************************************************************&quot;);
+    System.out.println(&quot;*                      SEPA Engine Ver 0.7.6 is up and running                          *&quot;);
+    System.out.println(&quot;*                                 Let Things Talk                                       *&quot;);
+    System.out.println(&quot;*****************************************************************************************&quot;);
+    // Attach CTRL+C hook
+    Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(engine));
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_49UZMHwkEeejctaAm7VITQ" name="Engine">
+                        <language>JAVA</language>
+                        <body>
+    SEPABeans.registerMBean(&quot;SEPA:type=Engine&quot;, this);
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_49VAQXwkEeejctaAm7VITQ" name="run" specification="_49VAQHwkEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    logger.info(&quot;Starting...&quot;);
+    setName(&quot;SEPA Engine&quot;);
+    startDate = new Date();
+    // Scheduler
+    scheduler.start();
+    // SPARQL 1.1 Protocol handler
+    httpGateThread = new Thread(httpGate);
+    httpGateThread.start();
+    // SPARQL 1.1 SE Protocol handler
+    httpsGateThread = new Thread(httpsGate);
+    httpsGateThread.start();
+    wsServer.start();
+    wssServer.start();
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_49VnUXwkEeejctaAm7VITQ" name="shutdown" specification="_49VnUHwkEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    logger.info(&quot;Stopping...&quot;);
+    logger.info(&quot;Stopping scheduler...&quot;);
+    scheduler.interrupt();
+    logger.info(&quot;Stopping HTTP gate...&quot;);
+    httpGate.shutdown();
+    logger.info(&quot;Stopping HTTPS gate...&quot;);
+    httpsGate.shutdown();
+    try {
+        logger.info(&quot;Stopping WS gate...&quot;);
+        wsServer.stop(wsShutdownTimeout);
+    } catch (InterruptedException e) {
+        logger.warn(e.getMessage());
+    }
+    try {
+        logger.info(&quot;Stopping WSS gate...&quot;);
+        wssServer.stop(wsShutdownTimeout);
+    } catch (InterruptedException e) {
+        logger.warn(e.getMessage());
+    }
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_49YDkHwkEeejctaAm7VITQ" name="init" specification="_49WOYHwkEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    // Initialize SPARQL 1.1 processing service properties
+    boolean propertiesFound = true;
+    try {
+        endpointProperties = new SPARQL11Properties(&quot;endpoint.jpar&quot;);
+    } catch (NumberFormatExceptionInvalidKeyException | NoSuchElementException | NullPointerException | ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | IOException |  e) {
+        logger.warn(&quot;Open and modify JPAR file and run again the engine&quot;);
+        propertiesFound = false;
+    }
+    // Initialize SPARQL 1.1 SE processing service properties
+    try {
+        engineProperties = new EngineProperties(&quot;engine.jpar&quot;);
+    } catch (IllegalArgumentExceptionNoSuchElementException | IOException |  e) {
+        logger.warn(&quot;Open and modify JPAR file and run again the engine&quot;);
+        propertiesFound = false;
+    }
+    if (!propertiesFound)
+        return false;
+    // SPARQL 1.1 SE request processor
+    processor = new Processor(endpointProperties);
+    // SPARQL 1.1 SE request scheduler
+    scheduler = new Scheduler(engineProperties, processor);
+    // SPARQL 1.1 Protocol
+    System.out.println(&quot;---------- SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)  ---------------&quot;);
+    httpGate = new HttpServer(engineProperties, scheduler);
+    // SPARQL 1.1 SE Protocol
+    System.out.println(&quot;&quot;);
+    System.out.println(&quot;------ SPARQL SE 1.1 Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)  -----&quot;);
+    wsServer = new WebsocketServer(engineProperties.getWsPort(), engineProperties.getSubscribePath(), engineProperties.getKeepAlivePeriod(), scheduler);
+    httpsGate = new HttpsServer(engineProperties, scheduler, oauth);
+    wssServer = new SecureWebsocketServer(engineProperties.getWssPort(), engineProperties.getSecurePath() + engineProperties.getSubscribePath(), engineProperties.getKeepAlivePeriod(), scheduler, oauth);
+    return true;
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_49ZRsHwkEeejctaAm7VITQ" name="getStartDate">
+                        <language>JAVA</language>
+                        <body>
+    return startDate;
+</body>
+                      </ownedBehavior>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_49VAQHwkEeejctaAm7VITQ" name="run" visibility="public" method="_49VAQXwkEeejctaAm7VITQ"/>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_49VnUHwkEeejctaAm7VITQ" name="shutdown" visibility="public" method="_49VnUXwkEeejctaAm7VITQ"/>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_49WOYHwkEeejctaAm7VITQ" name="init" visibility="public" method="_49YDkHwkEeejctaAm7VITQ" raisedException="_3-ZXAHwdEeejctaAm7VITQ _3-ePgHwdEeejctaAm7VITQ _3-jvEHwdEeejctaAm7VITQ _3-pOoHwdEeejctaAm7VITQ _3-vVQHwdEeejctaAm7VITQ _3-000HwdEeejctaAm7VITQ _3-6UYHwdEeejctaAm7VITQ _3-_z8HwdEeejctaAm7VITQ _3_GhoHwdEeejctaAm7VITQ _3_MoQHwdEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_49WOYXwkEeejctaAm7VITQ" direction="return">
+                          <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_vAIV4I7PEdySGvm5GN66HA"/>
+                        </ownedParameter>
+                      </ownedOperation>
+                    </packagedElement>
+                    <packagedElement xmi:type="uml:Interface" xmi:id="_48hH8XwkEeejctaAm7VITQ" name="EngineMBean"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_48mngXwkEeejctaAm7VITQ" name="EngineProperties"/>
+                  </packagedElement>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_380psHwdEeejctaAm7VITQ" name="scheduling">
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4QqywHwdEeejctaAm7VITQ" name="IllegalArgumentException"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_1ZLuoHwlEeejctaAm7VITQ" name="Scheduler" visibility="public">
+                      <generalization xmi:type="uml:Generalization" xmi:id="_1ZMVsHwlEeejctaAm7VITQ" general="_361ssHwdEeejctaAm7VITQ"/>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_1ZURgHwlEeejctaAm7VITQ" name="requestHandler" visibility="private" type="_1ZROMHwlEeejctaAm7VITQ" isUnique="false"/>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_1ZX74HwlEeejctaAm7VITQ" name="tokenHandler" visibility="private" type="_1ZURgXwlEeejctaAm7VITQ" isUnique="false"/>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_1ZYi8HwlEeejctaAm7VITQ" name="processor" visibility="private" type="_48wYgXwkEeejctaAm7VITQ" isUnique="false"/>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_1ZYi8XwlEeejctaAm7VITQ" name="updateScheduler" visibility="private" type="__3DVUHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_1ZYi8nwlEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new UpdateScheduler()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_1ZZKAHwlEeejctaAm7VITQ" name="subscribeScheduler" visibility="private" type="__3G_sHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_1ZZKAXwlEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new SubscribeScheduler()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_1ZZxEHwlEeejctaAm7VITQ" name="unsubscribeScheduler" visibility="private" type="__3KDAXwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_1ZZxEXwlEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new UnsubscribeScheduler()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_1ZaYIHwlEeejctaAm7VITQ" name="queryScheduler" visibility="private" type="__3NtYHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_1ZaYIXwlEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new QueryScheduler()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <interfaceRealization xmi:type="uml:InterfaceRealization" xmi:id="_1ZMVsXwlEeejctaAm7VITQ" name="Scheduler implements Observer" client="_1ZLuoHwlEeejctaAm7VITQ" supplier="_4BfuUXwdEeejctaAm7VITQ" contract="_4BfuUXwdEeejctaAm7VITQ"/>
+                      <interfaceRealization xmi:type="uml:InterfaceRealization" xmi:id="_1ZQAEHwlEeejctaAm7VITQ" name="Scheduler implements SchedulerInterface" client="_1ZLuoHwlEeejctaAm7VITQ" supplier="_1ZMVsnwlEeejctaAm7VITQ" contract="_1ZMVsnwlEeejctaAm7VITQ"/>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZhF0HwlEeejctaAm7VITQ" name="Scheduler">
+                        <language>JAVA</language>
+                        <body>
+    if (properties == null) {
+        logger.error(&quot;Properties are null&quot;);
+        throw new IllegalArgumentException(&quot;Properties are null&quot;);
+    }
+    if (processor == null) {
+        logger.error(&quot;Processor is null&quot;);
+        throw new IllegalArgumentException(&quot;Processor is null&quot;);
+    }
+    requestHandler = new RequestResponseHandler(properties);
+    tokenHandler = new TokenHandler(properties);
+    this.processor = processor;
+    this.processor.addObserver(this);
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZnMcnwlEeejctaAm7VITQ" name="start" specification="_1ZnMcXwlEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    this.setName(&quot;SEPA Scheduler&quot;);
+    updateScheduler.start();
+    subscribeScheduler.start();
+    unsubscribeScheduler.start();
+    queryScheduler.start();
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZpBoHwlEeejctaAm7VITQ" name="update" specification="_1ZnzgHwlEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    //Notification
+    if (arg.getClass().equals(Notification.class)) {
+        Notification notify = (Notification) arg;
+        requestHandler.addNotification(notify);
+        logger.debug(&quot;&lt;&lt; NOTIFICATION &quot; + notify.toString());
+    } else //Query response
+    if (arg.getClass().equals(QueryResponse.class)) {
+        QueryResponse query = (QueryResponse) arg;
+        requestHandler.addResponse(query);
+        logger.debug(&quot;&lt;&lt; QUERY RESPONSE #&quot; + query.getToken() + &quot; &quot; + query.toString());
+    } else //Update response
+    if (arg.getClass().equals(UpdateResponse.class)) {
+        UpdateResponse update = (UpdateResponse) arg;
+        requestHandler.addResponse(update);
+        logger.debug(&quot;&lt;&lt; UPDATE RESPONSE #&quot; + update.getToken() + &quot; &quot; + update.toString());
+    } else //Subscribe response
+    if (arg.getClass().equals(SubscribeResponse.class)) {
+        SubscribeResponse subscribe = (SubscribeResponse) arg;
+        requestHandler.addResponse(subscribe);
+        logger.debug(&quot;&lt;&lt; SUBSCRIBE RESPONSE #&quot; + subscribe.getToken() + &quot; &quot; + subscribe.toString());
+    } else //Unsubscribe response
+    if (arg.getClass().equals(UnsubscribeResponse.class)) {
+        UnsubscribeResponse unsubscribe = (UnsubscribeResponse) arg;
+        requestHandler.addResponse(unsubscribe);
+        logger.debug(&quot;&lt;&lt; UNSUBSCRIBE RESPONSE #&quot; + unsubscribe.getToken() + &quot; &quot; + unsubscribe.toString());
+    } else //Error response
+    if (arg.getClass().equals(ErrorResponse.class)) {
+        ErrorResponse error = (ErrorResponse) arg;
+        requestHandler.addResponse(error);
+        logger.error(&quot;&lt;&lt; ERROR #&quot; + error.getToken() + &quot; &quot; + error.toString());
+    } else {
+        logger.warn(&quot;&lt;&lt; Unknown response: &quot; + arg.toString());
+    }
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZposnwlEeejctaAm7VITQ" name="getToken" specification="_1ZposHwlEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    return tokenHandler.getToken();
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZuhMXwlEeejctaAm7VITQ" name="addRequest" specification="_1Zt6IHwlEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    requestHandler.addRequest(request, listener);
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZvvUXwlEeejctaAm7VITQ" name="releaseToken" specification="_1ZvIQHwlEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    if (token == -1)
+        return;
+    tokenHandler.releaseToken(token);
+</body>
+                      </ownedBehavior>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZnMcXwlEeejctaAm7VITQ" name="start" visibility="public" method="_1ZnMcnwlEeejctaAm7VITQ"/>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZnzgHwlEeejctaAm7VITQ" name="update" visibility="public" method="_1ZpBoHwlEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_1ZoakHwlEeejctaAm7VITQ" name="o" type="_4Ba10HwdEeejctaAm7VITQ"/>
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_1ZoakXwlEeejctaAm7VITQ" name="arg" type="_36KXQHwdEeejctaAm7VITQ"/>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZposHwlEeejctaAm7VITQ" name="getToken" visibility="public" method="_1ZposnwlEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_1ZposXwlEeejctaAm7VITQ" direction="return">
+                          <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_7wRIABydEduyofBvg4RL2w"/>
+                        </ownedParameter>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_1Zt6IHwlEeejctaAm7VITQ" name="addRequest" visibility="public" method="_1ZuhMXwlEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_1Zt6IXwlEeejctaAm7VITQ" name="request" type="_4HbXMHwdEeejctaAm7VITQ"/>
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_1ZuhMHwlEeejctaAm7VITQ" name="listener" type="_1ZqPwHwlEeejctaAm7VITQ"/>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZvIQHwlEeejctaAm7VITQ" name="releaseToken" visibility="public" method="_1ZvvUXwlEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_1ZvvUHwlEeejctaAm7VITQ" name="token">
+                          <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_7wRIABydEduyofBvg4RL2w"/>
+                        </ownedParameter>
+                      </ownedOperation>
+                      <nestedClassifier xmi:type="uml:Class" xmi:id="__3DVUHwdEeejctaAm7VITQ" name="UpdateScheduler" visibility="private">
+                        <generalization xmi:type="uml:Generalization" xmi:id="_1Zhs4HwlEeejctaAm7VITQ" general="_361ssHwdEeejctaAm7VITQ"/>
+                        <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZiT8HwlEeejctaAm7VITQ" name="run" specification="_1Zhs4XwlEeejctaAm7VITQ">
+                          <language>JAVA</language>
+                          <body>
+    while (running) {
+        UpdateRequest req = requestHandler.waitUpdateRequest();
+        //Process UPDATE
+        logger.debug(&quot;>> &quot; + req.toString());
+        processor.processUpdate(req);
+    }
+</body>
+                        </ownedBehavior>
+                        <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZiT8nwlEeejctaAm7VITQ" name="start" specification="_1ZiT8XwlEeejctaAm7VITQ">
+                          <language>JAVA</language>
+                          <body>
+    this.setName(&quot;Update Scheduler&quot;);
+    super.start();
+</body>
+                        </ownedBehavior>
+                        <ownedOperation xmi:type="uml:Operation" xmi:id="_1Zhs4XwlEeejctaAm7VITQ" name="run" visibility="public" method="_1ZiT8HwlEeejctaAm7VITQ"/>
+                        <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZiT8XwlEeejctaAm7VITQ" name="start" visibility="public" method="_1ZiT8nwlEeejctaAm7VITQ"/>
+                      </nestedClassifier>
+                      <nestedClassifier xmi:type="uml:Class" xmi:id="__3NtYHwdEeejctaAm7VITQ" name="QueryScheduler" visibility="private">
+                        <generalization xmi:type="uml:Generalization" xmi:id="_1Zi7AHwlEeejctaAm7VITQ" general="_361ssHwdEeejctaAm7VITQ"/>
+                        <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZjiEXwlEeejctaAm7VITQ" name="run" specification="_1ZjiEHwlEeejctaAm7VITQ">
+                          <language>JAVA</language>
+                          <body>
+    while (running) {
+        QueryRequest req = requestHandler.waitQueryRequest();
+        //Process QUERY
+        logger.debug(&quot;>> &quot; + req.toString());
+        processor.processQuery(req);
+    }
+</body>
+                        </ownedBehavior>
+                        <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZjiE3wlEeejctaAm7VITQ" name="start" specification="_1ZjiEnwlEeejctaAm7VITQ">
+                          <language>JAVA</language>
+                          <body>
+    this.setName(&quot;Query Scheduler&quot;);
+    super.start();
+</body>
+                        </ownedBehavior>
+                        <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZjiEHwlEeejctaAm7VITQ" name="run" visibility="public" method="_1ZjiEXwlEeejctaAm7VITQ"/>
+                        <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZjiEnwlEeejctaAm7VITQ" name="start" visibility="public" method="_1ZjiE3wlEeejctaAm7VITQ"/>
+                      </nestedClassifier>
+                      <nestedClassifier xmi:type="uml:Class" xmi:id="__3G_sHwdEeejctaAm7VITQ" name="SubscribeScheduler" visibility="private">
+                        <generalization xmi:type="uml:Generalization" xmi:id="_1ZkJIHwlEeejctaAm7VITQ" general="_361ssHwdEeejctaAm7VITQ"/>
+                        <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZkwMHwlEeejctaAm7VITQ" name="run" specification="_1ZkJIXwlEeejctaAm7VITQ">
+                          <language>JAVA</language>
+                          <body>
+    while (running) {
+        SubscribeRequest req = requestHandler.waitSubscribeRequest();
+        //Process SUBSCRIBE
+        logger.debug(&quot;>> &quot; + req.toString());
+        processor.processSubscribe(req);
+    }
+</body>
+                        </ownedBehavior>
+                        <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZkwMnwlEeejctaAm7VITQ" name="start" specification="_1ZkwMXwlEeejctaAm7VITQ">
+                          <language>JAVA</language>
+                          <body>
+    this.setName(&quot;Subscribe Scheduler&quot;);
+    super.start();
+</body>
+                        </ownedBehavior>
+                        <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZkJIXwlEeejctaAm7VITQ" name="run" visibility="public" method="_1ZkwMHwlEeejctaAm7VITQ"/>
+                        <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZkwMXwlEeejctaAm7VITQ" name="start" visibility="public" method="_1ZkwMnwlEeejctaAm7VITQ"/>
+                      </nestedClassifier>
+                      <nestedClassifier xmi:type="uml:Class" xmi:id="__3KDAXwdEeejctaAm7VITQ" name="UnsubscribeScheduler" visibility="private">
+                        <generalization xmi:type="uml:Generalization" xmi:id="_1Zl-UHwlEeejctaAm7VITQ" general="_361ssHwdEeejctaAm7VITQ"/>
+                        <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZmlYHwlEeejctaAm7VITQ" name="run" specification="_1Zl-UXwlEeejctaAm7VITQ">
+                          <language>JAVA</language>
+                          <body>
+    while (running) {
+        UnsubscribeRequest req = requestHandler.waitUnsubscribeRequest();
+        //Process UNSUBSCRIBE
+        logger.debug(&quot;>> &quot; + req.toString());
+        processor.processUnsubscribe(req);
+    }
+</body>
+                        </ownedBehavior>
+                        <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_1ZnMcHwlEeejctaAm7VITQ" name="start" specification="_1ZmlYXwlEeejctaAm7VITQ">
+                          <language>JAVA</language>
+                          <body>
+    this.setName(&quot;Unsubscribe Scheduler&quot;);
+    super.start();
+</body>
+                        </ownedBehavior>
+                        <ownedOperation xmi:type="uml:Operation" xmi:id="_1Zl-UXwlEeejctaAm7VITQ" name="run" visibility="public" method="_1ZmlYHwlEeejctaAm7VITQ"/>
+                        <ownedOperation xmi:type="uml:Operation" xmi:id="_1ZmlYXwlEeejctaAm7VITQ" name="start" visibility="public" method="_1ZnMcHwlEeejctaAm7VITQ"/>
+                      </nestedClassifier>
+                    </packagedElement>
+                    <packagedElement xmi:type="uml:Interface" xmi:id="_1ZMVsnwlEeejctaAm7VITQ" name="SchedulerInterface"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_1ZROMHwlEeejctaAm7VITQ" name="RequestResponseHandler" visibility="public">
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_QzS6YHwmEeejctaAm7VITQ" name="updateRequestQueue" visibility="private" type="_4Ci3MHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_QzS6YXwmEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new ConcurrentLinkedQueue&lt;UpdateRequest>()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_QzThcHwmEeejctaAm7VITQ" name="subscribeRequestQueue" visibility="private" type="_4Ci3MHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_QzThcXwmEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new ConcurrentLinkedQueue&lt;SubscribeRequest>()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_QzUIgHwmEeejctaAm7VITQ" name="queryRequestQueue" visibility="private" type="_4Ci3MHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_QzUIgXwmEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new ConcurrentLinkedQueue&lt;QueryRequest>()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_QzUIgnwmEeejctaAm7VITQ" name="unsubscribeRequestQueue" visibility="private" type="_4Ci3MHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_QzUvkHwmEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new ConcurrentLinkedQueue&lt;UnsubscribeRequest>()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_QzUvkXwmEeejctaAm7VITQ" name="updateResponseQueue" visibility="private" type="_4Ci3MHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_QzVWoHwmEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new ConcurrentLinkedQueue&lt;UpdateResponse>()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_QzVWoXwmEeejctaAm7VITQ" name="responseListeners" visibility="private" type="_4EcUoHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_QzV9sHwmEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new HashMap&lt;Integer, ResponseAndNotificationListener>()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_QzV9sXwmEeejctaAm7VITQ" name="subscribers" visibility="private" type="_4EcUoHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_QzWkwHwmEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new HashMap&lt;String, ResponseAndNotificationListener>()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_QzbdQXwmEeejctaAm7VITQ" name="RequestResponseHandler">
+                        <language>JAVA</language>
+                        <body>
+    if (properties == null)
+        logger.error(&quot;Properties are null&quot;);
+    if (properties == null)
+        throw new IllegalArgumentException(&quot;Engine properties is null&quot;);
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_QzcrYXwmEeejctaAm7VITQ" name="addResponse" specification="_QzcEUHwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    logger.debug(&quot;&lt;&lt; &quot; + response.toString());
+    //Get listener
+    ResponseAndNotificationListener listener = responseListeners.get(response.getToken());
+    if (response.getClass().equals(SubscribeResponse.class)) {
+        subscribers.put(((SubscribeResponse) response).getSpuid(), listener);
+    } else if (response.getClass().equals(UpdateResponse.class)) {
+        synchronized (updateResponseQueue) {
+            updateResponseQueue.offer((UpdateResponse) response);
+            updateResponseQueue.notifyAll();
+        }
+    } else if (response.getClass().equals(UnsubscribeResponse.class)) {
+        subscribers.remove(((UnsubscribeResponse) response).getSpuid());
+    }
+    //Notify listener
+    if (listener != null)
+        listener.notify(response);
+    responseListeners.remove(response.getToken());
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_Qzd5gXwmEeejctaAm7VITQ" name="addNotification" specification="_QzdScHwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    logger.debug(&quot;&lt;&lt; &quot; + notification.toString());
+    ResponseAndNotificationListener listener = subscribers.get(notification.getSPUID());
+    if (listener != null)
+        listener.notify(notification);
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_QzfHoXwmEeejctaAm7VITQ" name="addRequest" specification="_QzegkHwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    logger.debug(&quot;>> &quot; + req.toString());
+    //Register response listener
+    responseListeners.put(req.getToken(), listener);
+    //Add request to the right queue
+    if (req.getClass().equals(QueryRequest.class)) {
+        synchronized (queryRequestQueue) {
+            queryRequestQueue.offer((QueryRequest) req);
+            queryRequestQueue.notifyAll();
+        }
+    } else if (req.getClass().equals(UpdateRequest.class)) {
+        synchronized (updateRequestQueue) {
+            updateRequestQueue.offer((UpdateRequest) req);
+            updateRequestQueue.notifyAll();
+        }
+    } else if (req.getClass().equals(SubscribeRequest.class)) {
+        synchronized (subscribeRequestQueue) {
+            subscribeRequestQueue.offer((SubscribeRequest) req);
+            subscribeRequestQueue.notifyAll();
+        }
+    } else {
+        synchronized (unsubscribeRequestQueue) {
+            unsubscribeRequestQueue.offer((UnsubscribeRequest) req);
+            unsubscribeRequestQueue.notifyAll();
+        }
+    }
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_QzgVwHwmEeejctaAm7VITQ" name="waitUpdateResponse" specification="_QzfusHwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    UpdateResponse res;
+    synchronized (updateResponseQueue) {
+        while ((res = updateResponseQueue.poll()) == null) try {
+            logger.debug(&quot;Waiting for UPDATE responses...&quot;);
+            updateResponseQueue.wait();
+        } catch (InterruptedException e) {
+        }
+    }
+    return res;
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_Qzg80XwmEeejctaAm7VITQ" name="waitQueryRequest" specification="_QzgVwXwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    QueryRequest req;
+    synchronized (queryRequestQueue) {
+        while ((req = queryRequestQueue.poll()) == null) try {
+            logger.debug(&quot;Waiting for QUERY requests...&quot;);
+            queryRequestQueue.wait();
+        } catch (InterruptedException e) {
+        }
+    }
+    return req;
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_QziK8HwmEeejctaAm7VITQ" name="waitUpdateRequest" specification="_Qzhj4HwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    UpdateRequest req;
+    synchronized (updateRequestQueue) {
+        while ((req = updateRequestQueue.poll()) == null) try {
+            logger.debug(&quot;Waiting for UPDATE requests...&quot;);
+            updateRequestQueue.wait();
+        } catch (InterruptedException e) {
+        }
+    }
+    return req;
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_QziyAXwmEeejctaAm7VITQ" name="waitSubscribeRequest" specification="_QziK8XwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    SubscribeRequest req;
+    synchronized (subscribeRequestQueue) {
+        while ((req = subscribeRequestQueue.poll()) == null) try {
+            logger.debug(&quot;Waiting for SUBSCRIBE requests...&quot;);
+            subscribeRequestQueue.wait();
+        } catch (InterruptedException e) {
+        }
+    }
+    return req;
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_QzkAIHwmEeejctaAm7VITQ" name="waitUnsubscribeRequest" specification="_QzjZEHwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    UnsubscribeRequest req;
+    synchronized (unsubscribeRequestQueue) {
+        while ((req = unsubscribeRequestQueue.poll()) == null) try {
+            logger.debug(&quot;Waiting for UNSUBSCRIBE requests...&quot;);
+            unsubscribeRequestQueue.wait();
+        } catch (InterruptedException e) {
+        }
+    }
+    return req;
+</body>
+                      </ownedBehavior>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_QzcEUHwmEeejctaAm7VITQ" name="addResponse" visibility="public" method="_QzcrYXwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_QzcrYHwmEeejctaAm7VITQ" name="response" type="_4ED6IHwdEeejctaAm7VITQ"/>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_QzdScHwmEeejctaAm7VITQ" name="addNotification" visibility="public" method="_Qzd5gXwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_Qzd5gHwmEeejctaAm7VITQ" name="notification" type="_4C7RsXwdEeejctaAm7VITQ"/>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_QzegkHwmEeejctaAm7VITQ" name="addRequest" visibility="public" method="_QzfHoXwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_QzegkXwmEeejctaAm7VITQ" name="req" type="_4HbXMHwdEeejctaAm7VITQ"/>
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_QzfHoHwmEeejctaAm7VITQ" name="listener" type="_1ZqPwHwlEeejctaAm7VITQ"/>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_QzfusHwmEeejctaAm7VITQ" name="waitUpdateResponse" visibility="public" method="_QzgVwHwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_QzfusXwmEeejctaAm7VITQ" type="_4Co90HwdEeejctaAm7VITQ" direction="return"/>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_QzgVwXwmEeejctaAm7VITQ" name="waitQueryRequest" visibility="public" method="_Qzg80XwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_Qzg80HwmEeejctaAm7VITQ" type="_4B1skXwdEeejctaAm7VITQ" direction="return"/>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_Qzhj4HwmEeejctaAm7VITQ" name="waitUpdateRequest" visibility="public" method="_QziK8HwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_Qzhj4XwmEeejctaAm7VITQ" type="_4B5W8nwdEeejctaAm7VITQ" direction="return"/>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_QziK8XwmEeejctaAm7VITQ" name="waitSubscribeRequest" visibility="public" method="_QziyAXwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_QziyAHwmEeejctaAm7VITQ" type="_4CB50HwdEeejctaAm7VITQ" direction="return"/>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_QzjZEHwmEeejctaAm7VITQ" name="waitUnsubscribeRequest" visibility="public" method="_QzkAIHwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_QzjZEXwmEeejctaAm7VITQ" type="_4CLDwHwdEeejctaAm7VITQ" direction="return"/>
+                      </ownedOperation>
+                    </packagedElement>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_1ZURgXwlEeejctaAm7VITQ" name="TokenHandler" visibility="public">
+                      <ownedAttribute xmi:type="uml:Property" xmi:id="_2MHK8XwmEeejctaAm7VITQ" name="jar" visibility="private" type="_4RU6EHwdEeejctaAm7VITQ" isUnique="false">
+                        <defaultValue xmi:type="uml:OpaqueExpression" xmi:id="_2MHK8nwmEeejctaAm7VITQ" name="defaultValue">
+                          <language>JAVA</language>
+                          <body>new Vector&lt;Integer>()</body>
+                        </defaultValue>
+                      </ownedAttribute>
+                      <interfaceRealization xmi:type="uml:InterfaceRealization" xmi:id="_2MF80HwmEeejctaAm7VITQ" name="TokenHandler implements TokenHandlerMBean" client="_1ZURgXwlEeejctaAm7VITQ" supplier="_2MBrYHwmEeejctaAm7VITQ" contract="_2MBrYHwmEeejctaAm7VITQ"/>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_2MMDcHwmEeejctaAm7VITQ" name="TokenHandler">
+                        <language>JAVA</language>
+                        <body>
+    if (properties == null) {
+        logger.error(&quot;Properties are null&quot;);
+        throw new IllegalArgumentException(&quot;Engine properties is null&quot;);
+    }
+    this.properties = properties;
+    for (int i = 0; i &lt; getSchedulingQueueSize(); i++) jar.addElement(i);
+    SEPABeans.registerMBean(&quot;SEPA:type=Scheduler&quot;, this);
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_2MNRkHwmEeejctaAm7VITQ" name="getToken" specification="_2MMqgHwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    Integer token;
+    synchronized (jar) {
+        if (jar.size() == 0) {
+            logger.warn(&quot;No token available...wait...&quot;);
+            try {
+                jar.wait(getSchedulingTimeout());
+            } catch (InterruptedException e) {
+                logger.debug(e.getMessage());
+            }
+        }
+        if (jar.size() == 0)
+            return -1;
+        token = jar.get(0);
+        jar.removeElementAt(0);
+    }
+    logger.debug(&quot;Get token #&quot; + token + &quot; (Available: &quot; + jar.size() + &quot;)&quot;);
+    return token;
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_2MOfsXwmEeejctaAm7VITQ" name="releaseToken" specification="_2MN4oHwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    boolean ret = true;
+    synchronized (jar) {
+        if (jar.contains(token)) {
+            ret = false;
+            logger.warn(&quot;Request to release a unused token: &quot; + token + &quot; (Available tokens: &quot; + jar.size() + &quot;)&quot;);
+        } else {
+            jar.insertElementAt(token, jar.size());
+            jar.notify();
+            logger.debug(&quot;Release token #&quot; + token + &quot; (Available: &quot; + jar.size() + &quot;)&quot;);
+        }
+    }
+    return ret;
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_2MPGwXwmEeejctaAm7VITQ" name="getSchedulingQueueSize" specification="_2MOfsnwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    return properties.getSchedulingQueueSize();
+</body>
+                      </ownedBehavior>
+                      <ownedBehavior xmi:type="uml:OpaqueBehavior" xmi:id="_2MPt0nwmEeejctaAm7VITQ" name="getSchedulingTimeout" specification="_2MPt0HwmEeejctaAm7VITQ">
+                        <language>JAVA</language>
+                        <body>
+    return properties.getSchedulingTimeout();
+</body>
+                      </ownedBehavior>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_2MMqgHwmEeejctaAm7VITQ" name="getToken" visibility="public" method="_2MNRkHwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_2MMqgXwmEeejctaAm7VITQ" direction="return">
+                          <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_7wRIABydEduyofBvg4RL2w"/>
+                        </ownedParameter>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_2MN4oHwmEeejctaAm7VITQ" name="releaseToken" visibility="public" method="_2MOfsXwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_2MN4oXwmEeejctaAm7VITQ" direction="return">
+                          <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_vAIV4I7PEdySGvm5GN66HA"/>
+                        </ownedParameter>
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_2MOfsHwmEeejctaAm7VITQ" name="token">
+                          <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_ILxaUPaLEeW5KOK8aDMdgA"/>
+                        </ownedParameter>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_2MOfsnwmEeejctaAm7VITQ" name="getSchedulingQueueSize" visibility="public" method="_2MPGwXwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_2MPGwHwmEeejctaAm7VITQ" direction="return">
+                          <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_7wRIABydEduyofBvg4RL2w"/>
+                        </ownedParameter>
+                      </ownedOperation>
+                      <ownedOperation xmi:type="uml:Operation" xmi:id="_2MPt0HwmEeejctaAm7VITQ" name="getSchedulingTimeout" visibility="public" method="_2MPt0nwmEeejctaAm7VITQ">
+                        <ownedParameter xmi:type="uml:Parameter" xmi:id="_2MPt0XwmEeejctaAm7VITQ" direction="return">
+                          <type xmi:type="uml:PrimitiveType" href="pathmap://PapyrusJava_LIBRARIES/JavaLibrary.uml#_8heigBydEduyofBvg4RL2w"/>
+                        </ownedParameter>
+                      </ownedOperation>
+                    </packagedElement>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_1ZqPwHwlEeejctaAm7VITQ" name="ResponseAndNotificationListener"/>
+                    <packagedElement xmi:type="uml:Interface" xmi:id="_2MBrYHwmEeejctaAm7VITQ" name="TokenHandlerMBean"/>
+                  </packagedElement>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_385iMHwdEeejctaAm7VITQ" name="processing"/>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_39AP4HwdEeejctaAm7VITQ" name="protocol">
+                    <packagedElement xmi:type="uml:Package" xmi:id="_39BeAHwdEeejctaAm7VITQ" name="http">
+                      <packagedElement xmi:type="uml:Class" xmi:id="_4LmskHwdEeejctaAm7VITQ" name="IllegalArgumentException"/>
+                    </packagedElement>
+                    <packagedElement xmi:type="uml:Package" xmi:id="_39JZ0HwdEeejctaAm7VITQ" name="websocket">
+                      <packagedElement xmi:type="uml:Class" xmi:id="_4OmWMHwdEeejctaAm7VITQ" name="IllegalArgumentException"/>
+                    </packagedElement>
+                    <packagedElement xmi:type="uml:Package" xmi:id="_4FrqwHwdEeejctaAm7VITQ" name="handler">
+                      <packagedElement xmi:type="uml:Class" xmi:id="_4GPEYHwdEeejctaAm7VITQ" name="IllegalArgumentException"/>
+                      <packagedElement xmi:type="uml:Class" xmi:id="_4Hx8gHwdEeejctaAm7VITQ" name="IllegalStateException"/>
+                      <packagedElement xmi:type="uml:Class" xmi:id="_4H3cEHwdEeejctaAm7VITQ" name="ClassCastException"/>
+                    </packagedElement>
+                  </packagedElement>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_39bGoHwdEeejctaAm7VITQ" name="security">
+                    <packagedElement xmi:type="uml:Class" xmi:id="__3dlAHwdEeejctaAm7VITQ" name="SEPASecurityContext"/>
+                  </packagedElement>
+                </packagedElement>
+              </packagedElement>
+            </packagedElement>
+          </packagedElement>
+        </packagedElement>
+      </packagedElement>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Package" xmi:id="_3yawgHwdEeejctaAm7VITQ" name="importedTypes">
+      <packagedElement xmi:type="uml:Package" xmi:id="_3yclsHwdEeejctaAm7VITQ" name="org">
+        <packagedElement xmi:type="uml:Package" xmi:id="_3yea4HwdEeejctaAm7VITQ" name="apache">
+          <packagedElement xmi:type="uml:Package" xmi:id="_3yfpAHwdEeejctaAm7VITQ" name="logging">
+            <packagedElement xmi:type="uml:Package" xmi:id="_3ygQEHwdEeejctaAm7VITQ" name="log4j">
+              <packagedElement xmi:type="uml:Class" xmi:id="_3yheMHwdEeejctaAm7VITQ" name="Logger"/>
+            </packagedElement>
+          </packagedElement>
+          <packagedElement xmi:type="uml:Package" xmi:id="_4FuHAHwdEeejctaAm7VITQ" name="http">
+            <packagedElement xmi:type="uml:Class" xmi:id="_4FuHAXwdEeejctaAm7VITQ" name="HttpRequest"/>
+            <packagedElement xmi:type="uml:Package" xmi:id="_4FzmkHwdEeejctaAm7VITQ" name="nio">
+              <packagedElement xmi:type="uml:Package" xmi:id="_4F0NoHwdEeejctaAm7VITQ" name="protocol">
+                <packagedElement xmi:type="uml:Class" xmi:id="_4F0NoXwdEeejctaAm7VITQ" name="HttpAsyncExchange"/>
+                <packagedElement xmi:type="uml:Interface" xmi:id="_4L-gAHwdEeejctaAm7VITQ" name="HttpAsyncRequestHandler"/>
+                <packagedElement xmi:type="uml:Class" xmi:id="_4MTQIHwdEeejctaAm7VITQ" name="HttpAsyncRequestConsumer"/>
+              </packagedElement>
+              <packagedElement xmi:type="uml:Package" xmi:id="_4KsGkHwdEeejctaAm7VITQ" name="reactor">
+                <packagedElement xmi:type="uml:Interface" xmi:id="_4KsGkXwdEeejctaAm7VITQ" name="IOEventDispatch"/>
+                <packagedElement xmi:type="uml:Class" xmi:id="_4KyNMHwdEeejctaAm7VITQ" name="ListeningIOReactor"/>
+              </packagedElement>
+            </packagedElement>
+            <packagedElement xmi:type="uml:Package" xmi:id="_4F4fEHwdEeejctaAm7VITQ" name="protocol">
+              <packagedElement xmi:type="uml:Class" xmi:id="_4F5GIHwdEeejctaAm7VITQ" name="HttpContext"/>
+            </packagedElement>
+            <packagedElement xmi:type="uml:Class" xmi:id="_4Mak4XwdEeejctaAm7VITQ" name="HttpException"/>
+          </packagedElement>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Package" xmi:id="_4G6Z0HwdEeejctaAm7VITQ" name="java_websocket">
+          <packagedElement xmi:type="uml:Class" xmi:id="_4G6Z0XwdEeejctaAm7VITQ" name="WebSocket"/>
+          <packagedElement xmi:type="uml:Package" xmi:id="_4PlNoHwdEeejctaAm7VITQ" name="server">
+            <packagedElement xmi:type="uml:Class" xmi:id="_4Pl0sHwdEeejctaAm7VITQ" name="WebSocketServer"/>
+          </packagedElement>
+          <packagedElement xmi:type="uml:Package" xmi:id="_4P59wHwdEeejctaAm7VITQ" name="handshake">
+            <packagedElement xmi:type="uml:Class" xmi:id="_4P59wXwdEeejctaAm7VITQ" name="ClientHandshake"/>
+          </packagedElement>
+          <packagedElement xmi:type="uml:Package" xmi:id="_4QJOUHwdEeejctaAm7VITQ" name="framing">
+            <packagedElement xmi:type="uml:Class" xmi:id="_4QJ1YHwdEeejctaAm7VITQ" name="Framedata"/>
+          </packagedElement>
+        </packagedElement>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="_35tEQHwdEeejctaAm7VITQ" name="javax">
+        <packagedElement xmi:type="uml:Package" xmi:id="_35uSYHwdEeejctaAm7VITQ" name="management">
+          <packagedElement xmi:type="uml:Class" xmi:id="_35u5cHwdEeejctaAm7VITQ" name="MBeanServer"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_3-ZXAHwdEeejctaAm7VITQ" name="MalformedObjectNameException"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_3-ePgHwdEeejctaAm7VITQ" name="InstanceAlreadyExistsException"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_3-jvEHwdEeejctaAm7VITQ" name="MBeanRegistrationException"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_3-pOoHwdEeejctaAm7VITQ" name="NotCompliantMBeanException"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Package" xmi:id="_4lelIHwdEeejctaAm7VITQ" name="net">
+          <packagedElement xmi:type="uml:Package" xmi:id="_4lfMMHwdEeejctaAm7VITQ" name="ssl">
+            <packagedElement xmi:type="uml:Class" xmi:id="_4lgaUHwdEeejctaAm7VITQ" name="SSLContext"/>
+          </packagedElement>
+        </packagedElement>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="_38cPMHwdEeejctaAm7VITQ" name="it">
+        <packagedElement xmi:type="uml:Package" xmi:id="_38ddUHwdEeejctaAm7VITQ" name="unibo">
+          <packagedElement xmi:type="uml:Package" xmi:id="_38ercHwdEeejctaAm7VITQ" name="arces">
+            <packagedElement xmi:type="uml:Package" xmi:id="_38f5kHwdEeejctaAm7VITQ" name="wot">
+              <packagedElement xmi:type="uml:Package" xmi:id="_38f5kXwdEeejctaAm7VITQ" name="sepa">
+                <packagedElement xmi:type="uml:Package" xmi:id="_38ggoHwdEeejctaAm7VITQ" name="commons">
+                  <packagedElement xmi:type="uml:Package" xmi:id="_38ggoXwdEeejctaAm7VITQ" name="protocol">
+                    <packagedElement xmi:type="uml:Class" xmi:id="_38hHsHwdEeejctaAm7VITQ" name="SPARQL11Properties"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4BmcAHwdEeejctaAm7VITQ" name="SPARQL11Protocol"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4jXsUHwdEeejctaAm7VITQ" name="SSLSecurityManager"/>
+                  </packagedElement>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_4B1skHwdEeejctaAm7VITQ" name="request">
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4B1skXwdEeejctaAm7VITQ" name="QueryRequest"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4B5W8nwdEeejctaAm7VITQ" name="UpdateRequest"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4CB50HwdEeejctaAm7VITQ" name="SubscribeRequest"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4CLDwHwdEeejctaAm7VITQ" name="UnsubscribeRequest"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4HbXMHwdEeejctaAm7VITQ" name="Request"/>
+                  </packagedElement>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_4CoWwXwdEeejctaAm7VITQ" name="response">
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4Co90HwdEeejctaAm7VITQ" name="UpdateResponse"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4C7RsXwdEeejctaAm7VITQ" name="Notification"/>
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4ED6IHwdEeejctaAm7VITQ" name="Response"/>
+                  </packagedElement>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_4DfSYHwdEeejctaAm7VITQ" name="sparql">
+                    <packagedElement xmi:type="uml:Class" xmi:id="_4Df5cHwdEeejctaAm7VITQ" name="BindingsResults"/>
+                  </packagedElement>
+                </packagedElement>
+                <packagedElement xmi:type="uml:Package" xmi:id="_48sHEHwkEeejctaAm7VITQ" name="engine">
+                  <packagedElement xmi:type="uml:Package" xmi:id="_48sHEXwkEeejctaAm7VITQ" name="scheduling">
+                    <packagedElement xmi:type="uml:Class" xmi:id="_48suIHwkEeejctaAm7VITQ" name="Scheduler"/>
+                  </packagedElement>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_48wYgHwkEeejctaAm7VITQ" name="processing">
+                    <packagedElement xmi:type="uml:Class" xmi:id="_48wYgXwkEeejctaAm7VITQ" name="Processor"/>
+                  </packagedElement>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_480C4XwkEeejctaAm7VITQ" name="protocol">
+                    <packagedElement xmi:type="uml:Package" xmi:id="_480p8HwkEeejctaAm7VITQ" name="http">
+                      <packagedElement xmi:type="uml:Class" xmi:id="_480p8XwkEeejctaAm7VITQ" name="HttpServer"/>
+                      <packagedElement xmi:type="uml:Class" xmi:id="_49CFUHwkEeejctaAm7VITQ" name="HttpsServer"/>
+                    </packagedElement>
+                    <packagedElement xmi:type="uml:Package" xmi:id="_4847YXwkEeejctaAm7VITQ" name="websocket">
+                      <packagedElement xmi:type="uml:Class" xmi:id="_4847YnwkEeejctaAm7VITQ" name="WebsocketServer"/>
+                      <packagedElement xmi:type="uml:Class" xmi:id="_489z4HwkEeejctaAm7VITQ" name="SecureWebsocketServer"/>
+                    </packagedElement>
+                  </packagedElement>
+                  <packagedElement xmi:type="uml:Package" xmi:id="_49FIonwkEeejctaAm7VITQ" name="security">
+                    <packagedElement xmi:type="uml:Class" xmi:id="_49FvsHwkEeejctaAm7VITQ" name="AuthorizationManager"/>
+                  </packagedElement>
+                </packagedElement>
+              </packagedElement>
+            </packagedElement>
+          </packagedElement>
+        </packagedElement>
+      </packagedElement>
+      <packagedElement xmi:type="uml:Package" xmi:id="_3_h_cHwdEeejctaAm7VITQ" name="com">
+        <packagedElement xmi:type="uml:Package" xmi:id="_3_h_cXwdEeejctaAm7VITQ" name="google">
+          <packagedElement xmi:type="uml:Package" xmi:id="_3_h_cnwdEeejctaAm7VITQ" name="gson">
+            <packagedElement xmi:type="uml:Class" xmi:id="_3_h_c3wdEeejctaAm7VITQ" name="JsonObject"/>
+            <packagedElement xmi:type="uml:Class" xmi:id="_4HlIMHwdEeejctaAm7VITQ" name="JsonParseException"/>
+            <packagedElement xmi:type="uml:Class" xmi:id="_4Hr14HwdEeejctaAm7VITQ" name="JsonSyntaxException"/>
+            <packagedElement xmi:type="uml:Class" xmi:id="_4jHNoHwdEeejctaAm7VITQ" name="JsonElement"/>
+          </packagedElement>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Package" xmi:id="_4i7ncHwdEeejctaAm7VITQ" name="nimbusds">
+          <packagedElement xmi:type="uml:Package" xmi:id="_4i7ncXwdEeejctaAm7VITQ" name="jose">
+            <packagedElement xmi:type="uml:Class" xmi:id="_4i7ncnwdEeejctaAm7VITQ" name="JWSSigner"/>
+            <packagedElement xmi:type="uml:Package" xmi:id="_4jAf8HwdEeejctaAm7VITQ" name="crypto">
+              <packagedElement xmi:type="uml:Class" xmi:id="_4jBHAHwdEeejctaAm7VITQ" name="RSASSAVerifier"/>
+            </packagedElement>
+            <packagedElement xmi:type="uml:Package" xmi:id="_4jqAMHwdEeejctaAm7VITQ" name="proc">
+              <packagedElement xmi:type="uml:Interface" xmi:id="_4jqAMXwdEeejctaAm7VITQ" name="SecurityContext"/>
+            </packagedElement>
+            <packagedElement xmi:type="uml:Package" xmi:id="_4jzxMHwdEeejctaAm7VITQ" name="jwk">
+              <packagedElement xmi:type="uml:Class" xmi:id="_4j0YQHwdEeejctaAm7VITQ" name="RSAKey"/>
+            </packagedElement>
+            <packagedElement xmi:type="uml:Class" xmi:id="_4j87IHwdEeejctaAm7VITQ" name="JOSEException"/>
+          </packagedElement>
+          <packagedElement xmi:type="uml:Package" xmi:id="_4jMtMHwdEeejctaAm7VITQ" name="jwt">
+            <packagedElement xmi:type="uml:Package" xmi:id="_4jMtMXwdEeejctaAm7VITQ" name="proc">
+              <packagedElement xmi:type="uml:Class" xmi:id="_4jNUQHwdEeejctaAm7VITQ" name="ConfigurableJWTProcessor"/>
+            </packagedElement>
+          </packagedElement>
+        </packagedElement>
+      </packagedElement>
+    </packagedElement>
+    <packagedElement xmi:type="uml:Package" xmi:id="_35874HwdEeejctaAm7VITQ" name="java">
+      <packagedElement xmi:type="uml:Package" xmi:id="_35-KAHwdEeejctaAm7VITQ" name="java">
+        <packagedElement xmi:type="uml:Package" xmi:id="_35_YIHwdEeejctaAm7VITQ" name="lang">
+          <packagedElement xmi:type="uml:Class" xmi:id="_36AmQHwdEeejctaAm7VITQ" name="String"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_36KXQHwdEeejctaAm7VITQ" name="Object"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_361ssHwdEeejctaAm7VITQ" name="Thread"/>
+          <packagedElement xmi:type="uml:Interface" xmi:id="_4CdXoHwdEeejctaAm7VITQ" name="Runnable"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_4PaOgHwdEeejctaAm7VITQ" name="Exception"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Package" xmi:id="_38rfwHwdEeejctaAm7VITQ" name="util">
+          <packagedElement xmi:type="uml:Class" xmi:id="_38st4HwdEeejctaAm7VITQ" name="Date"/>
+          <packagedElement xmi:type="uml:Package" xmi:id="_390IMHwdEeejctaAm7VITQ" name="regex">
+            <packagedElement xmi:type="uml:Class" xmi:id="_391WUHwdEeejctaAm7VITQ" name="PatternSyntaxException"/>
+          </packagedElement>
+          <packagedElement xmi:type="uml:Class" xmi:id="_3_3WoHwdEeejctaAm7VITQ" name="NoSuchElementException"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_4Ba10HwdEeejctaAm7VITQ" name="Observable"/>
+          <packagedElement xmi:type="uml:Interface" xmi:id="_4BfuUXwdEeejctaAm7VITQ" name="Observer"/>
+          <packagedElement xmi:type="uml:Package" xmi:id="_4CiQIXwdEeejctaAm7VITQ" name="concurrent">
+            <packagedElement xmi:type="uml:Class" xmi:id="_4Ci3MHwdEeejctaAm7VITQ" name="ConcurrentLinkedQueue"/>
+            <packagedElement xmi:type="uml:Class" xmi:id="_4HBukHwdEeejctaAm7VITQ" name="ConcurrentHashMap"/>
+          </packagedElement>
+          <packagedElement xmi:type="uml:Class" xmi:id="_4EcUoHwdEeejctaAm7VITQ" name="HashMap"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_4OQX8HwdEeejctaAm7VITQ" name="HashSet"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_4RU6EHwdEeejctaAm7VITQ" name="Vector"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Package" xmi:id="_3-uHIHwdEeejctaAm7VITQ" name="security">
+          <packagedElement xmi:type="uml:Class" xmi:id="_3-vVQHwdEeejctaAm7VITQ" name="UnrecoverableKeyException"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_3-000HwdEeejctaAm7VITQ" name="KeyManagementException"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_3-6UYHwdEeejctaAm7VITQ" name="KeyStoreException"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_3-_z8HwdEeejctaAm7VITQ" name="NoSuchAlgorithmException"/>
+          <packagedElement xmi:type="uml:Package" xmi:id="_3_FTgHwdEeejctaAm7VITQ" name="cert">
+            <packagedElement xmi:type="uml:Class" xmi:id="_3_GhoHwdEeejctaAm7VITQ" name="CertificateException"/>
+          </packagedElement>
+          <packagedElement xmi:type="uml:Class" xmi:id="_4kDBwHwdEeejctaAm7VITQ" name="KeyStore"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Package" xmi:id="_3_MBMHwdEeejctaAm7VITQ" name="io">
+          <packagedElement xmi:type="uml:Interface" xmi:id="_3_MoQHwdEeejctaAm7VITQ" name="IOException"/>
+          <packagedElement xmi:type="uml:Class" xmi:id="_4kcDUHwdEeejctaAm7VITQ" name="FileNotFoundException"/>
+        </packagedElement>
+        <packagedElement xmi:type="uml:Package" xmi:id="_4PHTkHwdEeejctaAm7VITQ" name="net">
+          <packagedElement xmi:type="uml:Class" xmi:id="_4PH6oHwdEeejctaAm7VITQ" name="UnknownHostException"/>
+        </packagedElement>
+      </packagedElement>
+    </packagedElement>
+    <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_3wAVsHwdEeejctaAm7VITQ">
+      <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_3wCx8HwdEeejctaAm7VITQ" source="http://www.eclipse.org/uml2/2.0.0/UML">
+        <references xmi:type="ecore:EPackage" href="http://www.eclipse.org/papyrus/PapyrusJava/1#/"/>
+      </eAnnotations>
+      <appliedProfile xmi:type="uml:Profile" href="pathmap://PapyrusJava_PROFILES/PapyrusJava.profile.uml#_j9REUByGEduN1bTiWJ0lyw"/>
+    </profileApplication>
+    <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_3wy_4HwdEeejctaAm7VITQ">
+      <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_3wzm8HwdEeejctaAm7VITQ" source="http://www.eclipse.org/uml2/2.0.0/UML">
+        <references xmi:type="ecore:EPackage" href="http://www.eclipse.org/papyrus/Codegen/1#/"/>
+      </eAnnotations>
+      <appliedProfile xmi:type="uml:Profile" href="pathmap://Codegen_PROFILES/Codegen.profile.uml#_fPDsIBa-EearhdjjJ6cVzQ"/>
+    </profileApplication>
+    <profileApplication xmi:type="uml:ProfileApplication" xmi:id="_3xQS4HwdEeejctaAm7VITQ">
+      <eAnnotations xmi:type="ecore:EAnnotation" xmi:id="_3xRhAHwdEeejctaAm7VITQ" source="http://www.eclipse.org/uml2/2.0.0/UML">
+        <references xmi:type="ecore:EPackage" href="http://www.eclipse.org/uml2/5.0.0/UML/Profile/Standard#/"/>
+      </eAnnotations>
+      <appliedProfile xmi:type="uml:Profile" href="pathmap://UML_PROFILES/Standard.profile.uml#_0"/>
+    </profileApplication>
+  </uml:Model>
+  <PapyrusJava:External xmi:id="_35b-gHwdEeejctaAm7VITQ" name="org.apache.logging.log4j.Logger" base_Classifier="_3yheMHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_351nIHwdEeejctaAm7VITQ" name="javax.management.MBeanServer" base_Classifier="_35u5cHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_36H7AHwdEeejctaAm7VITQ" name="java.lang.String" base_Classifier="_36AmQHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_36RE8HwdEeejctaAm7VITQ" name="java.lang.Object" base_Classifier="_36KXQHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_366lMHwdEeejctaAm7VITQ" name="java.lang.Thread" base_Classifier="_361ssHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_38mnQHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties" base_Classifier="_38hHsHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_38wYQHwdEeejctaAm7VITQ" name="java.util.Date" base_Classifier="_38st4HwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_398EAHwdEeejctaAm7VITQ" name="java.util.regex.PatternSyntaxException" base_Classifier="_391WUHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3-caUHwdEeejctaAm7VITQ" name="javax.management.MalformedObjectNameException" base_Classifier="_3-ZXAHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3-h54HwdEeejctaAm7VITQ" name="javax.management.InstanceAlreadyExistsException" base_Classifier="_3-ePgHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3-nZcHwdEeejctaAm7VITQ" name="javax.management.MBeanRegistrationException" base_Classifier="_3-jvEHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3-s5AHwdEeejctaAm7VITQ" name="javax.management.NotCompliantMBeanException" base_Classifier="_3-pOoHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3-y_oHwdEeejctaAm7VITQ" name="java.security.UnrecoverableKeyException" base_Classifier="_3-vVQHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3-4fMHwdEeejctaAm7VITQ" name="java.security.KeyManagementException" base_Classifier="_3-000HwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3-9-wHwdEeejctaAm7VITQ" name="java.security.KeyStoreException" base_Classifier="_3-6UYHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3_DeUHwdEeejctaAm7VITQ" name="java.security.NoSuchAlgorithmException" base_Classifier="_3-_z8HwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3_KMAHwdEeejctaAm7VITQ" name="java.security.cert.CertificateException" base_Classifier="_3_GhoHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3_RgwHwdEeejctaAm7VITQ" name="java.io.IOException" base_Classifier="_3_MoQHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3_lp0HwdEeejctaAm7VITQ" name="com.google.gson.JsonObject" base_Classifier="_3_h_c3wdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3_1hcHwdEeejctaAm7VITQ" name="IllegalArgumentException" base_Classifier="_3_xQAHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_3_7BAHwdEeejctaAm7VITQ" name="java.util.NoSuchElementException" base_Classifier="_3_3WoHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4AEyAHwdEeejctaAm7VITQ" name="IllegalStateException" base_Classifier="_4ABusHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4AJqgHwdEeejctaAm7VITQ" name="ClassCastException" base_Classifier="_4AGnMHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4BegMHwdEeejctaAm7VITQ" name="java.util.Observable" base_Classifier="_4Ba10HwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4BjYsHwdEeejctaAm7VITQ" name="java.util.Observer" base_Classifier="_4BfuUXwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4BqGYHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol" base_Classifier="_4BmcAHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4B4I0HwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.request.QueryRequest" base_Classifier="_4B1skXwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4B8aQHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.request.UpdateRequest" base_Classifier="_4B5W8nwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4CFkMHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.request.SubscribeRequest" base_Classifier="_4CB50HwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4CPVMHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest" base_Classifier="_4CLDwHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4CfM0HwdEeejctaAm7VITQ" name="java.lang.Runnable" base_Classifier="_4CdXoHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4ClTcHwdEeejctaAm7VITQ" name="java.util.concurrent.ConcurrentLinkedQueue" base_Classifier="_4Ci3MHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4CsoMHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.response.UpdateResponse" base_Classifier="_4Co90HwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4C-8EHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.response.Notification" base_Classifier="_4C7RsXwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4Djj0HwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.sparql.BindingsResults" base_Classifier="_4Df5cHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4EILkHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.response.Response" base_Classifier="_4ED6IHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4EhNIHwdEeejctaAm7VITQ" name="java.util.HashMap" base_Classifier="_4EcUoHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4FyYcHwdEeejctaAm7VITQ" name="org.apache.http.HttpRequest" base_Classifier="_4FuHAXwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4F34AHwdEeejctaAm7VITQ" name="org.apache.http.nio.protocol.HttpAsyncExchange" base_Classifier="_4F0NoXwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4F8JcHwdEeejctaAm7VITQ" name="org.apache.http.protocol.HttpContext" base_Classifier="_4F5GIHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4GUj8HwdEeejctaAm7VITQ" name="IllegalArgumentException" base_Classifier="_4GPEYHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4G-EMHwdEeejctaAm7VITQ" name="org.java_websocket.WebSocket" base_Classifier="_4G6Z0XwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4HFY8HwdEeejctaAm7VITQ" name="java.util.concurrent.ConcurrentHashMap" base_Classifier="_4HBukHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4HgPsHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.request.Request" base_Classifier="_4HbXMHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4HqAsHwdEeejctaAm7VITQ" name="com.google.gson.JsonParseException" base_Classifier="_4HlIMHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4HwHUHwdEeejctaAm7VITQ" name="com.google.gson.JsonSyntaxException" base_Classifier="_4Hr14HwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4H2N8HwdEeejctaAm7VITQ" name="IllegalStateException" base_Classifier="_4Hx8gHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4H7GcHwdEeejctaAm7VITQ" name="ClassCastException" base_Classifier="_4H3cEHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4KwYAHwdEeejctaAm7VITQ" name="org.apache.http.nio.reactor.IOEventDispatch" base_Classifier="_4KsGkXwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4K1QgHwdEeejctaAm7VITQ" name="org.apache.http.nio.reactor.ListeningIOReactor" base_Classifier="_4KyNMHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4Lq-AHwdEeejctaAm7VITQ" name="IllegalArgumentException" base_Classifier="_4LmskHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4MBjUHwdEeejctaAm7VITQ" name="org.apache.http.nio.protocol.HttpAsyncRequestHandler" base_Classifier="_4L-gAHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4MW6gHwdEeejctaAm7VITQ" name="org.apache.http.nio.protocol.HttpAsyncRequestConsumer" base_Classifier="_4MTQIHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4Me2UHwdEeejctaAm7VITQ" name="org.apache.http.HttpException" base_Classifier="_4Mak4XwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4OUCUHwdEeejctaAm7VITQ" name="java.util.HashSet" base_Classifier="_4OQX8HwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4OqAkHwdEeejctaAm7VITQ" name="IllegalArgumentException" base_Classifier="_4OmWMHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4PMMEHwdEeejctaAm7VITQ" name="java.net.UnknownHostException" base_Classifier="_4PH6oHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4PdR0HwdEeejctaAm7VITQ" name="java.lang.Exception" base_Classifier="_4PaOgHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4Po4AHwdEeejctaAm7VITQ" name="org.java_websocket.server.WebSocketServer" base_Classifier="_4Pl0sHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4P9BEHwdEeejctaAm7VITQ" name="org.java_websocket.handshake.ClientHandshake" base_Classifier="_4P59wXwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4QNfwHwdEeejctaAm7VITQ" name="org.java_websocket.framing.Framedata" base_Classifier="_4QJ1YHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4Qt2EHwdEeejctaAm7VITQ" name="IllegalArgumentException" base_Classifier="_4QqywHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4RYkcHwdEeejctaAm7VITQ" name="java.util.Vector" base_Classifier="_4RU6EHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4i-qwHwdEeejctaAm7VITQ" name="com.nimbusds.jose.JWSSigner" base_Classifier="_4i7ncnwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4jExYHwdEeejctaAm7VITQ" name="com.nimbusds.jose.crypto.RSASSAVerifier" base_Classifier="_4jBHAHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4jK4AHwdEeejctaAm7VITQ" name="com.google.gson.JsonElement" base_Classifier="_4jHNoHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4jQXkHwdEeejctaAm7VITQ" name="com.nimbusds.jwt.proc.ConfigurableJWTProcessor" base_Classifier="_4jNUQHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4javoHwdEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager" base_Classifier="_4jXsUHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4jtqkHwdEeejctaAm7VITQ" name="com.nimbusds.jose.proc.SecurityContext" base_Classifier="_4jqAMXwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4j3bkHwdEeejctaAm7VITQ" name="com.nimbusds.jose.jwk.RSAKey" base_Classifier="_4j0YQHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4j_-cHwdEeejctaAm7VITQ" name="com.nimbusds.jose.JOSEException" base_Classifier="_4j87IHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4kFeAHwdEeejctaAm7VITQ" name="java.security.KeyStore" base_Classifier="_4kDBwHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4kfGoHwdEeejctaAm7VITQ" name="java.io.FileNotFoundException" base_Classifier="_4kcDUHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_4ljdoHwdEeejctaAm7VITQ" name="javax.net.ssl.SSLContext" base_Classifier="_4lgaUHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="__3GYoHwdEeejctaAm7VITQ" name="UpdateScheduler" base_Classifier="__3DVUHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="__3KDAHwdEeejctaAm7VITQ" name="SubscribeScheduler" base_Classifier="__3G_sHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="__3NGUHwdEeejctaAm7VITQ" name="UnsubscribeScheduler" base_Classifier="__3KDAXwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="__3QwsHwdEeejctaAm7VITQ" name="QueryScheduler" base_Classifier="__3NtYHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="__3goUHwdEeejctaAm7VITQ" name="SEPASecurityContext" base_Classifier="__3dlAHwdEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_48kLQHwkEeejctaAm7VITQ" name="EngineMBean" base_Classifier="_48hH8XwkEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_48pq0HwkEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.engine.core.EngineProperties" base_Classifier="_48mngXwkEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_48vKYHwkEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.engine.scheduling.Scheduler" base_Classifier="_48suIHwkEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_48zb0HwkEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.engine.processing.Processor" base_Classifier="_48wYgXwkEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_483tQHwkEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.engine.protocol.http.HttpServer" base_Classifier="_480p8XwkEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_488lwHwkEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer" base_Classifier="_4847YnwkEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_49A3MHwkEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer" base_Classifier="_489z4HwkEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_49D6gHwkEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.engine.protocol.http.HttpsServer" base_Classifier="_49CFUHwkEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_49IL8HwkEeejctaAm7VITQ" name="it.unibo.arces.wot.sepa.engine.security.AuthorizationManager" base_Classifier="_49FvsHwkEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_1ZPZAHwlEeejctaAm7VITQ" name="SchedulerInterface" base_Classifier="_1ZMVsnwlEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_1ZTqcHwlEeejctaAm7VITQ" name="RequestResponseHandler" base_Classifier="_1ZROMHwlEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_1ZXU0HwlEeejctaAm7VITQ" name="TokenHandler" base_Classifier="_1ZURgXwlEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_1ZtTEHwlEeejctaAm7VITQ" name="ResponseAndNotificationListener" base_Classifier="_1ZqPwHwlEeejctaAm7VITQ"/>
+  <PapyrusJava:External xmi:id="_2MFVwHwmEeejctaAm7VITQ" name="TokenHandlerMBean" base_Classifier="_2MBrYHwmEeejctaAm7VITQ"/>
+</xmi:XMI>

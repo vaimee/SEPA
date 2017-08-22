@@ -21,15 +21,24 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 
 public class UpdateProcessor {
 	private SPARQL11Protocol endpoint;
-
+	
 	public UpdateProcessor(SPARQL11Protocol endpoint) {
 		this.endpoint = endpoint;
 	}
-	
-	public Response process(UpdateRequest req) {		
-		return endpoint.update(req);
+
+	public Response process(UpdateRequest req) {
+		long start = System.currentTimeMillis();
+		Response ret = endpoint.update(req);
+		long stop = System.currentTimeMillis();
+
+		ProcessorBeans.updateTimings(start, stop);
+		
+		return ret;
 	}
+
+	
 }

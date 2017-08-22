@@ -54,6 +54,10 @@ public abstract class Request {
 		this.token = -1;
 		this.sparql = sparql;
 	}
+	
+	public void setToken(int token) {
+		this.token = token;
+	}
 
 	/**
 	 * Gets the token.

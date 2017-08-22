@@ -17,8 +17,9 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-import java.util.Date;
-
 public interface EngineMBean {
-	public Date getStartDate();
+	
+	public String getUpTime();
+	
+	public String getProperties();
 }

@@ -31,6 +31,7 @@ import org.apache.logging.log4j.Logger;
 
 public class SEPABeans {
 	private static final Logger logger = LogManager.getLogger("SEPABeans");
+	
 	//Get the MBean server
 	static final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
     

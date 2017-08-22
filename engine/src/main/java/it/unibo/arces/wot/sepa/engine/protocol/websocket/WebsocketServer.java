@@ -1,11 +1,9 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
@@ -15,27 +13,31 @@ import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
-import it.unibo.arces.wot.sepa.engine.protocol.handler.SubscribeHandler;
-import it.unibo.arces.wot.sepa.engine.scheduling.ResponseAndNotificationListener;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
+import it.unibo.arces.wot.sepa.engine.protocol.websocket.handler.SPARQL11SubscribeHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
-public class WebsocketServer extends WebSocketServer {
-	private Logger logger = LogManager.getLogger("SubscribeServer");
+public class WebsocketServer extends WebSocketServer implements WebsocketServerMBean {
+	private Logger logger = LogManager.getLogger("WebsocketServer");
 
 	protected Scheduler scheduler;
-	protected KeepAlive ping = null;
 
-	protected ConcurrentHashMap<WebSocket, ResponseAndNotificationListener> activeSockets = new ConcurrentHashMap<WebSocket, ResponseAndNotificationListener>();
-	protected ConcurrentHashMap<WebSocket, HashSet<String>> activeSubscriptions = new ConcurrentHashMap<WebSocket, HashSet<String>>();
+	protected ConcurrentHashMap<WebSocket, SPARQL11SubscribeHandler> activeSubscriptions = new ConcurrentHashMap<WebSocket, SPARQL11SubscribeHandler>();
 
 	protected String getWelcomeMessage() {
-		return  "Subscribe on: ws://%s:%d%s";
+		return "Subscribe            | ws://%s:%d%s";
 	}
-	
+
+	protected String welcomeMessage;
+
 	// Fragmentation support
 	private HashMap<WebSocket, String> fragmentedMessages = new HashMap<WebSocket, String>();
 
-	public WebsocketServer(int port, String path, int keepAlive, Scheduler scheduler)
+	//JMX
+	protected WebsocketBeans jmx = new WebsocketBeans();
+	
+	public WebsocketServer(int port, String path, Scheduler scheduler, int keepAlivePeriod)
 			throws IllegalArgumentException, UnknownHostException {
 		super(new InetSocketAddress(port));
 
@@ -43,31 +45,25 @@ public class WebsocketServer extends WebSocketServer {
 			throw new IllegalArgumentException("One or more arguments are null");
 
 		this.scheduler = scheduler;
-
-		if (keepAlive <= 0)
-			keepAlive = 5000;
-
-		ping = new KeepAlive(keepAlive, activeSockets, activeSubscriptions, scheduler);
-		ping.start();
-
-		System.out.println(String.format(getWelcomeMessage(),InetAddress.getLocalHost().getHostAddress(),port,path));
+		
+		SEPABeans.registerMBean("SEPA:type="+this.getClass().getSimpleName(), this);
+		
+		jmx.setKeepAlive(keepAlivePeriod);
+		
+		welcomeMessage = String.format(getWelcomeMessage(), getAddress().getAddress(), port, path);
 	}
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
 		logger.debug("@onConnect");
 
-		synchronized (activeSockets) {
-			activeSubscriptions.put(conn, new HashSet<String>());
-			activeSockets.put(conn, new ResponseListener(conn, scheduler, activeSubscriptions.get(conn)));
-		}
 		fragmentedMessages.put(conn, null);
 	}
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-		logger.debug("@onClose");
-		
+		logger.debug("@onClose " + reason + " (" + code + ") remote:" + remote);
+
 		fragmentedMessages.remove(conn);
 	}
 
@@ -75,39 +71,76 @@ public class WebsocketServer extends WebSocketServer {
 	public void onMessage(WebSocket conn, String message) {
 		logger.debug("@onMessage " + message);
 
-		new SubscribeHandler(scheduler, conn, message, activeSockets).start();
+		jmx.onMessage();
+		
+		if (!activeSubscriptions.contains(conn)) {
+			SPARQL11SubscribeHandler handler = new SPARQL11SubscribeHandler(scheduler, conn, jmx.getKeepAlive());
+			handler.start();
+			activeSubscriptions.put(conn, handler);
+		}
+		activeSubscriptions.get(conn).processRequest(message);
 	}
 
+	/**
+	 * Example: for a text message sent as three fragments, the first
+	 * fragment would have an opcode of 0x1 and a FIN bit clear, the second
+	 * fragment would have an opcode of 0x0 and a FIN bit clear, and the
+	 * third fragment would have an opcode of 0x0 and a FIN bit that is set.
+	 */
+	
 	@Override
 	public void onFragment(WebSocket conn, Framedata fragment) {
-		/*
-		 * EXAMPLE: For a text message sent as three fragments, the first
-		 * fragment would have an opcode of 0x1 and a FIN bit clear, the second
-		 * fragment would have an opcode of 0x0 and a FIN bit clear, and the
-		 * third fragment would have an opcode of 0x0 and a FIN bit that is set.
-		 */
 		logger.debug("@onFragment " + fragment);
-		
-		//TODO StringBuilder?
-		//TODO Multiple message multiplexed?
-		if (fragmentedMessages.get(conn) == null) fragmentedMessages.put(conn, new String(fragment.getPayloadData().array(),Charset.forName("UTF-8")));
-		else fragmentedMessages.put(conn, fragmentedMessages.get(conn) + new String(fragment.getPayloadData().array(),Charset.forName("UTF-8")));
-		
+
+		if (fragmentedMessages.get(conn) == null)
+			fragmentedMessages.put(conn, new String(fragment.getPayloadData().array(), Charset.forName("UTF-8")));
+		else
+			fragmentedMessages.put(conn, fragmentedMessages.get(conn)
+					+ new String(fragment.getPayloadData().array(), Charset.forName("UTF-8")));
+
 		logger.debug("Fragmented message: " + fragmentedMessages.get(conn));
-		
+
 		if (fragment.isFin()) {
-			onMessage(conn,fragmentedMessages.get(conn));
-			fragmentedMessages.put(conn,null);
+			jmx.onFragmentedMessage();
+			
+			onMessage(conn, fragmentedMessages.get(conn));
+			fragmentedMessages.put(conn, null);
 		}
 	}
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
-		logger.debug("@onError " + ex);
+		logger.error(ex);
+		
+		jmx.onError();
 	}
 
 	@Override
 	public void onStart() {
-		logger.debug("@onStart");
+		System.out.println(welcomeMessage);
+		
+		synchronized (this) {
+			notify();
+		}
+	}
+
+	@Override
+	public void reset() {
+		jmx.reset();
+	}
+
+	@Override
+	public String getRequests() {
+		return jmx.getRequests(false);
+	}
+
+	@Override
+	public void setKeepAlive(long period) {
+		jmx.setKeepAlive(period);	
+	}
+
+	@Override
+	public long getKeepAlive() {
+		return jmx.getKeepAlive();
 	}
 }

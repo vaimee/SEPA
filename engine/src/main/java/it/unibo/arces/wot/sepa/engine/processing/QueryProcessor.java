@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 
 public class QueryProcessor {
 	private SPARQL11Protocol endpoint;
@@ -28,8 +29,14 @@ public class QueryProcessor {
 	public QueryProcessor(SPARQL11Protocol endpoint) {
 		this.endpoint = endpoint;
 	}
-	
-	public Response process(QueryRequest req) {		
-		return endpoint.query(req);
+
+	public Response process(QueryRequest req) {
+		long start = System.currentTimeMillis();
+		Response ret = endpoint.query(req);
+		long stop = System.currentTimeMillis();
+
+		ProcessorBeans.queryTimings(start, stop);
+
+		return ret;
 	}
 }
