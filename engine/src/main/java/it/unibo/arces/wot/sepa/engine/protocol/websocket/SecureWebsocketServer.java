@@ -22,7 +22,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
-public class SecureWebsocketServer extends WebsocketServer {
+public class SecureWebsocketServer extends WebsocketServer implements SecureWebsocketServerMBean {
 	private AuthorizationManager oauth;
 	private Logger logger = LogManager.getLogger("SecureWebsocketServer");
 
@@ -31,9 +31,9 @@ public class SecureWebsocketServer extends WebsocketServer {
 		return "Secure Subscribe     | wss://%s:%d%s";
 	}
 
-	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,int keepAlivePeriod)
+	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,int keepAlivePeriod,long timeout)
 			throws IllegalArgumentException, UnknownHostException, KeyManagementException, NoSuchAlgorithmException {
-		super(port, path, scheduler,keepAlivePeriod);
+		super(port, path, scheduler,keepAlivePeriod,timeout);
 
 		if (oauth == null)
 			throw new IllegalArgumentException("Authorization manager is null");
@@ -109,8 +109,8 @@ public class SecureWebsocketServer extends WebsocketServer {
 	}
 	
 	@Override
-	public String getRequests() {
-		return jmx.getRequests(true);
+	public long getNotAuthorized(){
+		return jmx.getNotAuthorized();
 	}
 
 }

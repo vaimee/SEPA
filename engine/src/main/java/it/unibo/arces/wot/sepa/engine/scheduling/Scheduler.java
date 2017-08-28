@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 
-import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Observable;
 import java.util.Observer;
@@ -43,21 +42,21 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
 import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
+
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
+
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
+
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
 /**
  * This class represents the scheduler of the SPARQL Event Processing Engine
  */
 
-public class Scheduler extends Observable implements Runnable, Observer, SchedulerMBean {
+public class Scheduler implements Observer, Runnable, SchedulerMBean {
 	private static final Logger logger = LogManager.getLogger("Scheduler");
 
 	// Request tokens
@@ -68,9 +67,6 @@ public class Scheduler extends Observable implements Runnable, Observer, Schedul
 
 	// Request queue
 	private ConcurrentLinkedQueue<ScheduledRequest> requestQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
-
-	// Subscribers
-	private HashMap<String, ResponseAndNotificationListener> subscribers = new HashMap<String, ResponseAndNotificationListener>();
 
 	// Properties reference
 	private EngineProperties properties;
@@ -97,31 +93,16 @@ public class Scheduler extends Observable implements Runnable, Observer, Schedul
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		// Notification
-		if (arg.getClass().equals(Notification.class)) {
-			Notification notify = (Notification) arg;
-			logger.debug("<< notify: " + notify.toString());
-
-			subscribers.get(notify.getSPUID()).notify(notify);
-		}
-	}
-
-	public int schedule(Request request, ResponseAndNotificationListener listener) {
+	public int schedule(Request request, long timeout, ResponseHandler handler) {
 		// Get token
 		int token = getToken();
 		if (token == -1) {
 			SchedulerBeans.newRequest(true);
-			
 			logger.error("Too many pending requests");
-			listener.notify(new ErrorResponse(request.getToken(), 500, "Too many pending requests"));
-		} 
-		else {
+		} else {
 			SchedulerBeans.newRequest(false);
-
 			synchronized (requestQueue) {
-				requestQueue.offer(new ScheduledRequest(token, request, listener));
+				requestQueue.offer(new ScheduledRequest(token, request, timeout, handler));
 				requestQueue.notify();
 			}
 		}
@@ -132,10 +113,15 @@ public class Scheduler extends Observable implements Runnable, Observer, Schedul
 	@Override
 	public void run() {
 		while (true) {
+			// Poll for a new request
 			ScheduledRequest request = null;
 			while ((request = requestQueue.poll()) == null) {
 				synchronized (requestQueue) {
 					try {
+						logger.debug("Requests queue is empty...wating for requests...");
+						synchronized (Thread.currentThread()) {
+							Thread.currentThread().notify();
+						}
 						requestQueue.wait();
 					} catch (InterruptedException e) {
 						logger.error(e.getMessage());
@@ -143,27 +129,18 @@ public class Scheduler extends Observable implements Runnable, Observer, Schedul
 				}
 			}
 
-			// Request processing
-			Response ret = processor.process(request.getRequest());
+			// Process request
+			processor.process(request);
 
 			// JMX
 			SchedulerBeans.updateCounters(request);
-
-			// Release token
-			releaseToken(ret.getToken());
-
-			// Response notification
-			if (request.getListener() != null)
-				request.getListener().notify(ret);
-
-			// Subscriptions
-			if (ret.getClass().equals(SubscribeResponse.class)) {
-				if (request.getListener() != null)
-					subscribers.put(((SubscribeResponse) ret).getSpuid(), request.getListener());
-			} else if (ret.getClass().equals(UnsubscribeResponse.class)) {
-				subscribers.remove(((UnsubscribeResponse) ret).getSpuid());
-			}
 		}
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		Response response = (Response) arg;
+		releaseToken(response.getToken());
 	}
 
 	/**
@@ -214,34 +191,40 @@ public class Scheduler extends Observable implements Runnable, Observer, Schedul
 		return ret;
 	}
 
-	@Override
-	public String getRequests() {
-		return SchedulerBeans.getRequests();
+	public String getStatistics() {
+		return SchedulerBeans.getStatistics();
 	}
 
-	@Override
-	public String getPendingRequests() {
-		return SchedulerBeans.getPendingRequests();
+	public long getErrors() {
+		return SchedulerBeans.getErrors();
 	}
 
-	@Override
-	public String getUpdateTimings() {
-		return SchedulerBeans.getUpdateTimings();
+	public long getQueue_Pending() {
+		return SchedulerBeans.getQueue_Pending();
 	}
 
-	@Override
-	public String getQueryTimings() {
-		return SchedulerBeans.getQueryTimings();
+	public long getQueue_Max() {
+		return SchedulerBeans.getQueue_Max();
 	}
 
-	@Override
-	public String getSubscribeTimings() {
-		return SchedulerBeans.getSubscribeTimings();
+	public long getQueue_OutOfToken() {
+		return SchedulerBeans.getQueue_OutOfToken();
 	}
 
-	@Override
-	public String getUnsubscribeTimings() {
-		return SchedulerBeans.getUnsubscribeTimings();
+	public float getTimings_Update() {
+		return SchedulerBeans.getTimings_Update();
+	}
+
+	public float getTimings_Query() {
+		return SchedulerBeans.getTimings_Query();
+	}
+
+	public float getTimings_Subscribe() {
+		return SchedulerBeans.getTimings_Subscribe();
+	}
+
+	public float getTimings_Unsubscribe() {
+		return SchedulerBeans.getTimings_Unsubscribe();
 	}
 
 	@Override

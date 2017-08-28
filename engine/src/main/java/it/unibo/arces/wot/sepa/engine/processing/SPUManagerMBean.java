@@ -1,9 +1,15 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 public interface SPUManagerMBean {
-	public String getActiveSPUs();
+	public long getRequests();
 
-	public String getTimings();
+	public long getSPUs_current();
+
+	public long getSPUs_max();
+
+	public float getSPUs_time();
+
+	public String getSPUs_statistics();
 
 	public void reset();
 }

@@ -27,8 +27,8 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 /**
  * This class represents a Semantic Processing Unit (SPU)
@@ -50,7 +50,7 @@ public abstract class SPU extends Observable implements Runnable {
 	
 	//Subscription
 	protected QueryProcessor queryProcessor = null;
-	protected SubscribeRequest subscribe = null;	
+	protected ScheduledRequest subscribe = null;	
 	
 	//Thread loop
 	private boolean running = true;
@@ -61,7 +61,7 @@ public abstract class SPU extends Observable implements Runnable {
 		public SubscribeRequest subscribe = null;	
 	}
 	
-	public SPU(SubscribeRequest subscribe,SPARQL11Protocol endpoint) {
+	public SPU(ScheduledRequest subscribe,SPARQL11Protocol endpoint) {
 		uuid = prefix + UUID.randomUUID().toString();
 		this.subscribe = subscribe;
 		this.queryProcessor = new QueryProcessor(endpoint);
@@ -78,7 +78,7 @@ public abstract class SPU extends Observable implements Runnable {
 	
 	//To be implemented by specific implementations
 	public abstract void init();
-	public abstract Notification process(UpdateResponse update);
+	public abstract void process(UpdateResponse update);
 	
 	public synchronized void subscriptionCheck(UpdateResponse res) {
 		updateQueue.offer(res);
@@ -108,15 +108,10 @@ public abstract class SPU extends Observable implements Runnable {
 		while(running){			
 			//Wait new update
 			UpdateResponse update = waitUpdate();
-			
 			if (update == null && !running) return;
 			
 			//Processing
-			Notification result = process(update);
-			
-			//Results notification
-			setChanged();
-			notifyObservers(result);
+			process(update);
 		}	
 	}
 }

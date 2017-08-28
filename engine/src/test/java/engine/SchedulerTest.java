@@ -16,33 +16,31 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.scheduling.ResponseAndNotificationListener;
+import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SchedulerTest {
 	private static Scheduler scheduler;
-	private static SchedulerListener listener;
 	
-	class SchedulerListener implements ResponseAndNotificationListener {
+	public class ResponseObserver implements ResponseHandler {
 
 		@Override
-		public void notify(Response response) {
-			System.out.println(response.toString());
+		public void notifyResponse(Response arg) {
+			System.out.println(arg.toString());
 		}
 		
 	}
+	
 	public static void main(String[] args) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, IllegalArgumentException, URISyntaxException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException{
 		EngineProperties properties = new EngineProperties("engine.jpar");
 		
 		System.out.println(properties.toString());
 		
 		scheduler = new Scheduler(properties);
-		
-		listener = new SchedulerTest().new SchedulerListener();
+		ResponseObserver observer = new SchedulerTest().new ResponseObserver();
 		
 		Thread th = new Thread(scheduler);
 		th.setName("SEPA Scheduler");
@@ -55,11 +53,11 @@ public class SchedulerTest {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			Request req = new UpdateRequest("PREFIX test:<http://sepa/test#> delete {?s ?p ?o} insert {test:s test:p \""+Math.random()+"\"} where {OPTIONAL{?s ?p ?o}}");
-			scheduler.schedule(req, listener);
+			UpdateRequest update = new UpdateRequest("PREFIX test:<http://sepa/test#> delete {?s ?p ?o} insert {test:s test:p \""+Math.random()+"\"} where {OPTIONAL{?s ?p ?o}}");
+			scheduler.schedule(update, 1000,observer);
 			
-			req = new QueryRequest("select * where {?s ?p ?o}");
-			scheduler.schedule(req, listener);
+			QueryRequest query = new QueryRequest("select * where {?s ?p ?o}");
+			scheduler.schedule(query,1000,observer);
 			
 		}
 		

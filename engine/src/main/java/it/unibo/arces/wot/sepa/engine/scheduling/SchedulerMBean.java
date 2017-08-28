@@ -1,17 +1,23 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
 public interface SchedulerMBean {
-	public String getRequests();
+	public String getStatistics();
 
-	public String getPendingRequests();
+	public long getErrors();
 
-	public String getUpdateTimings();
+	public long getQueue_Pending();
 
-	public String getQueryTimings();
+	public long getQueue_Max();
 
-	public String getSubscribeTimings();
+	public long getQueue_OutOfToken();
 
-	public String getUnsubscribeTimings();
-	
+	public float getTimings_Update();
+
+	public float getTimings_Query();
+
+	public float getTimings_Subscribe();
+
+	public float getTimings_Unsubscribe();
+
 	public void reset();
 }

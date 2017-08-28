@@ -11,62 +11,79 @@ public class SchedulerBeans {
 	private static long queries = 0;
 	private static long subscribes = 0;
 	private static long unsubscribes = 0;
-	
+
 	private static long outOfTokenRequests = 0;
 	private static long maxPendingsRequests = 0;
 	private static long pendingRequests = 0;
-	
-	private static long errors = 0;	
+
+	private static long errors = 0;
 	private static long totalRequests = 0;
 	private static long totalUpdateRequests = 0;
 	private static long totalQueryRequests = 0;
 	private static long totalSubscribeRequests = 0;
 	private static long totalUnsubscribeRequests = 0;
-	
+
 	private static float minUnsubscribeTime = -1;
 	private static float minSubscribeTime = -1;
 	private static float minUpdateTime = -1;
 	private static float minQueryTime = -1;
-	
+
 	private static float maxUnsubscribeTime = -1;
 	private static float maxSubscribeTime = -1;
 	private static float maxQueryTime = -1;
 	private static float maxUpdateTime = -1;
-	
+
 	private static float meanUnsubscribeTime = -1;
 	private static float meanSubscribeTime = -1;
 	private static float meanQueryTime = -1;
 	private static float meanUpdateTime = -1;
-	
+
 	private static float queryTime = -1;
 	private static float updateTime = -1;
 	private static float subscribeTime = -1;
 	private static float unsubscribeTime = -1;
-	
-	public static String getRequests() {
-		return String.format("%d [Updates: %d Queries: %d Subscribes: %d Unsubscribes: %d Errors: %d]", totalRequests,totalUpdateRequests,totalQueryRequests,totalSubscribeRequests,totalUnsubscribeRequests,errors);
+
+	public static long getErrors() {
+		return errors;
 	}
 
-	public static String getPendingRequests() {
-		return String.format("%d [Max: %d OutOfTokens: %d]", pendingRequests,maxPendingsRequests,outOfTokenRequests);
+	public static long getQueue_Pending() {
+		return pendingRequests;
 	}
 
-	public static String getUpdateTimings() {
-		return String.format("%.0f ms [Min: %.0f Avg: %.0f Max: %.0f]", updateTime,minUpdateTime,meanUpdateTime,maxUpdateTime);
+	public static long getQueue_Max() {
+		return maxPendingsRequests;
 	}
 
-	public static String getQueryTimings() {
-		return String.format("%.0f ms [Min: %.0f Avg: %.0f Max: %.0f]", queryTime,minQueryTime,meanQueryTime,maxQueryTime);
+	public static long getQueue_OutOfToken() {
+		return outOfTokenRequests;
 	}
 
-	public static String getSubscribeTimings() {
-		return String.format("%.0f ms [Min: %.0f Avg: %.0f Max: %.0f]",subscribeTime, minSubscribeTime,meanSubscribeTime,maxSubscribeTime);
+	public static float getTimings_Update() {
+		return updateTime;
 	}
 
-	public static String getUnsubscribeTimings() {
-		return String.format("%.0f ms [Min: %.0f Avg: %.0f Max: %.0f]", unsubscribeTime,minUnsubscribeTime,meanUnsubscribeTime,maxUnsubscribeTime);
+	public static float getTimings_Query() {
+		return queryTime;
 	}
-	
+
+	public static float getTimings_Subscribe() {
+		return subscribeTime;
+	}
+
+	public static float getTimings_Unsubscribe() {
+		return unsubscribeTime;
+	}
+
+	public static String getStatistics() {
+		return String.format(
+				"Scheduled requests: %d Update %d [%.0f %.0f %.0f] Query %d [%.0f %.0f %.0f] Subscribe %d [%.0f %.0f %.0f] Unsubscribe %d [%.0f %.0f %.0f]",
+				totalRequests,totalUpdateRequests, minUpdateTime, meanUpdateTime, maxUpdateTime, totalQueryRequests, minQueryTime,
+				meanQueryTime, maxQueryTime, totalSubscribeRequests, minSubscribeTime, meanSubscribeTime,
+				maxSubscribeTime, totalUnsubscribeRequests, minUnsubscribeTime, meanUnsubscribeTime,
+				maxUnsubscribeTime);
+	}
+
 	public static void reset() {
 		updates = 0;
 		queries = 0;
@@ -91,7 +108,7 @@ public class SchedulerBeans {
 
 	public static void updateCounters(ScheduledRequest request) {
 		long ms = System.currentTimeMillis() - request.getScheduledTime();
-		
+
 		if (request.getRequest().getClass().equals(SubscribeRequest.class)) {
 			subscribeTime = ms;
 			subscribes++;
@@ -176,15 +193,16 @@ public class SchedulerBeans {
 	}
 
 	public static void updateQueueSize(int schedulingQueueSize, int size) {
-		pendingRequests= schedulingQueueSize - size;
+		pendingRequests = schedulingQueueSize - size;
 		if (pendingRequests > maxPendingsRequests)
 			maxPendingsRequests = pendingRequests;
-		
+
 	}
 
 	public static void newRequest(boolean outOfTokens) {
 		totalRequests++;
-		if (outOfTokens) outOfTokenRequests++;
-		
+		if (outOfTokens)
+			outOfTokenRequests++;
+
 	}
 }

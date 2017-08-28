@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
-public class SecureQueryHandler extends QueryHandler {
+public class SecureQueryHandler extends QueryHandler implements SecureQueryHandlerMBean {
 	protected static final Logger logger = LogManager.getLogger("SecureQueryHandler");
 	
 	private AuthorizationManager am;
@@ -21,6 +21,11 @@ public class SecureQueryHandler extends QueryHandler {
 	@Override
 	protected boolean authorize(HttpRequest request) {
 		return am.authorizeRequest(request);
+	}
+
+	@Override
+	public long getErrors_AuthorizingFailed() {
+		return jmx.getErrors_AuthorizingFailed();
 	}
 
 }

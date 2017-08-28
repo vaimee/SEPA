@@ -68,7 +68,7 @@ public class Engine extends Thread implements EngineMBean {
 	// Primitives scheduler/dispatcher
 	private Scheduler scheduler = null;
 	private Thread schedulerThread = null;
-	
+
 	// SPARQL 1.1 Protocol handler
 	private HttpGate httpGate = null;
 
@@ -80,17 +80,14 @@ public class Engine extends Thread implements EngineMBean {
 
 	// Outh 2.0 Authorization Server
 	private static AuthorizationManager oauth;
-	
-	// JKS Credentials 
+
+	// JKS Credentials
 	private static String storeName = "sepa.jks";
 	private static String storePassword = "sepa2017";
 	private static String jwtAlias = "sepakey";
 	private static String jwtPassword = "sepa2017";
 	private static String serverCertificate = "sepacert";
 
-	// JMX
-	private static EngineBeans jmx;
-	
 	private static void printUsage() {
 		System.out.println("Usage:");
 		System.out.println("java [JMX] [JVM] -jar SEPAEngine_X.Y.Z.jar [OPTIONS]");
@@ -198,7 +195,7 @@ public class Engine extends Thread implements EngineMBean {
 	}
 
 	public Engine() {
-		SEPABeans.registerMBean("SEPA:type="+this.getClass().getSimpleName(), this);
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		this.setName("SEPA Engine");
 	}
 
@@ -207,7 +204,7 @@ public class Engine extends Thread implements EngineMBean {
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, InvalidKeyException,
 			IllegalArgumentException, NoSuchElementException, NullPointerException, ClassCastException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-		
+
 		// Initialize SPARQL 1.1 SE processing service properties
 		EngineProperties properties;
 		try {
@@ -222,53 +219,65 @@ public class Engine extends Thread implements EngineMBean {
 
 		// SPARQL 1.1 Protocol
 		httpGate = new HttpGate(properties, scheduler);
+		httpGate.init();
 
 		// SPARQL 1.1 SE Protocol
 		httpsGate = new HttpsGate(properties, scheduler, oauth);
+		httpsGate.init();
 
 		wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
-				properties.getKeepAlivePeriod());
+				properties.getKeepAlivePeriod(), properties.getTimeout());
 		wssServer = new SecureWebsocketServer(properties.getWssPort(),
-				properties.getSecurePath() +properties.getSubscribePath(), scheduler, oauth,
-				properties.getKeepAlivePeriod());
+				properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth,
+				properties.getKeepAlivePeriod(), properties.getTimeout());
 
-		jmx = new EngineBeans(properties);
-		
+		EngineBeans.setEngineProperties(properties);
+
 		return true;
 	}
 
 	@Override
 	public void run() {
 		// Scheduler
-		schedulerThread =new Thread(scheduler);
+		schedulerThread = new Thread(scheduler);
 		schedulerThread.setName("SEPA scheduler");
+		
 		schedulerThread.start();
-
+		synchronized (schedulerThread) {
+			try {
+				schedulerThread.wait();
+			} catch (InterruptedException e) {
+				logger.warn(e.getMessage());
+			}
+		}
+		
 		// Protocol gates
 		System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 		System.out.println("----------------------");
+
 		httpGate.start();
-		synchronized(httpGate) {
+		synchronized (httpGate) {
 			try {
 				httpGate.wait();
 			} catch (InterruptedException e) {
 				logger.warn(e.getMessage());
 			}
 		}
-		
+
 		System.out.println("----------------------");
 		System.out.println("");
 		System.out.println("SPARQL 1.1 SE Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)");
 		System.out.println("----------------------");
+
 		httpsGate.start();
-		synchronized(httpsGate) {
+		synchronized (httpsGate) {
 			try {
 				httpsGate.wait();
 			} catch (InterruptedException e) {
 				logger.warn(e.getMessage());
 			}
 		}
-		
+
 		wsServer.start();
 		synchronized (wsServer) {
 			try {
@@ -287,7 +296,7 @@ public class Engine extends Thread implements EngineMBean {
 			}
 		}
 		System.out.println("----------------------");
-		
+
 		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
@@ -307,30 +316,75 @@ public class Engine extends Thread implements EngineMBean {
 
 		logger.info("Stopping HTTPS gate...");
 		httpsGate.interrupt();
-		
-		 try {
-		 logger.info("Stopping WS gate...");
-		 wsServer.stop(wsShutdownTimeout);
-		 } catch (InterruptedException e) {
-		 logger.warn(e.getMessage());
-		 }
-		 try {
-		 logger.info("Stopping WSS gate...");
-		 wssServer.stop(wsShutdownTimeout);
-		 } catch (InterruptedException e) {
-		 logger.warn(e.getMessage());
-		 }
+
+		try {
+			logger.info("Stopping WS gate...");
+			wsServer.stop(wsShutdownTimeout);
+		} catch (InterruptedException e) {
+			logger.warn(e.getMessage());
+		}
+		try {
+			logger.info("Stopping WSS gate...");
+			wssServer.stop(wsShutdownTimeout);
+		} catch (InterruptedException e) {
+			logger.warn(e.getMessage());
+		}
 
 		logger.info("Stopped...bye bye :-)");
 	}
 
 	@Override
 	public String getUpTime() {
-		return jmx.getUpTime();
+		return EngineBeans.getUpTime();
 	}
 
 	@Override
-	public String getProperties() {
-		return jmx.getProperties();
+	public String getURL_Query() {
+		return EngineBeans.getQueryURL();
+	}
+
+	@Override
+	public String getURL_Update() {
+		return EngineBeans.getUpdateURL();
+	}
+
+	@Override
+	public String getURL_SecureQuery() {
+		return EngineBeans.getSecureQueryURL();
+	}
+
+	@Override
+	public String getURL_SecureUpdate() {
+		return EngineBeans.getSecureUpdateURL();
+	}
+
+	@Override
+	public String getURL_Registration() {
+		return EngineBeans.getRegistrationURL();
+	}
+
+	@Override
+	public String getURL_TokenRequest() {
+		return EngineBeans.getTokenRequestURL();
+	}
+
+	@Override
+	public long getTimeout() {
+		return EngineBeans.getTimeout();
+	}
+
+	@Override
+	public void setTimeout(long l) {
+		EngineBeans.setTimeout(l);
+	}
+
+	@Override
+	public long getKeepalive() {
+		return EngineBeans.getKeepalive();
+	}
+
+	@Override
+	public void setKeepalive(long l) {
+		EngineBeans.setKeepalive(l);
 	}
 }
