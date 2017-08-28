@@ -21,69 +21,65 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
+
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-//import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 import org.apache.logging.log4j.LogManager;
 
 public class SPUNaive extends SPU {
 	private static final Logger logger = LogManager.getLogger("SPUNaive");
-	
-	private BindingsResults lastBindings;
+
+	private BindingsResults lastBindings = null;
 	private Integer sequence = 0;
-	
-	public SPUNaive(SubscribeRequest subscribe, SPARQL11Protocol endpoint) {
+
+	public SPUNaive(ScheduledRequest subscribe, SPARQL11Protocol endpoint) {
 		super(subscribe, endpoint);
 	}
 
 	@Override
 	public void init() {
 		// Process the subscribe SPARQL query
-		Response ret = queryProcessor.process(subscribe);
-//		if (ret.getClass().equals(ErrorResponse.class)) {
-//			logger.error(ret.toString());
-//			setChanged();
-//			notifyObservers(ret);
-//			return;
-//		}
-//
-//		// Notify subscription ID (SPU ID)
-//		logger.debug(ret.toString());
-//		SubscribeResponse response = new SubscribeResponse(subscribe.getToken(), getUUID(), subscribe.getAlias());
-//
-//		setChanged();
-//		notifyObservers(response);
-
-		// Get first query results
-		QueryResponse queryResults = (QueryResponse) ret;
-
-		// Notify bindings
-		lastBindings = queryResults.getBindingsResults();
-		ARBindingsResults bindings = new ARBindingsResults(lastBindings, null);
-		Notification notification = new Notification(getUUID(), bindings, sequence++);
-		setChanged();
-		notifyObservers(notification);
+		Response ret = queryProcessor.process((SubscribeRequest)subscribe.getRequest());
+		
+		if (ret.getClass().equals(ErrorResponse.class)) { 
+			logger.error(ret.toString());
+			
+			 if (subscribe.getEventHandler() != null) 
+				 subscribe.getEventHandler().notifyEvent(new Notification(getUUID(), null,-1));
+			return;
+		}
+		
+		 // Notify bindings
+		 lastBindings = ((QueryResponse) ret).getBindingsResults();
+		 ARBindingsResults bindings = new ARBindingsResults(lastBindings,null);
+		 
+		 if (subscribe.getEventHandler() != null) 
+			 subscribe.getEventHandler().notifyEvent(new Notification(getUUID(), bindings,sequence++));
 	}
 
 	@Override
-	public Notification process(UpdateResponse update) {
+	public void process(UpdateResponse update) {
 
 		logger.debug("Start processing " + this.getUUID());
 
 		// Query the SPARQL processing service
-		Response ret = queryProcessor.process(subscribe);
+		Response ret = queryProcessor.process((QueryRequest)subscribe.getRequest());
 
 		if (ret.getClass().equals(ErrorResponse.class)) {
 			logger.error(ret.toString());
-			return new Notification(getUUID(), null, 0);
+			subscribe.getEventHandler().notifyEvent(new Notification(getUUID(), null,sequence));
+			return;
 		}
 
 		QueryResponse currentResults = (QueryResponse) ret;
@@ -124,10 +120,13 @@ public class SPUNaive extends SPU {
 			notification = new Notification(getUUID(), bindings, sequence++);
 		} else
 			notification = new Notification(getUUID(), null, 0);
-
+		
+		if (subscribe.getEventHandler() != null && notification.toBeNotified()) subscribe.getEventHandler().notifyEvent(notification);
+		
+		// Notify SPU manager of the SPU end processing
+		setChanged();
+		notifyObservers(notification);
+		
 		logger.debug(getUUID() + " End processing");
-
-		return notification;
 	}
-
 }

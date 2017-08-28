@@ -7,7 +7,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
-public class SecureUpdateHandler extends UpdateHandler {
+public class SecureUpdateHandler extends UpdateHandler implements SecureUpdateHandlerMBean {
 	protected static final Logger logger = LogManager.getLogger("SecureUpdateHandler");
 	
 	private AuthorizationManager am;
@@ -22,5 +22,10 @@ public class SecureUpdateHandler extends UpdateHandler {
 	@Override
 	protected boolean authorize(HttpRequest request) {
 		return am.authorizeRequest(request);
+	}
+
+	@Override
+	public long getErrors_AuthorizingFailed() {
+		return jmx.getErrors_AuthorizingFailed();
 	}
 }

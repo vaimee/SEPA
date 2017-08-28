@@ -6,6 +6,8 @@ import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -17,7 +19,7 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
 
-public class QueryProcessorTest {
+public class QueryProcessorTest implements Observer{
 	private static QueryProcessor processor;
 	
 	public static void main(String[] args) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, IllegalArgumentException, URISyntaxException{
@@ -39,6 +41,12 @@ public class QueryProcessorTest {
 			Response ret = processor.process(req);
 			System.out.println(ret.toString());
 		}
+		
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
 		
 	}
 }

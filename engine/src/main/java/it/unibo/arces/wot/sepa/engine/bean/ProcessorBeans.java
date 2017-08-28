@@ -3,19 +3,10 @@ package it.unibo.arces.wot.sepa.engine.bean;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 
 public class ProcessorBeans {
-	private static SPARQL11Properties endpointProperties;
-	
-	private static int totalRequests = 0;
-	private static int subscribeRequests = 0;
-	private static int unsubscribeRequests = 0;
-	private static int unsupportedRequests = 0;
-	//private static int totalUpdateRequests = 0;
 	private static int totalQueryRequests = 0;
+	private static int totalRequests = 0;
 	
 	private static int updateRequests = 0;
 	private static float queryMinTime = -1;
@@ -29,23 +20,45 @@ public class ProcessorBeans {
 	private static float updateMaxTime = -1;
 	private static float updateTime = -1;
 	
+	// Endpoint properties
+	private static String host;
+	private static int port;
+	private static String queryPath;
+	private static String updatePath;
+	private static String updateMethod;
+	private static String queryMethod;
+	
 	public static void setEndpoint(SPARQL11Properties prop) {
-		endpointProperties = prop;	
+		host = prop.getHost();
+		port = prop.getHttpPort();
+		queryPath = prop.getQueryPath();
+		updatePath = prop.getUpdatePath();
+		updateMethod = prop.getUpdateMethod().name();
+		queryMethod = prop.getQueryMethod().name();
 	}
 	
-	public static String getEndpointProperties() {
-		return endpointProperties.toString();	
+	public static String getEndpointHost() {
+		return host;
 	}
-	
-	public static String getRequests() {
-		long spus = (totalQueryRequests- queryRequests);
-		return String.format("%d [Updates: %d Queries (SPUs): %d Queries: %d Subscribes: %d Unsubscribes: %d Unsupported: %d]", totalRequests,updateRequests,spus,queryRequests,subscribeRequests,unsubscribeRequests,unsupportedRequests);
+	public static int getEndpointPort() {
+		return port;
+	}
+	public static String getEndpointQueryPath() {
+		return queryPath;
+	}
+	public static String getEndpointUpdatePath() {
+		return updatePath;
+	}
+	public static String getEndpointUpdateMethod() {
+		return updateMethod;
+	}
+	public static String getEndpointQueryMethod() {
+		return queryMethod;
 	}
 	
  	public static void updateTimings(long start, long stop) {
 		updateTime = stop - start;
 
-		//totalUpdateRequests++;
 		updateRequests++;
 		
 		if (updateMinTime == -1)
@@ -68,7 +81,6 @@ public class ProcessorBeans {
 		queryTime = stop - start;
 
 		totalQueryRequests++;
-		//queryRequests++;
 		
 		if (queryMinTime == -1)
 			queryMinTime = queryTime;
@@ -100,7 +112,6 @@ public class ProcessorBeans {
 		updateRequests = 0;
 		
 		totalQueryRequests = 0;
-		//totalUpdateRequests = 0;
 		totalRequests = 0;	
 	}
 	
@@ -115,29 +126,21 @@ public class ProcessorBeans {
 	public static void newRequest(Request request) {
 		totalRequests++;
 		
-		if (request.getClass().equals(UpdateRequest.class)) {
-			
-		} 
-		else if (request.getClass().equals(QueryRequest.class)) {
+		if (request.getClass().equals(QueryRequest.class)) {
 			queryRequests++;	
 		}
-		else if (request.getClass().equals(SubscribeRequest.class)) {
-			subscribeRequests++;
-		}  
-		else if (request.getClass().equals(UnsubscribeRequest.class)) {
-			unsubscribeRequests++;
-		} 
-		else {
-			unsupportedRequests++;
-		}
-		
 	}
-
-	public static String getQueryTimings() {
-		return String.format("%.0f ms [Min: %.0f Avg: %.0f Max: %.0f]", queryTime,queryMinTime,queryAverageTime,queryMaxTime);
+	
+	public static String getStatistics() {
+		long spus = (totalQueryRequests- queryRequests);
+		return String.format("Total requests: %d Query (SPUs) %d (%d) [%.0f %.0f %.0f] Update %d [%.0f %.0f %.0f]",totalRequests, queryRequests,spus,queryMinTime,queryAverageTime,queryMaxTime,updateRequests,updateMinTime,updateAverageTime,updateMaxTime);
 	}
-
-	public static String getUpdateTimings() {
-		return String.format("%.0f ms [Min: %.0f Avg: %.0f Max: %.0f]", updateTime,updateMinTime,updateAverageTime,updateMaxTime);
+	
+	public static float getQueryTime_ms() {
+		return queryTime;
+	}
+	
+	public static float getUpdateTime_ms() {
+		return updateTime;
 	}
 }

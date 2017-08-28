@@ -3,8 +3,7 @@ package it.unibo.arces.wot.sepa.engine.bean;
 import java.time.Instant;
 
 public class SPUManagerBeans {
-	private static int requests = 0;
-	//private static int totalRequests = 0;
+	private static long requests = 0;
 
 	private static float minTime = -1;
 	private static float averageTime = -1;
@@ -14,12 +13,24 @@ public class SPUManagerBeans {
 	private static long activeSPUs = 0;
 	private static long maxActiveSPUs = 0;
 
-	public static String getActiveSPUs() {
-		return String.format("%d [Max: %d]", activeSPUs, maxActiveSPUs);
+	public static long getRequests() {
+		return requests;
+	}
+	
+	public static long getSPUs_current() {
+		return activeSPUs;
 	}
 
-	public static String getTimings(){
-		return String.format("%.0f ms [Min: %.0f Avg: %.0f Max: %.0f]", time,minTime,averageTime,maxTime);
+	public static long getSPUs_max() {
+		return maxActiveSPUs;
+	}
+	
+	public static float getSPUs_time() {
+		return time;
+	}
+	
+	public static String getSPUs_statistics(){
+		return String.format("[%.0f %.0f %.0f]", minTime,averageTime,maxTime);
 	}
 	
 	public static  void setActiveSPUs(long n) {

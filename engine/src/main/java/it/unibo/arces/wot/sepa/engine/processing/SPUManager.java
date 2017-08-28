@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
+
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -36,6 +37,7 @@ import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
+import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 public class SPUManager extends Observable implements Observer,SPUManagerMBean {
 	private static final Logger logger = LogManager.getLogger("SPUManager");
@@ -50,17 +52,18 @@ public class SPUManager extends Observable implements Observer,SPUManagerMBean {
 
 	public SPUManager(SPARQL11Protocol endpoint) {
 		this.endpoint = endpoint;
-		
 		SEPABeans.registerMBean("SEPA:type="+this.getClass().getSimpleName(), this);
 	}
 
-	public Response processSubscribe(SubscribeRequest req) {
+	public Response processSubscribe(ScheduledRequest req) {
 		logger.debug("Process SUBSCRIBE #" + req.getToken());
 
+		if (!req.getRequest().getClass().equals(SubscribeRequest.class)) return new ErrorResponse(req.getToken(),400,"Bad subscribe request: "+req.getRequest().toString());
+		
 		// TODO: choose different kinds of SPU based on subscription request
 		SPU spu = new SPUNaive(req, endpoint);
 		spu.addObserver(this);
-
+		
 		synchronized (spus) {
 			spus.put(spu.getUUID(), spu);
 		}
@@ -71,12 +74,15 @@ public class SPUManager extends Observable implements Observer,SPUManagerMBean {
 		th.setName("SPU_" + spu.getUUID());
 		th.start();
 		
-		return new SubscribeResponse(req.getToken(),spu.getUUID(),req.getAlias());
+		return new SubscribeResponse(req.getToken(),spu.getUUID(),((SubscribeRequest)req.getRequest()).getAlias());
 	}
 
-	public Response processUnsubscribe(UnsubscribeRequest req) {
+	public Response processUnsubscribe(ScheduledRequest req) {
 		logger.debug("Process UNSUBSCRIBE #" + req.getToken());
-		String spuid = req.getSubscribeUUID();
+
+		if (!req.getRequest().getClass().equals(UnsubscribeRequest.class)) return new ErrorResponse(req.getToken(),400,"Bad unsubscribe request: "+req.getRequest().toString());
+		
+		String spuid = ((UnsubscribeRequest)req.getRequest()).getSubscribeUUID();
 
 		synchronized (spus) {
 			if (spus.containsKey(spuid)) {
@@ -94,8 +100,7 @@ public class SPUManager extends Observable implements Observer,SPUManagerMBean {
 
 	public void processUpdate(UpdateResponse res) {
 		logger.debug("*** PROCESSING UPDATE STARTED ***");
-		
-		
+			
 		// Sequential update processing
 		Instant start = Instant.now();
 		waitAllSubscriptionChecks(res);
@@ -140,28 +145,28 @@ public class SPUManager extends Observable implements Observer,SPUManagerMBean {
 			// SPU processing ended
 			logger.debug("SPU " + ret.getSPUID() + " processing ended");
 			subscriptionProcessingEnded(ret.getSPUID());
-
-			// Send notification if required
-			if (ret.toBeNotified()) {
-				logger.debug("Notify observers " + ret.toString());
-				setChanged();
-				notifyObservers(ret);
-			}
-		} else {
-			logger.debug("Notify observers " + arg.toString());
-			setChanged();
-			notifyObservers(arg);
 		}
 	}
 
 	@Override
-	public String getActiveSPUs() {
-		return SPUManagerBeans.getActiveSPUs();
+	public long getRequests(){
+		return SPUManagerBeans.getRequests();
 	}
-
 	@Override
-	public String getTimings() {
-		return SPUManagerBeans.getTimings();
+	public long getSPUs_current(){
+		return SPUManagerBeans.getSPUs_current();
+	}
+	@Override
+	public long getSPUs_max(){
+		return SPUManagerBeans.getSPUs_max();
+	}
+	@Override
+	public float getSPUs_time(){
+		return SPUManagerBeans.getSPUs_time();
+	}
+	@Override
+	public String getSPUs_statistics(){
+		return SPUManagerBeans.getSPUs_statistics();
 	}
 
 	@Override

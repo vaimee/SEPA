@@ -190,7 +190,7 @@ public class EngineProperties {
 		return def;
 	}
 
-	public int getHttpTimeout() {
+	public int getTimeout() {
 		return getParameter("timeouts", "http", 0);
 	}
 

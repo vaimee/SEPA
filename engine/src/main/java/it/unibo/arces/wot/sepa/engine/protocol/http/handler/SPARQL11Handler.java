@@ -22,24 +22,27 @@ import com.google.gson.JsonParser;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.Utilities;
-
-import it.unibo.arces.wot.sepa.engine.scheduling.ResponseAndNotificationListener;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-
 import it.unibo.arces.wot.sepa.engine.security.CORSManager;
 
 public abstract class SPARQL11Handler
-		implements HttpAsyncRequestHandler<HttpRequest>, ResponseAndNotificationListener, SPARQL11HandlerMBean {
+		implements ResponseHandler, HttpAsyncRequestHandler<HttpRequest>, SPARQL11HandlerMBean {
 	private static final Logger logger = LogManager.getLogger("SPARQL11Handler");
 
 	private Scheduler scheduler;
 
 	protected HttpAsyncExchange httpExchange;
+	protected int requestToken = -1;
 
 	protected HTTPHandlerBeans jmx = new HTTPHandlerBeans();
+	
+	// Timestamps
+	private long startTime = -1;
 
 	public SPARQL11Handler(Scheduler scheduler, long timeout) throws IllegalArgumentException {
 
@@ -50,7 +53,6 @@ public abstract class SPARQL11Handler
 
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
-		jmx.setTimeout(timeout);
 	}
 
 	protected boolean validate(HttpRequest request) {
@@ -65,8 +67,7 @@ public abstract class SPARQL11Handler
 
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
 		if (!CORSManager.processCORSRequest(exchange)) {
-			Utilities.sendFailureResponse(exchange, HttpStatus.SC_UNAUTHORIZED,
-					"CORS origin not allowed");
+			Utilities.sendFailureResponse(exchange, HttpStatus.SC_UNAUTHORIZED, "CORS origin not allowed");
 			return false;
 		}
 
@@ -90,79 +91,69 @@ public abstract class SPARQL11Handler
 	@Override
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
-		// Timestamps
-		long startTime = System.nanoTime();
+		startTime = System.nanoTime();
 
-		long corsTime = -1;
-		long parsingTime = -1;
-		long validatingTime = -1;
-		long authorizingTime = -1;
-		long stopTime = -1;
-
-		this.httpExchange = httpExchange;
+		jmx.newRequest();
 		
+		this.httpExchange = httpExchange;
+
 		// CORS
 		if (!corsHandling(httpExchange)) {
-			jmx.updateTimings(startTime, System.nanoTime(), parsingTime, validatingTime, authorizingTime, stopTime);
+			jmx.corsFailed();
 			return;
 		}
-		corsTime = System.nanoTime();
 
 		// Parsing SPARQL 1.1 request and attach a token
 		Request sepaRequest = parse(httpExchange);
-		parsingTime = System.nanoTime();
+		
 
 		// Parsing failed
 		if (sepaRequest == null) {
-			jmx.updateTimings(startTime, corsTime, parsingTime, validatingTime, authorizingTime, stopTime);
-
 			logger.error("Parsing failed: " + request);
-			Utilities.sendFailureResponse(httpExchange,HttpStatus.SC_BAD_REQUEST,
-					"Parsing failed: " + request);
+			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Parsing failed: " + request);
+			jmx.parsingFailed();
 			return;
 		}
 
 		// Validate
 		if (!validate(request)) {
-			jmx.updateTimings(startTime, corsTime, parsingTime, System.nanoTime(), authorizingTime, stopTime);
-
 			logger.error("Validation failed SPARQL: " + sepaRequest.getSPARQL());
 			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST,
 					"Validation failed SPARQL: " + sepaRequest.getSPARQL());
+			jmx.validatingFailed();
 			return;
 		}
-		validatingTime = System.nanoTime();
 
 		// Authorize
 		if (!authorize(request)) {
-			jmx.updateTimings(startTime, corsTime, parsingTime, validatingTime, System.nanoTime(), stopTime);
-
 			logger.error("Authorization failed SPARQL: " + sepaRequest.getSPARQL());
 			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_UNAUTHORIZED,
 					"Authorization failed SPARQL: " + sepaRequest.getSPARQL());
+			jmx.authorizingFailed();
 			return;
 		}
-		authorizingTime = System.nanoTime();
 
 		// Schedule a new request
-		int requestToken = scheduler.schedule(sepaRequest, this);
+		requestToken = scheduler.schedule(sepaRequest, EngineBeans.getTimeout(), this);
 
 		if (requestToken == -1) {
 			logger.warn("No more tokens");
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_NOT_ACCEPTABLE,
-					"No more tokens");
+			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_NOT_ACCEPTABLE, "No more tokens");
 			return;
 		}
-		
-		jmx.updateTimings(startTime, corsTime, parsingTime, validatingTime, authorizingTime, System.nanoTime());
 
 		logger.info("Request #" + requestToken);
 	}
 
 	// Scheduler response
 	@Override
-	public void notify(Response response) {
-		logger.info("Response #" + response.getToken());		
+	public void notifyResponse(Response response) {
+		logger.info("Response #" + response.getToken());
+
+		if (response.getToken() != requestToken)
+			return;
+
+		jmx.timings(startTime, System.nanoTime());
 
 		JsonObject json = new JsonParser().parse(response.toString()).getAsJsonObject();
 
@@ -173,49 +164,54 @@ public abstract class SPARQL11Handler
 	}
 
 	@Override
-	public String getRequests() {
+	public long getRequests() {
 		return jmx.getRequests();
 	}
 
-	@Override
-	public String getCORSTimings() {
-		return jmx.getCORSTimings();
-	}
-
-	@Override
-	public String getParsingTimings() {
-		return jmx.getParsingTimings();
-	}
-
-	@Override
-	public String getValidatingTimings() {
-		return jmx.getValidatingTimings();
-	}
-
-	@Override
-	public String getAuthorizingTimings() {
-		return jmx.getAuthorizingTimings();
-	}
-
-	@Override
-	public String getHandlingTimings() {
-		return jmx.getHandlingTimings();
-	}
-
-	@Override
-	public void setTimeout(long t) {
-		jmx.setTimeout(t);
-
-	}
-
-	@Override
-	public long getTimeout() {
-		return jmx.getTimeout();
-	}
 
 	@Override
 	public void reset() {
 		jmx.reset();
 
+	}
+	
+	@Override
+	public float getHandlingTime_ms() {
+		return jmx.getHandlingTime_ms();
+	}
+
+	@Override
+	public float getHandlingMinTime_ms() {
+		return jmx.getHandlingMinTime_ms();
+	}
+
+	@Override
+	public float getHandlingAvgTime_ms() {
+		return jmx.getHandlingAvgTime_ms();
+	}
+
+	@Override
+	public float getHandlingMaxTime_ms() {
+		return jmx.getHandlingMaxTime_ms();
+	}
+
+	@Override
+	public long getErrors_Timeout() {
+		return jmx.getErrors_Timeout();
+	}
+
+	@Override
+	public long getErrors_CORSFailed() {
+		return jmx.getErrors_CORSFailed();
+	}
+
+	@Override
+	public long getErrors_ParsingFailed() {
+		return jmx.getErrors_ParsingFailed();
+	}
+
+	@Override
+	public long getErrors_ValidatingFailed() {
+		return jmx.getErrors_ValidatingFailed();
 	}
 }

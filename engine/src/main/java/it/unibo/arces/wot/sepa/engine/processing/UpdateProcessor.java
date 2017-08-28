@@ -36,7 +36,7 @@ public class UpdateProcessor {
 		long stop = System.currentTimeMillis();
 
 		ProcessorBeans.updateTimings(start, stop);
-		
+
 		return ret;
 	}
 
