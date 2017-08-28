@@ -58,7 +58,7 @@ import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
  * Event Processing Architecture (SEPA)
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.7.7
+ * @version 0.8.1
  */
 
 public class Engine extends Thread implements EngineMBean {
@@ -149,7 +149,7 @@ public class Engine extends Thread implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 		System.out
-				.println("# SEPA Engine Ver 0.7.7  Copyright (C) 2016-2017                                         #");
+				.println("# SEPA Engine Ver 0.8.1  Copyright (C) 2016-2017                                         #");
 		System.out
 				.println("# Web of Things Research @ ARCES - University of Bologna (Italy)                         #");
 		System.out
@@ -300,7 +300,7 @@ public class Engine extends Thread implements EngineMBean {
 		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
-		System.out.println("*                      SEPA Engine Ver 0.7.7 is up and running                          *");
+		System.out.println("*                      SEPA Engine Ver 0.8.1 is up and running                          *");
 		System.out.println("*                                Let Things Talk!                                       *");
 		System.out.println("*****************************************************************************************");
 	}
