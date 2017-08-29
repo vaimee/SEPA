@@ -1,11 +1,11 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-
+import java.nio.channels.NotYetConnectedException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -43,7 +43,6 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	protected HashMap<String, WebSocket> activeSubscriptions = new HashMap<String, WebSocket>();
 	protected HashMap<Integer, WebSocket> scheduledRequests = new HashMap<Integer, WebSocket>();
-	protected HashMap<WebSocket, HashSet<String>> activeSockets = new HashMap<WebSocket, HashSet<String>>();
 
 	protected String getWelcomeMessage() {
 		return "Subscribe            | ws://%s:%d%s";
@@ -56,32 +55,6 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	// JMX
 	protected WebsocketBeans jmx = new WebsocketBeans();
-
-	private Keepalive ping = null;
-
-	class Keepalive extends Thread {
-		@Override
-		public void run() {
-			while (true) {
-				try {
-					Thread.sleep(EngineBeans.getKeepalive());
-				} catch (InterruptedException e) {
-					return;
-				}
-
-				synchronized (activeSockets) {
-					for (WebSocket socket : activeSockets.keySet()) {
-						Ping ping = new Ping();
-						try {
-							socket.send(ping.toString());
-						} catch (WebsocketNotConnectedException e) {
-							logger.warn("Ping on closed socket");
-						}
-					}
-				}
-			}
-		}
-	}
 
 	public WebsocketServer(int port, String path, Scheduler scheduler, int keepAlivePeriod, long timeout)
 			throws IllegalArgumentException, UnknownHostException {
@@ -109,21 +82,6 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		logger.debug("@onClose Reason: <" + reason + "> Code: <" + code + "> Remote: <" + remote + ">¯");
 
 		fragmentedMessages.remove(conn);
-
-		// Close subscription
-		synchronized (activeSockets) {
-			if (activeSockets.get(conn)==null) return;
-			
-			for (String spuid : activeSockets.get(conn)) {
-				// Remove websocket related data
-				activeSubscriptions.remove(spuid);
-				activeSockets.get(conn).remove(spuid);
-				
-				// Send unsubscribe request to the scheduler
-				scheduler.schedule(new UnsubscribeRequest(spuid), 0, null);
-			}
-			activeSockets.remove(conn);
-		}
 	}
 
 	@Override
@@ -151,9 +109,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			conn.send(response.toString());
 			return;
 		}
-		synchronized (scheduledRequests) {
-			scheduledRequests.put(requestToken, conn);
-		}
+
+		scheduledRequests.put(requestToken, conn);
 	}
 
 	/*
@@ -190,59 +147,57 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void notifyEvent(Notification notify) {
-		if (!activeSubscriptions.isEmpty())
+		if (activeSubscriptions.isEmpty())
+			return;
+		if (activeSubscriptions.get(notify.getSPUID()) != null)
 			activeSubscriptions.get(notify.getSPUID()).send(notify.toString());
+	}
+
+	@Override
+	public void sendPing(Ping ping) throws IOException {
+		WebSocket socket = activeSubscriptions.get(ping.getSpuid());
+		
+		if (socket == null) return;
+		
+		try {
+			if (socket.isOpen())
+				socket.send(ping.toString());
+			else {
+				activeSubscriptions.remove(ping.getSpuid());
+				throw new IOException("Broken socket");	
+			}
+		} catch (WebsocketNotConnectedException e) {
+			activeSubscriptions.remove(ping.getSpuid());
+			throw new IOException("Broken socket");
+		}
+
 	}
 
 	@Override
 	public void notifyResponse(Response response) {
 		int token = response.getToken();
 
-		if (!scheduledRequests.containsKey(token))
+		// Send response to client
+		try {
+			scheduledRequests.get(token).send(response.toString());
+		} catch (NotYetConnectedException e) {
 			return;
+		}
 
 		if (response.getClass().equals(SubscribeResponse.class)) {
 			logger.debug("<< SUBSCRIBE response #" + token);
 
-			WebSocket socket = scheduledRequests.get(token);
-			String spuid = ((SubscribeResponse) response).getSpuid();
+			// Register SPU ID
+			activeSubscriptions.put(((SubscribeResponse) response).getSpuid(), scheduledRequests.get(token));
 
-			synchronized (activeSockets) {
-				// Register SPU ID
-				activeSubscriptions.put(spuid, socket);
-
-				// Add to active sockets
-				if (activeSockets.get(socket) == null) {
-					activeSockets.put(socket, new HashSet<String>());
-				}
-				activeSockets.get(socket).add(spuid);
-			}
-
-			if (ping == null) {
-				ping = new Keepalive();
-				ping.setName("Keepalive");
-				ping.start();
-			}
 		} else if (response.getClass().equals(UnsubscribeResponse.class)) {
 			logger.debug("<< UNSUBSCRIBE response #" + token + " ");
 			String spuid = ((UnsubscribeResponse) response).getSpuid();
 
-			synchronized (activeSockets) {
-				WebSocket socket = activeSubscriptions.get(spuid);
-				
-				activeSockets.get(socket).remove(spuid);
-				if (activeSockets.get(socket).isEmpty())
-					activeSockets.remove(socket);
-
-				activeSubscriptions.remove(spuid);
-			}
+			activeSubscriptions.remove(spuid);
 		}
-
-		// Send response to client
-		synchronized (scheduledRequests) {
-			scheduledRequests.get(token).send(response.toString());
-			scheduledRequests.remove(token);
-		}
+		
+		scheduledRequests.remove(token);
 	}
 
 	/**
@@ -294,15 +249,18 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	}
 
 	@Override
-	public long getMessages(){
+	public long getMessages() {
 		return jmx.getMessages();
 	}
+
 	@Override
-	public long getFragmented(){
+	public long getFragmented() {
 		return jmx.getFragmented();
 	}
+
 	@Override
-	public long getErrors(){
+	public long getErrors() {
 		return jmx.getErrors();
 	}
+
 }

@@ -106,6 +106,7 @@ public class Processor extends Observable implements ProcessorMBean {
 					response = new ErrorResponse(request.getToken(), 500,
 							"Unsupported request: " + request.getRequest().toString());
 				}
+				
 				synchronized(waitResponse) {
 					logger.debug("Notify response: "+response.toString());
 					waitResponse.notify();
@@ -123,14 +124,14 @@ public class Processor extends Observable implements ProcessorMBean {
 		if (response == null)
 			response = new ErrorResponse(request.getToken(), 404, request.getRequest().toString());
 	
+		if (response.getClass().equals(UpdateResponse.class)) {
+			spuManager.processUpdate((UpdateResponse)response);
+		}
+		
 		// Notify response
 		if (request.getResponseHandler() != null) request.getResponseHandler().notifyResponse(response);
 		setChanged();
 		notifyObservers(response);
-		
-		if (response.getClass().equals(UpdateResponse.class)) {
-			spuManager.processUpdate((UpdateResponse)response);
-		}
 	}
 
 	@Override

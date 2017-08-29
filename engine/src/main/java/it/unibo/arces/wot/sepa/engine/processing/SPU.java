@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.IOException;
 import java.util.Observable;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -27,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.response.Ping;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
@@ -34,84 +36,114 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
  * This class represents a Semantic Processing Unit (SPU)
  * 
  * 
-* @author Luca Roffia (luca.roffia@unibo.it)
-* @version 0.1
-* */
+ * @author Luca Roffia (luca.roffia@unibo.it)
+ * @version 0.1
+ */
 
 public abstract class SPU extends Observable implements Runnable {
-	private static final Logger logger = LogManager.getLogger("SPU");	
-	
-	//The URI of the subscription (i.e., sepa://subscription/UUID)
+	private static final Logger logger = LogManager.getLogger("SPU");
+
+	// The URI of the subscription (i.e., sepa://spuid/UUID)
 	private String uuid = null;
-	private String prefix = "sepa://subscription/";
-	
-	//Update queue
+	private String prefix = "sepa://spuid/";
+
+	// Update queue
 	protected ConcurrentLinkedQueue<UpdateResponse> updateQueue = new ConcurrentLinkedQueue<UpdateResponse>();
-	
-	//Subscription
+
+	// Subscription
 	protected QueryProcessor queryProcessor = null;
-	protected ScheduledRequest subscribe = null;	
-	
-	//Thread loop
+	protected ScheduledRequest subscribe = null;
+
+	// Thread loop
 	private boolean running = true;
 
 	class SubscriptionProcessingInputData {
 		public UpdateResponse update = null;
 		public QueryProcessor queryProcessor = null;
-		public SubscribeRequest subscribe = null;	
+		public SubscribeRequest subscribe = null;
 	}
-	
-	public SPU(ScheduledRequest subscribe,SPARQL11Protocol endpoint) {
-		uuid = prefix + UUID.randomUUID().toString();
+
+	public SPU(ScheduledRequest subscribe, SPARQL11Protocol endpoint) {
+		this.uuid = prefix + UUID.randomUUID().toString();
 		this.subscribe = subscribe;
 		this.queryProcessor = new QueryProcessor(endpoint);
+		this.running = true;
 	}
-	
+
 	public synchronized void terminate() {
-		running = false;
-		notifyAll();
+		synchronized (updateQueue) {
+			running = false;
+			notify();
+		}
 	}
-	
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!obj.getClass().equals(SPU.class))
+			return false;
+		return ((SPU) obj).getUUID().equals(getUUID());
+	}
+
+	public boolean sendPing() {		
+		try {
+			subscribe.getEventHandler().sendPing(new Ping(getUUID()));
+		} catch (IOException e) {
+			return false;
+		}
+		return true;
+	}
+
 	public String getUUID() {
 		return uuid;
 	}
-	
-	//To be implemented by specific implementations
+
+	// To be implemented by specific implementations
 	public abstract void init();
+
 	public abstract void process(UpdateResponse update);
-	
+
 	public synchronized void subscriptionCheck(UpdateResponse res) {
 		updateQueue.offer(res);
-		notifyAll();
+		notify();
 	}
-	
+
 	private synchronized UpdateResponse waitUpdate() {
-		while(updateQueue.isEmpty()){
+		while (updateQueue.isEmpty()) {
 			try {
 				logger.debug(getUUID() + " Waiting new update response...");
+
 				wait();
-			} catch (InterruptedException e) {}
-			
-			if (!running) return null;
+
+			} catch (InterruptedException e) {
+				return null;
+			}
+
+			if (!running)
+				return null;
 		}
-		
-		return updateQueue.poll();	
+
+		return updateQueue.poll();
 	}
-	
+
 	@Override
 	public void run() {
-		//Initialize the subscription (e.g., retrieve the first results) 
+		// Initialize the subscription (e.g., retrieve the first results)
 		init();
-		
-		//Main loop
-		logger.debug(getUUID()+" Entering main loop...");
-		while(running){			
-			//Wait new update
+
+		// Main loop
+		logger.debug(getUUID() + " Entering main loop...");
+		while (running) {
+			// Wait new update
 			UpdateResponse update = waitUpdate();
-			if (update == null && !running) return;
-			
-			//Processing
+			if (update == null)
+				continue;
+
+			// Processing
 			process(update);
-		}	
+		}
+		logger.debug(getUUID() + " terminated");
+		synchronized(this) {
+			notify();
+		}
 	}
 }
