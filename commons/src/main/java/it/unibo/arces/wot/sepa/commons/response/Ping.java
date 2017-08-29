@@ -29,7 +29,7 @@ import com.google.gson.JsonPrimitive;
  *
  * The JSON serialization is the following:
  *
- * {"ping" : "yyyy-MM-dd HH:mm:ss.SSS"}
+ * {"ping" : "yyyy-MM-dd HH:mm:ss.SSS", "spuid":"sepa://spuid/UUID"}
  *
  * */
 
@@ -38,9 +38,14 @@ public class Ping extends Response {
 	/**
 	 * Instantiates a new ping.
 	 */
-	public Ping() {
+	public Ping(String spuid) {
 		super();
 		
 		json.add("ping", new JsonPrimitive(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date())) );
+		json.add("spuid", new JsonPrimitive(spuid));
+	}
+	
+	public String getSpuid() {
+		return json.get("spuid").getAsString();
 	}
 }

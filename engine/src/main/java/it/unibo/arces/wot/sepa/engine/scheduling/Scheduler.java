@@ -41,7 +41,11 @@ import javax.management.NotCompliantMBeanException;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -66,7 +70,10 @@ public class Scheduler implements Observer, Runnable, SchedulerMBean {
 	private Processor processor;
 
 	// Request queue
-	private ConcurrentLinkedQueue<ScheduledRequest> requestQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
+	private ConcurrentLinkedQueue<ScheduledRequest> updateQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
+	private ConcurrentLinkedQueue<ScheduledRequest> queryQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
+	private ConcurrentLinkedQueue<ScheduledRequest> subscribeQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
+	private ConcurrentLinkedQueue<ScheduledRequest> unsubscribeQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
 
 	// Properties reference
 	private EngineProperties properties;
@@ -98,13 +105,30 @@ public class Scheduler implements Observer, Runnable, SchedulerMBean {
 		int token = getToken();
 		if (token == -1) {
 			SchedulerBeans.newRequest(true);
-			logger.error("Too many pending requests");
+			logger.error("Request refused: too many pending requests");
 		} else {
 			SchedulerBeans.newRequest(false);
-			synchronized (requestQueue) {
-				requestQueue.offer(new ScheduledRequest(token, request, timeout, handler));
-				requestQueue.notify();
-			}
+			if (request.getClass().equals(UpdateRequest.class)) {
+				synchronized (updateQueue) {
+					updateQueue.offer(new ScheduledRequest(token, request, timeout, handler));
+					updateQueue.notify();
+				}
+			}else if (request.getClass().equals(SubscribeRequest.class)) {
+				synchronized (subscribeQueue) {
+					subscribeQueue.offer(new ScheduledRequest(token, request, timeout, handler));
+					subscribeQueue.notify();
+				} 
+			}else if (request.getClass().equals(QueryRequest.class)) {
+				synchronized (queryQueue) {
+					queryQueue.offer(new ScheduledRequest(token, request, timeout, handler));
+					queryQueue.notify();
+				} 
+			}else if (request.getClass().equals(UnsubscribeRequest.class)) {
+				synchronized (unsubscribeQueue) {
+					unsubscribeQueue.offer(new ScheduledRequest(token, request, timeout, handler));
+					unsubscribeQueue.notify();
+				} 
+			}	
 		}
 
 		return token;
@@ -112,28 +136,128 @@ public class Scheduler implements Observer, Runnable, SchedulerMBean {
 
 	@Override
 	public void run() {
-		while (true) {
-			// Poll for a new request
-			ScheduledRequest request = null;
-			while ((request = requestQueue.poll()) == null) {
-				synchronized (requestQueue) {
-					try {
-						logger.debug("Requests queue is empty...wating for requests...");
-						synchronized (Thread.currentThread()) {
-							Thread.currentThread().notify();
+		Thread updateThread = new Thread() {
+			public void run() {
+				while (true) {
+					// Poll for a new request
+					ScheduledRequest request = null;
+					while ((request = updateQueue.poll()) == null) {
+						synchronized (updateQueue) {
+							try {
+								logger.debug("Update request queue is empty...wating for requests...");
+								synchronized (Thread.currentThread()) {
+									Thread.currentThread().notify();
+								}
+								updateQueue.wait();
+							} catch (InterruptedException e) {
+								logger.error(e.getMessage());
+							}
 						}
-						requestQueue.wait();
-					} catch (InterruptedException e) {
-						logger.error(e.getMessage());
 					}
+
+					// Process request
+					processor.process(request);
+
+					// JMX
+					SchedulerBeans.updateCounters(request);
 				}
 			}
+		};
+		updateThread.setName("SEPA update scheduler");
+		updateThread.start();
 
-			// Process request
-			processor.process(request);
+		Thread queryThread = new Thread() {
+			public void run() {
+				while (true) {
+					// Poll for a new request
+					ScheduledRequest request = null;
+					while ((request = queryQueue.poll()) == null) {
+						synchronized (queryQueue) {
+							try {
+								logger.debug("Query request queue is empty...wating for requests...");
+								synchronized (Thread.currentThread()) {
+									Thread.currentThread().notify();
+								}
+								queryQueue.wait();
+							} catch (InterruptedException e) {
+								logger.error(e.getMessage());
+							}
+						}
+					}
 
-			// JMX
-			SchedulerBeans.updateCounters(request);
+					// Process request
+					processor.process(request);
+
+					// JMX
+					SchedulerBeans.updateCounters(request);
+				}
+			}
+		};
+		queryThread.setName("SEPA query scheduler");
+		queryThread.start();
+
+		Thread subscribeThread = new Thread() {
+			public void run() {
+				while (true) {
+					// Poll for a new request
+					ScheduledRequest request = null;
+					while ((request = subscribeQueue.poll()) == null) {
+						synchronized (subscribeQueue) {
+							try {
+								logger.debug("Subscribe request queue is empty...wating for requests...");
+								synchronized (Thread.currentThread()) {
+									Thread.currentThread().notify();
+								}
+								subscribeQueue.wait();
+							} catch (InterruptedException e) {
+								logger.error(e.getMessage());
+							}
+						}
+					}
+
+					// Process request
+					processor.process(request);
+
+					// JMX
+					SchedulerBeans.updateCounters(request);
+				}
+			}
+		};
+		subscribeThread.setName("SEPA subscribe scheduler");
+		subscribeThread.start();
+
+		Thread unsubscribeThread = new Thread() {
+			public void run() {
+				while (true) {
+					// Poll for a new request
+					ScheduledRequest request = null;
+					while ((request = unsubscribeQueue.poll()) == null) {
+						synchronized (unsubscribeQueue) {
+							try {
+								logger.debug("Unsubscribe request queue is empty...wating for requests...");
+								synchronized (Thread.currentThread()) {
+									Thread.currentThread().notify();
+								}
+								unsubscribeQueue.wait();
+							} catch (InterruptedException e) {
+								logger.error(e.getMessage());
+							}
+						}
+					}
+
+					// Process request
+					processor.process(request);
+
+					// JMX
+					SchedulerBeans.updateCounters(request);
+				}
+			}
+		};
+		unsubscribeThread.setName("SEPA subscribe scheduler");
+		unsubscribeThread.start();
+
+		synchronized (Thread.currentThread()) {
+			Thread.currentThread().notify();
 		}
 	}
 
@@ -148,7 +272,7 @@ public class Scheduler implements Observer, Runnable, SchedulerMBean {
 	 * 
 	 * @return an int representing the token
 	 */
-	private synchronized int getToken() {
+	private int getToken() {
 		Integer token;
 
 		if (tokens.size() == 0) {
@@ -172,7 +296,7 @@ public class Scheduler implements Observer, Runnable, SchedulerMBean {
 	 * @return true if success, false if the token to be released has not been
 	 *         acquired
 	 */
-	private synchronized boolean releaseToken(Integer token) {
+	private boolean releaseToken(Integer token) {
 		if (token == -1)
 			return false;
 
