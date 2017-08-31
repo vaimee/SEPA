@@ -74,7 +74,7 @@ public class Notification extends Response {
 	 *
 	 * @return the spuid
 	 */
-	public String getSPUID() {
+	public String getSpuid() {
 		if (json.get("spuid") != null)
 			return json.get("spuid").getAsString();
 		return "";

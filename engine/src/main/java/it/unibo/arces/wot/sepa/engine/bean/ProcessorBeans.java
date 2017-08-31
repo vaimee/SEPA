@@ -98,29 +98,21 @@ public class ProcessorBeans {
 			queryAverageTime = ((queryAverageTime * (totalQueryRequests - 1)) + queryTime) / totalQueryRequests;
 	}
 	
-	public static void resetQueryTimings() {
-		queryAverageTime = -1;
-		queryMaxTime = -1;
-		queryMinTime = -1;
-		queryTime = -1;
-		queryRequests = 0;
+	public static void reset() {
+		 totalQueryRequests = 0;
+		 totalRequests = 0;
 		
-		updateAverageTime = -1;
-		updateMaxTime = -1;
-		updateMinTime = -1;
-		updateTime = -1;
-		updateRequests = 0;
+		 updateRequests = 0;
+		 queryMinTime = -1;
+		 queryAverageTime = -1;
+		 queryMaxTime = -1;
+		 queryTime = -1;
 		
-		totalQueryRequests = 0;
-		totalRequests = 0;	
-	}
-	
-	public static void resetUpdateTimings() {
-		updateAverageTime = -1;
-		updateMaxTime = -1;
-		updateMinTime = -1;
-		updateTime = -1;
-		updateRequests = 0;
+		 queryRequests = 0 ;	
+		 updateMinTime = -1;
+		 updateAverageTime = -1;
+		 updateMaxTime = -1;
+		 updateTime = -1;
 	}
 
 	public static void newRequest(Request request) {
@@ -133,7 +125,7 @@ public class ProcessorBeans {
 	
 	public static String getStatistics() {
 		long spus = (totalQueryRequests- queryRequests);
-		return String.format("Total requests: %d Query (SPUs) %d (%d) [%.0f %.0f %.0f] Update %d [%.0f %.0f %.0f]",totalRequests, queryRequests,spus,queryMinTime,queryAverageTime,queryMaxTime,updateRequests,updateMinTime,updateAverageTime,updateMaxTime);
+		return String.format("Queries (SPUs) %d (%d) [%.0f %.0f %.0f] Updates %d [%.0f %.0f %.0f]", queryRequests,spus,queryMinTime,queryAverageTime,queryMaxTime,updateRequests,updateMinTime,updateAverageTime,updateMaxTime);
 	}
 	
 	public static float getQueryTime_ms() {
@@ -142,5 +134,9 @@ public class ProcessorBeans {
 	
 	public static float getUpdateTime_ms() {
 		return updateTime;
+	}
+
+	public static long getProcessedRequests() {
+		return totalRequests;
 	}
 }

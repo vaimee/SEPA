@@ -17,7 +17,7 @@ public class SchedulerBeans {
 	private static long pendingRequests = 0;
 
 	private static long errors = 0;
-	private static long totalRequests = 0;
+	private static long scheduledRequests = 0;
 	private static long totalUpdateRequests = 0;
 	private static long totalQueryRequests = 0;
 	private static long totalSubscribeRequests = 0;
@@ -77,33 +77,49 @@ public class SchedulerBeans {
 
 	public static String getStatistics() {
 		return String.format(
-				"Scheduled requests: %d Update %d [%.0f %.0f %.0f] Query %d [%.0f %.0f %.0f] Subscribe %d [%.0f %.0f %.0f] Unsubscribe %d [%.0f %.0f %.0f]",
-				totalRequests,totalUpdateRequests, minUpdateTime, meanUpdateTime, maxUpdateTime, totalQueryRequests, minQueryTime,
+				"Updates %d [%.0f %.0f %.0f] Queries %d [%.0f %.0f %.0f] Subscribes %d [%.0f %.0f %.0f] Unsubscribes %d [%.0f %.0f %.0f]",
+				totalUpdateRequests, minUpdateTime, meanUpdateTime, maxUpdateTime, totalQueryRequests, minQueryTime,
 				meanQueryTime, maxQueryTime, totalSubscribeRequests, minSubscribeTime, meanSubscribeTime,
 				maxSubscribeTime, totalUnsubscribeRequests, minUnsubscribeTime, meanUnsubscribeTime,
 				maxUnsubscribeTime);
 	}
 
 	public static void reset() {
-		updates = 0;
-		queries = 0;
-		subscribes = 0;
-		unsubscribes = 0;
+		 updates = 0;
+		 queries = 0;
+		 subscribes = 0;
+		 unsubscribes = 0;
 
-		minUnsubscribeTime = -1;
-		minSubscribeTime = -1;
-		minUpdateTime = -1;
-		minQueryTime = -1;
+		 outOfTokenRequests = 0;
+		 maxPendingsRequests = 0;
+		 pendingRequests = 0;
 
-		maxUnsubscribeTime = -1;
-		maxSubscribeTime = -1;
-		maxQueryTime = -1;
-		maxUpdateTime = -1;
+		 errors = 0;
+		 scheduledRequests = 0;
+		 totalUpdateRequests = 0;
+		 totalQueryRequests = 0;
+		 totalSubscribeRequests = 0;
+		 totalUnsubscribeRequests = 0;
 
-		meanUpdateTime = -1;
-		meanUnsubscribeTime = -1;
-		meanSubscribeTime = -1;
-		meanQueryTime = -1;
+		 minUnsubscribeTime = -1;
+		 minSubscribeTime = -1;
+		 minUpdateTime = -1;
+		 minQueryTime = -1;
+
+		 maxUnsubscribeTime = -1;
+		 maxSubscribeTime = -1;
+		 maxQueryTime = -1;
+		 maxUpdateTime = -1;
+
+		 meanUnsubscribeTime = -1;
+		 meanSubscribeTime = -1;
+		 meanQueryTime = -1;
+		 meanUpdateTime = -1;
+
+		 queryTime = -1;
+		 updateTime = -1;
+		 subscribeTime = -1;
+		 unsubscribeTime = -1;
 	}
 
 	public static void updateCounters(ScheduledRequest request) {
@@ -199,10 +215,14 @@ public class SchedulerBeans {
 
 	}
 
-	public static void newRequest(boolean outOfTokens) {
-		totalRequests++;
-		if (outOfTokens)
+	public static void newRequest(boolean scheduled) {	
+		if (scheduled)
+			scheduledRequests++;
+		else
 			outOfTokenRequests++;
+	}
 
+	public static long getScheduledRequests() {
+		return scheduledRequests;
 	}
 }

@@ -1,11 +1,13 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
 import java.io.IOException;
+import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.channels.NotYetConnectedException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +43,13 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	protected Scheduler scheduler;
 
-	protected HashMap<String, WebSocket> activeSubscriptions = new HashMap<String, WebSocket>();
+	// Active subscriptions
+	protected HashMap<String, WebSocket> spus = new HashMap<String, WebSocket>();
+
+	// Active websockets
+	protected HashMap<WebSocket, HashSet<String>> sockets = new HashMap<WebSocket, HashSet<String>>();
+
+	// Scheduled subscribe or unsubscribe requests
 	protected HashMap<Integer, WebSocket> scheduledRequests = new HashMap<Integer, WebSocket>();
 
 	protected String getWelcomeMessage() {
@@ -67,7 +75,13 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
-		welcomeMessage = String.format(getWelcomeMessage(), getAddress().getAddress(), port, path);
+		String address = getAddress().getAddress().toString();
+		try {
+			address = Inet4Address.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			logger.error(e.getMessage());
+		}
+		welcomeMessage = String.format(getWelcomeMessage(), address, port, path);
 	}
 
 	@Override
@@ -82,6 +96,92 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		logger.debug("@onClose Reason: <" + reason + "> Code: <" + code + "> Remote: <" + remote + ">¯");
 
 		fragmentedMessages.remove(conn);
+
+		synchronized (spus) {
+			HashSet<String> spuids = sockets.get(conn);
+			for (String spuid : spuids) {
+				spus.remove(spuid);
+			}
+			sockets.remove(conn);
+		}
+	}
+
+	@Override
+	public void notifyEvent(Notification notify) throws IOException {
+		synchronized (spus) {
+
+			WebSocket socket = spus.get(notify.getSpuid());
+
+			if (socket == null)
+				throw new IOException("Broken socket");
+
+			try {
+				socket.send(notify.toString());
+			} catch (WebsocketNotConnectedException e) {
+				throw new IOException("Broken socket");
+			}
+		}
+	}
+
+	@Override
+	public void sendPing(Ping ping) throws IOException {
+		synchronized (spus) {
+			WebSocket socket = spus.get(ping.getSpuid());
+
+			if (socket == null) {
+				throw new IOException("Broken socket");
+			}
+
+			try {
+				if (socket.isOpen())
+					socket.send(ping.toString());
+				else
+					throw new IOException("Broken socket");
+			} catch (WebsocketNotConnectedException e) {
+				throw new IOException("Broken socket");
+			}
+		}
+
+	}
+
+	@Override
+	public void notifyResponse(Response response) {
+		int token = response.getToken();
+		
+		synchronized (spus) {
+			// Send response to client
+			try {
+				scheduledRequests.get(token).send(response.toString());
+			} catch (NotYetConnectedException e) {
+				return;
+			}
+
+			if (response.getClass().equals(SubscribeResponse.class)) {
+				logger.debug("<< SUBSCRIBE response #" + token);
+
+				// Register SPU ID
+				spus.put(((SubscribeResponse) response).getSpuid(), scheduledRequests.get(token));
+
+				// Add to active sockets
+				if (!sockets.containsKey(scheduledRequests.get(token)))
+					sockets.put(scheduledRequests.get(token), new HashSet<String>());
+				sockets.get(scheduledRequests.get(token)).add(((SubscribeResponse) response).getSpuid());
+
+			} else if (response.getClass().equals(UnsubscribeResponse.class)) {
+				logger.debug("<< UNSUBSCRIBE response #" + token + " ");
+				String spuid = ((UnsubscribeResponse) response).getSpuid();
+
+				// Remove active SPU from active sockets
+				sockets.get(spus.get(spuid)).remove(spuid);
+				if (sockets.get(spus.get(spuid)).isEmpty())
+					sockets.remove(spus.get(spuid));
+
+				// Remove subscription
+				spus.remove(spuid);
+			}
+		}
+
+		scheduledRequests.remove(token);
 	}
 
 	@Override
@@ -93,8 +193,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		Request req = parseRequest(message);
 
 		if (req == null) {
-			logger.debug("Not supported request: " + message);
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Not supported request: " + message);
+			logger.debug("Failed to parse: " + message);
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Failed to parse: " + message);
 			conn.send(response.toString());
 			return;
 		}
@@ -143,61 +243,6 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		}
 
 		return null;
-	}
-
-	@Override
-	public void notifyEvent(Notification notify) {
-		if (activeSubscriptions.isEmpty())
-			return;
-		if (activeSubscriptions.get(notify.getSPUID()) != null)
-			activeSubscriptions.get(notify.getSPUID()).send(notify.toString());
-	}
-
-	@Override
-	public void sendPing(Ping ping) throws IOException {
-		WebSocket socket = activeSubscriptions.get(ping.getSpuid());
-		
-		if (socket == null) return;
-		
-		try {
-			if (socket.isOpen())
-				socket.send(ping.toString());
-			else {
-				activeSubscriptions.remove(ping.getSpuid());
-				throw new IOException("Broken socket");	
-			}
-		} catch (WebsocketNotConnectedException e) {
-			activeSubscriptions.remove(ping.getSpuid());
-			throw new IOException("Broken socket");
-		}
-
-	}
-
-	@Override
-	public void notifyResponse(Response response) {
-		int token = response.getToken();
-
-		// Send response to client
-		try {
-			scheduledRequests.get(token).send(response.toString());
-		} catch (NotYetConnectedException e) {
-			return;
-		}
-
-		if (response.getClass().equals(SubscribeResponse.class)) {
-			logger.debug("<< SUBSCRIBE response #" + token);
-
-			// Register SPU ID
-			activeSubscriptions.put(((SubscribeResponse) response).getSpuid(), scheduledRequests.get(token));
-
-		} else if (response.getClass().equals(UnsubscribeResponse.class)) {
-			logger.debug("<< UNSUBSCRIBE response #" + token + " ");
-			String spuid = ((UnsubscribeResponse) response).getSpuid();
-
-			activeSubscriptions.remove(spuid);
-		}
-		
-		scheduledRequests.remove(token);
 	}
 
 	/**

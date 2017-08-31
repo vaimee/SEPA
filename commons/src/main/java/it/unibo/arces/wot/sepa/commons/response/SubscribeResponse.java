@@ -17,9 +17,11 @@
 */
 package it.unibo.arces.wot.sepa.commons.response;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -28,12 +30,20 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
  *
  * The JSON serialization is the following:
  *
- * {"subscribed" : "SPUID"}
+ * {"subscribed" : "SPUID","alias":"ALIAS","firstResults":<BindingsResults>}
  *
  */
 
 public class SubscribeResponse extends Response {
 
+	public SubscribeResponse(JsonObject response){
+		json = response;
+	}
+
+	public BindingsResults getBindingsResults() {
+		return new BindingsResults(json.get("firstResults").getAsJsonObject());
+	}
+	
 	/**
 	 * Instantiates a new subscribe response.
 	 *
@@ -42,11 +52,13 @@ public class SubscribeResponse extends Response {
 	 * @param spuid
 	 *            the spuid
 	 */
-	public SubscribeResponse(Integer token, String spuid) {
+	public SubscribeResponse(Integer token, String spuid,BindingsResults firstResults) {
 		super(token);
 
 		if (spuid != null)
 			json.add("subscribed", new JsonPrimitive(spuid));
+		
+		json.add("firstResults", new BindingsResults(firstResults).toJson());
 	}
 
 	/**
@@ -59,13 +71,14 @@ public class SubscribeResponse extends Response {
 	 * @param alias
 	 *            the alias
 	 */
-	public SubscribeResponse(Integer token, String spuid, String alias) {
+	public SubscribeResponse(Integer token, String spuid, String alias,BindingsResults firstResults) {
 		super(token);
 
 		if (spuid != null)
 			json.add("subscribed", new JsonPrimitive(spuid));
 		if (alias != null)
 			json.add("alias", new JsonPrimitive(alias));
+		json.add("firstResults", new BindingsResults(firstResults).toJson());
 	}
 
 	/**

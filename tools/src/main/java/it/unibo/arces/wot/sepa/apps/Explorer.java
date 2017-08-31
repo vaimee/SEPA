@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.tools;
+package it.unibo.arces.wot.sepa.apps;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -64,32 +64,32 @@ public class Explorer {
 			
 		}
 
-		@Override
-		public void onSubscribe(BindingsResults bindingsResults) {
-			propertiesDM.getDataVector().clear();
-			
-			for (Bindings binding : bindingsResults.getBindings()) {
-				String propertyURI = "";
-				String domainURI = "";
-				String rangeURI = "";
-				String comment = "";
-				
-				if (binding.getBindingValue("property") != null) propertyURI = (binding.getBindingValue("property"));
-				if (binding.getBindingValue("domain") != null) domainURI = (binding.getBindingValue("domain"));	
-				if (binding.getBindingValue("range") != null) rangeURI = (binding.getBindingValue("range"));
-				if (binding.getBindingValue("comment") != null) comment = binding.getBindingValue("comment");
-				
-				if (propertyURI.equals("")) continue; 
-				
-				propertiesDM.addRow(new String[]{propertyURI,domainURI,rangeURI,comment});
-			}
-		}
-
-		@Override
-		public void onUnsubscribe() {
-			// TODO Auto-generated method stub
-			
-		}
+//		@Override
+//		public void onSubscribe(BindingsResults bindingsResults) {
+//			propertiesDM.getDataVector().clear();
+//			
+//			for (Bindings binding : bindingsResults.getBindings()) {
+//				String propertyURI = "";
+//				String domainURI = "";
+//				String rangeURI = "";
+//				String comment = "";
+//				
+//				if (binding.getBindingValue("property") != null) propertyURI = (binding.getBindingValue("property"));
+//				if (binding.getBindingValue("domain") != null) domainURI = (binding.getBindingValue("domain"));	
+//				if (binding.getBindingValue("range") != null) rangeURI = (binding.getBindingValue("range"));
+//				if (binding.getBindingValue("comment") != null) comment = binding.getBindingValue("comment");
+//				
+//				if (propertyURI.equals("")) continue; 
+//				
+//				propertiesDM.addRow(new String[]{propertyURI,domainURI,rangeURI,comment});
+//			}
+//		}
+//
+//		@Override
+//		public void onUnsubscribe() {
+//			// TODO Auto-generated method stub
+//			
+//		}
 
 		@Override
 		public void onKeepAlive() {
@@ -175,20 +175,14 @@ public class Explorer {
 			
 		}
 
-		@Override
-		public void onSubscribe(BindingsResults bindingsResults) {
-			root = new OWLClassNodeModel("owl:Thing");
-			
-			treeMap.clear();
-			
-			onAddedResults(bindingsResults);
-		}
-
-		@Override
-		public void onUnsubscribe() {
-			// TODO Auto-generated method stub
-			
-		}
+//		@Override
+//		public void onSubscribe(BindingsResults bindingsResults) {
+//			root = new OWLClassNodeModel("owl:Thing");
+//			
+//			treeMap.clear();
+//			
+//			onAddedResults(bindingsResults);
+//		}
 
 		@Override
 		public void onKeepAlive() {

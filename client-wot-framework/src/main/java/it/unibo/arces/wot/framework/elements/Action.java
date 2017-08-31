@@ -27,12 +27,12 @@ package it.unibo.arces.wot.framework.elements;
  */
 public class Action {
 	
-	private String name;
-	private String href;
-	private String mediaType;
+//	private String name;
+//	private String href;
+//	private String mediaType;
 
-	public Action(String thingURI,String name,String href) {
-		this.name = name;
-		this.href = href;
-	}
+//	public Action(String thingURI,String name,String href) {
+//		this.name = name;
+//		this.href = href;
+//	}
 }

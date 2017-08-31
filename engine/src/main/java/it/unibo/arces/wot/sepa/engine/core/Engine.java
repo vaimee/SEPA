@@ -239,6 +239,7 @@ public class Engine extends Thread implements EngineMBean {
 	@Override
 	public void run() {
 		// Scheduler
+		logger.info("Starting scheduler");
 		schedulerThread = new Thread(scheduler);
 		schedulerThread.setName("SEPA scheduler");
 		
@@ -250,8 +251,10 @@ public class Engine extends Thread implements EngineMBean {
 				logger.warn(e.getMessage());
 			}
 		}
+		logger.info("Scheduler started");
 		
 		// Protocol gates
+		System.out.println("");
 		System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 		System.out.println("----------------------");
 

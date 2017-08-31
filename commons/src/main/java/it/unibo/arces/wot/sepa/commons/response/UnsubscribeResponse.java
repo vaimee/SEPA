@@ -17,6 +17,7 @@
 */
 package it.unibo.arces.wot.sepa.commons.response;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -67,6 +68,10 @@ public class UnsubscribeResponse extends Response {
 	 */
 	public UnsubscribeResponse() {
 		super();
+	}
+
+	public UnsubscribeResponse(JsonObject notify) {
+		json = notify;
 	}
 
 	/**

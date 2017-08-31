@@ -66,17 +66,19 @@ public abstract class Aggregator extends Consumer implements IAggregator {
 		super(jparFile);
 	}
 
-	public boolean update(Bindings forcedBindings){	 
+	public Response update(Bindings forcedBindings){	 
 		 if (protocolClient == null || sparqlUpdate == null) {
 			 logger.fatal("Aggregator not initialized");			 
-			 return false;
+			 return new ErrorResponse(400,"Aggregator not initialized");
 		 }
 		 
 		 String sparql = prefixes() + replaceBindings(sparqlUpdate,forcedBindings);		 		 
 		 
-		 Response response = protocolClient.update(new UpdateRequest(sparql));
-		 logger.debug(response.toString());
+		 return protocolClient.update(new UpdateRequest(sparql));
 		 
-		 return !(response.getClass().equals(ErrorResponse.class));
+//		 Response response = protocolClient.update(new UpdateRequest(sparql));
+//		 logger.debug(response.toString());
+//		 
+//		 return !(response.getClass().equals(ErrorResponse.class));
 	 }
 }

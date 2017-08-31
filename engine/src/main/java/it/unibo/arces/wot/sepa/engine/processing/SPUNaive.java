@@ -35,6 +35,8 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 
 public class SPUNaive extends SPU {
@@ -42,45 +44,51 @@ public class SPUNaive extends SPU {
 
 	private BindingsResults lastBindings = null;
 	private Integer sequence = 0;
-
+	private BindingsResults firstResults = null;
+	
 	public SPUNaive(ScheduledRequest subscribe, SPARQL11Protocol endpoint) {
 		super(subscribe, endpoint);
 	}
+	
+//	@Override 
+//	public void run(){
+//		ARBindingsResults bindings = new ARBindingsResults(lastBindings, null);
+//		Notification notification = new Notification(getUUID(), bindings, sequence++);
+//
+//		if (subscribe.getEventHandler() != null)
+//			try {
+//				subscribe.getEventHandler().notifyEvent(notification);
+//			} catch (IOException e) {
+//				logger.error(e.getMessage());
+//			}
+//		
+//		super.run();
+//	}
 
 	@Override
-	public void init() {
+	public boolean init() {
 		// Process the subscribe SPARQL query
-		Response ret = queryProcessor.process((SubscribeRequest)subscribe.getRequest());
+		Response ret = queryProcessor.process((SubscribeRequest) subscribe.getRequest());
 		
-		if (ret.getClass().equals(ErrorResponse.class)) { 
-			logger.error(ret.toString());
-			
-			 if (subscribe.getEventHandler() != null) 
-				 subscribe.getEventHandler().notifyEvent(new Notification(getUUID(), null,-1));
-			return;
-		}
-		
-		 // Notify bindings
-		 lastBindings = ((QueryResponse) ret).getBindingsResults();
-		 ARBindingsResults bindings = new ARBindingsResults(lastBindings,null);
-		 
-		 if (subscribe.getEventHandler() != null) 
-			 subscribe.getEventHandler().notifyEvent(new Notification(getUUID(), bindings,sequence++));
+
+		if (ret.getClass().equals(ErrorResponse.class))
+			return false;
+
+		lastBindings = ((QueryResponse) ret).getBindingsResults();
+		firstResults = new BindingsResults(lastBindings);
+				
+		return true;
 	}
 
 	@Override
-	public void process(UpdateResponse update) {
-
+	public synchronized void process(UpdateResponse update) {
 		logger.debug("Start processing " + this.getUUID());
 
 		// Query the SPARQL processing service
-		Response ret = queryProcessor.process((QueryRequest)subscribe.getRequest());
+		Response ret = queryProcessor.process((QueryRequest) subscribe.getRequest());
 
-		if (ret.getClass().equals(ErrorResponse.class)) {
-			logger.error(ret.toString());
-			subscribe.getEventHandler().notifyEvent(new Notification(getUUID(), null,sequence));
+		if (ret.getClass().equals(ErrorResponse.class))
 			return;
-		}
 
 		QueryResponse currentResults = (QueryResponse) ret;
 
@@ -114,19 +122,28 @@ public class SPUNaive extends SPU {
 		lastBindings = new BindingsResults(newBindings);
 
 		// Send notification (or end processing indication)
-		Notification notification = null;
 		if (!added.isEmpty() || !removed.isEmpty()) {
 			ARBindingsResults bindings = new ARBindingsResults(added, removed);
-			notification = new Notification(getUUID(), bindings, sequence++);
-		} else
-			notification = new Notification(getUUID(), null, 0);
-		
-		if (subscribe.getEventHandler() != null && notification.toBeNotified()) subscribe.getEventHandler().notifyEvent(notification);
-		
+			Notification notification = new Notification(getUUID(), bindings, sequence);
+
+			if (subscribe.getEventHandler() != null && notification.toBeNotified())
+				try {
+					subscribe.getEventHandler().notifyEvent(notification);
+					sequence++;
+				} catch (IOException e) {
+					logger.error(e.getMessage());
+				}
+		}
+
 		// Notify SPU manager of the SPU end processing
 		setChanged();
-		notifyObservers(notification);
-		
+		notifyObservers(new Notification(getUUID(), null, -1));
+
 		logger.debug(getUUID() + " End processing");
+	}
+
+	@Override
+	public BindingsResults getFirstResults() {
+		return firstResults;
 	}
 }

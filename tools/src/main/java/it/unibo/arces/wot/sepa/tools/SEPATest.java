@@ -51,15 +51,12 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 
 public class SEPATest {
 	protected static final Logger logger = LogManager.getLogger("SEPATest");
 	protected static Results results = new SEPATest().new Results();
 
 	// Subscription variables
-	protected static boolean subscribeConfirmReceived = false;
-	protected static boolean unsubscriptionConfirmReceived = false;
 	protected static String spuid = null;
 	protected static boolean pingReceived = false;
 	protected static boolean notificationReceived = false;
@@ -72,7 +69,7 @@ public class SEPATest {
 	//Subscriptions handler
 	protected static TestNotificationHandler handler = new TestNotificationHandler();
 
-	protected static final long subscribeConfirmDelay = 2000;
+	protected static final long notificationMaxDelay = 2000;
 	protected static final long pingDelay = 5000;
 
 	protected class Results {
@@ -89,7 +86,7 @@ public class SEPATest {
 			if (failed > 0)
 				logger.error("*** TEST FAILED (" + failed + "/" + results.size() + ") ***");
 			else
-				logger.warn("*** ვაიმეე TEST PASSED (" + results.size() + ") ვაიმეე ***");
+				logger.info("*** ვაიმეე TEST PASSED (" + results.size() + ") ვაიმეე ***");
 			int index = 1;
 			for (Result res : results) {
 				res.print(index++);
@@ -116,7 +113,7 @@ public class SEPATest {
 
 		public void print(int index) {
 			if (success)
-				logger.warn(index + " " + toString());
+				logger.info(index + " " + toString());
 			else
 				logger.error(index + " " + toString());
 		}
@@ -147,26 +144,6 @@ public class SEPATest {
 		}
 
 		@Override
-		public void onSubscribeConfirm(SubscribeResponse response) {
-			synchronized (sync) {
-				logger.debug(response.toString());
-				spuid = response.getSpuid();
-				subscribeConfirmReceived = true;
-				sync.notify();
-			}
-
-		}
-
-		@Override
-		public void onUnsubscribeConfirm(UnsubscribeResponse response) {
-			synchronized (sync) {
-				logger.debug(response.toString());
-				unsubscriptionConfirmReceived = true;
-				sync.notify();
-			}
-		}
-
-		@Override
 		public void onPing() {
 			synchronized (sync) {
 				logger.debug(new Date() + " Ping");
@@ -179,14 +156,15 @@ public class SEPATest {
 	protected static boolean updateTest(String sparql, boolean secure)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+		
 		notificationReceived = false;
 
 		UpdateRequest update = new UpdateRequest(sparql);
 
 		if (!secure)
-			logger.info(update.toString());
+			logger.debug(update.toString());
 		else
-			logger.info("SECURE " + update.toString());
+			logger.debug("SECURE " + update.toString());
 
 		Response response;
 		if (secure)
@@ -205,9 +183,9 @@ public class SEPATest {
 		QueryRequest query = new QueryRequest(sparql);
 
 		if (!secure)
-			logger.info(query.toString());
+			logger.debug(query.toString());
 		else
-			logger.info("SECURE " + query.toString());
+			logger.debug("SECURE " + query.toString());
 
 		Response response;
 		if (!secure)
@@ -240,15 +218,13 @@ public class SEPATest {
 	protected static boolean subscribeTest(String sparql, boolean secure)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
-		subscribeConfirmReceived = false;
-		notificationReceived = false;
 
 		SubscribeRequest sub = new SubscribeRequest(sparql);
 
 		if (secure)
-			logger.info("SECURE " + sub.toString());
+			logger.debug("SECURE " + sub.toString());
 		else
-			logger.info(sub.toString());
+			logger.debug(sub.toString());
 
 		Response response;
 
@@ -259,25 +235,12 @@ public class SEPATest {
 
 		logger.debug(response.toString());
 
-		return !response.getClass().equals(ErrorResponse.class);
-	}
-
-	protected static boolean waitSubscribeConfirm() {
-		synchronized (sync) {
-			if (subscribeConfirmReceived)
-				return true;
-			try {
-				sync.wait(subscribeConfirmDelay);
-			} catch (InterruptedException e) {
-				logger.info("InterruptedException: " + e.getMessage());
-			} catch (IllegalStateException e) {
-				logger.error("IllegalStateException: " + e.getMessage());
-			} catch (IllegalMonitorStateException e) {
-				logger.error("IllegalMonitorStateException: " + e.getMessage());
-			}
+		if (response.isSubscribeResponse()) {
+			spuid = ((SubscribeResponse)response).getSpuid();
+			return true;
 		}
-
-		return (subscribeConfirmReceived);
+		
+		return false;
 	}
 
 	protected static boolean waitPing() {
@@ -288,7 +251,7 @@ public class SEPATest {
 				logger.debug("Waiting ping in " + delay + " ms...");
 				sync.wait(delay);
 			} catch (InterruptedException e) {
-				logger.info(e.getMessage());
+				logger.error(e.getMessage());
 			}
 		}
 
@@ -300,9 +263,9 @@ public class SEPATest {
 			if (notificationReceived)
 				return true;
 			try {
-				sync.wait(subscribeConfirmDelay);
+				sync.wait(notificationMaxDelay);
 			} catch (InterruptedException e) {
-				logger.info(e.getMessage());
+				logger.error(e.getMessage());
 			}
 		}
 
@@ -312,7 +275,6 @@ public class SEPATest {
 	protected static boolean unsubscribeTest(String spuid, boolean secure)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
-		unsubscriptionConfirmReceived = false;
 
 		UnsubscribeRequest unsub = new UnsubscribeRequest(spuid);
 
@@ -324,21 +286,7 @@ public class SEPATest {
 
 		logger.debug(response.toString());
 
-		return !response.getClass().equals(ErrorResponse.class);
-	}
-
-	protected static boolean waitUnsubscribeConfirm() {
-		synchronized (sync) {
-			if (unsubscriptionConfirmReceived)
-				return true;
-			try {
-				sync.wait(2000);
-			} catch (InterruptedException e) {
-				logger.debug("InterruptedException: " + e.getMessage());
-			}
-		}
-
-		return unsubscriptionConfirmReceived;
+		return response.isUnsubscribeResponse();
 	}
 
 	protected static boolean registrationTest(String id) throws IOException, URISyntaxException, InvalidKeyException,
@@ -417,7 +365,7 @@ public class SEPATest {
 		}
 		results.addResult("Update", ret);
 		if (ret)
-			logger.warn("Update PASSED");
+			logger.info("Update PASSED");
 		else
 			logger.error("Update FAILED");
 
@@ -431,7 +379,7 @@ public class SEPATest {
 		}
 		results.addResult("Query", ret);
 		if (ret)
-			logger.warn("Query PASSED");
+			logger.info("Query PASSED");
 		else
 			logger.error("Query FAILED");
 
@@ -445,31 +393,15 @@ public class SEPATest {
 		}
 		results.addResult("Subscribe - request", ret);
 		if (ret)
-			logger.warn("Subscribe PASSED");
+			logger.info("Subscribe PASSED");
 		else
 			logger.error("Subscribe FAILED");
-
-		// SUBSCRIBE CONFIRM
-		ret = waitSubscribeConfirm();
-		results.addResult("Subscribe - confirm", ret);
-		if (ret)
-			logger.warn("Subscribe confirmed PASSED");
-		else
-			logger.error("Subscribe confirmed FAILED");
-
-		// FIRST NOTIFICATION
-		ret = waitNotification();
-		results.addResult("Subscribe - results", ret);
-		if (ret)
-			logger.warn("First results received PASSED");
-		else
-			logger.error("First results received FAILED");
-
+		
 		// PING
 		ret = waitPing();
 		results.addResult("Subscribe - ping", ret);
 		if (ret)
-			logger.warn("Ping received PASSED");
+			logger.info("Ping received PASSED");
 		else
 			logger.error("Ping recevied FAILED");
 
@@ -485,7 +417,7 @@ public class SEPATest {
 		}
 		results.addResult("Subscribe - triggering", ret);
 		if (ret)
-			logger.warn("Triggering update PASSED");
+			logger.info("Triggering update PASSED");
 		else
 			logger.error("Triggering update FAILED");
 
@@ -493,7 +425,7 @@ public class SEPATest {
 		ret = waitNotification();
 		results.addResult("Subscribe - notification", ret);
 		if (ret)
-			logger.warn("Notification PASSED");
+			logger.info("Notification PASSED");
 		else
 			logger.error("Notification FAILED");
 
@@ -507,30 +439,22 @@ public class SEPATest {
 		}
 		results.addResult("Unsubscribe - request", ret);
 		if (ret)
-			logger.warn("Unsubscribe PASSED");
+			logger.info("Unsubscribe PASSED");
 		else
 			logger.error("Unsubscribe FAILED");
-
-		// WAIT UNSUBSCRIBE CONFIRM
-		ret = waitUnsubscribeConfirm();
-		results.addResult("Unsubscribe - confirm", ret);
-		if (ret)
-			logger.warn("Unsubscribe confirmed PASSED");
-		else
-			logger.error("Unsubscribe confirmed FAILED");
 
 		// PING
 		ret = !waitPing();
 		results.addResult("Unsubscribe - ping", ret);
 		if (ret)
-			logger.warn("Ping not received PASSED");
+			logger.info("Ping not received PASSED");
 		else
 			logger.error("Ping not recevied FAILED");
 
 		// **********************
 		// Enable security
 		// **********************
-		logger.info("Switch to secure mode");
+		logger.debug("Switch to secure mode");
 
 		// REGISTRATION
 		try {
@@ -542,7 +466,7 @@ public class SEPATest {
 		}
 		results.addResult("Registration", ret);
 		if (ret)
-			logger.warn("Registration PASSED");
+			logger.info("Registration PASSED");
 		else
 			logger.error("Registration FAILED");
 
@@ -556,7 +480,7 @@ public class SEPATest {
 		}
 		results.addResult("Registration not allowed", ret);
 		if (ret)
-			logger.warn("Registration not allowed PASSED");
+			logger.info("Registration not allowed PASSED");
 		else
 			logger.error("Registration not allowed FAILED");
 
@@ -570,7 +494,7 @@ public class SEPATest {
 		}
 		results.addResult("Access token", ret);
 		if (ret)
-			logger.warn("Access token PASSED");
+			logger.info("Access token PASSED");
 		else
 			logger.error("Access token FAILED");
 
@@ -587,12 +511,12 @@ public class SEPATest {
 			ret = false;
 		results.addResult("Access token not expired", ret);
 		if (ret)
-			logger.warn("Access token (not expired) PASSED");
+			logger.info("Access token (not expired) PASSED");
 		else
 			logger.error("Access token (not expired) FAILED");
 
 		// REQUEST ACCESS TOKEN (expired);
-		logger.info("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
 		} catch (InterruptedException e) {
@@ -610,11 +534,17 @@ public class SEPATest {
 			ret = false;
 		results.addResult("Access token expired", ret);
 		if (ret)
-			logger.warn("Access token (expired) PASSED");
+			logger.info("Access token (expired) PASSED");
 		else
 			logger.error("Access token (expired) FAILED");
 
 		// SECURE UPDATE
+		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
+		} catch (InterruptedException e) {
+			logger.error(e.getMessage());
+		}
 		if (properties.isTokenExpired())
 			try {
 				requestAccessTokenTest();
@@ -623,6 +553,7 @@ public class SEPATest {
 				ret = false;
 				logger.error(e1.getMessage());
 			}
+		
 		try {
 			ret = updateTest(
 					"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"ვაიმეე\"} where {?s ?p ?o}",
@@ -634,12 +565,12 @@ public class SEPATest {
 		}
 		results.addResult("Secure update ", ret);
 		if (ret)
-			logger.warn("Secure update PASSED");
+			logger.info("Secure update PASSED");
 		else
 			logger.error("Secure update FAILED");
 
 		// SECURE UPDATE (expired token)
-		logger.info("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
 		} catch (InterruptedException e) {
@@ -656,11 +587,17 @@ public class SEPATest {
 		}
 		results.addResult("Secure update (expired)", ret);
 		if (ret)
-			logger.warn("Secure update (expired) PASSED");
+			logger.info("Secure update (expired) PASSED");
 		else
 			logger.error("Secure update (expired) FAILED");
 
 		// SECURE QUERY
+		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
+		} catch (InterruptedException e) {
+			logger.error(e.getMessage());
+		}
 		if (properties.isTokenExpired())
 			try {
 				requestAccessTokenTest();
@@ -678,12 +615,12 @@ public class SEPATest {
 		}
 		results.addResult("Secure query", ret);
 		if (ret)
-			logger.warn("Secure query PASSED");
+			logger.info("Secure query PASSED");
 		else
 			logger.error("Secure query FAILED");
 
 		// SECURE QUERY (expired token)
-		logger.info("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
 		} catch (InterruptedException e) {
@@ -698,11 +635,17 @@ public class SEPATest {
 		}
 		results.addResult("Secure query (expired)", ret);
 		if (ret)
-			logger.warn("Secure query (expired) PASSED");
+			logger.info("Secure query (expired) PASSED");
 		else
 			logger.error("Secure query (expired) FAILED");
 
 		// SECURE SUBSCRIBE
+		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
+		} catch (InterruptedException e) {
+			logger.error(e.getMessage());
+		}
 		if (properties.isTokenExpired())
 			try {
 				requestAccessTokenTest();
@@ -720,35 +663,25 @@ public class SEPATest {
 		}
 		results.addResult("Secure subscribe - request", ret);
 		if (ret)
-			logger.warn("Secure subscribe PASSED");
+			logger.info("Secure subscribe PASSED");
 		else
 			logger.error("Secure subscribe FAILED");
-
-		// SUBSCRIBE CONFIRM
-		ret = waitSubscribeConfirm();
-		results.addResult("Secure subscribe - confirm", ret);
-		if (ret)
-			logger.warn("Secure subscribe confirmed PASSED");
-		else
-			logger.error("Secure subscribe confirmed FAILED");
-
-		// FIRST NOTIFICATION
-		ret = waitNotification();
-		results.addResult("Secure subscribe - results", ret);
-		if (ret)
-			logger.warn("First results received PASSED");
-		else
-			logger.error("First results received FAILED");
 
 		// PING
 		ret = waitPing();
 		results.addResult("Secure subscribe - ping", ret);
 		if (ret)
-			logger.warn("Secure ping received PASSED");
+			logger.info("Secure ping received PASSED");
 		else
 			logger.error("Secure ping recevied FAILED");
 
 		// TRIGGER A NOTIFICATION
+		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
+		} catch (InterruptedException e) {
+			logger.error(e.getMessage());
+		}
 		if (properties.isTokenExpired())
 			try {
 				requestAccessTokenTest();
@@ -768,7 +701,7 @@ public class SEPATest {
 		}
 		results.addResult("Secure subscribe - triggering", ret);
 		if (ret)
-			logger.warn("Secure triggering update PASSED");
+			logger.info("Secure triggering update PASSED");
 		else
 			logger.error("Secure triggering update FAILED");
 
@@ -776,38 +709,38 @@ public class SEPATest {
 		ret = waitNotification();
 		results.addResult("Secure subscribe - notification", ret);
 		if (ret)
-			logger.warn("Secure subscribe - notification PASSED");
+			logger.info("Secure subscribe - notification PASSED");
 		else
 			logger.error("Secure subscribe - notification FAILED");
 
 		// SECURE UNSUBSCRIBE (expired)
-		logger.info("Wait token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		logger.debug("Wait token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
 		} catch (InterruptedException e) {
 			logger.error(e.getMessage());
 		}
 		try {
-			ret = unsubscribeTest(spuid, true);
+			ret = !unsubscribeTest(spuid, true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
 				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
 			ret = false;
 			logger.error(e1.getMessage());
 		}
 		results.addResult("Secure unsubscribe (expired) - request", ret);
+		
 		if (ret)
-			logger.warn("Secure unsubscribe (expired) - request PASSED");
+			logger.info("Secure unsubscribe (expired) - request PASSED");
 		else
 			logger.error("Secure unsubscribe (expired) - request FAILED");
-
-		// WAIT UNSUBSCRIBE CONFIRM
-		/*
-		 * ret = waitUnsubscribeConfirm();
-		 * results.addResult("Secure unsubscribe (expired) - confirm", !ret); if
-		 * (ret) logger.warn("Secure unsubscribe (expired) - confirm PASSED");
-		 * else logger.error("Secure unsubscribe (expired) - confirm FAILED");
-		 */
+		
 		// UNSUBSCRIBE
+		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
+		} catch (InterruptedException e) {
+			logger.error(e.getMessage());
+		}
 		if (properties.isTokenExpired())
 			try {
 				requestAccessTokenTest();
@@ -825,23 +758,15 @@ public class SEPATest {
 		}
 		results.addResult("Secure unsubscribe - request", ret);
 		if (ret)
-			logger.warn("Secure unsubscribe - request PASSED");
+			logger.info("Secure unsubscribe - request PASSED");
 		else
 			logger.error("Secure unsubscribe - request FAILED");
-
-		// WAIT UNSUBSCRIBE CONFIRM
-		ret = waitUnsubscribeConfirm();
-		results.addResult("Secure unsubscribe - confirm", ret);
-		if (ret)
-			logger.warn("Secure unsubscribe - confirm PASSED");
-		else
-			logger.error("Secure unsubscribe - confirm  FAILED");
 
 		// WAITING PING
 		ret = !waitPing();
 		results.addResult("Secure unsubscribe - ping", ret);
 		if (ret)
-			logger.warn("Secure unsubscribe - ping PASSED");
+			logger.info("Secure unsubscribe - ping PASSED");
 		else
 			logger.error("Secure unsubscribe - ping FAILED");
 
@@ -853,7 +778,7 @@ public class SEPATest {
 			logger.error(e.getMessage());
 		}
 		try {
-			ret = subscribeTest("select ?o where {?s ?p ?o}", true);
+			ret = !subscribeTest("select ?o where {?s ?p ?o}", true);
 		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
 				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e) {
 			ret = false;
@@ -861,7 +786,7 @@ public class SEPATest {
 		}
 		results.addResult("Secure subscribe (expired) - request", ret);
 		if (ret)
-			logger.warn("Secure subscribe (expired) - request PASSED");
+			logger.info("Secure subscribe (expired) - request PASSED");
 		else
 			logger.error("Secure subscribe (expired) - request FAILED");
 

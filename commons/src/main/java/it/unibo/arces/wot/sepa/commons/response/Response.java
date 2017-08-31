@@ -32,6 +32,33 @@ public abstract class Response {
 	/** The token. */
 	private int token = -1;
 
+	public boolean isError() {
+		return this.getClass().equals(ErrorResponse.class);
+	}
+	public boolean isJWTResponse() {
+		return this.getClass().equals(JWTResponse.class);
+	}
+	public boolean isNotification() {
+		return this.getClass().equals(Notification.class);
+	}
+	public boolean isPing() {
+		return this.getClass().equals(Ping.class);
+	}
+	public boolean isQueryResponse() {
+		return this.getClass().equals(QueryResponse.class);
+	}
+	public boolean isRegistrationResponse() {
+		return this.getClass().equals(RegistrationResponse.class);
+	}
+	public boolean isSubscribeResponse() {
+		return this.getClass().equals(SubscribeResponse.class);
+	}
+	public boolean isUnsubscribeResponse() {
+		return this.getClass().equals(UnsubscribeResponse.class);
+	}
+	public boolean isUpdateResponse() {
+		return this.getClass().equals(UpdateResponse.class);
+	}
 	/**
 	 * Instantiates a new response.
 	 *

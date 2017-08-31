@@ -47,42 +47,12 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 
 public abstract class Consumer extends Client implements IConsumer,INotificationHandler {
 	protected String sparqlSubscribe = null;
 	protected String subID = "";
-	protected boolean onSubscribe = true;
-	protected int DEFAULT_SUBSCRIPTION_TIMEOUT = 5000;
-	protected SubcribeConfirmSync subConfirm;
 	
 	private static final Logger logger = LogManager.getLogger("Consumer");
-
-	protected class SubcribeConfirmSync {
-		private String subID = "";
-
-		public synchronized String waitSubscribeConfirm(int timeout) {
-
-			if (!subID.equals(""))
-				return subID;
-
-			try {
-				logger.debug("Wait for subscribe confirm...");
-				wait(timeout);
-			} catch (InterruptedException e) {
-
-			}
-
-			return subID;
-		}
-
-		public synchronized void notifySubscribeConfirm(String spuid) {
-			logger.debug("Notify confirm!");
-
-			subID = spuid;
-			notifyAll();
-		}
-	}
 
 	public Consumer(ApplicationProfile appProfile, String subscribeID)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
@@ -102,7 +72,6 @@ public abstract class Consumer extends Client implements IConsumer,INotification
 
 		sparqlSubscribe = appProfile.subscribe(subscribeID);
 		
-		//protocolClient.setNotificationHandler(handler);
 		protocolClient.setNotificationHandler(this);
 	}
 
@@ -112,11 +81,10 @@ public abstract class Consumer extends Client implements IConsumer,INotification
 			IllegalBlockSizeException, BadPaddingException, URISyntaxException {
 		super(jparFile);
 		
-		//protocolClient.setNotificationHandler(handler);
 		protocolClient.setNotificationHandler(this);
 	}
 
-	public String subscribe(Bindings forcedBindings)
+	public Response subscribe(Bindings forcedBindings)
 			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
 			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
@@ -134,40 +102,26 @@ public abstract class Consumer extends Client implements IConsumer,INotification
 
 		logger.debug("<SUBSCRIBE> ==> " + sparql);
 
-		onSubscribe = true;
-
-		subConfirm = new SubcribeConfirmSync();
-
 		Response response = protocolClient.subscribe(new SubscribeRequest(sparql));
-
-		logger.debug(response.toString());
-
-		if (response.getClass().equals(ErrorResponse.class))
-			return null;
-
-		subID = subConfirm.waitSubscribeConfirm(DEFAULT_SUBSCRIPTION_TIMEOUT);
-
-		return subID;
-
+		
+		if (response.isSubscribeResponse()) {
+			subID = ((SubscribeResponse)response).getSpuid();	
+		}
+		
+		return response;
 	}
 
-	public boolean unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
+	public Response unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException,
 			UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		logger.debug("UNSUBSCRIBE " + subID);
 
 		if (protocolClient == null) {
 			logger.fatal("Client not initialized");
-			return false;
+			return new ErrorResponse(400,"Client not initialized");
 		}
 
-		Response response;
-
-		response = protocolClient.unsubscribe(new UnsubscribeRequest(subID));
-
-		logger.debug(response.toString());
-
-		return !(response.getClass().equals(ErrorResponse.class));
+		return protocolClient.unsubscribe(new UnsubscribeRequest(subID));
 	}
 
 	@Override
@@ -203,12 +157,6 @@ public abstract class Consumer extends Client implements IConsumer,INotification
 			}
 		}
 
-		if (onSubscribe) {
-			onSubscribe = false;
-			onSubscribe(added);
-			return;
-		}
-
 		// Dispatch different notifications based on notify content
 		if (!added.isEmpty())
 			onAddedResults(added);
@@ -216,18 +164,6 @@ public abstract class Consumer extends Client implements IConsumer,INotification
 			onRemovedResults(removed);
 		onResults(results);
 		
-	}
-
-	@Override
-	public void onSubscribeConfirm(SubscribeResponse response) {
-		logger.debug("Subscribe confirmed " + response.getSpuid() + " alias: " + response.getAlias());
-		subConfirm.notifySubscribeConfirm(response.getSpuid());
-	}
-
-	@Override
-	public void onUnsubscribeConfirm(UnsubscribeResponse response) {
-		logger.debug("Unsubscribe confirmed " + response.getSpuid());
-		onUnsubscribe();
 	}
 	
 	@Override

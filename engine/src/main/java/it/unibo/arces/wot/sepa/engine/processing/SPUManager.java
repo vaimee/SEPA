@@ -18,9 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.io.IOException;
 import java.time.Instant;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Observable;
@@ -59,14 +57,20 @@ public class SPUManager implements Observer, SPUManagerMBean {
 	public SPUManager(SPARQL11Protocol endpoint) {
 		this.endpoint = endpoint;
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+
 		spus = new HashMap<String, SPU>();
+
 		ping = new Keepalive();
+		ping.setName("SEPA Keepalive");
 		ping.start();
 	}
 
 	class Keepalive extends Thread {
+		HashSet<SPU> toBeTerminated = new HashSet<SPU>();
+
 		@Override
 		public void run() {
+
 			while (true) {
 				try {
 					Thread.sleep(EngineBeans.getKeepalive());
@@ -74,53 +78,53 @@ public class SPUManager implements Observer, SPUManagerMBean {
 					return;
 				}
 
-				sendKeepalive();
-			}
-		}
-	}
+				// Send ping to check broken sockets
+				synchronized (spus) {
+					toBeTerminated.clear();
+					for (SPU spu : spus.values()) {
+						if (spu.sendPing())
+							continue;
+						toBeTerminated.add(spu);
+					}
 
-	protected void sendKeepalive() {
-		HashSet<SPU> toBeTerminated = new HashSet<SPU>();
-		for (SPU spu : spus.values()) {
-			if (spu.sendPing()) continue;
-			
-			toBeTerminated.add(spu);
-		}
-		for (SPU spu : toBeTerminated) {
-			spus.remove(spu.getUUID());
-			
-			spu.terminate();
-			try {
-				synchronized (spu) {
-					spu.wait();
+					// Terminate SPUs
+					for (SPU spu : toBeTerminated) {
+						spus.remove(spu.getUUID());
+						spu.terminate();
+					}
 				}
-				
-			} catch (InterruptedException e1) {
-
+				SPUManagerBeans.setActiveSPUs(spus.size());
 			}
 		}
-		SPUManagerBeans.setActiveSPUs(spus.size());
 	}
 
 	public synchronized Response processSubscribe(ScheduledRequest req) {
 		logger.debug("Process SUBSCRIBE #" + req.getToken());
 
 		if (!req.getRequest().getClass().equals(SubscribeRequest.class))
-			return new ErrorResponse(req.getToken(), 400, "Bad subscribe request: " + req.getRequest().toString());
+			return new ErrorResponse(req.getToken(), 400, "Bad request: " + req.getRequest().toString());
 
 		// TODO: choose different kinds of SPU based on subscription request
 		SPU spu = new SPUNaive(req, endpoint);
-		spu.addObserver(this);
+		if (spu.init()) {
 
-		spus.put(spu.getUUID(), spu);
+			spu.addObserver(this);
 
-		SPUManagerBeans.setActiveSPUs(spus.size());
+			// Add new SPU to the list of active SPUs
+			synchronized (spus) {
+				spus.put(spu.getUUID(), spu);
+				SPUManagerBeans.setActiveSPUs(spus.size());
+			}
 
-		Thread th = new Thread(spu);
-		th.setName("SPU_" + spu.getUUID());
-		th.start();
+			// Start the SPU thread
+			Thread th = new Thread(spu);
+			th.setName("SPU_" + spu.getUUID());
+			th.start();
 
-		return new SubscribeResponse(req.getToken(), spu.getUUID(), ((SubscribeRequest) req.getRequest()).getAlias());
+			return new SubscribeResponse(req.getToken(), spu.getUUID(),
+					((SubscribeRequest) req.getRequest()).getAlias(),spu.getFirstResults());
+		}
+		else return new ErrorResponse(req.getToken(), 400, "Bad request: " + req.getRequest().toString());
 	}
 
 	public synchronized Response processUnsubscribe(ScheduledRequest req) {
@@ -131,14 +135,15 @@ public class SPUManager implements Observer, SPUManagerMBean {
 
 		String spuid = ((UnsubscribeRequest) req.getRequest()).getSubscribeUUID();
 
-		if (spus.containsKey(spuid)) {
-			spus.get(spuid).terminate();
-			spus.remove(spuid);
+		synchronized (spus) {
+			if (spus.containsKey(spuid)) {
+				spus.get(spuid).terminate();
+				spus.remove(spuid);
+				SPUManagerBeans.setActiveSPUs(spus.size());
 
-			SPUManagerBeans.setActiveSPUs(spus.size());
-
-		} else
-			return new ErrorResponse(req.getToken(), 404, "Not found: " + spuid);
+			} else
+				return new ErrorResponse(req.getToken(), 404, "Not found: " + spuid);
+		}
 
 		return new UnsubscribeResponse(req.getToken(), spuid);
 	}
@@ -146,7 +151,7 @@ public class SPUManager implements Observer, SPUManagerMBean {
 	public synchronized void processUpdate(UpdateResponse res) {
 		logger.debug("*** PROCESSING UPDATE STARTED ***");
 
-		// Sequential update processing
+		// Wait all SPUs completing processing
 		Instant start = Instant.now();
 		waitAllSubscriptionChecks(res);
 		Instant stop = Instant.now();
@@ -161,8 +166,11 @@ public class SPUManager implements Observer, SPUManagerMBean {
 
 		// Wake-up all SPUs
 		logger.debug("Activate SPUs (Total: " + spus.size() + ")");
-		for (SPU spu : spus.values())
-			spu.subscriptionCheck(res);
+		synchronized (spus) {
+			for (SPU spu : spus.values())
+				spu.subscriptionCheck(res);
+
+		}
 
 		logger.debug("Waiting all SPUs to complete processing...");
 		while (subscriptionsChecked != spus.size()) {
@@ -177,19 +185,17 @@ public class SPUManager implements Observer, SPUManagerMBean {
 
 	private synchronized void subscriptionProcessingEnded(String spuid) {
 		subscriptionsChecked++;
-		notifyAll();
+		notify();
 		logger.debug("Checked subscription " + spuid + " (" + subscriptionsChecked + "/" + spus.size() + ")");
 	}
 
 	@Override
 	public void update(Observable o, Object arg) {
-		if (arg.getClass().equals(Notification.class)) {
-			Notification ret = (Notification) arg;
+		Notification ret = (Notification) arg;
 
-			// SPU processing ended
-			logger.debug("SPU " + ret.getSPUID() + " processing ended");
-			subscriptionProcessingEnded(ret.getSPUID());
-		}
+		// SPU processing ended
+		logger.debug("SPU " + ret.getSpuid() + " processing ended");
+		subscriptionProcessingEnded(ret.getSpuid());
 	}
 
 	@Override

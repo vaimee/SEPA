@@ -24,7 +24,6 @@ import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
-import java.util.Observable;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -52,7 +51,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 import org.apache.logging.log4j.LogManager;
 
-public class Processor extends Observable implements ProcessorMBean {
+public class Processor implements ProcessorMBean {
 	private static final Logger logger = LogManager.getLogger("Processor");
 
 	private QueryProcessor queryProcessor;
@@ -84,7 +83,7 @@ public class Processor extends Observable implements ProcessorMBean {
 		ProcessorBeans.setEndpoint(endpointProperties);
 	}
 
-	public void process(ScheduledRequest request) {
+	public Response process(ScheduledRequest request) {
 
 		logger.debug("*Process* " + request.getRequest().toString());
 
@@ -95,6 +94,11 @@ public class Processor extends Observable implements ProcessorMBean {
 			public void run() {
 				if (request.getRequest().getClass().equals(UpdateRequest.class)) {
 					response = updateProcessor.process((UpdateRequest) request.getRequest());
+				
+					if (response.getClass().equals(UpdateResponse.class)) {
+						spuManager.processUpdate((UpdateResponse)response);
+					}
+					
 				} else if (request.getRequest().getClass().equals(QueryRequest.class)) {
 					response = queryProcessor.process((QueryRequest) request.getRequest());
 				} else if (request.getRequest().getClass().equals(SubscribeRequest.class)) {
@@ -123,25 +127,13 @@ public class Processor extends Observable implements ProcessorMBean {
 
 		if (response == null)
 			response = new ErrorResponse(request.getToken(), 404, request.getRequest().toString());
-	
-		if (response.getClass().equals(UpdateResponse.class)) {
-			spuManager.processUpdate((UpdateResponse)response);
-		}
 		
-		// Notify response
-		if (request.getResponseHandler() != null) request.getResponseHandler().notifyResponse(response);
-		setChanged();
-		notifyObservers(response);
+		return response;
 	}
 
 	@Override
-	public void resetQueryTimings() {
-		ProcessorBeans.resetQueryTimings();
-	}
-
-	@Override
-	public void resetUpdateTimings() {
-		ProcessorBeans.resetUpdateTimings();
+	public void reset() {
+		ProcessorBeans.reset();
 	}
 
 	@Override
@@ -187,5 +179,10 @@ public class Processor extends Observable implements ProcessorMBean {
 	@Override
 	public String getEndpoint_QueryMethod() {
 		return ProcessorBeans.getEndpointQueryMethod();
+	}
+
+	@Override
+	public long getProcessedRequests() {
+		return ProcessorBeans.getProcessedRequests();
 	}
 }

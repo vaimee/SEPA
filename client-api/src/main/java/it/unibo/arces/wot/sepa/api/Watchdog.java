@@ -20,13 +20,8 @@ package it.unibo.arces.wot.sepa.api;
 
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 
 import org.apache.logging.log4j.LogManager;
 
@@ -35,7 +30,6 @@ public class Watchdog extends Thread {
 	private long pingPeriod = 0;
 	private long firstPing = 0;
 	private long DEFAULT_PING_PERIOD = 5000;
-	private long DEFAULT_SUBSCRIPTION_DELAY = 5000;
 
 	private boolean pingReceived = false;
 	private SubscriptionState state = SubscriptionState.INIT;
@@ -161,16 +155,15 @@ public class Watchdog extends Thread {
 			case BROKEN_SOCKET:
 				logger.warn("Broken socket: try to recover subscription...");
 
-				try {
-					wsClient.subscribe(sparql, alias, token);
-				} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException
-						| NoSuchAlgorithmException | CertificateException | IOException | URISyntaxException
-						| InterruptedException e1) {
-					logger.warn(e1.getMessage());
+				Response response =	wsClient.subscribe(sparql, alias, token);
+				
+				if (!response.getClass().equals(ErrorResponse.class)) {
+					subscribed();
+					continue;
 				}
 
 				try {
-					Thread.sleep(DEFAULT_SUBSCRIPTION_DELAY);
+					Thread.sleep(Websocket.SUBSCRIBE_TIMEOUT);
 				} catch (InterruptedException e) {
 					logger.warn(e.getMessage());
 					return;
