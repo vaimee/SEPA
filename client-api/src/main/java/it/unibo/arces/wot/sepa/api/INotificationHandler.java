@@ -20,8 +20,6 @@ package it.unibo.arces.wot.sepa.api;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 
 /**
  * The Interface NotificationHandler.
@@ -38,25 +36,25 @@ public interface INotificationHandler {
 	 */
 	public void onSemanticEvent(Notification notify);
 
-	/**
-	 * Subscribe confirmed.
-	 *
-	 * @param response
-	 *            the subscribe response
-	 * 
-	 * @see SubscribeResponse
-	 */
-	public void onSubscribeConfirm(SubscribeResponse response);
-
-	/**
-	 * Unsubscribe confirmed.
-	 *
-	 * @param response
-	 *            the unsubscribe response
-	 * 
-	 * @see UnsubscribeResponse
-	 */
-	public void onUnsubscribeConfirm(UnsubscribeResponse response);
+//	/**
+//	 * Subscribe confirmed.
+//	 *
+//	 * @param response
+//	 *            the subscribe response
+//	 * 
+//	 * @see SubscribeResponse
+//	 */
+//	public void onSubscribeConfirm(SubscribeResponse response);
+//
+//	/**
+//	 * Unsubscribe confirmed.
+//	 *
+//	 * @param response
+//	 *            the unsubscribe response
+//	 * 
+//	 * @see UnsubscribeResponse
+//	 */
+//	public void onUnsubscribeConfirm(UnsubscribeResponse response);
 
 	/**
 	 * Ping.

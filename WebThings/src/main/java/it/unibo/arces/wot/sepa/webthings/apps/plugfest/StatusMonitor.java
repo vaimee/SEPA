@@ -89,14 +89,6 @@ public class StatusMonitor extends Aggregator implements Runnable{
 	}
 
 	@Override
-	public void onSubscribe(BindingsResults results) {
-	}
-
-	@Override
-	public void onUnsubscribe() {
-	}
-
-	@Override
 	public void run() {
 		while(true) {
 			try {

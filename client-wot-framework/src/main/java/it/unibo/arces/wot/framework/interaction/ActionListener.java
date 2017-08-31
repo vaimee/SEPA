@@ -50,26 +50,12 @@ public abstract class ActionListener {
 
 		@Override
 		public void onAddedResults(BindingsResults results) {
-			for(Bindings bindings : results.getBindings()) {
-				//TODO to be implemented
-			}
+			//TODO to be implemented
 			
 		}
 
 		@Override
 		public void onRemovedResults(BindingsResults results) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onSubscribe(BindingsResults results) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onUnsubscribe() {
 			// TODO Auto-generated method stub
 			
 		}

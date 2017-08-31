@@ -114,17 +114,6 @@ public abstract class EventListener {
 		}
 
 		@Override
-		public void onSubscribe(BindingsResults results) {
-			onAddedResults(results);
-			
-		}
-
-		@Override
-		public void onUnsubscribe() {
-			
-		}
-
-		@Override
 		public void onKeepAlive() {
 			onConnectionStatus(true);
 			
@@ -174,17 +163,6 @@ public abstract class EventListener {
 
 		@Override
 		public void onRemovedResults(BindingsResults results) {
-			
-		}
-
-		@Override
-		public void onSubscribe(BindingsResults results) {
-			onAddedResults(results);
-			
-		}
-
-		@Override
-		public void onUnsubscribe() {
 			
 		}
 

@@ -1,6 +1,8 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http;
 
 import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.ExceptionLogger;
@@ -43,17 +45,6 @@ public class HttpGate extends Thread {
 		@Override
 		public void log(final Exception ex) {
 			logger.error(ex.getMessage());
-//			if (ex.getClass().equals(ProtocolException.class)) {
-//				logger.fatal("ProtocolException : " + ex.getMessage());
-//			} else if (ex.getClass().equals(SocketTimeoutException.class)) {
-//				logger.warn("SocketTimeoutException : " + ex.getMessage());
-//			} else if (ex.getClass().equals(ConnectionClosedException.class)) {
-//				logger.warn("ConnectionClosedException : " + ex.getMessage());
-//			} else if (ex.getClass().equals(IOException.class)) {
-//				logger.warn("IOException : " + ex.getMessage());
-//			}
-//
-//			ex.printStackTrace();
 		}
 
 	}
@@ -74,8 +65,15 @@ public class HttpGate extends Thread {
 	}
 	
 	public void run() {
-		EngineBeans.setQueryURL("http://" + server.getEndpoint().getAddress() + properties.getQueryPath());
-		EngineBeans.setUpdateURL("http://" + server.getEndpoint().getAddress() + properties.getUpdatePath());
+		String address = server.getEndpoint().getAddress().toString();
+		try {
+			address = Inet4Address.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		EngineBeans.setQueryURL("http://" + address + properties.getQueryPath());
+		EngineBeans.setUpdateURL("http://" + address + properties.getUpdatePath());
 
 		System.out.println("SPARQL 1.1 Query     | " + EngineBeans.getQueryURL());
 		System.out.println("SPARQL 1.1 Update    | " + EngineBeans.getUpdateURL());

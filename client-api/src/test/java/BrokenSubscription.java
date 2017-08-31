@@ -23,8 +23,6 @@ import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 
 public class BrokenSubscription extends Thread implements INotificationHandler {
 	protected static Logger logger = LogManager.getLogger("BrokenSubscription");
@@ -92,18 +90,6 @@ public class BrokenSubscription extends Thread implements INotificationHandler {
 	@Override
 	public void onSemanticEvent(Notification notify) {
 		logger.info("onSemanticEvent: " + notify);
-	}
-
-	@Override
-	public void onSubscribeConfirm(SubscribeResponse response) {
-		logger.info("onSubscribeConfirm: " + response);
-
-	}
-
-	@Override
-	public void onUnsubscribeConfirm(UnsubscribeResponse response) {
-		logger.info("onUnsubscribeConfirm: " + response);
-
 	}
 
 	@Override

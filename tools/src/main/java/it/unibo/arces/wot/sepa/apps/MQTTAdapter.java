@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.tools;
+package it.unibo.arces.wot.sepa.apps;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;

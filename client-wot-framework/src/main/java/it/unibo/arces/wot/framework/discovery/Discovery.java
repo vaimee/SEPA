@@ -104,17 +104,6 @@ public class Discovery extends Observable {
 		}
 
 		@Override
-		public void onSubscribe(BindingsResults results) {
-			onAddedResults(results);
-		}
-
-		@Override
-		public void onUnsubscribe() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
 		public void onKeepAlive() {
 			// TODO Auto-generated method stub
 			

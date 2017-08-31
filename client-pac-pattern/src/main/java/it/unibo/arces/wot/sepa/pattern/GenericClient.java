@@ -37,10 +37,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
-import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public abstract class GenericClient extends Aggregator {	
@@ -50,12 +47,12 @@ public abstract class GenericClient extends Aggregator {
 		super(jparFile);	
 	}
 	
-	public boolean update(String SPARQL_UPDATE,Bindings forced) {
+	public Response update(String SPARQL_UPDATE,Bindings forced) {
 		sparqlUpdate = SPARQL_UPDATE;
 		return super.update(forced);
 	 }
 	
-	public BindingsResults query(String SPARQL_QUERY,Bindings forced) {
+	public Response query(String SPARQL_QUERY,Bindings forced) {
 		if (protocolClient == null) {
 			 logger.fatal("Client is not initialized");
 			 return null;
@@ -65,20 +62,21 @@ public abstract class GenericClient extends Aggregator {
 
 		logger.debug("SEPA","QUERY "+sparql);
 		
-		Response response = protocolClient.query(new QueryRequest(sparql));
-		logger.debug(response.toString());
-		 
-		if (response.getClass().equals(ErrorResponse.class)) return null;
-		
-		return ((QueryResponse)response).getBindingsResults();
+		return protocolClient.query(new QueryRequest(sparql));
+//		Response response = protocolClient.query(new QueryRequest(sparql));
+//		logger.debug(response.toString());
+//		 
+//		if (response.getClass().equals(ErrorResponse.class)) return null;
+//		
+//		return ((QueryResponse)response).getBindingsResults();
 	}
 	
-	public String subscribe(String SPARQL_SUBSCRIBE,Bindings forced) throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {	
+	public Response subscribe(String SPARQL_SUBSCRIBE,Bindings forced) throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {	
 		sparqlSubscribe = SPARQL_SUBSCRIBE;
 		return super.subscribe(forced);
 	}
 	 
-	public boolean unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	public Response unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
 		return super.unsubscribe();
 	}
 }

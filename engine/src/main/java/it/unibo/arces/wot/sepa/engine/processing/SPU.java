@@ -30,6 +30,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.Ping;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 /**
@@ -57,6 +58,11 @@ public abstract class SPU extends Observable implements Runnable {
 	// Thread loop
 	private boolean running = true;
 
+	// To be implemented
+	public abstract boolean init();
+	public abstract void process(UpdateResponse update);
+	public abstract BindingsResults getFirstResults();
+	
 	class SubscriptionProcessingInputData {
 		public UpdateResponse update = null;
 		public QueryProcessor queryProcessor = null;
@@ -70,10 +76,10 @@ public abstract class SPU extends Observable implements Runnable {
 		this.running = true;
 	}
 
-	public synchronized void terminate() {
+	public void terminate() {
 		synchronized (updateQueue) {
 			running = false;
-			notify();
+			updateQueue.notify();
 		}
 	}
 
@@ -84,7 +90,7 @@ public abstract class SPU extends Observable implements Runnable {
 		return ((SPU) obj).getUUID().equals(getUUID());
 	}
 
-	public boolean sendPing() {		
+	public boolean sendPing() {
 		try {
 			subscribe.getEventHandler().sendPing(new Ping(getUUID()));
 		} catch (IOException e) {
@@ -97,39 +103,37 @@ public abstract class SPU extends Observable implements Runnable {
 		return uuid;
 	}
 
-	// To be implemented by specific implementations
-	public abstract void init();
-
-	public abstract void process(UpdateResponse update);
-
-	public synchronized void subscriptionCheck(UpdateResponse res) {
-		updateQueue.offer(res);
-		notify();
-	}
-
-	private synchronized UpdateResponse waitUpdate() {
-		while (updateQueue.isEmpty()) {
-			try {
-				logger.debug(getUUID() + " Waiting new update response...");
-
-				wait();
-
-			} catch (InterruptedException e) {
-				return null;
-			}
-
-			if (!running)
-				return null;
+	public void subscriptionCheck(UpdateResponse res) {
+		synchronized (updateQueue) {
+			updateQueue.offer(res);
+			updateQueue.notify();
 		}
 
-		return updateQueue.poll();
+	}
+
+	private UpdateResponse waitUpdate() {
+		synchronized (updateQueue) {
+			while (updateQueue.isEmpty()) {
+
+				try {
+					logger.debug(getUUID() + " Waiting new update response...");
+
+					updateQueue.wait();
+
+				} catch (InterruptedException e) {
+					return null;
+				}
+
+				if (!running)
+					return null;
+			}
+
+			return updateQueue.poll();
+		}
 	}
 
 	@Override
 	public void run() {
-		// Initialize the subscription (e.g., retrieve the first results)
-		init();
-
 		// Main loop
 		logger.debug(getUUID() + " Entering main loop...");
 		while (running) {
@@ -142,8 +146,5 @@ public abstract class SPU extends Observable implements Runnable {
 			process(update);
 		}
 		logger.debug(getUUID() + " terminated");
-		synchronized(this) {
-			notify();
-		}
 	}
 }

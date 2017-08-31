@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.tools;
+package it.unibo.arces.wot.sepa.apps;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -149,18 +149,6 @@ public class StressTest {
 		}
 
 		@Override
-		public void onSubscribe(BindingsResults results) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onUnsubscribe() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
 		public void onKeepAlive() {
 			// TODO Auto-generated method stub
 			
@@ -224,18 +212,6 @@ public class StressTest {
 
 		@Override
 		public void onRemovedResults(BindingsResults results) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onSubscribe(BindingsResults results) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onUnsubscribe() {
 			// TODO Auto-generated method stub
 			
 		}

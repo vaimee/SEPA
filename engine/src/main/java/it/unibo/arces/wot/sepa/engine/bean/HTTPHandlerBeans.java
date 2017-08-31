@@ -16,12 +16,19 @@ public class HTTPHandlerBeans {
 	private float handledRequests = 0;
 
 	public void reset() {
-		handledRequests = 0;
+		 requests = 0;
 
-		requestHandlingTime = -1;
-		requestHandlingAverageTime = -1;
-		requestHandlingMinTime = -1;
-		requestHandlingMaxTime = -1;
+		 timeoutRequests = 0;
+		 CORSFailedRequests = 0;
+		 parsingFailedRequests = 0;
+		 validatingFailedRequests = 0;
+		 authorizingFailedRequests = 0;
+		
+		 requestHandlingTime = -1;
+		 requestHandlingAverageTime = -1;
+		 requestHandlingMinTime = -1;
+		 requestHandlingMaxTime = -1;
+		 handledRequests = 0;
 	}
 
 	public void timings(long start_ns, long stop_ns) {

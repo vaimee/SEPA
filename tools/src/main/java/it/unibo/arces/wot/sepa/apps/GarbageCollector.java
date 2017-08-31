@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.tools;
+package it.unibo.arces.wot.sepa.apps;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -45,15 +45,6 @@ public class GarbageCollector extends Aggregator {
 		}
 		
 	}
-
-	@Override
-	public void onSubscribe(BindingsResults bindingsResults) {
-		for (Bindings bindings : bindingsResults.getBindings()) {
-			processedMessages++;
-			logger.info( processedMessages+ " "+bindings.toString());
-			update(bindings);
-		}	
-	}
 	
 	public static void main(String[] args) {
 		
@@ -99,12 +90,6 @@ public class GarbageCollector extends Aggregator {
 
 	@Override
 	public void onRemovedResults(BindingsResults results) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onUnsubscribe() {
 		// TODO Auto-generated method stub
 		
 	}

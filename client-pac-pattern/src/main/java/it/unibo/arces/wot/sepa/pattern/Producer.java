@@ -59,20 +59,16 @@ public class Producer extends Client implements IProducer {
 		sparqlUpdate = appProfile.update(updateID);
 	}
 	
-	public boolean update(Bindings forcedBindings){	 
+	public Response update(Bindings forcedBindings){	 
 		 if (sparqlUpdate == null || protocolClient == null) {
 			 logger.fatal("Producer not initialized");
-			 return false;
+			 return new ErrorResponse(400,"Producer not initialized");
 		 }
 
 		 String sparql = prefixes() + replaceBindings(sparqlUpdate,forcedBindings);
 		 
 		 logger.debug("<UPDATE> "+ SPARQL_ID+" ==> "+sparql);
 		 
-		 Response response = protocolClient.update(new UpdateRequest(sparql));
-
-		 
-		 return !(response.getClass().equals(ErrorResponse.class));
-		 
+		 return protocolClient.update(new UpdateRequest(sparql));		 
 	 }
 }

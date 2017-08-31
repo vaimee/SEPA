@@ -32,20 +32,21 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public interface IConsumer extends IClient {	
-	String subscribe(Bindings forcedBindings) throws InterruptedException, IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException;
-	boolean unsubscribe() throws InterruptedException,IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException;
+	Response subscribe(Bindings forcedBindings) throws InterruptedException, IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException;
+	Response unsubscribe() throws InterruptedException,IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException;
 	
 	void onResults(ARBindingsResults results);
 	void onAddedResults(BindingsResults results);
 	void onRemovedResults(BindingsResults results);
 	
-	void onSubscribe(BindingsResults results);
-	void onUnsubscribe();
+//	void onSubscribe(BindingsResults results);
+//	void onUnsubscribe();
 	
 	public void onKeepAlive();
 	public void onBrokenSubscription();

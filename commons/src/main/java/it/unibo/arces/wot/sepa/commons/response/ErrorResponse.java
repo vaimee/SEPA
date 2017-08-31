@@ -17,6 +17,7 @@
 */
 package it.unibo.arces.wot.sepa.commons.response;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 // TODO: Auto-generated Javadoc
@@ -97,6 +98,10 @@ public class ErrorResponse extends Response {
 		json.add("code", new JsonPrimitive(code));
 	}
 	
+	public ErrorResponse(JsonObject notify) {
+		json = notify;
+	}
+
 	/**
 	 * Gets the error code.
 	 *

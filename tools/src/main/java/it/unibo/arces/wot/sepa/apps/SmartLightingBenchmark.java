@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.tools;
+package it.unibo.arces.wot.sepa.apps;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,6 +23,9 @@ import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Consumer;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
+import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -129,7 +132,6 @@ public abstract class SmartLightingBenchmark {
 	}
 	
 	class LampSubscription extends Consumer implements Runnable {	
-		private String subID;
 		private String lampURI = "";
 		private boolean running = true;
 		private Bindings bindings = new Bindings();
@@ -143,8 +145,9 @@ public abstract class SmartLightingBenchmark {
 		
 		public boolean subscribe() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {			
 			long startTime = System.nanoTime();
+			Response ret;
 			try {
-				subID=super.subscribe(bindings);
+				ret = super.subscribe(bindings);
 			} catch (IOException| InterruptedException | URISyntaxException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e) {
 				logger.error(e.getMessage());
 				return false;
@@ -152,7 +155,7 @@ public abstract class SmartLightingBenchmark {
 			long stopTime = System.nanoTime();
 			logger.info("SUBSCRIBE LAMP "+lampURI+ " "+(stopTime-startTime));
 			
-			return (subID != null);
+			return ret.getClass().equals(SubscribeResponse.class);
 		}
 		
 		public void terminate() {	
@@ -191,17 +194,6 @@ public abstract class SmartLightingBenchmark {
 			
 		}
 
-		@Override
-		public void onSubscribe(BindingsResults results) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onUnsubscribe() {
-			// TODO Auto-generated method stub
-			
-		}
 
 		@Override
 		public void onKeepAlive() {
@@ -224,7 +216,6 @@ public abstract class SmartLightingBenchmark {
 	}
 	
 	class RoadSubscription extends Consumer implements Runnable {		
-		private String subID;
 		private String roadURI ="";
 		private boolean running = true;
 		Bindings bindings = new Bindings();
@@ -238,8 +229,9 @@ public abstract class SmartLightingBenchmark {
 		
 		public boolean subscribe() throws InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 			long startTime = System.nanoTime();
+			Response ret;
 			try {
-				subID=super.subscribe(bindings);
+				ret=super.subscribe(bindings);
 			} catch (IOException| InterruptedException | URISyntaxException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e) {
 				logger.error(e.getMessage());
 				return false;
@@ -247,7 +239,7 @@ public abstract class SmartLightingBenchmark {
 			long stopTime = System.nanoTime();
 			logger.info("SUBSCRIBE ROAD "+roadURI+" "+(stopTime-startTime));
 			
-			return (subID != null);
+			return ret.getClass().equals(SubscribeResponse.class);
 		}
 		
 		public void terminate() {
@@ -282,18 +274,6 @@ public abstract class SmartLightingBenchmark {
 
 		@Override
 		public void onRemovedResults(BindingsResults results) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onSubscribe(BindingsResults results) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void onUnsubscribe() {
 			// TODO Auto-generated method stub
 			
 		}
@@ -356,11 +336,11 @@ public abstract class SmartLightingBenchmark {
 			bindings.addBinding("road", new RDFTermURI(roadURI));
 			
 			long startTime = System.nanoTime();
-			Boolean ret = road.update(bindings);
+			Response ret = road.update(bindings);
 			long stopTime = System.nanoTime();
 			logger.info("INSERT ROAD "+roadURI+" "+(stopTime-startTime)+" 1");
 			
-			if(!ret) return firstRoadIndex;
+			if(!ret.getClass().equals(UpdateResponse.class)) return firstRoadIndex;
 			
 			//int postNumber = nPost;
 			
@@ -380,28 +360,28 @@ public abstract class SmartLightingBenchmark {
 				ret = post.update(bindings);
 				stopTime = System.nanoTime();
 				logger.info("INSERT POST "+postURI+" "+(stopTime-startTime) + " 3");				
-				if(!ret) return firstRoadIndex;
+				if(!ret.getClass().equals(UpdateResponse.class)) return firstRoadIndex;
 				
 				//Add post to road
 				startTime = System.nanoTime();
 				ret = addPost2Road.update(bindings);
 				stopTime = System.nanoTime();
 				logger.info( "INSERT POST2ROAD "+postURI+" "+(stopTime-startTime)+ " 1");				
-				if(!ret) return firstRoadIndex;
+				if(!ret.getClass().equals(UpdateResponse.class)) return firstRoadIndex;
 				
 				//New lamp				
 				startTime = System.nanoTime();
 				ret = lamp.update(bindings);
 				stopTime = System.nanoTime();
 				logger.info("INSERT LAMP "+lampURI+" "+(stopTime-startTime) + " 4");				
-				if(!ret) return firstRoadIndex;
+				if(!ret.getClass().equals(UpdateResponse.class)) return firstRoadIndex;
 				
 				//Add lamp to post
 				startTime = System.nanoTime();
 				ret = addLamp2post.update(bindings);
 				stopTime = System.nanoTime();
 				logger.info("INSERT LAMP2POST "+lampURI+" "+(stopTime-startTime) + " 1");				
-				if(!ret) return firstRoadIndex;
+				if(!ret.getClass().equals(UpdateResponse.class)) return firstRoadIndex;
 				
 				//New temperature sensor
 				bindings.addBinding("sensor", new RDFTermURI(temparatureURI));
@@ -413,13 +393,13 @@ public abstract class SmartLightingBenchmark {
 				ret = sensor.update(bindings);
 				stopTime = System.nanoTime();
 				logger.info("INSERT SENSOR "+temparatureURI+" "+(stopTime-startTime)+ " 5");				
-				if(!ret) return firstRoadIndex;
+				if(!ret.getClass().equals(UpdateResponse.class)) return firstRoadIndex;
 
 				startTime = System.nanoTime();
 				ret = addSensor2post.update(bindings);
 				stopTime = System.nanoTime();
 				logger.info( "INSERT SENSOR2POST "+temparatureURI+" "+(stopTime-startTime) + " 1");				
-				if(!ret) return firstRoadIndex;
+				if(!ret.getClass().equals(UpdateResponse.class)) return firstRoadIndex;
 				
 				//New presence sensor
 				bindings.addBinding("sensor", new RDFTermURI(presenceURI));
@@ -431,13 +411,13 @@ public abstract class SmartLightingBenchmark {
 				ret = sensor.update(bindings);
 				stopTime = System.nanoTime();
 				logger.info( "INSERT SENSOR "+presenceURI+" "+(stopTime-startTime)+ " 5");				
-				if(!ret) return firstRoadIndex;
+				if(!ret.getClass().equals(UpdateResponse.class)) return firstRoadIndex;
 
 				startTime = System.nanoTime();
 				ret = addSensor2post.update(bindings);
 				stopTime = System.nanoTime();
 				logger.info("INSERT SENSOR2POST "+presenceURI+" "+(stopTime-startTime)+ " 1");				
-				if(!ret) return firstRoadIndex;
+				if(!ret.getClass().equals(UpdateResponse.class)) return firstRoadIndex;
 			}
 		}
 		
@@ -451,12 +431,12 @@ public abstract class SmartLightingBenchmark {
 		bindings.addBinding("dimming", new RDFTermLiteral(dimming.toString()));
 		
 		long startTime = System.nanoTime();		
-		Boolean ret = lampUpdater.update(bindings);
+		Response ret = lampUpdater.update(bindings);
 		long stopTime = System.nanoTime();
 		
 		logger.info("UPDATE LAMP "+lampURI+" "+(stopTime-startTime));
 		
-		return ret;
+		return ret.getClass().equals(UpdateResponse.class);
 	}
 	
 	protected boolean updateRoad(int nRoad,Integer dimming) {
@@ -466,12 +446,12 @@ public abstract class SmartLightingBenchmark {
 		bindings.addBinding("?dimming", new RDFTermLiteral(dimming.toString()));
 		
 		long startTime = System.nanoTime();
-		Boolean ret = roadUpdater.update(bindings);
+		Response ret = roadUpdater.update(bindings);
 		long stopTime = System.nanoTime();
 		
 		logger.info("UPDATE ROAD "+roadURI+" "+(stopTime-startTime));
 		
-		return ret;
+		return ret.getClass().equals(UpdateResponse.class);
 	}
 	
 	private void load() throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {

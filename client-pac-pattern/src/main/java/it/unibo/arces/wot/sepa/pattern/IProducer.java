@@ -18,8 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 
 public interface IProducer extends IClient {
-	 public boolean update(Bindings forcedBindings);
+	 public Response update(Bindings forcedBindings);
 }

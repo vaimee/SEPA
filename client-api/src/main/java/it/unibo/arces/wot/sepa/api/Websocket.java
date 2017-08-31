@@ -42,6 +42,7 @@ import com.google.gson.JsonPrimitive;
 import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 
@@ -55,6 +56,9 @@ public class Websocket {
 	private SSLSecurityManager sm;
 
 	private Watchdog watchDog = null;
+
+	public static long SUBSCRIBE_TIMEOUT = 15000;
+	private Response response;
 
 	public Websocket(String wsUrl, boolean ssl, INotificationHandler handler)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
@@ -105,14 +109,11 @@ public class Websocket {
 
 					// Subscribe confirmed
 					if (notify.get("subscribed") != null) {
-						SubscribeResponse response;
-						if (notify.get("alias") != null)
-							response = new SubscribeResponse(0, notify.get("subscribed").getAsString(),
-									notify.get("alias").getAsString());
-						else
-							response = new SubscribeResponse(0, notify.get("subscribed").getAsString());
+						response = new SubscribeResponse(notify);
 
-						handler.onSubscribeConfirm(response);
+						synchronized (socket) {
+							socket.notify();
+						}
 
 						watchDog.subscribed();
 						return;
@@ -120,10 +121,12 @@ public class Websocket {
 
 					// Unsubscribe confirmed
 					if (notify.get("unsubscribed") != null) {
-						handler.onUnsubscribeConfirm(
-								new UnsubscribeResponse(0, notify.get("unsubscribed").getAsString()));
+						response = new UnsubscribeResponse(notify);
 
-						// super.close();
+						synchronized (socket) {
+							socket.notify();
+						}
+	
 						watchDog.unsubscribed();
 						return;
 					}
@@ -136,13 +139,12 @@ public class Websocket {
 
 					// Error
 					if (notify.get("code") != null) {
-						ErrorResponse error;
-						if (notify.get("body") != null)
-							error = new ErrorResponse(notify.get("code").getAsInt(), notify.get("body").getAsString());
-						else
-							error = new ErrorResponse(notify.get("code").getAsInt(), "");
+						handler.onError(new ErrorResponse(notify));
 
-						handler.onError(error);
+						synchronized (socket) {
+							socket.notify();
+						}
+
 						return;
 					}
 				}
@@ -167,24 +169,27 @@ public class Websocket {
 		socket.connectBlocking();
 	}
 
-	public void subscribe(String sparql, String alias, String jwt)
-			throws IOException, URISyntaxException, InterruptedException, UnrecoverableKeyException,
-			KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException {
+	public Response subscribe(String sparql, String alias, String jwt) throws IllegalArgumentException {
 
 		logger.debug("@subscribe");
 
 		if (sparql == null)
 			throw new IllegalArgumentException("SPARQL query is null");
 
-		createWebsocket(wsUrl, ssl);
+		try {
+			createWebsocket(wsUrl, ssl);
+		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
+				| CertificateException | URISyntaxException | IOException | InterruptedException e) {
+			return new ErrorResponse(500, e.getMessage());
+		}
 
 		if (socket == null)
-			throw new IOException("Websocket is null");
+			return new ErrorResponse(500, "Socket is null");
 
 		if (watchDog == null) {
 			watchDog = new Watchdog(handler, this, sparql, alias, jwt);
-			
-			//watchDog.start();
+
+			// watchDog.start();
 		}
 
 		// Create SPARQL 1.1 Subscribe request
@@ -205,6 +210,17 @@ public class Websocket {
 		// Send request
 		socket.send(request.toString());
 
+		// Wait response
+		response = new ErrorResponse(408, "Timeout");
+		synchronized (socket) {
+			try {
+				socket.wait(SUBSCRIBE_TIMEOUT);
+			} catch (InterruptedException e) {
+
+			}
+		}
+		return response;
+
 		// Send fragmented request (test)
 		// byte[] req = request.toString().getBytes("UTF-8");
 		// ByteBuffer buffer = ByteBuffer.allocate(1);
@@ -217,10 +233,10 @@ public class Websocket {
 		// }
 	}
 
-	public void unsubscribe(String spuid, String jwt) throws IllegalArgumentException, IOException, URISyntaxException,
-			UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
-			CertificateException, InterruptedException {
-		logger.debug("@unsubscribe");
+	public Response unsubscribe(String spuid, String jwt) throws IllegalArgumentException, IOException,
+			URISyntaxException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, InterruptedException {
+		logger.debug("@unsubscribe spuid:" + spuid + " jwt: " + jwt);
 
 		if (spuid == null)
 			throw new IllegalArgumentException("SPUID is null");
@@ -239,6 +255,17 @@ public class Websocket {
 			request.add("authorization", new JsonPrimitive("Bearer " + jwt));
 
 		socket.send(request.toString());
+
+		// Wait response
+		response = new ErrorResponse(408, "Timeout");
+		synchronized (socket) {
+			try {
+				socket.wait(SUBSCRIBE_TIMEOUT);
+			} catch (InterruptedException e) {
+
+			}
+		}
+		return response;
 	}
 
 	public void setNotificationHandler(INotificationHandler handler) {

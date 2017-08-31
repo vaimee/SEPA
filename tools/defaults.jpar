@@ -1,1 +1,26 @@
-{"parameters":{"host":"localhost","ports":{"http":9999,"https":8443,"ws":9000,"wss":9443},"paths":{"query":"/blazegraph/namespace/kb/sparql","update":"/blazegraph/namespace/kb/sparql","subscribe":"/subscribe","register":"/oauth/register","tokenRequest":"/oauth/token","securePath":"/secure"},"methods":{"query":"POST","update":"URL_ENCODED_POST"},"formats":{"query":"JSON","update":"HTML"}}}
+{
+	"parameters" : {
+		"host" : "localhost" ,
+		"ports" : {
+			"http" : 8000 ,
+			"https" : 8443 ,
+			"ws" : 9000 ,
+			"wss" : 9443}
+		 ,
+		"paths" : {
+			"query" : "/query" ,
+			"update" : "/update" ,
+			"subscribe" : "/subscribe" ,
+			"register" : "/oauth/register" ,
+			"tokenRequest" : "/oauth/token" ,
+			"securePath" : "/secure"}
+		 ,
+		"methods" : {
+			"query" : "POST" ,
+			"update" : "URL_ENCODED_POST"}
+		 ,
+		"formats" : {
+			"query" : "JSON" ,
+			"update" : "HTML"}
+	}
+}

@@ -68,8 +68,6 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
 public class SPARQL11SEProtocol extends SPARQL11Protocol {
@@ -221,24 +219,17 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		switch (op) {
 		case SUBSCRIBE:
 			SubscribeRequest subscribe = (SubscribeRequest) request;
-			wsClient.subscribe(subscribe.getSPARQL(), subscribe.getAlias(), null);
-
-			return new SubscribeResponse();
+			return wsClient.subscribe(subscribe.getSPARQL(), subscribe.getAlias(), null);
 		case UNSUBSCRIBE:
 			UnsubscribeRequest unsubscribe = (UnsubscribeRequest) request;
-			wsClient.unsubscribe(unsubscribe.getSubscribeUUID(), null);
-
-			return new UnsubscribeResponse();
+			return wsClient.unsubscribe(unsubscribe.getSubscribeUUID(), null);
 		case SECURESUBSCRIBE:
 			SubscribeRequest securesubscribe = (SubscribeRequest) request;
-			wssClient.subscribe(securesubscribe.getSPARQL(), securesubscribe.getAlias(), properties.getAccessToken());
-
-			return new SubscribeResponse();
+			return wssClient.subscribe(securesubscribe.getSPARQL(), securesubscribe.getAlias(),
+					properties.getAccessToken());
 		case SECUREUNSUBSCRIBE:
 			UnsubscribeRequest secureunsubscribe = (UnsubscribeRequest) request;
-			wssClient.unsubscribe(secureunsubscribe.getSubscribeUUID(), properties.getAccessToken());
-
-			return new SubscribeResponse();
+			return wssClient.unsubscribe(secureunsubscribe.getSubscribeUUID(), properties.getAccessToken());
 		default:
 			break;
 		}
@@ -323,13 +314,13 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 			logger.debug("Response: " + response);
 			if (op.equals(SPARQL11SEPrimitive.REGISTER))
-				logger.info("REGISTER " + timing / 1000000 + " ms");
+				logger.debug("REGISTER " + timing / 1000000 + " ms");
 			else if (op.equals(SPARQL11SEPrimitive.REQUESTTOKEN))
-				logger.info("TOKEN " + timing / 1000000 + " ms");
+				logger.debug("TOKEN " + timing / 1000000 + " ms");
 			else if (op.equals(SPARQL11SEPrimitive.SECUREQUERY))
-				logger.info("SECURE_QUERY " + timing / 1000000 + " ms");
+				logger.debug("SECURE_QUERY " + timing / 1000000 + " ms");
 			else if (op.equals(SPARQL11SEPrimitive.SECUREUPDATE))
-				logger.info("SECURE_UPDATE " + timing / 1000000 + " ms");
+				logger.debug("SECURE_UPDATE " + timing / 1000000 + " ms");
 
 			HttpEntity entity = response.getEntity();
 			jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));

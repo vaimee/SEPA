@@ -13,11 +13,11 @@ public interface ProcessorMBean {
 
 	public String getEndpoint_QueryMethod();
 
-	public void resetQueryTimings();
-
-	public void resetUpdateTimings();
+	public void reset();
 
 	public String getStatistics();
+	
+	public long getProcessedRequests();
 
 	public float getTimings_UpdateTime_ms();
 	
