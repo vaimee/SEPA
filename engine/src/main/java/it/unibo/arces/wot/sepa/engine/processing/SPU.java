@@ -19,19 +19,26 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Observable;
+//import java.util.Observer;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+
+import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Ping;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
+
+import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
 /**
  * This class represents a Semantic Processing Unit (SPU)
@@ -42,7 +49,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
  */
 
 public abstract class SPU extends Observable implements Runnable {
-	private static final Logger logger = LogManager.getLogger("SPU");
+	private final Logger logger;
 
 	// The URI of the subscription (i.e., sepa://spuid/UUID)
 	private String uuid = null;
@@ -51,29 +58,44 @@ public abstract class SPU extends Observable implements Runnable {
 	// Update queue
 	protected ConcurrentLinkedQueue<UpdateResponse> updateQueue = new ConcurrentLinkedQueue<UpdateResponse>();
 
-	// Subscription
-	protected QueryProcessor queryProcessor = null;
-	protected ScheduledRequest subscribe = null;
+	// protected SPARQL11Protocol endpoint = null;
+	protected QueryProcessor queryProcessor;
+
+	protected SubscribeRequest request;
+	protected EventHandler handler;
 
 	// Thread loop
 	private boolean running = true;
 
-	// To be implemented
+	// Query first results
+	protected BindingsResults firstResults = null;
+
+	// To be implemented by every specific SPU implementation
 	public abstract boolean init();
-	public abstract void process(UpdateResponse update);
-	public abstract BindingsResults getFirstResults();
-	
-	class SubscriptionProcessingInputData {
-		public UpdateResponse update = null;
-		public QueryProcessor queryProcessor = null;
-		public SubscribeRequest subscribe = null;
+	public abstract Notification processInternal(UpdateResponse update);
+
+	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler)
+			throws IllegalArgumentException, URISyntaxException {
+		if (eventHandler == null)
+			throw new IllegalArgumentException("Subscribe event handler is null");
+
+		uuid = prefix + UUID.randomUUID().toString();
+		logger = LogManager.getLogger("SPU" + uuid);
+
+		request = subscribe;
+		handler = eventHandler;
+
+		queryProcessor = new QueryProcessor(properties);
+
+		running = true;
 	}
 
-	public SPU(ScheduledRequest subscribe, SPARQL11Protocol endpoint) {
-		this.uuid = prefix + UUID.randomUUID().toString();
-		this.subscribe = subscribe;
-		this.queryProcessor = new QueryProcessor(endpoint);
-		this.running = true;
+	public BindingsResults getFirstResults() {
+		return firstResults;
+	}
+
+	public boolean isRunning() {
+		return running;
 	}
 
 	public void terminate() {
@@ -90,61 +112,61 @@ public abstract class SPU extends Observable implements Runnable {
 		return ((SPU) obj).getUUID().equals(getUUID());
 	}
 
-	public boolean sendPing() {
-		try {
-			subscribe.getEventHandler().sendPing(new Ping(getUUID()));
-		} catch (IOException e) {
-			return false;
-		}
-		return true;
-	}
-
 	public String getUUID() {
 		return uuid;
 	}
 
-	public void subscriptionCheck(UpdateResponse res) {
+	public void process(UpdateResponse res) {
 		synchronized (updateQueue) {
 			updateQueue.offer(res);
 			updateQueue.notify();
 		}
-
 	}
 
-	private UpdateResponse waitUpdate() {
-		synchronized (updateQueue) {
-			while (updateQueue.isEmpty()) {
-
-				try {
-					logger.debug(getUUID() + " Waiting new update response...");
-
-					updateQueue.wait();
-
-				} catch (InterruptedException e) {
-					return null;
-				}
-
-				if (!running)
-					return null;
-			}
-
-			return updateQueue.poll();
-		}
+	public void ping() throws IOException {
+		logger.debug("Send ping "+getUUID());
+		handler.sendPing(new Ping(getUUID()));
 	}
 
 	@Override
 	public void run() {
-		// Main loop
-		logger.debug(getUUID() + " Entering main loop...");
 		while (running) {
-			// Wait new update
-			UpdateResponse update = waitUpdate();
-			if (update == null)
-				continue;
+			// Poll the request from the queue
+			UpdateResponse updateResponse;
+			while ((updateResponse = updateQueue.poll()) != null && running) {
+				// Processing update
+				logger.debug("* PROCESSING *");
+				Notification notify = processInternal(updateResponse);
 
-			// Processing
-			process(update);
+				// Notify SPU manager
+				logger.debug("Notify SPU manager. Running: " + running);
+				setChanged();
+				notifyObservers(true);
+
+				// Notify
+				try {
+					if (notify != null)
+						handler.notifyEvent(notify);
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+				}
+			}
+			
+			// Terminated by an unsubscribe request
+			if (!running) {
+				logger.debug("*TERMINATED*");
+				setChanged();
+				notifyObservers(false);
+				return;
+			}
+
+			synchronized (updateQueue) {
+				try {
+					updateQueue.wait();
+				} catch (InterruptedException e) {
+					return;
+				}
+			}
 		}
-		logger.debug(getUUID() + " terminated");
 	}
 }

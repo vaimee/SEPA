@@ -18,8 +18,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.engine.protocol.http.Utilities;
-
+import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 /**
@@ -63,7 +62,7 @@ public class QueryHandler extends SPARQL11Handler {
 		case "GET":
 			logger.debug("query via GET");
 			if (exchange.getRequest().getRequestLine().getUri().contains("query=")) {
-				Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "query is null");
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "query is null");
 				return null;
 			}
 			String[] query = exchange.getRequest().getRequestLine().getUri().split("&");
@@ -74,14 +73,14 @@ public class QueryHandler extends SPARQL11Handler {
 					try {
 						sparql = URLDecoder.decode(value[1], "UTF-8");
 					} catch (UnsupportedEncodingException e) {
-						Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getMessage());
+						HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getMessage());
 						return null;
 					}
 					
 					return new QueryRequest(sparql);
 				}
 			}
-			Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Wrong format: " + exchange.getRequest().getRequestLine());
+			HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Wrong format: " + exchange.getRequest().getRequestLine());
 			return null;
 
 		case "POST":
@@ -96,7 +95,7 @@ public class QueryHandler extends SPARQL11Handler {
 			Header[] headers = exchange.getRequest().getHeaders("Content-Type");
 			if (headers.length != 1) {
 				logger.error("Content-Type is missing");
-				Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
 				return null;
 			}
 
@@ -110,7 +109,7 @@ public class QueryHandler extends SPARQL11Handler {
 					decodedBody = URLDecoder.decode(body, "UTF-8");
 				} catch (UnsupportedEncodingException e) {
 					logger.error(e.getMessage());
-					Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getMessage());
+					HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getMessage());
 					return null;
 				}
 
@@ -126,13 +125,13 @@ public class QueryHandler extends SPARQL11Handler {
 			}
 
 			logger.error("Request MUST conform to SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
-			Utilities.sendFailureResponse(exchange, HttpStatus.SC_NOT_FOUND,
+			HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_NOT_FOUND,
 					"Request MUST conform to SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 			return null;
 		}
 
 		logger.error("UNSUPPORTED METHOD: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());
-		Utilities.sendFailureResponse(exchange, HttpStatus.SC_NOT_FOUND,
+		HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_NOT_FOUND,
 				"Unsupported method: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());
 
 		return null;

@@ -27,7 +27,7 @@ import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.protocol.http.Utilities;
+import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
 public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
@@ -60,30 +60,30 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			headers = exchange.getRequest().getHeaders("Content-Type");
 			if (headers.length == 0) {
 				logger.error("Content-Type is missing");
-				Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
 			}
 			if (headers.length > 1) {
 				logger.error("Too many Content-Type headers");
-				Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Too many Content-Type headers");
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Too many Content-Type headers");
 			}
 			if (!headers[0].getValue().equals("application/json")) {
 				logger.error("Content-Type must be: application/json");
-				Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST,
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST,
 						"Content-Type must be: application/json");
 			}
 
 			headers = exchange.getRequest().getHeaders("Accept");
 			if (headers.length == 0) {
 				logger.error("Accept is missing");
-				Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Accept is missing");
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Accept is missing");
 			}
 			if (headers.length > 1) {
 				logger.error("Too many Accept headers");
-				Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Too many Accept headers");
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Too many Accept headers");
 			}
 			if (!headers[0].getValue().equals("application/json")) {
 				logger.error("Accept must be: application/json");
-				Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Accept must be: application/json");
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Accept must be: application/json");
 			}
 
 			// Parsing and validating request body
@@ -110,14 +110,14 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			}
 			if (!found) {
 				logger.error("\"grant_types\" must contain \"client_credentials\"");
-				Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST,
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST,
 						"\"grant_types\" must contain \"client_credentials\"");
 				return;
 			}
 			name = json.get("client_identity").getAsString();
 		} catch (NullPointerException e) {
 			logger.error(e.getMessage());
-			Utilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getMessage());
+			HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			return;
 		}
 
@@ -130,10 +130,10 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			ErrorResponse error = (ErrorResponse) cred;
 			logger.error(error.toString());
 
-			Utilities.sendFailureResponse(exchange, error.getErrorCode(), error.getErrorMessage());
+			HttpUtilities.sendFailureResponse(exchange, error.getErrorCode(), error.getErrorMessage());
 			return;
 		}
 
-		Utilities.sendResponse(exchange, HttpStatus.SC_CREATED, cred.toString());
+		HttpUtilities.sendResponse(exchange, HttpStatus.SC_CREATED, cred.toString());
 	}
 }

@@ -23,10 +23,11 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-
+import java.util.HashMap;
 import java.util.NoSuchElementException;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -39,6 +40,7 @@ import javax.management.NotCompliantMBeanException;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
@@ -50,31 +52,25 @@ import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
 
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
-
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
 /**
  * This class represents the scheduler of the SPARQL Event Processing Engine
  */
 
-public class Scheduler implements Runnable, SchedulerMBean {
+public class Scheduler implements SchedulerMBean, Observer {
 	private static final Logger logger = LogManager.getLogger("Scheduler");
 
 	// Request tokens
 	private Vector<Integer> tokens = new Vector<Integer>();
 
-	// Primitive processor
+	// Processor
 	private Processor processor;
 
-	// Request queue
-	private ConcurrentLinkedQueue<ScheduledRequest> updateQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
-	private ConcurrentLinkedQueue<ScheduledRequest> queryQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
-	private ConcurrentLinkedQueue<ScheduledRequest> subscribeQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
-	private ConcurrentLinkedQueue<ScheduledRequest> unsubscribeQueue = new ConcurrentLinkedQueue<ScheduledRequest>();
-
-	// Properties reference
-	private EngineProperties properties;
+	// Responders
+	private HashMap<Integer, ResponseHandler> responders = new HashMap<Integer, ResponseHandler>();
 
 	public Scheduler(EngineProperties properties)
 			throws IllegalArgumentException, MalformedObjectNameException, InstanceAlreadyExistsException,
@@ -85,98 +81,65 @@ public class Scheduler implements Runnable, SchedulerMBean {
 			logger.error("Properties are null");
 			throw new IllegalArgumentException("Properties are null");
 		}
-		this.properties = properties;
 
-		// Init tokens
+		// Initialize token jar
 		for (int i = 0; i < properties.getSchedulingQueueSize(); i++)
 			tokens.addElement(i);
 
 		// SPARQL 1.1 SE request processor
-		processor = new Processor();
+		SPARQL11Properties endpointProperties = new SPARQL11Properties("endpoint.jpar");
+		processor = new Processor(endpointProperties,properties);
+		processor.addObserver(this);
 
+		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
+		SchedulerBeans.setTimeout(properties.getTimeout());
 	}
+	
+	public synchronized int schedule(Request request, ResponseHandler handler) {
+		if (request == null) {
+			logger.error("Request is null");
+			return -1;
+		}
 
-	public synchronized int schedule(Request request, long timeout, ResponseHandler handler) {
-		// Get token
+		// GET TOKEN
 		int token = getToken();
+
 		if (token == -1) {
-			SchedulerBeans.newRequest(false);
+			SchedulerBeans.newRequest(request, false);
 			logger.error("Request refused: too many pending requests");
 		} else {
-			SchedulerBeans.newRequest(true);
+			SchedulerBeans.newRequest(request, true);
 
-			if (request.getClass().equals(UpdateRequest.class)) {
-				updateQueue.offer(new ScheduledRequest(token, request, timeout, handler));
-			} else if (request.getClass().equals(SubscribeRequest.class)) {
-				subscribeQueue.offer(new ScheduledRequest(token, request, timeout, handler));
-			} else if (request.getClass().equals(QueryRequest.class)) {
-				queryQueue.offer(new ScheduledRequest(token, request, timeout, handler));
-			} else if (request.getClass().equals(UnsubscribeRequest.class)) {
-				unsubscribeQueue.offer(new ScheduledRequest(token, request, timeout, handler));
-			}
+			// Set request TOKEN
+			request.setToken(token);
+			responders.put(request.getToken(), handler);
 
-			synchronized (processor) {
-				processor.notify();
-			}
+			logger.debug("Schedule request: " + request);
+
+			if (request.isUpdateRequest()) processor.processUpdate((UpdateRequest) request);
+			else if (request.isSubscribeRequest()) processor.processSubscribe((SubscribeRequest) request, (EventHandler)handler);
+			else if (request.isQueryRequest()) processor.processQuery((QueryRequest) request);
+			else if (request.isUnsubscribeRequest()) processor.processUnsubscribe((UnsubscribeRequest) request);
 		}
 
 		return token;
 	}
 
 	@Override
-	public void run() {
-		synchronized(Thread.currentThread()){
-			Thread.currentThread().notify();
+	public void update(Observable o, Object arg) {	
+		Response ret = (Response)arg;
+		
+		try {
+			responders.get(ret.getToken()).sendResponse(ret);
+		} catch (IOException e) {
+			logger.warn("Failed to send response: " + ret);
 		}
-		while (true) {
-			synchronized (processor) {
-				try {
-					processor.wait();
-				} catch (InterruptedException e) {
-
-				}
-			}
-			
-			boolean poll = false;		
-			do{
-				ScheduledRequest request = null;
-				Response response = null;
-				poll = false;
-				if ((request = updateQueue.poll()) != null) {
-					response = processor.process(request);
-					if (request.getResponseHandler() != null)
-						request.getResponseHandler().notifyResponse(response);
-					releaseToken(request.getToken());
-					SchedulerBeans.updateCounters(request);
-					poll = true;
-				}
-				if ((request = subscribeQueue.poll()) != null) {
-					response = processor.process(request);
-					if (request.getResponseHandler() != null)
-						request.getResponseHandler().notifyResponse(response);
-					releaseToken(request.getToken());
-					SchedulerBeans.updateCounters(request);
-					poll = true;
-				}
-				if ((request = unsubscribeQueue.poll()) != null) {
-					response = processor.process(request);
-					if (request.getResponseHandler() != null)
-						request.getResponseHandler().notifyResponse(response);
-					releaseToken(request.getToken());
-					SchedulerBeans.updateCounters(request);
-					poll = true;
-				}
-				if ((request = queryQueue.poll()) != null) {
-					response = processor.process(request);
-					if (request.getResponseHandler() != null)
-						request.getResponseHandler().notifyResponse(response);
-					releaseToken(request.getToken());
-					SchedulerBeans.updateCounters(request);
-					poll = true;
-				}
-			} while(poll);
-		}
+		responders.remove(ret.getToken());
+		
+		// RELEASE TOKEN
+		releaseToken(ret.getToken());
 	}
 
 	/**
@@ -185,19 +148,17 @@ public class Scheduler implements Runnable, SchedulerMBean {
 	 * @return an int representing the token
 	 */
 	private synchronized int getToken() {
-		Integer token;
-
 		if (tokens.size() == 0) {
 			logger.error("No tokens available");
 			return -1;
 		}
 
-		token = tokens.get(0);
+		Integer token = tokens.get(0);
 		tokens.removeElementAt(0);
 
 		logger.debug("Get token #" + token + " (Available: " + tokens.size() + ")");
 
-		SchedulerBeans.updateQueueSize(properties.getSchedulingQueueSize(), tokens.size());
+		SchedulerBeans.tokenLeft(tokens.size());
 
 		return token;
 	}
@@ -208,23 +169,18 @@ public class Scheduler implements Runnable, SchedulerMBean {
 	 * @return true if success, false if the token to be released has not been
 	 *         acquired
 	 */
-	private synchronized boolean releaseToken(Integer token) {
+	private synchronized void releaseToken(Integer token) {
 		if (token == -1)
-			return false;
-
-		boolean ret = true;
+			return;
 
 		if (tokens.contains(token)) {
-			ret = false;
 			logger.warn("Request to release a unused token: " + token + " (Available tokens: " + tokens.size() + ")");
 		} else {
 			tokens.insertElementAt(token, tokens.size());
 			logger.debug("Release token #" + token + " (Available: " + tokens.size() + ")");
 
-			SchedulerBeans.updateQueueSize(properties.getSchedulingQueueSize(), tokens.size());
+			SchedulerBeans.tokenLeft(tokens.size());
 		}
-
-		return ret;
 	}
 
 	public String getStatistics() {
@@ -247,22 +203,6 @@ public class Scheduler implements Runnable, SchedulerMBean {
 		return SchedulerBeans.getQueue_OutOfToken();
 	}
 
-	public float getTimings_Update() {
-		return SchedulerBeans.getTimings_Update();
-	}
-
-	public float getTimings_Query() {
-		return SchedulerBeans.getTimings_Query();
-	}
-
-	public float getTimings_Subscribe() {
-		return SchedulerBeans.getTimings_Subscribe();
-	}
-
-	public float getTimings_Unsubscribe() {
-		return SchedulerBeans.getTimings_Unsubscribe();
-	}
-
 	@Override
 	public void reset() {
 		SchedulerBeans.reset();
@@ -271,5 +211,10 @@ public class Scheduler implements Runnable, SchedulerMBean {
 	@Override
 	public long getRequests_scheduled() {
 		return SchedulerBeans.getScheduledRequests();
+	}
+
+	@Override
+	public int getQueueSize() {
+		return SchedulerBeans.getQueueSize();
 	}
 }

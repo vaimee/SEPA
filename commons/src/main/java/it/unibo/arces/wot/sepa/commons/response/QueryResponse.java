@@ -59,6 +59,11 @@ public class QueryResponse extends Response {
 		json.add("code", new JsonPrimitive(200));
 	}
 
+	public QueryResponse(QueryResponse ret) {
+		super(ret.getToken());
+		json = ret.json;
+	}
+
 	/**
 	 * Gets the bindings results.
 	 *

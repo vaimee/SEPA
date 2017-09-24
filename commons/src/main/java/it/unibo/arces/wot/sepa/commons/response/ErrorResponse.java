@@ -101,6 +101,16 @@ public class ErrorResponse extends Response {
 	public ErrorResponse(JsonObject notify) {
 		json = notify;
 	}
+	
+	public ErrorResponse(int token,JsonObject notify) {
+		super(token);
+		json = notify;
+	}
+
+	public ErrorResponse(ErrorResponse ret) {
+		super(ret.getToken());
+		json = ret.json;
+	}
 
 	/**
 	 * Gets the error code.

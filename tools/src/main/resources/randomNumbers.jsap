@@ -1,0 +1,74 @@
+{
+	"parameters" : {
+		"host" : "localhost" ,
+		"ports" : {
+			"http" : 8000 ,
+			"https" : 8443 ,
+			"ws" : 9000 ,
+			"wss" : 9443}
+		 ,
+		"paths" : {
+			"query" : "/query" ,
+			"update" : "/update" ,
+			"subscribe" : "/subscribe" ,
+			"register" : "/oauth/register" ,
+			"tokenRequest" : "/oauth/token" ,
+			"securePath" : "/secure"}
+	}
+	 ,
+	"namespaces" : {
+		"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ,
+		"rdfs" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#" ,
+		"rnd" : "http://wot.arces.unibo.it/RandomNumbersExample#"}
+	 ,
+	"extended" : {
+		"generators" : 6 ,
+		"gctriples" : 10 ,
+		"sleep" : 1000}
+	 ,
+	"updates" : {
+		"RANDOM_NUMBER" : {
+			"sparql" : "DELETE {?number rnd:hasValue ?oldValue} INSERT {?number rdf:type rnd:RandomNumber . ?number rnd:hasValue ?value} WHERE {OPTIONAL {?number rdf:type rnd:RandomNumber . ?number rnd:hasValue ?oldValue}}" ,
+			"forcedBindings" : {
+				"number" : {
+					"type" : "uri" ,
+					"value" : ""}
+				 ,
+				"value" : {
+					"type" : "literal" ,
+					"value" : ""}
+			}
+		}
+		 ,
+		"DELETE_NUMBERS" : {
+			"sparql" : "DELETE {?number rdf:type rnd:RandomNumber . ?number rnd:hasValue ?value} WHERE {?number rdf:type rnd:RandomNumber . ?number rnd:hasValue ?value}"}
+		 ,
+		"UPDATE_MEAN" : {
+			"sparql" : "DELETE {?mean rnd:hasValue ?oldMean . ?mean rnd:hasCounter ?oldCounter} INSERT {?mean rdf:type rnd:Mean . ?mean rnd:hasValue ?value . ?mean rnd:hasCounter ?counter} WHERE {OPTIONAL{?mean rdf:type rnd:Mean . ?mean rnd:hasValue ?oldMean . ?mean rnd:hasCounter ?oldCounter}}" ,
+			"forcedBindings" : {
+				"mean" : {
+					"type" : "uri" ,
+					"value" : ""}
+				 ,
+				"value" : {
+					"type" : "literal" ,
+					"value" : ""}
+				 ,
+				"counter" : {
+					"type" : "literal" ,
+					"value" : ""}
+			}
+		}
+	}
+	 ,
+	"queries" : {
+		"COUNT_NUMBERS" : {
+			"sparql" : "SELECT (COUNT(?number) AS ?size) WHERE {?number rdf:type rnd:RandomNumber . ?number rnd:hasValue ?value}"}
+		 ,
+		"RANDOM_NUMBER" : {
+			"sparql" : "SELECT ?number ?value WHERE {?number rdf:type rnd:RandomNumber . ?number rnd:hasValue ?value}"}
+		 ,
+		"MEAN" : {
+			"sparql" : "SELECT ?mean ?value ?counter WHERE {?mean rdf:type rnd:Mean . ?mean rnd:hasValue ?value . ?mean rnd:hasCounter ?counter}"}
+	}
+}

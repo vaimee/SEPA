@@ -21,7 +21,7 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-public class Utilities {
+public class HttpUtilities {
 	private static final Logger logger = LogManager.getLogger("Utilities");
 
 	public static void sendResponse(HttpAsyncExchange exchange, int httpResponseCode, String body) {

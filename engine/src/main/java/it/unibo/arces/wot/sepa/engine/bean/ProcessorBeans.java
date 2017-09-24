@@ -27,6 +27,7 @@ public class ProcessorBeans {
 	private static String updatePath;
 	private static String updateMethod;
 	private static String queryMethod;
+	private static int spusRequests;
 	
 	public static void setEndpoint(SPARQL11Properties prop) {
 		host = prop.getHost();
@@ -99,16 +100,17 @@ public class ProcessorBeans {
 	}
 	
 	public static void reset() {
-		 totalQueryRequests = 0;
+		 //totalQueryRequests = 0;
 		 totalRequests = 0;
-		
 		 updateRequests = 0;
+		 queryRequests = 0 ;
+		 spusRequests = 0;
+		 
 		 queryMinTime = -1;
 		 queryAverageTime = -1;
 		 queryMaxTime = -1;
 		 queryTime = -1;
-		
-		 queryRequests = 0 ;	
+		 	
 		 updateMinTime = -1;
 		 updateAverageTime = -1;
 		 updateMaxTime = -1;
@@ -119,14 +121,15 @@ public class ProcessorBeans {
 		totalRequests++;
 		
 		if (request.getClass().equals(QueryRequest.class)) {
-			queryRequests++;	
+			queryRequests++;
+			spusRequests = (totalQueryRequests- queryRequests);
 		}
 	}
 	
-	public static String getStatistics() {
-		long spus = (totalQueryRequests- queryRequests);
-		return String.format("Queries (SPUs) %d (%d) [%.0f %.0f %.0f] Updates %d [%.0f %.0f %.0f]", queryRequests,spus,queryMinTime,queryAverageTime,queryMaxTime,updateRequests,updateMinTime,updateAverageTime,updateMaxTime);
-	}
+//	public static String getStatistics() {
+//		long spus = (totalQueryRequests- queryRequests);
+//		return String.format("Queries (SPUs) %d (%d) [%.0f %.0f %.0f] Updates %d [%.0f %.0f %.0f]", queryRequests,spus,queryMinTime,queryAverageTime,queryMaxTime,updateRequests,updateMinTime,updateAverageTime,updateMaxTime);
+//	}
 	
 	public static float getQueryTime_ms() {
 		return queryTime;
@@ -138,5 +141,41 @@ public class ProcessorBeans {
 
 	public static long getProcessedRequests() {
 		return totalRequests;
+	}
+
+	public static long getProcessedQueryRequests() {
+		return queryRequests;
+	}
+
+	public static long getProcessedSPURequests() {
+		return spusRequests;
+	}
+
+	public static long getProcessedUpdateRequests() {
+		return updateRequests;
+	}
+
+	public static float getTimings_QueryTime_Max_ms() {
+		return queryMaxTime;
+	}
+
+	public static float getTimings_UpdateTime_Min_ms() {
+		return updateMinTime;
+	}
+
+	public static float getTimings_UpdateTime_Average_ms() {
+		return updateAverageTime;
+	}
+
+	public static float getTimings_UpdateTime_Max_ms() {
+		return updateMaxTime;
+	}
+
+	public static float getTimings_QueryTime_Min_ms() {
+		return queryMinTime;
+	}
+
+	public static float getTimings_QueryTime_Average_ms() {
+		return queryAverageTime;
 	}
 }

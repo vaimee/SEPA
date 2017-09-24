@@ -20,130 +20,112 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
-
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
-
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
-import java.io.IOException;
+import it.unibo.arces.wot.sepa.engine.core.EventHandler;
+
+import java.net.URISyntaxException;
 
 import org.apache.logging.log4j.LogManager;
 
 public class SPUNaive extends SPU {
-	private static final Logger logger = LogManager.getLogger("SPUNaive");
+	private final Logger logger;
 
 	private BindingsResults lastBindings = null;
 	private Integer sequence = 0;
-	private BindingsResults firstResults = null;
-	
-	public SPUNaive(ScheduledRequest subscribe, SPARQL11Protocol endpoint) {
-		super(subscribe, endpoint);
+	private Response ret;
+
+	public SPUNaive(SubscribeRequest subscribe, EventHandler handler, SPARQL11Properties endpointProperties)
+			throws IllegalArgumentException, URISyntaxException {
+		super(subscribe, endpointProperties, handler);
+
+		logger = LogManager.getLogger("SPUNaive" + getUUID());
+		logger.debug("SPU: " + this.getUUID() + " request: " + subscribe);
 	}
-	
-//	@Override 
-//	public void run(){
-//		ARBindingsResults bindings = new ARBindingsResults(lastBindings, null);
-//		Notification notification = new Notification(getUUID(), bindings, sequence++);
-//
-//		if (subscribe.getEventHandler() != null)
-//			try {
-//				subscribe.getEventHandler().notifyEvent(notification);
-//			} catch (IOException e) {
-//				logger.error(e.getMessage());
-//			}
-//		
-//		super.run();
-//	}
 
 	@Override
 	public boolean init() {
-		// Process the subscribe SPARQL query
-		Response ret = queryProcessor.process((SubscribeRequest) subscribe.getRequest());
-		
+		logger.debug("Process SPARQL query " + request);
 
-		if (ret.getClass().equals(ErrorResponse.class))
+		// Process the SPARQL query
+		ret = queryProcessor.process(request,0);
+
+		if (ret.getClass().equals(ErrorResponse.class)) {
+			logger.error("Not initialized");
 			return false;
+		}
 
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
 		firstResults = new BindingsResults(lastBindings);
-				
+
+		logger.debug("First results: " + firstResults.toString());
+
 		return true;
 	}
 
 	@Override
-	public synchronized void process(UpdateResponse update) {
-		logger.debug("Start processing " + this.getUUID());
+	public Notification processInternal(UpdateResponse update) {
+		logger.debug("* PROCESSING *" + request);
 
 		// Query the SPARQL processing service
-		Response ret = queryProcessor.process((QueryRequest) subscribe.getRequest());
+		ret = queryProcessor.process(request,0);
 
-		if (ret.getClass().equals(ErrorResponse.class))
-			return;
-
-		QueryResponse currentResults = (QueryResponse) ret;
+		if (ret.getClass().equals(ErrorResponse.class)) {
+			logger.error(ret);
+			return null;
+		}
 
 		// Current and previous bindings
-		BindingsResults currentBindings = currentResults.getBindingsResults();
-		BindingsResults newBindings = new BindingsResults(currentBindings);
+		BindingsResults results = ((QueryResponse) ret).getBindingsResults();
+		BindingsResults currentBindings = new BindingsResults(results);
 
 		// Initialize the results with the current bindings
-		BindingsResults added = new BindingsResults(currentBindings.getVariables(), null);
-		BindingsResults removed = new BindingsResults(currentBindings.getVariables(), null);
+		BindingsResults added = new BindingsResults(results.getVariables(), null);
+		BindingsResults removed = new BindingsResults(results.getVariables(), null);
 
 		// Create empty bindings if null
 		if (lastBindings == null)
 			lastBindings = new BindingsResults(null, null);
 
+		logger.debug("Current bindings: " + currentBindings);
+		logger.debug("Last bindings: " + lastBindings);
+
 		// Find removed bindings
+		long start = System.nanoTime();
 		for (Bindings solution : lastBindings.getBindings()) {
-			if (!currentBindings.contains(solution) && !solution.isEmpty())
+			if (!results.contains(solution) && !solution.isEmpty())
 				removed.add(solution);
 			else
-				currentBindings.remove(solution);
+				results.remove(solution);
 		}
+		long stop = System.nanoTime();
+		logger.debug("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
 
 		// Find added bindings
-		for (Bindings solution : currentBindings.getBindings()) {
+		start = System.nanoTime();
+		for (Bindings solution : results.getBindings()) {
 			if (!lastBindings.contains(solution) && !solution.isEmpty())
 				added.add(solution);
 		}
+		stop = System.nanoTime();
+		logger.debug("Added bindings: " + added + " found in " + (stop - start) + " ns");
 
 		// Update the last bindings with the current ones
-		lastBindings = new BindingsResults(newBindings);
+		lastBindings = currentBindings;
 
 		// Send notification (or end processing indication)
-		if (!added.isEmpty() || !removed.isEmpty()) {
-			ARBindingsResults bindings = new ARBindingsResults(added, removed);
-			Notification notification = new Notification(getUUID(), bindings, sequence);
+		if (!added.isEmpty() || !removed.isEmpty())
+			return new Notification(getUUID(), new ARBindingsResults(added, removed), sequence++);
 
-			if (subscribe.getEventHandler() != null && notification.toBeNotified())
-				try {
-					subscribe.getEventHandler().notifyEvent(notification);
-					sequence++;
-				} catch (IOException e) {
-					logger.error(e.getMessage());
-				}
-		}
-
-		// Notify SPU manager of the SPU end processing
-		setChanged();
-		notifyObservers(new Notification(getUUID(), null, -1));
-
-		logger.debug(getUUID() + " End processing");
-	}
-
-	@Override
-	public BindingsResults getFirstResults() {
-		return firstResults;
+		return null;
 	}
 }

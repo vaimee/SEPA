@@ -114,13 +114,13 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	// SPARQL 1.1 Update Primitive
 	public Response update(UpdateRequest request) {
 		logger.debug(request.toString());
-		return super.update(request);
+		return super.update(request,0);
 	}
 
 	// SPARQL 1.1 Query Primitive
 	public Response query(QueryRequest request) {
 		logger.debug(request.toString());
-		return super.query(request);
+		return super.query(request,0);
 	}
 
 	// SPARQL 1.1 SE Subscribe Primitive

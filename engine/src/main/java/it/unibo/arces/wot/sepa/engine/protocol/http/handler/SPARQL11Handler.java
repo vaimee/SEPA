@@ -1,6 +1,11 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http.handler;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Observable;
+//import java.util.HashMap;
+//import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Observer;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -19,31 +24,29 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+//import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
+//import it.unibo.arces.wot.sepa.commons.response.Response;
+//import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
-import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
-import it.unibo.arces.wot.sepa.engine.protocol.http.Utilities;
+//import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
+import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.engine.security.CORSManager;
 
 public abstract class SPARQL11Handler
-		implements ResponseHandler, HttpAsyncRequestHandler<HttpRequest>, SPARQL11HandlerMBean {
+		implements HttpAsyncRequestHandler<HttpRequest>, SPARQL11HandlerMBean, Observer {
 	private static final Logger logger = LogManager.getLogger("SPARQL11Handler");
 
 	private Scheduler scheduler;
 
-	protected HttpAsyncExchange httpExchange;
-	protected int requestToken = -1;
-
 	protected HTTPHandlerBeans jmx = new HTTPHandlerBeans();
-	
-	// Timestamps
-	private long startTime = -1;
 
+	private HashMap<Integer,HttpAsyncExchange> responders = new HashMap<Integer,HttpAsyncExchange>();
+	
 	public SPARQL11Handler(Scheduler scheduler, long timeout) throws IllegalArgumentException {
 
 		if (scheduler == null)
@@ -67,12 +70,12 @@ public abstract class SPARQL11Handler
 
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
 		if (!CORSManager.processCORSRequest(exchange)) {
-			Utilities.sendFailureResponse(exchange, HttpStatus.SC_UNAUTHORIZED, "CORS origin not allowed");
+			HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_UNAUTHORIZED, "CORS origin not allowed");
 			return false;
 		}
 
 		if (CORSManager.isPreFlightRequest(exchange)) {
-			Utilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
+			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
 			return false;
 		}
 
@@ -91,76 +94,80 @@ public abstract class SPARQL11Handler
 	@Override
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
-		startTime = System.nanoTime();
-
-		jmx.newRequest();
 		
-		this.httpExchange = httpExchange;
+		new Thread() {
+			public void run() {
+				jmx.newRequest();
 
-		// CORS
-		if (!corsHandling(httpExchange)) {
-			jmx.corsFailed();
-			return;
-		}
+				// CORS
+				if (!corsHandling(httpExchange)) {
+					jmx.corsFailed();
+					return;
+				}
 
-		// Parsing SPARQL 1.1 request and attach a token
-		Request sepaRequest = parse(httpExchange);
+				// Parsing SPARQL 1.1 request and attach a token
+				Request sepaRequest = parse(httpExchange);
+				
+
+				// Parsing failed
+				if (sepaRequest == null) {
+					logger.error("Parsing failed: " + request);
+					HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Parsing failed: " + request);
+					jmx.parsingFailed();
+					return;
+				}
+
+				// Validate
+				if (!validate(request)) {
+					logger.error("Validation failed SPARQL: " + sepaRequest.getSPARQL());
+					HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST,
+							"Validation failed SPARQL: " + sepaRequest.getSPARQL());
+					jmx.validatingFailed();
+					return;
+				}
+
+				// Authorize
+				if (!authorize(request)) {
+					logger.error("Authorization failed SPARQL: " + sepaRequest.getSPARQL());
+					HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_UNAUTHORIZED,
+							"Authorization failed SPARQL: " + sepaRequest.getSPARQL());
+					jmx.authorizingFailed();
+					return;
+				}
+
+				// Schedule a new request
+				Integer requestToken = scheduler.schedule(sepaRequest,new SPARQL11ResponseHandler(httpExchange));	
 		
+				if (requestToken == -1) {
+					logger.warn("No more tokens");
+					HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_NOT_ACCEPTABLE, "No more tokens");
+					return;
+				}
 
-		// Parsing failed
-		if (sepaRequest == null) {
-			logger.error("Parsing failed: " + request);
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Parsing failed: " + request);
-			jmx.parsingFailed();
-			return;
-		}
-
-		// Validate
-		if (!validate(request)) {
-			logger.error("Validation failed SPARQL: " + sepaRequest.getSPARQL());
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST,
-					"Validation failed SPARQL: " + sepaRequest.getSPARQL());
-			jmx.validatingFailed();
-			return;
-		}
-
-		// Authorize
-		if (!authorize(request)) {
-			logger.error("Authorization failed SPARQL: " + sepaRequest.getSPARQL());
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_UNAUTHORIZED,
-					"Authorization failed SPARQL: " + sepaRequest.getSPARQL());
-			jmx.authorizingFailed();
-			return;
-		}
-
-		// Schedule a new request
-		requestToken = scheduler.schedule(sepaRequest, EngineBeans.getTimeout(), this);
-
-		if (requestToken == -1) {
-			logger.warn("No more tokens");
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_NOT_ACCEPTABLE, "No more tokens");
-			return;
-		}
-
-		logger.info("Request #" + requestToken);
+				responders.put(requestToken, httpExchange);
+				logger.info("Request #" + requestToken);	
+			}
+		}.start();
+		
 	}
 
-	// Scheduler response
 	@Override
-	public void notifyResponse(Response response) {
-		logger.info("Response #" + response.getToken());
+	public void update(Observable o, Object arg) {
+		Response ret = (Response) arg;
+		
+		HttpAsyncExchange responder = responders.get(ret.getToken());
+		
+		if (responder != null) {
+			JsonObject json = new JsonParser().parse(ret.toString()).getAsJsonObject();
 
-		if (response.getToken() != requestToken)
-			return;
-
-		jmx.timings(startTime, System.nanoTime());
-
-		JsonObject json = new JsonParser().parse(response.toString()).getAsJsonObject();
-
-		if (response.getClass().equals(QueryResponse.class))
-			Utilities.sendResponse(httpExchange, json.get("code").getAsInt(), json.get("body").toString());
-		else
-			Utilities.sendResponse(httpExchange, json.get("code").getAsInt(), json.toString());
+			if (ret.getClass().equals(QueryResponse.class))
+				HttpUtilities.sendResponse(responder, json.get("code").getAsInt(), json.get("body").toString());
+			else
+				HttpUtilities.sendResponse(responder, json.get("code").getAsInt(), json.toString());	
+			
+			responders.remove(ret.getToken());
+		}
+		
 	}
 
 	@Override

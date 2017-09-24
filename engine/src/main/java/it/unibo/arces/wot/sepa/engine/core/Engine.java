@@ -36,19 +36,16 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.nimbusds.jose.JOSEException;
 
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
+import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpGate;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsGate;
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer;
-
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
@@ -62,8 +59,6 @@ import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
  */
 
 public class Engine extends Thread implements EngineMBean {
-	// Properties, logging
-	private static final Logger logger = LogManager.getLogger("Engine");
 
 	// Primitives scheduler/dispatcher
 	private Scheduler scheduler = null;
@@ -170,7 +165,6 @@ public class Engine extends Thread implements EngineMBean {
 				.println("# WIKI: https: // github.com/arces-wot/SEPA/wiki                                         #");
 		System.out
 				.println("##########################################################################################");
-		System.out.println("");
 
 		// Engine creation and initialization
 		Engine engine = new Engine();
@@ -180,12 +174,17 @@ public class Engine extends Thread implements EngineMBean {
 			oauth = new AuthorizationManager(storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
 		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
 				| CertificateException | IOException | JOSEException e1) {
-			logger.fatal(e1.getLocalizedMessage());
+			System.err.println(e1.getLocalizedMessage());
 			System.exit(1);
 		}
 
-		// Initialize
-		engine.init();
+		try {
+			// Initialize
+			engine.init();
+		} catch (java.net.BindException e) {
+			System.err.println(e.getMessage());
+			System.exit(-1);
+		}
 
 		// Starting main engine thread
 		engine.start();
@@ -210,7 +209,7 @@ public class Engine extends Thread implements EngineMBean {
 		try {
 			properties = new EngineProperties("engine.jpar");
 		} catch (IllegalArgumentException | NoSuchElementException | IOException e) {
-			logger.warn("Open and modify JPAR file and run again the engine");
+			System.err.println("Open and modify JPAR file and run again the engine");
 			return false;
 		}
 
@@ -231,39 +230,22 @@ public class Engine extends Thread implements EngineMBean {
 				properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth,
 				properties.getKeepAlivePeriod(), properties.getTimeout());
 
-		EngineBeans.setEngineProperties(properties);
-
 		return true;
 	}
 
 	@Override
 	public void run() {
-		// Scheduler
-		logger.info("Starting scheduler");
-		schedulerThread = new Thread(scheduler);
-		schedulerThread.setName("SEPA scheduler");
-		
-		schedulerThread.start();
-		synchronized (schedulerThread) {
-			try {
-				schedulerThread.wait();
-			} catch (InterruptedException e) {
-				logger.warn(e.getMessage());
-			}
-		}
-		logger.info("Scheduler started");
-		
 		// Protocol gates
-		System.out.println("");
 		System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 		System.out.println("----------------------");
 
 		httpGate.start();
 		synchronized (httpGate) {
 			try {
-				httpGate.wait();
+				httpGate.wait(5000);
 			} catch (InterruptedException e) {
-				logger.warn(e.getMessage());
+				System.err.println(e.getMessage());
+				return;
 			}
 		}
 
@@ -275,17 +257,19 @@ public class Engine extends Thread implements EngineMBean {
 		httpsGate.start();
 		synchronized (httpsGate) {
 			try {
-				httpsGate.wait();
+				httpsGate.wait(5000);
 			} catch (InterruptedException e) {
-				logger.warn(e.getMessage());
+				System.err.println(e.getMessage());
+				return;
 			}
 		}
 
 		wsServer.start();
 		synchronized (wsServer) {
 			try {
-				wsServer.wait();
+				wsServer.wait(5000);
 			} catch (InterruptedException e) {
+				System.err.println(e.getMessage());
 				return;
 			}
 		}
@@ -293,8 +277,9 @@ public class Engine extends Thread implements EngineMBean {
 		wssServer.start();
 		synchronized (wssServer) {
 			try {
-				wssServer.wait();
+				wssServer.wait(5000);
 			} catch (InterruptedException e) {
+				System.err.println(e.getMessage());
 				return;
 			}
 		}
@@ -309,31 +294,31 @@ public class Engine extends Thread implements EngineMBean {
 	}
 
 	public void shutdown() {
-		logger.info("Stopping...");
+		System.out.println("Stopping...");
 
-		logger.info("Stopping scheduler...");
+		System.out.println("Stopping scheduler...");
 		schedulerThread.interrupt();
 
-		logger.info("Stopping HTTP gate...");
+		System.out.println("Stopping HTTP gate...");
 		httpGate.interrupt();
 
-		logger.info("Stopping HTTPS gate...");
+		System.out.println("Stopping HTTPS gate...");
 		httpsGate.interrupt();
 
 		try {
-			logger.info("Stopping WS gate...");
+			System.out.println("Stopping WS gate...");
 			wsServer.stop(wsShutdownTimeout);
 		} catch (InterruptedException e) {
-			logger.warn(e.getMessage());
+			System.err.println(e.getMessage());
 		}
 		try {
-			logger.info("Stopping WSS gate...");
+			System.out.println("Stopping WSS gate...");
 			wssServer.stop(wsShutdownTimeout);
 		} catch (InterruptedException e) {
-			logger.warn(e.getMessage());
+			System.err.println(e.getMessage());
 		}
 
-		logger.info("Stopped...bye bye :-)");
+		System.out.println("Stopped...bye bye :-)");
 	}
 
 	@Override
@@ -372,22 +357,37 @@ public class Engine extends Thread implements EngineMBean {
 	}
 
 	@Override
-	public long getTimeout() {
-		return EngineBeans.getTimeout();
+	public void resetAll() {
+		EngineBeans.resetAll();
 	}
 
 	@Override
-	public void setTimeout(long l) {
-		EngineBeans.setTimeout(l);
+	public String getEndpoint_Host() {
+		return ProcessorBeans.getEndpointHost();
 	}
 
 	@Override
-	public long getKeepalive() {
-		return EngineBeans.getKeepalive();
+	public String getEndpoint_Port() {
+		return String.format("%d", ProcessorBeans.getEndpointPort());
 	}
 
 	@Override
-	public void setKeepalive(long l) {
-		EngineBeans.setKeepalive(l);
+	public String getEndpoint_QueryPath() {
+		return ProcessorBeans.getEndpointQueryPath();
+	}
+
+	@Override
+	public String getEndpoint_UpdatePath() {
+		return ProcessorBeans.getEndpointUpdatePath();
+	}
+
+	@Override
+	public String getEndpoint_UpdateMethod() {
+		return ProcessorBeans.getEndpointUpdateMethod();
+	}
+
+	@Override
+	public String getEndpoint_QueryMethod() {
+		return ProcessorBeans.getEndpointQueryMethod();
 	}
 }

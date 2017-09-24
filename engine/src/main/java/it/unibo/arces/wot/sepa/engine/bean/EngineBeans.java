@@ -3,12 +3,8 @@ package it.unibo.arces.wot.sepa.engine.bean;
 import java.time.Duration;
 import java.util.Date;
 
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-
 public class EngineBeans {
 	private static Date startDate = new Date();
-	private static long timeout;
-	private static long keepalive;
 	
 	private static String queryURL;
 	private static String updateURL;
@@ -17,25 +13,6 @@ public class EngineBeans {
 	private static String secureUpdateURL;
 	private static String registrationURL;
 	private static String tokenRequestURL;
-	
-	public static void setEngineProperties(EngineProperties prop) {	
-		timeout = prop.getTimeout();
-		keepalive = prop.getKeepAlivePeriod();
-	}
-	
-	public static void setTimeout(long t) {
-		timeout = t;
-	}
-	public static long getTimeout() {
-		return timeout;
-	}
-	
-	public static void setKeepalive(long t) {
-		keepalive = t;
-	}
-	public static long getKeepalive() {
-		return keepalive;
-	}
 	
 	public static void setQueryURL(String s) {
 		queryURL = s;
@@ -84,5 +61,10 @@ public class EngineBeans {
 	
 	public static String getUpTime() {
 		return startDate.toString() + " " + Duration.between(startDate.toInstant(), new Date().toInstant()).toString();
+	}
+	public static void resetAll() {
+		ProcessorBeans.reset();
+		SchedulerBeans.reset();
+		SPUManagerBeans.reset();
 	}
 }

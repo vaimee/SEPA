@@ -59,7 +59,7 @@ public class HeapBugTest {
 		@Override
 		public void onResults(ARBindingsResults results) {
 			notifications++;
-			System.out.println("Consumer #"+number+" Notifictions:"+notifications);
+			System.out.println("Consumer #"+number+" Notifications:"+notifications);
 			
 		}
 
@@ -80,12 +80,12 @@ public class HeapBugTest {
 
 		@Override
 		public void onBrokenSubscription() {
-
+			System.out.println("Consumer #"+number+" broken subscription");
 		}
 
 		@Override
 		public void onSubscriptionError(ErrorResponse errorResponse) {
-
+			System.out.println("Consumer #"+number+" error: "+errorResponse.toString());
 		}
 		
 	}
@@ -93,12 +93,14 @@ public class HeapBugTest {
 	class HeapBugTestProducer extends Thread {
 		private Producer producer;
 		private int index;
-
+		private long number;
+		
 		public HeapBugTestProducer(int index)
 				throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException,
 				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 			this.index = index;
 			producer = new Producer(app, "UPDATE_OBSERVATION_VALUE");
+			number = 0;
 		}
 
 		public void run() {
@@ -111,7 +113,7 @@ public class HeapBugTest {
 				} catch (InterruptedException e) {
 					return;
 				}
-				fb.addBinding("value", new RDFTermLiteral(String.format("%d", n)));
+				fb.addBinding("value", new RDFTermLiteral(String.format("%d", number++)));
 				producer.update(fb);
 			}
 		}

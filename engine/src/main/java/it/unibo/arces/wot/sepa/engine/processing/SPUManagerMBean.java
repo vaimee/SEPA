@@ -9,7 +9,15 @@ public interface SPUManagerMBean {
 
 	public float getSPUs_time();
 
-	public String getSPUs_statistics();
+	public float getSPUs_time_min();
+	
+	public float getSPUs_time_max();
+	
+	public float getSPUs_time_average();
 
 	public void reset();
+	
+	public void setKeepalive(int t);
+	
+	public int getKeepalive();
 }

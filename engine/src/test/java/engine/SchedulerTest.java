@@ -6,6 +6,8 @@ import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
+//import java.util.Observable;
+//import java.util.Observer;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -28,10 +30,10 @@ public class SchedulerTest {
 	public class ResponseObserver implements ResponseHandler {
 
 		@Override
-		public void notifyResponse(Response arg) {
-			System.out.println(arg.toString());
-		}
-		
+		public void sendResponse(Response response) throws IOException {
+			System.out.println(response.toString());
+			
+		}	
 	}
 	
 	public static void main(String[] args) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, IllegalArgumentException, URISyntaxException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException{
@@ -41,10 +43,7 @@ public class SchedulerTest {
 		
 		scheduler = new Scheduler(properties);
 		ResponseObserver observer = new SchedulerTest().new ResponseObserver();
-		
-		Thread th = new Thread(scheduler);
-		th.setName("SEPA Scheduler");
-		th.start();
+//		scheduler.addObserver(observer);
 		
 		while(true) {
 			try {
@@ -54,12 +53,14 @@ public class SchedulerTest {
 				e.printStackTrace();
 			}
 			UpdateRequest update = new UpdateRequest("PREFIX test:<http://sepa/test#> delete {?s ?p ?o} insert {test:s test:p \""+Math.random()+"\"} where {OPTIONAL{?s ?p ?o}}");
-			scheduler.schedule(update, 1000,observer);
+			scheduler.schedule(update,observer);
 			
 			QueryRequest query = new QueryRequest("select * where {?s ?p ?o}");
-			scheduler.schedule(query,1000,observer);
+			scheduler.schedule(query,observer);
 			
 		}
 		
 	}
+
+
 }

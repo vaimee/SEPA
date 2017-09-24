@@ -1,7 +1,7 @@
 {
 	"parameters" : {
 
-		"host" : "www.vaimee.com" ,
+		"host" : "localhost" ,
 		"ports" : {
 			"http" : 8000 ,
 			"https" : 8443 ,

@@ -16,15 +16,15 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.protocol.http.Utilities;
+import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
-public class TokenRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
+public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	protected static final Logger logger = LogManager.getLogger("TokenRequestHandler");
 
 	private AuthorizationManager am;
 
-	public TokenRequestHandler(AuthorizationManager am) throws IllegalArgumentException {
+	public JWTRequestHandler(AuthorizationManager am) throws IllegalArgumentException {
 		if (am == null)
 			throw new IllegalArgumentException();
 		this.am = am;
@@ -48,37 +48,37 @@ public class TokenRequestHandler implements HttpAsyncRequestHandler<HttpRequest>
 		headers = request.getHeaders("Content-Type");
 		if (headers.length == 0) {
 			logger.error("Content-Type is missing");
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
+			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
 		}
 		if (headers.length > 1) {
 			logger.error("Too many Content-Type headers");
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Too many Content-Type headers");
+			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Too many Content-Type headers");
 		}
 		if (!headers[0].getValue().equals("application/json")) {
 			logger.error("Content-Type must be: application/json");
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST,
+			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST,
 					"Content-Type must be: application/json");
 		}
 
 		headers = request.getHeaders("Accept");
 		if (headers.length == 0) {
 			logger.error("Accept is missing");
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Accept is missing");
+			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Accept is missing");
 		}
 		if (headers.length > 1) {
 			logger.error("Too many Accept headers");
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Too many Accept headers");
+			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Too many Accept headers");
 		}
 		if (!headers[0].getValue().equals("application/json")) {
 			logger.error("Accept must be: application/json");
-			Utilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Accept must be: application/json");
+			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Accept must be: application/json");
 		}
 
 		// Authorization header
 		headers = request.getHeaders("Authorization");
 		if (headers.length != 1) {
 			logger.error("Authorization is missing or multiple");
-			Utilities.sendFailureResponse(httpExchange, 401, "Authorization is missing or multiple");
+			HttpUtilities.sendFailureResponse(httpExchange, 401, "Authorization is missing or multiple");
 			return;
 		}
 
@@ -87,7 +87,7 @@ public class TokenRequestHandler implements HttpAsyncRequestHandler<HttpRequest>
 
 		if (!basic.startsWith("Basic ")) {
 			logger.error("Authorization must be \"Basic Basic64(<client_id>:<client_secret>)\"");
-			Utilities.sendFailureResponse(httpExchange, 401,
+			HttpUtilities.sendFailureResponse(httpExchange, 401,
 					"Authorization must be \"Basic Basic64(<client_id>:<client_secret>)\"");
 			return;
 		}
@@ -100,9 +100,9 @@ public class TokenRequestHandler implements HttpAsyncRequestHandler<HttpRequest>
 		if (token.getClass().equals(ErrorResponse.class)) {
 			ErrorResponse error = (ErrorResponse) token;
 			logger.error(token.toString());
-			Utilities.sendFailureResponse(httpExchange, error.getErrorCode(), error.getErrorMessage());
+			HttpUtilities.sendFailureResponse(httpExchange, error.getErrorCode(), error.getErrorMessage());
 		} else {
-			Utilities.sendResponse(httpExchange, HttpStatus.SC_CREATED, token.toString());
+			HttpUtilities.sendResponse(httpExchange, HttpStatus.SC_CREATED, token.toString());
 		}	
 	}
 }

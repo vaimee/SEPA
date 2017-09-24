@@ -22,18 +22,17 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.pattern.Consumer;
 
-public class GarbageCollector extends Aggregator {
-	private final Logger logger = LogManager.getLogger("GarbageCollector");
-	private long numbers = 0;
+public class MeanMonitor extends Consumer {
+	private static final Logger logger = LogManager.getLogger("MeanMonitor");
 
-	public GarbageCollector() throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException,
+	public MeanMonitor() throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException,
 			KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException,
 			URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		super(new ApplicationProfile("randomNumbers.jsap"), "COUNT_NUMBERS", "DELETE_NUMBERS");
+		super(new ApplicationProfile("randomNumbers.jsap"), "MEAN");
 	}
 
 	public boolean subscribe() {
@@ -51,14 +50,11 @@ public class GarbageCollector extends Aggregator {
 
 		SubscribeResponse results = (SubscribeResponse) ret;
 
+		// Previous mean values
 		for (Bindings binding : results.getBindingsResults().getBindings()) {
-			numbers += 2 * Integer.parseInt(binding.getBindingValue("size"));
-			logger.info("Total triples: " + numbers);
-		}
-
-		if (numbers > getApplicationProfile().getExtendedData().get("gctriples").getAsInt()) {
-			logger.info("Collecting triples...");
-			update(null);
+			logger.info(binding.getBindingValue("mean") + " : "
+					+ Float.parseFloat(binding.getBindingValue("value").replaceAll(",", ".")) + " (values: "
+					+ Integer.parseInt(binding.getBindingValue("counter")) + ")");
 		}
 
 		return true;
@@ -66,15 +62,10 @@ public class GarbageCollector extends Aggregator {
 
 	@Override
 	public void onAddedResults(BindingsResults results) {
-		numbers = 0;
 		for (Bindings binding : results.getBindings()) {
-			numbers += 2 * Integer.parseInt(binding.getBindingValue("size"));
-			logger.info("Total triples: " + numbers+" GC triples: "+getApplicationProfile().getExtendedData().get("gctriples").getAsInt());
-		}
-
-		if (numbers > getApplicationProfile().getExtendedData().get("gctriples").getAsInt()) {
-			logger.info("Collecting triples...");
-			update(null);
+			logger.info(binding.getBindingValue("mean") + " : "
+					+ Float.parseFloat(binding.getBindingValue("value").replaceAll(",", ".")) + " (values: "
+					+ Integer.parseInt(binding.getBindingValue("counter")) + ")");
 		}
 
 	}
