@@ -100,12 +100,12 @@ public class Notification extends Response {
 		return json.get("sequence").getAsInt();
 	}
 
-	/**
-	 * To be notified.
-	 *
-	 * @return true, if successful
-	 */
-	public boolean toBeNotified() {
-		return json.get("results") != null;
-	}
+//	/**
+//	 * To be notified.
+//	 *
+//	 * @return true, if successful
+//	 */
+//	public boolean toBeNotified() {
+//		return json.get("results") != null;
+//	}
 }

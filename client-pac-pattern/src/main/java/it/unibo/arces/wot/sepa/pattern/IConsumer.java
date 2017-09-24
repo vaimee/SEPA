@@ -45,9 +45,6 @@ public interface IConsumer extends IClient {
 	void onAddedResults(BindingsResults results);
 	void onRemovedResults(BindingsResults results);
 	
-//	void onSubscribe(BindingsResults results);
-//	void onUnsubscribe();
-	
 	public void onKeepAlive();
 	public void onBrokenSubscription();
 	public void onSubscriptionError(ErrorResponse errorResponse);

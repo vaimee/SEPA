@@ -29,9 +29,17 @@ public interface EngineMBean {
 	public String getURL_Registration();
 	public String getURL_TokenRequest();
 	
-	public long getTimeout();
-	public void setTimeout(long l);
+	public String getEndpoint_Host();
+
+	public String getEndpoint_Port();
+
+	public String getEndpoint_QueryPath();
+
+	public String getEndpoint_UpdatePath();
+
+	public String getEndpoint_UpdateMethod();
+
+	public String getEndpoint_QueryMethod();
 	
-	public long getKeepalive();
-	public void setKeepalive(long l);
+	public void resetAll();
 }

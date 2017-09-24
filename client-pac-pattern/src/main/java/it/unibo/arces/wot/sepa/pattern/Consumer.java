@@ -54,6 +54,20 @@ public abstract class Consumer extends Client implements IConsumer,INotification
 	
 	private static final Logger logger = LogManager.getLogger("Consumer");
 
+	// Results notification methods (to be overridden if needed)
+	public void onResults(ARBindingsResults results){}
+	public void onAddedResults(BindingsResults results){}
+	public void onRemovedResults(BindingsResults results){}
+	
+	// Ping notification
+	public void onKeepAlive(){}
+	
+	// Broken subscription notification
+	public void onBrokenSubscription(){}
+	
+	// Error notification
+	public void onSubscriptionError(ErrorResponse errorResponse){}
+	
 	public Consumer(ApplicationProfile appProfile, String subscribeID)
 			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {

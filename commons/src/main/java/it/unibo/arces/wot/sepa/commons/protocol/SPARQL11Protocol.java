@@ -22,14 +22,16 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.concurrent.Semaphore;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
+//import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
@@ -43,7 +45,7 @@ import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
 import org.apache.logging.log4j.Logger;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import org.apache.logging.log4j.LogManager;
@@ -64,10 +66,21 @@ public class SPARQL11Protocol  {
 	protected SPARQL11Properties properties;
 
 	//HTTP fields
-	final CloseableHttpClient httpClient = HttpClients.createDefault();
+	//final CloseableHttpClient httpClient = HttpClients.createDefault();
 	final HttpPost updateRequest;
 	final HttpPost queryRequest;
 
+	// Endpoint mutex (mutual exclusion lock)
+	private final Semaphore lock = new Semaphore(1, true);
+	
+	public void lock() throws InterruptedException {
+		lock.acquire();	
+	}
+	
+	public void unlock() {
+		lock.release();
+	}
+	
 	public SPARQL11Protocol(SPARQL11Properties properties) throws IllegalArgumentException, URISyntaxException {
 
 		if (properties == null) {
@@ -129,7 +142,7 @@ public class SPARQL11Protocol  {
 	 * UPDATE 2.2 update operation The response to an update request indicates
 	 * success or failure of the request via HTTP response status code.
 	 */
-	public Response update(UpdateRequest req) {
+	public Response update(UpdateRequest req,int timeout) {
 		StringEntity requestEntity = null;
 
 		CloseableHttpResponse httpResponse = null;
@@ -145,10 +158,16 @@ public class SPARQL11Protocol  {
 				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 			}
 			updateRequest.setEntity(requestEntity);
-
+			RequestConfig requestConfig = RequestConfig.custom()
+			        .setSocketTimeout(timeout)
+			        .setConnectTimeout(timeout)
+			        .build();
+			updateRequest.setConfig(requestConfig);
+			
 			// Execute HTTP request
 			long timing = System.nanoTime();
-			httpResponse = httpClient.execute(updateRequest);
+			//httpResponse = httpClient.execute(updateRequest);
+			httpResponse = HttpClients.createDefault().execute(updateRequest);
 			timing = System.nanoTime() - timing;
 			logger.debug("UPDATE_TIME " + timing / 1000000 + " ms");
 
@@ -173,10 +192,16 @@ public class SPARQL11Protocol  {
 			responseEntity = null;
 		}
 
-		if (responseCode >= 400)
-			return new ErrorResponse(req.getToken(), responseCode, responseBody);
-		else
-			return new UpdateResponse(req.getToken(), responseBody);
+		if (responseCode >= 400) {
+			try{
+				return new ErrorResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());	
+			}
+			catch(JsonParseException e) {
+				return new ErrorResponse(req.getToken(), responseCode,responseBody);
+			}
+		}
+					
+		return new UpdateResponse(req.getToken(), responseBody);
 	}
 
 	/**
@@ -247,7 +272,7 @@ public class SPARQL11Protocol  {
 	 *
 	 * </pre>
 	 */
-	public Response query(QueryRequest req) {
+	public Response query(QueryRequest req,int timeout) {
 		StringEntity requestEntity = null;
 
 		CloseableHttpResponse httpResponse = null;
@@ -263,10 +288,16 @@ public class SPARQL11Protocol  {
 				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 			}
 			queryRequest.setEntity(requestEntity);
-
+			RequestConfig requestConfig = RequestConfig.custom()
+			        .setSocketTimeout(timeout)
+			        .setConnectTimeout(timeout)
+			        .build();
+			queryRequest.setConfig(requestConfig);
+			
 			// Execute HTTP request
-			long timing = System.nanoTime();
-			httpResponse = httpClient.execute(queryRequest);
+			long timing = System.nanoTime();			
+			//httpResponse = httpClient.execute(queryRequest);
+			httpResponse = HttpClients.createDefault().execute(queryRequest);
 			timing = System.nanoTime() - timing;
 			logger.debug("QUERY_TIME " + timing / 1000000 + " ms");
 
@@ -291,12 +322,16 @@ public class SPARQL11Protocol  {
 			responseEntity = null;
 		}
 
-		if (responseCode >= 400)
-			return new ErrorResponse(req.getToken(), responseCode, responseBody);
-		else{
-			JsonObject ret = new JsonParser().parse(responseBody).getAsJsonObject();
-			return new QueryResponse(req.getToken(), ret);
+		if (responseCode >= 400) {
+			try{
+				return new ErrorResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());	
+			}
+			catch(JsonParseException e) {
+				return new ErrorResponse(req.getToken(), responseCode,responseBody);
+			}
 		}
+		
 			
+		return new QueryResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());			
 	}
 }

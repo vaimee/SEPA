@@ -55,4 +55,9 @@ public class UpdateResponse extends Response {
 		json.add("body", new JsonPrimitive(body));
 		json.add("code", new JsonPrimitive(200));
 	}
+
+	public UpdateResponse(UpdateResponse ret) {
+		super(ret.getToken());
+		json = ret.json;
+	}
 }

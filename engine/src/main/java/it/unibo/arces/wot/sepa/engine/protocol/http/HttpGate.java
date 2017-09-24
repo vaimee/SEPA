@@ -1,6 +1,7 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http;
 
 import java.io.IOException;
+import java.net.BindException;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +11,7 @@ import org.apache.http.ExceptionLogger;
 import org.apache.http.impl.nio.bootstrap.HttpServer;
 import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
-
+import org.apache.http.nio.reactor.IOReactorException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,7 +21,6 @@ import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.QueryHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.UpdateHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.EchoHandler;
-
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class HttpGate extends Thread {
@@ -61,7 +61,12 @@ public class HttpGate extends Thread {
 				.registerHandler(properties.getUpdatePath(), new UpdateHandler(scheduler, properties.getTimeout()))
 				.registerHandler("/echo", new EchoHandler()).create();
 
-		server.start();	
+		try{
+			server.start();	
+		}
+		catch(BindException | IOReactorException e) {
+			throw new IOException(e.getMessage());
+		}
 	}
 	
 	public void run() {
@@ -72,8 +77,8 @@ public class HttpGate extends Thread {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		EngineBeans.setQueryURL("http://" + address + properties.getQueryPath());
-		EngineBeans.setUpdateURL("http://" + address + properties.getUpdatePath());
+		EngineBeans.setQueryURL("http://" + address + ":" + properties.getHttpPort()+properties.getQueryPath());
+		EngineBeans.setUpdateURL("http://" + address + ":" + properties.getHttpPort()+properties.getUpdatePath());
 
 		System.out.println("SPARQL 1.1 Query     | " + EngineBeans.getQueryURL());
 		System.out.println("SPARQL 1.1 Update    | " + EngineBeans.getUpdateURL());

@@ -76,4 +76,20 @@ public abstract class Request {
 	public String getSPARQL() {
 		return sparql;
 	}
+	
+	public boolean isQueryRequest() {
+		return this.getClass().equals(QueryRequest.class);
+	}
+	
+	public boolean isUpdateRequest() {
+		return this.getClass().equals(UpdateRequest.class);
+	}
+	
+	public boolean isSubscribeRequest() {
+		return this.getClass().equals(SubscribeRequest.class);
+	}
+	
+	public boolean isUnsubscribeRequest() {
+		return this.getClass().equals(UnsubscribeRequest.class);
+	}
 }

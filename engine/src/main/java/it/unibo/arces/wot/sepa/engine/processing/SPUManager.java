@@ -18,184 +18,342 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.net.URISyntaxException;
 import java.time.Instant;
+import java.time.temporal.ChronoField;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
+
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
-import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
-public class SPUManager implements Observer, SPUManagerMBean {
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.core.EventHandler;
+
+public class SPUManager extends Observable implements Observer, SPUManagerMBean {
 	private static final Logger logger = LogManager.getLogger("SPUManager");
 
-	private SPARQL11Protocol endpoint;
+	private SPARQL11Properties endpointProperties;
 
-	// SPUs and SPUIDs hash mapx
+	// SPUs and SPUIDs hash map
 	private HashMap<String, SPU> spus = null;
 
-	// Sequential update processing
-	private static int subscriptionsChecked = 0;
+	// SPU synchronization
+	private HashSet<String> processingSpus = new HashSet<String>();
 
-	private Keepalive ping = null;
+	// Request queue
+	private ConcurrentLinkedQueue<SPU> subscribeQueue = new ConcurrentLinkedQueue<SPU>();
+	private ConcurrentLinkedQueue<SPU> unsubscribeQueue = new ConcurrentLinkedQueue<SPU>();
+	private ConcurrentLinkedQueue<UpdateResponse> updateQueue = new ConcurrentLinkedQueue<UpdateResponse>();
 
-	public SPUManager(SPARQL11Protocol endpoint) {
-		this.endpoint = endpoint;
+	// Response queue
+	private ConcurrentLinkedQueue<Response> responseQueue = new ConcurrentLinkedQueue<Response>();
+
+	public SPUManager(SPARQL11Properties endpointProperties, EngineProperties engineProperties) {
+		this.endpointProperties = endpointProperties;
+
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
 		spus = new HashMap<String, SPU>();
 
-		ping = new Keepalive();
-		ping.setName("SEPA Keepalive");
-		ping.start();
+		SPUManagerBeans.setKeepalive(engineProperties.getKeepAlivePeriod());
+
+		SPUActivationThread thread1 = new SPUActivationThread();
+		thread1.setName("SEPA SPU Activator");
+		thread1.start();
+
+		SPUDeactivationThread thread2 = new SPUDeactivationThread();
+		thread2.setName("SEPA SPU Deactivator");
+		thread2.start();
+
+		KeepaliveThread keepalive = new KeepaliveThread();
+		keepalive.setName("SEPA SPU Keepalive");
+		keepalive.start();
+
+		UpdateProcessingThread updateProcessingThread = new UpdateProcessingThread();
+		updateProcessingThread.setName("SEPA SPUManager");
+		updateProcessingThread.start();
+		
+		SPUResponseThread spuResponseThread = new SPUResponseThread();
+		spuResponseThread.setName("SEPA SPUManager responder");
+		spuResponseThread.start();
 	}
 
-	class Keepalive extends Thread {
-		HashSet<SPU> toBeTerminated = new HashSet<SPU>();
-
+	class SPUResponseThread extends Thread {
 		@Override
 		public void run() {
+			while (true) {
+				Response ret;
+				while((ret = responseQueue.poll())!=null) {
+					setChanged();
+					notifyObservers(ret);	
+				}
+				synchronized(responseQueue) {
+					try {
+						responseQueue.wait();
+					} catch (InterruptedException e) {
+						return;
+					}
+				}
+			}
+		}
+	}
 
+	class KeepaliveThread extends Thread {
+		@Override
+		public void run() {
 			while (true) {
 				try {
-					Thread.sleep(EngineBeans.getKeepalive());
+					Thread.sleep(SPUManagerBeans.getKeepalive());
 				} catch (InterruptedException e) {
 					return;
 				}
 
-				// Send ping to check broken sockets
 				synchronized (spus) {
-					toBeTerminated.clear();
 					for (SPU spu : spus.values()) {
-						if (spu.sendPing())
-							continue;
-						toBeTerminated.add(spu);
-					}
-
-					// Terminate SPUs
-					for (SPU spu : toBeTerminated) {
-						spus.remove(spu.getUUID());
-						spu.terminate();
+						try {
+							spu.ping();
+						} catch (Exception e) {
+							// UNSUBSCRIBE SPU
+							logger.error("Ping failed");
+							
+							synchronized (unsubscribeQueue) {
+								unsubscribeQueue.offer(spu);
+								unsubscribeQueue.notify();
+							}
+						}
 					}
 				}
-				SPUManagerBeans.setActiveSPUs(spus.size());
 			}
 		}
 	}
 
-	public synchronized Response processSubscribe(ScheduledRequest req) {
-		logger.debug("Process SUBSCRIBE #" + req.getToken());
+	public void subscribe(SubscribeRequest req, EventHandler handler) {
+		logger.debug(req.toString());
 
-		if (!req.getRequest().getClass().equals(SubscribeRequest.class))
-			return new ErrorResponse(req.getToken(), 400, "Bad request: " + req.getRequest().toString());
-
-		// TODO: choose different kinds of SPU based on subscription request
-		SPU spu = new SPUNaive(req, endpoint);
-		if (spu.init()) {
-
+		// TODO: choose different kinds of SPU based on subscribe request
+		SPU spu = null;
+		try {
+			spu = new SPUNaive(req, handler, endpointProperties);
 			spu.addObserver(this);
-
-			// Add new SPU to the list of active SPUs
-			synchronized (spus) {
-				spus.put(spu.getUUID(), spu);
-				SPUManagerBeans.setActiveSPUs(spus.size());
+		} catch (IllegalArgumentException | URISyntaxException e) {
+			logger.debug("SPU creation failed: " + e.getMessage());
+			
+			
+			synchronized(responseQueue) {
+				responseQueue.offer(new ErrorResponse(req.getToken(), 500, "SPU creation failed: " + req.toString()));
+				responseQueue.notify();
 			}
 
-			// Start the SPU thread
-			Thread th = new Thread(spu);
-			th.setName("SPU_" + spu.getUUID());
-			th.start();
-
-			return new SubscribeResponse(req.getToken(), spu.getUUID(),
-					((SubscribeRequest) req.getRequest()).getAlias(),spu.getFirstResults());
-		}
-		else return new ErrorResponse(req.getToken(), 400, "Bad request: " + req.getRequest().toString());
-	}
-
-	public synchronized Response processUnsubscribe(ScheduledRequest req) {
-		logger.debug("Process UNSUBSCRIBE #" + req.getToken());
-
-		if (!req.getRequest().getClass().equals(UnsubscribeRequest.class))
-			return new ErrorResponse(req.getToken(), 400, "Bad unsubscribe request: " + req.getRequest().toString());
-
-		String spuid = ((UnsubscribeRequest) req.getRequest()).getSubscribeUUID();
-
-		synchronized (spus) {
-			if (spus.containsKey(spuid)) {
-				spus.get(spuid).terminate();
-				spus.remove(spuid);
-				SPUManagerBeans.setActiveSPUs(spus.size());
-
-			} else
-				return new ErrorResponse(req.getToken(), 404, "Not found: " + spuid);
+			return;
 		}
 
-		return new UnsubscribeResponse(req.getToken(), spuid);
-	}
-
-	public synchronized void processUpdate(UpdateResponse res) {
-		logger.debug("*** PROCESSING UPDATE STARTED ***");
-
-		// Wait all SPUs completing processing
-		Instant start = Instant.now();
-		waitAllSubscriptionChecks(res);
-		Instant stop = Instant.now();
-
-		SPUManagerBeans.timings(start, stop);
-
-		logger.debug("*** PROCESSING UPDATE FINISHED ***");
-	}
-
-	private synchronized void waitAllSubscriptionChecks(UpdateResponse res) {
-		subscriptionsChecked = 0;
-
-		// Wake-up all SPUs
-		logger.debug("Activate SPUs (Total: " + spus.size() + ")");
-		synchronized (spus) {
-			for (SPU spu : spus.values())
-				spu.subscriptionCheck(res);
-
+		logger.debug("SPU init");
+		if (!spu.init()) {
+			logger.debug("SPU initialization failed");
+						
+			synchronized(responseQueue) {
+				responseQueue.offer(new ErrorResponse(req.getToken(), 500, "SPU initialization failed: " + req.toString()));
+				responseQueue.notify();
+			}
+			
+			return;
+		}
+		
+		synchronized(responseQueue) {
+			responseQueue.offer(new SPUManagerNotify(
+					new SubscribeResponse(req.getToken(), spu.getUUID(), req.getAlias(), spu.getFirstResults())));
+			responseQueue.notify();
 		}
 
-		logger.debug("Waiting all SPUs to complete processing...");
-		while (subscriptionsChecked != spus.size()) {
-			try {
-				wait();
-			} catch (InterruptedException e) {
-				logger.debug("SPUs processing ended " + subscriptionsChecked + "/" + spus.size());
+		logger.debug("Add SPU to activation queue");
+	
+		synchronized (subscribeQueue) {
+			subscribeQueue.offer(spu);
+			subscribeQueue.notify();
+		}
+	}
+
+	class SPUActivationThread extends Thread {
+		@Override
+		public void run() {
+			while (true) {
+				SPU spu;
+				while ((spu = subscribeQueue.poll()) != null) {
+					// Start the SPU thread
+					Thread th = new Thread(spu);
+					th.setName("SPU_" + spu.getUUID());
+					th.start();
+
+					synchronized (spus) {
+						spus.put(spu.getUUID(), spu);
+					}
+
+					SPUManagerBeans.setActiveSPUs(spus.size());
+					logger.debug(spu.getUUID() + " ACTIVATED (total: " + spus.size() + ")");
+				}
+				synchronized (subscribeQueue) {
+					try {
+						subscribeQueue.wait();
+					} catch (InterruptedException e) {
+						return;
+					}
+				}
 			}
 		}
-
 	}
 
-	private synchronized void subscriptionProcessingEnded(String spuid) {
-		subscriptionsChecked++;
-		notify();
-		logger.debug("Checked subscription " + spuid + " (" + subscriptionsChecked + "/" + spus.size() + ")");
+	public void unsubscribe(UnsubscribeRequest req) {
+		logger.debug(req);
+
+		String spuid = req.getSubscribeUUID();
+
+		if (!spus.containsKey(spuid)) {		
+			synchronized(responseQueue) {
+				responseQueue.offer(new SPUManagerNotify(new ErrorResponse(req.getToken(), 404, "SPUID not found: " + spuid)));
+				responseQueue.notify();
+			}
+
+			return;
+		}
+		
+		synchronized(responseQueue) {
+			responseQueue.offer(new SPUManagerNotify(new UnsubscribeResponse(req.getToken(), spuid)));
+			responseQueue.notify();
+		}
+		
+		synchronized (unsubscribeQueue) {
+			unsubscribeQueue.offer(spus.get(spuid));
+			unsubscribeQueue.notify();
+		}
+	}
+
+	class SPUDeactivationThread extends Thread {
+		@Override
+		public void run() {
+			while (true) {
+				SPU spu;
+				while ((spu = unsubscribeQueue.poll()) != null) {
+					logger.debug("Terminating: " + spu.getUUID());
+					
+					synchronized (spus) {
+						//Terminate SPU and remove from active SPUs
+						spu.terminate();
+						spus.remove(spu.getUUID());
+					}
+
+					SPUManagerBeans.setActiveSPUs(spus.size());
+					logger.debug("Active SPUs: " + spus.size());
+				}
+				synchronized (unsubscribeQueue) {
+					try {
+						unsubscribeQueue.wait();
+					} catch (InterruptedException e) {
+						return;
+					}
+				}
+			}
+		}
+	}
+
+	public void process(UpdateResponse update) {
+		logger.debug("* PROCESS * " + update);
+		
+		synchronized (updateQueue) {
+			updateQueue.offer(update);
+			updateQueue.notify();
+		}
+	}
+
+	class UpdateProcessingThread extends Thread {
+		@Override
+		public void run() {
+			while (true) {
+				UpdateResponse update;
+				while ((update = updateQueue.poll()) != null) {
+					logger.debug("*** PROCESSING SUBSCRIPTIONS *** <<< " + update);
+					Instant start = Instant.now();
+
+					// Wake-up all SPUs
+					synchronized (spus) {
+						logger.debug("Activate SPUs (Total: " + spus.size() + ")");
+						processingSpus.clear();
+						for (SPU spu : spus.values()) {
+							processingSpus.add(spu.getUUID());
+							spu.process(update);
+						}
+					}
+
+					// Wait all SPUs completing processing
+					synchronized (processingSpus) {
+						logger.debug("Wait SPUs to complete processing...");
+						while (!processingSpus.isEmpty()) {
+							try {
+								processingSpus.wait();
+							} catch (InterruptedException e) {
+								return;
+							}
+						}
+					}
+
+					Instant stop = Instant.now();
+					SPUManagerBeans.timings(start, stop);
+
+					int ms = stop.get(ChronoField.MILLI_OF_SECOND) - start.get(ChronoField.MILLI_OF_SECOND);
+					if (ms < 1000)
+						logger.debug("SPUs processing time: " + ms + " ms");
+					else
+						logger.warn("SPUs processing time: " + ms + " ms");
+					
+					synchronized(responseQueue) {
+						responseQueue.offer(new SPUManagerNotify());
+						responseQueue.notify();
+					}
+
+				}
+				synchronized (updateQueue) {
+					try {
+						updateQueue.wait();
+					} catch (InterruptedException e) {
+						return;
+					}
+				}
+			}
+		}
 	}
 
 	@Override
 	public void update(Observable o, Object arg) {
-		Notification ret = (Notification) arg;
+		SPU spu = (SPU) o;
 
-		// SPU processing ended
-		logger.debug("SPU " + ret.getSpuid() + " processing ended");
-		subscriptionProcessingEnded(ret.getSpuid());
+		synchronized (processingSpus) {
+			processingSpus.remove(spu.getUUID());
+			logger.debug("SPUs left: " + processingSpus.size());
+			processingSpus.notify();
+		}
+
+		if (!spu.isRunning()) {
+			logger.debug("*** SPU terminated: " + spu.getUUID() + " ***");
+			synchronized (spus) {
+				spus.remove(spu.getUUID());
+			}
+		}
 	}
 
 	@Override
@@ -219,12 +377,32 @@ public class SPUManager implements Observer, SPUManagerMBean {
 	}
 
 	@Override
-	public String getSPUs_statistics() {
-		return SPUManagerBeans.getSPUs_statistics();
+	public void reset() {
+		SPUManagerBeans.reset();
 	}
 
 	@Override
-	public void reset() {
-		SPUManagerBeans.reset();
+	public void setKeepalive(int t) {
+		SPUManagerBeans.setKeepalive(t);
+	}
+
+	@Override
+	public int getKeepalive() {
+		return SPUManagerBeans.getKeepalive();
+	}
+
+	@Override
+	public float getSPUs_time_min() {
+		return SPUManagerBeans.getSPUs_time_min();
+	}
+
+	@Override
+	public float getSPUs_time_max() {
+		return SPUManagerBeans.getSPUs_time_max();
+	}
+
+	@Override
+	public float getSPUs_time_average() {
+		return SPUManagerBeans.getSPUs_time_averaae();
 	}
 }

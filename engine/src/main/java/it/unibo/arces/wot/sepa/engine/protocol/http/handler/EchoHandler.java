@@ -18,7 +18,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.engine.protocol.http.Utilities;
+import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 
 
 public class EchoHandler implements HttpAsyncRequestHandler<HttpRequest> {
@@ -29,7 +29,7 @@ public class EchoHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		
 		response.setStatusCode(HttpStatus.SC_OK);
 		NStringEntity entity = new NStringEntity(
-				Utilities.buildEchoResponse(request).toString(),
+				HttpUtilities.buildEchoResponse(request).toString(),
                 ContentType.create("application/json", "UTF-8"));
          response.setEntity(entity);
 	}

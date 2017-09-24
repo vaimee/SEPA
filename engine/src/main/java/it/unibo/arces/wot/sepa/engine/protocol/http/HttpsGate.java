@@ -21,7 +21,7 @@ import it.unibo.arces.wot.sepa.engine.protocol.http.handler.EchoHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.RegisterHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.SecureQueryHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.SecureUpdateHandler;
-import it.unibo.arces.wot.sepa.engine.protocol.http.handler.TokenRequestHandler;
+import it.unibo.arces.wot.sepa.engine.protocol.http.handler.JWTRequestHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
@@ -54,7 +54,7 @@ public class HttpsGate extends HttpGate {
 							new SecureQueryHandler(scheduler, oauth, properties.getTimeout()))
 					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),
 							new SecureUpdateHandler(scheduler, oauth, properties.getTimeout()))
-					.registerHandler(properties.getTokenRequestPath(), new TokenRequestHandler(oauth))
+					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler(oauth))
 					.registerHandler("/echo", new EchoHandler()).create();
 		} catch (KeyManagementException | NoSuchAlgorithmException | IllegalArgumentException e) {
 			logger.error(e.getMessage());
@@ -72,13 +72,13 @@ public class HttpsGate extends HttpGate {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		EngineBeans.setSecureQueryURL("https://" + address + properties.getSecurePath()
+		EngineBeans.setSecureQueryURL("https://" + address + ":" + properties.getHttpsPort()+properties.getSecurePath()
 				+ properties.getQueryPath());
-		EngineBeans.setSecureUpdateURL("https://" + address + properties.getSecurePath()
+		EngineBeans.setSecureUpdateURL("https://" + address + ":" + properties.getHttpsPort()+properties.getSecurePath()
 				+ properties.getUpdatePath());
-		EngineBeans.setRegistrationURL("https://" + address + properties.getRegisterPath());
+		EngineBeans.setRegistrationURL("https://" + address + ":" + properties.getHttpsPort()+properties.getRegisterPath());
 		EngineBeans
-				.setTokenRequestURL("https://" + address + properties.getTokenRequestPath());
+				.setTokenRequestURL("https://" + address + ":" + properties.getHttpsPort()+ properties.getTokenRequestPath());
 
 		System.out.println("SPARQL 1.1 SE Query  | " + EngineBeans.getSecureQueryURL());
 		System.out.println("SPARQL 1.1 SE Update | " + EngineBeans.getSecureUpdateURL());

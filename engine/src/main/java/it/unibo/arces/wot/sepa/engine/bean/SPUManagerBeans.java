@@ -13,6 +13,8 @@ public class SPUManagerBeans {
 	private static long activeSPUs = 0;
 	private static long maxActiveSPUs = 0;
 
+	private static int keepalive = 5000;
+
 	public static long getRequests() {
 		return requests;
 	}
@@ -65,5 +67,25 @@ public class SPUManagerBeans {
 		averageTime = -1;
 		maxTime = -1;
 		time = -1;
+	}
+
+	public static void setKeepalive(int keepAlivePeriod) {
+		keepalive  = keepAlivePeriod;	
+	}
+	
+	public static int getKeepalive(){
+		return keepalive;
+	}
+
+	public static float getSPUs_time_min() {
+		return minTime;
+	}
+
+	public static float getSPUs_time_max() {
+		return maxTime;
+	}
+
+	public static float getSPUs_time_averaae() {
+		return averageTime;
 	}
 }

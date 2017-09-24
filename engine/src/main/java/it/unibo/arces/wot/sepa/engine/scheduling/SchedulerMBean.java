@@ -13,13 +13,7 @@ public interface SchedulerMBean {
 
 	public long getRequests_rejected();
 
-	public float getTimings_Update();
-
-	public float getTimings_Query();
-
-	public float getTimings_Subscribe();
-
-	public float getTimings_Unsubscribe();
-
 	public void reset();
+	
+	public int getQueueSize();
 }

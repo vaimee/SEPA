@@ -46,10 +46,14 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 public abstract class Client implements IClient {	
 	protected static HashMap<String,String> URI2PrefixMap = new HashMap<String,String>();
 	protected HashMap<String,String> prefix2URIMap = new HashMap<String,String>();
-	
+	private ApplicationProfile appProfile;
 	protected SPARQL11SEProtocol protocolClient = null;
 	
 	private static final Logger logger = LogManager.getLogger("Client");
+	
+	public ApplicationProfile getApplicationProfile() {
+		return appProfile;
+	}
 	
 	private void addNamespaces(ApplicationProfile appProfile) {
 		Set<String> prefixes = appProfile.getPrefixes();
@@ -76,6 +80,7 @@ public abstract class Client implements IClient {
 			logger.fatal("Application profile is null. Client cannot be initialized");
 			throw new IllegalArgumentException("Application profile is null");
 		}
+		this.appProfile = appProfile;
 		
 		logger.debug("SEPA parameters: "+appProfile.printParameters());
 		
@@ -89,6 +94,8 @@ public abstract class Client implements IClient {
 			logger.fatal("Application profile is null. Client cannot be initialized");
 			throw new IllegalArgumentException("Application profile is null");
 		}
+		this.appProfile = appProfile;
+		
 		if (handler == null) {
 			logger.fatal("Notification handler is null. Client cannot be initialized");
 			throw new IllegalArgumentException("Notificaton handler is null");
