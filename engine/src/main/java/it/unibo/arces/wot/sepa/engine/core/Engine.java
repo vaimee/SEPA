@@ -59,18 +59,18 @@ import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
  */
 
 public class Engine extends Thread implements EngineMBean {
-
+	private static final Engine engine = new Engine();
+	
 	// Primitives scheduler/dispatcher
-	private Scheduler scheduler = null;
-	private Thread schedulerThread = null;
+	private static Scheduler scheduler = null;
 
 	// SPARQL 1.1 Protocol handler
-	private HttpGate httpGate = null;
+	private static HttpGate httpGate = null;
 
 	// SPARQL 1.1 SE Protocol handler
-	private WebsocketServer wsServer;
-	private SecureWebsocketServer wssServer;
-	private HttpsGate httpsGate = null;
+	private static WebsocketServer wsServer;
+	private static SecureWebsocketServer wssServer;
+	private static HttpsGate httpsGate = null;
 	private static final int wsShutdownTimeout = 5000;
 
 	// Outh 2.0 Authorization Server
@@ -144,7 +144,7 @@ public class Engine extends Thread implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 		System.out
-				.println("# SEPA Engine Ver 0.8.1  Copyright (C) 2016-2017                                         #");
+				.println("# SEPA Engine Ver 0.8.2  Copyright (C) 2016-2017                                         #");
 		System.out
 				.println("# Web of Things Research @ ARCES - University of Bologna (Italy)                         #");
 		System.out
@@ -165,9 +165,6 @@ public class Engine extends Thread implements EngineMBean {
 				.println("# WIKI: https: // github.com/arces-wot/SEPA/wiki                                         #");
 		System.out
 				.println("##########################################################################################");
-
-		// Engine creation and initialization
-		Engine engine = new Engine();
 
 		// OAUTH 2.0 Authorization Manager
 		try {
@@ -225,10 +222,10 @@ public class Engine extends Thread implements EngineMBean {
 		httpsGate.init();
 
 		wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
-				properties.getKeepAlivePeriod(), properties.getTimeout());
+				properties.getKeepAlivePeriod());
 		wssServer = new SecureWebsocketServer(properties.getWssPort(),
 				properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth,
-				properties.getKeepAlivePeriod(), properties.getTimeout());
+				properties.getKeepAlivePeriod());
 
 		return true;
 	}
@@ -288,16 +285,13 @@ public class Engine extends Thread implements EngineMBean {
 		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
-		System.out.println("*                      SEPA Engine Ver 0.8.1 is up and running                          *");
+		System.out.println("*                      SEPA Engine Ver 0.8.2 is up and running                          *");
 		System.out.println("*                                Let Things Talk!                                       *");
 		System.out.println("*****************************************************************************************");
 	}
 
 	public void shutdown() {
 		System.out.println("Stopping...");
-
-		System.out.println("Stopping scheduler...");
-		schedulerThread.interrupt();
 
 		System.out.println("Stopping HTTP gate...");
 		httpGate.interrupt();

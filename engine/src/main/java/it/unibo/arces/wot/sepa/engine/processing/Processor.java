@@ -102,14 +102,14 @@ public class Processor extends Observable implements ProcessorMBean, Observer {
 		};
 		th.setName("SEPA Processor responder");
 		th.start();
-		
+
 		Thread updateProcessing = new Thread() {
 			public void run() {
 				while (true) {
 					UpdateRequest request;
 					while ((request = updateRequestQueue.poll()) != null) {
 						// Process update request
-						Response ret = updateProcessor.process(request, 0);
+						Response ret = updateProcessor.process(request, ProcessorBeans.getUpdateTimeout());
 
 						if (ret.isUpdateResponse()) {
 							spuManager.process((UpdateResponse) ret);
@@ -147,39 +147,41 @@ public class Processor extends Observable implements ProcessorMBean, Observer {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
 		ProcessorBeans.setEndpoint(endpointProperties);
+		ProcessorBeans.setQueryTimeout(properties.getQueryTimeout());
+		ProcessorBeans.setUpdateTimeout(properties.getUpdateTimeout());
 	}
 
 	public void processQuery(QueryRequest request) {
 		logger.debug(request);
-		ProcessorBeans.newRequest(request);
+//		ProcessorBeans.newRequest(request);
 		Thread queryProcessing = new Thread() {
 			public void run() {
-				Response ret = queryProcessor.process(request,0);
+				Response ret = queryProcessor.process(request, ProcessorBeans.getQueryTimeout());
 				synchronized (responseQueue) {
 					responseQueue.offer(ret);
 					responseQueue.notify();
 				}
 			}
 		};
-		queryProcessing.setName("QueryProcessing#"+request.getToken());
+		queryProcessing.setName("QueryProcessing#" + request.getToken());
 		queryProcessing.start();
 	}
 
 	public void processSubscribe(SubscribeRequest request, EventHandler handler) {
 		logger.debug(request);
-		ProcessorBeans.newRequest(request);
+//		ProcessorBeans.newRequest(request);
 		spuManager.subscribe(request, handler);
 	}
 
 	public void processUnsubscribe(UnsubscribeRequest request) {
 		logger.debug(request);
-		ProcessorBeans.newRequest(request);
+//		ProcessorBeans.newRequest(request);
 		spuManager.unsubscribe(request);
 	}
 
 	public void processUpdate(UpdateRequest request) {
 		logger.debug(request);
-		ProcessorBeans.newRequest(request);
+//		ProcessorBeans.newRequest(request);
 
 		synchronized (updateRequestQueue) {
 			updateRequestQueue.offer(request);
@@ -189,29 +191,18 @@ public class Processor extends Observable implements ProcessorMBean, Observer {
 
 	@Override
 	public void update(Observable o, Object arg) {
-		if (arg.getClass().equals(SPUManagerNotify.class)) {
-			// SPU Manager
-			SPUManagerNotify notify = (SPUManagerNotify) arg;
-
-			if (notify.isEndOfProcessing()) {
-				// UPDATE PROCESSING ENDED
-				synchronized (updateProcessor) {
-					updateProcessor.notify();
-				}
-			} else {
-				// SUBSCRIBE/UNSUBSCRIBE response
-				synchronized (responseQueue) {
-					responseQueue.offer(notify.getResponse());
-					responseQueue.notify();
-				}
-			}
-			return;
+		if (arg.getClass().equals(SPUEndOfProcessing.class)) {
+			// UPDATE PROCESSING ENDED
+			synchronized (updateProcessor) {
+				updateProcessor.notify();
+			}	
 		}
-
-		synchronized (responseQueue) {
-			responseQueue.offer((Response) arg);
-			responseQueue.notify();
-		}
+		else {
+			synchronized (responseQueue) {
+				responseQueue.offer((Response) arg);
+				responseQueue.notify();
+			}	
+		}	
 	}
 
 	@Override
@@ -239,10 +230,10 @@ public class Processor extends Observable implements ProcessorMBean, Observer {
 		return ProcessorBeans.getProcessedQueryRequests();
 	}
 
-	@Override
-	public long getProcessedSPURequests() {
-		return ProcessorBeans.getProcessedSPURequests();
-	}
+//	@Override
+//	public long getProcessedSPURequests() {
+//		return ProcessorBeans.getProcessedSPURequests();
+//	}
 
 	@Override
 	public long getProcessedUpdateRequests() {
@@ -277,5 +268,25 @@ public class Processor extends Observable implements ProcessorMBean, Observer {
 	@Override
 	public float getTimings_QueryTime_Max_ms() {
 		return ProcessorBeans.getTimings_QueryTime_Max_ms();
+	}
+
+	@Override
+	public int getUpdateTimeout() {
+		return ProcessorBeans.getUpdateTimeout();
+	}
+
+	@Override
+	public int getQueryTimeout() {
+		return ProcessorBeans.getQueryTimeout(); 
+	}
+
+	@Override
+	public void setUpdateTimeout(int t) {
+		ProcessorBeans.setUpdateTimeout(t);
+	}
+
+	@Override
+	public void setQueryTimeout(int t) {
+		ProcessorBeans.setQueryTimeout(t);
 	}
 }

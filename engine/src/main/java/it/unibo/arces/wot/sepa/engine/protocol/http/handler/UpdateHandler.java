@@ -43,8 +43,8 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 public class UpdateHandler extends SPARQL11Handler {
 	protected static final Logger logger = LogManager.getLogger("UpdateHandler");
 
-	public UpdateHandler(Scheduler scheduler, long timeout) throws IllegalArgumentException {
-		super(scheduler, timeout);
+	public UpdateHandler(Scheduler scheduler) throws IllegalArgumentException {
+		super(scheduler);
 	}
 
 	@Override

@@ -13,8 +13,8 @@ public class SecureUpdateHandler extends UpdateHandler implements SecureUpdateHa
 	private AuthorizationManager am;
 	
 	public SecureUpdateHandler(
-			Scheduler scheduler, AuthorizationManager am, long timeout) throws IllegalArgumentException {
-		super(scheduler, timeout);
+			Scheduler scheduler, AuthorizationManager am) throws IllegalArgumentException {
+		super(scheduler);
 		
 		this.am = am;
 	}

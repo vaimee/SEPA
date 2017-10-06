@@ -696,16 +696,16 @@ public class Dashboard {
 				return false;
 			}
 
-			Properties sapFile = new Properties();
+			//Properties sapFile = new Properties();
 			try {
-				sapFile.load(in);
+				appProperties.load(in);
 			} catch (IOException e) {
 				logger.error(e.getMessage());
 				lblInfo.setText("Error: " + e.getMessage());
 				frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
 				return false;
 			}
-			String path = sapFile.getProperty("appProfile");
+			String path = appProperties.getProperty("appProfile");
 			if (path == null) {
 				lblInfo.setText("Error: path in dashboard.properties is null");
 				frmSepaDashboard.setTitle(versionLabel + " - " + "path in dashboard.properties is null");
@@ -905,7 +905,9 @@ public class Dashboard {
 		JButton btnLoadXmlProfile = new JButton("Load SAP profile");
 		btnLoadXmlProfile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				//String path = appProperties.getProperty("path");
 				final JFileChooser fc = new JFileChooser(appProperties.getProperty("appProfile"));
+				//final JFileChooser fc = new JFileChooser("/Users/luca/Documents/SEPAProject/WOTDemo/tools/");
 				DashboardFileFilter filter = new DashboardFileFilter("JSON SAP Profile (.jsap)", ".jsap");
 				fc.setFileFilter(filter);
 				int returnVal = fc.showOpenDialog(frmSepaDashboard);
@@ -925,6 +927,7 @@ public class Dashboard {
 
 							appProperties = new Properties();
 							appProperties.put("appProfile", fileName);
+							
 							try {
 								appProperties.store(out, "Dashboard properties");
 							} catch (IOException e1) {

@@ -26,33 +26,26 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 
 public class UpdateProcessor {
 	private static final Logger logger = LogManager.getLogger("UpdateProcessor");
 
-	private SPARQL11Properties properties;
+	private SPARQL11Protocol endpoint;
 		
-	public UpdateProcessor(SPARQL11Properties properties) {
-		this.properties = properties;
+	public UpdateProcessor(SPARQL11Properties properties) throws IllegalArgumentException, URISyntaxException {				
+		endpoint = new SPARQL11Protocol(properties);
 	}
 
 	public synchronized Response process(UpdateRequest req, int timeout) {
 		logger.debug("* PROCESSING *");
-
-		SPARQL11Protocol endpoint = null;
-		try {
-			endpoint = new SPARQL11Protocol(properties);
-		} catch (IllegalArgumentException | URISyntaxException e) {
-			return new ErrorResponse(req.getToken(),500,e.getMessage());
-		}
 		
 		// UPDATE the endpoint
 		long start = System.currentTimeMillis();		
 		Response ret = endpoint.update(req, timeout);		
 		long stop = System.currentTimeMillis();
+		
 		ProcessorBeans.updateTimings(start, stop);
 		
 		return ret;
