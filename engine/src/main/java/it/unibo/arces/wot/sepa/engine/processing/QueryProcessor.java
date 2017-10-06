@@ -26,7 +26,6 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
@@ -34,26 +33,20 @@ import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 public class QueryProcessor {
 	private static final Logger logger = LogManager.getLogger("QueryProcessor");
 
-	private SPARQL11Properties properties;
-		
-	public QueryProcessor(SPARQL11Properties properties) {
-		this.properties = properties;
+	private SPARQL11Protocol endpoint;	
+	
+	public QueryProcessor(SPARQL11Properties properties) throws IllegalArgumentException, URISyntaxException {	
+		endpoint = new SPARQL11Protocol(properties);
 	}
 
 	public synchronized Response process(QueryRequest req, int timeout) {
 		logger.debug("* PROCESSING *");
-
-		SPARQL11Protocol endpoint = null;
-		try {
-			endpoint = new SPARQL11Protocol(properties);
-		} catch (IllegalArgumentException | URISyntaxException e) {
-			return new ErrorResponse(req.getToken(),500,e.getMessage());
-		}
 		
 		//QUERY the endpoint
 		long start = System.currentTimeMillis();		
 		Response ret = endpoint.query(req, timeout);	
 		long stop = System.currentTimeMillis();
+		
 		ProcessorBeans.queryTimings(start, stop);
 		
 		return ret;

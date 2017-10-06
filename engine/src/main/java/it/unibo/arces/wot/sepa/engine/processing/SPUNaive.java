@@ -30,7 +30,7 @@ import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-
+import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
 import java.net.URISyntaxException;
@@ -57,7 +57,7 @@ public class SPUNaive extends SPU {
 		logger.debug("Process SPARQL query " + request);
 
 		// Process the SPARQL query
-		ret = queryProcessor.process(request,0);
+		ret = queryProcessor.process(request,ProcessorBeans.getQueryTimeout());
 
 		if (ret.getClass().equals(ErrorResponse.class)) {
 			logger.error("Not initialized");
@@ -77,7 +77,7 @@ public class SPUNaive extends SPU {
 		logger.debug("* PROCESSING *" + request);
 
 		// Query the SPARQL processing service
-		ret = queryProcessor.process(request,0);
+		ret = queryProcessor.process(request,ProcessorBeans.getQueryTimeout());
 
 		if (ret.getClass().equals(ErrorResponse.class)) {
 			logger.error(ret);

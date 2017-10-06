@@ -1,24 +1,27 @@
 {
-	"parameters": {
-		"timeouts": {
-			"scheduling": 0,
-			"queueSize": 300,
-			"keepalive": 5000,
-			"http": 15000
-		},
-		"ports": {
-			"http": 8000,
-			"ws": 9000,
-			"https": 8443,
-			"wss": 9443
-		},
-		"paths": {
-			"update": "/update",
-			"query": "/query",
-			"subscribe": "/subscribe",
-			"register": "/oauth/register",
-			"tokenRequest": "/oauth/token",
-			"securePath" : "/secure"
-		}
+	"parameters" : {
+		"scheduler" : {
+			"queueSize" : 100}
+		 ,
+		"processor" : {
+			"updateTimeout" : 5000 ,
+			"queryTimeout" : 5000}
+		 ,
+		"spu" : {
+			"keepalive" : 5000}
+		 ,
+		"ports" : {
+			"http" : 8000 ,
+			"ws" : 9000 ,
+			"https" : 8443 ,
+			"wss" : 9443}
+		 ,
+		"paths" : {
+			"update" : "/update" ,
+			"query" : "/query" ,
+			"subscribe" : "/subscribe" ,
+			"register" : "/oauth/register" ,
+			"tokenRequest" : "/oauth/token" ,
+			"securePath" : "/secure"}
 	}
 }

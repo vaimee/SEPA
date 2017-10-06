@@ -21,17 +21,19 @@ package it.unibo.arces.wot.sepa.commons.protocol;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
-import java.util.concurrent.Semaphore;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
-//import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
@@ -54,7 +56,7 @@ import org.apache.logging.log4j.LogManager;
  * This class implements the SPARQL 1.1 Protocol
  */
 
-public class SPARQL11Protocol  {
+public class SPARQL11Protocol {
 
 	/** The Constant logger. */
 	private static final Logger logger = LogManager.getLogger("SPARQL11Protocol");
@@ -65,60 +67,33 @@ public class SPARQL11Protocol  {
 	/** The properties. */
 	protected SPARQL11Properties properties;
 
-	//HTTP fields
-	//final CloseableHttpClient httpClient = HttpClients.createDefault();
-	final HttpPost updateRequest;
-	final HttpPost queryRequest;
-
-	// Endpoint mutex (mutual exclusion lock)
-	private final Semaphore lock = new Semaphore(1, true);
-	
-	public void lock() throws InterruptedException {
-		lock.acquire();	
-	}
-	
-	public void unlock() {
-		lock.release();
-	}
+	// HTTP fields
+	final CloseableHttpClient httpClient = HttpClients.createDefault();
+	final HttpPost updatePostRequest;
+	final HttpPost queryPostRequest;
+	HttpUriRequest queryRequest;
 	
 	public SPARQL11Protocol(SPARQL11Properties properties) throws IllegalArgumentException, URISyntaxException {
-
 		if (properties == null) {
 			logger.fatal("Properties are null");
 			throw new IllegalArgumentException("Properties are null");
 		}
-		
 		this.properties = properties;
 
-		URI updateURI = null;
-
-		updateURI = new URI("http", null, properties.getHost(), properties.getHttpPort(), properties.getUpdatePath(),
-				null, null);
-
 		// Create update POST request
-		updateRequest = new HttpPost(updateURI);
-		updateRequest.setHeader("Accept", "application/json");
-		if (properties.getUpdateMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
-			updateRequest.setHeader("Content-Type", "application/x-www-form-urlencoded");
-		} else if (properties.getUpdateMethod().equals(HTTPMethod.POST)) {
-			updateRequest.setHeader("Content-Type", "application/sparql-update");
-		} else
-			throw new IllegalArgumentException("SPARQL 1.1 Update allowed methods: POST and URL_ENCODED_POST");
+		updatePostRequest = new HttpPost(new URI("http", null, properties.getHost(), properties.getHttpPort(),
+				properties.getUpdatePath(), null, null));
+		updatePostRequest.setHeader("Accept", properties.getUpdateAcceptHeader());
+		updatePostRequest.setHeader("Content-Type", properties.getUpdateContentTypeHeader());
 
-		URI queryURI = null;
-
-		queryURI = new URI("http", null, properties.getHost(), properties.getHttpPort(), properties.getQueryPath(),
-				null, null);
-		
 		// Create query POST request
-		queryRequest = new HttpPost(queryURI);
-		queryRequest.setHeader("Accept", "application/json");
-		if (properties.getQueryMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
-			queryRequest.setHeader("Content-Type", "application/x-www-form-urlencoded");
-		} else if (properties.getQueryMethod().equals(HTTPMethod.POST)) {
-			queryRequest.setHeader("Content-Type", "application/sparql-query");
+		if (!properties.getQueryMethod().equals(HTTPMethod.GET)) {
+			queryPostRequest = new HttpPost(new URI("http", null, properties.getHost(), properties.getHttpPort(),
+					properties.getQueryPath(), null, null));
+			queryPostRequest.setHeader("Content-Type", properties.getQueryContentTypeHeader());
+			queryPostRequest.setHeader("Accept", properties.getQueryAcceptHeader());
 		} else
-			throw new IllegalArgumentException("SPARQL 1.1 Query allowed methods: POST and URL_ENCODED_POST");
+			queryPostRequest = null;
 	}
 
 	/**
@@ -142,7 +117,7 @@ public class SPARQL11Protocol  {
 	 * UPDATE 2.2 update operation The response to an update request indicates
 	 * success or failure of the request via HTTP response status code.
 	 */
-	public Response update(UpdateRequest req,int timeout) {
+	public Response update(UpdateRequest req, int timeout) {
 		StringEntity requestEntity = null;
 
 		CloseableHttpResponse httpResponse = null;
@@ -157,17 +132,16 @@ public class SPARQL11Protocol  {
 			} else if (properties.getUpdateMethod().equals(HTTPMethod.POST)) {
 				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 			}
-			updateRequest.setEntity(requestEntity);
-			RequestConfig requestConfig = RequestConfig.custom()
-			        .setSocketTimeout(timeout)
-			        .setConnectTimeout(timeout)
-			        .build();
-			updateRequest.setConfig(requestConfig);
-			
+			updatePostRequest.setEntity(requestEntity);
+			RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout)
+					.build();
+			updatePostRequest.setConfig(requestConfig);
+
 			// Execute HTTP request
 			long timing = System.nanoTime();
-			//httpResponse = httpClient.execute(updateRequest);
-			httpResponse = HttpClients.createDefault().execute(updateRequest);
+			httpResponse = httpClient.execute(updatePostRequest);
+			// httpResponse =
+			// HttpClients.createDefault().execute(updateRequest);
 			timing = System.nanoTime() - timing;
 			logger.debug("UPDATE_TIME " + timing / 1000000 + " ms");
 
@@ -183,7 +157,8 @@ public class SPARQL11Protocol  {
 			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		} finally {
 			try {
-				if(httpResponse != null) httpResponse.close();
+				if (httpResponse != null)
+					httpResponse.close();
 			} catch (IOException e) {
 				return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
@@ -193,14 +168,13 @@ public class SPARQL11Protocol  {
 		}
 
 		if (responseCode >= 400) {
-			try{
-				return new ErrorResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());	
-			}
-			catch(JsonParseException e) {
-				return new ErrorResponse(req.getToken(), responseCode,responseBody);
+			try {
+				return new ErrorResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());
+			} catch (JsonParseException e) {
+				return new ErrorResponse(req.getToken(), responseCode, responseBody);
 			}
 		}
-					
+
 		return new UpdateResponse(req.getToken(), responseBody);
 	}
 
@@ -272,7 +246,7 @@ public class SPARQL11Protocol  {
 	 *
 	 * </pre>
 	 */
-	public Response query(QueryRequest req,int timeout) {
+	public Response query(QueryRequest req, int timeout) {
 		StringEntity requestEntity = null;
 
 		CloseableHttpResponse httpResponse = null;
@@ -280,24 +254,39 @@ public class SPARQL11Protocol  {
 		int responseCode = 0;
 		String responseBody = null;
 
+		long timing = 0;
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout)
+				.setConnectTimeout(timeout).build();
+		
 		try {
-			// Set request entity
-			if (properties.getQueryMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
-				requestEntity = new StringEntity("query=" + req.getSPARQL(), Consts.UTF_8);
-			} else if (properties.getQueryMethod().equals(HTTPMethod.POST)) {
-				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
+			if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
+				String query = URLEncoder.encode("query=" + req.getSPARQL(), "UTF-8");
+				//requestEntity = new StringEntity("query=" + req.getSPARQL(), Consts.UTF_8);
+				HttpGet queryGetRequest;
+				try {
+					queryGetRequest = new HttpGet(new URI("http", null, properties.getHost(), properties.getHttpPort(),
+							properties.getQueryPath(), query, null));
+				} catch (URISyntaxException e) {
+					return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+				}
+				queryGetRequest.setConfig(requestConfig);
+				queryRequest = queryGetRequest;
+				
+			} else {
+				// Set request entity
+				if (properties.getQueryMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
+					requestEntity = new StringEntity("query=" + req.getSPARQL(), Consts.UTF_8);
+				} else if (properties.getQueryMethod().equals(HTTPMethod.POST)) {
+					requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
+				}
+				queryPostRequest.setEntity(requestEntity);			
+				queryPostRequest.setConfig(requestConfig);
+				queryRequest = queryPostRequest;
 			}
-			queryRequest.setEntity(requestEntity);
-			RequestConfig requestConfig = RequestConfig.custom()
-			        .setSocketTimeout(timeout)
-			        .setConnectTimeout(timeout)
-			        .build();
-			queryRequest.setConfig(requestConfig);
-			
+
 			// Execute HTTP request
-			long timing = System.nanoTime();			
-			//httpResponse = httpClient.execute(queryRequest);
-			httpResponse = HttpClients.createDefault().execute(queryRequest);
+			timing = System.nanoTime();
+			httpResponse = httpClient.execute(queryRequest);
 			timing = System.nanoTime() - timing;
 			logger.debug("QUERY_TIME " + timing / 1000000 + " ms");
 
@@ -313,7 +302,8 @@ public class SPARQL11Protocol  {
 			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		} finally {
 			try {
-				if (httpResponse != null) httpResponse.close();
+				if (httpResponse != null)
+					httpResponse.close();
 			} catch (IOException e) {
 				return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
@@ -323,15 +313,13 @@ public class SPARQL11Protocol  {
 		}
 
 		if (responseCode >= 400) {
-			try{
-				return new ErrorResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());	
-			}
-			catch(JsonParseException e) {
-				return new ErrorResponse(req.getToken(), responseCode,responseBody);
+			try {
+				return new ErrorResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());
+			} catch (JsonParseException e) {
+				return new ErrorResponse(req.getToken(), responseCode, responseBody);
 			}
 		}
-		
-			
-		return new QueryResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());			
+
+		return new QueryResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());
 	}
 }

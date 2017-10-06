@@ -15,6 +15,10 @@ public class SPUManagerBeans {
 
 	private static int keepalive = 5000;
 
+	private static long subscribeRequests;
+
+	private static long unsubscribeRequests;
+
 	public static long getRequests() {
 		return requests;
 	}
@@ -31,17 +35,24 @@ public class SPUManagerBeans {
 		return time;
 	}
 	
-	public static String getSPUs_statistics(){
-		return String.format("[%.0f %.0f %.0f]", minTime,averageTime,maxTime);
-	}
+//	public static String getSPUs_statistics(){
+//		return String.format("[%.0f %.0f %.0f]", minTime,averageTime,maxTime);
+//	}
 	
 	public static  void setActiveSPUs(long n) {
 		activeSPUs = n;
 		if (activeSPUs > maxActiveSPUs) maxActiveSPUs = activeSPUs;
 	}
 	
+	public static void subscribeRequest() {
+		subscribeRequests++;
+	}
+	
+	public static void unsubscribeRequest() {
+		unsubscribeRequests++;
+	}
+	
 	public static void timings(Instant start, Instant stop) {
-		//totalRequests++;
 		requests++;
 		time = stop.toEpochMilli() - start.toEpochMilli();
 
@@ -67,6 +78,9 @@ public class SPUManagerBeans {
 		averageTime = -1;
 		maxTime = -1;
 		time = -1;
+		
+		subscribeRequests = 0;
+		unsubscribeRequests = 0;
 	}
 
 	public static void setKeepalive(int keepAlivePeriod) {
@@ -87,5 +101,13 @@ public class SPUManagerBeans {
 
 	public static float getSPUs_time_averaae() {
 		return averageTime;
+	}
+
+	public static long getSubscribeRequests() {
+		return subscribeRequests;
+	}
+
+	public static long getUnsubscribeRequests() {
+		return unsubscribeRequests;
 	}
 }

@@ -12,8 +12,8 @@ public class SecureQueryHandler extends QueryHandler implements SecureQueryHandl
 	
 	private AuthorizationManager am;
 	
-	public SecureQueryHandler(Scheduler scheduler, AuthorizationManager am,long timeout) throws IllegalArgumentException {
-		super(scheduler, timeout);
+	public SecureQueryHandler(Scheduler scheduler, AuthorizationManager am) throws IllegalArgumentException {
+		super(scheduler);
 		
 		this.am = am;
 	}
