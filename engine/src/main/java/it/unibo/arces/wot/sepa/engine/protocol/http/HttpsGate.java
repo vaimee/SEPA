@@ -42,7 +42,7 @@ public class HttpsGate extends HttpGate {
 	public void init() throws IOException {
 		setName(serverInfo);
 
-		IOReactorConfig config = IOReactorConfig.custom().setSoTimeout(properties.getTimeout()).setTcpNoDelay(true)
+		IOReactorConfig config = IOReactorConfig.custom().setTcpNoDelay(true)
 				.build();
 
 		try {
@@ -51,9 +51,9 @@ public class HttpsGate extends HttpGate {
 					.setExceptionLogger(ExceptionLogger.STD_ERR)
 					.registerHandler(properties.getRegisterPath(), new RegisterHandler(oauth))
 					.registerHandler(properties.getSecurePath() + properties.getQueryPath(),
-							new SecureQueryHandler(scheduler, oauth, properties.getTimeout()))
+							new SecureQueryHandler(scheduler, oauth))
 					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),
-							new SecureUpdateHandler(scheduler, oauth, properties.getTimeout()))
+							new SecureUpdateHandler(scheduler, oauth))
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler(oauth))
 					.registerHandler("/echo", new EchoHandler()).create();
 		} catch (KeyManagementException | NoSuchAlgorithmException | IllegalArgumentException e) {
@@ -89,18 +89,18 @@ public class HttpsGate extends HttpGate {
 			notify();
 		}
 
-		try {
-			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			logger.error(e.getMessage());
-			return;
-		}
-
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				server.shutdown(5, TimeUnit.SECONDS);
 			}
 		});
+		
+		try {
+			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			logger.info("HTTPS gate interrupted: "+e.getMessage());
+			return;
+		}
 	}
 }

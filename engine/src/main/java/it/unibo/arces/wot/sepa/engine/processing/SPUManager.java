@@ -20,7 +20,7 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.net.URISyntaxException;
 import java.time.Instant;
-import java.time.temporal.ChronoField;
+//import java.time.temporal.ChronoField;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Observable;
@@ -147,6 +147,8 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 	public void subscribe(SubscribeRequest req, EventHandler handler) {
 		logger.debug(req.toString());
 
+		SPUManagerBeans.subscribeRequest();
+		
 		// TODO: choose different kinds of SPU based on subscribe request
 		SPU spu = null;
 		try {
@@ -177,8 +179,8 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 		}
 		
 		synchronized(responseQueue) {
-			responseQueue.offer(new SPUManagerNotify(
-					new SubscribeResponse(req.getToken(), spu.getUUID(), req.getAlias(), spu.getFirstResults())));
+			responseQueue.offer(
+					new SubscribeResponse(req.getToken(), spu.getUUID(), req.getAlias(), spu.getFirstResults()));
 			responseQueue.notify();
 		}
 
@@ -222,11 +224,13 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 	public void unsubscribe(UnsubscribeRequest req) {
 		logger.debug(req);
 
+		SPUManagerBeans.unsubscribeRequest();
+		
 		String spuid = req.getSubscribeUUID();
 
 		if (!spus.containsKey(spuid)) {		
 			synchronized(responseQueue) {
-				responseQueue.offer(new SPUManagerNotify(new ErrorResponse(req.getToken(), 404, "SPUID not found: " + spuid)));
+				responseQueue.offer(new ErrorResponse(req.getToken(), 404, "SPUID not found: " + spuid));
 				responseQueue.notify();
 			}
 
@@ -234,7 +238,7 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 		}
 		
 		synchronized(responseQueue) {
-			responseQueue.offer(new SPUManagerNotify(new UnsubscribeResponse(req.getToken(), spuid)));
+			responseQueue.offer(new UnsubscribeResponse(req.getToken(), spuid));
 			responseQueue.notify();
 		}
 		
@@ -287,7 +291,7 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 			while (true) {
 				UpdateResponse update;
 				while ((update = updateQueue.poll()) != null) {
-					logger.debug("*** PROCESSING SUBSCRIPTIONS *** <<< " + update);
+					logger.debug("*** PROCESSING SUBSCRIPTIONS *** " + update);
 					Instant start = Instant.now();
 
 					// Wake-up all SPUs
@@ -315,14 +319,14 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 					Instant stop = Instant.now();
 					SPUManagerBeans.timings(start, stop);
 
-					int ms = stop.get(ChronoField.MILLI_OF_SECOND) - start.get(ChronoField.MILLI_OF_SECOND);
-					if (ms < 1000)
-						logger.debug("SPUs processing time: " + ms + " ms");
-					else
-						logger.warn("SPUs processing time: " + ms + " ms");
+//					int ms = stop.get(ChronoField.MILLI_OF_SECOND) - start.get(ChronoField.MILLI_OF_SECOND);
+//					if (ms < 1000)
+//						logger.debug("SPUs processing time: " + ms + " ms");
+//					else
+//						logger.warn("SPUs processing time: " + ms + " ms");
 					
 					synchronized(responseQueue) {
-						responseQueue.offer(new SPUManagerNotify());
+						responseQueue.offer(new SPUEndOfProcessing());
 						responseQueue.notify();
 					}
 
@@ -404,5 +408,15 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 	@Override
 	public float getSPUs_time_average() {
 		return SPUManagerBeans.getSPUs_time_averaae();
+	}
+
+	@Override
+	public long getSubscribeRequests() {
+		return SPUManagerBeans.getSubscribeRequests();
+	}
+
+	@Override
+	public long getUnsubscribeRequests() {
+		return SPUManagerBeans.getUnsubscribeRequests();
 	}
 }

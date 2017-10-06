@@ -32,31 +32,12 @@ import com.google.gson.JsonPrimitive;
 import org.apache.logging.log4j.LogManager;
 
 /**
- {
-	"parameters": {
-		"timeouts": {
-			"scheduling": 0,
-			"queueSize": 1000,
-			"keepalive": 5000,
-			"http": 5000
-		},
-		"ports": {
-			"http": 8000,
-			"ws": 9000,
-			"https": 8443,
-			"wss": 9443
-		},
-		"paths": {
-			"update": "/update",
-			"query": "/query",
-			"subscribe": "/subscribe",
-			"unsubscribe": "/unsubscribe",
-			"register": "/oauth/register",
-			"tokenRequest": "/oauth/token",
-			"securePath" : "/secure"
-		}
-	}
-}
+ * { "parameters" : { "scheduler" : { "queueSize" : 100} , "processor" : {
+ * "updateTimeout" : 5000 , "queryTimeout" : 5000} , "spu" : { "keepalive" :
+ * 5000} , "ports" : { "http" : 8000 , "ws" : 9000 , "https" : 8443 , "wss" :
+ * 9443} , "paths" : { "update" : "/update" , "query" : "/query" , "subscribe" :
+ * "/subscribe" , "register" : "/oauth/register" , "tokenRequest" :
+ * "/oauth/token" , "securePath" : "/secure"} } }
  */
 public class EngineProperties {
 	private static final Logger logger = LogManager.getLogger("EngineProperties");
@@ -66,13 +47,15 @@ public class EngineProperties {
 
 	private JsonObject properties = new JsonObject();
 
-	public EngineProperties(String propertiesFile) throws IllegalArgumentException,NoSuchElementException, IOException {
-		if (propertiesFile == null) throw new IllegalArgumentException("Properties file is null");
+	public EngineProperties(String propertiesFile)
+			throws IllegalArgumentException, NoSuchElementException, IOException {
+		if (propertiesFile == null)
+			throw new IllegalArgumentException("Properties file is null");
 		this.propertiesFile = propertiesFile;
 
 		loadProperties();
 	}
-	
+
 	public String toString() {
 		return properties.toString();
 	}
@@ -80,13 +63,21 @@ public class EngineProperties {
 	protected void defaults() {
 		JsonObject parameters = new JsonObject();
 
-		// Engine timeouts
-		JsonObject timeouts = new JsonObject();
-		timeouts.add("scheduling", new JsonPrimitive(0));
-		timeouts.add("queueSize", new JsonPrimitive(1000));
-		timeouts.add("keepalive", new JsonPrimitive(5000));
-		timeouts.add("http", new JsonPrimitive(5000));
-		parameters.add("timeouts", timeouts);
+		// Scheduler properties
+		JsonObject scheduler = new JsonObject();
+		scheduler.add("queueSize", new JsonPrimitive(100));
+		parameters.add("scheduler", scheduler);
+
+		// Processor properties
+		JsonObject processor = new JsonObject();
+		processor.add("updateTimeout", new JsonPrimitive(5000));
+		processor.add("queryTimeout", new JsonPrimitive(5000));
+		parameters.add("processor", processor);
+
+		// SPU properties
+		JsonObject spu = new JsonObject();
+		scheduler.add("keepalive", new JsonPrimitive(5000));
+		parameters.add("spu", spu);
 
 		// Ports
 		JsonObject ports = new JsonObject();
@@ -95,7 +86,7 @@ public class EngineProperties {
 		ports.add("ws", new JsonPrimitive(9000));
 		ports.add("wss", new JsonPrimitive(9443));
 		parameters.add("ports", ports);
-		
+
 		// URI patterns
 		JsonObject paths = new JsonObject();
 		parameters.add("securePath", new JsonPrimitive("/secure"));
@@ -106,28 +97,28 @@ public class EngineProperties {
 		paths.add("register", new JsonPrimitive("/oauth/register"));
 		paths.add("tokenRequest", new JsonPrimitive("/oauth/token"));
 		parameters.add("paths", paths);
-		
+
 		properties.add("parameters", parameters);
 	}
-	
+
 	protected boolean checkParameters() throws IllegalStateException, ClassCastException {
-		properties.get("timeouts").getAsJsonObject().get("scheduling").getAsInt();
-		properties.get("timeouts").getAsJsonObject().get("queueSize").getAsInt();
-		properties.get("timeouts").getAsJsonObject().get("keepalive").getAsInt();
-		properties.get("timeouts").getAsJsonObject().get("http").getAsInt();
-		
+		properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
+		properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
+		properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
+		properties.get("spu").getAsJsonObject().get("keepalive").getAsInt();
+
 		properties.get("ports").getAsJsonObject().get("http").getAsInt();
 		properties.get("ports").getAsJsonObject().get("https").getAsInt();
 		properties.get("ports").getAsJsonObject().get("ws").getAsInt();
 		properties.get("ports").getAsJsonObject().get("wss").getAsInt();
-		
+
 		properties.get("paths").getAsJsonObject().get("securePath").getAsString();
 		properties.get("paths").getAsJsonObject().get("update").getAsString();
 		properties.get("paths").getAsJsonObject().get("query").getAsString();
 		properties.get("paths").getAsJsonObject().get("subscribe").getAsString();
 		properties.get("paths").getAsJsonObject().get("register").getAsString();
 		properties.get("paths").getAsJsonObject().get("tokenRequest").getAsString();
-		
+
 		return true;
 	}
 
@@ -142,8 +133,9 @@ public class EngineProperties {
 					throw new NoSuchElementException("parameters key is missing");
 				}
 				properties = properties.get("parameters").getAsJsonObject();
-				
-				if(!checkParameters()) throw new NoSuchElementException("JPAR missing parameter");
+
+				if (!checkParameters())
+					throw new NoSuchElementException("JPAR missing parameter");
 			}
 			if (in != null)
 				in.close();
@@ -170,40 +162,44 @@ public class EngineProperties {
 
 	private int getParameter(String rootKey, String nestedKey, int def) {
 		try {
-			if (rootKey == null) return def;
-			if (nestedKey == null) return properties.get(rootKey).getAsInt();
+			if (rootKey == null)
+				return def;
+			if (nestedKey == null)
+				return properties.get(rootKey).getAsInt();
 			return properties.get(rootKey).getAsJsonObject().get(nestedKey).getAsInt();
 		} catch (Exception e) {
 		}
-		
+
 		return def;
 	}
 
 	private String getParameter(String rootKey, String nestedKey, String def) {
 		try {
-			if (rootKey == null) return def;
-			if (nestedKey == null) return properties.get(rootKey).getAsString();
+			if (rootKey == null)
+				return def;
+			if (nestedKey == null)
+				return properties.get(rootKey).getAsString();
 			return properties.get(rootKey).getAsJsonObject().get(nestedKey).getAsString();
 		} catch (Exception e) {
 		}
-		
+
 		return def;
 	}
 
-	public int getTimeout() {
-		return getParameter("timeouts", "http", 0);
+	public int getUpdateTimeout() {
+		return getParameter("processor", "updateTimeout", 5000);
 	}
-
-	public long getSchedulingTimeout() {
-		return getParameter("timeouts", "scheduling", 5000);
+	
+	public int getQueryTimeout() {
+		return getParameter("processor", "queryTimeout", 5000);
 	}
 
 	public int getSchedulingQueueSize() {
-		return getParameter("timeouts", "queueSize", 1000);
+		return getParameter("scheduler", "queueSize", 1000);
 	}
 
 	public int getKeepAlivePeriod() {
-		return getParameter("timeouts", "keepalive", 5000);
+		return getParameter("spu", "keepalive", 5000);
 	}
 
 	public int getWsPort() {
@@ -221,7 +217,7 @@ public class EngineProperties {
 	public int getWssPort() {
 		return getParameter("ports", "wss", 9443);
 	}
-	
+
 	public String getUpdatePath() {
 		return getParameter("paths", "update", "/update");
 	}
@@ -233,7 +229,7 @@ public class EngineProperties {
 	public String getQueryPath() {
 		return getParameter("paths", "query", "/query");
 	}
-	
+
 	public String getRegisterPath() {
 		return getParameter("paths", "register", "/oauth/register");
 	}
@@ -245,5 +241,5 @@ public class EngineProperties {
 	public String getSecurePath() {
 		return getParameter("paths", "securePath", "/secure");
 	}
-	
+
 }

@@ -410,18 +410,18 @@ public class SPARQL11Properties {
 	}
 
 	/**
-	 * Gets the update results format.
+	 * Gets the update HTTP Accept header
 	 *
-	 * @return the update results format (JSON, HTML)
+	 * @return the update HTTP Accept header string
 	 */
-	public UpdateResultsFormat getUpdateResultsFormat() {
+	public String getUpdateAcceptHeader() {
 		switch (updateResultsFormat) {
 		case "JSON":
-			return UpdateResultsFormat.JSON;
+			return "application/json";
 		case "HTML":
-			return UpdateResultsFormat.HTML;
+			return "application/html";
 		default:
-			return UpdateResultsFormat.JSON;
+			return "application/json";
 		}
 	}
 
@@ -455,22 +455,43 @@ public class SPARQL11Properties {
 	}
 
 	/**
-	 * Gets the query results format.
+	 * Gets the query HTTP Accept header string
 	 *
-	 * @return the query results format (JSON, XML, CSV)
-	 * 
-	 * @see QueryResultsFormat
+	 * @return the query HTTP Accept header string
+
 	 */
-	public QueryResultsFormat getQueryResultsFormat() {
+	public String getQueryAcceptHeader() {
 		switch (queryResultsFormat) {
 		case "JSON":
-			return QueryResultsFormat.JSON;
+			return "application/sparql-results+json";
 		case "XML":
-			return QueryResultsFormat.XML;
+			return "application/sparql-results+xml";
 		case "CSV":
-			return QueryResultsFormat.CSV;
+			return "text/csv";
 		default:
-			return QueryResultsFormat.JSON;
+			return "application/sparql-results+json";
+		}
+	}
+
+	public String getUpdateContentTypeHeader() {
+		switch (updateMethod) {
+		case "POST":
+			return "application/sparql-update";
+		case "URL_ENCODED_POST":
+			return "application/x-www-form-urlencoded";
+		default:
+			return "application/sparql-update";
+		}
+	}
+
+	public String getQueryContentTypeHeader() {
+		switch (queryMethod) {
+		case "POST":
+			return "application/sparql-query";
+		case "URL_ENCODED_POST":
+			return "application/x-www-form-urlencoded";
+		default:
+			return "application/sparql-query";
 		}
 	}
 

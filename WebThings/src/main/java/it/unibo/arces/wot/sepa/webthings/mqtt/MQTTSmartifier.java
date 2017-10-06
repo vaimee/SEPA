@@ -100,6 +100,7 @@ public class MQTTSmartifier implements MqttCallback {
 		observationCreator = new Producer(app,"ADD_OBSERVATION");
 		observationUpdater = new Producer(app,"UPDATE_OBSERVATION_VALUE");
 		
+		logger.info("Parse extended data...");
 		parseExtendedData(app.getExtendedData());
 	}
 	
@@ -110,6 +111,8 @@ public class MQTTSmartifier implements MqttCallback {
 		bindings.addBinding("label", new RDFTermLiteral(label));
 		bindings.addBinding("location", new RDFTermURI(location));
 		bindings.addBinding("unit", new RDFTermURI(unit));
+		
+		logger.info("Add observation: "+bindings);
 		observationCreator.update(bindings);
 		
 		observationMap.put(observation, new JsonObject());
@@ -120,6 +123,8 @@ public class MQTTSmartifier implements MqttCallback {
 		Bindings bindings = new Bindings();
 		bindings.addBinding("observation", new RDFTermURI(observation.replace("/", "-")));
 		bindings.addBinding("value", new RDFTermLiteral(value));
+		
+		logger.info("Update observation: "+bindings);
 		observationUpdater.update(bindings);	
 	}
 
@@ -252,16 +257,24 @@ public class MQTTSmartifier implements MqttCallback {
 
 	public void start() throws KeyManagementException, NoSuchAlgorithmException, MqttException {
 		//Create client
+		logger.info("Creating MQTT client...");	
 		clientID = MqttClient.generateClientId();
+		logger.info("Client ID: "+clientID);
+		logger.info("Server URI: "+serverURI);
 		mqttClient = new MqttClient(serverURI, clientID);
 		
 		//Connect
+		logger.info("Connecting...");	
 		options = new MqttConnectOptions();
-		if (sslEnabled) options.setSocketFactory(sm.getSSLContext().getSocketFactory());
+		if (sslEnabled) {
+			logger.info("Set SSL security");	
+			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
+		}
 		mqttClient.connect(options);	
 		
 		//Subscribe
 		mqttClient.setCallback(this);
+		logger.info("Subscribing...");
 		mqttClient.subscribe(topicsFilter);
 
 		String topics = "";

@@ -1,12 +1,12 @@
 package it.unibo.arces.wot.sepa.engine.bean;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.request.Request;
+//import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+//import it.unibo.arces.wot.sepa.commons.request.Request;
 
 public class ProcessorBeans {
-	private static int totalQueryRequests = 0;
-	private static int totalRequests = 0;
+//	private static int totalQueryRequests = 0;
+//	private static int totalRequests = 0;
 	
 	private static int updateRequests = 0;
 	private static float queryMinTime = -1;
@@ -27,7 +27,9 @@ public class ProcessorBeans {
 	private static String updatePath;
 	private static String updateMethod;
 	private static String queryMethod;
-	private static int spusRequests;
+//	private static int spusRequests;
+	private static int updateTimeout;
+	private static int queryTimeout;
 	
 	public static void setEndpoint(SPARQL11Properties prop) {
 		host = prop.getHost();
@@ -81,7 +83,7 @@ public class ProcessorBeans {
 	public static void queryTimings(long start, long stop) {
 		queryTime = stop - start;
 
-		totalQueryRequests++;
+		queryRequests++;
 		
 		if (queryMinTime == -1)
 			queryMinTime = queryTime;
@@ -96,15 +98,15 @@ public class ProcessorBeans {
 		if (queryAverageTime == -1)
 			queryAverageTime = queryTime;
 		else
-			queryAverageTime = ((queryAverageTime * (totalQueryRequests - 1)) + queryTime) / totalQueryRequests;
+			queryAverageTime = ((queryAverageTime * (queryRequests - 1)) + queryTime) / queryRequests;
 	}
 	
 	public static void reset() {
 		 //totalQueryRequests = 0;
-		 totalRequests = 0;
+//		 totalRequests = 0;
 		 updateRequests = 0;
 		 queryRequests = 0 ;
-		 spusRequests = 0;
+//		 spusRequests = 0;
 		 
 		 queryMinTime = -1;
 		 queryAverageTime = -1;
@@ -117,14 +119,14 @@ public class ProcessorBeans {
 		 updateTime = -1;
 	}
 
-	public static void newRequest(Request request) {
-		totalRequests++;
-		
-		if (request.getClass().equals(QueryRequest.class)) {
-			queryRequests++;
-			spusRequests = (totalQueryRequests- queryRequests);
-		}
-	}
+//	public static void newRequest(Request request) {
+//		totalRequests++;
+//		
+//		if (request.getClass().equals(QueryRequest.class)) {
+//			queryRequests++;
+//			spusRequests = (totalQueryRequests- queryRequests);
+//		}
+//	}
 	
 //	public static String getStatistics() {
 //		long spus = (totalQueryRequests- queryRequests);
@@ -140,16 +142,16 @@ public class ProcessorBeans {
 	}
 
 	public static long getProcessedRequests() {
-		return totalRequests;
+		return updateRequests+queryRequests;
 	}
 
 	public static long getProcessedQueryRequests() {
 		return queryRequests;
 	}
 
-	public static long getProcessedSPURequests() {
-		return spusRequests;
-	}
+//	public static long getProcessedSPURequests() {
+//		return spusRequests;
+//	}
 
 	public static long getProcessedUpdateRequests() {
 		return updateRequests;
@@ -177,5 +179,21 @@ public class ProcessorBeans {
 
 	public static float getTimings_QueryTime_Average_ms() {
 		return queryAverageTime;
+	}
+
+	public static int getUpdateTimeout() {
+		return updateTimeout;
+	}
+
+	public static int getQueryTimeout() {
+		return queryTimeout;
+	}
+
+	public static void setUpdateTimeout(int t) {
+		updateTimeout = t;
+	}
+
+	public static void setQueryTimeout(int t) {
+		queryTimeout = t;
 	}
 }

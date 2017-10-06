@@ -52,13 +52,13 @@ public class HttpGate extends Thread {
 	public void init() throws IOException {
 		setName(serverInfo);
 
-		IOReactorConfig config = IOReactorConfig.custom().setSoTimeout(properties.getTimeout()).setTcpNoDelay(true)
+		IOReactorConfig config = IOReactorConfig.custom().setTcpNoDelay(true)
 				.build();
 
 		server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort())
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
-				.registerHandler(properties.getQueryPath(), new QueryHandler(scheduler, properties.getTimeout()))
-				.registerHandler(properties.getUpdatePath(), new UpdateHandler(scheduler, properties.getTimeout()))
+				.registerHandler(properties.getQueryPath(), new QueryHandler(scheduler))
+				.registerHandler(properties.getUpdatePath(), new UpdateHandler(scheduler))
 				.registerHandler("/echo", new EchoHandler()).create();
 
 		try{
@@ -87,17 +87,17 @@ public class HttpGate extends Thread {
 			notify();
 		}
 
-		try {
-			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			logger.error(e.getMessage());
-		}
-
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
 				server.shutdown(5, TimeUnit.SECONDS);
 			}
 		});
+		
+		try {
+			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			logger.info("HTTP gate interrupted: "+e.getMessage());
+		}
 	}
 }

@@ -84,12 +84,24 @@ public class MeanCalculator extends Aggregator {
 	}
 
 	@Override
-	public void onAddedResults(BindingsResults results) {
+	public void onRemovedResults(BindingsResults results) {
 		for (Bindings result : results.getBindings()) {
-			float value = Float.parseFloat(result.getBindingValue("value").replace(",", "."));
+			logger.debug(result);
+			if (result.getBindingValue("value") == null) {
+				logger.warn("Value is null");
+				continue;
+			}
+			float value;
+			try {
+				value = Float.parseFloat(result.getBindingValue("value").replace(",", "."));
+			}
+			catch(Exception e) {
+				logger.error(e.getMessage());
+				continue;
+			}
 			counter++;
 			mean = ((mean * (counter - 1)) + value) / counter;
-			logger.info(result.getBindingValue("number") + ": " + value + " ==> mean: " + meanURI + " value: " + mean
+			logger.info(" mean: " + meanURI + " value: " + mean
 					+ " counter: " + counter);
 		}
 

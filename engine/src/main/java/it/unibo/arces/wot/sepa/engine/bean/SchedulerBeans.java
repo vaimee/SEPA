@@ -20,7 +20,6 @@ public class SchedulerBeans {
 	private static long totalUnsubscribeRequests = 0;
 	
 	private static int queueSize;
-	private static long timeout = 5000;
 
 	public static long getErrors() {
 		return errors;
@@ -86,13 +85,5 @@ public class SchedulerBeans {
 	
 	public static int getQueueSize() {
 		return queueSize;	
-	}
-
-	public static void setTimeout(long t) {
-		timeout = t;
-	}
-
-	public static long getTimeout() {
-		return timeout;
 	}
 }

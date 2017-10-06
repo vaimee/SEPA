@@ -1,1 +1,0 @@
-{"parameters":{"timeouts":{"scheduling":0,"queueSize":1000,"keepalive":5000,"http":5000},"ports":{"http":8000,"https":8443,"ws":9000,"wss":9443},"securePath":"/secure","paths":{"update":"/update","query":"/query","subscribe":"/subscribe","unsubscribe":"/unsubscribe","register":"/oauth/register","tokenRequest":"/oauth/token"}}}
