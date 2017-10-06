@@ -1,6 +1,7 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http.handler;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Observable;
 //import java.util.HashMap;
@@ -47,7 +48,7 @@ public abstract class SPARQL11Handler
 
 	private HashMap<Integer,HttpAsyncExchange> responders = new HashMap<Integer,HttpAsyncExchange>();
 	
-	public SPARQL11Handler(Scheduler scheduler, long timeout) throws IllegalArgumentException {
+	public SPARQL11Handler(Scheduler scheduler) throws IllegalArgumentException {
 
 		if (scheduler == null)
 			throw new IllegalArgumentException("One or more arguments are null");
@@ -97,8 +98,8 @@ public abstract class SPARQL11Handler
 		
 		new Thread() {
 			public void run() {
-				jmx.newRequest();
-
+				Instant start = Instant.now();
+				
 				// CORS
 				if (!corsHandling(httpExchange)) {
 					jmx.corsFailed();
@@ -108,7 +109,6 @@ public abstract class SPARQL11Handler
 				// Parsing SPARQL 1.1 request and attach a token
 				Request sepaRequest = parse(httpExchange);
 				
-
 				// Parsing failed
 				if (sepaRequest == null) {
 					logger.error("Parsing failed: " + request);
@@ -136,14 +136,14 @@ public abstract class SPARQL11Handler
 				}
 
 				// Schedule a new request
-				Integer requestToken = scheduler.schedule(sepaRequest,new SPARQL11ResponseHandler(httpExchange));	
+				Integer requestToken = scheduler.schedule(sepaRequest,new SPARQL11ResponseHandler(httpExchange,jmx,start));	
 		
 				if (requestToken == -1) {
 					logger.warn("No more tokens");
 					HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_NOT_ACCEPTABLE, "No more tokens");
 					return;
 				}
-
+				
 				responders.put(requestToken, httpExchange);
 				logger.info("Request #" + requestToken);	
 			}
@@ -160,10 +160,14 @@ public abstract class SPARQL11Handler
 		if (responder != null) {
 			JsonObject json = new JsonParser().parse(ret.toString()).getAsJsonObject();
 
-			if (ret.getClass().equals(QueryResponse.class))
+			if (ret.getClass().equals(QueryResponse.class)) {
 				HttpUtilities.sendResponse(responder, json.get("code").getAsInt(), json.get("body").toString());
-			else
+			}
+			else{
 				HttpUtilities.sendResponse(responder, json.get("code").getAsInt(), json.toString());	
+			}
+			
+			jmx.timings(responder);
 			
 			responders.remove(ret.getToken());
 		}

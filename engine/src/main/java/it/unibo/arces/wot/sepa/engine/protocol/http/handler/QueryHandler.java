@@ -52,8 +52,8 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 public class QueryHandler extends SPARQL11Handler {
 	protected static final Logger logger = LogManager.getLogger("QueryHandler");
 	
-	public QueryHandler(Scheduler scheduler, long timeout) throws IllegalArgumentException {
-		super(scheduler, timeout);
+	public QueryHandler(Scheduler scheduler) throws IllegalArgumentException {
+		super(scheduler);
 	}
 
 	@Override

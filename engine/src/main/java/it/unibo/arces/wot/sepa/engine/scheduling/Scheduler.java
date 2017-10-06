@@ -94,7 +94,6 @@ public class Scheduler implements SchedulerMBean, Observer {
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
-		SchedulerBeans.setTimeout(properties.getTimeout());
 	}
 	
 	public synchronized int schedule(Request request, ResponseHandler handler) {

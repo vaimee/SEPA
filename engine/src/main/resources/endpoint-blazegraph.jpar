@@ -2,11 +2,11 @@
 	"parameters": {
 		"host": "localhost",
 		"ports": {
-			"http": 3030
+			"http": 9999
 		},
 		"paths": {
-			"update": "/sepa/update",
-			"query": "/sepa/query"
+			"update": "/blazegraph/namespace/kb/sparql",
+			"query": "/blazegraph/namespace/kb/sparql"
 		},
 		"methods": {
 			"query": "POST",

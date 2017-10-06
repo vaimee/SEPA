@@ -27,9 +27,8 @@
 	"extended" : {
 		"mqtt" : {
 			"url" : "giove.arces.unibo.it" ,
-			"port" : 8277 ,
-			"topics" : ["#"]
-			 ,
+			"port" : 52877 ,
+			"topics" : ["#"],
 			"ssl" : false}
 		 ,
 		"semantic-mappings" : {
@@ -128,7 +127,7 @@
 	 ,
 	"updates" : {
 		"ADD_OBSERVATION" : {
-			"sparql" : "DELETE {?observation rdf:type sosa:Observation ; rdfs:label ?oldLabel ; rdfs:comment ?oldComment ; sosa:hasFeatureOfInterest ?oldLocation ; sosa:hasResult ?oldQuantity . ?oldQuantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?oldUnit ; qudt-1-1:numericValue ?oldValue} INSERT {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/monitor/QuantityValue-\",STRUUID())) AS ?quantity) . OPTIONAL {?observation rdf:type sosa:Observation ; rdfs:label ?oldLabel ; rdfs:comment ?oldComment ; sosa:hasFeatureOfInterest ?oldLocation ; sosa:hasResult ?oldQuantity . ?oldQuantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?oldUnit . OPTIONAL { ?oldQuantity qudt-1-1:numericValue ?oldValue}}}" ,
+			"sparql" : "INSERT {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/monitor/QuantityValue-\",STRUUID())) AS ?quantity) . FILTER NOT EXISTS {?observation rdf:type sosa:Observation}}" ,
 			"forcedBindings" : {
 				"observation" : {
 					"type" : "uri" ,

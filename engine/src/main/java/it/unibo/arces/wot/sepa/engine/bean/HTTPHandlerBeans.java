@@ -1,5 +1,10 @@
 package it.unibo.arces.wot.sepa.engine.bean;
 
+import java.time.Instant;
+import java.util.HashMap;
+
+import org.apache.http.nio.protocol.HttpAsyncExchange;
+
 public class HTTPHandlerBeans {
 	private long requests = 0;
 
@@ -15,6 +20,8 @@ public class HTTPHandlerBeans {
 	private float requestHandlingMaxTime = -1;
 	private float handledRequests = 0;
 
+	private HashMap<HttpAsyncExchange,Instant> timings = new HashMap<HttpAsyncExchange,Instant>();
+	
 	public void reset() {
 		 requests = 0;
 
@@ -31,19 +38,29 @@ public class HTTPHandlerBeans {
 		 handledRequests = 0;
 	}
 
-	public void timings(long start_ns, long stop_ns) {
+	public void newRequest(HttpAsyncExchange httpExchange, Instant start) {
+		requests++;
+		timings.put(httpExchange, start);
+	}
+	
+	public void timings(HttpAsyncExchange exchange) {
 
 		handledRequests++;
-		requestHandlingTime = stop_ns - start_ns;
+		if (timings.get(exchange) == null) return;
+		
+		requestHandlingTime = Instant.now().toEpochMilli() - timings.get(exchange).toEpochMilli();
+		timings.remove(exchange);
 
 		if (requestHandlingMinTime == -1)
 			requestHandlingMinTime = requestHandlingTime;
 		else if (requestHandlingTime < requestHandlingMinTime)
 			requestHandlingMinTime = requestHandlingTime;
+		
 		if (requestHandlingMaxTime == -1)
 			requestHandlingMaxTime = requestHandlingTime;
 		else if (requestHandlingTime > requestHandlingMaxTime)
 			requestHandlingMaxTime = requestHandlingTime;
+		
 		if (requestHandlingAverageTime == -1)
 			requestHandlingAverageTime = requestHandlingTime;
 		else
@@ -53,23 +70,19 @@ public class HTTPHandlerBeans {
 	}
 
 	public float getHandlingTime_ms() {
-		return requestHandlingTime / 1000000;
+		return requestHandlingTime;
 	}
 
 	public float getHandlingMinTime_ms() {
-		return requestHandlingMinTime / 1000000;
+		return requestHandlingMinTime;
 	}
 
 	public float getHandlingAvgTime_ms() {
-		return requestHandlingAverageTime / 1000000;
+		return requestHandlingAverageTime;
 	}
 
 	public float getHandlingMaxTime_ms() {
-		return requestHandlingMaxTime / 1000000;
-	}
-
-	public void newRequest() {
-		requests++;
+		return requestHandlingMaxTime;
 	}
 	
 	public long getRequests() {

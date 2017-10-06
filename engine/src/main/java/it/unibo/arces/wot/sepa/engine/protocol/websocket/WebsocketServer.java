@@ -46,7 +46,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	// JMX
 	protected WebsocketBeans jmx = new WebsocketBeans();
 
-	public WebsocketServer(int port, String path, Scheduler scheduler, int keepAlivePeriod, long timeout)
+	public WebsocketServer(int port, String path, Scheduler scheduler, int keepAlivePeriod)
 			throws IllegalArgumentException, UnknownHostException {
 		super(new InetSocketAddress(port));
 

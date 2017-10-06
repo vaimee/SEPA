@@ -31,9 +31,9 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 		return "Secure Subscribe     | wss://%s:%d%s";
 	}
 
-	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,int keepAlivePeriod,long timeout)
+	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,int keepAlivePeriod)
 			throws IllegalArgumentException, UnknownHostException, KeyManagementException, NoSuchAlgorithmException {
-		super(port, path, scheduler,keepAlivePeriod,timeout);
+		super(port, path, scheduler,keepAlivePeriod);
 
 		if (oauth == null)
 			throw new IllegalArgumentException("Authorization manager is null");

@@ -6,7 +6,7 @@ public interface ProcessorMBean {
 	
 	public long getProcessedRequests();
 	public long getProcessedQueryRequests();
-	public long getProcessedSPURequests();
+//	public long getProcessedSPURequests();
 	public long getProcessedUpdateRequests();
 	
 	public float getTimings_UpdateTime_ms();
@@ -18,4 +18,10 @@ public interface ProcessorMBean {
 	public float getTimings_QueryTime_Min_ms();
 	public float getTimings_QueryTime_Average_ms();
 	public float getTimings_QueryTime_Max_ms();
+	
+	public int getUpdateTimeout();
+	public int getQueryTimeout();
+	
+	public void setUpdateTimeout(int t);
+	public void setQueryTimeout(int t);
 }
