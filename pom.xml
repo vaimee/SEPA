@@ -11,10 +11,9 @@
   	<module>client-api</module>
   	<module>client-pac-pattern</module>
   	<module>tools</module>
-  	<module>engine</module>
-  	
+  	<module>engine</module>  
   	<module>client-wot-framework</module>
-    <module>WebThings</module>
+    <!--<module>WebThings</module>-->
   </modules>
   <name>SEPA Project</name>
   <url>https://github.com/arces-wot/sepa.git</url>
