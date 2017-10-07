@@ -27,7 +27,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -85,15 +84,6 @@ public abstract class Consumer extends Client implements IConsumer,INotification
 		}
 
 		sparqlSubscribe = appProfile.subscribe(subscribeID);
-		
-		protocolClient.setNotificationHandler(this);
-	}
-
-	public Consumer(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException,
-			IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
-			CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-		super(jparFile);
 		
 		protocolClient.setNotificationHandler(this);
 	}

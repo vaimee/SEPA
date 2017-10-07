@@ -27,56 +27,116 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
+import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
+import it.unibo.arces.wot.sepa.api.INotificationHandler;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-public abstract class GenericClient extends Aggregator {	
-	private static final Logger logger = LogManager.getLogger("GenericClient");
+public abstract class GenericClient extends Client implements INotificationHandler,IGenericClient {	
 	
-	public GenericClient(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-		super(jparFile);	
+	public GenericClient(ApplicationProfile appProfile)
+			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		super(appProfile);
+		protocolClient.setNotificationHandler(this);
 	}
 	
 	public Response update(String SPARQL_UPDATE,Bindings forced) {
-		sparqlUpdate = SPARQL_UPDATE;
-		return super.update(forced);
+		return protocolClient.update(new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE,forced)));	
 	 }
 	
-	public Response query(String SPARQL_QUERY,Bindings forced) {
-		if (protocolClient == null) {
-			 logger.fatal("Client is not initialized");
-			 return null;
-		 }
-		
-		String sparql = prefixes() + super.replaceBindings(SPARQL_QUERY,forced);
-
-		logger.debug("SEPA","QUERY "+sparql);
-		
-		return protocolClient.query(new QueryRequest(sparql));
-//		Response response = protocolClient.query(new QueryRequest(sparql));
-//		logger.debug(response.toString());
-//		 
-//		if (response.getClass().equals(ErrorResponse.class)) return null;
-//		
-//		return ((QueryResponse)response).getBindingsResults();
+	public Response query(String SPARQL_QUERY,Bindings forced) {	
+		return protocolClient.query(new QueryRequest(prefixes() + replaceBindings(SPARQL_QUERY,forced)));
 	}
 	
-	public Response subscribe(String SPARQL_SUBSCRIBE,Bindings forced) throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {	
-		sparqlSubscribe = SPARQL_SUBSCRIBE;
-		return super.subscribe(forced);
+	public Response subscribe(String SPARQL_SUBSCRIBE,Bindings forced) {	
+		try {
+			return protocolClient.subscribe(new SubscribeRequest(prefixes() + replaceBindings(SPARQL_SUBSCRIBE,forced)));
+		} catch (InvalidKeyException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException
+				| CertificateException | IOException | URISyntaxException | InterruptedException e) {
+			return new ErrorResponse(500,e.getMessage());
+		}
+		
 	}
 	 
-	public Response unsubscribe() throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
-		return super.unsubscribe();
+	public Response unsubscribe(String subID)  {
+		try {
+			return protocolClient.unsubscribe(new UnsubscribeRequest(subID));
+		} catch (InvalidKeyException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
+				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException
+				| CertificateException | IOException | URISyntaxException | InterruptedException e) {
+			return new ErrorResponse(500,e.getMessage());
+		}
+	}
+	
+	@Override
+	public void onSemanticEvent(Notification notify) {
+		ARBindingsResults results = notify.getARBindingsResults();
+
+		BindingsResults added = results.getAddedBindings();
+		BindingsResults removed = results.getRemovedBindings();
+
+		// Replace prefixes
+		for (Bindings bindings : added.getBindings()) {
+			for (String var : bindings.getVariables()) {
+				if (bindings.isURI(var)) {
+					for (String prefix : URI2PrefixMap.keySet())
+						if (bindings.getBindingValue(var).startsWith(prefix)) {
+							bindings.addBinding(var, new RDFTermURI(bindings.getBindingValue(var).replace(prefix,
+									URI2PrefixMap.get(prefix) + ":")));
+							break;
+						}
+				}
+			}
+		}
+		for (Bindings bindings : removed.getBindings()) {
+			for (String var : bindings.getVariables()) {
+				if (bindings.isURI(var)) {
+					for (String prefix : URI2PrefixMap.keySet())
+						if (bindings.getBindingValue(var).startsWith(prefix)) {
+							bindings.addBinding(var, new RDFTermURI(bindings.getBindingValue(var).replace(prefix,
+									URI2PrefixMap.get(prefix) + ":")));
+							break;
+						}
+				}
+			}
+		}
+
+		// Dispatch different notifications based on notify content
+		if (!added.isEmpty())
+			onAddedResults(added);
+		if (!removed.isEmpty())
+			onRemovedResults(removed);
+		onResults(results);
+		
+	}
+	
+	@Override
+	public void onPing() {
+		onKeepAlive();
+	}
+
+	@Override
+	public void onBrokenSocket() {
+		onBrokenSubscription();
+	}
+
+	@Override
+	public void onError(ErrorResponse errorResponse) {
+		onSubscriptionError(errorResponse);
 	}
 }

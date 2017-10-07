@@ -21,32 +21,27 @@ package it.unibo.arces.wot.sepa.pattern;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.HashMap;
-import java.util.NoSuchElementException;
 import java.util.Set;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.api.INotificationHandler;
-import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 
 public abstract class Client implements IClient {	
 	protected static HashMap<String,String> URI2PrefixMap = new HashMap<String,String>();
 	protected HashMap<String,String> prefix2URIMap = new HashMap<String,String>();
-	private ApplicationProfile appProfile;
+	
+	protected ApplicationProfile appProfile;
+	
 	protected SPARQL11SEProtocol protocolClient = null;
 	
 	private static final Logger logger = LogManager.getLogger("Client");
@@ -108,19 +103,6 @@ public abstract class Client implements IClient {
 		addNamespaces(appProfile);
 	}
 	
-	public Client(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-		protocolClient = new SPARQL11SEProtocol(new SPARQL11SEProperties(jparFile));
-	}
-
-	public Client(String jparFile,INotificationHandler handler) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-		if (handler == null) {
-			logger.fatal("Notification handler is null. Client cannot be initialized");
-			throw new IllegalArgumentException("Notificaton handler is null");
-		}
-		
-		protocolClient = new SPARQL11SEProtocol(new SPARQL11SEProperties(jparFile),handler);
-	}
-	
 	protected String replaceBindings(String sparql, Bindings bindings){
 		if (bindings == null || sparql == null) return sparql;
 		
@@ -135,8 +117,19 @@ public abstract class Client implements IClient {
 			if (bindings.getBindingValue(var) == null) continue;
 			if (bindings.isLiteral(var)) 
 				replacedSparql = replacedSparql.replace("?"+var,"\""+fixLiteralTerms(bindings.getBindingValue(var))+"\"");
-			else	
-				replacedSparql = replacedSparql.replace("?"+var,bindings.getBindingValue(var));
+			else{	
+				// qnames
+				String uri = bindings.getBindingValue(var);
+				
+				String[] prefix = bindings.getBindingValue(var).split(":");
+				if (prefix.length > 1) {
+					if (!prefix2URIMap.containsKey(prefix[0])) {
+						uri = "<" + bindings.getBindingValue(var) +">";
+					}
+				}
+				
+				replacedSparql = replacedSparql.replace("?"+var,uri);
+			}
 			
 			selectPattern = selectPattern.replace("?"+var, "");
 		}
@@ -145,7 +138,8 @@ public abstract class Client implements IClient {
 	}
 	
 	protected String fixLiteralTerms(String s) {
-		if (s == null) return s;
-		return s.replace("\"", "\\\"");
+//		if (s == null) return s;
+//		return s.replace("\"", "\\\"");
+		return s;
 	}
 }
