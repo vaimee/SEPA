@@ -11,10 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.NoSuchElementException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -32,108 +29,114 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
+import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
+import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
-import it.unibo.arces.wot.sepa.pattern.Producer;
 
-public class MQTTSmartifier implements MqttCallback {
+public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	private static final Logger logger = LogManager.getLogger("MQTTSmartifier");
-	
+
 	private MqttClient mqttClient;
-	private MqttConnectOptions options;
 
-	private String serverURI = null;
 	private String[] topicsFilter = { "#" };
-	private boolean sslEnabled = false;
-	private String clientID = null;
 
-	//SEPA
-	private SSLSecurityManager sm = new SSLSecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017");
-	private ApplicationProfile app;
-	private Producer observationCreator;
-	private Producer observationUpdater;
-	
-	//Current observation and topics matching hash
-	private HashMap<String,JsonObject> observationMap = new HashMap<String,JsonObject>();
-	private HashMap<MQTTTopic,String> topicMap = new HashMap<MQTTTopic,String>();
-	
-	class MQTTTopic {
-		private Pattern topic;
-		private Matcher matcher;
-		private String pattern;
-		
-		public MQTTTopic(String pattern) {
-			topic = Pattern.compile(pattern);
-			this.pattern = pattern;
-		}
-		
-		public String getPattern() {
-			return pattern;
-			
-		} 
-		@Override
-		public boolean equals(Object obj) {
-			if (!obj.getClass().equals(this.getClass())) return false;
-			matcher = topic.matcher(((MQTTTopic)obj).getPattern());
-			return matcher.find();
-		}
-		
-		public String getMatching() {
-			int nGroups = matcher.groupCount();
-			if (nGroups == 3) return matcher.group(2);
-			return "value";
-		}
-	}
-	
+	// Topics mapping
+	private HashMap<String, String> topic2observation = new HashMap<String, String>();
+
 	public MQTTSmartifier(String jsap) throws UnrecoverableKeyException, KeyManagementException, InvalidKeyException,
 			IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
 			FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException,
 			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, URISyntaxException {
+		super(new ApplicationProfile(jsap), "ADD_OBSERVATION", "UPDATE_OBSERVATION_VALUE");
 
-		app = new ApplicationProfile(jsap);
-		
-		observationCreator = new Producer(app,"ADD_OBSERVATION");
-		observationUpdater = new Producer(app,"UPDATE_OBSERVATION_VALUE");
-		
 		logger.info("Parse extended data...");
-		parseExtendedData(app.getExtendedData());
 	}
 	
-	private void addObservation(String observation,String comment,String label,String location, String unit,String topic){
-		Bindings bindings = new Bindings();
-		bindings.addBinding("observation", new RDFTermURI(observation.replace("/", "-")));
-		bindings.addBinding("comment", new RDFTermLiteral(comment));
-		bindings.addBinding("label", new RDFTermLiteral(label));
-		bindings.addBinding("location", new RDFTermURI(location));
-		bindings.addBinding("unit", new RDFTermURI(unit));
-		
-		logger.info("Add observation: "+bindings);
-		observationCreator.update(bindings);
-		
-		observationMap.put(observation, new JsonObject());
-		topicMap.put(new MQTTTopic(topic), observation);
+	@Override
+	public void onAddedResults(BindingsResults results){
+		for (Bindings bindings : results.getBindings()) {
+			topic2observation.put(bindings.getBindingValue("topic"), bindings.getBindingValue("observation"));		
+		}
 	}
 
-	private void updateObservationValue(String observation,String value){
+	private void updateObservationValue(String observation, String value) {
 		Bindings bindings = new Bindings();
-		bindings.addBinding("observation", new RDFTermURI(observation.replace("/", "-")));
+		bindings.addBinding("observation", new RDFTermURI(observation));
 		bindings.addBinding("value", new RDFTermLiteral(value));
-		
-		logger.info("Update observation: "+bindings);
-		observationUpdater.update(bindings);	
+
+		logger.info("Update observation: " + bindings);
+		update(bindings);
 	}
 
-	private void parseExtendedData(JsonObject extended) throws IOException {
-		if (extended == null)
-			throw new IllegalArgumentException();
+	@Override
+	public void connectionLost(Throwable arg0) {
+		logger.error("Connection lost: " + arg0.getMessage());
 
+		while (true) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
+
+			}
+
+			logger.warn("Connecting...");
+			try {
+				mqttClient.connect();
+			} catch (MqttException e) {
+				logger.fatal("Failed to connect: " + e.getMessage());
+				continue;
+			}
+
+			logger.warn("Subscribing...");
+			try {
+				mqttClient.subscribe(topicsFilter);
+			} catch (MqttException e) {
+				logger.fatal("Failed to subscribe " + e.getMessage());
+				continue;
+			}
+
+			break;
+		}
+
+		logger.info("Connected and subscribed!");
+
+	}
+
+	@Override
+	public void deliveryComplete(IMqttDeliveryToken arg0) {
+
+	}
+
+	@Override
+	public void messageArrived(String topic, MqttMessage value) throws Exception {
+		logger.debug(topic + " " + value.toString());
+
+		if (topic2observation.containsKey(topic)) {
+			updateObservationValue(topic2observation.get(topic), value.toString());
+		} else {
+			logger.warn("Topic not found: " + topic);
+		}
+	}
+
+	public void start() throws KeyManagementException, NoSuchAlgorithmException, MqttException, UnrecoverableKeyException, KeyStoreException, CertificateException, FileNotFoundException, IOException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException, InterruptedException {
+		// Subscribe to observation-topic mapping
+		Response ret = subscribe(null);
+		if (ret.isError()) {
+			logger.fatal("Failed to subscribe: "+ret);
+			throw new InterruptedException(ret.toString());
+		}
+		SubscribeResponse results = (SubscribeResponse) ret;
+		onAddedResults(results.getBindingsResults());
+		
 		// MQTT
-		JsonObject mqtt = extended.get("mqtt").getAsJsonObject();
+		JsonObject mqtt = getApplicationProfile().getExtendedData().get("mqtt").getAsJsonObject();
 
 		String url = mqtt.get("url").getAsString();
 		int port = mqtt.get("port").getAsInt();
@@ -146,142 +149,40 @@ public class MQTTSmartifier implements MqttCallback {
 			i++;
 		}
 
+		boolean sslEnabled = false;
 		if (mqtt.get("ssl") != null)
-			this.sslEnabled = mqtt.get("ssl").getAsBoolean();
-		else
-			this.sslEnabled = false;
+			sslEnabled = mqtt.get("ssl").getAsBoolean();
 
+		String serverURI = null;
 		if (sslEnabled) {
 			serverURI = "ssl://" + url + ":" + String.format("%d", port);
 		} else {
 			serverURI = "tcp://" + url + ":" + String.format("%d", port);
 		}
 
-		// Semantic mappings
-		JsonObject mappings = extended.get("semantic-mappings").getAsJsonObject();
-		
-		for (Entry<String,JsonElement> mapping : mappings.entrySet()) {
-			String topic = mapping.getKey();
-			
-			String observation = mapping.getValue().getAsJsonObject().get("observation").getAsString();
-			String unit = mapping.getValue().getAsJsonObject().get("unit").getAsString();
-			String location = mapping.getValue().getAsJsonObject().get("location").getAsString();
-			String comment = mapping.getValue().getAsJsonObject().get("comment").getAsString();
-			String label = mapping.getValue().getAsJsonObject().get("label").getAsString();
-		
-			addObservation(observation,comment,label,location,unit,topic);	
-		}
-		
-	}
-
-	@Override
-	public void connectionLost(Throwable arg0) {
-		logger.error("Connection lost: "+arg0.getMessage());
-		
-		while (true) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e1) {
-				
-			}
-			
-			logger.warn("Connecting...");
-			try {
-				mqttClient.connect();
-			} catch (MqttException e) {
-				logger.fatal("Failed to connect: "+e.getMessage());
-				continue;
-			}
-
-			logger.warn("Subscribing...");
-			try {
-				mqttClient.subscribe(topicsFilter);
-			} catch (MqttException e) {
-				logger.fatal("Failed to subscribe " + e.getMessage());
-				continue;
-			}
-			
-			break;
-		}
-		
-		logger.info("Connected and subscribed!");
-		
-	}
-
-	@Override
-	public void deliveryComplete(IMqttDeliveryToken arg0) {
-
-	}
-
-	@Override
-	public void messageArrived(String topic, MqttMessage value) throws Exception {
-		logger.debug(topic + " " + value.toString());
-
-		MQTTTopic matching = new MQTTTopic(topic);
-		
-		for (Entry<MQTTTopic,String> topicPattern :topicMap.entrySet()) {
-			if (topicPattern.getKey().equals(matching)) {
-				String observation = topicPattern.getValue();
-				JsonObject observationObject = observationMap.get(observation);
-				String valueKey = topicPattern.getKey().getMatching();
-				
-				observationObject.add(valueKey,new JsonPrimitive(value.toString()));
-				
-				updateObservationValue(observation,observationObject.toString());
-				break;
-			}
-		}
-	}
-
-	public static void main(String[] args) throws IOException, URISyntaxException, UnrecoverableKeyException,
-			KeyManagementException, InvalidKeyException, IllegalArgumentException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, NoSuchElementException, NullPointerException,
-			ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, MqttException {
-	      
-		if (args.length != 1) {
-			logger.error("Please specify the JSAP file (.jsap)");
-			System.exit(1);
-		}
-
-		MQTTSmartifier adapter = new MQTTSmartifier(args[0]);
-
-		adapter.start();
-		
-		logger.info("Press any key to exit...");
-		System.in.read();
-		
-		adapter.stop();
-		
-		logger.info("Stopped");	
-	}
-
-	public void start() throws KeyManagementException, NoSuchAlgorithmException, MqttException {
-		//Create client
-		logger.info("Creating MQTT client...");	
-		clientID = MqttClient.generateClientId();
-		logger.info("Client ID: "+clientID);
-		logger.info("Server URI: "+serverURI);
+		// Create client
+		logger.info("Creating MQTT client...");
+		String clientID = MqttClient.generateClientId();
+		logger.info("Client ID: " + clientID);
+		logger.info("Server URI: " + serverURI);
 		mqttClient = new MqttClient(serverURI, clientID);
-		
-		//Connect
-		logger.info("Connecting...");	
-		options = new MqttConnectOptions();
+
+		// Connect
+		logger.info("Connecting...");
+		MqttConnectOptions options = new MqttConnectOptions();
 		if (sslEnabled) {
-			logger.info("Set SSL security");	
+			SSLSecurityManager sm = new SSLSecurityManager("TLSv1","sepa.jks", "sepa2017", "sepa2017");
+			logger.info("Set SSL security");
 			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
 		}
-		mqttClient.connect(options);	
-		
-		//Subscribe
+		mqttClient.connect(options);
+
+		// Subscribe
 		mqttClient.setCallback(this);
 		logger.info("Subscribing...");
 		mqttClient.subscribe(topicsFilter);
 
-		String topics = "";
-		for (int i = 0; i < topicsFilter.length; i++)
-			topics += "\"" + topicsFilter[i] + "\" ";
-
-		logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topics);
+		logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topicsFilter);
 	}
 
 	public void stop() {

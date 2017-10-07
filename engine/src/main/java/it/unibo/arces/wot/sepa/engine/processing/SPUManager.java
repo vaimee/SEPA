@@ -131,7 +131,7 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 							spu.ping();
 						} catch (Exception e) {
 							// UNSUBSCRIBE SPU
-							logger.error("Ping failed");
+							logger.warn("Ping failed");
 							
 							synchronized (unsubscribeQueue) {
 								unsubscribeQueue.offer(spu);

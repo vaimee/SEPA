@@ -137,7 +137,7 @@ public abstract class SmartLightingBenchmark {
 		private Bindings bindings = new Bindings();
 		private Object sync = new Object();
 		
-		public LampSubscription(int roadIndex,int lampIndex) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		public LampSubscription(ApplicationProfile appProfile,int roadIndex,int lampIndex) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 			super(appProfile,"LAMP");
 			lampURI = "bench:Lamp_"+roadIndex+"_"+lampIndex;
 			bindings.addBinding("lamp", new RDFTermURI(lampURI));
@@ -221,7 +221,7 @@ public abstract class SmartLightingBenchmark {
 		Bindings bindings = new Bindings();
 		private Object sync = new Object();
 		
-		public RoadSubscription(int index) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		public RoadSubscription(ApplicationProfile appProfile,int index) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
 			super(appProfile,"ROAD");
 			roadURI = "bench:Road_"+index;
 			bindings.addBinding("?road", new RDFTermURI(roadURI));
@@ -298,14 +298,14 @@ public abstract class SmartLightingBenchmark {
 	}
 	
 	private boolean subscribeLamp(int roadIndex,int postIndex) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-		LampSubscription sub = new LampSubscription(roadIndex,postIndex);
+		LampSubscription sub = new LampSubscription(appProfile,roadIndex,postIndex);
 		new Thread(sub).start();
 		lampSubs.add(sub);
 		return sub.subscribe();
 	}
 	
 	private boolean subscribeRoad(int roadIndex) throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-		RoadSubscription sub = new RoadSubscription(roadIndex);
+		RoadSubscription sub = new RoadSubscription(appProfile,roadIndex);
 		roadSubs.add(sub);
 		new Thread(sub).start();
 		return sub.subscribe();

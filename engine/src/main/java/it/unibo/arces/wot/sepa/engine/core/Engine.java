@@ -132,11 +132,7 @@ public class Engine extends Thread implements EngineMBean {
 		}
 	}
 
-	public static void main(String[] args) throws MalformedObjectNameException, InstanceAlreadyExistsException,
-			MBeanRegistrationException, NotCompliantMBeanException, UnrecoverableKeyException, KeyManagementException,
-			InvalidKeyException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
-			IllegalArgumentException, NoSuchElementException, NullPointerException, ClassCastException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, URISyntaxException {
+	public static void main(String[] args) {
 
 		// Command arguments
 		parsingArgument(args);
@@ -178,7 +174,7 @@ public class Engine extends Thread implements EngineMBean {
 		try {
 			// Initialize
 			engine.init();
-		} catch (java.net.BindException e) {
+		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException | UnrecoverableKeyException | KeyManagementException | InvalidKeyException | KeyStoreException | NoSuchAlgorithmException | CertificateException | IllegalArgumentException | NoSuchElementException | NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | IOException | URISyntaxException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
 		}

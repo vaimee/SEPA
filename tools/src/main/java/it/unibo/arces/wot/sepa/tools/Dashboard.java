@@ -138,12 +138,12 @@ public class Dashboard {
 
 	private class DashboardClient extends GenericClient {
 
-		public DashboardClient(String jparFile)
+		public DashboardClient(ApplicationProfile jsap)
 				throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException,
 				UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
 				CertificateException, InvalidKeyException, NullPointerException, ClassCastException,
 				NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-			super(jparFile);
+			super(jsap);
 		}
 
 		@Override
@@ -176,29 +176,33 @@ public class Dashboard {
 		}
 
 		@Override
-		public void onAddedResults(BindingsResults bindingsResults) {
+		public void onSubscriptionError(ErrorResponse errorResponse) {
+			lblInfo.setText(errorResponse.toString());
+			logger.error(errorResponse.toString());
+		}
+
+		@Override
+		public void onAddedResults(BindingsResults results) {
+			// TODO Auto-generated method stub
 
 		}
 
 		@Override
-		public void onRemovedResults(BindingsResults bindingsResults) {
+		public void onRemovedResults(BindingsResults results) {
+			// TODO Auto-generated method stub
 
 		}
 
 		@Override
 		public void onKeepAlive() {
-			logger.info("Keepalive");
+			// TODO Auto-generated method stub
+
 		}
 
 		@Override
 		public void onBrokenSubscription() {
-			logger.warn("Broken subscription");
-		}
+			// TODO Auto-generated method stub
 
-		@Override
-		public void onSubscriptionError(ErrorResponse errorResponse) {
-			lblInfo.setText(errorResponse.toString());
-			logger.error(errorResponse.toString());
 		}
 	}
 
@@ -696,7 +700,7 @@ public class Dashboard {
 				return false;
 			}
 
-			//Properties sapFile = new Properties();
+			// Properties sapFile = new Properties();
 			try {
 				appProperties.load(in);
 			} catch (IOException e) {
@@ -747,7 +751,7 @@ public class Dashboard {
 		}
 
 		try {
-			sepaClient = new DashboardClient(file);
+			sepaClient = new DashboardClient(appProfile);
 		} catch (IllegalArgumentException | NoSuchElementException | IOException | UnrecoverableKeyException
 				| KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException
 				| URISyntaxException e) {
@@ -905,9 +909,10 @@ public class Dashboard {
 		JButton btnLoadXmlProfile = new JButton("Load SAP profile");
 		btnLoadXmlProfile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//String path = appProperties.getProperty("path");
+				// String path = appProperties.getProperty("path");
 				final JFileChooser fc = new JFileChooser(appProperties.getProperty("appProfile"));
-				//final JFileChooser fc = new JFileChooser("/Users/luca/Documents/SEPAProject/WOTDemo/tools/");
+				// final JFileChooser fc = new
+				// JFileChooser("/Users/luca/Documents/SEPAProject/WOTDemo/tools/");
 				DashboardFileFilter filter = new DashboardFileFilter("JSON SAP Profile (.jsap)", ".jsap");
 				fc.setFileFilter(filter);
 				int returnVal = fc.showOpenDialog(frmSepaDashboard);
@@ -927,7 +932,7 @@ public class Dashboard {
 
 							appProperties = new Properties();
 							appProperties.put("appProfile", fileName);
-							
+
 							try {
 								appProperties.store(out, "Dashboard properties");
 							} catch (IOException e1) {
@@ -1351,9 +1356,9 @@ public class Dashboard {
 
 				String status = "DONE";
 				if (result.isError()) {
-					status = "FAILED "+((ErrorResponse)result).getErrorMessage();
+					status = "FAILED " + ((ErrorResponse) result).getErrorMessage();
 				}
-				lblInfo.setText("UPDATE ("+ (stop - start) + " ms): " + status);
+				lblInfo.setText("UPDATE (" + (stop - start) + " ms): " + status);
 			}
 		});
 
@@ -1386,54 +1391,53 @@ public class Dashboard {
 		gbl_panel.columnWeights = new double[] { 1.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		gbl_panel.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
 		panel.setLayout(gbl_panel);
-		
-				btnQuery = new JButton("QUERY");
-				btnQuery.setEnabled(false);
-				btnQuery.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						Bindings forced = new Bindings();
-						for (int index = 0; index < subscribeForcedBindings.getRowCount(); index++) {
-							String value = (String) subscribeForcedBindings.getValueAt(index, 1);
-							boolean literal = (boolean) subscribeForcedBindings.getValueAt(index, 2);
-							String var = (String) subscribeForcedBindings.getValueAt(index, 0);
 
-							if (value.equals("")) {
-								lblInfo.setText("Please specify binding value: " + var);
-								return;
-							}
+		btnQuery = new JButton("QUERY");
+		btnQuery.setEnabled(false);
+		btnQuery.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Bindings forced = new Bindings();
+				for (int index = 0; index < subscribeForcedBindings.getRowCount(); index++) {
+					String value = (String) subscribeForcedBindings.getValueAt(index, 1);
+					boolean literal = (boolean) subscribeForcedBindings.getValueAt(index, 2);
+					String var = (String) subscribeForcedBindings.getValueAt(index, 0);
 
-							if (literal)
-								forced.addBinding(var, new RDFTermLiteral(value));
-							else
-								forced.addBinding(var, new RDFTermURI(value));
-						}
-
-						String query = SPARQLSubscribe.getText().replaceAll("[\n\t]", "");
-
-						lblInfo.setText("Running query...");
-						long start = System.currentTimeMillis();
-						response = sepaClient.query(prefixes() + query, forced);
-						long stop = System.currentTimeMillis();
-
-						String status = "DONE";
-						if (response.isError()) {
-							status = "FAILED "+((ErrorResponse)response).getErrorMessage();
-						}
-						else {
-							bindingsDM.clear();
-							BindingsResults ret = ((QueryResponse) response).getBindingsResults();
-							bindingsDM.setAddedResults(ret);
-							status = " "+ ret.size() + " bindings results";
-						}
-						
-						lblInfo.setText("QUERY ("+(stop - start) + " ms) :"+status);
+					if (value.equals("")) {
+						lblInfo.setText("Please specify binding value: " + var);
+						return;
 					}
-				});
-				GridBagConstraints gbc_btnQuery = new GridBagConstraints();
-				gbc_btnQuery.insets = new Insets(0, 0, 0, 5);
-				gbc_btnQuery.gridx = 0;
-				gbc_btnQuery.gridy = 0;
-				panel.add(btnQuery, gbc_btnQuery);
+
+					if (literal)
+						forced.addBinding(var, new RDFTermLiteral(value));
+					else
+						forced.addBinding(var, new RDFTermURI(value));
+				}
+
+				String query = SPARQLSubscribe.getText().replaceAll("[\n\t]", "");
+
+				lblInfo.setText("Running query...");
+				long start = System.currentTimeMillis();
+				response = sepaClient.query(prefixes() + query, forced);
+				long stop = System.currentTimeMillis();
+
+				String status = "DONE";
+				if (response.isError()) {
+					status = "FAILED " + ((ErrorResponse) response).getErrorMessage();
+				} else {
+					bindingsDM.clear();
+					BindingsResults ret = ((QueryResponse) response).getBindingsResults();
+					bindingsDM.setAddedResults(ret);
+					status = " " + ret.size() + " bindings results";
+				}
+
+				lblInfo.setText("QUERY (" + (stop - start) + " ms) :" + status);
+			}
+		});
+		GridBagConstraints gbc_btnQuery = new GridBagConstraints();
+		gbc_btnQuery.insets = new Insets(0, 0, 0, 5);
+		gbc_btnQuery.gridx = 0;
+		gbc_btnQuery.gridy = 0;
+		panel.add(btnQuery, gbc_btnQuery);
 
 		spuidLabel = new JLabel("SPUID");
 		GridBagConstraints gbc_spuidLabel = new GridBagConstraints();
@@ -1442,76 +1446,62 @@ public class Dashboard {
 		gbc_spuidLabel.gridx = 1;
 		gbc_spuidLabel.gridy = 0;
 		panel.add(spuidLabel, gbc_spuidLabel);
-		
-				btnSubscribe = new JButton("SUBSCRIBE");
-				btnSubscribe.setEnabled(false);
-				btnSubscribe.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						if (btnSubscribe.getText().equals("SUBSCRIBE")) {
-							Bindings forced = new Bindings();
-							for (int index = 0; index < subscribeForcedBindings.getRowCount(); index++) {
-								String value = (String) subscribeForcedBindings.getValueAt(index, 1);
-								boolean literal = (boolean) subscribeForcedBindings.getValueAt(index, 2);
-								String var = (String) subscribeForcedBindings.getValueAt(index, 0);
 
-								if (value.equals("")) {
-									lblInfo.setText("Please specify binding value: " + var);
-									return;
-								}
-								;
+		btnSubscribe = new JButton("SUBSCRIBE");
+		btnSubscribe.setEnabled(false);
+		btnSubscribe.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (btnSubscribe.getText().equals("SUBSCRIBE")) {
+					Bindings forced = new Bindings();
+					for (int index = 0; index < subscribeForcedBindings.getRowCount(); index++) {
+						String value = (String) subscribeForcedBindings.getValueAt(index, 1);
+						boolean literal = (boolean) subscribeForcedBindings.getValueAt(index, 2);
+						String var = (String) subscribeForcedBindings.getValueAt(index, 0);
 
-								if (literal)
-									forced.addBinding(var, new RDFTermLiteral(value));
-								else
-									forced.addBinding(var, new RDFTermURI(value));
-							}
-
-							String query = SPARQLSubscribe.getText().replaceAll("[\n\t]", "");
-
-							try {
-								response = sepaClient.subscribe(prefixes() + query, forced);
-							} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-									| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException
-									| InterruptedException | UnrecoverableKeyException | KeyManagementException
-									| KeyStoreException | CertificateException e1) {
-								lblInfo.setText("Subscription failed: " + e1.getMessage());
-								return;
-							}
-
-							if (response.getClass().equals(ErrorResponse.class)) {
-								lblInfo.setText(response.toString());
-								return;
-							}
-							btnSubscribe.setText("UNSUBSCRIBE");
-							spuidLabel.setText(((SubscribeResponse) response).getSpuid());
-							
-							bindingsDM.clear();
-							BindingsResults ret = ((SubscribeResponse) response).getBindingsResults();
-							bindingsDM.setAddedResults(ret);
-							lblInfo.setText("Subscribed. First results: "+ret.size());
-							
-						} else {
-							try {
-								response = sepaClient.unsubscribe();
-								if (response.getClass().equals(UnsubscribeResponse.class)) {
-									lblInfo.setText("Unsubscribed");
-								}
-							} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-									| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException
-									| InterruptedException | UnrecoverableKeyException | KeyManagementException
-									| KeyStoreException | CertificateException e1) {
-								lblInfo.setText(e1.getMessage());
-							}
-
-							btnSubscribe.setText("SUBSCRIBE");
-							spuidLabel.setText("SPUID");
+						if (value.equals("")) {
+							lblInfo.setText("Please specify binding value: " + var);
+							return;
 						}
+						;
+
+						if (literal)
+							forced.addBinding(var, new RDFTermLiteral(value));
+						else
+							forced.addBinding(var, new RDFTermURI(value));
 					}
-				});
-				GridBagConstraints gbc_btnSubscribe = new GridBagConstraints();
-				gbc_btnSubscribe.gridx = 3;
-				gbc_btnSubscribe.gridy = 0;
-				panel.add(btnSubscribe, gbc_btnSubscribe);
+
+					String query = SPARQLSubscribe.getText().replaceAll("[\n\t]", "");
+
+					response = sepaClient.subscribe(prefixes() + query, forced);
+
+					if (response.getClass().equals(ErrorResponse.class)) {
+						lblInfo.setText(response.toString());
+						return;
+					}
+					btnSubscribe.setText("UNSUBSCRIBE");
+					spuidLabel.setText(((SubscribeResponse) response).getSpuid());
+
+					bindingsDM.clear();
+					BindingsResults ret = ((SubscribeResponse) response).getBindingsResults();
+					bindingsDM.setAddedResults(ret);
+					lblInfo.setText("Subscribed. First results: " + ret.size());
+
+				} else {
+
+					response = sepaClient.unsubscribe(spuidLabel.getText());
+					if (response.getClass().equals(UnsubscribeResponse.class)) {
+						lblInfo.setText("Unsubscribed");
+					}
+
+					btnSubscribe.setText("SUBSCRIBE");
+					spuidLabel.setText("SPUID");
+				}
+			}
+		});
+		GridBagConstraints gbc_btnSubscribe = new GridBagConstraints();
+		gbc_btnSubscribe.gridx = 3;
+		gbc_btnSubscribe.gridy = 0;
+		panel.add(btnSubscribe, gbc_btnSubscribe);
 
 		resultsPanel = new JPanel();
 		resultsPanel.setBorder(new TitledBorder(null, "Results", TitledBorder.LEADING, TitledBorder.TOP, null, null));

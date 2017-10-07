@@ -21,17 +21,11 @@ package it.unibo.arces.wot.sepa.pattern;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,10 +55,6 @@ public abstract class Aggregator extends Consumer implements IAggregator {
 		
 		sparqlUpdate = appProfile.update(updateID);
 	} 
-		
-	public Aggregator(String jparFile) throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-		super(jparFile);
-	}
 
 	public Response update(Bindings forcedBindings){	 
 		 if (protocolClient == null || sparqlUpdate == null) {
@@ -75,10 +65,5 @@ public abstract class Aggregator extends Consumer implements IAggregator {
 		 String sparql = prefixes() + replaceBindings(sparqlUpdate,forcedBindings);		 		 
 		 
 		 return protocolClient.update(new UpdateRequest(sparql));
-		 
-//		 Response response = protocolClient.update(new UpdateRequest(sparql));
-//		 logger.debug(response.toString());
-//		 
-//		 return !(response.getClass().equals(ErrorResponse.class));
 	 }
 }
