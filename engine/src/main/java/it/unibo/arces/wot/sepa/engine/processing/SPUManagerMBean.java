@@ -17,4 +17,7 @@ public interface SPUManagerMBean {
 	
 	public void setKeepalive(int t);	
 	public int getKeepalive();
+	
+	public long getSPUProcessingTimeout();
+	public void setSPUProcessingTimeout(long t);
 }

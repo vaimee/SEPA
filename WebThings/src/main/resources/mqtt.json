@@ -1,7 +1,0 @@
-{
-	"url" : "giove.arces.unibo.it" ,
-	"port" : 52877 ,
-	"topics" : ["#"]
-	 ,
-	"ssl" : false
-}

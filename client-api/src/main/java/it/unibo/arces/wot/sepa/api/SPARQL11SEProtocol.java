@@ -361,13 +361,13 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 					properties.setCredentials(json.get("client_id").getAsString(),
 							json.get("client_secret").getAsString());
 				} catch (IOException e) {
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to save credentials");
+					return new ErrorResponse(-1,HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to save credentials");
 				}
 
 				return new RegistrationResponse(json.get("client_id").getAsString(),
 						json.get("client_secret").getAsString(), json.get("signature"));
 			}
-			return new ErrorResponse(0, HttpStatus.SC_INTERNAL_SERVER_ERROR,
+			return new ErrorResponse(-1, HttpStatus.SC_INTERNAL_SERVER_ERROR,
 					"Credentials not found in registration response");
 		}
 
@@ -380,7 +380,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 					properties.setJWT(json.get("access_token").getAsString(), expires,
 							json.get("token_type").getAsString());
 				} catch (IOException e) {
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to save JWT");
+					return new ErrorResponse(-1,HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to save JWT");
 				}
 				return new JWTResponse(json.get("access_token").getAsString(), json.get("token_type").getAsString(),
 						json.get("expires_in").getAsLong());

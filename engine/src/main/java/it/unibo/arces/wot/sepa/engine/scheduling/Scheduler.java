@@ -40,34 +40,25 @@ import javax.management.NotCompliantMBeanException;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
 
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
-import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
 /**
  * This class represents the scheduler of the SPARQL Event Processing Engine
  */
 
-public class Scheduler implements SchedulerMBean, Observer {
+public class Scheduler extends Observable implements SchedulerMBean, Observer {
 	private static final Logger logger = LogManager.getLogger("Scheduler");
 
 	// Request tokens
 	private Vector<Integer> tokens = new Vector<Integer>();
-
-	// Processor
-	private Processor processor;
 
 	// Responders
 	private HashMap<Integer, ResponseHandler> responders = new HashMap<Integer, ResponseHandler>();
@@ -86,59 +77,42 @@ public class Scheduler implements SchedulerMBean, Observer {
 		for (int i = 0; i < properties.getSchedulingQueueSize(); i++)
 			tokens.addElement(i);
 
-		// SPARQL 1.1 SE request processor
-		SPARQL11Properties endpointProperties = new SPARQL11Properties("endpoint.jpar");
-		processor = new Processor(endpointProperties,properties);
-		processor.addObserver(this);
-
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
 	}
-	
-	public synchronized int schedule(Request request, ResponseHandler handler) {
-		if (request == null) {
-			logger.error("Request is null");
-			return -1;
-		}
 
-		// GET TOKEN
+	public synchronized void schedule(Request request, ResponseHandler handler) {
 		int token = getToken();
-
 		if (token == -1) {
-			SchedulerBeans.newRequest(request, false);
-			logger.error("Request refused: too many pending requests");
-		} else {
-			SchedulerBeans.newRequest(request, true);
-
-			// Set request TOKEN
-			request.setToken(token);
-			responders.put(request.getToken(), handler);
-
-			logger.debug("Schedule request: " + request);
-
-			if (request.isUpdateRequest()) processor.processUpdate((UpdateRequest) request);
-			else if (request.isSubscribeRequest()) processor.processSubscribe((SubscribeRequest) request, (EventHandler)handler);
-			else if (request.isQueryRequest()) processor.processQuery((QueryRequest) request);
-			else if (request.isUnsubscribeRequest()) processor.processUnsubscribe((UnsubscribeRequest) request);
+			try {
+				handler.sendResponse(new ErrorResponse(-1, 500, "Request refused: too many pending requests"));
+			} catch (IOException e) {
+				logger.error("Failed to send response on out of tokens");
+			}
+			return;
 		}
 
-		return token;
+		// Responder
+		responders.put(token, handler);
+
+		// Notify observers
+		setChanged();
+		notifyObservers(new ScheduledRequest(token, request, handler));
 	}
 
 	@Override
-	public void update(Observable o, Object arg) {	
-		Response ret = (Response)arg;
-		
+	public void update(Observable o, Object arg) {
+		Response response = (Response) arg;
 		try {
-			responders.get(ret.getToken()).sendResponse(ret);
+			responders.get(response.getToken()).sendResponse(response);
 		} catch (IOException e) {
-			logger.warn("Failed to send response: " + ret);
+			logger.error("Failed to send response: " + e.getMessage());
 		}
-		responders.remove(ret.getToken());
-		
+		responders.remove(response.getToken());
+
 		// RELEASE TOKEN
-		releaseToken(ret.getToken());
+		releaseToken(response.getToken());
 	}
 
 	/**

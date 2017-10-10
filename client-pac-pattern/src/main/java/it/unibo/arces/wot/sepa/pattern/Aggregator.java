@@ -59,7 +59,7 @@ public abstract class Aggregator extends Consumer implements IAggregator {
 	public Response update(Bindings forcedBindings){	 
 		 if (protocolClient == null || sparqlUpdate == null) {
 			 logger.fatal("Aggregator not initialized");			 
-			 return new ErrorResponse(400,"Aggregator not initialized");
+			 return new ErrorResponse(-1,400,"Aggregator not initialized");
 		 }
 		 
 		 String sparql = prefixes() + replaceBindings(sparqlUpdate,forcedBindings);		 		 

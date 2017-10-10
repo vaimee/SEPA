@@ -6,8 +6,6 @@ import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
-//import java.util.Observable;
-//import java.util.Observer;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -27,13 +25,13 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 public class SchedulerTest {
 	private static Scheduler scheduler;
 	
-	public class ResponseObserver implements ResponseHandler {
+	public class Handler implements ResponseHandler {
 
 		@Override
 		public void sendResponse(Response response) throws IOException {
-			System.out.println(response.toString());
+			System.out.println(response);
 			
-		}	
+		}
 	}
 	
 	public static void main(String[] args) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, IllegalArgumentException, URISyntaxException, MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException, NotCompliantMBeanException{
@@ -42,8 +40,7 @@ public class SchedulerTest {
 		System.out.println(properties.toString());
 		
 		scheduler = new Scheduler(properties);
-		ResponseObserver observer = new SchedulerTest().new ResponseObserver();
-//		scheduler.addObserver(observer);
+		Handler handler = new SchedulerTest().new Handler();
 		
 		while(true) {
 			try {
@@ -53,10 +50,10 @@ public class SchedulerTest {
 				e.printStackTrace();
 			}
 			UpdateRequest update = new UpdateRequest("PREFIX test:<http://sepa/test#> delete {?s ?p ?o} insert {test:s test:p \""+Math.random()+"\"} where {OPTIONAL{?s ?p ?o}}");
-			scheduler.schedule(update,observer);
+			scheduler.schedule(update,handler);
 			
 			QueryRequest query = new QueryRequest("select * where {?s ?p ?o}");
-			scheduler.schedule(query,observer);
+			scheduler.schedule(query,handler);
 			
 		}
 		

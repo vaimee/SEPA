@@ -122,7 +122,7 @@ public abstract class Consumer extends Client implements IConsumer,INotification
 
 		if (protocolClient == null) {
 			logger.fatal("Client not initialized");
-			return new ErrorResponse(400,"Client not initialized");
+			return new ErrorResponse(-1,400,"Client not initialized");
 		}
 
 		return protocolClient.unsubscribe(new UnsubscribeRequest(subID));

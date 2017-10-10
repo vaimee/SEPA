@@ -1351,7 +1351,7 @@ public class Dashboard {
 				String update = SPARQLUpdate.getText().replaceAll("[\n\t]", "");
 
 				long start = System.currentTimeMillis();
-				Response result = sepaClient.update(prefixes() + update, forced);
+				Response result = sepaClient.update(update, forced);
 				long stop = System.currentTimeMillis();
 
 				String status = "DONE";
@@ -1417,7 +1417,7 @@ public class Dashboard {
 
 				lblInfo.setText("Running query...");
 				long start = System.currentTimeMillis();
-				response = sepaClient.query(prefixes() + query, forced);
+				response = sepaClient.query(query, forced);
 				long stop = System.currentTimeMillis();
 
 				String status = "DONE";
@@ -1472,7 +1472,7 @@ public class Dashboard {
 
 					String query = SPARQLSubscribe.getText().replaceAll("[\n\t]", "");
 
-					response = sepaClient.subscribe(prefixes() + query, forced);
+					response = sepaClient.subscribe(query, forced);
 
 					if (response.getClass().equals(ErrorResponse.class)) {
 						lblInfo.setText(response.toString());
@@ -1591,17 +1591,5 @@ public class Dashboard {
 		gbc_btnClean.gridy = 0;
 		panel_1.add(btnClean, gbc_btnClean);
 		bindingsRender.setNamespaces(namespacesDM);
-	}
-
-	protected String prefixes() {
-		String prefixes = "";
-		@SuppressWarnings("unchecked")
-		Vector<Vector<String>> ns = namespacesDM.getDataVector();
-		for (int row = 0; row < namespacesDM.getRowCount(); row++) {
-			String prefix = (String) ns.elementAt(row).elementAt(0);
-			String namespace = (String) ns.elementAt(row).elementAt(1);
-			prefixes += "PREFIX " + prefix + ":<" + namespace + "> ";
-		}
-		return prefixes;
 	}
 }

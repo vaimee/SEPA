@@ -3,6 +3,8 @@ package it.unibo.arces.wot.sepa.engine.protocol.http.handler;
 import java.time.Instant;
 
 import org.apache.http.nio.protocol.HttpAsyncExchange;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -14,7 +16,8 @@ import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 
 public class SPARQL11ResponseHandler implements ResponseHandler {
-
+	protected final Logger logger = LogManager.getLogger("SPARQL11ResponseHandler");
+	
 	private HttpAsyncExchange handler;
 	private HTTPHandlerBeans jmx;
 	
@@ -33,8 +36,7 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 		else
 			HttpUtilities.sendResponse(handler, json.get("code").getAsInt(), json.toString());	
 		
-		jmx.timings(handler);
-		
+		logger.info("Response #"+response.getToken()+" ("+jmx.timings(handler)+" ms)");	
 	}
 
 }

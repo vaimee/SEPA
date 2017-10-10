@@ -41,6 +41,7 @@ public class MQTTServerMonitoring {
 			System.exit(1);
 		}
 		
+		logger.info("Create initializer");
 		try {
 			mqttInitializer = new Producer(new ApplicationProfile(args[0]),"ADD_OBSERVATION");
 		} catch (UnrecoverableKeyException | KeyManagementException | InvalidKeyException | IllegalArgumentException
@@ -52,8 +53,10 @@ public class MQTTServerMonitoring {
 		}
 
 		// Semantic mappings
+		logger.info("Parse semantic mappings");
 		JsonObject mappings = mqttInitializer.getApplicationProfile().getExtendedData().get("semantic-mappings").getAsJsonObject();
 
+		logger.info("Add observations");
 		for (Entry<String, JsonElement> mapping : mappings.entrySet()) {
 			String topic = mapping.getKey();
 
@@ -66,6 +69,8 @@ public class MQTTServerMonitoring {
 			addObservation(observation, comment, label, location, unit, topic);
 		}
 		
+		//Create MQTT adapter
+		logger.info("Create MQTT adapter");
 		try {
 			adapter = new MQTTSmartifier(args[0]);
 		} catch (UnrecoverableKeyException | KeyManagementException | InvalidKeyException | IllegalArgumentException
@@ -76,6 +81,7 @@ public class MQTTServerMonitoring {
 			System.exit(1);
 		}
 
+		logger.info("Start MQTT adapter");
 		try {
 			adapter.start();
 		} catch (KeyManagementException | UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException
@@ -91,6 +97,7 @@ public class MQTTServerMonitoring {
 			logger.warn(e.getMessage());
 		}
 
+		logger.info("Stop MQTT adapter");
 		adapter.stop();
 
 		logger.info("Stopped");

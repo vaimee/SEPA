@@ -62,7 +62,7 @@ public class Producer extends Client implements IProducer {
 	public Response update(Bindings forcedBindings){	 
 		 if (sparqlUpdate == null || protocolClient == null) {
 			 logger.fatal("Producer not initialized");
-			 return new ErrorResponse(400,"Producer not initialized");
+			 return new ErrorResponse(-1,400,"Producer not initialized");
 		 }
 
 		 String sparql = prefixes() + replaceBindings(sparqlUpdate,forcedBindings);

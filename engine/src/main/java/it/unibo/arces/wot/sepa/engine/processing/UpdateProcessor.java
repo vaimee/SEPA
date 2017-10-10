@@ -39,12 +39,13 @@ public class UpdateProcessor {
 	}
 
 	public synchronized Response process(UpdateRequest req, int timeout) {
-		logger.debug("* PROCESSING *");
 		
 		// UPDATE the endpoint
 		long start = System.currentTimeMillis();		
 		Response ret = endpoint.update(req, timeout);		
 		long stop = System.currentTimeMillis();
+		
+		logger.debug("* UPDATE PROCESSING ("+(stop-start)+" ms) *");
 		
 		ProcessorBeans.updateTimings(start, stop);
 		

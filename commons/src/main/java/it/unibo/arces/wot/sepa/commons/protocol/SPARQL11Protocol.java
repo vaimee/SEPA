@@ -143,7 +143,7 @@ public class SPARQL11Protocol {
 			// httpResponse =
 			// HttpClients.createDefault().execute(updateRequest);
 			timing = System.nanoTime() - timing;
-			logger.debug("UPDATE_TIME " + timing / 1000000 + " ms");
+			logger.debug("ENDPOINT UPDATE_TIME (" + timing / 1000000 + " ms)");
 
 			// Status code
 			responseCode = httpResponse.getStatusLine().getStatusCode();
@@ -288,7 +288,7 @@ public class SPARQL11Protocol {
 			timing = System.nanoTime();
 			httpResponse = httpClient.execute(queryRequest);
 			timing = System.nanoTime() - timing;
-			logger.debug("QUERY_TIME " + timing / 1000000 + " ms");
+			logger.debug("ENDPOINT QUERY TIME (" + timing / 1000000 + " ms)");
 
 			// Status code
 			responseCode = httpResponse.getStatusLine().getStatusCode();

@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.apps;
+package it.unibo.arces.wot.sepa.apps.randomnumbers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

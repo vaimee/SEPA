@@ -28,7 +28,7 @@ import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class WebsocketServer extends WebSocketServer implements WebsocketServerMBean {
-	private static final Logger logger = LogManager.getLogger("WebsocketServer");
+	private final Logger logger = LogManager.getLogger("WebsocketServer");
 
 	protected Scheduler scheduler;
 
@@ -41,8 +41,6 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	// Fragmentation support
 	private HashMap<WebSocket, String> fragmentedMessages = new HashMap<WebSocket, String>();
 
-	private HashMap<WebSocket, WebsocketEventHandler> eventHandlers = new HashMap<WebSocket, WebsocketEventHandler>();
-
 	// JMX
 	protected WebsocketBeans jmx = new WebsocketBeans();
 
@@ -54,7 +52,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			throw new IllegalArgumentException("One or more arguments are null");
 
 		this.scheduler = scheduler;
-
+		
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
 		String address = getAddress().getAddress().toString();
@@ -78,14 +76,10 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		logger.debug("@onClose Reason: <" + reason + "> Code: <" + code + "> Remote: <" + remote + ">¯");
 
 		fragmentedMessages.remove(conn);
-
-		eventHandlers.remove(conn);
 	}
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
-		logger.debug("@onMessage " + message);
-
 		jmx.onMessage();
 
 		Request req = parseRequest(message);
@@ -96,17 +90,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			conn.send(response.toString());
 			return;
 		}
-
-		if (eventHandlers.get(conn) == null) eventHandlers.put(conn, new WebsocketEventHandler(conn));
-		 
-		int requestToken = scheduler.schedule(req, eventHandlers.get(conn));
-
-		if (requestToken == -1) {
-			logger.debug("No more tokens");
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_INSUFFICIENT_STORAGE, "No more tokens");
-			conn.send(response.toString());
-			return;
-		}
+		
+		scheduler.schedule(req, new WebsocketEventHandler(conn,jmx));
 	}
 
 	/*

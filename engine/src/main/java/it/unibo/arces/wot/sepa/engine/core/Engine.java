@@ -19,6 +19,7 @@ package it.unibo.arces.wot.sepa.engine.core;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -38,10 +39,11 @@ import javax.management.NotCompliantMBeanException;
 
 import com.nimbusds.jose.JOSEException;
 
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
-
+import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpGate;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsGate;
@@ -59,10 +61,13 @@ import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
  */
 
 public class Engine extends Thread implements EngineMBean {
-	private static final Engine engine = new Engine();
-	
+	private static Engine engine = new Engine();
+
 	// Primitives scheduler/dispatcher
 	private static Scheduler scheduler = null;
+
+	// Primitives scheduler/dispatcher
+	private static Processor processor = null;
 
 	// SPARQL 1.1 Protocol handler
 	private static HttpGate httpGate = null;
@@ -171,12 +176,15 @@ public class Engine extends Thread implements EngineMBean {
 			System.exit(1);
 		}
 
-		try {
-			// Initialize
-			engine.init();
-		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException | NotCompliantMBeanException | UnrecoverableKeyException | KeyManagementException | InvalidKeyException | KeyStoreException | NoSuchAlgorithmException | CertificateException | IllegalArgumentException | NoSuchElementException | NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | IOException | URISyntaxException e) {
-			System.err.println(e.getMessage());
-			System.exit(-1);
+		// Initialize
+		while (!engine.init()) {
+			engine = new Engine();
+			System.err.println("Failed to initialized. Retry in 5 seconds");
+			try {
+				Thread.sleep(5000);
+			} catch (InterruptedException e) {
+				System.exit(1);
+			}
 		}
 
 		// Starting main engine thread
@@ -191,11 +199,7 @@ public class Engine extends Thread implements EngineMBean {
 		this.setName("SEPA Engine");
 	}
 
-	public boolean init() throws MalformedObjectNameException, InstanceAlreadyExistsException,
-			MBeanRegistrationException, NotCompliantMBeanException, UnrecoverableKeyException, KeyManagementException,
-			KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException, InvalidKeyException,
-			IllegalArgumentException, NoSuchElementException, NullPointerException, ClassCastException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
+	public boolean init() {
 
 		// Initialize SPARQL 1.1 SE processing service properties
 		EngineProperties properties;
@@ -207,21 +211,64 @@ public class Engine extends Thread implements EngineMBean {
 		}
 
 		// SPARQL 1.1 SE request scheduler
-		scheduler = new Scheduler(properties);
+		try {
+			scheduler = new Scheduler(properties);
+		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException
+				| NotCompliantMBeanException | InvalidKeyException | IllegalArgumentException | NoSuchElementException
+				| NullPointerException | ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException
+				| IllegalBlockSizeException | BadPaddingException | IOException | URISyntaxException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+
+		// SEPA Processor
+		try {
+			processor = new Processor(new SPARQL11Properties("endpoint.jpar"), properties);
+		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException
+				| NotCompliantMBeanException | InvalidKeyException | NoSuchElementException | NullPointerException
+				| ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
+				| BadPaddingException | IllegalArgumentException | IOException | URISyntaxException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+
+		scheduler.addObserver(processor);
+		processor.addObserver(scheduler);
 
 		// SPARQL 1.1 Protocol
 		httpGate = new HttpGate(properties, scheduler);
-		httpGate.init();
+		try {
+			httpGate.init();
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
 
 		// SPARQL 1.1 SE Protocol
 		httpsGate = new HttpsGate(properties, scheduler, oauth);
-		httpsGate.init();
+		try {
+			httpsGate.init();
+		} catch (IOException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
 
-		wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
-				properties.getKeepAlivePeriod());
-		wssServer = new SecureWebsocketServer(properties.getWssPort(),
-				properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth,
-				properties.getKeepAlivePeriod());
+		try {
+			wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
+					properties.getKeepAlivePeriod());
+		} catch (IllegalArgumentException | UnknownHostException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
+		try {
+			wssServer = new SecureWebsocketServer(properties.getWssPort(),
+					properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth,
+					properties.getKeepAlivePeriod());
+		} catch (KeyManagementException | IllegalArgumentException | UnknownHostException
+				| NoSuchAlgorithmException e) {
+			System.err.println(e.getMessage());
+			return false;
+		}
 
 		return true;
 	}
@@ -232,14 +279,10 @@ public class Engine extends Thread implements EngineMBean {
 		System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 		System.out.println("----------------------");
 
-		httpGate.start();
-		synchronized (httpGate) {
-			try {
-				httpGate.wait(5000);
-			} catch (InterruptedException e) {
-				System.err.println(e.getMessage());
-				return;
-			}
+		try {
+			httpGate.start();
+		} catch (IOException e1) {
+			System.err.print(e1.getMessage());
 		}
 
 		System.out.println("----------------------");
@@ -247,14 +290,10 @@ public class Engine extends Thread implements EngineMBean {
 		System.out.println("SPARQL 1.1 SE Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)");
 		System.out.println("----------------------");
 
-		httpsGate.start();
-		synchronized (httpsGate) {
-			try {
-				httpsGate.wait(5000);
-			} catch (InterruptedException e) {
-				System.err.println(e.getMessage());
-				return;
-			}
+		try {
+			httpsGate.start();
+		} catch (IOException e1) {
+			System.err.print(e1.getMessage());
 		}
 
 		wsServer.start();
@@ -290,10 +329,10 @@ public class Engine extends Thread implements EngineMBean {
 		System.out.println("Stopping...");
 
 		System.out.println("Stopping HTTP gate...");
-		httpGate.interrupt();
-
-		System.out.println("Stopping HTTPS gate...");
-		httpsGate.interrupt();
+		httpGate.shutdown();
+		
+		 System.out.println("Stopping HTTPS gate...");
+		 httpsGate.shutdown();
 
 		try {
 			System.out.println("Stopping WS gate...");

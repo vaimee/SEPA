@@ -40,10 +40,9 @@ public class HttpsGate extends HttpGate {
 	}
 
 	public void init() throws IOException {
-		setName(serverInfo);
+		// setName(serverInfo);
 
-		IOReactorConfig config = IOReactorConfig.custom().setTcpNoDelay(true)
-				.build();
+		IOReactorConfig config = IOReactorConfig.custom().setTcpNoDelay(true).setSoReuseAddress(true).build();
 
 		try {
 			server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
@@ -60,25 +59,40 @@ public class HttpsGate extends HttpGate {
 			logger.error(e.getMessage());
 			throw new IOException(e.getMessage());
 		}
-
-		server.start();
 	}
 
-	public void run() {
+	public void shutdown() {
+		server.shutdown(5, TimeUnit.SECONDS);
+
+		try {
+			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			logger.info("HTTP gate interrupted: " + e.getMessage());
+		}
+	}
+
+	// @Override
+	public void start() throws IOException {
+		server.start();
+
+		if (server.getEndpoint().getException() != null) {
+			throw new IOException(server.getEndpoint().getException().getMessage());
+		}
+
 		String address = server.getEndpoint().getAddress().toString();
 		try {
 			address = Inet4Address.getLocalHost().getHostAddress();
 		} catch (UnknownHostException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			throw new IOException(e1.getMessage());
 		}
-		EngineBeans.setSecureQueryURL("https://" + address + ":" + properties.getHttpsPort()+properties.getSecurePath()
-				+ properties.getQueryPath());
-		EngineBeans.setSecureUpdateURL("https://" + address + ":" + properties.getHttpsPort()+properties.getSecurePath()
-				+ properties.getUpdatePath());
-		EngineBeans.setRegistrationURL("https://" + address + ":" + properties.getHttpsPort()+properties.getRegisterPath());
-		EngineBeans
-				.setTokenRequestURL("https://" + address + ":" + properties.getHttpsPort()+ properties.getTokenRequestPath());
+		EngineBeans.setSecureQueryURL("https://" + address + ":" + properties.getHttpsPort()
+				+ properties.getSecurePath() + properties.getQueryPath());
+		EngineBeans.setSecureUpdateURL("https://" + address + ":" + properties.getHttpsPort()
+				+ properties.getSecurePath() + properties.getUpdatePath());
+		EngineBeans.setRegistrationURL(
+				"https://" + address + ":" + properties.getHttpsPort() + properties.getRegisterPath());
+		EngineBeans.setTokenRequestURL(
+				"https://" + address + ":" + properties.getHttpsPort() + properties.getTokenRequestPath());
 
 		System.out.println("SPARQL 1.1 SE Query  | " + EngineBeans.getSecureQueryURL());
 		System.out.println("SPARQL 1.1 SE Update | " + EngineBeans.getSecureUpdateURL());
@@ -89,18 +103,18 @@ public class HttpsGate extends HttpGate {
 			notify();
 		}
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			@Override
-			public void run() {
-				server.shutdown(5, TimeUnit.SECONDS);
-			}
-		});
-		
-		try {
-			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-		} catch (InterruptedException e) {
-			logger.info("HTTPS gate interrupted: "+e.getMessage());
-			return;
-		}
+		// Runtime.getRuntime().addShutdownHook(new Thread() {
+		// @Override
+		// public void run() {
+		// server.shutdown(5, TimeUnit.SECONDS);
+		// }
+		// });
+		//
+		// try {
+		// server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+		// } catch (InterruptedException e) {
+		// logger.info("HTTPS gate interrupted: "+e.getMessage());
+		// return;
+		// }
 	}
 }

@@ -1,12 +1,8 @@
 package it.unibo.arces.wot.sepa.engine.bean;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-//import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-//import it.unibo.arces.wot.sepa.commons.request.Request;
 
 public class ProcessorBeans {
-//	private static int totalQueryRequests = 0;
-//	private static int totalRequests = 0;
 	
 	private static int updateRequests = 0;
 	private static float queryMinTime = -1;
@@ -20,14 +16,12 @@ public class ProcessorBeans {
 	private static float updateMaxTime = -1;
 	private static float updateTime = -1;
 	
-	// Endpoint properties
 	private static String host;
 	private static int port;
 	private static String queryPath;
 	private static String updatePath;
 	private static String updateMethod;
 	private static String queryMethod;
-//	private static int spusRequests;
 	private static int updateTimeout;
 	private static int queryTimeout;
 	
@@ -102,11 +96,8 @@ public class ProcessorBeans {
 	}
 	
 	public static void reset() {
-		 //totalQueryRequests = 0;
-//		 totalRequests = 0;
 		 updateRequests = 0;
 		 queryRequests = 0 ;
-//		 spusRequests = 0;
 		 
 		 queryMinTime = -1;
 		 queryAverageTime = -1;
@@ -118,20 +109,6 @@ public class ProcessorBeans {
 		 updateMaxTime = -1;
 		 updateTime = -1;
 	}
-
-//	public static void newRequest(Request request) {
-//		totalRequests++;
-//		
-//		if (request.getClass().equals(QueryRequest.class)) {
-//			queryRequests++;
-//			spusRequests = (totalQueryRequests- queryRequests);
-//		}
-//	}
-	
-//	public static String getStatistics() {
-//		long spus = (totalQueryRequests- queryRequests);
-//		return String.format("Queries (SPUs) %d (%d) [%.0f %.0f %.0f] Updates %d [%.0f %.0f %.0f]", queryRequests,spus,queryMinTime,queryAverageTime,queryMaxTime,updateRequests,updateMinTime,updateAverageTime,updateMaxTime);
-//	}
 	
 	public static float getQueryTime_ms() {
 		return queryTime;
@@ -148,10 +125,6 @@ public class ProcessorBeans {
 	public static long getProcessedQueryRequests() {
 		return queryRequests;
 	}
-
-//	public static long getProcessedSPURequests() {
-//		return spusRequests;
-//	}
 
 	public static long getProcessedUpdateRequests() {
 		return updateRequests;
