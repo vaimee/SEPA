@@ -40,12 +40,12 @@ public class QueryProcessor {
 	}
 
 	public synchronized Response process(QueryRequest req, int timeout) {
-		logger.debug("* PROCESSING *");
-		
 		//QUERY the endpoint
 		long start = System.currentTimeMillis();		
 		Response ret = endpoint.query(req, timeout);	
 		long stop = System.currentTimeMillis();
+		
+		logger.debug("* QUERY PROCESSING ("+(stop-start)+" ms) *");
 		
 		ProcessorBeans.queryTimings(start, stop);
 		

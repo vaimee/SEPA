@@ -38,18 +38,18 @@ public class HTTPHandlerBeans {
 		 handledRequests = 0;
 	}
 
-	public void newRequest(HttpAsyncExchange httpExchange, Instant start) {
+	public void newRequest(HttpAsyncExchange handler, Instant start) {
 		requests++;
-		timings.put(httpExchange, start);
+		timings.put(handler, start);
 	}
 	
-	public void timings(HttpAsyncExchange exchange) {
+	public float timings(HttpAsyncExchange handler) {
 
 		handledRequests++;
-		if (timings.get(exchange) == null) return;
+		if (timings.get(handler) == null) return 0;
 		
-		requestHandlingTime = Instant.now().toEpochMilli() - timings.get(exchange).toEpochMilli();
-		timings.remove(exchange);
+		requestHandlingTime = Instant.now().toEpochMilli() - timings.get(handler).toEpochMilli();
+		timings.remove(handler);
 
 		if (requestHandlingMinTime == -1)
 			requestHandlingMinTime = requestHandlingTime;
@@ -66,6 +66,8 @@ public class HTTPHandlerBeans {
 		else
 			requestHandlingAverageTime = ((requestHandlingAverageTime * (handledRequests - 1)) + requestHandlingTime)
 					/ handledRequests;
+		
+		return requestHandlingTime;
 
 	}
 

@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.apps;
+package it.unibo.arces.wot.sepa.apps.randomnumbers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -52,11 +52,11 @@ public class GarbageCollector extends Aggregator {
 		SubscribeResponse results = (SubscribeResponse) ret;
 
 		for (Bindings binding : results.getBindingsResults().getBindings()) {
-			numbers += 2 * Integer.parseInt(binding.getBindingValue("size"));
-			logger.info("Total triples: " + numbers);
+			numbers += Integer.parseInt(binding.getBindingValue("numbers"));
+			logger.info("Total numbers: " + numbers);
 		}
 
-		if (numbers > getApplicationProfile().getExtendedData().get("gctriples").getAsInt()) {
+		if (numbers >= getApplicationProfile().getExtendedData().get("gcnumbers").getAsInt()) {
 			logger.info("Collecting triples...");
 			update(null);
 		}
@@ -68,11 +68,11 @@ public class GarbageCollector extends Aggregator {
 	public void onAddedResults(BindingsResults results) {
 		numbers = 0;
 		for (Bindings binding : results.getBindings()) {
-			numbers += 2 * Integer.parseInt(binding.getBindingValue("size"));
-			logger.info("Total triples: " + numbers+" GC triples: "+getApplicationProfile().getExtendedData().get("gctriples").getAsInt());
+			numbers += Integer.parseInt(binding.getBindingValue("numbers"));
+			logger.info("Total numbers: " + numbers+" GC numbers: "+getApplicationProfile().getExtendedData().get("gcnumbers").getAsInt());
 		}
 
-		if (numbers > getApplicationProfile().getExtendedData().get("gctriples").getAsInt()) {
+		if (numbers >= getApplicationProfile().getExtendedData().get("gcnumbers").getAsInt()) {
 			logger.info("Collecting triples...");
 			update(null);
 		}

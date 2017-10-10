@@ -68,7 +68,7 @@ public abstract class GenericClient extends Client implements INotificationHandl
 		} catch (InvalidKeyException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
 				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException
 				| CertificateException | IOException | URISyntaxException | InterruptedException e) {
-			return new ErrorResponse(500,e.getMessage());
+			return new ErrorResponse(-1,500,e.getMessage());
 		}
 		
 	}
@@ -79,7 +79,7 @@ public abstract class GenericClient extends Client implements INotificationHandl
 		} catch (InvalidKeyException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
 				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException
 				| CertificateException | IOException | URISyntaxException | InterruptedException e) {
-			return new ErrorResponse(500,e.getMessage());
+			return new ErrorResponse(-1,500,e.getMessage());
 		}
 	}
 	

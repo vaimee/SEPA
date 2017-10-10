@@ -124,7 +124,7 @@ public abstract class SPU extends Observable implements Runnable {
 	}
 
 	public void ping() throws IOException {
-		logger.debug("Send ping "+getUUID());
+		//logger.debug("Send ping "+getUUID());
 		handler.sendPing(new Ping(getUUID()));
 	}
 
@@ -136,6 +136,7 @@ public abstract class SPU extends Observable implements Runnable {
 			while ((updateResponse = updateQueue.poll()) != null && running) {
 				// Processing update
 				logger.debug("* PROCESSING *");
+				
 				Notification notify = processInternal(updateResponse);
 
 				// Notify SPU manager

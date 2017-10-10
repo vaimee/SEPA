@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.apps;
+package it.unibo.arces.wot.sepa.apps.randomnumbers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -20,7 +20,6 @@ import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 

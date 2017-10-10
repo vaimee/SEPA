@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.apps;
+package it.unibo.arces.wot.sepa.apps.randomnumbers;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -46,7 +46,6 @@ public class MeanCalculator extends Aggregator {
 
 		meanURI = baseURI + UUID.randomUUID();
 
-		// Update!
 		forcedBindings.addBinding("mean", new RDFTermURI(meanURI));
 	}
 
