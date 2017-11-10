@@ -1,23 +1,12 @@
 package it.unibo.arces.wot.sepa.webthings.apps.plugfest;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.HashSet;
-import java.util.NoSuchElementException;
 import java.util.Set;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
 import it.unibo.arces.wot.framework.interaction.ActionPublisher;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.webthings.apps.plugfest.Context.COLOR;
 
 public class ActionManager {
@@ -30,7 +19,7 @@ public class ActionManager {
 	private ActionPublisher actionOnLEDColor;
 	private ActionPublisher actionOnLEDFrequency;
 	
-	public ActionManager() throws UnrecoverableKeyException, KeyManagementException, InvalidKeyException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, URISyntaxException {
+	public ActionManager() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException  {
 		actionOnLCD = new ActionPublisher(LCD_ACTION);
 		actionOnLEDColor = new ActionPublisher(LED_COLOR_ACTION);
 		actionOnLEDFrequency = new ActionPublisher(LED_FREQUENCY_ACTION);

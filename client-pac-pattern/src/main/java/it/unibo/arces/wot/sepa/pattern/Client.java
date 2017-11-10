@@ -18,33 +18,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.api.INotificationHandler;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 
-public abstract class Client implements IClient {	
-	protected static HashMap<String,String> URI2PrefixMap = new HashMap<String,String>();
-	protected HashMap<String,String> prefix2URIMap = new HashMap<String,String>();
+public abstract class Client {	
+	private final Logger logger = LogManager.getLogger("Client");
 	
+	protected HashMap<String,String> prefix2URIMap = new HashMap<String,String>();	
 	protected ApplicationProfile appProfile;
-	
 	protected SPARQL11SEProtocol protocolClient = null;
-	
-	private static final Logger logger = LogManager.getLogger("Client");
 	
 	public ApplicationProfile getApplicationProfile() {
 		return appProfile;
@@ -54,11 +45,8 @@ public abstract class Client implements IClient {
 		Set<String> prefixes = appProfile.getPrefixes();
 		for (String prefix : prefixes) {
 			if (prefix2URIMap.containsKey(prefix)) {
-				String rmURI = prefix2URIMap.get(prefix);
-				URI2PrefixMap.remove(rmURI);
 				prefix2URIMap.remove(prefix);
 			}
-			URI2PrefixMap.put(appProfile.getNamespaceURI(prefix), prefix);
 			prefix2URIMap.put(prefix, appProfile.getNamespaceURI(prefix));
 		}
 	}
@@ -70,35 +58,14 @@ public abstract class Client implements IClient {
 		return ret;
 	}
 	
-	public Client(ApplicationProfile appProfile) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+	public Client(ApplicationProfile appProfile) throws SEPAProtocolException {
 		if (appProfile == null) {
 			logger.fatal("Application profile is null. Client cannot be initialized");
-			throw new IllegalArgumentException("Application profile is null");
+			throw new SEPAProtocolException(new IllegalArgumentException("Application profile is null"));
 		}
 		this.appProfile = appProfile;
 		
 		logger.debug("SEPA parameters: "+appProfile.printParameters());
-		
-		protocolClient = new SPARQL11SEProtocol(appProfile);
-		
-		addNamespaces(appProfile);
-	}
-	
-	public Client(ApplicationProfile appProfile,INotificationHandler handler) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
-		if (appProfile == null) {
-			logger.fatal("Application profile is null. Client cannot be initialized");
-			throw new IllegalArgumentException("Application profile is null");
-		}
-		this.appProfile = appProfile;
-		
-		if (handler == null) {
-			logger.fatal("Notification handler is null. Client cannot be initialized");
-			throw new IllegalArgumentException("Notificaton handler is null");
-		}
-		
-		logger.debug("SEPA parameters: "+appProfile.printParameters());
-		
-		protocolClient = new SPARQL11SEProtocol(appProfile,handler);
 		
 		addNamespaces(appProfile);
 	}
@@ -115,31 +82,43 @@ public abstract class Client implements IClient {
 		}
 		for (String var : bindings.getVariables()) {
 			if (bindings.getBindingValue(var) == null) continue;
-			if (bindings.isLiteral(var)) 
-				replacedSparql = replacedSparql.replace("?"+var,"\""+fixLiteralTerms(bindings.getBindingValue(var))+"\"");
-			else{	
-				// qnames
-				String uri = bindings.getBindingValue(var);
+			
+			String value = bindings.getBindingValue(var);
+			
+			//Use single quote "'" so that the literal value can contain also double quotes """
+			if (bindings.isLiteral(var)) value = "'"+value+"'";
+			else {
+				// See https://www.w3.org/TR/rdf-sparql-query/#QSynIRI
+				// https://docs.oracle.com/javase/7/docs/api/java/net/URI.html
 				
-				String[] prefix = bindings.getBindingValue(var).split(":");
-				if (prefix.length > 1) {
-					if (!prefix2URIMap.containsKey(prefix[0])) {
-						uri = "<" + bindings.getBindingValue(var) +">";
-					}
+				// [scheme:]scheme-specific-part[#fragment]
+				// An absolute URI specifies a scheme; a URI that is not absolute is said to be relative. 
+				// URIs are also classified according to whether they are opaque or hierarchical.
+				
+				// An opaque URI is an absolute URI whose scheme-specific part does not begin with a slash character ('/'). 
+				// Opaque URIs are not subject to further parsing.
+				
+				// A hierarchical URI is either an absolute URI whose scheme-specific part begins with a slash character, 
+				// or a relative URI, that is, a URI that does not specify a scheme. 
+				// A hierarchical URI is subject to further parsing according to the syntax
+				// [scheme:][//authority][path][?query][#fragment]
+				
+				URI uri = null;
+				try {
+					uri = new URI(value);
+				} catch (URISyntaxException e) {
+					logger.error("Not a URI: "+value);
 				}
 				
-				replacedSparql = replacedSparql.replace("?"+var,uri);
+				if (uri != null) {
+					if(uri.getSchemeSpecificPart().startsWith("/")) value = "<"+value+">";	
+				}
 			}
+			replacedSparql = replacedSparql.replace("?"+var,value);
 			
 			selectPattern = selectPattern.replace("?"+var, "");
 		}
 		
 		return selectPattern+replacedSparql;
-	}
-	
-	protected String fixLiteralTerms(String s) {
-//		if (s == null) return s;
-//		return s.replace("\"", "\\\"");
-		return s;
 	}
 }

@@ -1,20 +1,8 @@
 package it.unibo.arces.wot.framework;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
@@ -36,9 +24,7 @@ public class ThingDescription {
 	
 	private RDFTermURI thing;
 	
-	public ThingDescription(ApplicationProfile app,String thingURI,String name)
-			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public ThingDescription(ApplicationProfile app,String thingURI,String name) throws SEPAProtocolException, SEPASecurityException {
 		
 		this.app = app;		
 		this.properties = new PropertyPublisher();
@@ -57,9 +43,7 @@ public class ThingDescription {
 		thingDescription.update(bind);
 	}
 	
-	public ThingDescription(String thingURI,String name)
-			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public ThingDescription(String thingURI,String name) throws SEPAPropertiesException, SEPAProtocolException, SEPASecurityException {
 		this(new ApplicationProfile("td.jsap"),thingURI,name);
 	}
 	
@@ -136,9 +120,7 @@ public class ThingDescription {
 	
 	class ThingDescriptionPublisher extends Producer {
 
-		public ThingDescriptionPublisher()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		public ThingDescriptionPublisher() throws SEPAProtocolException, SEPASecurityException {
 			super(app, "TD_INIT");
 		}		
 	}
@@ -146,8 +128,7 @@ public class ThingDescription {
 	class PropertyPublisher extends Producer {
 
 		public PropertyPublisher()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+				throws SEPAProtocolException, SEPASecurityException {
 			super(app, "TD_ADD_PROPERTY");
 		}		
 	}
@@ -155,8 +136,7 @@ public class ThingDescription {
 	class ActionPublisher extends Producer {
 
 		public ActionPublisher()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+				throws SEPAProtocolException, SEPASecurityException {
 			super(app, "TD_ADD_ACTION");
 		}		
 	}
@@ -164,8 +144,7 @@ public class ThingDescription {
 	class ActionWithInputPublisher extends Producer {
 
 		public ActionWithInputPublisher()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+				throws SEPAProtocolException, SEPASecurityException  {
 			super(app, "TD_ADD_ACTION_WITH_INPUT");
 		}		
 	}
@@ -173,8 +152,7 @@ public class ThingDescription {
 	class EventPublisher extends Producer {
 
 		public EventPublisher()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+				throws SEPAProtocolException, SEPASecurityException  {
 			super(app, "TD_ADD_EVENT");
 		}		
 	}
@@ -182,8 +160,7 @@ public class ThingDescription {
 	class EventWithOutputPublisher extends Producer {
 
 		public EventWithOutputPublisher()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+				throws SEPAProtocolException, SEPASecurityException {
 			super(app, "TD_ADD_EVENT_WITH_OUTPUT");
 		}		
 	}
@@ -191,8 +168,7 @@ public class ThingDescription {
 	class PropertyChangeEventPublisher extends Producer {
 
 		public PropertyChangeEventPublisher()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+				throws SEPAProtocolException, SEPASecurityException  {
 			super(app, "TD_ADD_PROPERTY_CHANGED_EVENT");
 		}		
 	}
@@ -200,8 +176,7 @@ public class ThingDescription {
 	class TargetPropertyPublisher extends Producer {
 
 		public TargetPropertyPublisher()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+				throws SEPAProtocolException, SEPASecurityException  {
 			super(app, "TD_APPEND_TARGET_PROPERTY_TO_ACTION_OR_EVENT");
 		}		
 	}
@@ -209,8 +184,7 @@ public class ThingDescription {
 	class ProtocolPublisher extends Producer {
 
 		public ProtocolPublisher()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+				throws SEPAProtocolException, SEPASecurityException  {
 			super(app, "TD_APPEND_ACCESS_PROTOCOL_TO_ACTION");
 		}		
 	}

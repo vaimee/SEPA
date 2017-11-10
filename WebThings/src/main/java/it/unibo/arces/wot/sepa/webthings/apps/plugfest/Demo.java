@@ -46,6 +46,9 @@ import javax.swing.table.AbstractTableModel;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.webthings.apps.plugfest.Context.COLOR;
 import it.unibo.arces.wot.sepa.webthings.apps.plugfest.Context.CONTEXT_TYPE;
@@ -89,15 +92,17 @@ public class Demo {
 	private JLabel infoLabel;
 	private JLabel onOffLabel;
 	private JPanel panelOnOff;
-
+	
 	private class DemoEventManager extends EventManager {
-
-		public DemoEventManager(Context context) throws InvalidKeyException, FileNotFoundException,
-				NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException,
-				NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException,
-				IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException,
-				URISyntaxException, InterruptedException {
+		//Status monitor
+		private StatusMonitor monitor;
+		
+		public DemoEventManager(Context context) throws SEPAPropertiesException, SEPAProtocolException, SEPASecurityException  {
 			super(context);
+			
+			//Start the status monitor
+			monitor = new StatusMonitor();
+			new Thread(monitor).start();
 		}
 
 		@Override
@@ -395,6 +400,9 @@ public class Demo {
 	 * @throws NullPointerException
 	 * @throws NoSuchElementException
 	 * @throws FileNotFoundException
+	 * @throws SEPAPropertiesException 
+	 * @throws SEPASecurityException 
+	 * @throws SEPAProtocolException 
 	 * @throws CertificateException
 	 * @throws NoSuchAlgorithmException
 	 * @throws KeyStoreException
@@ -404,11 +412,7 @@ public class Demo {
 	 * @throws UnrecoverableKeyException
 	 * @throws InterruptedException
 	 */
-	public Demo()
-			throws UnrecoverableKeyException, KeyManagementException, InvalidKeyException, IllegalArgumentException,
-			KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException,
-			NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, IOException, URISyntaxException, InterruptedException {
+	public Demo() throws FileNotFoundException, SEPAPropertiesException, SEPAProtocolException, SEPASecurityException {
 		
 		initialize();
 
@@ -426,7 +430,7 @@ public class Demo {
 		
 		actionManager.clearColors();
 		actionManager.setText("Play with colors");
-		infoLabel.setText("WoT PlugFest - Dusseldorf - 9 July 2017 - Let Things Talk");
+		infoLabel.setText("WoT SEPA Demo - FRUCT 21 - Let Things Talk");
 	}
 
 	/**
@@ -435,7 +439,7 @@ public class Demo {
 	private void initialize() {
 		frmWebOfThings = new JFrame();
 		frmWebOfThings.setResizable(false);
-		frmWebOfThings.setTitle("Web of Things Demo - Dusseldorf PlugFest");
+		frmWebOfThings.setTitle("Web of Things Demo - FRUCT 21");
 		frmWebOfThings.setBounds(0, 0, 1366, 700);
 		frmWebOfThings.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
@@ -446,13 +450,13 @@ public class Demo {
 		frmWebOfThings.getContentPane().setLayout(gridBagLayout);
 
 		try {
-			backgroundIcon = new ImageIcon(ImageIO.read(new File("resources/background.jpg")));
+			backgroundIcon = new ImageIcon(ImageIO.read(new File("background.jpg")));
 		} catch (IOException e) {
 			backgroundLabel.setText("background.jpg not found");
 		}
 
 		try {
-			yesIcon = new ImageIcon(ImageIO.read(new File("resources/yes.png")));
+			yesIcon = new ImageIcon(ImageIO.read(new File("yes.png")));
 		} catch (IOException e) {
 			backgroundLabel.setText("yes.png not found");
 		}

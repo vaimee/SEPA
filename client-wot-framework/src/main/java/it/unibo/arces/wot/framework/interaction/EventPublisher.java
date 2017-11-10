@@ -1,20 +1,8 @@
 package it.unibo.arces.wot.framework.interaction;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
@@ -28,9 +16,7 @@ public class EventPublisher {
 	private EventPubliserWithOutput publisherWithOutput;
 	private EventPubliserWithoutOutput publisherWithoutOutput;
 	
-	public EventPublisher(String thingURI)
-			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public EventPublisher(String thingURI) throws SEPAPropertiesException, SEPAProtocolException, SEPASecurityException {
 		
 		this.app = new ApplicationProfile("td.jsap");
 		this.thing = thingURI;
@@ -38,9 +24,7 @@ public class EventPublisher {
 		this.publisherWithoutOutput = new EventPubliserWithoutOutput();
 	}
 	
-	public EventPublisher(ApplicationProfile app,String thingURI)
-			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public EventPublisher(ApplicationProfile app,String thingURI) throws SEPAProtocolException, SEPASecurityException {
 		
 		this.app = app;
 		this.thing = thingURI;
@@ -50,18 +34,14 @@ public class EventPublisher {
 	
 	class EventPubliserWithOutput extends Producer {
 
-		public EventPubliserWithOutput()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		public EventPubliserWithOutput() throws SEPAProtocolException, SEPASecurityException {
 			super(app, "POST_EVENT_WITH_OUTPUT");
 		}
 	}
 	
 	class EventPubliserWithoutOutput extends Producer {
 
-		public EventPubliserWithoutOutput()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		public EventPubliserWithoutOutput() throws SEPAProtocolException, SEPASecurityException {
 			super(app, "POST_EVENT");
 		}
 	}

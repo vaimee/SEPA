@@ -1,28 +1,16 @@
 package it.unibo.arces.wot.sepa.webthings.apps.plugfest;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
 import java.util.HashSet;
-import java.util.NoSuchElementException;
 import java.util.Set;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.framework.elements.Event;
 import it.unibo.arces.wot.framework.interaction.EventListener;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.webthings.apps.plugfest.Context.COLOR;
 
 public abstract class EventManager extends EventListener {
@@ -32,11 +20,7 @@ public abstract class EventManager extends EventListener {
 	private static final String REED_EVENT = "wot:ReedSensorValueChangedEvent";
 	private static final String RFID_EVENT = "wot:RFIDReading";
 
-	public EventManager(Context context)
-			throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException,
-			NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException,
-			KeyManagementException, KeyStoreException, CertificateException, URISyntaxException, InterruptedException {
+	public EventManager(Context context) throws SEPAPropertiesException {
 		super();
 
 		if (context == null)
@@ -46,10 +30,7 @@ public abstract class EventManager extends EventListener {
 		onEmpty();
 	}
 
-	public void startListeningForEvents() throws InvalidKeyException, UnrecoverableKeyException, KeyManagementException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException,
-			KeyStoreException, CertificateException, IOException, URISyntaxException, InterruptedException {
-		
+	public void startListeningForEvents() throws SEPAProtocolException, SEPASecurityException {		
 		startListeningForEvent(RFID_EVENT);
 		startListeningForEvent(REED_EVENT);
 	}

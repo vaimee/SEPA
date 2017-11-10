@@ -33,13 +33,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.text.SimpleDateFormat;
 
 import javax.swing.JFrame;
@@ -54,8 +49,6 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -67,17 +60,14 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
 
 import java.util.ArrayList;
-
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
-
-import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Set;
 import java.util.SortedSet;
@@ -85,7 +75,6 @@ import java.util.TreeSet;
 import java.util.Vector;
 
 import javax.swing.JTabbedPane;
-import java.awt.BorderLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -95,11 +84,14 @@ import javax.swing.JSplitPane;
 
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.GenericClient;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -107,18 +99,17 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
 import javax.swing.border.TitledBorder;
-import java.awt.Checkbox;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.ItemEvent;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 public class Dashboard {
 	private static final Logger logger = LogManager.getLogger("Dashboard");
 
-	private static final String versionLabel = "SEPA Dashboard Ver 0.9.7";
+	private static final String versionLabel = "SEPA Dashboard Ver 0.9.8";
 
 	private Properties appProperties = new Properties();
 
@@ -134,76 +125,67 @@ public class Dashboard {
 	private SortedListModel updateListDM = new SortedListModel();
 	private SortedListModel subscribeListDM = new SortedListModel();
 
-	private DashboardClient sepaClient;
+	private GenericClient sepaClient;
 
-	private class DashboardClient extends GenericClient {
+	private JTabbedPane subscriptions;
+	private HashMap<String, BindingsTableModel> subscriptionResultsDM = new HashMap<String, BindingsTableModel>();
+	private HashMap<String, JLabel> subscriptionResultsLabels = new HashMap<String, JLabel>();
+	private HashMap<String, JTable> subscriptionResultsTables = new HashMap<String, JTable>();
 
-		public DashboardClient(ApplicationProfile jsap)
-				throws IllegalArgumentException, FileNotFoundException, NoSuchElementException, IOException,
-				UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
-				CertificateException, InvalidKeyException, NullPointerException, ClassCastException,
-				NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
-			super(jsap);
+	private JCheckBox chckbxClearonnotify;
+
+	class SEPADashbooard extends GenericClient {
+
+		public SEPADashbooard(ApplicationProfile appProfile) throws SEPAProtocolException, SEPASecurityException {
+			super(appProfile);
+			// TODO Auto-generated constructor stub
 		}
 
 		@Override
-		public void onResults(ARBindingsResults notify) {
+		public void onSemanticEvent(Notification n) {
+			ARBindingsResults notify = n.getARBindingsResults();
+			String spuid = n.getSpuid();
+
 			int added = 0;
 			int removed = 0;
 
 			if (notify != null) {
+
 				if (notify.getAddedBindings() != null)
 					added = notify.getAddedBindings().size();
 				if (notify.getRemovedBindings() != null)
 					removed = notify.getRemovedBindings().size();
-				bindingsDM.setResults(notify);
 
-				lblInfo.setText("Bindings results (" + bindingsDM.getRowCount() + ") Added(" + added + ") + Removed ("
-						+ removed + ")");
+				if (chckbxClearonnotify.isSelected())
+					subscriptionResultsDM.get(spuid).clear();
 
-				Comparator<BindingValue> comparator = new Comparator<BindingValue>() {
-					public int compare(BindingValue s1, BindingValue s2) {
-						return s1.get().compareTo(s2.get());
-					}
-				};
+				subscriptionResultsDM.get(spuid).setResults(notify, spuid);
 
-				TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(bindingsResultsTable.getModel());
-				for (int i = 0; i < bindingsDM.getColumnCount(); i++)
-					sorter.setComparator(i, comparator);
-				bindingsResultsTable.setRowSorter(sorter);
+				subscriptionResultsLabels.get(spuid)
+						.setText("Bindings results (" + subscriptionResultsDM.get(spuid).getRowCount() + ") Added("
+								+ added + ") + Removed (" + removed + ")");
 			}
 
 		}
 
 		@Override
-		public void onSubscriptionError(ErrorResponse errorResponse) {
-			lblInfo.setText(errorResponse.toString());
-			logger.error(errorResponse.toString());
-		}
-
-		@Override
-		public void onAddedResults(BindingsResults results) {
+		public void onPing() {
 			// TODO Auto-generated method stub
 
 		}
 
 		@Override
-		public void onRemovedResults(BindingsResults results) {
+		public void onBrokenSocket() {
 			// TODO Auto-generated method stub
 
 		}
 
 		@Override
-		public void onKeepAlive() {
+		public void onError(ErrorResponse errorResponse) {
 			// TODO Auto-generated method stub
 
 		}
 
-		@Override
-		public void onBrokenSubscription() {
-			// TODO Auto-generated method stub
-
-		}
 	}
 
 	private class SortedListModel extends AbstractListModel<String> {
@@ -258,10 +240,7 @@ public class Dashboard {
 	private JButton btnUpdate;
 	private JButton btnSubscribe;
 	private JButton btnQuery;
-	private Checkbox qNameCheckbox;
-	private JPanel resultsPanel;
 	private JCheckBox chckbxAutoscroll;
-	private JLabel spuidLabel;
 
 	private JList<String> updatesList;
 	private JList<String> subscribesList;
@@ -444,7 +423,7 @@ public class Dashboard {
 			super.fireTableDataChanged();
 		}
 
-		public void setResults(ARBindingsResults res) {
+		public void setResults(ARBindingsResults res, String spuid) {
 			if (res == null)
 				return;
 
@@ -484,8 +463,11 @@ public class Dashboard {
 			}
 
 			if (chckbxAutoscroll.isSelected())
-				bindingsResultsTable.changeSelection(bindingsResultsTable.getRowCount() - 1, 0, false, false);
-
+				if (spuid != null)
+					subscriptionResultsTables.get(spuid)
+							.changeSelection(subscriptionResultsTables.get(spuid).getRowCount() - 1, 0, false, false);
+				else
+					bindingsResultsTable.changeSelection(bindingsResultsTable.getRowCount() - 1, 0, false, false);
 			super.fireTableDataChanged();
 		}
 
@@ -540,7 +522,7 @@ public class Dashboard {
 			super.removeTableModelListener(l);
 		}
 
-		public void setAddedResults(BindingsResults bindingsResults) {
+		public void setAddedResults(BindingsResults bindingsResults, String spuid) {
 			if (bindingsResults == null)
 				return;
 
@@ -567,7 +549,11 @@ public class Dashboard {
 			}
 
 			if (chckbxAutoscroll.isSelected())
-				bindingsResultsTable.changeSelection(bindingsResultsTable.getRowCount() - 1, 0, false, false);
+				if (spuid != null)
+					subscriptionResultsTables.get(spuid)
+							.changeSelection(subscriptionResultsTables.get(spuid).getRowCount() - 1, 0, false, false);
+				else
+					bindingsResultsTable.changeSelection(bindingsResultsTable.getRowCount() - 1, 0, false, false);
 
 			super.fireTableDataChanged();
 		}
@@ -679,16 +665,13 @@ public class Dashboard {
 	 * @throws NoSuchAlgorithmException
 	 * @throws IllegalArgumentException
 	 */
-	public Dashboard() throws InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, IllegalArgumentException, NoSuchAlgorithmException {
+	public Dashboard() {
 		initialize();
 
 		loadSAP(null);
 	}
 
-	private boolean loadSAP(String file)
-			throws InvalidKeyException, NullPointerException, ClassCastException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, IllegalArgumentException, NoSuchAlgorithmException {
+	private boolean loadSAP(String file) {
 		if (file == null) {
 			FileInputStream in = null;
 			try {
@@ -743,7 +726,7 @@ public class Dashboard {
 
 		try {
 			appProfile = new ApplicationProfile(file);
-		} catch (NoSuchElementException | IOException e) {
+		} catch (SEPAPropertiesException e) {
 			logger.error(e.getMessage());
 			lblInfo.setText("Error: " + e.getMessage());
 			frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
@@ -751,10 +734,8 @@ public class Dashboard {
 		}
 
 		try {
-			sepaClient = new DashboardClient(appProfile);
-		} catch (IllegalArgumentException | NoSuchElementException | IOException | UnrecoverableKeyException
-				| KeyManagementException | KeyStoreException | NoSuchAlgorithmException | CertificateException
-				| URISyntaxException e) {
+			sepaClient = new SEPADashbooard(appProfile);
+		} catch (SEPAProtocolException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 			lblInfo.setText("Error: " + e.getMessage());
 			frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
@@ -865,33 +846,25 @@ public class Dashboard {
 		frmSepaDashboard.setTitle(versionLabel);
 		frmSepaDashboard.setBounds(100, 100, 925, 768);
 		frmSepaDashboard.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frmSepaDashboard.getContentPane().setLayout(new BorderLayout(0, 0));
-
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		frmSepaDashboard.getContentPane().add(tabbedPane);
-
-		JPanel SPARQLPanel = new JPanel();
-		SPARQLPanel.setBorder(null);
-		tabbedPane.addTab("SPARQL", null, SPARQLPanel, null);
-		GridBagLayout gbl_SPARQLPanel = new GridBagLayout();
-		gbl_SPARQLPanel.columnWidths = new int[] { 0, 0 };
-		gbl_SPARQLPanel.rowHeights = new int[] { 48, 117, 96, 69 };
-		gbl_SPARQLPanel.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_SPARQLPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 1.0 };
-		SPARQLPanel.setLayout(gbl_SPARQLPanel);
+		GridBagLayout gridBagLayout = new GridBagLayout();
+		gridBagLayout.columnWidths = new int[] { 925, 0 };
+		gridBagLayout.rowHeights = new int[] { 78, 651, 39, 0 };
+		gridBagLayout.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
+		gridBagLayout.rowWeights = new double[] { 0.0, 1.0, 0.0, Double.MIN_VALUE };
+		frmSepaDashboard.getContentPane().setLayout(gridBagLayout);
 
 		JPanel configuration = new JPanel();
-		configuration
-				.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		GridBagConstraints gbc_configuration = new GridBagConstraints();
 		gbc_configuration.insets = new Insets(0, 0, 5, 0);
 		gbc_configuration.fill = GridBagConstraints.BOTH;
 		gbc_configuration.gridx = 0;
 		gbc_configuration.gridy = 0;
-		SPARQLPanel.add(configuration, gbc_configuration);
+		frmSepaDashboard.getContentPane().add(configuration, gbc_configuration);
+		configuration
+				.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		GridBagLayout gbl_configuration = new GridBagLayout();
 		gbl_configuration.columnWidths = new int[] { 46, 45, 31, 20, 0, 24, 0, 0, 0, 0, 0, 0, 37, 0 };
-		gbl_configuration.rowHeights = new int[] { 26, 0, 0 };
+		gbl_configuration.rowHeights = new int[] { 9, -25, 0 };
 		gbl_configuration.columnWeights = new double[] { 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0,
 				0.0, Double.MIN_VALUE };
 		gbl_configuration.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
@@ -919,38 +892,31 @@ public class Dashboard {
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					String fileName = fc.getSelectedFile().getPath();
 
-					try {
-						if (loadSAP(fileName)) {
+					if (loadSAP(fileName)) {
 
-							FileOutputStream out = null;
-							try {
-								out = new FileOutputStream("dashboard.properties");
-							} catch (FileNotFoundException e3) {
-								logger.error(e3.getMessage());
-								return;
-							}
-
-							appProperties = new Properties();
-							appProperties.put("appProfile", fileName);
-
-							try {
-								appProperties.store(out, "Dashboard properties");
-							} catch (IOException e1) {
-								logger.error(e1.getMessage());
-							}
-							try {
-								out.close();
-							} catch (IOException e2) {
-								logger.error(e2.getMessage());
-							}
-
+						FileOutputStream out = null;
+						try {
+							out = new FileOutputStream("dashboard.properties");
+						} catch (FileNotFoundException e3) {
+							logger.error(e3.getMessage());
+							return;
 						}
-					} catch (InvalidKeyException | NullPointerException | ClassCastException | NoSuchPaddingException
-							| IllegalBlockSizeException | BadPaddingException | IllegalArgumentException
-							| NoSuchAlgorithmException e1) {
-						logger.error(e1.getLocalizedMessage());
-					}
 
+						appProperties = new Properties();
+						appProperties.put("appProfile", fileName);
+
+						try {
+							appProperties.store(out, "Dashboard properties");
+						} catch (IOException e1) {
+							logger.error(e1.getMessage());
+						}
+						try {
+							out.close();
+						} catch (IOException e2) {
+							logger.error(e2.getMessage());
+						}
+
+					}
 				}
 			}
 		});
@@ -1097,46 +1063,22 @@ public class Dashboard {
 		gbc_labelSecurePath.gridy = 1;
 		configuration.add(labelSecurePath, gbc_labelSecurePath);
 
-		JPanel namespaces = new JPanel();
-		namespaces.setBorder(new TitledBorder(null, "Namespaces", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		GridBagConstraints gbc_namespaces = new GridBagConstraints();
-		gbc_namespaces.fill = GridBagConstraints.BOTH;
-		gbc_namespaces.insets = new Insets(0, 0, 5, 0);
-		gbc_namespaces.gridx = 0;
-		gbc_namespaces.gridy = 1;
-		SPARQLPanel.add(namespaces, gbc_namespaces);
-		GridBagLayout gbl_namespaces = new GridBagLayout();
-		gbl_namespaces.columnWidths = new int[] { 0, 0, 0 };
-		gbl_namespaces.rowHeights = new int[] { 43, 0 };
-		gbl_namespaces.columnWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
-		gbl_namespaces.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
-		namespaces.setLayout(gbl_namespaces);
-
-		JScrollPane scrollPane_4 = new JScrollPane();
-		GridBagConstraints gbc_scrollPane_4 = new GridBagConstraints();
-		gbc_scrollPane_4.gridwidth = 2;
-		gbc_scrollPane_4.insets = new Insets(0, 0, 0, 5);
-		gbc_scrollPane_4.fill = GridBagConstraints.BOTH;
-		gbc_scrollPane_4.gridx = 0;
-		gbc_scrollPane_4.gridy = 0;
-		namespaces.add(scrollPane_4, gbc_scrollPane_4);
-
-		namespacesTable = new JTable(namespacesDM);
-		scrollPane_4.setViewportView(namespacesTable);
+		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		GridBagConstraints gbc_tabbedPane = new GridBagConstraints();
+		gbc_tabbedPane.insets = new Insets(0, 0, 5, 0);
+		gbc_tabbedPane.fill = GridBagConstraints.BOTH;
+		gbc_tabbedPane.gridx = 0;
+		gbc_tabbedPane.gridy = 1;
+		frmSepaDashboard.getContentPane().add(tabbedPane, gbc_tabbedPane);
 
 		JPanel primitives = new JPanel();
+		tabbedPane.addTab("Primitives", null, primitives, null);
 		primitives.setBorder(new TitledBorder(null, "Primitives", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		GridBagConstraints gbc_primitives = new GridBagConstraints();
-		gbc_primitives.insets = new Insets(0, 0, 5, 0);
-		gbc_primitives.fill = GridBagConstraints.BOTH;
-		gbc_primitives.gridx = 0;
-		gbc_primitives.gridy = 2;
-		SPARQLPanel.add(primitives, gbc_primitives);
 		GridBagLayout gbl_primitives = new GridBagLayout();
 		gbl_primitives.columnWidths = new int[] { 684, 0, 0 };
-		gbl_primitives.rowHeights = new int[] { 119, 115, 0, 0 };
+		gbl_primitives.rowHeights = new int[] { 114, 115, 0, 0, 0 };
 		gbl_primitives.columnWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
-		gbl_primitives.rowWeights = new double[] { 1.0, 1.0, 0.0, Double.MIN_VALUE };
+		gbl_primitives.rowWeights = new double[] { 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE };
 		primitives.setLayout(gbl_primitives);
 
 		JSplitPane splitPanel_Update = new JSplitPane();
@@ -1152,14 +1094,13 @@ public class Dashboard {
 		splitPanel_Update.setLeftComponent(panel_4);
 		GridBagLayout gbl_panel_4 = new GridBagLayout();
 		gbl_panel_4.columnWidths = new int[] { 66, 0 };
-		gbl_panel_4.rowHeights = new int[] { 17, 0, 0 };
+		gbl_panel_4.rowHeights = new int[] { 17, 75, 0 };
 		gbl_panel_4.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
 		gbl_panel_4.rowWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		panel_4.setLayout(gbl_panel_4);
 
 		JLabel lblUpdates = new JLabel("UPDATEs");
 		GridBagConstraints gbc_lblUpdates = new GridBagConstraints();
-		gbc_lblUpdates.fill = GridBagConstraints.HORIZONTAL;
 		gbc_lblUpdates.anchor = GridBagConstraints.NORTH;
 		gbc_lblUpdates.insets = new Insets(0, 0, 5, 0);
 		gbc_lblUpdates.gridx = 0;
@@ -1240,9 +1181,9 @@ public class Dashboard {
 		splitPanel_Subscribe.setLeftComponent(panel_6);
 		GridBagLayout gbl_panel_6 = new GridBagLayout();
 		gbl_panel_6.columnWidths = new int[] { 193, 0 };
-		gbl_panel_6.rowHeights = new int[] { 17, 132, 0 };
+		gbl_panel_6.rowHeights = new int[] { 17, 72, 0 };
 		gbl_panel_6.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_panel_6.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
+		gbl_panel_6.rowWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		panel_6.setLayout(gbl_panel_6);
 
 		JLabel lblSubscribes = new JLabel("SUBSCRIBEs");
@@ -1340,7 +1281,6 @@ public class Dashboard {
 						lblInfo.setText("Please specify binding value: " + var);
 						return;
 					}
-					;
 
 					if (literal)
 						forced.addBinding(var, new RDFTermLiteral(value));
@@ -1374,21 +1314,22 @@ public class Dashboard {
 		scrollPane_Subscribe.setViewportView(SPARQLSubscribe);
 		SPARQLSubscribe.setLineWrap(true);
 		GridBagConstraints gbc_btnUpdate = new GridBagConstraints();
-		gbc_btnUpdate.insets = new Insets(0, 0, 0, 5);
+		gbc_btnUpdate.insets = new Insets(0, 0, 5, 5);
 		gbc_btnUpdate.gridx = 0;
 		gbc_btnUpdate.gridy = 2;
 		primitives.add(btnUpdate, gbc_btnUpdate);
 
 		JPanel panel = new JPanel();
 		GridBagConstraints gbc_panel = new GridBagConstraints();
+		gbc_panel.insets = new Insets(0, 0, 5, 0);
 		gbc_panel.fill = GridBagConstraints.BOTH;
 		gbc_panel.gridx = 1;
 		gbc_panel.gridy = 2;
 		primitives.add(panel, gbc_panel);
 		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[] { 0, 0, 0, 0, 0 };
+		gbl_panel.columnWidths = new int[] { 0, 0, 0 };
 		gbl_panel.rowHeights = new int[] { 0, 0 };
-		gbl_panel.columnWeights = new double[] { 1.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
+		gbl_panel.columnWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
 		gbl_panel.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
 		panel.setLayout(gbl_panel);
 
@@ -1426,7 +1367,7 @@ public class Dashboard {
 				} else {
 					bindingsDM.clear();
 					BindingsResults ret = ((QueryResponse) response).getBindingsResults();
-					bindingsDM.setAddedResults(ret);
+					bindingsDM.setAddedResults(ret, null);
 					status = " " + ret.size() + " bindings results";
 				}
 
@@ -1438,14 +1379,6 @@ public class Dashboard {
 		gbc_btnQuery.gridx = 0;
 		gbc_btnQuery.gridy = 0;
 		panel.add(btnQuery, gbc_btnQuery);
-
-		spuidLabel = new JLabel("SPUID");
-		GridBagConstraints gbc_spuidLabel = new GridBagConstraints();
-		gbc_spuidLabel.gridwidth = 2;
-		gbc_spuidLabel.insets = new Insets(0, 0, 0, 5);
-		gbc_spuidLabel.gridx = 1;
-		gbc_spuidLabel.gridy = 0;
-		panel.add(spuidLabel, gbc_spuidLabel);
 
 		btnSubscribe = new JButton("SUBSCRIBE");
 		btnSubscribe.setEnabled(false);
@@ -1478,53 +1411,82 @@ public class Dashboard {
 						lblInfo.setText(response.toString());
 						return;
 					}
-					btnSubscribe.setText("UNSUBSCRIBE");
-					spuidLabel.setText(((SubscribeResponse) response).getSpuid());
 
-					bindingsDM.clear();
+					// SPUID and results
+					String spuid = ((SubscribeResponse) response).getSpuid();
 					BindingsResults ret = ((SubscribeResponse) response).getBindingsResults();
-					bindingsDM.setAddedResults(ret);
-					lblInfo.setText("Subscribed. First results: " + ret.size());
 
-				} else {
+					// Subscription panel
+					JPanel sub = new JPanel();
 
-					response = sepaClient.unsubscribe(spuidLabel.getText());
-					if (response.getClass().equals(UnsubscribeResponse.class)) {
-						lblInfo.setText("Unsubscribed");
-					}
+					// Results label
+					JLabel infoLabel = new JLabel();
+					infoLabel.setText("Subscribed. First results: " + ret.size());
+					subscriptionResultsLabels.put(spuid, infoLabel);
 
-					btnSubscribe.setText("SUBSCRIBE");
-					spuidLabel.setText("SPUID");
+					// Results table
+					subscriptionResultsDM.put(spuid, new BindingsTableModel());
+					JTable bindingsResultsTable = new JTable(subscriptionResultsDM.get(spuid));
+					bindingsResultsTable.setDefaultRenderer(Object.class, bindingsRender);
+					bindingsResultsTable.setAutoCreateRowSorter(true);
+					bindingsResultsTable.registerKeyboardAction(new CopyAction(),
+							KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+							JComponent.WHEN_FOCUSED);
+					bindingsResultsTable.setCellSelectionEnabled(true);
+					subscriptionResultsTables.put(spuid, bindingsResultsTable);
+					subscriptionResultsDM.get(spuid).setAddedResults(ret, spuid);
+					JScrollPane bindingsResults = new JScrollPane();
+					bindingsResults.setViewportView(bindingsResultsTable);
+
+					// Unsubscribe button
+					JButton unsubscribeButton = new JButton(spuid);
+					unsubscribeButton.setEnabled(true);
+					unsubscribeButton.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							response = sepaClient.unsubscribe(spuid);
+
+							// if (response.isUnsubscribeResponse()) {
+							subscriptions.remove(sub);
+							subscriptionResultsDM.remove(spuid);
+							subscriptionResultsLabels.remove(spuid);
+							subscriptionResultsTables.remove(spuid);
+							// }
+						}
+					});
+
+					// Query label
+					JLabel queryLabel = new JLabel(
+							"<html>" + query + " forced bindings: " + forced.toString() + "</html>");
+					queryLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+					// Layout
+					GridBagConstraints layoutFill = new GridBagConstraints();
+					layoutFill.fill = GridBagConstraints.BOTH;
+					sub.setLayout(new BoxLayout(sub, BoxLayout.Y_AXIS));
+					sub.setName(subscribesList.getSelectedValue());
+
+					// Add components
+					sub.add(queryLabel);
+					sub.add(unsubscribeButton);
+					sub.add(bindingsResults);
+					sub.add(infoLabel);
+
+					subscriptions.add(sub, layoutFill);
 				}
 			}
 		});
 		GridBagConstraints gbc_btnSubscribe = new GridBagConstraints();
-		gbc_btnSubscribe.gridx = 3;
+		gbc_btnSubscribe.gridx = 1;
 		gbc_btnSubscribe.gridy = 0;
 		panel.add(btnSubscribe, gbc_btnSubscribe);
 
-		resultsPanel = new JPanel();
-		resultsPanel.setBorder(new TitledBorder(null, "Results", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		GridBagConstraints gbc_results = new GridBagConstraints();
-		gbc_results.insets = new Insets(0, 0, 5, 0);
-		gbc_results.fill = GridBagConstraints.BOTH;
-		gbc_results.gridx = 0;
-		gbc_results.gridy = 3;
-		SPARQLPanel.add(resultsPanel, gbc_results);
-		GridBagLayout gbl_results = new GridBagLayout();
-		gbl_results.columnWidths = new int[] { 0, 0 };
-		gbl_results.rowHeights = new int[] { 70, 0, 0 };
-		gbl_results.columnWeights = new double[] { 1.0, Double.MIN_VALUE };
-		gbl_results.rowWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
-		resultsPanel.setLayout(gbl_results);
-
 		JScrollPane bindingsResults = new JScrollPane();
 		GridBagConstraints gbc_bindingsResults = new GridBagConstraints();
-		gbc_bindingsResults.insets = new Insets(0, 0, 5, 0);
 		gbc_bindingsResults.fill = GridBagConstraints.BOTH;
+		gbc_bindingsResults.gridwidth = 2;
 		gbc_bindingsResults.gridx = 0;
-		gbc_bindingsResults.gridy = 0;
-		resultsPanel.add(bindingsResults, gbc_bindingsResults);
+		gbc_bindingsResults.gridy = 3;
+		primitives.add(bindingsResults, gbc_bindingsResults);
 
 		bindingsResultsTable = new JTable(bindingsDM);
 		bindingsResults.setViewportView(bindingsResultsTable);
@@ -1535,61 +1497,112 @@ public class Dashboard {
 				JComponent.WHEN_FOCUSED);
 		bindingsResultsTable.setCellSelectionEnabled(true);
 
-		JPanel panel_1 = new JPanel();
-		GridBagConstraints gbc_panel_1 = new GridBagConstraints();
-		gbc_panel_1.fill = GridBagConstraints.BOTH;
-		gbc_panel_1.gridx = 0;
-		gbc_panel_1.gridy = 1;
-		resultsPanel.add(panel_1, gbc_panel_1);
-		GridBagLayout gbl_panel_1 = new GridBagLayout();
-		gbl_panel_1.columnWidths = new int[] { 0, 0, 0, 0, 0 };
-		gbl_panel_1.rowHeights = new int[] { 0, 0 };
-		gbl_panel_1.columnWeights = new double[] { 1.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		gbl_panel_1.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
-		panel_1.setLayout(gbl_panel_1);
+		subscriptions = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.addTab("Subscriptions", null, subscriptions, null);
+
+		JPanel namespaces = new JPanel();
+		tabbedPane.addTab("Namespaces", null, namespaces, null);
+		namespaces.setBorder(new TitledBorder(null, "Namespaces", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		GridBagLayout gbl_namespaces = new GridBagLayout();
+		gbl_namespaces.columnWidths = new int[] { 0, 0, 0 };
+		gbl_namespaces.rowHeights = new int[] { 43, 0 };
+		gbl_namespaces.columnWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
+		gbl_namespaces.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
+		namespaces.setLayout(gbl_namespaces);
+
+		JScrollPane scrollPane_4 = new JScrollPane();
+		GridBagConstraints gbc_scrollPane_4 = new GridBagConstraints();
+		gbc_scrollPane_4.gridwidth = 2;
+		gbc_scrollPane_4.insets = new Insets(0, 0, 0, 5);
+		gbc_scrollPane_4.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane_4.gridx = 0;
+		gbc_scrollPane_4.gridy = 0;
+		namespaces.add(scrollPane_4, gbc_scrollPane_4);
+
+		namespacesTable = new JTable(namespacesDM);
+		scrollPane_4.setViewportView(namespacesTable);
+
+		JPanel infoPanel = new JPanel();
+		GridBagConstraints gbc_infoPanel = new GridBagConstraints();
+		gbc_infoPanel.anchor = GridBagConstraints.SOUTH;
+		gbc_infoPanel.fill = GridBagConstraints.HORIZONTAL;
+		gbc_infoPanel.gridx = 0;
+		gbc_infoPanel.gridy = 2;
+		frmSepaDashboard.getContentPane().add(infoPanel, gbc_infoPanel);
+		GridBagLayout gbl_infoPanel = new GridBagLayout();
+		gbl_infoPanel.columnWidths = new int[] { 73, 0, 0, 97, 76, 0 };
+		gbl_infoPanel.rowHeights = new int[] { 29, 0 };
+		gbl_infoPanel.columnWeights = new double[] { 1.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gbl_infoPanel.rowWeights = new double[] { 0.0, Double.MIN_VALUE };
+		infoPanel.setLayout(gbl_infoPanel);
 
 		lblInfo = new JLabel("Info");
 		GridBagConstraints gbc_lblInfo = new GridBagConstraints();
-		gbc_lblInfo.insets = new Insets(0, 0, 0, 5);
 		gbc_lblInfo.anchor = GridBagConstraints.WEST;
+		gbc_lblInfo.insets = new Insets(0, 10, 0, 5);
 		gbc_lblInfo.gridx = 0;
 		gbc_lblInfo.gridy = 0;
-		panel_1.add(lblInfo, gbc_lblInfo);
+		infoPanel.add(lblInfo, gbc_lblInfo);
 
-		qNameCheckbox = new Checkbox("QName");
-		qNameCheckbox.setState(true);
-		qNameCheckbox.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				bindingsRender.showAsQName(qNameCheckbox.getState());
+		chckbxClearonnotify = new JCheckBox("ClearOnNotify");
+		chckbxClearonnotify.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+			}
+		});
+		GridBagConstraints gbc_chckbxClearonnotify = new GridBagConstraints();
+		gbc_chckbxClearonnotify.insets = new Insets(0, 0, 0, 5);
+		gbc_chckbxClearonnotify.gridx = 1;
+		gbc_chckbxClearonnotify.gridy = 0;
+		infoPanel.add(chckbxClearonnotify, gbc_chckbxClearonnotify);
+
+		JCheckBox chckbxQname = new JCheckBox("Qname");
+		chckbxQname.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				bindingsRender.showAsQName(chckbxQname.isSelected());
+
 				bindingsDM.fireTableDataChanged();
+				for (BindingsTableModel table : subscriptionResultsDM.values()) {
+					table.fireTableDataChanged();
+				}
 			}
 		});
-		GridBagConstraints gbc_qNameCheckbox = new GridBagConstraints();
-		gbc_qNameCheckbox.insets = new Insets(0, 0, 0, 5);
-		gbc_qNameCheckbox.anchor = GridBagConstraints.WEST;
-		gbc_qNameCheckbox.gridx = 1;
-		gbc_qNameCheckbox.gridy = 0;
-		panel_1.add(qNameCheckbox, gbc_qNameCheckbox);
-
-		JButton btnClean = new JButton("Clear");
-		btnClean.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				bindingsDM.clear();
-				lblInfo.setText("Results cleaned");
-			}
-		});
+		chckbxQname.setSelected(true);
+		GridBagConstraints gbc_chckbxQname = new GridBagConstraints();
+		gbc_chckbxQname.insets = new Insets(0, 0, 0, 5);
+		gbc_chckbxQname.gridx = 2;
+		gbc_chckbxQname.gridy = 0;
+		infoPanel.add(chckbxQname, gbc_chckbxQname);
 
 		chckbxAutoscroll = new JCheckBox("Autoscroll");
-		chckbxAutoscroll.setSelected(true);
 		GridBagConstraints gbc_chckbxAutoscroll = new GridBagConstraints();
+		gbc_chckbxAutoscroll.anchor = GridBagConstraints.WEST;
 		gbc_chckbxAutoscroll.insets = new Insets(0, 0, 0, 5);
-		gbc_chckbxAutoscroll.gridx = 2;
+		gbc_chckbxAutoscroll.gridx = 3;
 		gbc_chckbxAutoscroll.gridy = 0;
-		panel_1.add(chckbxAutoscroll, gbc_chckbxAutoscroll);
+		infoPanel.add(chckbxAutoscroll, gbc_chckbxAutoscroll);
+		chckbxAutoscroll.setSelected(true);
+
+		JButton btnClean = new JButton("Clear");
 		GridBagConstraints gbc_btnClean = new GridBagConstraints();
-		gbc_btnClean.gridx = 3;
+		gbc_btnClean.anchor = GridBagConstraints.NORTHWEST;
+		gbc_btnClean.gridx = 4;
 		gbc_btnClean.gridy = 0;
-		panel_1.add(btnClean, gbc_btnClean);
+		infoPanel.add(btnClean, gbc_btnClean);
+		btnClean.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if (primitives.isShowing()) {
+					bindingsDM.clear();
+					lblInfo.setText("Results cleaned");
+				} else {
+					for (String spuid : subscriptionResultsTables.keySet()) {
+						if (subscriptionResultsTables.get(spuid).isShowing()) {
+							subscriptionResultsDM.get(spuid).clear();
+							subscriptionResultsLabels.get(spuid).setText("Results cleaned");
+						}
+					}
+				}
+			}
+		});
 		bindingsRender.setNamespaces(namespacesDM);
 	}
 }

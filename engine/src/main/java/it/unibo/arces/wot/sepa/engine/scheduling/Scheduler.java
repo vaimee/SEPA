@@ -18,24 +18,11 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.NoSuchElementException;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -63,11 +50,7 @@ public class Scheduler extends Observable implements SchedulerMBean, Observer {
 	// Responders
 	private HashMap<Integer, ResponseHandler> responders = new HashMap<Integer, ResponseHandler>();
 
-	public Scheduler(EngineProperties properties)
-			throws IllegalArgumentException, MalformedObjectNameException, InstanceAlreadyExistsException,
-			MBeanRegistrationException, NotCompliantMBeanException, InvalidKeyException, FileNotFoundException,
-			NoSuchElementException, NullPointerException, ClassCastException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, URISyntaxException {
+	public Scheduler(EngineProperties properties) {
 		if (properties == null) {
 			logger.error("Properties are null");
 			throw new IllegalArgumentException("Properties are null");

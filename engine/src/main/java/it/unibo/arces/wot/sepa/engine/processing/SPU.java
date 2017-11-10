@@ -19,15 +19,16 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.Observable;
-//import java.util.Observer;
+
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
@@ -72,12 +73,21 @@ public abstract class SPU extends Observable implements Runnable {
 
 	// To be implemented by every specific SPU implementation
 	public abstract boolean init();
-	public abstract Notification processInternal(UpdateResponse update);
-
-	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler)
-			throws IllegalArgumentException, URISyntaxException {
+	public abstract void processInternal(UpdateResponse update);
+	
+	// To be called once the SPU processing is finished
+	protected final void processingResult(Notification notify){
+		this.notify = notify;
+		this.notify.notify();
+	}
+	
+	//Notification result
+	private Notification notify;
+	
+	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler,
+			Semaphore endpointSemaphore) throws SEPAProtocolException {
 		if (eventHandler == null)
-			throw new IllegalArgumentException("Subscribe event handler is null");
+			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe event handler is null"));
 
 		uuid = prefix + UUID.randomUUID().toString();
 		logger = LogManager.getLogger("SPU" + uuid);
@@ -85,17 +95,13 @@ public abstract class SPU extends Observable implements Runnable {
 		request = subscribe;
 		handler = eventHandler;
 
-		queryProcessor = new QueryProcessor(properties);
+		queryProcessor = new QueryProcessor(properties, endpointSemaphore);
 
 		running = true;
 	}
 
 	public BindingsResults getFirstResults() {
 		return firstResults;
-	}
-
-	public boolean isRunning() {
-		return running;
 	}
 
 	public void terminate() {
@@ -122,9 +128,13 @@ public abstract class SPU extends Observable implements Runnable {
 			updateQueue.notify();
 		}
 	}
+	
+	public void stopProcessing() {
+		notify = null;
+		notify.notify();
+	}
 
 	public void ping() throws IOException {
-		//logger.debug("Send ping "+getUUID());
 		handler.sendPing(new Ping(getUUID()));
 	}
 
@@ -136,38 +146,41 @@ public abstract class SPU extends Observable implements Runnable {
 			while ((updateResponse = updateQueue.poll()) != null && running) {
 				// Processing update
 				logger.debug("* PROCESSING *");
+
+				//Asynchronous processing and waiting for result
+				processInternal(updateResponse);
+				synchronized(notify) {
+					try {
+						notify.wait();
+					} catch (InterruptedException e) {
+						running = false;
+					}
+				}
 				
-				Notification notify = processInternal(updateResponse);
+				// Notify event handler
+				try {
+					if (notify != null)
+						if (handler != null)
+							handler.notifyEvent(notify);
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+				}
 
 				// Notify SPU manager
 				logger.debug("Notify SPU manager. Running: " + running);
 				setChanged();
-				notifyObservers(true);
-
-				// Notify
-				try {
-					if (notify != null)
-						handler.notifyEvent(notify);
-				} catch (Exception e) {
-					logger.error(e.getMessage());
-				}
-			}
-			
-			// Terminated by an unsubscribe request
-			if (!running) {
-				logger.debug("*TERMINATED*");
-				setChanged();
-				notifyObservers(false);
-				return;
+				notifyObservers(running);
 			}
 
-			synchronized (updateQueue) {
-				try {
-					updateQueue.wait();
-				} catch (InterruptedException e) {
-					return;
+			// Wait next request...
+			if (running)
+				synchronized (updateQueue) {
+					try {
+						updateQueue.wait();
+					} catch (InterruptedException e) {
+						return;
+					}
 				}
-			}
 		}
 	}
 }

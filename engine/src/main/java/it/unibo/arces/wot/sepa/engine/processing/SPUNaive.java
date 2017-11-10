@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
@@ -33,7 +34,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
-import java.net.URISyntaxException;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 
@@ -42,11 +43,10 @@ public class SPUNaive extends SPU {
 
 	private BindingsResults lastBindings = null;
 	private Integer sequence = 0;
-	private Response ret;
 
-	public SPUNaive(SubscribeRequest subscribe, EventHandler handler, SPARQL11Properties endpointProperties)
-			throws IllegalArgumentException, URISyntaxException {
-		super(subscribe, endpointProperties, handler);
+	public SPUNaive(SubscribeRequest subscribe, EventHandler handler, SPARQL11Properties endpointProperties,
+			Semaphore endpointSemaphore) throws SEPAProtocolException {
+		super(subscribe, endpointProperties, handler, endpointSemaphore);
 
 		logger = LogManager.getLogger("SPUNaive" + getUUID());
 		logger.debug("SPU: " + this.getUUID() + " request: " + subscribe);
@@ -57,7 +57,7 @@ public class SPUNaive extends SPU {
 		logger.debug("Process SPARQL query " + request);
 
 		// Process the SPARQL query
-		ret = queryProcessor.process(request,ProcessorBeans.getQueryTimeout());
+		Response ret = queryProcessor.process(request, ProcessorBeans.getQueryTimeout());
 
 		if (ret.getClass().equals(ErrorResponse.class)) {
 			logger.error("Not initialized");
@@ -73,59 +73,66 @@ public class SPUNaive extends SPU {
 	}
 
 	@Override
-	public Notification processInternal(UpdateResponse update) {
+	public void processInternal(UpdateResponse update) {
 		logger.debug("* PROCESSING *" + request);
 
-		// Query the SPARQL processing service
-		ret = queryProcessor.process(request,ProcessorBeans.getQueryTimeout());
+		new Thread() {
+			public void run() {
+		
+		try {
+			// Query the SPARQL processing service
+			Response ret = queryProcessor.process(request, ProcessorBeans.getQueryTimeout());
 
-		if (ret.getClass().equals(ErrorResponse.class)) {
-			logger.error(ret);
-			return null;
+			if (ret.getClass().equals(ErrorResponse.class)) {
+				logger.error(ret);
+				processingResult(null);
+			}
+
+			// Current and previous bindings
+			BindingsResults results = ((QueryResponse) ret).getBindingsResults();
+			BindingsResults currentBindings = new BindingsResults(results);
+
+			// Initialize the results with the current bindings
+			BindingsResults added = new BindingsResults(results.getVariables(), null);
+			BindingsResults removed = new BindingsResults(results.getVariables(), null);
+
+			// Create empty bindings if null
+			if (lastBindings == null)
+				lastBindings = new BindingsResults(null, null);
+
+			logger.debug("Current bindings: " + currentBindings);
+			logger.debug("Last bindings: " + lastBindings);
+
+			// Find removed bindings
+			long start = System.nanoTime();
+			for (Bindings solution : lastBindings.getBindings()) {
+				if (!results.contains(solution) && !solution.isEmpty())
+					removed.add(solution);
+				else
+					results.remove(solution);
+			}
+			long stop = System.nanoTime();
+			logger.debug("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
+
+			// Find added bindings
+			start = System.nanoTime();
+			for (Bindings solution : results.getBindings()) {
+				if (!lastBindings.contains(solution) && !solution.isEmpty())
+					added.add(solution);
+			}
+			stop = System.nanoTime();
+			logger.debug("Added bindings: " + added + " found in " + (stop - start) + " ns");
+
+			// Update the last bindings with the current ones
+			lastBindings = currentBindings;
+
+			// Send notification (or end processing indication)
+			if (!added.isEmpty() || !removed.isEmpty())
+				processingResult(new Notification(getUUID(), new ARBindingsResults(added, removed), sequence++));
+		} catch (Exception e) {
+			processingResult(null);
 		}
-
-		// Current and previous bindings
-		BindingsResults results = ((QueryResponse) ret).getBindingsResults();
-		BindingsResults currentBindings = new BindingsResults(results);
-
-		// Initialize the results with the current bindings
-		BindingsResults added = new BindingsResults(results.getVariables(), null);
-		BindingsResults removed = new BindingsResults(results.getVariables(), null);
-
-		// Create empty bindings if null
-		if (lastBindings == null)
-			lastBindings = new BindingsResults(null, null);
-
-		logger.debug("Current bindings: " + currentBindings);
-		logger.debug("Last bindings: " + lastBindings);
-
-		// Find removed bindings
-		long start = System.nanoTime();
-		for (Bindings solution : lastBindings.getBindings()) {
-			if (!results.contains(solution) && !solution.isEmpty())
-				removed.add(solution);
-			else
-				results.remove(solution);
-		}
-		long stop = System.nanoTime();
-		logger.debug("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
-
-		// Find added bindings
-		start = System.nanoTime();
-		for (Bindings solution : results.getBindings()) {
-			if (!lastBindings.contains(solution) && !solution.isEmpty())
-				added.add(solution);
-		}
-		stop = System.nanoTime();
-		logger.debug("Added bindings: " + added + " found in " + (stop - start) + " ns");
-
-		// Update the last bindings with the current ones
-		lastBindings = currentBindings;
-
-		// Send notification (or end processing indication)
-		if (!added.isEmpty() || !removed.isEmpty())
-			return new Notification(getUUID(), new ARBindingsResults(added, removed), sequence++);
-
-		return null;
+		processingResult(null);
+	}}.start();
 	}
 }

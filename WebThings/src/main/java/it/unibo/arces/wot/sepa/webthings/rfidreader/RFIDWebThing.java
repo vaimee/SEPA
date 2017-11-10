@@ -1,27 +1,18 @@
 package it.unibo.arces.wot.sepa.webthings.rfidreader;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.HashSet;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import java.util.HashSet;
+import java.util.Scanner;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.framework.ThingDescription;
 import it.unibo.arces.wot.framework.interaction.EventPublisher;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
@@ -45,13 +36,11 @@ public class RFIDWebThing extends TagsReader {
 	private final String thingName = "ARCES RFID UID:";
 
 	DiscoveryPatch patch = new DiscoveryPatch();
-	
+
 	private CheckerWithHysteresis tagsChecker = new CheckerWithHysteresis(false);
 
-	public RFIDWebThing(String port) throws IOException, UnrecoverableKeyException, KeyManagementException,
-			InvalidKeyException, IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException,
-			CertificateException, NoSuchElementException, NullPointerException, ClassCastException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, URISyntaxException {
+	public RFIDWebThing(String port)
+			throws IOException, SEPAPropertiesException, SEPAProtocolException, SEPASecurityException {
 		super(port);
 
 		// Publish the Thing Description
@@ -61,20 +50,20 @@ public class RFIDWebThing extends TagsReader {
 		td.addEvent(pingEventURI, pingEventName);
 
 		// Create the event generator
-		event = new EventPublisher(thingURI); 
+		event = new EventPublisher(thingURI);
 	}
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, SEPAPropertiesException, SEPAProtocolException, SEPASecurityException {
 		Scanner in = new Scanner(System.in);
 		boolean searching = true;
 		String portName = "";
 
 		System.out.println("Number of arguments: " + args.length);
-		
+
 		if (args.length == 1) {
 			portName = args[0];
 		} else {
-			
+
 			while (searching) {
 				// 0 - /dev/tty.usbserial-000012FD
 				String[] portNames = SerialPortList.getPortNames();
@@ -105,16 +94,9 @@ public class RFIDWebThing extends TagsReader {
 
 		// Web Thing adapter
 		RFIDWebThing adapter;
-		try {
-			adapter = new RFIDWebThing(portName);
-		} catch (UnrecoverableKeyException | KeyManagementException | InvalidKeyException | IllegalArgumentException
-				| KeyStoreException | NoSuchAlgorithmException | CertificateException | NoSuchElementException
-				| NullPointerException | ClassCastException | NoSuchPaddingException | IllegalBlockSizeException
-				| BadPaddingException | IOException | URISyntaxException e) {
-			logger.fatal(e.getMessage());
-			in.close();
-			return;
-		}
+
+		adapter = new RFIDWebThing(portName);
+
 		adapter.start();
 
 		System.out.println("RFID adapter is running...");
@@ -132,26 +114,25 @@ public class RFIDWebThing extends TagsReader {
 
 	class DiscoveryPatch extends Producer {
 
-		public DiscoveryPatch()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+		public DiscoveryPatch() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 			super(new ApplicationProfile("td.jsap"), "UPDATE_DISCOVER");
 		}
-		
+
 		public void setDiscoverable(String thing) {
 			Bindings bindings = new Bindings();
-			bindings.addBinding("thing",new RDFTermURI(thing));
-			bindings.addBinding("value",new RDFTermLiteral("true"));
+			bindings.addBinding("thing", new RDFTermURI(thing));
+			bindings.addBinding("value", new RDFTermLiteral("true"));
 			update(bindings);
 		}
-		
+
 	}
+
 	@Override
 	public void onPing() {
 		logger.info("Event: " + pingEventURI);
 		event.post(pingEventURI);
-		
-		//PATCH for discovery
+
+		// PATCH for discovery
 		patch.setDiscoverable(thingURIPrefix);
 	}
 

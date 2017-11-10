@@ -29,31 +29,85 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+
 import org.apache.logging.log4j.LogManager;
 
 /**
- * { "parameters" : { "scheduler" : { "queueSize" : 100} , "processor" : {
- * "updateTimeout" : 5000 , "queryTimeout" : 5000} , "spu" : { "keepalive" :
- * 5000} , "ports" : { "http" : 8000 , "ws" : 9000 , "https" : 8443 , "wss" :
- * 9443} , "paths" : { "update" : "/update" , "query" : "/query" , "subscribe" :
- * "/subscribe" , "register" : "/oauth/register" , "tokenRequest" :
- * "/oauth/token" , "securePath" : "/secure"} } }
+ {
+	"parameters" : {
+		"scheduler" : {
+			"queueSize" : 100}
+		 ,
+		"processor" : {
+			"updateTimeout" : 5000 ,
+			"queryTimeout" : 5000 ,
+			"maxConcurrentRequests" : 10}
+		 ,
+		"spu" : {
+			"keepalive" : 5000}
+		 ,
+		"ports" : {
+			"http" : 8000 ,
+			"ws" : 9000 ,
+			"https" : 8443 ,
+			"wss" : 9443}
+		 ,
+		"paths" : {
+			"update" : "/update" ,
+			"query" : "/query" ,
+			"subscribe" : "/subscribe" ,
+			"register" : "/oauth/register" ,
+			"tokenRequest" : "/oauth/token" ,
+			"securePath" : "/secure"}
+	}
+}
  */
 public class EngineProperties {
 	private static final Logger logger = LogManager.getLogger("EngineProperties");
 
 	private String defaultsFileName = "defaults.jpar";
-	private String propertiesFile = "engine.jpar";
 
 	private JsonObject properties = new JsonObject();
 
-	public EngineProperties(String propertiesFile)
-			throws IllegalArgumentException, NoSuchElementException, IOException {
-		if (propertiesFile == null)
-			throw new IllegalArgumentException("Properties file is null");
-		this.propertiesFile = propertiesFile;
+	public EngineProperties(String propertiesFile) throws SEPAPropertiesException {
 
-		loadProperties();
+		if (propertiesFile == null)
+			throw new SEPAPropertiesException(new IllegalArgumentException("Properties file is null"));
+
+		FileReader in = null;
+		try {
+			in = new FileReader(propertiesFile);
+			if (in != null) {
+				properties = new JsonParser().parse(in).getAsJsonObject();
+				if (properties.get("parameters") == null) {
+					logger.warn("parameters key is missing");
+					throw new SEPAPropertiesException(new NoSuchElementException("parameters key is missing"));
+				}
+				properties = properties.get("parameters").getAsJsonObject();
+
+				checkParameters();
+			}
+			if (in != null)
+				in.close();
+		} catch (IOException e) {
+			logger.warn(e.getMessage());
+
+			defaults();
+
+			try {
+				storeProperties(defaultsFileName);
+			} catch (IOException e1) {
+				logger.error(e1.getMessage());
+				throw new SEPAPropertiesException(e1);
+			}
+
+			logger.warn(
+					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to \"" + propertiesFile + "\"");
+			throw new SEPAPropertiesException(new FileNotFoundException(
+					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to \"" + propertiesFile + "\""));
+
+		}
 	}
 
 	public String toString() {
@@ -72,6 +126,7 @@ public class EngineProperties {
 		JsonObject processor = new JsonObject();
 		processor.add("updateTimeout", new JsonPrimitive(5000));
 		processor.add("queryTimeout", new JsonPrimitive(5000));
+		processor.add("maxConcurrentRequests", new JsonPrimitive(5));
 		parameters.add("processor", processor);
 
 		// SPU properties
@@ -101,56 +156,28 @@ public class EngineProperties {
 		properties.add("parameters", parameters);
 	}
 
-	protected boolean checkParameters() throws IllegalStateException, ClassCastException {
-		properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
-		properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
-		properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
-		properties.get("spu").getAsJsonObject().get("keepalive").getAsInt();
-
-		properties.get("ports").getAsJsonObject().get("http").getAsInt();
-		properties.get("ports").getAsJsonObject().get("https").getAsInt();
-		properties.get("ports").getAsJsonObject().get("ws").getAsInt();
-		properties.get("ports").getAsJsonObject().get("wss").getAsInt();
-
-		properties.get("paths").getAsJsonObject().get("securePath").getAsString();
-		properties.get("paths").getAsJsonObject().get("update").getAsString();
-		properties.get("paths").getAsJsonObject().get("query").getAsString();
-		properties.get("paths").getAsJsonObject().get("subscribe").getAsString();
-		properties.get("paths").getAsJsonObject().get("register").getAsString();
-		properties.get("paths").getAsJsonObject().get("tokenRequest").getAsString();
-
-		return true;
-	}
-
-	private void loadProperties() throws NoSuchElementException, IOException {
-		FileReader in = null;
+	protected void checkParameters() throws SEPAPropertiesException {
 		try {
-			in = new FileReader(propertiesFile);
-			if (in != null) {
-				properties = new JsonParser().parse(in).getAsJsonObject();
-				if (properties.get("parameters") == null) {
-					logger.warn("parameters key is missing");
-					throw new NoSuchElementException("parameters key is missing");
-				}
-				properties = properties.get("parameters").getAsJsonObject();
+			properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
 
-				if (!checkParameters())
-					throw new NoSuchElementException("JPAR missing parameter");
-			}
-			if (in != null)
-				in.close();
-		} catch (IOException e) {
-			logger.warn(e.getMessage());
+			properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
+			properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
+			properties.get("processor").getAsJsonObject().get("maxConcurrentRequests").getAsInt();
+			properties.get("spu").getAsJsonObject().get("keepalive").getAsInt();
 
-			defaults();
+			properties.get("ports").getAsJsonObject().get("http").getAsInt();
+			properties.get("ports").getAsJsonObject().get("https").getAsInt();
+			properties.get("ports").getAsJsonObject().get("ws").getAsInt();
+			properties.get("ports").getAsJsonObject().get("wss").getAsInt();
 
-			storeProperties(defaultsFileName);
-
-			logger.warn(
-					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to \"" + propertiesFile + "\"");
-			throw new FileNotFoundException(
-					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to \"" + propertiesFile + "\"");
-
+			properties.get("paths").getAsJsonObject().get("securePath").getAsString();
+			properties.get("paths").getAsJsonObject().get("update").getAsString();
+			properties.get("paths").getAsJsonObject().get("query").getAsString();
+			properties.get("paths").getAsJsonObject().get("subscribe").getAsString();
+			properties.get("paths").getAsJsonObject().get("register").getAsString();
+			properties.get("paths").getAsJsonObject().get("tokenRequest").getAsString();
+		} catch (Exception e) {
+			throw new SEPAPropertiesException(e);
 		}
 	}
 
@@ -186,10 +213,14 @@ public class EngineProperties {
 		return def;
 	}
 
+	public int getMaxConcurrentRequests() {
+		return getParameter("processor", "maxConcurrentRequests", 5);
+	}
+	
 	public int getUpdateTimeout() {
 		return getParameter("processor", "updateTimeout", 5000);
 	}
-	
+
 	public int getQueryTimeout() {
 		return getParameter("processor", "queryTimeout", 5000);
 	}

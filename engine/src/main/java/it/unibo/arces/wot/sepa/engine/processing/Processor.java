@@ -18,27 +18,15 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
@@ -55,32 +43,35 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import org.apache.logging.log4j.LogManager;
 
 public class Processor extends Observable implements ProcessorMBean, Observer {
-	private static final Logger logger = LogManager.getLogger("Processor");
+	private final Logger logger = LogManager.getLogger("Processor");
 
 	// Processors
 	private final UpdateProcessor updateProcessor;
 	private final QueryProcessor queryProcessor;
-	private SPUManager spuManager;
+	private final SPUManager spuManager;
 
 	private boolean updateProcessing = true;
 
 	// Update queue
 	private ConcurrentLinkedQueue<UpdateRequest> updateRequestQueue = new ConcurrentLinkedQueue<UpdateRequest>();
 
-	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties)
-			throws MalformedObjectNameException, InstanceAlreadyExistsException, MBeanRegistrationException,
-			NotCompliantMBeanException, InvalidKeyException, FileNotFoundException, NoSuchElementException,
-			NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, IOException, IllegalArgumentException, URISyntaxException {
+	// Concurrent endpoint limit
+	private Semaphore endpointSemaphore = null;
+	 
+	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties) throws SEPAProtocolException {
 
+		// Number of maximum concurrent requests (supported by the endpoint)
+		int max = properties.getMaxConcurrentRequests();
+		if (max > 0) endpointSemaphore = new Semaphore(max, true);
+		
 		// Update processor
-		updateProcessor = new UpdateProcessor(endpointProperties);
+		updateProcessor = new UpdateProcessor(endpointProperties,endpointSemaphore);
 
 		// Query processor
-		queryProcessor = new QueryProcessor(endpointProperties);
+		queryProcessor = new QueryProcessor(endpointProperties,endpointSemaphore);
 
 		// SPU manager
-		spuManager = new SPUManager(endpointProperties, properties);
+		spuManager = new SPUManager(endpointProperties, properties,endpointSemaphore);
 		spuManager.addObserver(this);
 		
 		// JMX

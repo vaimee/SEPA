@@ -1,21 +1,11 @@
 package it.unibo.arces.wot.sepa.apps;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
-import java.util.NoSuchElementException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
@@ -48,9 +38,7 @@ public class HeapBugTest {
 		private int number;
 		private long notifications;
 		
-		public HeapBugTestConsumer(ApplicationProfile appProfile, String subscribeID,int number)
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		public HeapBugTestConsumer(ApplicationProfile appProfile, String subscribeID,int number) throws SEPAProtocolException, SEPASecurityException {
 			super(appProfile, subscribeID);
 			this.number = number;
 			notifications = 0;
@@ -74,18 +62,21 @@ public class HeapBugTest {
 		}
 
 		@Override
-		public void onKeepAlive() {
-
+		public void onPing() {
+			// TODO Auto-generated method stub
+			
 		}
 
 		@Override
-		public void onBrokenSubscription() {
-			System.out.println("Consumer #"+number+" broken subscription");
+		public void onBrokenSocket() {
+			// TODO Auto-generated method stub
+			
 		}
 
 		@Override
-		public void onSubscriptionError(ErrorResponse errorResponse) {
-			System.out.println("Consumer #"+number+" error: "+errorResponse.toString());
+		public void onError(ErrorResponse errorResponse) {
+			// TODO Auto-generated method stub
+			
 		}
 		
 	}
@@ -96,8 +87,7 @@ public class HeapBugTest {
 		private long number;
 		
 		public HeapBugTestProducer(int index)
-				throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+				throws SEPAProtocolException, SEPASecurityException {
 			this.index = index;
 			producer = new Producer(app, "UPDATE_OBSERVATION_VALUE");
 			number = 0;
@@ -131,10 +121,7 @@ public class HeapBugTest {
 	}
 
 	public static void main(String[] args)
-			throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException,
-			NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException,
-			IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException,
-			KeyManagementException, KeyStoreException, CertificateException, URISyntaxException, InterruptedException {
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException {
 		if (args.length > 1) {
 			for (int index = 0; index < args.length; index++) {
 				switch (args[index]) {

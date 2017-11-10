@@ -1,6 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
-import java.net.UnknownHostException;
 
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -17,6 +16,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
@@ -31,8 +32,7 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 		return "Secure Subscribe     | wss://%s:%d%s";
 	}
 
-	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,int keepAlivePeriod)
-			throws IllegalArgumentException, UnknownHostException, KeyManagementException, NoSuchAlgorithmException {
+	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,int keepAlivePeriod) throws SEPAProtocolException, SEPASecurityException {
 		super(port, path, scheduler,keepAlivePeriod);
 
 		if (oauth == null)
@@ -40,7 +40,12 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 
 		this.oauth = oauth;
 
-		setWebSocketFactory(new DefaultSSLWebSocketServerFactory(oauth.getSSLContext()));
+		try {
+			setWebSocketFactory(new DefaultSSLWebSocketServerFactory(oauth.getSSLContext()));
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			logger.error(e.getMessage());
+			throw new SEPASecurityException(e);
+		}
 	}
 
 	@Override

@@ -1,21 +1,10 @@
 package it.unibo.arces.wot.sepa.apps;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.HashMap;
-import java.util.NoSuchElementException;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
@@ -24,8 +13,7 @@ import it.unibo.arces.wot.sepa.pattern.Producer;
 public class LCDProducer extends Producer {
 
 	public LCDProducer(ApplicationProfile appProfile, String updateID)
-			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile, updateID);
 	}
 
@@ -93,10 +81,7 @@ public class LCDProducer extends Producer {
 	}
 	
 	public static void main(String[] args)
-			throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException,
-			InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException{
 
 		ApplicationProfile appProfile = new ApplicationProfile("wot-plugfest.jsap");
 

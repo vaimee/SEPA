@@ -1,16 +1,7 @@
 package engine;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.engine.processing.UpdateProcessor;
@@ -18,12 +9,12 @@ import it.unibo.arces.wot.sepa.engine.processing.UpdateProcessor;
 public class UpdateProcessorTest {
 	private static UpdateProcessor processor;
 	
-	public static void main(String[] args) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, IllegalArgumentException, URISyntaxException{
+	public static void main(String[] args) throws SEPAPropertiesException, SEPAProtocolException {
 		SPARQL11Properties properties = new SPARQL11Properties("endpoint.jpar");
 		
 		System.out.println(properties.toString());
 		
-		processor = new UpdateProcessor(properties);
+		processor = new UpdateProcessor(properties,null);
 		
 		while(true) {
 			try {

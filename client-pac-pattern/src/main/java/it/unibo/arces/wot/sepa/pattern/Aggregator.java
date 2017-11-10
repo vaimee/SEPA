@@ -18,34 +18,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-public abstract class Aggregator extends Consumer implements IAggregator {
+public abstract class Aggregator extends Consumer implements IConsumer,IProducer {
 	protected String sparqlUpdate = null;
+	protected String SPARQL_ID = "";
 	
 	private static final Logger logger = LogManager.getLogger("Aggregator");
 	
-	public Aggregator(ApplicationProfile appProfile,String subscribeID,String updateID) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+	public Aggregator(ApplicationProfile appProfile,String subscribeID,String updateID) throws SEPAProtocolException {
 		super(appProfile,subscribeID);
 		
-		if (appProfile == null || subscribeID == null || updateID == null){
-			logger.fatal("Some arguments are null)");
-			throw new IllegalArgumentException("Arguments can not be null");
+		if (updateID == null){
+			logger.fatal("Update ID is null");
+			throw new SEPAProtocolException(new IllegalArgumentException("Update ID is null null"));
 		}
 		
 		if (appProfile.update(updateID) == null) {
@@ -53,16 +46,20 @@ public abstract class Aggregator extends Consumer implements IAggregator {
 			throw new IllegalArgumentException("UPDATE ID " +updateID+" not found in "+appProfile.getFileName());
 		}
 		
+		SPARQL_ID = updateID;
+		
 		sparqlUpdate = appProfile.update(updateID);
 	} 
 
-	public Response update(Bindings forcedBindings){	 
+	public final Response update(Bindings forcedBindings){	 
 		 if (protocolClient == null || sparqlUpdate == null) {
 			 logger.fatal("Aggregator not initialized");			 
 			 return new ErrorResponse(-1,400,"Aggregator not initialized");
 		 }
 		 
 		 String sparql = prefixes() + replaceBindings(sparqlUpdate,forcedBindings);		 		 
+		 
+		 logger.debug("<UPDATE> "+ SPARQL_ID+" ==> "+sparql);
 		 
 		 return protocolClient.update(new UpdateRequest(sparql));
 	 }

@@ -1,33 +1,22 @@
 package it.unibo.arces.wot.sepa.webthings.rfidreader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
-import java.util.Set;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import java.io.IOException;
+import java.util.Set;
 
 import it.unibo.arces.wot.framework.elements.Event;
 import it.unibo.arces.wot.framework.interaction.EventListener;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 public class RFIDEventListener extends EventListener {
 
-	public RFIDEventListener() throws InvalidKeyException, FileNotFoundException, NoSuchElementException,
-			IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException {
+	public RFIDEventListener() throws SEPAPropertiesException  {
 		super();
 	}
 	
-	public static void main(String[] args) throws FileNotFoundException, NoSuchElementException, IOException, URISyntaxException, InvalidKeyException, UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, InterruptedException {
+	public static void main(String[] args) throws SEPAPropertiesException, SEPAProtocolException, SEPASecurityException, IOException {
 			
 		RFIDEventListener thing = new RFIDEventListener();
 		

@@ -1,26 +1,13 @@
 package it.unibo.arces.wot.sepa.apps.randomnumbers;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-
-import java.net.URISyntaxException;
-
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
-import java.util.NoSuchElementException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 
 public class RandomNumbersTest {
@@ -37,10 +24,7 @@ public class RandomNumbersTest {
 	static MeanMonitor meanMonitor;
 
 	public static void main(String[] args)
-			throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException,
-			InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+			throws  SEPAPropertiesException, SEPAProtocolException, SEPASecurityException, IOException {
 		
 		// First we create the application profile
 		myApp = new ApplicationProfile("randomNumbers.jsap");

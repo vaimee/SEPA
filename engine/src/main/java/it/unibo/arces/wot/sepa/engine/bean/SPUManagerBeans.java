@@ -37,10 +37,6 @@ public class SPUManagerBeans {
 		return time;
 	}
 	
-//	public static String getSPUs_statistics(){
-//		return String.format("[%.0f %.0f %.0f]", minTime,averageTime,maxTime);
-//	}
-	
 	public static  void setActiveSPUs(long n) {
 		activeSPUs = n;
 		if (activeSPUs > maxActiveSPUs) maxActiveSPUs = activeSPUs;

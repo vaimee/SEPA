@@ -1,6 +1,10 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.apache.http.Consts;
 import org.apache.http.Header;
@@ -68,5 +72,15 @@ public class HttpUtilities {
 		json.add("body", new JsonPrimitive(body));
 
 		return json;
+	}
+	
+	public static Map<String, String> splitQuery(String query) throws UnsupportedEncodingException {
+	    Map<String, String> query_pairs = new LinkedHashMap<String, String>();
+	    String[] pairs = query.split("&");
+	    for (String pair : pairs) {
+	        int idx = pair.indexOf("=");
+	        query_pairs.put(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
+	    }
+	    return query_pairs;
 	}
 }

@@ -19,6 +19,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
@@ -44,23 +45,25 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	// JMX
 	protected WebsocketBeans jmx = new WebsocketBeans();
 
-	public WebsocketServer(int port, String path, Scheduler scheduler, int keepAlivePeriod)
-			throws IllegalArgumentException, UnknownHostException {
+	public WebsocketServer(int port, String path, Scheduler scheduler, int keepAlivePeriod) throws SEPAProtocolException {
 		super(new InetSocketAddress(port));
 
 		if (path == null || scheduler == null)
-			throw new IllegalArgumentException("One or more arguments are null");
+			throw new SEPAProtocolException(new IllegalArgumentException("One or more arguments are null"));
 
 		this.scheduler = scheduler;
 		
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
 		String address = getAddress().getAddress().toString();
+		
 		try {
 			address = Inet4Address.getLocalHost().getHostAddress();
 		} catch (UnknownHostException e) {
 			logger.error(e.getMessage());
+			throw new SEPAProtocolException(e);
 		}
+		
 		welcomeMessage = String.format(getWelcomeMessage(), address, port, path);
 	}
 
@@ -82,6 +85,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	public void onMessage(WebSocket conn, String message) {
 		jmx.onMessage();
 
+		logger.debug("Message from: "+conn.getRemoteSocketAddress()+" ["+message+"]");
+		
 		Request req = parseRequest(message);
 
 		if (req == null) {
