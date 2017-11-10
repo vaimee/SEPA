@@ -1,22 +1,11 @@
 package it.unibo.arces.wot.framework.discovery;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.HashSet;
-import java.util.NoSuchElementException;
 import java.util.Observable;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -59,29 +48,27 @@ public class Discovery extends Observable {
 		}
 	}
 	
-	public Discovery() throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException, URISyntaxException{
+	public Discovery() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		this(new ApplicationProfile("td.jsap"));
 	}
 	
-	public Discovery(ApplicationProfile app) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException, URISyntaxException{
+	public Discovery(ApplicationProfile app) throws SEPAProtocolException, SEPASecurityException{
 		this.app = app;
 		
 		getAllThings = new GetAllThings();
 	}
 	
-	public void enableAllThingsDiscovery() throws InvalidKeyException, UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, IOException, URISyntaxException, InterruptedException {
+	public void enableAllThingsDiscovery() {
 		getAllThings.subscribe(null);
 	}
 	
-	public void disableAllThingsDiscovery() throws InvalidKeyException, UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, KeyStoreException, CertificateException, IOException, URISyntaxException, InterruptedException {
+	public void disableAllThingsDiscovery() {
 		getAllThings.unsubscribe();
 	}
 	
 	class GetAllThings extends Consumer {
 
-		public GetAllThings()
-				throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-				NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+		public GetAllThings() throws SEPAProtocolException, SEPASecurityException {
 			super(app, "ALL_THINGS");
 		}
 
@@ -104,22 +91,21 @@ public class Discovery extends Observable {
 		}
 
 		@Override
-		public void onKeepAlive() {
+		public void onPing() {
 			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
-		public void onBrokenSubscription() {
+		public void onBrokenSocket() {
 			// TODO Auto-generated method stub
 			
 		}
 
 		@Override
-		public void onSubscriptionError(ErrorResponse errorResponse) {
+		public void onError(ErrorResponse errorResponse) {
 			// TODO Auto-generated method stub
 			
-		}
-		
+		}		
 	}
 }

@@ -1,25 +1,16 @@
 package it.unibo.arces.wot.sepa.apps.randomnumbers;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
 import java.util.UUID;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
@@ -38,10 +29,7 @@ public class MeanCalculator extends Aggregator {
 
 	private final String baseURI = "rnd:Mean-";
 
-	public MeanCalculator() throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException,
-			KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException,
-			URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public MeanCalculator() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		super(new ApplicationProfile("randomNumbers.jsap"), "RANDOM_NUMBER", "UPDATE_MEAN");
 
 		meanURI = baseURI + UUID.randomUUID();
@@ -51,17 +39,12 @@ public class MeanCalculator extends Aggregator {
 
 	public boolean start() {
 		Response ret;
-		try {
-			ret = subscribe(null);
-		} catch (InvalidKeyException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException
-				| CertificateException | IOException | URISyntaxException | InterruptedException e) {
-			logger.fatal(e.getMessage());
-			return false;
-		}
+
+		ret = subscribe(null);
+
 		if (ret.isError())
 			return false;
-		
+
 		mean = 0;
 		counter = 0;
 
@@ -72,14 +55,10 @@ public class MeanCalculator extends Aggregator {
 
 		return true;
 	}
-	
+
 	public void stop() {
-		try {
-			unsubscribe();
-		} catch (InvalidKeyException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException
-				| CertificateException | IOException | URISyntaxException | InterruptedException e) {
-		}
+		unsubscribe();
+
 	}
 
 	@Override
@@ -93,20 +72,48 @@ public class MeanCalculator extends Aggregator {
 			float value;
 			try {
 				value = Float.parseFloat(result.getBindingValue("value").replace(",", "."));
-			}
-			catch(Exception e) {
+			} catch (Exception e) {
 				logger.error(e.getMessage());
 				continue;
 			}
 			counter++;
 			mean = ((mean * (counter - 1)) + value) / counter;
-			logger.info(" mean: " + meanURI + " value: " + mean
-					+ " counter: " + counter);
+			logger.info(" mean: " + meanURI + " value: " + mean + " counter: " + counter);
 		}
 
 		// Update!
 		forcedBindings.addBinding("counter", new RDFTermLiteral(String.format("%d", counter)));
 		forcedBindings.addBinding("value", new RDFTermLiteral(String.format("%.3f", mean)));
 		update(forcedBindings);
+	}
+
+	@Override
+	public void onResults(ARBindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onAddedResults(BindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPing() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onBrokenSocket() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onError(ErrorResponse errorResponse) {
+		// TODO Auto-generated method stub
+		
 	}
 }

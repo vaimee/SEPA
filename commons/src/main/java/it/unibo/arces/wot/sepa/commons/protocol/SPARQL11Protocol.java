@@ -37,6 +37,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
@@ -73,23 +74,31 @@ public class SPARQL11Protocol {
 	final HttpPost queryPostRequest;
 	HttpUriRequest queryRequest;
 	
-	public SPARQL11Protocol(SPARQL11Properties properties) throws IllegalArgumentException, URISyntaxException {
+	public SPARQL11Protocol(SPARQL11Properties properties) throws SEPAProtocolException {
 		if (properties == null) {
 			logger.fatal("Properties are null");
-			throw new IllegalArgumentException("Properties are null");
+			throw new SEPAProtocolException(new IllegalArgumentException("Properties are null"));
 		}
 		this.properties = properties;
 
 		// Create update POST request
-		updatePostRequest = new HttpPost(new URI("http", null, properties.getHost(), properties.getHttpPort(),
-				properties.getUpdatePath(), null, null));
+		try {
+			updatePostRequest = new HttpPost(new URI("http", null, properties.getHost(), properties.getHttpPort(),
+					properties.getUpdatePath(), null, null));
+		} catch (URISyntaxException e) {
+			throw new SEPAProtocolException(e);
+		}
 		updatePostRequest.setHeader("Accept", properties.getUpdateAcceptHeader());
 		updatePostRequest.setHeader("Content-Type", properties.getUpdateContentTypeHeader());
 
 		// Create query POST request
 		if (!properties.getQueryMethod().equals(HTTPMethod.GET)) {
-			queryPostRequest = new HttpPost(new URI("http", null, properties.getHost(), properties.getHttpPort(),
-					properties.getQueryPath(), null, null));
+			try {
+				queryPostRequest = new HttpPost(new URI("http", null, properties.getHost(), properties.getHttpPort(),
+						properties.getQueryPath(), null, null));
+			} catch (URISyntaxException e) {
+				throw new SEPAProtocolException(e);
+			}
 			queryPostRequest.setHeader("Content-Type", properties.getQueryContentTypeHeader());
 			queryPostRequest.setHeader("Accept", properties.getQueryAcceptHeader());
 		} else
@@ -128,7 +137,7 @@ public class SPARQL11Protocol {
 		try {
 			// Set request entity
 			if (properties.getUpdateMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
-				requestEntity = new StringEntity("update=" + req.getSPARQL(), Consts.UTF_8);
+				requestEntity = new StringEntity("update=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"));
 			} else if (properties.getUpdateMethod().equals(HTTPMethod.POST)) {
 				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 			}
@@ -138,12 +147,11 @@ public class SPARQL11Protocol {
 			updatePostRequest.setConfig(requestConfig);
 
 			// Execute HTTP request
+			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " +timeout+ " ms) "+updatePostRequest.toString(),timeout);
 			long timing = System.nanoTime();
 			httpResponse = httpClient.execute(updatePostRequest);
-			// httpResponse =
-			// HttpClients.createDefault().execute(updateRequest);
 			timing = System.nanoTime() - timing;
-			logger.debug("ENDPOINT UPDATE_TIME (" + timing / 1000000 + " ms)");
+			logger.debug("UPDATE_TIME (" + timing / 1000000 + " ms)");
 
 			// Status code
 			responseCode = httpResponse.getStatusLine().getStatusCode();
@@ -260,8 +268,7 @@ public class SPARQL11Protocol {
 		
 		try {
 			if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
-				String query = URLEncoder.encode("query=" + req.getSPARQL(), "UTF-8");
-				//requestEntity = new StringEntity("query=" + req.getSPARQL(), Consts.UTF_8);
+				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8");
 				HttpGet queryGetRequest;
 				try {
 					queryGetRequest = new HttpGet(new URI("http", null, properties.getHost(), properties.getHttpPort(),
@@ -275,7 +282,7 @@ public class SPARQL11Protocol {
 			} else {
 				// Set request entity
 				if (properties.getQueryMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
-					requestEntity = new StringEntity("query=" + req.getSPARQL(), Consts.UTF_8);
+					requestEntity = new StringEntity("query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"));
 				} else if (properties.getQueryMethod().equals(HTTPMethod.POST)) {
 					requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 				}
@@ -285,10 +292,11 @@ public class SPARQL11Protocol {
 			}
 
 			// Execute HTTP request
+			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " +timeout+ " ms) "+queryRequest.toString(),timeout);
 			timing = System.nanoTime();
 			httpResponse = httpClient.execute(queryRequest);
 			timing = System.nanoTime() - timing;
-			logger.debug("ENDPOINT QUERY TIME (" + timing / 1000000 + " ms)");
+			logger.debug("QUERY_TIME (" + timing / 1000000 + " ms)");
 
 			// Status code
 			responseCode = httpResponse.getStatusLine().getStatusCode();

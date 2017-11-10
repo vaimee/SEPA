@@ -1,25 +1,15 @@
 package it.unibo.arces.wot.sepa.webthings.apps.plugfest;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -28,42 +18,16 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 
-public class StatusMonitor extends Aggregator implements Runnable{
+public class StatusMonitor extends Aggregator implements Runnable {
 	protected static final Logger logger = LogManager.getLogger("StatusMonitor");
+
+	private ConcurrentHashMap<String, Boolean> pings = new ConcurrentHashMap<String, Boolean>();
+	private ConcurrentHashMap<String, Boolean> discoverables = new ConcurrentHashMap<String, Boolean>();
+
 	
-	private static ApplicationProfile app;
-	
-	private class ThingStatus {
-		private boolean status = true;
-		private boolean ping = true;
-		
-		public boolean isOn() {
-			return status;
-		}
-		public void setOn() {
-			this.status = true;
-		}
-		public boolean pingReceived() {
-			return ping;
-		}
-		public void resetPing() {
-			this.ping = false;
-		}	
-	}
-	
-	private ConcurrentHashMap<String,ThingStatus> status = new ConcurrentHashMap<String,ThingStatus>();
-	
-	public static void main(String[] args) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException, URISyntaxException, InterruptedException { 
-		app = new ApplicationProfile("td.jsap");
-	
-		 new Thread(new StatusMonitor()).start();
-	}
-	
-	public StatusMonitor()
-			throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException, InvalidKeyException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException {
-		super(app, "EVENT", "UPDATE_DISCOVER");
-		
+	public StatusMonitor() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(new ApplicationProfile("td.jsap"), "EVENT", "UPDATE_DISCOVER");
+
 		Bindings bindings = new Bindings();
 		bindings.addBinding("event", new RDFTermURI("wot:Ping"));
 		subscribe(bindings);
@@ -77,78 +41,84 @@ public class StatusMonitor extends Aggregator implements Runnable{
 	public void onAddedResults(BindingsResults results) {
 		for (Bindings bindings : results.getBindings()) {
 			String thing = bindings.getBindingValue("thing");
+			logger.info("Ping received by Web Thing: " + thing);
+
+			synchronized (pings) {
+				pings.put(thing, true);
+			}
 			
-			status.put(thing, new ThingStatus());
-			
-			logger.info("Ping received by Web Thing: "+thing);
+			if (discoverables.contains(thing))
+				if (!discoverables.get(thing)) {
+					logger.info("Make Web Thing: " + thing + " discoverable again");
+					switchStatus(thing, true);
+				}
 		}
 	}
 
 	@Override
 	public void onRemovedResults(BindingsResults results) {
+
+	}
+	
+	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		new Thread(new StatusMonitor()).start();
+	}
+
+	private void switchStatus(String thing, boolean status) {
+		// Update
+		Bindings bindings = new Bindings();
+		if (status)
+			bindings.addBinding("value", new RDFTermLiteral("true"));
+		else
+			bindings.addBinding("value", new RDFTermLiteral("false"));
+		bindings.addBinding("thing", new RDFTermURI(thing));
+
+		Response ret = update(bindings);
+
+		if (ret.isUpdateResponse()) {
+			discoverables.put(thing, status);
+
+			if (status)
+				logger.warn("Web Thing: " + thing + " turned ON");
+			else
+				logger.warn("Web Thing: " + thing + " turned OFF");
+		}
 	}
 
 	@Override
 	public void run() {
-		while(true) {
+		while (true) {
 			try {
-				Thread.sleep(15000);
-				logger.info("Check Web Things status...next check in 15 secs...");
+				Thread.sleep(6000);
+				logger.info("Check Web Things status...next check in 6 secs...");
 			} catch (InterruptedException e) {
-				
+
 			}
-			
-			for (String thing : status.keySet()) {
-				if (!status.get(thing).pingReceived()) {
-					if (status.get(thing).isOn()) {
-						//Turn off and set as not discoverable
-						status.remove(thing);
-						
-						//Update
-						Bindings bindings = new Bindings();
-						bindings.addBinding("value", new RDFTermLiteral("false"));
-						bindings.addBinding("thing", new RDFTermURI(thing));
-						update(bindings);
-						
-						logger.warn("Turn OFF Web Thing: "+thing);
-					}
-				}
-				else {
-					if (!status.get(thing).isOn()) {
-						//Turn on and set as discoverable
-						status.get(thing).setOn();
-						
-						//Update
-						Bindings bindings = new Bindings();
-						bindings.addBinding("value", new RDFTermLiteral("true"));
-						bindings.addBinding("thing", new RDFTermURI(thing));
-						update(bindings);
-						
-						logger.info("Turn ON Web Thing: "+thing);
-					}
-				}
-				
-				status.get(thing).resetPing();
+
+			for (String thing : pings.keySet()) {
+				if (!pings.get(thing))
+					switchStatus(thing, false);
+				pings.put(thing, false);
 			}
 		}
-		
 	}
 
 	@Override
-	public void onKeepAlive() {
-		logger.info("Keepalive!");
-		
+	public void onPing() {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
-	public void onBrokenSubscription() {
-		logger.warn("Broken subscription");
+	public void onBrokenSocket() {
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override
-	public void onSubscriptionError(ErrorResponse errorResponse) {
-		logger.error(errorResponse);
-		
+	public void onError(ErrorResponse errorResponse) {
+		// TODO Auto-generated method stub
+
 	}
-	
+
 }

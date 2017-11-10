@@ -21,6 +21,6 @@ package it.unibo.arces.wot.sepa.pattern;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 
-public interface IProducer extends IClient {
+public interface IProducer {
 	 public Response update(Bindings forcedBindings);
 }

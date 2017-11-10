@@ -1,24 +1,13 @@
 package it.unibo.arces.wot.sepa.apps.randomnumbers;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
 import java.util.UUID;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
@@ -31,10 +20,7 @@ public class RandomNumberGenerator extends Producer {
 	private final String baseURI = "rnd:RandomNumber-";
 	Bindings forcedBindings = new Bindings();
 
-	public RandomNumberGenerator() throws UnrecoverableKeyException, KeyManagementException, IllegalArgumentException,
-			KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException,
-			URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public RandomNumberGenerator() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException  {
 		super(new ApplicationProfile("randomNumbers.jsap"), "RANDOM_NUMBER");
 		
 		new Thread() {

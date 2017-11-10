@@ -14,19 +14,14 @@ import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.framework.ThingDescription;
 import it.unibo.arces.wot.framework.interaction.EventPublisher;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-import java.net.URISyntaxException;
-
-import java.security.InvalidKeyException;
 import java.security.KeyManagementException;
 
 import java.security.KeyStoreException;
@@ -37,8 +32,6 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
 import java.util.HashMap;
-import java.util.NoSuchElementException;
-
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,12 +57,9 @@ public class MQTTWebThing implements MqttCallback {
 	private ThingDescription webThing = null;
 	private String mqttEvent = "wot:mqttMessageReceived";
 
-	private SSLSecurityManager sm = new SSLSecurityManager("TLSv1","sepa.jks","sepa2017","sepa2017");
+	//private SSLSecurityManager sm = new SSLSecurityManager("TLSv1","sepa.jks","sepa2017","sepa2017");
 	
-	public MQTTWebThing(String jsonFile) throws UnrecoverableKeyException, KeyManagementException, InvalidKeyException,
-			IllegalArgumentException, KeyStoreException, NoSuchAlgorithmException, CertificateException,
-			FileNotFoundException, NoSuchElementException, NullPointerException, ClassCastException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, URISyntaxException {
+	public MQTTWebThing(String jsonFile) throws IOException, SEPAPropertiesException, SEPAProtocolException, SEPASecurityException {
 
 		loadJSON(jsonFile);
 
@@ -141,10 +131,7 @@ public class MQTTWebThing implements MqttCallback {
 		debugHash.put(topic, value.toString());
 	}
 
-	public static void main(String[] args) throws IOException, URISyntaxException, UnrecoverableKeyException,
-			KeyManagementException, InvalidKeyException, IllegalArgumentException, KeyStoreException,
-			NoSuchAlgorithmException, CertificateException, NoSuchElementException, NullPointerException,
-			ClassCastException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public static void main(String[] args) throws SEPAPropertiesException, SEPAProtocolException, SEPASecurityException, IOException {
 
 		if (args.length != 1) {
 			logger.error("Please specify the configuration file (.json)");
@@ -165,7 +152,7 @@ public class MQTTWebThing implements MqttCallback {
 		}
 	}
 
-	public boolean start() throws KeyManagementException, NoSuchAlgorithmException {
+	public boolean start(){
 		try {
 			mqttClient = new MqttClient(serverURI, clientID);
 		} catch (MqttException e) {
@@ -176,7 +163,20 @@ public class MQTTWebThing implements MqttCallback {
 		try {
 			MqttConnectOptions options = new MqttConnectOptions();
 			if (sslEnabled) {
-				options.setSocketFactory(sm.getSSLContext().getSocketFactory());
+				SSLSecurityManager sm;
+				try {
+					sm = new SSLSecurityManager("TLSv1","sepa.jks","sepa2017","sepa2017");
+				} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException
+						| NoSuchAlgorithmException | CertificateException | IOException e) {
+					logger.error(e.getMessage());
+					return false;
+				}
+				try {
+					options.setSocketFactory(sm.getSSLContext().getSocketFactory());
+				} catch (KeyManagementException | NoSuchAlgorithmException e) {
+					logger.error(e.getMessage());
+					return false;
+				}
 			}
 			mqttClient.connect(options);
 		} catch (MqttException e) {

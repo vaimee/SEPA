@@ -18,14 +18,16 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.net.URISyntaxException;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 
@@ -33,17 +35,29 @@ public class UpdateProcessor {
 	private static final Logger logger = LogManager.getLogger("UpdateProcessor");
 
 	private SPARQL11Protocol endpoint;
-		
-	public UpdateProcessor(SPARQL11Properties properties) throws IllegalArgumentException, URISyntaxException {				
+	private Semaphore endpointSemaphore;
+	
+	public UpdateProcessor(SPARQL11Properties properties,Semaphore endpointSemaphore) throws SEPAProtocolException  {				
 		endpoint = new SPARQL11Protocol(properties);
+		this.endpointSemaphore = endpointSemaphore;
 	}
 
 	public synchronized Response process(UpdateRequest req, int timeout) {
+		
+		
+		if (endpointSemaphore != null)
+			try {
+				endpointSemaphore.acquire();
+			} catch (InterruptedException e) {
+				return new ErrorResponse(500,e.getMessage());
+			}
 		
 		// UPDATE the endpoint
 		long start = System.currentTimeMillis();		
 		Response ret = endpoint.update(req, timeout);		
 		long stop = System.currentTimeMillis();
+		
+		if (endpointSemaphore != null) endpointSemaphore.release();
 		
 		logger.debug("* UPDATE PROCESSING ("+(stop-start)+" ms) *");
 		

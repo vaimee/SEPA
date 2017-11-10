@@ -18,34 +18,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
+import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
-public interface IConsumer extends IClient {	
-	Response subscribe(Bindings forcedBindings) throws InterruptedException, IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException;
-	Response unsubscribe() throws InterruptedException,IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException;
+public interface IConsumer extends ISubscriptionHandler {	
+	Response subscribe(Bindings forcedBindings) ;
+	Response unsubscribe();
 	
 	void onResults(ARBindingsResults results);
 	void onAddedResults(BindingsResults results);
 	void onRemovedResults(BindingsResults results);
-	
-	void onKeepAlive();
-	void onBrokenSubscription();
-	void onSubscriptionError(ErrorResponse errorResponse);
 }

@@ -5,7 +5,8 @@
 		 ,
 		"processor" : {
 			"updateTimeout" : 5000 ,
-			"queryTimeout" : 5000}
+			"queryTimeout" : 5000 ,
+			"maxConcurrentRequests" : 10}
 		 ,
 		"spu" : {
 			"keepalive" : 5000}

@@ -16,32 +16,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.tools;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.api.INotificationHandler;
+import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
@@ -62,11 +52,11 @@ public class SEPATest {
 	protected static boolean notificationReceived = false;
 	protected static Object sync = new Object();
 
-	//SPARQL 1.1 SE Protocol client
+	// SPARQL 1.1 SE Protocol client
 	protected static SPARQL11SEProtocol client;
 	protected static SPARQL11SEProperties properties;
-	
-	//Subscriptions handler
+
+	// Subscriptions handler
 	protected static TestNotificationHandler handler = new TestNotificationHandler();
 
 	protected static final long notificationMaxDelay = 2000;
@@ -119,7 +109,7 @@ public class SEPATest {
 		}
 	}
 
-	protected static class TestNotificationHandler implements INotificationHandler {
+	protected static class TestNotificationHandler implements ISubscriptionHandler {
 
 		@Override
 		public void onBrokenSocket() {
@@ -153,10 +143,8 @@ public class SEPATest {
 		}
 	}
 
-	protected static boolean updateTest(String sparql, boolean secure)
-			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
-		
+	protected static boolean updateTest(String sparql, boolean secure) {
+
 		notificationReceived = false;
 
 		UpdateRequest update = new UpdateRequest(sparql);
@@ -174,12 +162,10 @@ public class SEPATest {
 
 		logger.debug(response.toString());
 
-		return !response.getClass().equals(ErrorResponse.class);
+		return response.isUpdateResponse();
 	}
 
-	protected static boolean queryTest(String sparql, String utf8, boolean secure)
-			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	protected static boolean queryTest(String sparql, String utf8, boolean secure) {
 		QueryRequest query = new QueryRequest(sparql);
 
 		if (!secure)
@@ -195,9 +181,7 @@ public class SEPATest {
 
 		logger.debug(response.toString());
 
-		boolean error = response.getClass().equals(ErrorResponse.class);
-
-		if (!error && utf8 != null) {
+		if (response.isQueryResponse() && utf8 != null) {
 			QueryResponse queryResponse = (QueryResponse) response;
 			List<Bindings> results = queryResponse.getBindingsResults().getBindings();
 			if (results.size() == 1) {
@@ -212,12 +196,10 @@ public class SEPATest {
 			return false;
 		}
 
-		return !error;
+		return response.isQueryResponse();
 	}
 
-	protected static boolean subscribeTest(String sparql, boolean secure)
-			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	protected static boolean subscribeTest(String sparql, boolean secure) {
 
 		SubscribeRequest sub = new SubscribeRequest(sparql);
 
@@ -236,10 +218,10 @@ public class SEPATest {
 		logger.debug(response.toString());
 
 		if (response.isSubscribeResponse()) {
-			spuid = ((SubscribeResponse)response).getSpuid();
+			spuid = ((SubscribeResponse) response).getSpuid();
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -272,9 +254,7 @@ public class SEPATest {
 		return notificationReceived;
 	}
 
-	protected static boolean unsubscribeTest(String spuid, boolean secure)
-			throws IOException, URISyntaxException, InvalidKeyException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	protected static boolean unsubscribeTest(String spuid, boolean secure) {
 
 		UnsubscribeRequest unsub = new UnsubscribeRequest(spuid);
 
@@ -289,15 +269,13 @@ public class SEPATest {
 		return response.isUnsubscribeResponse();
 	}
 
-	protected static boolean registrationTest(String id) throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	protected static boolean registrationTest(String id) {
 		Response response;
 		response = client.register(id);
 		return !response.getClass().equals(ErrorResponse.class);
 	}
 
-	protected static boolean requestAccessTokenTest() throws IOException, URISyntaxException, InvalidKeyException,
-			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InterruptedException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException {
+	protected static boolean requestAccessTokenTest() {
 		Response response;
 		response = client.requestToken();
 
@@ -311,21 +289,16 @@ public class SEPATest {
 
 		try {
 			properties = new SPARQL11SEProperties("client.jpar");
-		} catch (NoSuchElementException | IOException | InvalidKeyException | IllegalArgumentException
-				| NullPointerException | ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException
-				| IllegalBlockSizeException | BadPaddingException e2) {
+		} catch (SEPAPropertiesException e2) {
 			logger.fatal("JSAP exception: " + e2.getMessage());
 			System.exit(1);
 		}
 		try {
-			client = new SPARQL11SEProtocol(properties);
-		} catch (UnrecoverableKeyException | KeyManagementException | IllegalArgumentException | KeyStoreException
-				| NoSuchAlgorithmException | CertificateException | IOException | URISyntaxException e2) {
+			client = new SPARQL11SEProtocol(properties,handler);
+		} catch (SEPAProtocolException  e2) {
 			logger.fatal(e2.getLocalizedMessage());
 			System.exit(1);
 		}
-
-		client.setNotificationHandler(handler);
 
 		logger.warn("**********************************************************");
 		logger.warn("***     SPARQL 1.1 SE Protocol Service test suite      ***");
@@ -354,15 +327,10 @@ public class SEPATest {
 		scanner.close();
 
 		// UPDATE
-		try {
-			ret = updateTest(
-					"prefix test:<http://www.vaimee.com/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"測試\"} where {?s ?p ?o}",
-					false);
-		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+		ret = updateTest(
+				"prefix test:<http://www.vaimee.com/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"測試\"} where {?s ?p ?o}",
+				false);
+
 		results.addResult("Update", ret);
 		if (ret)
 			logger.info("Update PASSED");
@@ -370,13 +338,8 @@ public class SEPATest {
 			logger.error("Update FAILED");
 
 		// QUERY
-		try {
-			ret = queryTest("select ?o where {?s ?p ?o}", "測試", false);
-		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+		ret = queryTest("select ?o where {?s ?p ?o}", "測試", false);
+
 		results.addResult("Query", ret);
 		if (ret)
 			logger.info("Query PASSED");
@@ -384,19 +347,15 @@ public class SEPATest {
 			logger.error("Query FAILED");
 
 		// SUBSCRIBE
-		try {
-			ret = subscribeTest("select ?o where {?s ?p ?o}", false);
-		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+
+		ret = subscribeTest("select ?o where {?s ?p ?o}", false);
+
 		results.addResult("Subscribe - request", ret);
 		if (ret)
 			logger.info("Subscribe PASSED");
 		else
 			logger.error("Subscribe FAILED");
-		
+
 		// PING
 		ret = waitPing();
 		results.addResult("Subscribe - ping", ret);
@@ -406,15 +365,10 @@ public class SEPATest {
 			logger.error("Ping recevied FAILED");
 
 		// TRIGGER A NOTIFICATION
-		try {
-			ret = updateTest(
-					"prefix test:<http://www.vaimee.com/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"ვაიმეე\"} where {?s ?p ?o}",
-					false);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+		ret = updateTest(
+				"prefix test:<http://www.vaimee.com/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"ვაიმეე\"} where {?s ?p ?o}",
+				false);
+
 		results.addResult("Subscribe - triggering", ret);
 		if (ret)
 			logger.info("Triggering update PASSED");
@@ -430,13 +384,8 @@ public class SEPATest {
 			logger.error("Notification FAILED");
 
 		// UNSUBSCRIBE
-		try {
-			ret = unsubscribeTest(spuid, false);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+		ret = unsubscribeTest(spuid, false);
+
 		results.addResult("Unsubscribe - request", ret);
 		if (ret)
 			logger.info("Unsubscribe PASSED");
@@ -456,42 +405,26 @@ public class SEPATest {
 		// **********************
 		logger.debug("Switch to secure mode");
 
+		// REGISTRATION (registration not allowed)
+		ret = !registrationTest("RegisterMePlease");
+
+		results.addResult("Registration not allowed", ret);
+		if (ret)
+			logger.info("Registration not allowed PASSED");
+		else
+			logger.error("Registration not allowed FAILED");
+		
 		// REGISTRATION
-		try {
-			ret = registrationTest("SEPATest");
-		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+		ret = registrationTest("SEPATest");
+
 		results.addResult("Registration", ret);
 		if (ret)
 			logger.info("Registration PASSED");
 		else
 			logger.error("Registration FAILED");
 
-		// REGISTRATION (registration not allowed)
-		try {
-			ret = !registrationTest("RegisterMePlease");
-		} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | InterruptedException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
-		results.addResult("Registration not allowed", ret);
-		if (ret)
-			logger.info("Registration not allowed PASSED");
-		else
-			logger.error("Registration not allowed FAILED");
-
 		// REQUEST ACCESS TOKEN
-		try {
-			ret = requestAccessTokenTest();
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+		ret = requestAccessTokenTest();
 		results.addResult("Access token", ret);
 		if (ret)
 			logger.info("Access token PASSED");
@@ -499,16 +432,15 @@ public class SEPATest {
 			logger.error("Access token FAILED");
 
 		// REQUEST ACCESS TOKEN (not expired);
-		if (!properties.isTokenExpired())
-			try {
+		try {
+			if (!properties.isTokenExpired())
 				ret = !requestAccessTokenTest();
-			} catch (URISyntaxException | IOException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
+			else
 				ret = false;
-				logger.error(e1.getMessage());
-			}
-		else
+		} catch (SEPASecurityException e2) {
+			logger.error(e2.getMessage());
 			ret = false;
+		}
 		results.addResult("Access token not expired", ret);
 		if (ret)
 			logger.info("Access token (not expired) PASSED");
@@ -516,22 +448,25 @@ public class SEPATest {
 			logger.error("Access token (not expired) FAILED");
 
 		// REQUEST ACCESS TOKEN (expired);
-		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e2) {
+			logger.error(e2.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		if (properties.isTokenExpired())
-			try {
+		try {
+			if (properties.isTokenExpired())
 				ret = requestAccessTokenTest();
-			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
+			else
 				ret = false;
-				logger.error(e1.getMessage());
-			}
-		else
+		} catch (SEPASecurityException e2) {
+			logger.error(e2.getMessage());
 			ret = false;
+		}
 		results.addResult("Access token expired", ret);
 		if (ret)
 			logger.info("Access token (expired) PASSED");
@@ -539,30 +474,27 @@ public class SEPATest {
 			logger.error("Access token (expired) FAILED");
 
 		// SECURE UPDATE
-		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e2) {
+			logger.error(e2.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		if (properties.isTokenExpired())
-			try {
-				requestAccessTokenTest();
-			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-				ret = false;
-				logger.error(e1.getMessage());
-			}
-		
 		try {
-			ret = updateTest(
-					"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"ვაიმეე\"} where {?s ?p ?o}",
-					true);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
+			if (properties.isTokenExpired())
+				requestAccessTokenTest();
+		} catch (SEPASecurityException e13) {
+			logger.error(e13.getMessage());
 		}
+
+		ret = updateTest(
+				"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"ვაიმეე\"} where {?s ?p ?o}",
+				true);
+
 		results.addResult("Secure update ", ret);
 		if (ret)
 			logger.info("Secure update PASSED");
@@ -570,21 +502,21 @@ public class SEPATest {
 			logger.error("Secure update FAILED");
 
 		// SECURE UPDATE (expired token)
-		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e12) {
+			logger.error(e12.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		try {
-			ret = !updateTest(
-					"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"vaimee!\"} where {?s ?p ?o}",
-					true);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+
+		ret = !updateTest(
+				"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"vaimee!\"} where {?s ?p ?o}",
+				true);
+
 		results.addResult("Secure update (expired)", ret);
 		if (ret)
 			logger.info("Secure update (expired) PASSED");
@@ -592,27 +524,25 @@ public class SEPATest {
 			logger.error("Secure update (expired) FAILED");
 
 		// SECURE QUERY
-		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e11) {
+			logger.error(e11.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		if (properties.isTokenExpired())
-			try {
-				requestAccessTokenTest();
-			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-				ret = false;
-				logger.error(e1.getMessage());
-			}
 		try {
-			ret = queryTest("select ?o where {?s ?p ?o}", "ვაიმეე", true);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
+			if (properties.isTokenExpired())
+				requestAccessTokenTest();
+		} catch (SEPASecurityException e10) {
+			logger.error(e10.getMessage());
 		}
+
+		ret = queryTest("select ?o where {?s ?p ?o}", "ვაიმეე", true);
+
 		results.addResult("Secure query", ret);
 		if (ret)
 			logger.info("Secure query PASSED");
@@ -620,19 +550,19 @@ public class SEPATest {
 			logger.error("Secure query FAILED");
 
 		// SECURE QUERY (expired token)
-		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e9) {
+			logger.error(e9.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		try {
-			ret = !queryTest("select ?o where {?s ?p ?o}", "ვაიმეე", true);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+
+		ret = !queryTest("select ?o where {?s ?p ?o}", "ვაიმეე", true);
+
 		results.addResult("Secure query (expired)", ret);
 		if (ret)
 			logger.info("Secure query (expired) PASSED");
@@ -640,27 +570,25 @@ public class SEPATest {
 			logger.error("Secure query (expired) FAILED");
 
 		// SECURE SUBSCRIBE
-		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e8) {
+			logger.error(e8.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		if (properties.isTokenExpired())
-			try {
-				requestAccessTokenTest();
-			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-				ret = false;
-				logger.error(e1.getMessage());
-			}
 		try {
-			ret = subscribeTest("select ?o where {?s ?p ?o}", true);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
+			if (properties.isTokenExpired())
+				requestAccessTokenTest();
+		} catch (SEPASecurityException e7) {
+			logger.error(e7.getMessage());
 		}
+
+		ret = subscribeTest("select ?o where {?s ?p ?o}", true);
+
 		results.addResult("Secure subscribe - request", ret);
 		if (ret)
 			logger.info("Secure subscribe PASSED");
@@ -676,29 +604,27 @@ public class SEPATest {
 			logger.error("Secure ping recevied FAILED");
 
 		// TRIGGER A NOTIFICATION
-		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e6) {
+			logger.error(e6.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		if (properties.isTokenExpired())
-			try {
-				requestAccessTokenTest();
-			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-				ret = false;
-				logger.error(e1.getMessage());
-			}
 		try {
-			ret = updateTest(
-					"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"卢卡\"} where {?s ?p ?o}",
-					true);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
+			if (properties.isTokenExpired())
+				requestAccessTokenTest();
+		} catch (SEPASecurityException e5) {
+			logger.error(e5.getMessage());
 		}
+
+		ret = updateTest(
+				"prefix test:<http://wot.arces.unibo.it/test#> delete {?s ?p ?o} insert {test:Sub test:Pred \"卢卡\"} where {?s ?p ?o}",
+				true);
+
 		results.addResult("Secure subscribe - triggering", ret);
 		if (ret)
 			logger.info("Secure triggering update PASSED");
@@ -714,48 +640,46 @@ public class SEPATest {
 			logger.error("Secure subscribe - notification FAILED");
 
 		// SECURE UNSUBSCRIBE (expired)
-		logger.debug("Wait token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.debug("Wait token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e4) {
+			logger.error(e4.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		try {
-			ret = !unsubscribeTest(spuid, true);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
-		}
+
+		ret = !unsubscribeTest(spuid, true);
+
 		results.addResult("Secure unsubscribe (expired) - request", ret);
-		
+
 		if (ret)
 			logger.info("Secure unsubscribe (expired) - request PASSED");
 		else
 			logger.error("Secure unsubscribe (expired) - request FAILED");
-		
+
 		// UNSUBSCRIBE
-		logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.debug("Waiting token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e3) {
+			logger.error(e3.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		if (properties.isTokenExpired())
-			try {
-				requestAccessTokenTest();
-			} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-					| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-				ret = false;
-				logger.error(e1.getMessage());
-			}
 		try {
-			ret = unsubscribeTest(spuid, true);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e1) {
-			ret = false;
-			logger.error(e1.getMessage());
+			if (properties.isTokenExpired())
+				requestAccessTokenTest();
+		} catch (SEPASecurityException e2) {
+			logger.error(e2.getMessage());
 		}
+
+		ret = unsubscribeTest(spuid, true);
+
 		results.addResult("Secure unsubscribe - request", ret);
 		if (ret)
 			logger.info("Secure unsubscribe - request PASSED");
@@ -771,19 +695,19 @@ public class SEPATest {
 			logger.error("Secure unsubscribe - ping FAILED");
 
 		// SECURE SUBSCRIBE (expired)
-		logger.info("Wait token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		try {
+			logger.info("Wait token expiring in " + properties.getExpiringSeconds() + " + 2 seconds...");
+		} catch (SEPASecurityException e1) {
+			logger.error(e1.getMessage());
+		}
 		try {
 			Thread.sleep((properties.getExpiringSeconds() + 2) * 1000);
-		} catch (InterruptedException e) {
+		} catch (InterruptedException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 		}
-		try {
-			ret = !subscribeTest("select ?o where {?s ?p ?o}", true);
-		} catch (IOException | URISyntaxException | InvalidKeyException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException| InterruptedException | BadPaddingException | UnrecoverableKeyException | KeyManagementException | KeyStoreException | CertificateException e) {
-			ret = false;
-			logger.error(e.getMessage());
-		}
+
+		ret = !subscribeTest("select ?o where {?s ?p ?o}", true);
+
 		results.addResult("Secure subscribe (expired) - request", ret);
 		if (ret)
 			logger.info("Secure subscribe (expired) - request PASSED");
@@ -791,7 +715,7 @@ public class SEPATest {
 			logger.error("Secure subscribe (expired) - request FAILED");
 
 		results.print();
-		
+
 		System.exit(0);
 	}
 }

@@ -2,9 +2,8 @@ package it.unibo.arces.wot.sepa.engine.protocol.http.handler;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.charset.Charset;
-//import java.util.Observable;
+import java.util.Map;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -76,24 +75,14 @@ public class UpdateHandler extends SPARQL11Handler {
 			
 			return new UpdateRequest(body);
 		} else if (headers[0].getValue().equals("application/x-www-form-urlencoded")) {
-			String decodedBody;
 			try {
-				decodedBody = URLDecoder.decode(body, "UTF-8");
-			} catch (UnsupportedEncodingException e) {
-				logger.error(e.getMessage());
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getMessage());
+				Map<String,String> params = HttpUtilities.splitQuery(body);
+				
+				if (params.get("update") != null) return new UpdateRequest(params.get("update"));		
+			} catch (UnsupportedEncodingException e1) {
+				logger.error(e1.getMessage());
+				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e1.getMessage());
 				return null;
-			}
-
-			String[] parameters = decodedBody.split("&");
-			for (String param : parameters) {
-				String[] value = param.split("=");
-
-				if (value[0].equals("update")) {
-					logger.debug("update via URL-encoded");
-					
-					return new UpdateRequest(value[1]);
-				}
 			}
 		}
 

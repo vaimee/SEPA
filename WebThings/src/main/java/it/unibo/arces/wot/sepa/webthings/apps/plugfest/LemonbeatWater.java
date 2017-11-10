@@ -1,21 +1,8 @@
 package it.unibo.arces.wot.sepa.webthings.apps.plugfest;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
 import java.util.Set;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -28,6 +15,9 @@ import org.apache.http.util.EntityUtils;
 
 import it.unibo.arces.wot.framework.elements.Event;
 import it.unibo.arces.wot.framework.interaction.EventListener;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 public class LemonbeatWater extends EventListener {
@@ -37,14 +27,12 @@ public class LemonbeatWater extends EventListener {
 	/** The response handler. */
 	protected static ResponseHandler<String> responseHandler;
 	
-	public LemonbeatWater() throws InvalidKeyException, FileNotFoundException, NoSuchElementException,
-			IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException, URISyntaxException, InterruptedException {
+	public LemonbeatWater() throws SEPAPropertiesException, SEPAProtocolException, SEPASecurityException {
 		super();
 		this.startListeningForEvent("wot:RFIDReading");
 	}
 	
-	public static void main(String[] args) throws InvalidKeyException, FileNotFoundException, NoSuchElementException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, IOException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, CertificateException, URISyntaxException, InterruptedException { 
+	public static void main(String[] args) throws SEPAPropertiesException, SEPAProtocolException, SEPASecurityException, InterruptedException { 
 		responseHandler = new ResponseHandler<String>() {
 	        @Override
 	        public String handleResponse(final HttpResponse response) {

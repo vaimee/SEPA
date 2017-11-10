@@ -18,19 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -39,24 +32,21 @@ public class Producer extends Client implements IProducer {
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
 	
-	private static final Logger logger = LogManager.getLogger("GenericClient");
+	private static final Logger logger = LogManager.getLogger("Producer");
 	
-	public Producer(ApplicationProfile appProfile,String updateID) throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, URISyntaxException {
+	public Producer(ApplicationProfile appProfile,String updateID) throws SEPAProtocolException  {
 		super(appProfile);
 		
-		if (appProfile == null) {
-			logger.fatal("Application profile is null)");
-			throw new IllegalArgumentException("Application profile is null");
-		}
-		
 		if (appProfile.update(updateID) == null) {
-			logger.fatal("UPDATE ID " +updateID+" not found in "+appProfile.getFileName());
-			throw new IllegalArgumentException("UPDATE ID " +updateID+" not found in "+appProfile.getFileName());
+			logger.fatal("UPDATE ID [" +updateID+"] not found in "+appProfile.getFileName());
+			throw new IllegalArgumentException("UPDATE ID [" +updateID+"] not found in "+appProfile.getFileName());
 		}
 		
 		SPARQL_ID = updateID;
 		
 		sparqlUpdate = appProfile.update(updateID);
+		
+		protocolClient = new SPARQL11SEProtocol(appProfile);
 	}
 	
 	public Response update(Bindings forcedBindings){	 

@@ -18,77 +18,73 @@
 package it.unibo.arces.wot.sepa.engine.core;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.security.InvalidKeyException;
+
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
 import java.util.regex.PatternSyntaxException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
 
 import com.nimbusds.jose.JOSEException;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
+
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpGate;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsGate;
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer;
+
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
 /**
- * This class represents the SPARQL Subscription (SUB) Engine of the Semantic
+ * This class represents the SPARQL Subscription Engine (Core) of the Semantic
  * Event Processing Architecture (SEPA)
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.8.1
+ * @version 0.8.2
  */
 
-public class Engine extends Thread implements EngineMBean {
-	private static Engine engine = new Engine();
+public class Engine implements EngineMBean {
+	private static Engine engine;
 
 	// Primitives scheduler/dispatcher
-	private static Scheduler scheduler = null;
+	private Scheduler scheduler = null;
 
 	// Primitives scheduler/dispatcher
-	private static Processor processor = null;
+	private Processor processor = null;
 
 	// SPARQL 1.1 Protocol handler
-	private static HttpGate httpGate = null;
+	private HttpGate httpGate = null;
 
 	// SPARQL 1.1 SE Protocol handler
-	private static WebsocketServer wsServer;
-	private static SecureWebsocketServer wssServer;
-	private static HttpsGate httpsGate = null;
-	private static final int wsShutdownTimeout = 5000;
+	private WebsocketServer wsServer;
+	private SecureWebsocketServer wssServer;
+	private HttpsGate httpsGate = null;
+	private int wsShutdownTimeout = 5000;
 
 	// Outh 2.0 Authorization Server
-	private static AuthorizationManager oauth;
+	private AuthorizationManager oauth;
 
 	// JKS Credentials
-	private static String storeName = "sepa.jks";
-	private static String storePassword = "sepa2017";
-	private static String jwtAlias = "sepakey";
-	private static String jwtPassword = "sepa2017";
-	private static String serverCertificate = "sepacert";
+	private String storeName = "sepa.jks";
+	private String storePassword = "sepa2017";
+	private String jwtAlias = "sepakey";
+	private String jwtPassword = "sepa2017";
+	private String serverCertificate = "sepacert";
 
-	private static void printUsage() {
+	private void printUsage() {
 		System.out.println("Usage:");
 		System.out.println("java [JMX] [JVM] -jar SEPAEngine_X.Y.Z.jar [OPTIONS]");
 		System.out.println("");
@@ -105,7 +101,7 @@ public class Engine extends Thread implements EngineMBean {
 		System.out.println("-certificate=<crt> : name of the certificate (default: sepacert)");
 	}
 
-	private static void parsingArgument(String[] args) throws PatternSyntaxException {
+	private void parsingArgument(String[] args) throws PatternSyntaxException {
 		String[] tmp;
 		for (String arg : args) {
 			if (arg.equals("-help")) {
@@ -137,8 +133,7 @@ public class Engine extends Thread implements EngineMBean {
 		}
 	}
 
-	public static void main(String[] args) {
-
+	public Engine(String[] args) throws SEPASecurityException, SEPAProtocolException {
 		// Command arguments
 		parsingArgument(args);
 
@@ -176,143 +171,70 @@ public class Engine extends Thread implements EngineMBean {
 			System.exit(1);
 		}
 
-		// Initialize
-		while (!engine.init()) {
-			engine = new Engine();
-			System.err.println("Failed to initialized. Retry in 5 seconds");
-			try {
-				Thread.sleep(5000);
-			} catch (InterruptedException e) {
-				System.exit(1);
-			}
-		}
-
-		// Starting main engine thread
-		engine.start();
-
-		// Attach CTRL+C hook
-		Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(engine));
-	}
-
-	public Engine() {
-		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
-		this.setName("SEPA Engine");
-	}
-
-	public boolean init() {
-
 		// Initialize SPARQL 1.1 SE processing service properties
-		EngineProperties properties;
+		EngineProperties properties = null;
 		try {
 			properties = new EngineProperties("engine.jpar");
-		} catch (IllegalArgumentException | NoSuchElementException | IOException e) {
+		} catch (SEPAPropertiesException e) {
 			System.err.println("Open and modify JPAR file and run again the engine");
-			return false;
+			System.exit(1);
 		}
 
 		// SPARQL 1.1 SE request scheduler
-		try {
-			scheduler = new Scheduler(properties);
-		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException
-				| NotCompliantMBeanException | InvalidKeyException | IllegalArgumentException | NoSuchElementException
-				| NullPointerException | ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException
-				| IllegalBlockSizeException | BadPaddingException | IOException | URISyntaxException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
+		scheduler = new Scheduler(properties);
 
 		// SEPA Processor
 		try {
 			processor = new Processor(new SPARQL11Properties("endpoint.jpar"), properties);
-		} catch (MalformedObjectNameException | InstanceAlreadyExistsException | MBeanRegistrationException
-				| NotCompliantMBeanException | InvalidKeyException | NoSuchElementException | NullPointerException
-				| ClassCastException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
-				| BadPaddingException | IllegalArgumentException | IOException | URISyntaxException e) {
-			System.err.println(e.getMessage());
-			return false;
+		} catch (SEPAProtocolException | SEPAPropertiesException e1) {
+			System.err.println(e1.getMessage());
+			System.exit(1);
 		}
 
 		scheduler.addObserver(processor);
 		processor.addObserver(scheduler);
 
-		// SPARQL 1.1 Protocol
-		httpGate = new HttpGate(properties, scheduler);
-		try {
-			httpGate.init();
-		} catch (IOException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-
-		// SPARQL 1.1 SE Protocol
-		httpsGate = new HttpsGate(properties, scheduler, oauth);
-		try {
-			httpsGate.init();
-		} catch (IOException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-
-		try {
-			wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
-					properties.getKeepAlivePeriod());
-		} catch (IllegalArgumentException | UnknownHostException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-		try {
-			wssServer = new SecureWebsocketServer(properties.getWssPort(),
-					properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth,
-					properties.getKeepAlivePeriod());
-		} catch (KeyManagementException | IllegalArgumentException | UnknownHostException
-				| NoSuchAlgorithmException e) {
-			System.err.println(e.getMessage());
-			return false;
-		}
-
-		return true;
-	}
-
-	@Override
-	public void run() {
 		// Protocol gates
 		System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 		System.out.println("----------------------");
-
 		try {
-			httpGate.start();
-		} catch (IOException e1) {
-			System.err.print(e1.getMessage());
+			httpGate = new HttpGate(properties, scheduler);
+		} catch (SEPAProtocolException e) {
+			System.err.println(e.getMessage());
+			System.exit(1);
 		}
 
+		// Protocol gates
 		System.out.println("----------------------");
 		System.out.println("");
 		System.out.println("SPARQL 1.1 SE Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)");
 		System.out.println("----------------------");
+		httpsGate = new HttpsGate(properties, scheduler, oauth);
 
-		try {
-			httpsGate.start();
-		} catch (IOException e1) {
-			System.err.print(e1.getMessage());
-		}
+		wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
+				properties.getKeepAlivePeriod());
+
+		wssServer = new SecureWebsocketServer(properties.getWssPort(),
+				properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth,
+				properties.getKeepAlivePeriod());
+
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
 		wsServer.start();
-		synchronized (wsServer) {
+		synchronized(wsServer) {
 			try {
 				wsServer.wait(5000);
 			} catch (InterruptedException e) {
-				System.err.println(e.getMessage());
-				return;
+				throw new SEPAProtocolException(e);
 			}
 		}
-
+		
 		wssServer.start();
-		synchronized (wssServer) {
+		synchronized(wssServer) {
 			try {
 				wssServer.wait(5000);
 			} catch (InterruptedException e) {
-				System.err.println(e.getMessage());
-				return;
+				throw new SEPAProtocolException(e);
 			}
 		}
 		System.out.println("----------------------");
@@ -323,16 +245,24 @@ public class Engine extends Thread implements EngineMBean {
 		System.out.println("*                      SEPA Engine Ver 0.8.2 is up and running                          *");
 		System.out.println("*                                Let Things Talk!                                       *");
 		System.out.println("*****************************************************************************************");
+
+		// Attach CTRL+C hook
+		Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(engine));
 	}
+
+	public static void main(String[] args) throws SEPASecurityException, SEPAProtocolException {
+		engine = new Engine(args);
+	}
+
 
 	public void shutdown() {
 		System.out.println("Stopping...");
 
 		System.out.println("Stopping HTTP gate...");
 		httpGate.shutdown();
-		
-		 System.out.println("Stopping HTTPS gate...");
-		 httpsGate.shutdown();
+
+		System.out.println("Stopping HTTPS gate...");
+		httpsGate.shutdown();
 
 		try {
 			System.out.println("Stopping WS gate...");

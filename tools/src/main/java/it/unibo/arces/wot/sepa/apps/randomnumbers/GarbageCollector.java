@@ -1,25 +1,15 @@
 package it.unibo.arces.wot.sepa.apps.randomnumbers;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.InvalidKeyException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.NoSuchElementException;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
+import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
@@ -29,23 +19,15 @@ public class GarbageCollector extends Aggregator {
 	private final Logger logger = LogManager.getLogger("GarbageCollector");
 	private long numbers = 0;
 
-	public GarbageCollector() throws IllegalArgumentException, UnrecoverableKeyException, KeyManagementException,
-			KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException,
-			URISyntaxException, InvalidKeyException, NoSuchElementException, NullPointerException, ClassCastException,
-			NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public GarbageCollector() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		super(new ApplicationProfile("randomNumbers.jsap"), "COUNT_NUMBERS", "DELETE_NUMBERS");
 	}
 
 	public boolean subscribe() {
 		Response ret;
-		try {
-			ret = super.subscribe(null);
-		} catch (InvalidKeyException | UnrecoverableKeyException | KeyManagementException | NoSuchAlgorithmException
-				| NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException | KeyStoreException
-				| CertificateException | IOException | URISyntaxException | InterruptedException e) {
-			logger.fatal(e.getMessage());
-			return false;
-		}
+
+		ret = super.subscribe(null);
+
 		if (ret.isError())
 			return false;
 
@@ -69,7 +51,8 @@ public class GarbageCollector extends Aggregator {
 		numbers = 0;
 		for (Bindings binding : results.getBindings()) {
 			numbers += Integer.parseInt(binding.getBindingValue("numbers"));
-			logger.info("Total numbers: " + numbers+" GC numbers: "+getApplicationProfile().getExtendedData().get("gcnumbers").getAsInt());
+			logger.info("Total numbers: " + numbers + " GC numbers: "
+					+ getApplicationProfile().getExtendedData().get("gcnumbers").getAsInt());
 		}
 
 		if (numbers >= getApplicationProfile().getExtendedData().get("gcnumbers").getAsInt()) {
@@ -77,5 +60,35 @@ public class GarbageCollector extends Aggregator {
 			update(null);
 		}
 
+	}
+
+	@Override
+	public void onResults(ARBindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onRemovedResults(BindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onPing() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onBrokenSocket() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onError(ErrorResponse errorResponse) {
+		// TODO Auto-generated method stub
+		
 	}
 }

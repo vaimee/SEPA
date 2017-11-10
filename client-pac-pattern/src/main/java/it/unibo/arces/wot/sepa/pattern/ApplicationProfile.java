@@ -1,4 +1,4 @@
-/* This class implements a JSON parser of an .sap file
+/* This class implements a JSON parser of an JSAP (JSON Application Profile) file
  * 
  * Author: Luca Roffia (luca.roffia@unibo.it)
 
@@ -18,18 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.Map.Entry;
-import java.util.NoSuchElementException;
+//import java.util.NoSuchElementException;
 import java.util.Set;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+//import javax.crypto.BadPaddingException;
+//import javax.crypto.IllegalBlockSizeException;
+//import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -38,40 +34,103 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
 /** SAP file example
- {
-    "parameters":{},
-    "namespaces" : { "iot":"http://www.arces.unibo.it/iot#",
-		     "rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"},
-    "updates": {
-	"ADD_PERSON":{
-	    "sparql":"INSERT DATA { ?person rdf:type iot:Person . ?person iot:hasName ?name }",
-	    "forcedBindings": {
-		"person" : {"type":"uri", "value":""},
-		"name" : {"type":"literal", "value":""}}}
-    },    
-    "queries": {
-	"CLASS_INSTANCES":{
-	    "sparql":"SELECT ?s WHERE { ?s rdf:type ?class }",
-	    "forcedBindings": {
-		"class" : {"type":"uri", "value":""}}},
-	"EVERYTHING":{	
-	    "sparql":"SELECT ?s ?p ?o WHERE  { ?s ?p ?o }",
-	    "forcedBindings": {}}
-    }
-}
+ * * <pre>
+ * {"parameters" : {
+		"host" : "localhost" ,
+		"ports" : {
+			"http" : 8000 ,
+			"https" : 8443 ,
+			"ws" : 9000 ,
+			"wss" : 9443}
+		 ,
+		"paths" : {
+			"query" : "/query" ,
+			"update" : "/update" ,
+			"subscribe" : "/subscribe" ,
+			"register" : "/oauth/register" ,
+			"tokenRequest" : "/oauth/token" ,
+			"securePath" : "/secure"}
+		 ,
+		"methods" : {
+			"query" : "POST" ,
+			"update" : "URL_ENCODED_POST"}
+		 ,
+		"formats" : {
+			"query" : "JSON" ,
+			"update" : "HTML"}
+		 ,
+		"security" : {
+			"client_id" : "..." ,
+			"client_secret" : "..." ,
+			"jwt" : "..." ,
+			"expires" : "..." ,
+			"type" : "..."},
+			
+		"extended" :{<Application specific extended data>},
+		"namespaces" : {
+			"chat" : "http://wot.arces.unibo.it/chat#" ,
+			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#"},
+		"updates" : {
+			"UPDATE_1" : {
+				"sparql" : "..." ,
+				"forcedBindings" : {
+					"variable_1" : {
+						"type" : "literal" ,
+						"value" : ""}
+					 ,
+					"variable_2" : {
+						"type" : "literal" ,
+						"value" : ""}
+					 ,
+					"variable_N" : {
+						"type" : "uri" ,
+						"value" : ""}
+				}
+			}
+			 ,
+			"UPDATE_N" : {
+				"sparql" : "..."
+			}
+		}
+		 ,
+		"queries" : {
+			"QUERY_1" : {
+				"sparql" : "..." ,
+				"forcedBindings" : {
+					"variable_1" : {
+						"type" : "literal" ,
+						"value" : ""}
+					 ,
+					"variable_2" : {
+						"type" : "literal" ,
+						"value" : ""}
+					 ,
+					"variable_N" : {
+						"type" : "uri" ,
+						"value" : ""}
+				}
+			}
+			 ,
+			"QUERY_N" : {
+				"sparql" : "..."
+			}
+		}
+		}}
+ * </pre>
 */
 public class ApplicationProfile extends SPARQL11SEProperties {	
-	public ApplicationProfile(String propertiesFile) throws FileNotFoundException, NoSuchElementException, IOException, InvalidKeyException, IllegalArgumentException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public ApplicationProfile(String propertiesFile) throws  SEPAPropertiesException {
 		super(propertiesFile);
 	}
 
-	public ApplicationProfile(String propertiesFile,byte[] secret) throws FileNotFoundException, NoSuchElementException, IOException, NumberFormatException, InvalidKeyException, NullPointerException, ClassCastException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+	public ApplicationProfile(String propertiesFile,byte[] secret) throws SEPAPropertiesException {
 		super(propertiesFile,secret);
 	}
 	
@@ -82,13 +141,22 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 		return doc.get("extended").getAsJsonObject();
 	}
 	/**
-	  "updates": {
-		"ADD_PERSON":{
-	    "sparql":"INSERT DATA { ?person rdf:type iot:Person . ?person iot:hasName ?name }",
-	    "forcedBindings": {
-		"person" : {"type":"uri", "value":""},
-		"name" : {"type":"literal", "value":""}}}
-    }, 
+	  <pre>"UPDATE_1" : {
+				"sparql" : "..." ,
+				"forcedBindings" : {
+					"variable_1" : {
+						"type" : "literal" ,
+						"value" : ""}
+					 ,
+					"variable_2" : {
+						"type" : "literal" ,
+						"value" : ""}
+					 ,
+					"variable_N" : {
+						"type" : "uri" ,
+						"value" : ""}
+				}
+			}</pre>
 	 */
 	public String update(String updateID) {
 		JsonElement elem = null;
@@ -127,12 +195,19 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	}
 	
 	/**
-	 * "forcedBindings": {
-		"person" : {"type":"uri", "value":""},
-		"name" : {"type":"literal", "value":""}}}
-		
-	 * @param selectedValue
-	 * @return
+	 <pre>"forcedBindings" : {
+					"variable_1" : {
+						"type" : "literal" ,
+						"value" : ""}
+					 ,
+					"variable_2" : {
+						"type" : "literal" ,
+						"value" : ""}
+					 ,
+					"variable_N" : {
+						"type" : "uri" ,
+						"value" : ""}
+				}</pre>
 	 */
 	public Bindings updateBindings(String selectedValue) {
 		JsonElement elem;
@@ -183,7 +258,9 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	}
 
 	/**
-	 * "namespaces" : { "iot":"http://www.arces.unibo.it/iot#","rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"},
+	 <pre>"namespaces" : { 
+	 	"iot":"http://www.arces.unibo.it/iot#",
+	 	"rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"},</pre>
 	 */
 	     	
 	public Set<String> getPrefixes() {
