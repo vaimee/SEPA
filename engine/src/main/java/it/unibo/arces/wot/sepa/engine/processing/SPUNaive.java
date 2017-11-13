@@ -78,61 +78,63 @@ public class SPUNaive extends SPU {
 
 		new Thread() {
 			public void run() {
-		
-		try {
-			// Query the SPARQL processing service
-			Response ret = queryProcessor.process(request, ProcessorBeans.getQueryTimeout());
 
-			if (ret.getClass().equals(ErrorResponse.class)) {
-				logger.error(ret);
+				try {
+					// Query the SPARQL processing service
+					Response ret = queryProcessor.process(request, ProcessorBeans.getQueryTimeout());
+
+					if (ret.getClass().equals(ErrorResponse.class)) {
+						logger.error(ret);
+						processingResult(null);
+					}
+
+					// Current and previous bindings
+					BindingsResults results = ((QueryResponse) ret).getBindingsResults();
+					BindingsResults currentBindings = new BindingsResults(results);
+
+					// Initialize the results with the current bindings
+					BindingsResults added = new BindingsResults(results.getVariables(), null);
+					BindingsResults removed = new BindingsResults(results.getVariables(), null);
+
+					// Create empty bindings if null
+					if (lastBindings == null)
+						lastBindings = new BindingsResults(null, null);
+
+					logger.debug("Current bindings: " + currentBindings);
+					logger.debug("Last bindings: " + lastBindings);
+
+					// Find removed bindings
+					long start = System.nanoTime();
+					for (Bindings solution : lastBindings.getBindings()) {
+						if (!results.contains(solution) && !solution.isEmpty())
+							removed.add(solution);
+						else
+							results.remove(solution);
+					}
+					long stop = System.nanoTime();
+					logger.debug("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
+
+					// Find added bindings
+					start = System.nanoTime();
+					for (Bindings solution : results.getBindings()) {
+						if (!lastBindings.contains(solution) && !solution.isEmpty())
+							added.add(solution);
+					}
+					stop = System.nanoTime();
+					logger.debug("Added bindings: " + added + " found in " + (stop - start) + " ns");
+
+					// Update the last bindings with the current ones
+					lastBindings = currentBindings;
+
+					// Send notification (or end processing indication)
+					if (!added.isEmpty() || !removed.isEmpty())
+						processingResult(
+								new Notification(getUUID(), new ARBindingsResults(added, removed), sequence++));
+				} catch (Exception e) {
+					processingResult(null);
+				}
 				processingResult(null);
 			}
-
-			// Current and previous bindings
-			BindingsResults results = ((QueryResponse) ret).getBindingsResults();
-			BindingsResults currentBindings = new BindingsResults(results);
-
-			// Initialize the results with the current bindings
-			BindingsResults added = new BindingsResults(results.getVariables(), null);
-			BindingsResults removed = new BindingsResults(results.getVariables(), null);
-
-			// Create empty bindings if null
-			if (lastBindings == null)
-				lastBindings = new BindingsResults(null, null);
-
-			logger.debug("Current bindings: " + currentBindings);
-			logger.debug("Last bindings: " + lastBindings);
-
-			// Find removed bindings
-			long start = System.nanoTime();
-			for (Bindings solution : lastBindings.getBindings()) {
-				if (!results.contains(solution) && !solution.isEmpty())
-					removed.add(solution);
-				else
-					results.remove(solution);
-			}
-			long stop = System.nanoTime();
-			logger.debug("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
-
-			// Find added bindings
-			start = System.nanoTime();
-			for (Bindings solution : results.getBindings()) {
-				if (!lastBindings.contains(solution) && !solution.isEmpty())
-					added.add(solution);
-			}
-			stop = System.nanoTime();
-			logger.debug("Added bindings: " + added + " found in " + (stop - start) + " ns");
-
-			// Update the last bindings with the current ones
-			lastBindings = currentBindings;
-
-			// Send notification (or end processing indication)
-			if (!added.isEmpty() || !removed.isEmpty())
-				processingResult(new Notification(getUUID(), new ARBindingsResults(added, removed), sequence++));
-		} catch (Exception e) {
-			processingResult(null);
-		}
-		processingResult(null);
-	}}.start();
+		}.start();
 	}
 }
