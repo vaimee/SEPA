@@ -140,7 +140,7 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 		System.out
-				.println("# SEPA Engine Ver 0.8.2  Copyright (C) 2016-2017                                         #");
+				.println("# SEPA Engine Ver 0.8.3  Copyright (C) 2016-2017                                         #");
 		System.out
 				.println("# Web of Things Research @ ARCES - University of Bologna (Italy)                         #");
 		System.out
@@ -242,7 +242,7 @@ public class Engine implements EngineMBean {
 		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
-		System.out.println("*                      SEPA Engine Ver 0.8.2 is up and running                          *");
+		System.out.println("*                      SEPA Engine Ver 0.8.3 is up and running                          *");
 		System.out.println("*                                Let Things Talk!                                       *");
 		System.out.println("*****************************************************************************************");	
 	}
