@@ -244,14 +244,14 @@ public class Engine implements EngineMBean {
 		System.out.println("*****************************************************************************************");
 		System.out.println("*                      SEPA Engine Ver 0.8.2 is up and running                          *");
 		System.out.println("*                                Let Things Talk!                                       *");
-		System.out.println("*****************************************************************************************");
-
-		// Attach CTRL+C hook
-		Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(engine));
+		System.out.println("*****************************************************************************************");	
 	}
 
 	public static void main(String[] args) throws SEPASecurityException, SEPAProtocolException {
 		engine = new Engine(args);
+		
+		// Attach CTRL+C hook
+		Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(engine));
 	}
 
 
