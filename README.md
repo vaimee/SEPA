@@ -2,6 +2,15 @@
 
 SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification.
 
+## Clone in Eclipse
+
+1. Oper Eclipse
+2. File > Import > Maven
+3. Choose "Check out Maven Projects from SCM"
+4. In the field SCM URL choose 'git' and add the clone address from Github. If 'git' is not found, tap into "Find more SCM connectors in the m2e Marketplace"
+5. go on...
+The project is cloned. Enjoy!
+
 ## Installation
 
 - Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) and run it: `java -jar engine-x.y.z.jar`
