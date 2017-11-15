@@ -73,6 +73,12 @@ import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
+/**
+ * This class implements the Sparql 1.1 Secure event protocol with Sparql 1.1 subscribe language.
+ *
+ * @see <a href="http://wot.arces.unibo.it/TR/sparql11-se-protocol.html">SPARQL 1.1 Secure Event Protocol</a>
+ * @see <a href="http://wot.arces.unibo.it/TR/sparql11-subscribe.html">SPARQL 1.1 Subscribe Language</a>
+ */
 public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	private static final Logger logger = LogManager.getLogger("SPARQL11SEProtocol");
 
@@ -85,7 +91,15 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			throws SEPAProtocolException {
 		super(properties);
 	}
-	
+
+	/**
+	 * Create a protocol instance to communicate with SEPA. In particular
+	 * use this method if you want to subscribe about changes in the semantic
+	 * graph. Otherwise use {@link #SPARQL11SEProtocol(SPARQL11SEProperties)}
+	 * @param properties
+	 * @param handler an handler to get notification about subscribe queries
+	 * @throws SEPAProtocolException
+	 */
 	public SPARQL11SEProtocol(SPARQL11SEProperties properties, ISubscriptionHandler handler)
 			throws SEPAProtocolException {
 		super(properties);
@@ -140,24 +154,44 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		return properties.toString();
 	}
 
-	// SPARQL 1.1 Update Primitive
+	/**
+	 * {@inheritDoc}
+	 */
 	public Response update(UpdateRequest request) {
 		return super.update(request, 0);
 	}
 
-	// SPARQL 1.1 Query Primitive
+	/**
+	 * {@inheritDoc}
+	 */
 	public Response query(QueryRequest request) {
 		logger.debug(request.toString());
 		return super.query(request, 0);
 	}
 
-	// SPARQL 1.1 SE Subscribe Primitive
+	/**
+	 * Subscribe with a SPARQL 1.1 Subscription language.
+	 * All the notification will be forwarded to the {@link ISubscriptionHandler}
+	 * of this instance.
+	 * @param request
+	 * @return A valid {@link Response} if the subscription is successful <br>
+	 *     an {@link ErrorResponse} otherwise
+	 */
 	public Response subscribe(SubscribeRequest request) {
 		logger.debug(request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.SUBSCRIBE, request);
 	}
 
-	// SPARQL 1.1 SE Unsubscribe Primitive
+	/**
+	 * Unsubscribe with a SPARQL 1.1 Subscription language.
+	 * Note that you must supply a SPUID that identify the subscription
+	 * that you want to delete.
+	 * This primitive does not free any resources, you must call the {@link #close()}
+	 * method.
+	 * @param request
+	 * @return A valid {@link Response} if the unsubscription is successful <br>
+	 *     an {@link ErrorResponse} otherwise
+	 */
 	public Response unsubscribe(UnsubscribeRequest request) {
 		logger.debug(request.toString());
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.UNSUBSCRIBE, request);
@@ -198,6 +232,10 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.REQUESTTOKEN);
 	}
 
+	/**
+	 * Free the http connection manager and the WebSocket client.
+	 * @throws IOException
+	 */
     @Override
     public void close() throws IOException {
         super.close();
