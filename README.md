@@ -4,7 +4,7 @@ SEPA is a publish-subscribe architecture designed to support information level i
 
 ## Clone in Eclipse
 
-1. Oper Eclipse
+1. Open Eclipse
 2. File > Import > Maven
 3. Choose "Check out Maven Projects from SCM"
 4. In the field SCM URL choose 'git' and add the clone address from Github. If 'git' is not found, tap into "Find more SCM connectors in the m2e Marketplace"
