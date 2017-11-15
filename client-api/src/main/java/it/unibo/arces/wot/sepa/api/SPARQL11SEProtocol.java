@@ -198,6 +198,10 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.REQUESTTOKEN);
 	}
 
+	public void close(){
+	    wsClient.close();
+    }
+
 	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op) {
 		return executeSPARQL11SEPrimitive(op, null);
 	}
