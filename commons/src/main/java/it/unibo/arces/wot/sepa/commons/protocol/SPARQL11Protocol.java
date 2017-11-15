@@ -57,7 +57,7 @@ import org.apache.logging.log4j.LogManager;
  * This class implements the SPARQL 1.1 Protocol
  */
 
-public class SPARQL11Protocol {
+public class SPARQL11Protocol implements java.io.Closeable {
 
 	/** The Constant logger. */
 	private static final Logger logger = LogManager.getLogger("SPARQL11Protocol");
@@ -329,5 +329,10 @@ public class SPARQL11Protocol {
 		}
 
 		return new QueryResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());
+	}
+
+	@Override
+	public void close() throws IOException {
+		httpClient.close();
 	}
 }
