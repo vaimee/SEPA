@@ -273,7 +273,7 @@ public class EngineProperties {
 		return getParameter("paths", "securePath", "/secure");
 	}
 
-	public long getSPUProcessingTimeout() {
+	public int getSPUProcessingTimeout() {
 		return getParameter("spu", "timeout", 2000);
 	}
 

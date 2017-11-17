@@ -59,6 +59,9 @@ import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 public class Engine implements EngineMBean {
 	private static Engine engine;
 
+	// Scheduler request queue
+	private final SchedulerRequestResponseQueue schedulerQueue = new SchedulerRequestResponseQueue();
+	
 	// Primitives scheduler/dispatcher
 	private Scheduler scheduler = null;
 
@@ -181,18 +184,20 @@ public class Engine implements EngineMBean {
 		}
 
 		// SPARQL 1.1 SE request scheduler
-		scheduler = new Scheduler(properties);
+		scheduler = new Scheduler(properties,schedulerQueue);
 
 		// SEPA Processor
 		try {
-			processor = new Processor(new SPARQL11Properties("endpoint.jpar"), properties);
+			processor = new Processor(new SPARQL11Properties("endpoint.jpar"), properties,schedulerQueue);
 		} catch (SEPAProtocolException | SEPAPropertiesException e1) {
 			System.err.println(e1.getMessage());
 			System.exit(1);
 		}
+		processor.setName("SEPA Processor");
+		processor.start();
 
-		scheduler.addObserver(processor);
-		processor.addObserver(scheduler);
+		//scheduler.addObserver(processor);
+		//processor.addObserver(scheduler);
 
 		// Protocol gates
 		System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");

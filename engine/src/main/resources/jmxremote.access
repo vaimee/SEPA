@@ -1,4 +1,0 @@
-# The "monitorRole" role has readonly access.
-# The "controlRole" role has readwrite access.
-guest readonly
-root readwrite

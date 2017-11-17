@@ -20,8 +20,8 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Observable;
-import java.util.Observer;
+//import java.util.Observable;
+//import java.util.Observer;
 import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
@@ -36,12 +36,14 @@ import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
 
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
+import it.unibo.arces.wot.sepa.engine.core.SchedulerRequestResponseQueue;
 
 /**
  * This class represents the scheduler of the SPARQL Event Processing Engine
  */
 
-public class Scheduler extends Observable implements SchedulerMBean, Observer {
+//public class Scheduler extends Observable implements SchedulerMBean, Observer {
+public class Scheduler implements SchedulerMBean {
 	private static final Logger logger = LogManager.getLogger("Scheduler");
 
 	// Request tokens
@@ -50,12 +52,20 @@ public class Scheduler extends Observable implements SchedulerMBean, Observer {
 	// Responders
 	private HashMap<Integer, ResponseHandler> responders = new HashMap<Integer, ResponseHandler>();
 
-	public Scheduler(EngineProperties properties) {
+	// Synchronized queue
+	private SchedulerRequestResponseQueue queue;
+	
+	public Scheduler(EngineProperties properties,SchedulerRequestResponseQueue queue) {
 		if (properties == null) {
 			logger.error("Properties are null");
 			throw new IllegalArgumentException("Properties are null");
 		}
-
+		if (queue == null) {
+			logger.error("Queue is null");
+			throw new IllegalArgumentException("Queue is null");
+		}
+		this.queue = queue;
+		
 		// Initialize token jar
 		for (int i = 0; i < properties.getSchedulingQueueSize(); i++)
 			tokens.addElement(i);
@@ -63,6 +73,30 @@ public class Scheduler extends Observable implements SchedulerMBean, Observer {
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
+		
+		Thread responseThread = new Thread() {
+			public void run() {
+				while(true) {
+					Response response;
+					try {
+						response = queue.waitResponse();
+					} catch (InterruptedException e) {
+						return;
+					}
+					try {
+						responders.get(response.getToken()).sendResponse(response);
+					} catch (IOException e) {
+						logger.error("Failed to send response: " + e.getMessage());
+					}
+					responders.remove(response.getToken());
+
+					// RELEASE TOKEN
+					releaseToken(response.getToken());
+				}
+			}
+		};
+		responseThread.setName("SEPA Response Scheduler");
+		responseThread.start();
 	}
 
 	public synchronized void schedule(Request request, ResponseHandler handler) {
@@ -79,24 +113,25 @@ public class Scheduler extends Observable implements SchedulerMBean, Observer {
 		// Responder
 		responders.put(token, handler);
 
-		// Notify observers
-		setChanged();
-		notifyObservers(new ScheduledRequest(token, request, handler));
+		queue.addRequest(new ScheduledRequest(token, request, handler));
+//		// Notify observers
+//		setChanged();
+//		notifyObservers(new ScheduledRequest(token, request, handler));
 	}
 
-	@Override
-	public void update(Observable o, Object arg) {
-		Response response = (Response) arg;
-		try {
-			responders.get(response.getToken()).sendResponse(response);
-		} catch (IOException e) {
-			logger.error("Failed to send response: " + e.getMessage());
-		}
-		responders.remove(response.getToken());
-
-		// RELEASE TOKEN
-		releaseToken(response.getToken());
-	}
+//	@Override
+//	public void update(Observable o, Object arg) {
+//		Response response = (Response) arg;
+//		try {
+//			responders.get(response.getToken()).sendResponse(response);
+//		} catch (IOException e) {
+//			logger.error("Failed to send response: " + e.getMessage());
+//		}
+//		responders.remove(response.getToken());
+//
+//		// RELEASE TOKEN
+//		releaseToken(response.getToken());
+//	}
 
 	/**
 	 * Returns a new token if more tokens are available or -1 otherwise
