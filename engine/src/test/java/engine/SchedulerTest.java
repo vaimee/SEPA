@@ -27,7 +27,7 @@ public class SchedulerTest {
 		
 		System.out.println(properties.toString());
 		
-		scheduler = new Scheduler(properties);
+		scheduler = new Scheduler(properties, null);
 		Handler handler = new SchedulerTest().new Handler();
 		
 		while(true) {

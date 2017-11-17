@@ -1,6 +1,6 @@
 {
 	"parameters" : {
-		"host" : "localhost" ,
+		"host" : "www.vaimee.com" ,
 		"ports" : {
 			"http" : 8000 ,
 			"https" : 8443 ,
@@ -40,7 +40,102 @@
 			 ,
 			"ssl" : false}
 		 ,
+		"regexTopics" : {
+			"pepoli:6lowpan:network" : ["\\s[|]\\sID:\\s(\\w+)\\s[|]\\s(Temperature):\\s(?<value>\\d+.\\d+)\\s[|]" ,
+				"\\s[|]\\sID:\\s(\\w+)\\s[|]\\s\\w+:\\s\\d+.\\d+\\s[|].(Humidity):.(?<value>\\d+.\\d+)" ,
+				"\\s[|]\\sID:\\s(\\w+)\\s[|]\\s\\w+:\\s\\d+.\\d+\\s[|].\\w+:.\\d+.\\d+.[|].(Pressure):.(?<value>\\d+.\\d+)"]
+		}
+		 ,
+		"jsonTopics" : {
+			"ground/lora/moisture" : {
+				"id" : "nodeId" ,
+				"value" : "moistureValue"}
+		}
+		 ,
 		"semantic-mappings" : {
+			"pepoli/6lowpan/network/NODO1/Temperature" : {
+				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo1-Temperature" ,
+				"unit" : "qudt-unit-1-1:DegreeCelsius" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Temperatura sala server Viale Pepoli (rete 6LowPan)" ,
+				"label" : "Temperatura sala server Viale Pepoli"}
+			 ,
+			"pepoli/6lowpan/network/NODO1/Humidity" : {
+				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo1-Humidity" ,
+				"unit" : "qudt-unit-1-1:Percent" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Umidità sala server Viale Pepoli (rete 6LowPan)" ,
+				"label" : "Umidità sala server Viale Pepoli"}
+			 ,
+			"pepoli/6lowpan/network/NODO1/Pressure" : {
+				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo1-Pressure" ,
+				"unit" : "qudt-unit-1-1:Millibar" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Pressione atmosferica sala server Viale Pepoli (rete 6LowPan)" ,
+				"label" : "Pressione atmosferica sala server Viale Pepoli"},
+				
+				
+			 "pepoli/6lowpan/network/NODO2/Temperature" : {
+				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo2-Temperature" ,
+				"unit" : "qudt-unit-1-1:DegreeCelsius" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Temperatura ufficio Luca Perilli (rete 6LowPan)" ,
+				"label" : "Temperatura ufficio Luca Perilli"}
+			 ,
+			"pepoli/6lowpan/network/NODO2/Humidity" : {
+				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo2-Humidity" ,
+				"unit" : "qudt-unit-1-1:Percent" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Umidità ufficio SLuca Perilli (rete 6LowPan)" ,
+				"label" : "Umidità ufficio Luca Perilli"}
+			 ,
+			"pepoli/6lowpan/network/NODO2/Pressure" : {
+				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo2-Pressure" ,
+				"unit" : "qudt-unit-1-1:Millibar" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Pressione atmosferica ufficio SLuca Perilli (rete 6LowPan)" ,
+				"label" : "Pressione atmosferica sala server Viale Pepoli"}
+			 ,
+			 
+			 "pepoli/6lowpan/network/NODO3/Temperature" : {
+				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo3-Temperature" ,
+				"unit" : "qudt-unit-1-1:DegreeCelsius" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Temperatura Blue Hall (rete 6LowPan)" ,
+				"label" : "Temperatura Blue Hall"}
+			 ,
+			"pepoli/6lowpan/network/NODO3/Humidity" : {
+				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo3-Humidity" ,
+				"unit" : "qudt-unit-1-1:Percent" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Umidità Blue Hall (rete 6LowPan)" ,
+				"label" : "Umidità Blue Hall"}
+			 ,
+			"pepoli/6lowpan/network/NODO3/Pressure" : {
+				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo3-Pressure" ,
+				"unit" : "qudt-unit-1-1:Millibar" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Pressione atmosferica Blue Hall (rete 6LowPan)" ,
+				"label" : "Pressione atmosferica Blue Hall"}
+			 ,
+			 
+			 "ground/lora/moisture/device1" : {
+				"observation" : "arces-monitor:ground-lora-moisture-device1" ,
+				"unit" : "qudt-unit-1-1:Percent" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Umidità giardino 1 (rete LoRa)" ,
+				"label" : "Umidità giardino"}
+			 ,
+			 "ground/lora/moisture/device2" : {
+				"observation" : "arces-monitor:ground-lora-moisture-device2" ,
+				"unit" : "qudt-unit-1-1:Percent" ,
+				"location" : "arces-monitor:Star" ,
+				"comment" : "Umidità giardino 2 (rete LoRa)" ,
+				"label" : "Umidità giardino"}
+			 ,
+			 
+			
+			 
 			"arces/servers/ares/ercole/cpu/core-20/temperature" : {
 				"observation" : "arces-monitor:ServerErcoleCore20" ,
 				"unit" : "qudt-unit-1-1:DegreeCelsius" ,

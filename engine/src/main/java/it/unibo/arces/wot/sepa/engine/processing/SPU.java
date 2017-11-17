@@ -19,8 +19,7 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.IOException;
-import java.util.Observable;
-
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
@@ -35,10 +34,11 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Ping;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-
+import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
 /**
@@ -49,7 +49,8 @@ import it.unibo.arces.wot.sepa.engine.core.EventHandler;
  * @version 0.1
  */
 
-public abstract class SPU extends Observable implements Runnable {
+//public abstract class SPU extends Observable implements Runnable {
+public abstract class SPU implements Runnable {
 	private final Logger logger;
 
 	// The URI of the subscription (i.e., sepa://spuid/UUID)
@@ -73,22 +74,23 @@ public abstract class SPU extends Observable implements Runnable {
 
 	// To be implemented by every specific SPU implementation
 	public abstract boolean init();
-	public abstract void processInternal(UpdateResponse update);
-	
-	// To be called once the SPU processing is finished
-	protected final void processingResult(Notification notify){
-		this.notify = notify;
-		this.notify.notify();
-	}
+	public abstract Response processInternal(UpdateResponse update,int timeout);
 	
 	//Notification result
-	private Notification notify;
+	private Response notify;
+	
+	// List of processing SPU
+	private HashSet<SPU> queue;
 	
 	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler,
-			Semaphore endpointSemaphore) throws SEPAProtocolException {
+			Semaphore endpointSemaphore, HashSet<SPU> queue) throws SEPAProtocolException {
 		if (eventHandler == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe event handler is null"));
-
+		if (queue == null)
+			throw new SEPAProtocolException(new IllegalArgumentException("SPU processing queue is null"));
+		
+		this.queue = queue;
+		
 		uuid = prefix + UUID.randomUUID().toString();
 		logger = LogManager.getLogger("SPU" + uuid);
 
@@ -128,11 +130,6 @@ public abstract class SPU extends Observable implements Runnable {
 			updateQueue.notify();
 		}
 	}
-	
-	public void stopProcessing() {
-		notify = null;
-		notify.notify();
-	}
 
 	public void ping() throws IOException {
 		handler.sendPing(new Ping(getUUID()));
@@ -148,28 +145,27 @@ public abstract class SPU extends Observable implements Runnable {
 				logger.debug("* PROCESSING *");
 
 				//Asynchronous processing and waiting for result
-				processInternal(updateResponse);
-				synchronized(notify) {
-					try {
-						notify.wait();
-					} catch (InterruptedException e) {
-						running = false;
-					}
-				}
+				notify = processInternal(updateResponse,SPUManagerBeans.getSPUProcessingTimeout());
 				
 				// Notify event handler
-				try {
-					if (notify != null)
-						if (handler != null)
-							handler.notifyEvent(notify);
-				} catch (Exception e) {
-					logger.error(e.getMessage());
+				if (handler != null) { 
+					if (notify.isNotification())
+						try {
+							handler.notifyEvent((Notification)notify);
+						} catch (IOException e) {
+							logger.error("Failed to notify "+notify);
+						}
+					else logger.debug("Not a notification: "+notify);
 				}
-
+				else logger.error("Handler is null");
+				
 				// Notify SPU manager
 				logger.debug("Notify SPU manager. Running: " + running);
-				setChanged();
-				notifyObservers(running);
+				synchronized (queue) {
+					queue.remove(this);
+					logger.debug("SPUs left: " + queue.size());
+					queue.notify();
+				}
 			}
 
 			// Wait next request...

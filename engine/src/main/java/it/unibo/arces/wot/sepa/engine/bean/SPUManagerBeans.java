@@ -19,7 +19,7 @@ public class SPUManagerBeans {
 
 	private static long unsubscribeRequests;
 
-	private static long SPUProcessingTimeout;
+	private static int SPUProcessingTimeout;
 
 	public static long getRequests() {
 		return requests;
@@ -109,11 +109,11 @@ public class SPUManagerBeans {
 		return unsubscribeRequests;
 	}
 
-	public static long getSPUProcessingTimeout() {
+	public static int getSPUProcessingTimeout() {
 		return SPUProcessingTimeout;
 	}
 	
-	public static void setSPUProcessingTimeout(long t) {
+	public static void setSPUProcessingTimeout(int t) {
 		SPUProcessingTimeout = t;
 	}
 }

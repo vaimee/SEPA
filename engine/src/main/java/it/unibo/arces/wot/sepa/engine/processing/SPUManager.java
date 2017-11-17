@@ -21,8 +21,6 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Observable;
-import java.util.Observer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
@@ -46,7 +44,7 @@ import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
-public class SPUManager extends Observable implements Observer, SPUManagerMBean {
+public class SPUManager implements SPUManagerMBean {
 	private final Logger logger = LogManager.getLogger("SPUManager");
 
 	private SPARQL11Properties endpointProperties;
@@ -65,7 +63,7 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 	private Semaphore endpointSemaphore;
 
 	public SPUManager(SPARQL11Properties endpointProperties, EngineProperties engineProperties,
-			Semaphore endpointSemaphore) {
+			Semaphore endpointSemaphore, UpdateProcessingQueue updateProcessingQueue) {
 		this.endpointProperties = endpointProperties;
 		this.endpointSemaphore = endpointSemaphore;
 
@@ -198,19 +196,15 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 
 						// TIMEOUT
 						if (!processingSpus.isEmpty()) {
-							logger.error("Timeout on SPU processing. SPUs still running: "+processingSpus.size());
-							for (SPU spu : processingSpus) {
-								spu.stopProcessing();
-							}
+							logger.error("Timeout on SPU processing. SPUs still running: " + processingSpus.size());
 						}
-						
+
 						Instant stop = Instant.now();
 						SPUManagerBeans.timings(start, stop);
 
 						// Notify processor of end of processing
-						setChanged();
-						notifyObservers(new SPUEndOfProcessing(!processingSpus.isEmpty()));
-						
+						updateProcessingQueue.updateEOP(new SPUEndOfProcessing(!processingSpus.isEmpty()));
+
 						logger.info("*** PROCESSING SUBSCRIPTIONS END *** ");
 					}
 					synchronized (updateQueue) {
@@ -236,8 +230,8 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 		// TODO: choose different kinds of SPU based on subscribe request
 		SPU spu = null;
 		try {
-			spu = new SPUNaive(req, handler, endpointProperties, endpointSemaphore);
-			spu.addObserver(this);
+			spu = new SPUNaive(req, handler, endpointProperties, endpointSemaphore,processingSpus);
+			// spu.addObserver(this);
 		} catch (SEPAProtocolException e) {
 			logger.debug("SPU creation failed: " + e.getMessage());
 
@@ -287,16 +281,16 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 	}
 
 	// SPU processing ended notification
-	@Override
-	public void update(Observable o, Object arg) {
-		SPU spu = (SPU) o;
-
-		synchronized (processingSpus) {
-			processingSpus.remove(spu);
-			logger.debug("SPUs left: " + processingSpus.size());
-			processingSpus.notify();
-		}
-	}
+//	@Override
+//	public void update(Observable o, Object arg) {
+//		SPU spu = (SPU) o;
+//
+//		synchronized (processingSpus) {
+//			processingSpus.remove(spu);
+//			logger.debug("SPUs left: " + processingSpus.size());
+//			processingSpus.notify();
+//		}
+//	}
 
 	@Override
 	public long getRequests() {

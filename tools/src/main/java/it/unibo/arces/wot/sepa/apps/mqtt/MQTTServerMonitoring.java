@@ -21,7 +21,10 @@ import it.unibo.arces.wot.sepa.pattern.Producer;
 public class MQTTServerMonitoring {
 	private static final Logger logger = LogManager.getLogger("MQTTSmartifier");
 
+	// Produce observations coming from MQTT matching with the semantic mapping
 	private static MQTTSmartifier adapter;
+	
+	// Add observation based on the semantic mapping stored in JSAP
 	private static Producer mqttInitializer;
 
 	public static void main(String[] args)
@@ -42,17 +45,7 @@ public class MQTTServerMonitoring {
 				.getAsJsonObject();
 
 		logger.info("Add observations");
-		for (Entry<String, JsonElement> mapping : mappings.entrySet()) {
-			String topic = mapping.getKey();
-
-			String observation = mapping.getValue().getAsJsonObject().get("observation").getAsString();
-			String unit = mapping.getValue().getAsJsonObject().get("unit").getAsString();
-			String location = mapping.getValue().getAsJsonObject().get("location").getAsString();
-			String comment = mapping.getValue().getAsJsonObject().get("comment").getAsString();
-			String label = mapping.getValue().getAsJsonObject().get("label").getAsString();
-
-			addObservation(observation, comment, label, location, unit, topic);
-		}
+		for (Entry<String, JsonElement> mapping : mappings.entrySet()) addObservation(mapping);
 
 		// Create MQTT adapter
 		logger.info("Create MQTT adapter");
@@ -78,8 +71,15 @@ public class MQTTServerMonitoring {
 		System.exit(1);
 	}
 
-	private static void addObservation(String observation, String comment, String label, String location, String unit,
-			String topic) {
+	private static void addObservation(Entry<String, JsonElement> mapping) {
+		String topic = mapping.getKey();
+
+		String observation = mapping.getValue().getAsJsonObject().get("observation").getAsString();
+		String unit = mapping.getValue().getAsJsonObject().get("unit").getAsString();
+		String location = mapping.getValue().getAsJsonObject().get("location").getAsString();
+		String comment = mapping.getValue().getAsJsonObject().get("comment").getAsString();
+		String label = mapping.getValue().getAsJsonObject().get("label").getAsString();
+		
 		Bindings bindings = new Bindings();
 		bindings.addBinding("observation", new RDFTermURI(observation));
 		bindings.addBinding("comment", new RDFTermLiteral(comment));
