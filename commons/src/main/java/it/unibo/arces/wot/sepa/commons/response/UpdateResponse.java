@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.commons.response;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 // TODO: Auto-generated Javadoc
 /**

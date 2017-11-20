@@ -25,6 +25,7 @@ import java.util.Observable;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -71,7 +72,7 @@ public abstract class SPU extends Observable implements Runnable {
 	protected BindingsResults firstResults = null;
 
 	// To be implemented by every specific SPU implementation
-	public abstract boolean init();
+	public abstract boolean init() throws ParseException;
 	public abstract Notification processInternal(UpdateResponse update);
 
 	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler)

@@ -36,6 +36,9 @@ import javax.management.MBeanRegistrationException;
 import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.nimbusds.jose.JOSEException;
 
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
@@ -59,7 +62,7 @@ import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
  */
 
 public class Engine extends Thread implements EngineMBean {
-
+	
 	// Primitives scheduler/dispatcher
 	private Scheduler scheduler = null;
 	private Thread schedulerThread = null;
@@ -141,30 +144,18 @@ public class Engine extends Thread implements EngineMBean {
 		// Command arguments
 		parsingArgument(args);
 
-		System.out
-				.println("##########################################################################################");
-		System.out
-				.println("# SEPA Engine Ver 0.8.1  Copyright (C) 2016-2017                                         #");
-		System.out
-				.println("# Web of Things Research @ ARCES - University of Bologna (Italy)                         #");
-		System.out
-				.println("#                                                                                        #");
-		System.out
-				.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
-		System.out
-				.println("# This is free software, and you are welcome to redistribute it under certain conditions #");
-		System.out
-				.println("# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #");
-		System.out
-				.println("#                                                                                        #");
-		System.out
-				.println("# GITHUB: https://github.com/arces-wot/sepa                                              #");
-		System.out
-				.println("# WEB: http://wot.arces.unibo.it                                                         #");
-		System.out
-				.println("# WIKI: https: // github.com/arces-wot/SEPA/wiki                                         #");
-		System.out
-				.println("##########################################################################################");
+		System.out.println("##########################################################################################");
+		System.out.println("# SEPA Engine Ver 0.8.1  Copyright (C) 2016-2017                                         #");
+		System.out.println("# Web of Things Research @ ARCES - University of Bologna (Italy)                         #");
+		System.out.println("#                                                                                        #");
+		System.out.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
+		System.out.println("# This is free software, and you are welcome to redistribute it under certain conditions #");
+		System.out.println("# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #");
+		System.out.println("#                                                                                        #");
+		System.out.println("# GITHUB: https://github.com/arces-wot/sepa                                              #");
+		System.out.println("# WEB: http://wot.arces.unibo.it                                                         #");
+		System.out.println("# WIKI: https: // github.com/arces-wot/SEPA/wiki                                         #");
+		System.out.println("##########################################################################################");
 
 		// Engine creation and initialization
 		Engine engine = new Engine();
@@ -193,7 +184,7 @@ public class Engine extends Thread implements EngineMBean {
 		Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(engine));
 	}
 
-	public Engine() {
+	public Engine() {	
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		this.setName("SEPA Engine");
 	}

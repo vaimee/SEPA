@@ -28,6 +28,7 @@ import java.util.Observer;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.logging.log4j.LogManager;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
@@ -35,6 +36,7 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
@@ -144,13 +146,14 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 		}
 	}
 
-	public void subscribe(SubscribeRequest req, EventHandler handler) {
+	public void subscribe(SubscribeRequest req, EventHandler handler) throws ParseException {
 		logger.debug(req.toString());
 
 		// TODO: choose different kinds of SPU based on subscribe request
 		SPU spu = null;
 		try {
-			spu = new SPUNaive(req, handler, endpointProperties);
+			//spu = new SPUSmart(req, handler, endpointProperties);
+			spu = new SPUNamed(req, handler, endpointProperties);
 			spu.addObserver(this);
 		} catch (IllegalArgumentException | URISyntaxException e) {
 			logger.debug("SPU creation failed: " + e.getMessage());
@@ -221,6 +224,7 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 
 	public void unsubscribe(UnsubscribeRequest req) {
 		logger.debug(req);
+		logger.debug("RICHIESTA DI UN-SOTTOSCRIZIONE");
 
 		String spuid = req.getSubscribeUUID();
 
@@ -279,6 +283,9 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 			updateQueue.offer(update);
 			updateQueue.notify();
 		}
+		
+		
+		
 	}
 
 	class UpdateProcessingThread extends Thread {
@@ -286,7 +293,8 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 		public void run() {
 			while (true) {
 				UpdateResponse update;
-				while ((update = updateQueue.poll()) != null) {
+				while ((update = updateQueue.poll()) != null) {						
+					
 					logger.debug("*** PROCESSING SUBSCRIPTIONS *** <<< " + update);
 					Instant start = Instant.now();
 
@@ -296,7 +304,19 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 						processingSpus.clear();
 						for (SPU spu : spus.values()) {
 							processingSpus.add(spu.getUUID());
-							spu.process(update);
+							if (spu instanceof SPUSmart) {
+								SPUSmart spusm = (SPUSmart) spu;
+								if (spusm.checkLutt(update.added, update.removed)) {									
+									spu.process(update);
+								};
+							}								
+							else if (spu instanceof SPUNamed) {								
+								SPUNamed spusm = (SPUNamed) spu;
+								if (spusm.checkLutt(update.added, update.removed)) {	
+									logger.debug("Starting spu.process");
+									spu.process(update);
+								};
+							}
 						}
 					}
 

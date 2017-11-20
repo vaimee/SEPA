@@ -115,6 +115,11 @@
 			<version>0.7.5</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-arq</artifactId>
+			<version>3.4.0</version>
+		</dependency>
 	</dependencies>
 
 </project>

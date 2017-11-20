@@ -19,6 +19,8 @@ package it.unibo.arces.wot.sepa.commons.response;
 
 import com.google.gson.JsonObject;
 
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+
 // TODO: Auto-generated Javadoc
 /**
  * This class represents the response to a generic request.
@@ -31,6 +33,9 @@ public abstract class Response {
 	
 	/** The token. */
 	private int token = -1;
+
+	public BindingsResults added;
+	public BindingsResults removed;
 
 	public boolean isError() {
 		return this.getClass().equals(ErrorResponse.class);

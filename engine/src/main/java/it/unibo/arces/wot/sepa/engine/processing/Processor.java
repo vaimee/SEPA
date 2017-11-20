@@ -37,12 +37,15 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import org.apache.logging.log4j.Logger;
 
+import com.github.andrewoma.dexx.collection.List;
+
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
@@ -109,7 +112,7 @@ public class Processor extends Observable implements ProcessorMBean, Observer {
 					UpdateRequest request;
 					while ((request = updateRequestQueue.poll()) != null) {
 						// Process update request
-						Response ret = updateProcessor.process(request, 0);
+						Response ret = updateProcessor.process(request, 0); 						
 
 						if (ret.isUpdateResponse()) {
 							spuManager.process((UpdateResponse) ret);
@@ -168,7 +171,12 @@ public class Processor extends Observable implements ProcessorMBean, Observer {
 	public void processSubscribe(SubscribeRequest request, EventHandler handler) {
 		logger.debug(request);
 		ProcessorBeans.newRequest(request);
-		spuManager.subscribe(request, handler);
+		try {
+			spuManager.subscribe(request, handler);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void processUnsubscribe(UnsubscribeRequest request) {

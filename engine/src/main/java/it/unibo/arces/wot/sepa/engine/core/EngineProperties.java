@@ -59,6 +59,7 @@ import org.apache.logging.log4j.LogManager;
 }
  */
 public class EngineProperties {
+	
 	private static final Logger logger = LogManager.getLogger("EngineProperties");
 
 	private String defaultsFileName = "defaults.jpar";
@@ -69,7 +70,6 @@ public class EngineProperties {
 	public EngineProperties(String propertiesFile) throws IllegalArgumentException,NoSuchElementException, IOException {
 		if (propertiesFile == null) throw new IllegalArgumentException("Properties file is null");
 		this.propertiesFile = propertiesFile;
-
 		loadProperties();
 	}
 	

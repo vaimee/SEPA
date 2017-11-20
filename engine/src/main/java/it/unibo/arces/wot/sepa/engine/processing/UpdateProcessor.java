@@ -19,15 +19,29 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 
+import org.apache.jena.query.*;
+import org.apache.jena.sparql.algebra.Algebra;
+import org.apache.jena.sparql.algebra.Op;
+import org.apache.jena.sparql.modify.request.UpdateDataInsert;
+import org.apache.jena.update.Update;
+import org.apache.jena.update.UpdateFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 
 public class UpdateProcessor {
@@ -41,20 +55,83 @@ public class UpdateProcessor {
 
 	public synchronized Response process(UpdateRequest req, int timeout) {
 		logger.debug("* PROCESSING *");
-
+		
+		// Check the endpoint
 		SPARQL11Protocol endpoint = null;
 		try {
 			endpoint = new SPARQL11Protocol(properties);
 		} catch (IllegalArgumentException | URISyntaxException e) {
-			return new ErrorResponse(req.getToken(),500,e.getMessage());
+			// return new ErrorResponse(req.getToken(),500,e.getMessage());
+			return new ErrorResponse(req.getToken(),500,e.getMessage());			
+		}
+			
+		// Get the constructs needed to determine added and removed data
+		HashMap<String,String> constructs = null;
+		org.apache.jena.update.UpdateRequest updateRequest = UpdateFactory.create(req.getSPARQL());
+		List<Update> updateList = updateRequest.getOperations();
+		Iterator<Update> updateListIterator = updateList.iterator();
+		while (updateListIterator.hasNext()) {
+			Update u2 = updateListIterator.next();
+			SPARQLAnalyzer sa = new SPARQLAnalyzer(u2.toString());		
+			constructs = sa.getConstruct();
+		}
+
+		// Perform the requests
+		Response ret;
+		BindingsResults added = null;
+		BindingsResults removed = null;
+		String dc = constructs.get("DeleteConstruct");		
+		if (dc.length() > 0) {			
+			QueryRequest cons1 = new QueryRequest(dc);					
+			logger.debug(cons1.toString());
+			removed = ((QueryResponse) endpoint.query(cons1, timeout)).getBindingsResults();			
+			logger.debug(removed);
+		}
+		String ac = constructs.get("InsertConstruct");		
+		if (ac.length() > 0) {
+			QueryRequest cons2 = new QueryRequest(ac);			
+			logger.debug(cons2.toString());
+			added = ((QueryResponse) endpoint.query(cons2, timeout)).getBindingsResults();			
+			logger.debug(added);			
 		}
 		
 		// UPDATE the endpoint
 		long start = System.currentTimeMillis();		
-		Response ret = endpoint.update(req, timeout);		
-		long stop = System.currentTimeMillis();
+		ret = endpoint.update(req, timeout);		
+		if (ret.isUpdateResponse()) {	
+			ret.added = added;
+			ret.removed = removed;
+		}
+		long stop = System.currentTimeMillis();	
 		ProcessorBeans.updateTimings(start, stop);
 		
+		logger.debug(ret.isUpdateResponse());
+		
+		// Return
 		return ret;
 	}
+	
+	public synchronized Response processNoCheck(UpdateRequest req, int timeout) {
+		logger.debug("* PROCESSING *");
+		
+		// Check the endpoint
+		SPARQL11Protocol endpoint = null;
+		try {
+			endpoint = new SPARQL11Protocol(properties);
+		} catch (IllegalArgumentException | URISyntaxException e) {
+			return new ErrorResponse(req.getToken(),500,e.getMessage());			
+		}			
+		
+		// UPDATE the endpoint
+		long start = System.currentTimeMillis();		
+		Response ret = endpoint.update(req, timeout);		
+		long stop = System.currentTimeMillis();	
+		ProcessorBeans.updateTimings(start, stop);
+		
+		logger.debug(ret.isUpdateResponse());
+		
+		// Return
+		return ret;
+	}
+	
 }
