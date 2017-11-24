@@ -11,7 +11,9 @@ SEPA is a publish-subscribe architecture designed to support information level i
 ## Configuration
 
 The SEPA engine uses two JSON configuration files: `engine.jpar` and `endpoint.jpar` (included in the [SEPA Engine release](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) distribution). 
-The default version of `endpoint.jpar` configures the engine to use use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service](https://www.w3.org/TR/sparql11-protocol/).
+In the repository you will find some versions of `endpoint-{something}.jpar` file. According to your underlying endpoint, you have to rename the correct file to `endpoint.jpar`.
+The default version of `endpoint.jpar` (will be removed soon!) configures the engine to use use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service](https://www.w3.org/TR/sparql11-protocol/).
+
 ```json
 {
 	"parameters": {

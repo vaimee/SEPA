@@ -110,4 +110,11 @@ public class SPARQL11SEWebsocket implements ISubscriptionHandler {
 	public void onError(ErrorResponse errorResponse) {
 		handler.onError(errorResponse);
 	}
+
+	public void close() {
+		if (connected){
+				client.close();
+		}
+	}
+
 }
