@@ -33,17 +33,18 @@
 		"arces-monitor" : "http://wot.arces.unibo.it/monitor#"}
 	 ,
 	"extended" : {
+		"simulate" : false ,
 		"mqtt" : {
 			"url" : "giove.arces.unibo.it" ,
 			"port" : 52877 ,
-			"topics" : ["#"]
+			"topics" : ["pepoli:6lowpan:network"]
 			 ,
 			"ssl" : false}
 		 ,
 		"regexTopics" : {
-			"pepoli:6lowpan:network" : ["\\s[|]\\sID:\\s(\\w+)\\s[|]\\s(Temperature):\\s(?<value>\\d+.\\d+)\\s[|]" ,
-				"\\s[|]\\sID:\\s(\\w+)\\s[|]\\s\\w+:\\s\\d+.\\d+\\s[|].(Humidity):.(?<value>\\d+.\\d+)" ,
-				"\\s[|]\\sID:\\s(\\w+)\\s[|]\\s\\w+:\\s\\d+.\\d+\\s[|].\\w+:.\\d+.\\d+.[|].(Pressure):.(?<value>\\d+.\\d+)"]
+			"pepoli:6lowpan:network" : [".[|].ID:.(\\w+).[|].(Temperature)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d+\n" ,
+				".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].(Humidity)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d+\n" ,
+				".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d++.[|].(Pressure)[:].(?<value>\\d+.\\d+)\n"]
 		}
 		 ,
 		"jsonTopics" : {
@@ -72,10 +73,9 @@
 				"unit" : "qudt-unit-1-1:Millibar" ,
 				"location" : "arces-monitor:Star" ,
 				"comment" : "Pressione atmosferica sala server Viale Pepoli (rete 6LowPan)" ,
-				"label" : "Pressione atmosferica sala server Viale Pepoli"},
-				
-				
-			 "pepoli/6lowpan/network/NODO2/Temperature" : {
+				"label" : "Pressione atmosferica sala server Viale Pepoli"}
+			 ,
+			"pepoli/6lowpan/network/NODO2/Temperature" : {
 				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo2-Temperature" ,
 				"unit" : "qudt-unit-1-1:DegreeCelsius" ,
 				"location" : "arces-monitor:Star" ,
@@ -96,8 +96,7 @@
 				"comment" : "Pressione atmosferica ufficio SLuca Perilli (rete 6LowPan)" ,
 				"label" : "Pressione atmosferica sala server Viale Pepoli"}
 			 ,
-			 
-			 "pepoli/6lowpan/network/NODO3/Temperature" : {
+			"pepoli/6lowpan/network/NODO3/Temperature" : {
 				"observation" : "arces-monitor:Pepoli-6lowpan-Nodo3-Temperature" ,
 				"unit" : "qudt-unit-1-1:DegreeCelsius" ,
 				"location" : "arces-monitor:Star" ,
@@ -118,24 +117,20 @@
 				"comment" : "Pressione atmosferica Blue Hall (rete 6LowPan)" ,
 				"label" : "Pressione atmosferica Blue Hall"}
 			 ,
-			 
-			 "ground/lora/moisture/device1" : {
+			"ground/lora/moisture/device1" : {
 				"observation" : "arces-monitor:ground-lora-moisture-device1" ,
 				"unit" : "qudt-unit-1-1:Percent" ,
 				"location" : "arces-monitor:Star" ,
 				"comment" : "Umidità giardino 1 (rete LoRa)" ,
 				"label" : "Umidità giardino"}
 			 ,
-			 "ground/lora/moisture/device2" : {
+			"ground/lora/moisture/device2" : {
 				"observation" : "arces-monitor:ground-lora-moisture-device2" ,
 				"unit" : "qudt-unit-1-1:Percent" ,
 				"location" : "arces-monitor:Star" ,
 				"comment" : "Umidità giardino 2 (rete LoRa)" ,
 				"label" : "Umidità giardino"}
 			 ,
-			 
-			
-			 
 			"arces/servers/ares/ercole/cpu/core-20/temperature" : {
 				"observation" : "arces-monitor:ServerErcoleCore20" ,
 				"unit" : "qudt-unit-1-1:DegreeCelsius" ,
