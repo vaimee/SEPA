@@ -21,9 +21,29 @@ package it.unibo.arces.wot.sepa.api;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 
+/**
+ * Handles SPARQL 1.1 subscription language events.
+ *
+ * @see SPARQL11SEProtocol#SPARQL11SEProtocol(SPARQL11SEProperties, ISubscriptionHandler)
+ * @see <a href="http://wot.arces.unibo.it/TR/sparql11-subscribe.html">SPARQL 1.1 Subscribe Language</a>
+ */
 public interface ISubscriptionHandler {
-	public void onSemanticEvent(Notification notify);
-	public void onPing();
-	public void onBrokenSocket();
-	public void onError(ErrorResponse errorResponse);
+	/**
+	 * An event about changes in the graph.
+	 * @param notify notification about added and removed triples
+	 */
+	void onSemanticEvent(Notification notify);
+
+	/**
+	 * SEPA sends periodic messages to check client status.
+	 */
+	void onPing();
+
+	/**
+	 * This method is called after the connection with SEPA is lost.
+	 * Notice that it is also called even after {@link SEPAWebsocketClient#close()}
+	 * is used.
+	 */
+	void onBrokenSocket();
+	void onError(ErrorResponse errorResponse);
 }
