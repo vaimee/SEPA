@@ -110,55 +110,66 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 
 	@Override
 	public void messageArrived(String topic, MqttMessage value) throws Exception {
-		String topicValue = value.toString();
-		logger.debug(topic + " " + topicValue);
+		mqttMessage(topic,value.toString());
+	}
+
+	public void mqttMessage(String topic, String value) throws Exception {
+		// String topicValue = value.toString();
+		logger.debug(topic + " " + value);
 
 		if (topic2observation.containsKey(topic)) {
-			updateObservationValue(topic2observation.get(topic), topicValue);
+			updateObservationValue(topic2observation.get(topic), value);
 		}
-		
+
 		// Check if value can be parsed with regex
-		// e.g. pepoli:6lowpan:network = | ID: NODO1 | Temperature: 24.60 | Humidity: 35.40 | Pressure: 1016.46
+		// e.g. pepoli:6lowpan:network = | ID: NODO1 | Temperature: 24.60 | Humidity:
+		// 35.40 | Pressure: 1016.46
 
 		else if (appProfile.getExtendedData().get("regexTopics").getAsJsonObject().get(topic) != null) {
 			JsonArray arr = appProfile.getExtendedData().get("regexTopics").getAsJsonObject().get(topic)
 					.getAsJsonArray();
 			for (JsonElement regex : arr) {
 				Pattern p = Pattern.compile(regex.getAsString());
-				Matcher m = p.matcher(value.toString());
+				Matcher m = p.matcher(value);
 				if (m.matches()) {
-					for (int i = 0; i < m.groupCount(); i++) {
-						topic += ":" + m.group(i);
-					}
-					topic = topic.replace(":", "/");
+					String newTopic = topic.replace(":", "/");
 
-					topicValue = m.group("value");
-					
-					updateObservationValue(topic2observation.get(topic), topicValue);
+					for (int i = 1; i < m.groupCount(); i++) {
+						if (!m.group(i).equals(m.group("value")))
+							newTopic += "/" + m.group(i);
+					}
+
+					String newValue = m.group("value");
+
+					updateObservationValue(topic2observation.get(newTopic), newValue);
 				}
 			}
-		} 
-		
+		}
+
 		// Check if value can be parsed with JSON
-		// e.g. {"moistureValue":3247, "nodeId":"device3", "timestamp":"2017-11-15T10:00:02.123028089Z"}
-		
+		// e.g. {"moistureValue":3247, "nodeId":"device3",
+		// "timestamp":"2017-11-15T10:00:02.123028089Z"}
+
 		else if (appProfile.getExtendedData().get("jsonTopics").getAsJsonObject().get(topic) != null) {
-			String idMember = appProfile.getExtendedData().get("jsonTopics").getAsJsonObject().get(topic).getAsJsonObject().get("id").getAsString();
-			String valueMember = appProfile.getExtendedData().get("jsonTopics").getAsJsonObject().get(topic).getAsJsonObject().get("value").getAsString();
-			
-			JsonObject json = new JsonParser().parse(topicValue).getAsJsonObject();
+			String idMember = appProfile.getExtendedData().get("jsonTopics").getAsJsonObject().get(topic)
+					.getAsJsonObject().get("id").getAsString();
+			String valueMember = appProfile.getExtendedData().get("jsonTopics").getAsJsonObject().get(topic)
+					.getAsJsonObject().get("value").getAsString();
+
+			JsonObject json = new JsonParser().parse(value).getAsJsonObject();
 			String topicSuffix = json.get(idMember).getAsString();
-			topicValue = json.get(valueMember).getAsString();
-			
-			topic += "/"+topicSuffix;
-			
-			updateObservationValue(topic2observation.get(topic), topicValue);		
+
+			String newValue = json.get(valueMember).getAsString();
+
+			String newTopic = topic + "/" + topicSuffix;
+
+			updateObservationValue(topic2observation.get(newTopic), newValue);
 		} else {
-			logger.warn("TOPIC NOT FOUND: " + topic + " = " + topicValue);
+			logger.warn("TOPIC NOT FOUND: " + topic + " = " + value);
 		}
 	}
 
-	public boolean start() {
+	public boolean start(boolean simulate) {
 		// Subscribe to observation-topic mapping
 		Response ret = subscribe(null);
 
@@ -169,82 +180,167 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 		SubscribeResponse results = (SubscribeResponse) ret;
 		onAddedResults(results.getBindingsResults());
 
-		// MQTT
-		JsonObject mqtt = getApplicationProfile().getExtendedData().get("mqtt").getAsJsonObject();
+		if (simulate)
+			simulator();
+		else {
+			// MQTT: begin
+			JsonObject mqtt = getApplicationProfile().getExtendedData().get("mqtt").getAsJsonObject();
 
-		String url = mqtt.get("url").getAsString();
-		int port = mqtt.get("port").getAsInt();
-		JsonArray topics = mqtt.get("topics").getAsJsonArray();
+			String url = mqtt.get("url").getAsString();
+			int port = mqtt.get("port").getAsInt();
+			JsonArray topics = mqtt.get("topics").getAsJsonArray();
 
-		topicsFilter = new String[topics.size()];
-		int i = 0;
-		for (JsonElement topic : topics) {
-			topicsFilter[i] = topic.getAsString();
-			i++;
-		}
+			topicsFilter = new String[topics.size()];
+			int i = 0;
+			for (JsonElement topic : topics) {
+				topicsFilter[i] = topic.getAsString();
+				i++;
+			}
 
-		boolean sslEnabled = false;
-		if (mqtt.get("ssl") != null)
-			sslEnabled = mqtt.get("ssl").getAsBoolean();
+			boolean sslEnabled = false;
+			if (mqtt.get("ssl") != null)
+				sslEnabled = mqtt.get("ssl").getAsBoolean();
 
-		String serverURI = null;
-		if (sslEnabled) {
-			serverURI = "ssl://" + url + ":" + String.format("%d", port);
-		} else {
-			serverURI = "tcp://" + url + ":" + String.format("%d", port);
-		}
+			String serverURI = null;
+			if (sslEnabled) {
+				serverURI = "ssl://" + url + ":" + String.format("%d", port);
+			} else {
+				serverURI = "tcp://" + url + ":" + String.format("%d", port);
+			}
 
-		// Create client
-		logger.info("Creating MQTT client...");
-		String clientID = MqttClient.generateClientId();
-		logger.info("Client ID: " + clientID);
-		logger.info("Server URI: " + serverURI);
-		try {
-			mqttClient = new MqttClient(serverURI, clientID);
-		} catch (MqttException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
-
-		// Connect
-		logger.info("Connecting...");
-		MqttConnectOptions options = new MqttConnectOptions();
-		if (sslEnabled) {
-			SSLSecurityManager sm;
+			// Create client
+			logger.info("Creating MQTT client...");
+			String clientID = MqttClient.generateClientId();
+			logger.info("Client ID: " + clientID);
+			logger.info("Server URI: " + serverURI);
 			try {
-				sm = new SSLSecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017");
-			} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
-					| CertificateException | IOException e) {
+				mqttClient = new MqttClient(serverURI, clientID);
+			} catch (MqttException e) {
 				logger.error(e.getMessage());
 				return false;
 			}
-			logger.info("Set SSL security");
+
+			// Connect
+			logger.info("Connecting...");
+			MqttConnectOptions options = new MqttConnectOptions();
+			if (sslEnabled) {
+				SSLSecurityManager sm;
+				try {
+					sm = new SSLSecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017");
+				} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException
+						| NoSuchAlgorithmException | CertificateException | IOException e) {
+					logger.error(e.getMessage());
+					return false;
+				}
+				logger.info("Set SSL security");
+				try {
+					options.setSocketFactory(sm.getSSLContext().getSocketFactory());
+				} catch (KeyManagementException | NoSuchAlgorithmException e) {
+					logger.error(e.getMessage());
+					return false;
+				}
+			}
 			try {
-				options.setSocketFactory(sm.getSSLContext().getSocketFactory());
-			} catch (KeyManagementException | NoSuchAlgorithmException e) {
+				mqttClient.connect(options);
+			} catch (MqttException e) {
+				logger.error(e.getMessage());
+			}
+
+			// Subscribe
+			mqttClient.setCallback(this);
+			logger.info("Subscribing...");
+			try {
+				mqttClient.subscribe(topicsFilter);
+			} catch (MqttException e) {
 				logger.error(e.getMessage());
 				return false;
 			}
-		}
-		try {
-			mqttClient.connect(options);
-		} catch (MqttException e) {
-			logger.error(e.getMessage());
-		}
 
-		// Subscribe
-		mqttClient.setCallback(this);
-		logger.info("Subscribing...");
-		try {
-			mqttClient.subscribe(topicsFilter);
-		} catch (MqttException e) {
-			logger.error(e.getMessage());
-			return false;
+			for(String topic:topicsFilter) logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topic);
+			// MQTT: end
 		}
-
-		logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topicsFilter);
 
 		return true;
+	}
+
+	public void simulator() {
+		new Thread() {
+			public void run() {
+				// 6LowPan
+				// e.g. pepoli:6lowpan:network = | ID: NODO1 | Temperature: 24.60 | Humidity:
+				// 35.40 | Pressure: 1016.46
+				String pattern6LowPan = " | ID: %s | Temperature: %.2f | Humidity: %.2f | Pressure: %.2f";
+				String[] nodes6LowPan = { "NODO1", "NODO2", "NODO3" };
+				String topicLowPan = "pepoli:6lowpan:network";
+
+				// LoRa
+				// e.g. {"moistureValue":3247, "nodeId":"device3",
+				// "timestamp":"2017-11-15T10:00:02.123028089Z"}
+				String patternLoRa = "{\"moistureValue\":%.2f, \"nodeId\":\"%s\", \"timestamp\":\"2017-11-15T10:00:02.123028089Z\"}";
+				String[] nodesLoRa = { "device1", "device2" };
+				String topicLoRa = "ground/lora/moisture";
+
+				while (true) {
+
+					for (String node : nodes6LowPan) {
+						for (int j = 0; j < 100; j++) {
+							String value = String.format(pattern6LowPan, node, (float) j, (float)(100 - j),
+									(float)(10 * j));
+							try {
+								mqttMessage(topicLowPan, value);
+							} catch (Exception e) {
+								logger.error(e.getMessage());
+							}
+						}
+
+						// try {
+						// Thread.sleep(1000);
+						// } catch (InterruptedException e) {
+						// return;
+						// }
+					}
+
+					for (String device : nodesLoRa) {
+						for (int j = 0; j < 100; j++) {
+							String value = String.format(patternLoRa, (float) j, device);
+							try {
+								mqttMessage(topicLoRa, value);
+							} catch (Exception e) {
+								logger.error(e.getMessage());
+							}
+						}
+
+						// try {
+						// Thread.sleep(1000);
+						// } catch (InterruptedException e) {
+						// return;
+						// }
+					}
+
+					for (int i = 0; i < 35; i = i + 5) {
+						for (String topic : topic2observation.keySet()) {
+							if (topic.startsWith(topicLowPan.replace(":", "/")))
+								continue;
+							if (topic.startsWith(topicLoRa.replace(":", "/")))
+								continue;
+
+							try {
+								mqttMessage(topic, String.format("%d", 10 + i));
+							} catch (Exception e) {
+								logger.error(e.getMessage());
+							}
+
+							// try {
+							// Thread.sleep(1000);
+							// } catch (InterruptedException e) {
+							//// return;
+							// }
+
+						}
+					}
+				}
+			}
+		}.start();
 	}
 
 	public void stop() {

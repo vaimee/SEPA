@@ -54,7 +54,7 @@ public class MQTTServerMonitoring {
 
 		logger.info("Start MQTT adapter");
 
-		if (adapter.start()) {
+		if (adapter.start(mqttInitializer.getApplicationProfile().getExtendedData().get("simulate").getAsBoolean())) {
 			logger.info("Press any key to exit...");
 			try {
 				System.in.read();
