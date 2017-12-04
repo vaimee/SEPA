@@ -110,9 +110,15 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		}
 
 		try {
+			int port = properties.getWsPort();
+			if (port != -1)
 			wsClient = new SPARQL11SEWebsocket(
-					"ws://" + properties.getHost() + ":" + properties.getWsPort() + properties.getSubscribePath(),
+					"ws://" + properties.getHost() + ":" + port + properties.getSubscribePath(),
 					handler);
+			else
+				wsClient = new SPARQL11SEWebsocket(
+						"ws://" + properties.getHost() + properties.getSubscribePath(),
+						handler);
 		} catch (URISyntaxException e) {
 			throw new SEPAProtocolException(e);
 		}
