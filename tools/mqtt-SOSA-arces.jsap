@@ -35,8 +35,8 @@
 	"extended" : {
 		"simulate" : false ,
 		"mqtt" : {
-			"url" : "broker.hivemq.com" ,
-			"port" : 1883,
+			"url" : "giove.arces.unibo.it" ,
+			"port" : 52877 ,
 			"topics" : ["pepoli:6lowpan:network"]
 			 ,
 			"ssl" : false}

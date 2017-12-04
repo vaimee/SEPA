@@ -42,7 +42,7 @@ import javax.swing.JLabel;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
-
+import javax.swing.ToolTipManager;
 import javax.swing.event.TableModelListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.table.AbstractTableModel;
@@ -679,6 +679,7 @@ public class Dashboard {
 			} catch (FileNotFoundException e) {
 				logger.warn(e.getMessage());
 				lblInfo.setText("Error: " + e.getMessage());
+				lblInfo.setToolTipText("Error: " + e.getMessage());
 				frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
 				return false;
 			}
@@ -689,12 +690,14 @@ public class Dashboard {
 			} catch (IOException e) {
 				logger.error(e.getMessage());
 				lblInfo.setText("Error: " + e.getMessage());
+				lblInfo.setToolTipText("Error: " + e.getMessage());
 				frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
 				return false;
 			}
 			String path = appProperties.getProperty("appProfile");
 			if (path == null) {
 				lblInfo.setText("Error: path in dashboard.properties is null");
+				lblInfo.setToolTipText("Error: path in dashboard.properties is null");
 				frmSepaDashboard.setTitle(versionLabel + " - " + "path in dashboard.properties is null");
 				return false;
 			}
@@ -729,6 +732,7 @@ public class Dashboard {
 		} catch (SEPAPropertiesException e) {
 			logger.error(e.getMessage());
 			lblInfo.setText("Error: " + e.getMessage());
+			lblInfo.setToolTipText("Error: " + e.getMessage());
 			frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
 			return false;
 		}
@@ -738,6 +742,7 @@ public class Dashboard {
 		} catch (SEPAProtocolException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 			lblInfo.setText("Error: " + e.getMessage());
+			lblInfo.setToolTipText("Error: " + e.getMessage());
 			frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
 			return false;
 		}
@@ -771,10 +776,10 @@ public class Dashboard {
 
 		labelUrl.setText(appProfile.getHost());
 
-		labelHttpPort.setText(String.format("%s", appProfile.getHttpPort()));
-		labelHttpsPort.setText(String.format("%s", appProfile.getHttpsPort()));
-		labelWsPort.setText(String.format("%s", appProfile.getWsPort()));
-		labelWssPort.setText(String.format("%s", appProfile.getWssPort()));
+		labelHttpPort.setText(String.format("%d", appProfile.getHttpPort()));
+		labelHttpsPort.setText(String.format("%d", appProfile.getHttpsPort()));
+		labelWsPort.setText(String.format("%d", appProfile.getWsPort()));
+		labelWssPort.setText(String.format("%d", appProfile.getWssPort()));
 
 		labelUpdatePath.setText(appProfile.getUpdatePath());
 		labelQueryPath.setText(appProfile.getQueryPath());
@@ -782,7 +787,7 @@ public class Dashboard {
 		labelSecurePath.setText(appProfile.getSecurePath());
 
 		lblInfo.setText("JSAP loaded");
-
+		lblInfo.setToolTipText("JSAP loaded");
 		return true;
 	}
 
@@ -1279,6 +1284,7 @@ public class Dashboard {
 					boolean literal = (boolean) updateForcedBindingsDM.getValueAt(index, 2);
 					if (value.equals("")) {
 						lblInfo.setText("Please specify binding value: " + var);
+						lblInfo.setToolTipText("Please specify binding value: " + var);
 						return;
 					}
 
@@ -1299,6 +1305,7 @@ public class Dashboard {
 					status = "FAILED " + ((ErrorResponse) result).getErrorMessage();
 				}
 				lblInfo.setText("UPDATE (" + (stop - start) + " ms): " + status);
+				lblInfo.setToolTipText("UPDATE (" + (stop - start) + " ms): " + status);
 			}
 		});
 
@@ -1345,6 +1352,7 @@ public class Dashboard {
 
 					if (value.equals("")) {
 						lblInfo.setText("Please specify binding value: " + var);
+						lblInfo.setToolTipText("Please specify binding value: " + var);
 						return;
 					}
 
@@ -1372,6 +1380,7 @@ public class Dashboard {
 				}
 
 				lblInfo.setText("QUERY (" + (stop - start) + " ms) :" + status);
+				lblInfo.setToolTipText("QUERY (" + (stop - start) + " ms) :" + status);
 			}
 		});
 		GridBagConstraints gbc_btnQuery = new GridBagConstraints();
@@ -1393,6 +1402,7 @@ public class Dashboard {
 
 						if (value.equals("")) {
 							lblInfo.setText("Please specify binding value: " + var);
+							lblInfo.setToolTipText("Please specify binding value: " + var);
 							return;
 						}
 						;
@@ -1409,6 +1419,7 @@ public class Dashboard {
 
 					if (response.getClass().equals(ErrorResponse.class)) {
 						lblInfo.setText(response.toString());
+						lblInfo.setToolTipText(response.toString());
 						return;
 					}
 
@@ -1543,7 +1554,8 @@ public class Dashboard {
 		gbc_lblInfo.gridx = 0;
 		gbc_lblInfo.gridy = 0;
 		infoPanel.add(lblInfo, gbc_lblInfo);
-
+		ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
+		
 		chckbxClearonnotify = new JCheckBox("ClearOnNotify");
 		chckbxClearonnotify.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
@@ -1593,6 +1605,7 @@ public class Dashboard {
 				if (primitives.isShowing()) {
 					bindingsDM.clear();
 					lblInfo.setText("Results cleaned");
+					lblInfo.setToolTipText("Results cleaned");
 				} else {
 					for (String spuid : subscriptionResultsTables.keySet()) {
 						if (subscriptionResultsTables.get(spuid).isShowing()) {

@@ -73,7 +73,8 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	final HttpPost updatePostRequest;
 	final HttpPost queryPostRequest;
 	HttpUriRequest queryRequest;
-	
+	HttpUriRequest updateRequest;
+
 	public SPARQL11Protocol(SPARQL11Properties properties) throws SEPAProtocolException {
 		if (properties == null) {
 			logger.fatal("Properties are null");
@@ -83,6 +84,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		// Create update POST request
 		try {
+
 			updatePostRequest = new HttpPost(new URI("http", null, properties.getHost(), properties.getHttpPort(),
 					properties.getUpdatePath(), null, null));
 		} catch (URISyntaxException e) {
@@ -135,21 +137,52 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		String responseBody = null;
 
 		try {
+			RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout)
+					.setConnectTimeout(timeout).build();
+			
 			// Set request entity
-			if (properties.getUpdateMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
-				requestEntity = new StringEntity("update=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"));
-			} else if (properties.getUpdateMethod().equals(HTTPMethod.POST)) {
-				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
-			}
-			updatePostRequest.setEntity(requestEntity);
-			RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout)
-					.build();
-			updatePostRequest.setConfig(requestConfig);
+			if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
+				// ***********************
+				// OpenLink VIRTUOSO PATCH
+				// ***********************
+				// SPARQL 1.1 Update are issued as GET requests using the "query" URL parameter
+				// The "default-graph-uri" parameter is REQUIRED
+				
+				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8") + "&format="
+						+ URLEncoder.encode(properties.getUpdateAcceptHeader(), "UTF-8");
+				if (properties.getDefaultGraphURI() != null) {
+					query += "&default-graph-uri=" + URLEncoder.encode(properties.getDefaultGraphURI(), "UTF-8");
+				}
 
+				String url;
+				if (properties.getHttpPort() != -1)
+					url = "http://" + properties.getHost() + ":" + properties.getHttpPort() + "/"
+							+ properties.getUpdatePath() + "?" + query;
+				else
+					url = "http://" + properties.getHost() + "/" + properties.getUpdatePath() + "?" + query;
+
+				HttpGet queryGetRequest;
+				queryGetRequest = new HttpGet(url);
+				queryGetRequest.setConfig(requestConfig);
+				updateRequest = queryGetRequest;
+
+			} else {
+				if (properties.getUpdateMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
+					requestEntity = new StringEntity("update=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"));
+				} else if (properties.getUpdateMethod().equals(HTTPMethod.POST)) {
+					requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
+				}
+				updatePostRequest.setEntity(requestEntity);
+				
+				updatePostRequest.setConfig(requestConfig);
+				updateRequest = updatePostRequest;
+			}
+			
 			// Execute HTTP request
-			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " +timeout+ " ms) "+updatePostRequest.toString(),timeout);
+			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " + timeout + " ms) " + updatePostRequest.toString(),
+					timeout);
 			long timing = System.nanoTime();
-			httpResponse = httpClient.execute(updatePostRequest);
+			httpResponse = httpClient.execute(updateRequest);
 			timing = System.nanoTime() - timing;
 			logger.debug("UPDATE_TIME (" + timing / 1000000 + " ms)");
 
@@ -263,22 +296,30 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		String responseBody = null;
 
 		long timing = 0;
-		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout)
-				.setConnectTimeout(timeout).build();
-		
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout)
+				.build();
+
 		try {
 			if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
-				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8");
-				HttpGet queryGetRequest;
-				try {
-					queryGetRequest = new HttpGet(new URI("http", null, properties.getHost(), properties.getHttpPort(),
-							properties.getQueryPath(), query, null));
-				} catch (URISyntaxException e) {
-					return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+
+				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8") + "&format="
+						+ URLEncoder.encode(properties.getQueryAcceptHeader(), "UTF-8");
+				if (properties.getDefaultGraphURI() != null) {
+					query += "&default-graph-uri=" + URLEncoder.encode(properties.getDefaultGraphURI(), "UTF-8");
 				}
+
+				String url;
+				if (properties.getHttpPort() != -1)
+					url = "http://" + properties.getHost() + ":" + properties.getHttpPort() + "/"
+							+ properties.getQueryPath() + "?" + query;
+				else
+					url = "http://" + properties.getHost() + "/" + properties.getQueryPath() + "?" + query;
+
+				HttpGet queryGetRequest;
+				queryGetRequest = new HttpGet(url);
 				queryGetRequest.setConfig(requestConfig);
 				queryRequest = queryGetRequest;
-				
+
 			} else {
 				// Set request entity
 				if (properties.getQueryMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
@@ -286,13 +327,13 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				} else if (properties.getQueryMethod().equals(HTTPMethod.POST)) {
 					requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 				}
-				queryPostRequest.setEntity(requestEntity);			
+				queryPostRequest.setEntity(requestEntity);
 				queryPostRequest.setConfig(requestConfig);
 				queryRequest = queryPostRequest;
 			}
 
 			// Execute HTTP request
-			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " +timeout+ " ms) "+queryRequest.toString(),timeout);
+			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " + timeout + " ms) " + queryRequest.toString(), timeout);
 			timing = System.nanoTime();
 			httpResponse = httpClient.execute(queryRequest);
 			timing = System.nanoTime() - timing;

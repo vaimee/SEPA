@@ -35,8 +35,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
  * a SPARQL 1.1 Protocol Service: the URLs used by queries and updates (scheme,
  * host, port and path), the HTTP method used by the primitives (GET, POST or
  * URL_ENCODED_POST) and the format of the results (JSON, XML, HTML, CSV). The
- * update result format is implementation specific. While for the query the "formats"
- * is the required return format, for the update it specifies the 
+ * update result format is implementation specific. While for the query the
+ * "formats" is the required return format, for the update it specifies the
  * format implemented by the SPARQL 1.1 Protocol service.
  * 
  * 
@@ -57,7 +57,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 			 ,
 			"formats" : {
 				"query" : "JSON|XML|CSV" ,
-				"update" : "HTML"}
+				"update" : "HTML"},
+			"default-graph-uri" :"http://default-graph-URI"
 		}
 	}
  * </pre>
@@ -167,7 +168,7 @@ public class SPARQL11Properties {
 
 	/**
 	 * <pre>
- {
+	{
 		"parameters" : {
 			"host" : "localhost" ,
 			"ports" : {
@@ -183,21 +184,22 @@ public class SPARQL11Properties {
 			 ,
 			"formats" : {
 				"query" : "JSON|XML|CSV" ,
-				"update" : "HTML"}
+				"update" : "HTML"},
+			"default-graph-uri" :"http://default-graph-URI"
 		}
 	}
- * </pre>
+	 * </pre>
 	 */
 	protected void defaults() {
 		parameters.add("host", new JsonPrimitive("localhost"));
 
-		JsonObject ports = new JsonObject();
-		ports.add("http", new JsonPrimitive(9999));
-		parameters.add("ports", ports);
+		// JsonObject ports = new JsonObject();
+		// ports.add("http", new JsonPrimitive(9999));
+		// parameters.add("ports", ports);
 
 		JsonObject paths = new JsonObject();
-		paths.add("query", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
-		paths.add("update", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
+		paths.add("query", new JsonPrimitive("/query"));
+		paths.add("update", new JsonPrimitive("/update"));
 		parameters.add("paths", paths);
 
 		JsonObject methods = new JsonObject();
@@ -217,7 +219,7 @@ public class SPARQL11Properties {
 		try {
 			parameters.get("host").getAsString();
 
-			parameters.get("ports").getAsJsonObject().get("http").getAsInt();
+			// parameters.get("ports").getAsJsonObject().get("http").getAsInt();
 
 			parameters.get("paths").getAsJsonObject().get("update").getAsString();
 			parameters.get("paths").getAsJsonObject().get("query").getAsString();
@@ -266,10 +268,27 @@ public class SPARQL11Properties {
 	/**
 	 * Gets the update port.
 	 *
-	 * @return the update port (default is 9999)
+	 * @return the update port
 	 */
-	public int getHttpPort() {
-		return parameters.get("ports").getAsJsonObject().get("http").getAsInt();
+	public int getHttpPort()  {
+		try {
+			return parameters.get("ports").getAsJsonObject().get("http").getAsInt();
+		} catch (Exception e) {
+			return -1;
+		}
+	}
+	
+	/**
+	 * Gets the default graph URI.
+	 *
+	 * @return the update port
+	 */
+	public String getDefaultGraphURI()  {
+		try {
+			return parameters.get("default-graph-uri").getAsString();
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	/**

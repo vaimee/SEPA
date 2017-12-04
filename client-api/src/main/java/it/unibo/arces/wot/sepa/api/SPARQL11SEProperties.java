@@ -38,6 +38,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 
 /**
  * The Class SPARQL11SEProperties.
+ * 
  * <pre>
  * {"parameters" : {
 		"host" : "localhost" ,
@@ -140,7 +141,8 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		return parameters.toString();
 	}
 
-	/** <pre>
+	/**
+	 * <pre>
 	 * {"parameters" : {
 			"host" : "localhost" ,
 			"ports" : {
@@ -180,10 +182,10 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	protected void defaults() {
 		super.defaults();
 
-		JsonObject ports = parameters.get("ports").getAsJsonObject();
-		ports.add("https", new JsonPrimitive(8443));
-		ports.add("ws", new JsonPrimitive(9000));
-		ports.add("wss", new JsonPrimitive(9443));
+		// JsonObject ports = parameters.get("ports").getAsJsonObject();
+		// ports.add("https", new JsonPrimitive(8443));
+		// ports.add("ws", new JsonPrimitive(9000));
+		// ports.add("wss", new JsonPrimitive(9443));
 
 		JsonObject paths = parameters.get("paths").getAsJsonObject();
 		paths.add("subscribe", new JsonPrimitive("/subscribe"));
@@ -197,15 +199,15 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		super.validate();
 
 		try {
-			parameters.get("ports").getAsJsonObject().get("https").getAsInt();
-			parameters.get("ports").getAsJsonObject().get("ws").getAsInt();
-			parameters.get("ports").getAsJsonObject().get("wss").getAsInt();
+			// parameters.get("ports").getAsJsonObject().get("https").getAsInt();
+			// parameters.get("ports").getAsJsonObject().get("ws").getAsInt();
+			// parameters.get("ports").getAsJsonObject().get("wss").getAsInt();
 
 			parameters.get("paths").getAsJsonObject().get("subscribe").getAsString();
 			parameters.get("paths").getAsJsonObject().get("register").getAsString();
 			parameters.get("paths").getAsJsonObject().get("tokenRequest").getAsString();
 			parameters.get("paths").getAsJsonObject().get("securePath").getAsString();
-			
+
 		} catch (Exception e) {
 			throw new SEPAPropertiesException(e);
 		}
@@ -216,7 +218,11 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	}
 
 	public int getWsPort() {
-		return parameters.get("ports").getAsJsonObject().get("ws").getAsInt();
+		try {
+			return parameters.get("ports").getAsJsonObject().get("ws").getAsInt();
+		} catch (Exception e) {
+			return -1;
+		}
 	}
 
 	public String getSubscribePath() {
@@ -224,11 +230,19 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	}
 
 	public int getWssPort() {
-		return parameters.get("ports").getAsJsonObject().get("wss").getAsInt();
+		try {
+			return parameters.get("ports").getAsJsonObject().get("wss").getAsInt();
+		} catch (Exception e) {
+			return -1;
+		}
 	}
 
 	public int getHttpsPort() {
-		return parameters.get("ports").getAsJsonObject().get("https").getAsInt();
+		try {
+			return parameters.get("ports").getAsJsonObject().get("https").getAsInt();
+		} catch (Exception e) {
+			return -1;
+		}
 	}
 
 	public String getRegisterPath() {
@@ -242,8 +256,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	private String getSecurityEncryptedValue(String value) throws SEPASecurityException {
 		try {
 			return parameters.get("security").getAsJsonObject().get(value).getAsString();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			throw new SEPASecurityException(e);
 		}
 	}
@@ -344,14 +357,15 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 			String authorization;
 			try {
-				byte[] buf =  Base64.getEncoder().encode((id + ":" + secret).getBytes("UTF-8"));
-				//authorization = Base64.getEncoder().encode((id + ":" + secret).getBytes("UTF-8")).toString();
-				authorization = new String(buf,"UTF-8");
+				byte[] buf = Base64.getEncoder().encode((id + ":" + secret).getBytes("UTF-8"));
+				// authorization = Base64.getEncoder().encode((id + ":" +
+				// secret).getBytes("UTF-8")).toString();
+				authorization = new String(buf, "UTF-8");
 			} catch (Exception e) {
 				throw new SEPASecurityException(e);
 			}
 
-			return authorization;//.replace("\n", "");
+			return authorization;// .replace("\n", "");
 
 		}
 
@@ -378,8 +392,10 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 			credentials.add("client_secret", new JsonPrimitive(SEPAEncryption.encrypt(secret)));
 			parameters.add("security", credentials);
 		} else {
-			parameters.get("security").getAsJsonObject().add("client_id",new JsonPrimitive(SEPAEncryption.encrypt(id)));
-			parameters.get("security").getAsJsonObject().add("client_secret",new JsonPrimitive(SEPAEncryption.encrypt(secret)));
+			parameters.get("security").getAsJsonObject().add("client_id",
+					new JsonPrimitive(SEPAEncryption.encrypt(id)));
+			parameters.get("security").getAsJsonObject().add("client_secret",
+					new JsonPrimitive(SEPAEncryption.encrypt(secret)));
 		}
 
 		storeProperties(propertiesFile);
@@ -404,12 +420,14 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		if (parameters.get("security") == null) {
 			JsonObject credentials = new JsonObject();
 			credentials.add("jwt", new JsonPrimitive(SEPAEncryption.encrypt(jwt)));
-			credentials.add("expires",new JsonPrimitive(SEPAEncryption.encrypt(String.format("%d", expires.getTime()))));
+			credentials.add("expires",
+					new JsonPrimitive(SEPAEncryption.encrypt(String.format("%d", expires.getTime()))));
 			credentials.add("type", new JsonPrimitive(SEPAEncryption.encrypt(type)));
 			parameters.add("security", credentials);
 		} else {
 			parameters.get("security").getAsJsonObject().add("jwt", new JsonPrimitive(SEPAEncryption.encrypt(jwt)));
-			parameters.get("security").getAsJsonObject().add("expires",new JsonPrimitive(SEPAEncryption.encrypt(String.format("%d", expires.getTime()))));
+			parameters.get("security").getAsJsonObject().add("expires",
+					new JsonPrimitive(SEPAEncryption.encrypt(String.format("%d", expires.getTime()))));
 			parameters.get("security").getAsJsonObject().add("type", new JsonPrimitive(SEPAEncryption.encrypt(type)));
 		}
 
