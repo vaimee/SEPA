@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>it.unibo.arces.wot</groupId>
   <artifactId>sepa</artifactId>
-  <version>0.7.5</version>
+  <version>0.8.0</version>
   <packaging>pom</packaging>
   <description>The project aims at developing a SPARQL Event Processing Architecture using JAVA technologies, including APIs and tools</description>
   <modules>
@@ -62,7 +62,7 @@
         <repository>
             <id>bintray-arces-wot-sepa-java-libs</id>
             <name>arces-wot-sepa-java-libs</name>
-            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/${artifactId}/;publish=1</url>
+            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/${project.artifactId}/;publish=1</url>
         </repository>
     </distributionManagement>
     <build>
@@ -82,6 +82,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <additionalparam>-Xdoclint:none</additionalparam>
+                </configuration>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
