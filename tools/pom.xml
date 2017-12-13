@@ -46,17 +46,17 @@
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>
 			<artifactId>commons</artifactId>
-			<version>0.7.5</version>
+			<version>0.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>
 			<artifactId>client-api</artifactId>
-			<version>0.7.5</version>
+			<version>0.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>
 			<artifactId>client-pac-pattern</artifactId>
-			<version>0.7.5</version>
+			<version>0.8.0</version>
 		</dependency>
 	</dependencies>
 	<properties>
