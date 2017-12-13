@@ -89,17 +89,19 @@ public class Engine implements EngineMBean {
 
 	private void printUsage() {
 		System.out.println("Usage:");
-		System.out.println("java [JMX] [JVM] -jar SEPAEngine_X.Y.Z.jar [OPTIONS]");
+		System.out.println("java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [JKS OPTIONS]");
 		System.out.println("");
 		System.out.println("JMX:");
 		System.out.println("-Dcom.sun.management.config.file=jmx.properties : to enable JMX remote managment");
 		System.out.println("JVM:");
-		System.out.println("-Xmx500m -Xms500m -Xmn250m -XX:+UseConcMarkSweepGC -XX:ParallelCMSThreads=2");
-		System.out.println("OPTIONS:");
+		System.out.println("-XX:+UseG1GC");
+		System.out.println("LOG4J");
+		System.out.println("-Dlog4j.configurationFile=./log4j2.xml");
+		System.out.println("JKS OPTIONS:");
 		System.out.println("-help : to print this help");
 		System.out.println("-storename=<name> : file name of the JKS     (default: sepa.jks)");
 		System.out.println("-storepwd=<pwd> : password of the JKS        (default: sepa2017)");
-		System.out.println("-alias=<jwt> : alias for the JWT key      	 (default: sepakey)");
+		System.out.println("-alias=<jwt> : alias for the JWT key         (default: sepakey)");
 		System.out.println("-aliaspwd=<pwd> : password of the JWT key    (default: sepa2017)");
 		System.out.println("-certificate=<crt> : name of the certificate (default: sepacert)");
 	}
@@ -145,7 +147,7 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("# SEPA Engine Ver 0.8.4  Copyright (C) 2016-2017                                         #");
 		System.out
-				.println("# Linked Data & Web of Things Research @ ARCES - University of Bologna (Italy)           #");
+				.println("# Web of Things & Dynamic Data Research @ ARCES - University of Bologna (Italy)          #");
 		System.out
 				.println("#                                                                                        #");
 		System.out
