@@ -18,8 +18,7 @@
 
 package it.unibo.arces.wot.sepa.commons.protocol;
 
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -117,7 +116,7 @@ public class SPARQL11Properties {
 	protected String defaultsFileName = "defaults.jpar";
 
 	/** The properties file. */
-	protected String propertiesFile = "endpoint.jpar";
+	protected File propertiesFile = new File("endpoint.jpar");
 
 	/** The parameters. */
 	protected JsonObject parameters = new JsonObject();
@@ -126,11 +125,15 @@ public class SPARQL11Properties {
 	protected JsonObject doc = new JsonObject();
 
 	public SPARQL11Properties(String propertiesFile) throws SEPAPropertiesException {
-		this.propertiesFile = propertiesFile;
+		this(new File(propertiesFile));
+	}
 
-		try {
-			FileReader in = new FileReader(propertiesFile);
+	public SPARQL11Properties(File jsapFile) throws SEPAPropertiesException {
+		loadProperties(jsapFile);
+	}
 
+	private void loadProperties(File jsapFile) throws SEPAPropertiesException {
+		try (final FileReader in = new FileReader(jsapFile)) {
 			doc = new JsonParser().parse(in).getAsJsonObject();
 			if (doc.get("parameters") == null) {
 				logger.warn("parameters key is missing");
@@ -140,9 +143,7 @@ public class SPARQL11Properties {
 
 			// Validate the JSON elements
 			validate();
-
-			in.close();
-
+			this.propertiesFile = jsapFile;
 		} catch (Exception e) {
 
 			logger.warn(e.getMessage());
@@ -155,10 +156,10 @@ public class SPARQL11Properties {
 				throw new SEPAPropertiesException(e1);
 			}
 
-			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to\"" + propertiesFile + "\"");
+			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to\"" + propertiesFile.getName() + "\"");
 
 			throw new SEPAPropertiesException(new Exception(
-					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to\"" + propertiesFile + "\""));
+					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to\"" + propertiesFile.getName() + "\""));
 		}
 	}
 
