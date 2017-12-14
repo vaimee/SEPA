@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.api;
 
+import java.io.File;
 import java.security.Key;
 
 import java.util.Base64;
@@ -118,7 +119,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	 * @throws SEPAPropertiesException
 	 */
 	public SPARQL11SEProperties(String propertiesFile, byte[] secret) throws SEPAPropertiesException {
-		super(propertiesFile);
+		this(new File(propertiesFile));
 
 		SEPAEncryption.init(secret);
 	}
@@ -135,6 +136,16 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 		if (propertiesFile == null)
 			throw new IllegalArgumentException("Argument is null");
+	}
+	/**
+	 * Instantiates a new SPARQL 11 SE properties.
+	 *
+	 * @param propertiesFile
+	 *            the properties file
+	 * @throws SEPAPropertiesException
+	 */
+	public SPARQL11SEProperties(File propertiesFile) throws SEPAPropertiesException {
+		super(propertiesFile);
 	}
 
 	public String toString() {
