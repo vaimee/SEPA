@@ -398,7 +398,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 					new JsonPrimitive(SEPAEncryption.encrypt(secret)));
 		}
 
-		storeProperties(propertiesFile);
+		storeProperties(propertiesFile.getAbsolutePath());
 	}
 
 	/**
@@ -431,7 +431,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 			parameters.get("security").getAsJsonObject().add("type", new JsonPrimitive(SEPAEncryption.encrypt(type)));
 		}
 
-		storeProperties(propertiesFile);
+		storeProperties(propertiesFile.getAbsolutePath());
 	}
 
 	/**
