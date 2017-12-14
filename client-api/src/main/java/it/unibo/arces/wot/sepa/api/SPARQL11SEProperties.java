@@ -39,7 +39,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 
 /**
  * The Class SPARQL11SEProperties.
- * 
+ *
  * <pre>
  * {"parameters" : {
 		"host" : "localhost" ,
@@ -65,14 +65,14 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 			"query" : "JSON" ,
 			"update" : "HTML"}
 		 ,
-		 
+
 		[OPTIONAL]
-		"security" : { 			
+		"security" : {
 			"client_id" : "..." ,
 			"client_secret" : "..." ,
 			"jwt" : "..." ,
 			"expires" : "..." ,
-			"type" : "..."} 	
+			"type" : "..."}
 	}}
  * </pre>
  */
@@ -83,10 +83,10 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 	/**
 	 * The new primitives introduced by the SPARQL 1.1 SE Protocol are:
-	 * 
+	 *
 	 * SECUREUPDATE,SECUREQUERY,SUBSCRIBE,SECURESUBSCRIBE,UNSUBSCRIBE,SECUREUNSUBSCRIBE,REGISTER,REQUESTTOKEN
-	 * 
-	 * 
+	 *
+	 *
 	 * @author Luca Roffia (luca.roffia@unibo.it)
 	 * @version 0.1
 	 */
@@ -107,7 +107,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		REQUESTTOKEN,
 		/** A secure query primitive. */
 		SECUREQUERY
-	};
+	}
 
 	/**
 	 * Instantiates a new SPARQL 11 SE properties.
@@ -178,7 +178,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 				"query" : "JSON" ,
 				"update" : "HTML"}
 			 ,
-			 
+
 			[OPTIONAL]
 			"security" : {
 				"client_id" : "..." ,
@@ -423,7 +423,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	 *            the token type (e.g., bearer)
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
-	 * 
+	 *
 	 */
 	public void setJWT(String jwt, Date expires, String type) throws SEPASecurityException, SEPAPropertiesException {
 
@@ -480,9 +480,9 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		 *            the data
 		 * @return the string
 		 * @throws SEPASecurityException
-		 * 
+		 *
 		 */
-		public static String encrypt(String Data) throws SEPASecurityException {
+		static String encrypt(String Data) throws SEPASecurityException {
 			Cipher c;
 			try {
 				c = Cipher.getInstance(ALGO);
@@ -501,9 +501,9 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		 *            the encrypted data
 		 * @return the string
 		 * @throws SEPASecurityException
-		 * 
+		 *
 		 */
-		public static String decrypt(String encryptedData) throws SEPASecurityException {
+		static String decrypt(String encryptedData) throws SEPASecurityException {
 			Cipher c;
 			try {
 				c = Cipher.getInstance(ALGO);
