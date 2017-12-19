@@ -36,7 +36,7 @@ The default version of `endpoint.jpar` (will be removed soon!) configures the en
 	}
 }
 ```
-The default version of  `engine.jpar` configures the engine to listen for for incoming [SPARQL 1.1 SE Protocol](http://wot.arces.unibo.it/TR/sparql11-se-protocol/) requests at the following URLs:
+The default version of  `engine.jpar` configures the engine to listen for incoming [SPARQL 1.1 SE Protocol](http://wot.arces.unibo.it/TR/sparql11-se-protocol/) requests at the following URLs:
 
 1. Query: http://localhost:8000/query
 2. Update: http://localhost:8000/update
