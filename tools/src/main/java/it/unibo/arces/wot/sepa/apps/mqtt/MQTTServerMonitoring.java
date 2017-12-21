@@ -19,7 +19,7 @@ import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class MQTTServerMonitoring {
-	private static final Logger logger = LogManager.getLogger("MQTTSmartifier");
+	private static final Logger logger = LogManager.getLogger("MQTTServerMonitoring");
 
 	// Produce observations coming from MQTT matching with the semantic mapping
 	private static MQTTSmartifier adapter;
