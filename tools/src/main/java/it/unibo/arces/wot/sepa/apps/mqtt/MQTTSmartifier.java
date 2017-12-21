@@ -50,7 +50,7 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	private HashMap<String, String> topic2observation = new HashMap<String, String>();
 
 	public MQTTSmartifier(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new ApplicationProfile(jsap), "ADD_OBSERVATION", "UPDATE_OBSERVATION_VALUE");
+		super(new ApplicationProfile(jsap), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
 	}
 
 	@Override
@@ -110,10 +110,17 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 
 	@Override
 	public void messageArrived(String topic, MqttMessage value) throws Exception {
-		mqttMessage(topic,value.toString());
+		byte[] payload = value.getPayload();
+		String converted = "";
+		for (int i =0; i < payload.length; i++) {
+			if (payload[i] == 0) break;
+			converted += String.format("%c",payload[i]);
+		}
+		
+		mqttMessage(topic,converted);	
 	}
 
-	public void mqttMessage(String topic, String value) throws Exception {
+	private void mqttMessage(String topic, String value) throws Exception {
 		// String topicValue = value.toString();
 		logger.debug(topic + " " + value);
 
