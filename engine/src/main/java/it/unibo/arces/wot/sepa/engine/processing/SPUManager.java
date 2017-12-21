@@ -20,7 +20,6 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.time.Instant;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
@@ -52,9 +51,6 @@ public class SPUManager implements SPUManagerMBean {
 	// SPUs and SPUIDs hash map
 	private HashMap<String, SPU> spus = new HashMap<String, SPU>();
 
-	// SPU synchronization
-	private HashSet<SPU> processingSpus = new HashSet<SPU>();
-
 	// Request queue
 	private ConcurrentLinkedQueue<SPU> subscribeQueue = new ConcurrentLinkedQueue<SPU>();
 	private ConcurrentLinkedQueue<SPU> unsubscribeQueue = new ConcurrentLinkedQueue<SPU>();
@@ -62,6 +58,9 @@ public class SPUManager implements SPUManagerMBean {
 
 	private Semaphore endpointSemaphore;
 
+	//SPU Synchronization
+	private SPUSync spuSync = new SPUSync();
+	
 	public SPUManager(SPARQL11Properties endpointProperties, EngineProperties engineProperties,
 			Semaphore endpointSemaphore, UpdateProcessingQueue updateProcessingQueue) {
 		this.endpointProperties = endpointProperties;
@@ -175,35 +174,20 @@ public class SPUManager implements SPUManagerMBean {
 						// Wake-up all SPUs
 						synchronized (spus) {
 							logger.info("Activate SPUs (Total: " + spus.size() + ")");
-							processingSpus.clear();
-							for (SPU spu : spus.values()) {
-								processingSpus.add(spu);
-								spu.process(update);
-							}
+							
+							spuSync.startProcessing(spus.values());
+							
+							for (SPU spu : spus.values()) spu.process(update);
 						}
 
 						// Wait all SPUs completing processing (or timeout)
-						while (!processingSpus.isEmpty()) {
-							logger.info("Wait SPUs to complete processing...");
-							try {
-								synchronized (processingSpus) {
-									processingSpus.wait(SPUManagerBeans.getSPUProcessingTimeout());
-								}
-							} catch (InterruptedException e) {
-								return;
-							}
-						}
-
-						// TIMEOUT
-						if (!processingSpus.isEmpty()) {
-							logger.error("Timeout on SPU processing. SPUs still running: " + processingSpus.size());
-						}
+						spuSync.waitEndOfProcessing();
 
 						Instant stop = Instant.now();
 						SPUManagerBeans.timings(start, stop);
 
 						// Notify processor of end of processing
-						updateProcessingQueue.updateEOP(new SPUEndOfProcessing(!processingSpus.isEmpty()));
+						updateProcessingQueue.updateEOP(new SPUEndOfProcessing(!spuSync.isEmpty()));
 
 						logger.info("*** PROCESSING SUBSCRIPTIONS END *** ");
 					}
@@ -230,7 +214,7 @@ public class SPUManager implements SPUManagerMBean {
 		// TODO: choose different kinds of SPU based on subscribe request
 		SPU spu = null;
 		try {
-			spu = new SPUNaive(req, handler, endpointProperties, endpointSemaphore,processingSpus);
+			spu = new SPUNaive(req, handler, endpointProperties, endpointSemaphore,spuSync);
 			// spu.addObserver(this);
 		} catch (SEPAProtocolException e) {
 			logger.debug("SPU creation failed: " + e.getMessage());

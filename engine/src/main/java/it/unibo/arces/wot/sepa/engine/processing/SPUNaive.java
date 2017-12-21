@@ -34,7 +34,6 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
-import java.util.HashSet;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -46,8 +45,8 @@ public class SPUNaive extends SPU {
 	private Integer sequence = 0;
 
 	public SPUNaive(SubscribeRequest subscribe, EventHandler handler, SPARQL11Properties endpointProperties,
-			Semaphore endpointSemaphore, HashSet<SPU> queue) throws SEPAProtocolException {
-		super(subscribe, endpointProperties, handler, endpointSemaphore, queue);
+			Semaphore endpointSemaphore, SPUSync sync) throws SEPAProtocolException {
+		super(subscribe, endpointProperties, handler, endpointSemaphore, sync);
 
 		logger = LogManager.getLogger("SPUNaive" + getUUID());
 		logger.debug("SPU: " + this.getUUID() + " request: " + subscribe);
