@@ -1,20 +1,19 @@
 {
 	"parameters" : {
-		"host" : "mml.arces.unibo.it" ,
+		"host" : "localhost" ,
 		"ports" : {
-			"http" : 8890}
+			"http" : 9999}
 		 ,
 		"paths" : {
-			"query" : "/sparql" ,
-			"update" : "/sparql"}
+			"query" : "/blazegraph/namespace/kb/sparql" ,
+			"update" : "/blazegraph/namespace/kb/sparql"}
 		 ,
 		"methods" : {
-			"query" : "GET" ,
-			"update" : "GET"}
+			"query" : "POST" ,
+			"update" : "URL_ENCODED_POST"}
 		 ,
 		"formats" : {
 			"query" : "JSON" ,
-			"update" : "JSON"}
-		 ,
-		"default-graph-uri" : "http://default"}
+			"update" : "HTML"}
+		}
 }
