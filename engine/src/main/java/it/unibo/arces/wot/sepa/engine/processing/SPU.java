@@ -19,7 +19,6 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
@@ -80,16 +79,16 @@ public abstract class SPU implements Runnable {
 	private Response notify;
 	
 	// List of processing SPU
-	private HashSet<SPU> queue;
+	private SPUSync sync;
 	
 	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler,
-			Semaphore endpointSemaphore, HashSet<SPU> queue) throws SEPAProtocolException {
+			Semaphore endpointSemaphore, SPUSync sync) throws SEPAProtocolException {
 		if (eventHandler == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe event handler is null"));
-		if (queue == null)
-			throw new SEPAProtocolException(new IllegalArgumentException("SPU processing queue is null"));
+		if (sync == null)
+			throw new SEPAProtocolException(new IllegalArgumentException("SPU sync is null"));
 		
-		this.queue = queue;
+		this.sync = sync;
 		
 		uuid = prefix + UUID.randomUUID().toString();
 		logger = LogManager.getLogger("SPU" + uuid);
@@ -161,11 +160,7 @@ public abstract class SPU implements Runnable {
 				
 				// Notify SPU manager
 				logger.debug("Notify SPU manager. Running: " + running);
-				synchronized (queue) {
-					queue.remove(this);
-					logger.debug("SPUs left: " + queue.size());
-					queue.notify();
-				}
+				sync.endProcessing(this);
 			}
 
 			// Wait next request...
