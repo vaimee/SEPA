@@ -125,6 +125,22 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	 * - Request Message Body: Unencoded SPARQL update request string
 	 * </pre>
 	 * 
+	 * 2.2.3 Specifying an RDF Dataset
+	 * 
+	 * SPARQL Update requests are executed against a Graph Store, a mutable container of RDF graphs 
+	 * managed by a SPARQL service. The WHERE clause of a SPARQL update DELETE/INSERT operation [UPDATE] matches 
+	 * against data in an RDF Dataset, which is a subset of the Graph Store. The RDF Dataset for an update operation 
+	 * may be specified either in the operation string itself using the USING, USING NAMED, and/or WITH keywords, 
+	 * or it may be specified via the using-graph-uri and using-named-graph-uri parameters.
+	 * 
+	 * It is an error to supply the using-graph-uri or using-named-graph-uri parameters when using this protocol 
+	 * to convey a SPARQL 1.1 Update request that contains an operation that uses the USING, USING NAMED, or WITH clause.
+	 * 
+	 * A SPARQL Update processor should treat each occurrence of the using-graph-uri=g parameter in an update protocol operation 
+	 * as if a USING <g> clause were included for every operation in the SPARQL 1.1 Update request. 
+	 * Similarly, a SPARQL Update processor should treat each occurrence of the using-named-graph-uri=g parameter 
+	 * in an update protocol operation as if a USING NAMED <g> clause were included for every operation in the SPARQL 1.1 Update request.
+	 * 
 	 * UPDATE 2.2 update operation The response to an update request indicates
 	 * success or failure of the request via HTTP response status code.
 	 */
@@ -242,6 +258,18 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	 * - Request Content Type: <b>application/sparql-query</b>
 	 * - Request Message Body: Unencoded SPARQL update request string
 	 *
+	 * 2.1.4 Specifying an RDF Dataset
+	 * 
+	 * A SPARQL query is executed against an RDF Dataset. The RDF Dataset for a query may be specified either 
+	 * via the default-graph-uri and named-graph-uri parameters in the SPARQL Protocol or in the SPARQL query 
+	 * string using the FROM and FROM NAMED keywords. If different RDF Datasets are specified in both the protocol 
+	 * request and the SPARQL query string, then the SPARQL service must execute the query using the RDF Dataset 
+	 * given in the protocol request.
+	 * 
+	 * Note that a service may reject a query with HTTP response code 400 if the service does not allow protocol 
+	 * clients to specify the RDF Dataset. If an RDF Dataset is not specified in either the protocol request or 
+	 * the SPARQL query string, then implementations may execute the query against an implementation-defined default RDF dataset.
+	 * 
 	 * QUERY 2.1.5 Accepted Response Formats
 	 * 
 	 * Protocol clients should use HTTP content negotiation [RFC2616] to request
