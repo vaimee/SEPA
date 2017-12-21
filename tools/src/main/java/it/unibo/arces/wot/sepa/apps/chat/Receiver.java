@@ -9,21 +9,21 @@ import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 
-public class MessageReceiver extends Aggregator {
+public class Receiver extends Aggregator {
 	private Bindings message = new Bindings();
 
 	private ChatListener listener;
 	private boolean joined = false;
-
-	public MessageReceiver(String receiver, ApplicationProfile jsap, ChatListener listener)
+	
+	public Receiver(String receiverURI, ChatListener listener)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(jsap, "RECEIVE_MESSAGE", "DELETE_MESSAGES");
+		super(new ApplicationProfile("chat.jsap"), "SENT", "SET_RECEIVED");
 
-		message.addBinding("receiver", new RDFTermLiteral(receiver));
+		message.addBinding("receiver", new RDFTermURI(receiverURI));
 
 		this.listener = listener;
 	}
@@ -34,17 +34,8 @@ public class MessageReceiver extends Aggregator {
 
 		Response ret = subscribe(message);
 		joined = !ret.isError();
-
-		if (joined) {
-			for (Bindings bindings : ((SubscribeResponse) ret).getBindingsResults().getBindings()) {
-				listener.onMessageReceived(
-							new Message(
-									bindings.getBindingValue("sender"),
-									message.getBindingValue("receiver"),
-									bindings.getBindingValue("text"), 
-									bindings.getBindingValue("time")));
-			}
-		}
+				
+		if (joined) onAddedResults(((SubscribeResponse) ret).getBindingsResults());
 
 		return joined;
 	}
@@ -62,6 +53,11 @@ public class MessageReceiver extends Aggregator {
 	public void onAddedResults(BindingsResults results) {
 
 		for (Bindings bindings : results.getBindings()) {
+			// Set received
+			Bindings setReceived = new Bindings();
+			setReceived.addBinding("message", new RDFTermURI(bindings.getBindingValue("message")));
+			update(setReceived);
+						
 			listener.onMessageReceived(
 					new Message(
 							bindings.getBindingValue("sender"), 
@@ -69,25 +65,16 @@ public class MessageReceiver extends Aggregator {
 							bindings.getBindingValue("text"), 
 							bindings.getBindingValue("time")));
 		}
-
-		// Delete messages
-		update(message);
 	}
 
 	@Override
-	public void onResults(ARBindingsResults results) {
-
-	}
+	public void onResults(ARBindingsResults results) {}
 
 	@Override
-	public void onRemovedResults(BindingsResults results) {
-
-	}
+	public void onRemovedResults(BindingsResults results) {}
 
 	@Override
-	public void onPing() {
-
-	}
+	public void onPing() {}
 
 	@Override
 	public void onBrokenSocket() {
@@ -95,7 +82,5 @@ public class MessageReceiver extends Aggregator {
 	}
 
 	@Override
-	public void onError(ErrorResponse errorResponse) {
-
-	}
+	public void onError(ErrorResponse errorResponse) {}
 }
