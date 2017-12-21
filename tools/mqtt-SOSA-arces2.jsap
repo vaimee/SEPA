@@ -37,7 +37,7 @@
 		"mqtt" : {
 			"url" : "giove.arces.unibo.it" ,
 			"port" : 52877 ,
-			"topics" : ["#"]
+			"topics" : ["5CCF7F1B58AC/humidity"]
 			 ,
 			"ssl" : false}
 		 ,
