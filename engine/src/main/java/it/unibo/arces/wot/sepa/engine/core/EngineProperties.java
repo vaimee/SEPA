@@ -95,6 +95,11 @@ public class EngineProperties {
 		ports.add("ws", new JsonPrimitive(9000));
 		ports.add("wss", new JsonPrimitive(9443));
 		parameters.add("ports", ports);
+
+		// Subscription Policy
+		JsonObject policy = new JsonObject();
+		policy.add("cts", new JsonPrimitive("naive"));		
+		parameters.add("policy", policy);
 		
 		// URI patterns
 		JsonObject paths = new JsonObject();
@@ -120,6 +125,8 @@ public class EngineProperties {
 		properties.get("ports").getAsJsonObject().get("https").getAsInt();
 		properties.get("ports").getAsJsonObject().get("ws").getAsInt();
 		properties.get("ports").getAsJsonObject().get("wss").getAsInt();
+		
+		properties.get("policy").getAsJsonObject().get("cts").getAsString();
 		
 		properties.get("paths").getAsJsonObject().get("securePath").getAsString();
 		properties.get("paths").getAsJsonObject().get("update").getAsString();
@@ -246,4 +253,7 @@ public class EngineProperties {
 		return getParameter("paths", "securePath", "/secure");
 	}
 	
+	public String getCTSPolicy() {
+		return getParameter("policy", "cts", "naive");
+	}
 }

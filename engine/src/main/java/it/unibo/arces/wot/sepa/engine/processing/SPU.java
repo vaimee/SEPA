@@ -89,6 +89,10 @@ public abstract class SPU extends Observable implements Runnable {
 		queryProcessor = new QueryProcessor(properties);
 
 		running = true;
+		
+		// read policy
+		// properties.getCTSPolicy();
+		
 	}
 
 	public BindingsResults getFirstResults() {

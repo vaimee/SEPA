@@ -1603,7 +1603,7 @@ public class Dashboard {
 	protected String prefixes() {
 		String prefixes = "";
 		@SuppressWarnings("unchecked")
-		Vector<Vector<String>> ns = namespacesDM.getDataVector();
+		Vector<Vector> ns = namespacesDM.getDataVector();
 		for (int row = 0; row < namespacesDM.getRowCount(); row++) {
 			String prefix = (String) ns.elementAt(row).elementAt(0);
 			String namespace = (String) ns.elementAt(row).elementAt(1);

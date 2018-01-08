@@ -33,6 +33,9 @@ import org.apache.jena.update.Update;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.google.gson.JsonObject;
+
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
@@ -87,12 +90,18 @@ public class UpdateProcessor {
 			removed = ((QueryResponse) endpoint.query(cons1, timeout)).getBindingsResults();			
 			logger.debug(removed);
 		}
+		else {
+			removed = new BindingsResults(new JsonObject());
+		}
 		String ac = constructs.get("InsertConstruct");		
 		if (ac.length() > 0) {
 			QueryRequest cons2 = new QueryRequest(ac);			
 			logger.debug(cons2.toString());
 			added = ((QueryResponse) endpoint.query(cons2, timeout)).getBindingsResults();			
 			logger.debug(added);			
+		}
+		else {
+			added = new BindingsResults(new JsonObject());
 		}
 		
 		// UPDATE the endpoint
@@ -101,6 +110,8 @@ public class UpdateProcessor {
 		if (ret.isUpdateResponse()) {	
 			ret.added = added;
 			ret.removed = removed;
+			logger.debug(added);
+			logger.debug(removed);
 		}
 		long stop = System.currentTimeMillis();	
 		ProcessorBeans.updateTimings(start, stop);

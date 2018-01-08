@@ -52,6 +52,7 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 	private static final Logger logger = LogManager.getLogger("SPUManager");
 
 	private SPARQL11Properties endpointProperties;
+	private EngineProperties engineProperties;
 
 	// SPUs and SPUIDs hash map
 	private HashMap<String, SPU> spus = null;
@@ -69,6 +70,7 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 
 	public SPUManager(SPARQL11Properties endpointProperties, EngineProperties engineProperties) {
 		this.endpointProperties = endpointProperties;
+		this.engineProperties = engineProperties;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
@@ -153,8 +155,14 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 		SPU spu = null;
 		try {
 			//spu = new SPUSmart(req, handler, endpointProperties);
-			spu = new SPUNamed(req, handler, endpointProperties);
-			spu.addObserver(this);
+			if (engineProperties.getCTSPolicy().equals("naive")) {
+				spu = new SPUNaive(req, handler, endpointProperties);
+				spu.addObserver(this);
+			}
+			else {
+				spu = new SPUNamed(req, handler, endpointProperties);
+				spu.addObserver(this);
+			}
 		} catch (IllegalArgumentException | URISyntaxException e) {
 			logger.debug("SPU creation failed: " + e.getMessage());
 			
@@ -303,19 +311,26 @@ public class SPUManager extends Observable implements Observer, SPUManagerMBean 
 						logger.debug("Activate SPUs (Total: " + spus.size() + ")");
 						processingSpus.clear();
 						for (SPU spu : spus.values()) {
-							processingSpus.add(spu.getUUID());
+//							processingSpus.add(spu.getUUID());
 							if (spu instanceof SPUSmart) {
+								processingSpus.add(spu.getUUID());
 								SPUSmart spusm = (SPUSmart) spu;
-								if (spusm.checkLutt(update.added, update.removed)) {									
-									spu.process(update);
-								};
+//								if (spusm.checkLutt(update.added, update.removed)) {									
+//									spu.process(update);
+//								};
 							}								
 							else if (spu instanceof SPUNamed) {								
 								SPUNamed spusm = (SPUNamed) spu;
 								if (spusm.checkLutt(update.added, update.removed)) {	
+									processingSpus.add(spusm.getUUID());
 									logger.debug("Starting spu.process");
-									spu.process(update);
+									spusm.process(update);
 								};
+							}
+							else {
+								processingSpus.add(spu.getUUID());
+								SPUNaive spusm = (SPUNaive) spu;
+								spusm.process(update);
 							}
 						}
 					}

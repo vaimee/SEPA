@@ -66,6 +66,9 @@ public class SPUNamed extends SPU {
 		updateProcessor = new UpdateProcessor(endpointProperties);
 		logger = LogManager.getLogger("SPUNamed_" + getUUID());
 		logger.debug("SPU: " + this.getUUID() + " request: " + subscribe);
+		
+		// read endpoint properties
+		// logger.debug("Creating LUTT for subscription " + endpointProperties.getHttpPort());
 	}
 
 	@Override
@@ -74,7 +77,7 @@ public class SPUNamed extends SPU {
 
 		// determine the graph name to be used
 		graphUri = subns + "subid_" + getUUID();
-
+		
 		// manipulate query to obtain a version for the
 		// named graph that will be generated later on
 		// TODO - replace this one with a regexp

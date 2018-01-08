@@ -52,8 +52,8 @@ public class HttpGate extends Thread {
 	public void init() throws IOException {
 		setName(serverInfo);
 
-		IOReactorConfig config = IOReactorConfig.custom().setSoTimeout(properties.getTimeout()).setTcpNoDelay(true)
-				.build();
+		IOReactorConfig config = IOReactorConfig.custom().setSoTimeout(properties.getTimeout()).setTcpNoDelay(true)				
+				.setSoReuseAddress(true).build();
 
 		server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort())
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
