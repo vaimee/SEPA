@@ -245,7 +245,9 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
     @Override
     public void close() throws IOException {
         super.close();
-        wsClient.close();
+        if (wsClient != null) {
+			wsClient.close();
+		}
     }
 
     protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op) {
