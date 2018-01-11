@@ -1,15 +1,13 @@
 pipeline {
-  agent {
-    docker {
-      image 'maven:3.5.0-jdk-8'
-    }
-    
-  }
+  agent any
   stages {
     stage('Build') {
       steps {
         echo 'Hello World'
-        sh 'mvn package'
+        withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
+          sh 'mvn clean package'
+        }
+        
       }
     }
     stage('Test') {
