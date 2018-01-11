@@ -12,11 +12,18 @@ pipeline {
     }
     stage('Test') {
       steps {
+        sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar &'
+        timeout(10) {
+            waitUntil {
+               script {
+                 def r = sh script: 'wget -q http://localhost:9999 -O /dev/null', returnStatus: true
+                 return (r == 0);
+               }
+            }
+        }
         withMaven(jdk: 'JDK9', maven: 'maven_jekins') {
           sh 'mvn verify  -Dmaven.javadoc.skip=true'
         }
-        
-        sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar'
       }
     }
   }
