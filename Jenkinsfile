@@ -16,6 +16,7 @@ pipeline {
           sh 'mvn verify  -Dmaven.javadoc.skip=true'
         }
         
+        sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar'
       }
     }
   }
