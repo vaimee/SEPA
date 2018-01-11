@@ -12,8 +12,8 @@ pipeline {
     }
     stage('Test') {
       steps {
-        withMaven(jdk: 'jdk9', maven: 'mvn', mavenLocalRepo: 'C:\\Users\\reluc\\.m2\\repository', mavenSettingsFilePath: 'C:\\Users\\reluc\\.m2\\settings.xml') {
-          bat 'mvn verify  -Dmaven.javadoc.skip=true'
+        withMaven(jdk: 'JDK9', maven: 'maven_jekins') {
+          sh 'mvn verify  -Dmaven.javadoc.skip=true'
         }
         
       }
