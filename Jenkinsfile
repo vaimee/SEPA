@@ -18,10 +18,10 @@ pipeline {
           def blazeConfig = ws + '/engine/target/endpoints/endpoint-blazegraph.jpar'
           def target = ws + '/engine/target'
           sh 'mv ' + blazeConfig + ' ' + target + '/endpoint.jpar'
-          sh 'java -server -jar '+ws+'/engine/target/engine-0-SNAPSHOT.jar'
+
         }
-        dir ('subdir') {
-            sh 'pwd'
+        dir ('engine/target') {
+            sh 'java -server -jar engine-0-SNAPSHOT.jar > engine.log &'
         }
         timeout(time: 10) {
           waitUntil() {
