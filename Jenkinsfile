@@ -20,7 +20,15 @@ pipeline {
           sh 'mv ' + blazeConfig + ' ' + target + '/endpoint.jpar'
           sh 'java -server -jar '+ws+'/engine/target/engine-0-SNAPSHOT.jar &'
         }
-        
+         timeout(time: 10) {
+                  waitUntil() {
+                    script {
+                      def r = sh script: 'wget -q http://localhost:8000 -O /dev/null', returnStatus: true
+                      return (r == 8)
+                    }
+
+                  }
+         }
         sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar &'
         timeout(time: 10) {
           waitUntil() {
