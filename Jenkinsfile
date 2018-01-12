@@ -12,6 +12,10 @@ pipeline {
     }
     stage('Test') {
       steps {
+        fileOperations {
+            fileRenameOperation('engine/target/endpoint-blazegraph.jpar', 'engine/target/endpoint.jpar')
+        }
+        sh 'java -server -jar engine/target/engine-0-SNAPSHOT &'
         sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar &'
         timeout(10) {
             waitUntil {
