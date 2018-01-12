@@ -16,7 +16,7 @@ pipeline {
         script {
           def ws = pwd()
           def blazeConfig = ws + '/engine/target/endpoints/endpoint-blazegraph.jpar'
-          def target = ws + 'engine/target'
+          def target = ws + '/engine/target'
           sh 'mv ' + blazeConfig + ' ' + target + '/endpoint.jpar'
         }
         
