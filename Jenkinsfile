@@ -48,6 +48,7 @@ pipeline {
           sh 'mvn verify  -Dmaven.javadoc.skip=true'
         }
         
+        archiveArtifacts 'engine/target/engine.log'
       }
     }
   }
