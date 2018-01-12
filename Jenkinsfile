@@ -18,17 +18,20 @@ pipeline {
           def blazeConfig = ws + '/engine/target/endpoints/endpoint-blazegraph.jpar'
           def target = ws + '/engine/target'
           sh 'mv ' + blazeConfig + ' ' + target + '/endpoint.jpar'
-          sh 'java -server -jar '+ws+'/engine/target/engine-0-SNAPSHOT.jar &'
+          sh 'java -server -jar '+ws+'/engine/target/engine-0-SNAPSHOT.jar > '+ws+'/engine/target/engine.log &'
         }
-         timeout(time: 10) {
-                  waitUntil() {
-                    script {
-                      def r = sh script: 'wget -q http://localhost:8000 -O /dev/null', returnStatus: true
-                      return (r == 8)
-                    }
-
-                  }
-         }
+        
+        timeout(time: 10) {
+          waitUntil() {
+            script {
+              def r = sh script: 'wget -q http://localhost:8000 -O /dev/null', returnStatus: true
+              return (r == 8)
+            }
+            
+          }
+          
+        }
+        
         sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar &'
         timeout(time: 10) {
           waitUntil() {
