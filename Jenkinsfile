@@ -12,23 +12,31 @@ pipeline {
     }
     stage('Test') {
       steps {
-        def ws = pwd()
-        def endpoint-blaze-file = ws + '/engine/target/endpoints/endpoint-blaegraph.jpar'
-        def target = ws + 'engine/target'
-        sh 'mv' + endpoint-blaze-file + ' ' + target + '/endpoint.jpar'
-        sh 'java -server -jar '+ ws + '/engine/target/engine-0-SNAPSHOT &'
-        sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar &'
-        timeout(10) {
-            waitUntil {
-               script {
-                 def r = sh script: 'wget -q http://localhost:9999 -O /dev/null', returnStatus: true
-                 return (r == 0);
-               }
-            }
+        echo 'Copy blazegraph configuration file ...'
+        script {
+          def ws = pwd()
+          def blazeConfig = ws + '/engine/target/endpoints/endpoint-blaegraph.jpar'
+          def target = ws + 'engine/target'
+          sh 'mv ' + blazeConfig + ' ' + target + '/endpoint.jpar'
         }
+        
+        sh 'java -server -jar '+ws+'/engine/target/engine-0-SNAPSHOT &'
+        sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar &'
+        timeout(time: 10) {
+          waitUntil() {
+            script {
+              def r = sh script: 'wget -q http://localhost:9999 -O /dev/null', returnStatus: true
+              return (r == 0)
+            }
+            
+          }
+          
+        }
+        
         withMaven(jdk: 'JDK9', maven: 'maven_jekins') {
           sh 'mvn verify  -Dmaven.javadoc.skip=true'
         }
+        
       }
     }
   }
