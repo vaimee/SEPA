@@ -25,10 +25,10 @@ public class ITProtocolTest {
 
     //String concatenation it's really bad for the performance. But since this is a test I'd prefer code readability
     private static final String SIMPLE_UPDATE = "prefix test:<http://www.vaimee.com/test#> " +
-                                                "insert {test:Sub test:Pred \"測試\"} ";
+                                                "insert data {test:Sub test:Pred \"測試\"} ";
 
     private static final String NOTIF_UPDATE = "prefix test:<http://www.vaimee.com/test#> " +
-                                                "insert {test:Sub test:hasNotification \"Hello there!\"} ";
+                                                "insert data {test:Sub test:hasNotification \"Hello there!\"} ";
 
     private static final String SIMPLE_QUERY = "prefix test:<http://www.vaimee.com/test#> " +
                                                 "select ?s ?p ?o " +
