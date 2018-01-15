@@ -19,7 +19,6 @@ import static org.junit.Assert.*;
 
 public class ITProtocolTest {
 
-    private static final String SUB_ALIAS = "!";
     private SPARQL11SEProtocol client;
     private MockSubscriptionHandler subHandler;
 
