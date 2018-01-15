@@ -90,6 +90,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	public SPARQL11SEProtocol(SPARQL11SEProperties properties)
 			throws SEPAProtocolException {
 		super(properties);
+		this.properties = properties;
 	}
 
 	/**
@@ -122,6 +123,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		} catch (URISyntaxException e) {
 			throw new SEPAProtocolException(e);
 		}
+		this.properties = properties;
 	}
 
 	// public SPARQL11SEProtocol(SPARQL11SEProperties properties,
