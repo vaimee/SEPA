@@ -19,29 +19,7 @@ import static org.junit.Assert.*;
 
 public class ITProtocolTest {
 
-
-
     private static final String SUB_ALIAS = "!";
-
-    //String concatenation it's really bad for the performance. But since this is a test I'd prefer code readability
-    private static final String SIMPLE_UPDATE = "prefix test:<http://www.vaimee.com/test#> " +
-                                                "insert data {test:Sub test:Pred \"測試\"} ";
-
-    private static final String NOTIF_UPDATE = "prefix test:<http://www.vaimee.com/test#> " +
-                                                "insert data {test:Sub test:hasNotification \"Hello there!\"} ";
-
-    private static final String SIMPLE_QUERY = "prefix test:<http://www.vaimee.com/test#> " +
-                                                "select ?s ?p ?o " +
-                                                "where {?s ?p ?o}";
-
-    private static final String UTF8_RESULT_QUERY = "prefix test:<http://www.vaimee.com/test#> " +
-                                                "select ?s ?p ?o " +
-                                                "where {test:Sub test:Pred ?o}";
-
-    private static final String NOTIF_QUERY = "prefix test:<http://www.vaimee.com/test#> " +
-                                            "select ?s ?p ?o " +
-                                            "where {test:Sub test:hasNotification ?o}";
-
     private SPARQL11SEProtocol client;
     private MockSubscriptionHandler subHandler;
 
@@ -62,35 +40,35 @@ public class ITProtocolTest {
 
     @Test
     public void Update(){
-        final Response update = SubmitUpdate(client,SIMPLE_UPDATE);
+        final Response update = SubmitUpdate(client,TestQueries.SIMPLE_UPDATE);
         assertFalse(String.valueOf(update.getAsJsonObject()),update.isError());
     }
 
     @Test
     public void Query(){
-        final Response response = SubmitQuery(client, SIMPLE_QUERY);
+        final Response response = SubmitQuery(client, TestQueries.SIMPLE_QUERY);
         assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
     }
 
     @Test
     public void Subscribe(){
-        final Response response = submitSubscribe(SIMPLE_QUERY, client, SUB_ALIAS);
+        final Response response = submitSubscribe(TestQueries.SIMPLE_QUERY, client);
         assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
     }
 
     @Test(timeout=5000)
     public void Ping() throws InterruptedException {
-        final Response response = submitSubscribe(SIMPLE_QUERY, client, SUB_ALIAS);
+        final Response response = submitSubscribe(TestQueries.SIMPLE_QUERY, client);
         assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
         assertTrue(subHandler.pingRecived());
     }
 
     @Test(timeout=20000)
     public void NotificationTest() throws InterruptedException {
-        final Response response = submitSubscribe(NOTIF_QUERY, client, SUB_ALIAS);
+        final Response response = submitSubscribe(TestQueries.NOTIF_QUERY, client);
         assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
 
-        final Response update = SubmitUpdate(client,NOTIF_UPDATE);
+        final Response update = SubmitUpdate(client,TestQueries.NOTIF_UPDATE);
         assertFalse(String.valueOf(update.getAsJsonObject()),update.isError());
 
         final Response notification = subHandler.getResponse();
@@ -103,7 +81,7 @@ public class ITProtocolTest {
     public void VerifiedUTF8Update(){
         Update();
 
-        final Response response = SubmitQuery(client, UTF8_RESULT_QUERY);
+        final Response response = SubmitQuery(client, TestQueries.UTF8_RESULT_QUERY);
         assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
 
         QueryResponse queryResponse = (QueryResponse) response;
@@ -127,7 +105,7 @@ public class ITProtocolTest {
         return client.update(updateRequest);
     }
 
-    private static Response submitSubscribe(String query, SPARQL11SEProtocol client,String alias) {
+    private static Response submitSubscribe(String query, SPARQL11SEProtocol client) {
         SubscribeRequest sub = new SubscribeRequest(query);
         return client.subscribe(sub);
     }
