@@ -10,9 +10,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -24,8 +22,7 @@ public class ITProtocolTest {
 
     @Before
     public void setUp() throws Exception {
-        URL config = Thread.currentThread().getContextClassLoader().getResource("testenvironment.jsap");
-        final SPARQL11SEProperties properties = new SPARQL11SEProperties(new File(config.getPath()));
+        final SPARQL11SEProperties properties = ConfigurationProvider.GetTestEnvConfiguration();
         subHandler = new MockSubscriptionHandler();
         client = new SPARQL11SEProtocol(properties,subHandler);
     }
