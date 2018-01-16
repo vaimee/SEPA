@@ -45,13 +45,17 @@ pipeline {
           }
           
         }
-        
+
         withMaven(jdk: 'JDK9', maven: 'maven_jekins') {
           sh 'mvn verify  -Dmaven.javadoc.skip=true'
         }
-        
-        archiveArtifacts 'engine/target/engine.log'
       }
     }
+  }
+  post {
+     always {
+      archiveArtifacts 'engine/target/engine.log'
+      cleanWs notFailBuild: true
+     }
   }
 }
