@@ -144,7 +144,7 @@ pipeline {
                 
               }
               
-              sh '/home/cristianoaguzzi/apache-jena-fuseki-3.6.0/fuseki-server --update --mem /ds &'
+              sh 'FUSEKI_HOME=/home/cristianoaguzzi/apache-jena-fuseki-3.6.0/ /home/cristianoaguzzi/apache-jena-fuseki-3.6.0/fuseki-server --update --mem /ds &'
               timeout(time: 10) {
                 waitUntil() {
                   script {
