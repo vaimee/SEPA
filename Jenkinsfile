@@ -135,7 +135,7 @@ pipeline {
             timeout(time: 10) {
               waitUntil() {
                 script {
-                   def r = sh script: 'wget -q http://localhost:8000 -O /dev/null', returnStatus: true
+                   def r = sh script: 'wget -q http://localhost:8001 -O /dev/null', returnStatus: true
                    return (r == 8)
                 }
               }
