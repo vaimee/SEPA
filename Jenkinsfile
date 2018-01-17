@@ -140,11 +140,11 @@ pipeline {
                 }
               }
             }
-            sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar &'
+            sh '/home/cristianoaguzzi/apache-jena-fuseki-3.6.0/fuseki-server --update --mem /ds &'
             timeout(time: 10) {
                 waitUntil() {
                     script {
-                        def r = sh script: 'wget -q http://localhost:9999 -O /dev/null', returnStatus: true
+                        def r = sh script: 'wget -q http://localhost:3030 -O /dev/null', returnStatus: true
                             return (r == 0)
                     }
                 }
