@@ -150,6 +150,7 @@ pipeline {
                 }
             }
             withMaven(jdk: 'JDK9', maven: 'maven_jekins') {
+                sh 'pwd'
                 sh 'mvn verify  -Dmaven.javadoc.skip=true -DtestConfiguration=fuseki/client.jpar'
             }
           }
