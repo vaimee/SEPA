@@ -164,7 +164,7 @@ pipeline {
                   echo '' + v
                 }
                 
-                sh 'mvn verify  -Dmaven.javadoc.skip=true -DtestConfiguration=fuseki/client.jpar'
+                sh 'mvn verify  -Dmaven.javadoc.skip=true -DtestConfiguration=client.jpar'
               }
               
             }
