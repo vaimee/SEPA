@@ -152,9 +152,9 @@ pipeline {
             withMaven(jdk: 'JDK9', maven: 'maven_jekins') {
                 script {
                     def r = sh script: 'test -e fuseki/client.jpar', returnStatus: true
-                    echo r
-                    def r = sh script: 'test -e ./fuseki/client.jpar', returnStatus: true
-                    echo r
+                    echo '' + r
+                    def v = sh script: 'test -e ./fuseki/client.jpar', returnStatus: true
+                    echo '' + v
                 }
                 sh 'mvn verify  -Dmaven.javadoc.skip=true -DtestConfiguration=fuseki/client.jpar'
             }
