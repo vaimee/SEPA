@@ -61,7 +61,7 @@ pipeline {
                 echo 'Copy Fuseki configuration file'
                 script {
                     def blazeConfig = '../engine/target/endpoints/endpoint-fuseki.jpar'
-                    sh 'mv ' + blazeConfig + ' ' + endpoint.jpar
+                    sh 'mv ' + blazeConfig + ' endpoint.jpar'
                     echo 'Inject endpoint configuration'
                     writeFile file: 'endpoint.jpar', text: '''{
                     	"parameters" : {
