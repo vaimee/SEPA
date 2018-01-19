@@ -1,4 +1,5 @@
 # SEPA - SPARQL Event Processing Architecture
+[![Build Status](http://giove.arces.unibo.it:8888/integration/badge)](http://giove.arces.unibo.it:8888/integration/badge)
 
 SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification.
 
