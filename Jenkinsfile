@@ -58,7 +58,7 @@ pipeline {
         stage('Fuseki') {
           steps {
             dir(path: 'fuseki') {
-              echo 'Copy Fuseki configuration file'
+              echo 'Copy Fuseki test configuration files'
               script {
                 def blazeConfig = '../engine/target/endpoints/endpoint-fuseki.jpar'
                 sh 'mv ' + blazeConfig + ' endpoint.jpar'
@@ -128,6 +128,9 @@ pipeline {
 }
 }
 '''
+                  echo 'Copy sepa.jks'
+                  def keys = '../engine/target/sepa.jks'
+                  sh 'mv ' + keys + ' sepa.jks'
                   sh 'java -server -jar ../engine/target/engine-0-SNAPSHOT.jar > engine.log &'
                 }
                 
