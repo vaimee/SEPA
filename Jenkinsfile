@@ -80,8 +80,8 @@ pipeline {
 "ports" : {
 "http" : 8001 ,
 "ws" : 9001 ,
-"https" : 8443 ,
-"wss" : 9443}
+"https" : 8444 ,
+"wss" : 9444}
 ,
 "paths" : {
 "update" : "/update" ,
