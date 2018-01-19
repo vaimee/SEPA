@@ -131,7 +131,7 @@ pipeline {
                   echo 'Copy sepa.jks'
                   def keys = '../engine/target/sepa.jks'
                   sh 'cp ' + keys + ' sepa.jks'
-                  sh 'java -server -jar ../engine/target/engine-0-SNAPSHOT.jar > engine.log &'
+                  sh 'java -jar ../engine/target/engine-0-SNAPSHOT.jar > engine.log &'
                 }
                 
               }
@@ -160,13 +160,6 @@ pipeline {
               }
               
               withMaven(jdk: 'JDK9', maven: 'maven_jekins', mavenLocalRepo: 'fuseki/maven') {
-                script {
-                  def r = sh script: 'test -e fuseki/client.jpar', returnStatus: true
-                  echo '' + r
-                  def v = sh script: 'test -e ./fuseki/client.jpar', returnStatus: true
-                  echo '' + v
-                }
-                
                 sh 'mvn verify  -Dmaven.javadoc.skip=true -DtestConfiguration=../fuseki/client.jpar'
               }
               
