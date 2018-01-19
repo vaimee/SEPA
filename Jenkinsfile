@@ -1,16 +1,31 @@
 pipeline {
   agent any
   stages {
-    stage('Build') {
+    stage('Compile') {
       steps {
-        echo 'Hello World'
+        echo 'Compiling sepa project'
         withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
-          sh 'mvn clean package'
+          sh 'mvn clean compile'
         }
-        
       }
     }
-    stage('Test') {
+    stage('UnitTests') {
+          steps {
+            echo 'Run Unit tests'
+            withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
+              sh 'mvn test -Dmaven.main.skip'
+            }
+          }
+    }
+    stage('Build') {
+       steps {
+          echo 'Create package'
+          withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
+          sh 'mvn package -DskipTests'
+          }
+       }
+    }
+    stage('IntegrationTests') {
       parallel {
         stage('Blazegraph') {
           steps {
