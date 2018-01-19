@@ -61,7 +61,7 @@ pipeline {
               echo 'Copy Fuseki test configuration files'
               script {
                 def blazeConfig = '../engine/target/endpoints/endpoint-fuseki.jpar'
-                sh 'mv ' + blazeConfig + ' endpoint.jpar'
+                sh 'cp ' + blazeConfig + ' endpoint.jpar'
                 echo 'Inject endpoint configuration'
                 writeFile file: 'engine.jpar', text: '''{
 "parameters" : {
@@ -130,7 +130,7 @@ pipeline {
 '''
                   echo 'Copy sepa.jks'
                   def keys = '../engine/target/sepa.jks'
-                  sh 'mv ' + keys + ' sepa.jks'
+                  sh 'cp ' + keys + ' sepa.jks'
                   sh 'java -server -jar ../engine/target/engine-0-SNAPSHOT.jar > engine.log &'
                 }
                 
