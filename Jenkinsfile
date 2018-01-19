@@ -131,7 +131,10 @@ pipeline {
                   echo 'Copy sepa.jks'
                   def keys = '../engine/target/sepa.jks'
                   sh 'cp ' + keys + ' sepa.jks'
-                  sh 'java -jar ../engine/target/engine-0-SNAPSHOT.jar > engine.log &'
+                  echo 'Copy sepa jar'
+                  def sepa = '../engine/target/engine-0-SNAPSHOT.jar'
+                  sh 'cp ' + sepa + ' engine-0-SNAPSHOT.jar'
+                  sh 'java -jar engine-0-SNAPSHOT.jar > engine.log &'
                 }
                 
               }
