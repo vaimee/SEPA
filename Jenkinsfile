@@ -29,15 +29,9 @@ pipeline {
       parallel {
         stage('Blazegraph') {
           steps {
-            echo 'Copy blazegraph configuration file ...'
-            script {
-              def ws = pwd()
-              def blazeConfig = ws + '/engine/target/endpoints/endpoint-blazegraph.jpar'
-              def target = ws + 'blazegraphK'
-              sh 'mv ' + blazeConfig + ' ' + target + '/endpoint.jpar'
-            }
-            
             dir(path: 'blazegraph') {
+            echo 'Copy blazegraph configuration file ...'
+            sh 'mv ../engine/target/endpoints/endpoint-blazegraph.jpar endpoint.jpar'
             echo 'Copy runnable jar...'
               sh 'cp ../engine/target/engine-0-SNAPSHOT.jar engine-0-SNAPSHOT.jar'
             echo 'Generating configuration files...'
