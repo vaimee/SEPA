@@ -38,7 +38,7 @@ pipeline {
             }
             
             dir(path: 'engine/target') {
-              sh 'java -server -jar engine-0-SNAPSHOT.jar > engine.log &'
+              sh 'java -server -jar engine-0-SNAPSHOT.jar > ../../blazegraph/engine.log &'
             }
             
             timeout(time: 10) {
@@ -188,7 +188,7 @@ pipeline {
     }
     post {
       always {
-        archiveArtifacts 'engine/target/engine.log'
+        archiveArtifacts 'blazegraph/engine.log'
         archiveArtifacts 'fuseki/engine.log'
         cleanWs(notFailBuild: true)
         
