@@ -190,7 +190,7 @@ pipeline {
       always {
         archiveArtifacts 'blazegraph/engine.log'
         archiveArtifacts 'fuseki/engine.log'
-        cleanWs(notFailBuild: true)
+        cleanWs (notFailBuild: true, patterns: [[pattern: 'fuseki/maven', type: 'EXCLUDE']])
         
       }
       
