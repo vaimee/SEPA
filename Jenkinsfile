@@ -250,6 +250,14 @@ pipeline {
           }
         }
       }
+      stage('Deploy') {
+             steps {
+                echo 'Deploy artifact..'
+                withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
+                sh 'mvn deploy -Drevision=0.8.1 -DskipTests'
+                }
+             }
+          }
     }
     post {
       always {
