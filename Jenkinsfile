@@ -257,7 +257,7 @@ pipeline {
           steps {
             echo 'Deploy artifact..'
             withMaven(maven: 'maven_jekins', jdk: 'JDK9', mavenSettingsConfig: 'settings.xml') {
-              sh 'mvn deploy -Drevision=0.8.2+${BUILDS_ALL_TIME} -DskipTests'
+              sh 'mvn deploy -Drevision=0.8.2+$BUILD_NUMBER -DskipTests'
             }
             
           }
