@@ -7,35 +7,38 @@ pipeline {
         withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
           sh 'mvn clean compile'
         }
+        
       }
     }
     stage('UnitTests') {
-          steps {
-            echo 'Run Unit tests'
-            withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
-              sh 'mvn test -Dmaven.main.skip'
-            }
-          }
+      steps {
+        echo 'Run Unit tests'
+        withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
+          sh 'mvn test -Dmaven.main.skip'
+        }
+        
+      }
     }
     stage('Build') {
-       steps {
-          echo 'Create package'
-          withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
+      steps {
+        echo 'Create package'
+        withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
           sh 'mvn package -DskipTests'
-          }
-       }
+        }
+        
+      }
     }
     stage('IntegrationTests') {
       parallel {
         stage('Blazegraph') {
           steps {
             dir(path: 'blazegraph') {
-            echo 'Copy blazegraph configuration file ...'
-            sh 'mv ../engine/target/endpoints/endpoint-blazegraph.jpar endpoint.jpar'
-            echo 'Copy runnable jar...'
+              echo 'Copy blazegraph configuration file ...'
+              sh 'mv ../engine/target/endpoints/endpoint-blazegraph.jpar endpoint.jpar'
+              echo 'Copy runnable jar...'
               sh 'cp ../engine/target/engine-0-SNAPSHOT.jar engine-0-SNAPSHOT.jar'
-            echo 'Generating configuration files...'
-                writeFile file: 'engine.jpar', text: '''{
+              echo 'Generating configuration files...'
+              writeFile(file: 'engine.jpar', text: '''{
               "parameters" : {
               "scheduler" : {
               "queueSize" : 100}
@@ -63,8 +66,8 @@ pipeline {
               "tokenRequest" : "/oauth/token" ,
               "securePath" : "/secure"}
               }
-              }'''
-                                writeFile file: 'client.jpar', text: '''
+              }''')
+                writeFile(file: 'client.jpar', text: '''
               {
               "parameters": {
               "host": "localhost",
@@ -99,51 +102,51 @@ pipeline {
               }
               }
               }
-              '''
-             echo 'Copy sepa.jks'
-             sh 'cp ../engine/target/sepa.jks sepa.jks'
-             echo 'Starting SEPA'
-             sh 'java -jar engine-0-SNAPSHOT.jar > engine.log &'
-            }
-            
-            timeout(time: 10) {
-              waitUntil() {
-                script {
-                  def r = sh script: 'wget -q http://localhost:8000 -O /dev/null', returnStatus: true
-                  return (r == 8)
+              ''')
+                echo 'Copy sepa.jks'
+                sh 'cp ../engine/target/sepa.jks sepa.jks'
+                echo 'Starting SEPA'
+                sh 'java -jar engine-0-SNAPSHOT.jar > engine.log &'
+              }
+              
+              timeout(time: 10) {
+                waitUntil() {
+                  script {
+                    def r = sh script: 'wget -q http://localhost:8000 -O /dev/null', returnStatus: true
+                    return (r == 8)
+                  }
+                  
                 }
                 
               }
               
-            }
-            
-            sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar &'
-            timeout(time: 10) {
-              waitUntil() {
-                script {
-                  def r = sh script: 'wget -q http://localhost:9999 -O /dev/null', returnStatus: true
-                  return (r == 0)
+              sh 'java -server -Xmx4g -jar /home/cristianoaguzzi/blazegraph.jar &'
+              timeout(time: 10) {
+                waitUntil() {
+                  script {
+                    def r = sh script: 'wget -q http://localhost:9999 -O /dev/null', returnStatus: true
+                    return (r == 0)
+                  }
+                  
                 }
                 
               }
               
+              withMaven(jdk: 'JDK9', maven: 'maven_jekins') {
+                sh 'mvn verify  -Dmaven.javadoc.skip=true'
+              }
+              
             }
-            
-            withMaven(jdk: 'JDK9', maven: 'maven_jekins') {
-              sh 'mvn verify  -Dmaven.javadoc.skip=true'
-            }
-            
           }
-        }
-        stage('Fuseki') {
-          steps {
-            dir(path: 'fuseki') {
-              echo 'Copy Fuseki test configuration files'
-              script {
-                def blazeConfig = '../engine/target/endpoints/endpoint-fuseki.jpar'
-                sh 'cp ' + blazeConfig + ' endpoint.jpar'
-                echo 'Inject endpoint configuration'
-                writeFile file: 'engine.jpar', text: '''{
+          stage('Fuseki') {
+            steps {
+              dir(path: 'fuseki') {
+                echo 'Copy Fuseki test configuration files'
+                script {
+                  def blazeConfig = '../engine/target/endpoints/endpoint-fuseki.jpar'
+                  sh 'cp ' + blazeConfig + ' endpoint.jpar'
+                  echo 'Inject endpoint configuration'
+                  writeFile file: 'engine.jpar', text: '''{
 "parameters" : {
 "scheduler" : {
 "queueSize" : 100}
@@ -172,7 +175,7 @@ pipeline {
 "securePath" : "/secure"}
 }
 }'''
-                  writeFile file: 'client.jpar', text: '''
+                    writeFile file: 'client.jpar', text: '''
 {
 "parameters": {
 "host": "localhost",
@@ -208,64 +211,65 @@ pipeline {
 }
 }
 '''
-                  echo 'Copy sepa.jks'
-                  def keys = '../engine/target/sepa.jks'
-                  sh 'cp ' + keys + ' sepa.jks'
-                  echo 'Copy sepa jar'
-                  def sepa = '../engine/target/engine-0-SNAPSHOT.jar'
-                  sh 'cp ' + sepa + ' engine-0-SNAPSHOT.jar'
-                  sh 'java -jar engine-0-SNAPSHOT.jar > engine.log &'
-                }
-                
-              }
-              
-              timeout(time: 10) {
-                waitUntil() {
-                  script {
-                    def r = sh script: 'wget -q http://localhost:8001 -O /dev/null', returnStatus: true
-                    return (r == 8)
+                    echo 'Copy sepa.jks'
+                    def keys = '../engine/target/sepa.jks'
+                    sh 'cp ' + keys + ' sepa.jks'
+                    echo 'Copy sepa jar'
+                    def sepa = '../engine/target/engine-0-SNAPSHOT.jar'
+                    sh 'cp ' + sepa + ' engine-0-SNAPSHOT.jar'
+                    sh 'java -jar engine-0-SNAPSHOT.jar > engine.log &'
                   }
                   
                 }
                 
-              }
-              
-              sh 'FUSEKI_HOME=/home/cristianoaguzzi/apache-jena-fuseki-3.6.0/ /home/cristianoaguzzi/apache-jena-fuseki-3.6.0/fuseki-server --update --mem /ds &'
-              timeout(time: 10) {
-                waitUntil() {
-                  script {
-                    def r = sh script: 'wget -q http://localhost:3030 -O /dev/null', returnStatus: true
-                    return (r == 0)
+                timeout(time: 10) {
+                  waitUntil() {
+                    script {
+                      def r = sh script: 'wget -q http://localhost:8001 -O /dev/null', returnStatus: true
+                      return (r == 8)
+                    }
+                    
                   }
                   
                 }
                 
+                sh 'FUSEKI_HOME=/home/cristianoaguzzi/apache-jena-fuseki-3.6.0/ /home/cristianoaguzzi/apache-jena-fuseki-3.6.0/fuseki-server --update --mem /ds &'
+                timeout(time: 10) {
+                  waitUntil() {
+                    script {
+                      def r = sh script: 'wget -q http://localhost:3030 -O /dev/null', returnStatus: true
+                      return (r == 0)
+                    }
+                    
+                  }
+                  
+                }
+                
+                withMaven(jdk: 'JDK9', maven: 'maven_jekins', mavenLocalRepo: 'fuseki/maven') {
+                  sh 'mvn verify  -Dmaven.javadoc.skip=true -DtestConfiguration=../fuseki/client.jpar'
+                }
+                
               }
-              
-              withMaven(jdk: 'JDK9', maven: 'maven_jekins', mavenLocalRepo: 'fuseki/maven') {
-                sh 'mvn verify  -Dmaven.javadoc.skip=true -DtestConfiguration=../fuseki/client.jpar'
-              }
-              
             }
           }
         }
-      }
-      stage('Deploy') {
-             steps {
-                echo 'Deploy artifact..'
-                withMaven(maven: 'maven_jekins', jdk: 'JDK9') {
-                sh 'mvn deploy -Drevision=0.8.1 -DskipTests'
-                }
-             }
+        stage('Deploy') {
+          steps {
+            echo 'Deploy artifact..'
+            withMaven(maven: 'maven_jekins', jdk: 'JDK9', mavenSettingsConfig: 'settings.xml') {
+              sh 'mvn deploy -Drevision=0.8.1 -DskipTests'
+            }
+            
           }
-    }
-    post {
-      always {
-        archiveArtifacts 'blazegraph/engine.log'
-        archiveArtifacts 'fuseki/engine.log'
-        cleanWs (notFailBuild: true, patterns: [[pattern: 'fuseki/maven', type: 'EXCLUDE']])
+        }
+      }
+      post {
+        always {
+          archiveArtifacts 'blazegraph/engine.log'
+          archiveArtifacts 'fuseki/engine.log'
+          cleanWs(notFailBuild: true, patterns: [[pattern: 'fuseki/maven', type: 'EXCLUDE']])
+          
+        }
         
       }
-      
     }
-  }
