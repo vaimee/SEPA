@@ -59,6 +59,7 @@ public class UpdateProcessor {
 		
 		if (endpointSemaphore != null) endpointSemaphore.release();
 		
+		logger.debug("Response: "+ret.toString());
 		logger.debug("* UPDATE PROCESSING ("+(stop-start)+" ms) *");
 		
 		ProcessorBeans.updateTimings(start, stop);

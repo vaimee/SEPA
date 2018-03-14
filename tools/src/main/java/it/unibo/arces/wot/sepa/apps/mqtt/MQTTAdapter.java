@@ -49,7 +49,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	}
 	
 	public MQTTAdapter() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new ApplicationProfile("mqttAdapter.jsap"), "UPDATE");
+		super(new ApplicationProfile("mqtt.jsap"), "MQTT_MESSAGE");
 	}
 
 	@Override

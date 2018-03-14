@@ -25,7 +25,7 @@ public class SPUSync {
 		// Wait all SPUs completing processing (or timeout)
 		synchronized (processingSpus) {
 			while (!processingSpus.isEmpty()) {
-				logger.info("Wait " + processingSpus.size() + " SPUs to complete processing...");
+				logger.info(String.format("Wait (%s) SPUs to complete processing...", processingSpus.size()));
 				try {
 					processingSpus.wait(SPUManagerBeans.getSPUProcessingTimeout());
 				} catch (InterruptedException e) {

@@ -19,13 +19,13 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.EchoHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.RegisterHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.SecureQueryHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.SecureUpdateHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.JWTRequestHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
 public class HttpsGate {
 	protected static final Logger logger = LogManager.getLogger("HttpsGate");

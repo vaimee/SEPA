@@ -5,6 +5,7 @@ import java.util.Set;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
@@ -18,7 +19,7 @@ public class Users extends Consumer {
 	private HashMap<String,String> usersList = new HashMap<String,String>();
 	private boolean joined = false;
 	
-	public Users() throws SEPAProtocolException, SEPAPropertiesException {
+	public Users() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
 		super(new ApplicationProfile("chat.jsap"), "USERS");
 	}
 

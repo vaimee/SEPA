@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -33,7 +34,7 @@ public abstract class Aggregator extends Consumer implements IConsumer,IProducer
 	
 	private static final Logger logger = LogManager.getLogger("Aggregator");
 	
-	public Aggregator(ApplicationProfile appProfile,String subscribeID,String updateID) throws SEPAProtocolException {
+	public Aggregator(ApplicationProfile appProfile,String subscribeID,String updateID) throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile,subscribeID);
 		
 		if (updateID == null){

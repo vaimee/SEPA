@@ -132,35 +132,35 @@ public class SPUManager implements SPUManagerMBean {
 		thread2.start();
 
 		// Broken subscriptions detector thread
-		Thread keepalive = new Thread() {
-			public void run() {
-				while (true) {
-					try {
-						Thread.sleep(SPUManagerBeans.getKeepalive());
-					} catch (InterruptedException e) {
-						return;
-					}
-
-					synchronized (spus) {
-						for (SPU spu : spus.values()) {
-							try {
-								spu.ping();
-							} catch (Exception e) {
-								// UNSUBSCRIBE SPU
-								logger.warn("Ping failed");
-
-								synchronized (unsubscribeQueue) {
-									unsubscribeQueue.offer(spu);
-									unsubscribeQueue.notify();
-								}
-							}
-						}
-					}
-				}
-			}
-		};
-		keepalive.setName("SEPA SPU Keepalive");
-		keepalive.start();
+//		Thread keepalive = new Thread() {
+//			public void run() {
+//				while (true) {
+//					try {
+//						Thread.sleep(SPUManagerBeans.getKeepalive());
+//					} catch (InterruptedException e) {
+//						return;
+//					}
+//
+//					synchronized (spus) {
+//						for (SPU spu : spus.values()) {
+//							try {
+//								spu.ping();
+//							} catch (Exception e) {
+//								// UNSUBSCRIBE SPU
+//								logger.warn("Ping failed");
+//
+//								synchronized (unsubscribeQueue) {
+//									unsubscribeQueue.offer(spu);
+//									unsubscribeQueue.notify();
+//								}
+//							}
+//						}
+//					}
+//				}
+//			}
+//		};
+//		keepalive.setName("SEPA SPU Keepalive");
+//		keepalive.start();
 
 		// Main update processing thread
 		Thread main = new Thread() {

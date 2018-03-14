@@ -18,9 +18,6 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-//import java.util.Observable;
-//import java.util.Observer;
-//import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.Logger;
@@ -43,7 +40,6 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 import org.apache.logging.log4j.LogManager;
 
-//public class Processor extends Observable implements ProcessorMBean, Observer {
 public class Processor extends Thread implements ProcessorMBean {
 	private final Logger logger = LogManager.getLogger("Processor");
 
@@ -51,12 +47,8 @@ public class Processor extends Thread implements ProcessorMBean {
 	private final UpdateProcessor updateProcessor;
 	private final QueryProcessor queryProcessor;
 	private final SPUManager spuManager;
-
-	// private boolean updateProcessing = true;
-
+	
 	// Scheduler queue
-	// private ConcurrentLinkedQueue<UpdateRequest> updateRequestQueue = new
-	// ConcurrentLinkedQueue<UpdateRequest>();
 	private SchedulerRequestResponseQueue queue;
 	private final UpdateProcessingQueue updateProcessingQueue = new UpdateProcessingQueue();
 
@@ -113,13 +105,9 @@ public class Processor extends Thread implements ProcessorMBean {
 				Response ret = updateProcessor.process((UpdateRequest) request, ProcessorBeans.getUpdateTimeout());
 
 				// // Notify update result
-				// setChanged();
-				// notifyObservers(ret);
 				queue.addResponse(ret);
 
 				if (ret.isUpdateResponse()) {
-					// updateProcessing = true;
-
 					spuManager.process((UpdateResponse) ret);
 
 					try {
@@ -127,17 +115,6 @@ public class Processor extends Thread implements ProcessorMBean {
 					} catch (InterruptedException e1) {
 						return;
 					}
-
-					// while (updateProcessing) {
-					// // Wait for SPUs processing end
-					// synchronized (updateProcessor) {
-					// try {
-					// updateProcessor.wait();
-					// } catch (InterruptedException e) {
-					// return;
-					// }
-					// }
-					// }
 				}
 			} else if (request.isQueryRequest()) {
 				logger.info("Query request #" + request.getToken());
@@ -146,9 +123,6 @@ public class Processor extends Thread implements ProcessorMBean {
 				Thread queryProcessing = new Thread() {
 					public void run() {
 						Response ret = queryProcessor.process((QueryRequest) request, ProcessorBeans.getQueryTimeout());
-
-						// setChanged();
-						// notifyObservers(ret);
 						queue.addResponse(ret);
 					}
 				};
@@ -161,8 +135,6 @@ public class Processor extends Thread implements ProcessorMBean {
 				Response ret = spuManager.subscribe((SubscribeRequest) request,
 						(EventHandler) scheduledRequest.getHandler());
 
-				// setChanged();
-				// notifyObservers(ret);
 				queue.addResponse(ret);
 			} else if (request.isUnsubscribeRequest()) {
 				logger.info("Unsubscribe request #" + request.getToken());
@@ -170,111 +142,10 @@ public class Processor extends Thread implements ProcessorMBean {
 
 				Response ret = spuManager.unsubscribe((UnsubscribeRequest) request);
 
-				// setChanged();
-				// notifyObservers(ret);
 				queue.addResponse(ret);
 			}
-			//
-			// UpdateRequest request;
-			// while ((request = updateRequestQueue.poll()) != null) {
-			// logger.debug("New request: " + request);
-			//
-			// // Process update request
-			// Response ret = updateProcessor.process(request,
-			// ProcessorBeans.getUpdateTimeout());
-			//
-			// // Notify update result
-			// setChanged();
-			// notifyObservers(ret);
-			//
-			// if (ret.isUpdateResponse()) {
-			// updateProcessing = true;
-			//
-			// spuManager.process((UpdateResponse) ret);
-			//
-			// while (updateProcessing) {
-			// // Wait for SPUs processing end
-			// synchronized (updateProcessor) {
-			// try {
-			// updateProcessor.wait();
-			// } catch (InterruptedException e) {
-			// return;
-			// }
-			// }
-			// }
-			// }
-			// }
-			//
-			// synchronized (updateRequestQueue) {
-			// try {
-			// updateRequestQueue.wait();
-			// } catch (InterruptedException e) {
-			// logger.error(e.getMessage());
-			// return;
-			// }
-			// }
 		}
-
 	}
-
-	// @Override
-	// public void update(Observable o, Object arg) {
-	// if (arg.getClass().equals(SPUEndOfProcessing.class)) {
-	// // UPDATE PROCESSING ENDED or TIMEOUT
-	// SPUEndOfProcessing ret = (SPUEndOfProcessing) arg;
-	// if (ret.isTimeout()) logger.error("SPU processing timeout");
-	//
-	// synchronized (updateProcessor) {
-	// updateProcessing = false;
-	// updateProcessor.notify();
-	// }
-	// } else if (arg.getClass().equals(ScheduledRequest.class)) {
-	// // NEW PROCESSING REQUEST
-	// Request request = ((ScheduledRequest) arg).getRequest();
-	// if (request.isUpdateRequest()) {
-	// logger.info("Update request #" + request.getToken());
-	// logger.debug(request);
-	//
-	// synchronized (updateRequestQueue) {
-	// updateRequestQueue.offer((UpdateRequest) request);
-	// updateRequestQueue.notify();
-	// }
-	// } else if (request.isQueryRequest()) {
-	// logger.info("Query request #" + request.getToken());
-	// logger.debug(request);
-	//
-	// Thread queryProcessing = new Thread() {
-	// public void run() {
-	// Response ret = queryProcessor.process((QueryRequest) request,
-	// ProcessorBeans.getQueryTimeout());
-	//
-	// setChanged();
-	// notifyObservers(ret);
-	// }
-	// };
-	// queryProcessing.setName("SEPA Query Processing Thread-" +
-	// request.getToken());
-	// queryProcessing.start();
-	// } else if (request.isSubscribeRequest()) {
-	// logger.info("Subscribe request #" + request.getToken());
-	// logger.debug(request);
-	//
-	// Response ret = spuManager.subscribe((SubscribeRequest) request,
-	// (EventHandler) ((ScheduledRequest) arg).getHandler());
-	//
-	// setChanged();
-	// notifyObservers(ret);
-	// } else if (request.isUnsubscribeRequest()) {
-	// logger.info("Unsubscribe request #" + request.getToken());
-	// logger.debug(request);
-	//
-	// Response ret = spuManager.unsubscribe((UnsubscribeRequest) request);
-	//
-	// setChanged();
-	// notifyObservers(ret);
-	// }
-	// }
-	// }
 
 	@Override
 	public void reset() {

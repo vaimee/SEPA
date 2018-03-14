@@ -30,7 +30,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  *
  * The JSON serialization is the following:
  *
- * {"subscribed" : "SPUID","alias":"ALIAS","firstResults":<BindingsResults>}
+ * {"subscribed" : {"spuid":"SPUID","alias":"ALIAS","firstResults":<BindingsResults>}}
  *
  */
 
@@ -41,7 +41,7 @@ public class SubscribeResponse extends Response {
 	}
 
 	public BindingsResults getBindingsResults() {
-		return new BindingsResults(json.get("firstResults").getAsJsonObject());
+		return new BindingsResults(json.get("subscribed").getAsJsonObject().get("firstResults").getAsJsonObject());
 	}
 	
 	/**
@@ -55,10 +55,14 @@ public class SubscribeResponse extends Response {
 	public SubscribeResponse(Integer token, String spuid,BindingsResults firstResults) {
 		super(token);
 
-		if (spuid != null)
-			json.add("subscribed", new JsonPrimitive(spuid));
+		JsonObject response = new JsonObject();
 		
-		json.add("firstResults", new BindingsResults(firstResults).toJson());
+		if (spuid != null)
+			response.add("spuid", new JsonPrimitive(spuid));
+		
+		response.add("firstResults", new BindingsResults(firstResults).toJson());
+		
+		json.add("subscribed", response);
 	}
 
 	/**
@@ -74,11 +78,15 @@ public class SubscribeResponse extends Response {
 	public SubscribeResponse(Integer token, String spuid, String alias,BindingsResults firstResults) {
 		super(token);
 
+		JsonObject response = new JsonObject();
+		
 		if (spuid != null)
-			json.add("subscribed", new JsonPrimitive(spuid));
+			response.add("spuid", new JsonPrimitive(spuid));
 		if (alias != null)
-			json.add("alias", new JsonPrimitive(alias));
-		json.add("firstResults", new BindingsResults(firstResults).toJson());
+			response.add("alias", new JsonPrimitive(alias));
+		response.add("firstResults", new BindingsResults(firstResults).toJson());
+		
+		json.add("subscribed", response);
 	}
 
 	/**
@@ -90,8 +98,12 @@ public class SubscribeResponse extends Response {
 	public SubscribeResponse(String spuid) {
 		super();
 
+		JsonObject response = new JsonObject();
+		
 		if (spuid != null)
-			json.add("subscribed", new JsonPrimitive(spuid));
+			response.add("spuid", new JsonPrimitive(spuid));
+		
+		json.add("subscribed", response);
 	}
 
 	/**
@@ -112,10 +124,14 @@ public class SubscribeResponse extends Response {
 	public SubscribeResponse(String spuid, String alias) {
 		super();
 
+		JsonObject response = new JsonObject();
+		
 		if (spuid != null)
-			json.add("subscribed", new JsonPrimitive(spuid));
+			response.add("spuid", new JsonPrimitive(spuid));
 		if (alias != null)
-			json.add("alias", new JsonPrimitive(alias));
+			response.add("alias", new JsonPrimitive(alias));
+		
+		json.add("subscribed", response);
 	}
 
 	/**
@@ -124,9 +140,12 @@ public class SubscribeResponse extends Response {
 	 * @return the spuid
 	 */
 	public String getSpuid() {
-		if (json.get("subscribed") == null)
+		try {
+			return json.get("subscribed").getAsJsonObject().get("spuid").getAsString();
+		}
+		catch(Exception e) {
 			return "";
-		return json.get("subscribed").getAsString();
+		}
 	}
 
 	/**
@@ -135,8 +154,11 @@ public class SubscribeResponse extends Response {
 	 * @return the alias
 	 */
 	public String getAlias() {
-		if (json.get("alias") == null)
+		try {
+			return json.get("subscribed").getAsJsonObject().get("alias").getAsString();
+		}
+		catch(Exception e) {
 			return "";
-		return json.get("alias").getAsString();
+		}
 	}
 }

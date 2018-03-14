@@ -58,6 +58,7 @@ public class QueryProcessor {
 		
 		if (endpointSemaphore != null) endpointSemaphore.release();
 
+		logger.debug("Response: "+ret.toString());
 		logger.debug("* QUERY PROCESSING ("+(stop-start)+" ms) *");
 		
 		ProcessorBeans.queryTimings(start, stop);
