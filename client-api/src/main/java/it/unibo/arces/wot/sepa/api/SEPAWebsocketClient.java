@@ -90,9 +90,9 @@ public class SEPAWebsocketClient extends WebSocketClient {
 		} else if (notify.get("unsubscribed") != null) {
 			response = new UnsubscribeResponse(notify);
 			setResponse();
-		} else if (notify.get("results") != null) {
+		} else if (notify.get("notification") != null) {
 			if(handler!=null) handler.onSemanticEvent(new Notification(notify));
-		} else if (notify.get("code") != null) {
+		} else if (notify.get("error") != null) {
 			if(handler!=null) handler.onError(new ErrorResponse(notify));
 		} else
 			logger.error("Unknown message: " + message);

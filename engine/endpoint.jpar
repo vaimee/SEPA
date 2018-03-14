@@ -2,18 +2,19 @@
 	"parameters" : {
 		"host" : "localhost" ,
 		"ports" : {
-			"http" : 9999}
+			"http" : 8890}
 		 ,
 		"paths" : {
-			"query" : "/blazegraph/namespace/kb/sparql" ,
-			"update" : "/blazegraph/namespace/kb/sparql"}
+			"query" : "/sparql" ,
+			"update" : "/sparql"}
 		 ,
 		"methods" : {
-			"query" : "POST" ,
-			"update" : "URL_ENCODED_POST"}
+			"query" : "GET" ,
+			"update" : "GET"}
 		 ,
 		"formats" : {
 			"query" : "JSON" ,
-			"update" : "HTML"}
-		}
+			"update" : "JSON"}
+		 ,
+		"default-graph-uri" : "http://www.vaimee.com/default"}
 }

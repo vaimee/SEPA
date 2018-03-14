@@ -1,6 +1,6 @@
 {
 	"parameters" : {
-		"host" : "localhost" ,
+		"host" : "mml.arces.unibo.it" ,
 		"ports" : {
 			"http" : 8000 ,
 			"https" : 8443 ,

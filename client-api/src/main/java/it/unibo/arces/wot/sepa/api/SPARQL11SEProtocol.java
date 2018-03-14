@@ -49,12 +49,12 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SPARQL11SEPrimitive;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
@@ -74,87 +74,68 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
 /**
- * This class implements the Sparql 1.1 Secure event protocol with Sparql 1.1 subscribe language.
+ * This class implements the SPARQL 1.1 Secure event protocol with SPARQL 1.1
+ * subscribe language.
  *
- * @see <a href="http://wot.arces.unibo.it/TR/sparql11-se-protocol.html">SPARQL 1.1 Secure Event Protocol</a>
- * @see <a href="http://wot.arces.unibo.it/TR/sparql11-subscribe.html">SPARQL 1.1 Subscribe Language</a>
+ * @see <a href="http://wot.arces.unibo.it/TR/sparql11-se-protocol.html">SPARQL
+ *      1.1 Secure Event Protocol</a>
+ * @see <a href="http://wot.arces.unibo.it/TR/sparql11-subscribe.html">SPARQL
+ *      1.1 Subscribe Language</a>
  */
 public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	private static final Logger logger = LogManager.getLogger("SPARQL11SEProtocol");
 
 	private SPARQL11SEWebsocket wsClient;
-	// private Websocket wssClient;
+	private SPARQL11SESecureWebsocket wssClient;
 
 	protected SPARQL11SEProperties properties = null;
 
-	public SPARQL11SEProtocol(SPARQL11SEProperties properties)
-			throws SEPAProtocolException {
+	public SPARQL11SEProtocol(SPARQL11SEProperties properties) throws SEPAProtocolException {
 		super(properties);
+
+		this.properties = properties;
 	}
 
 	/**
-	 * Create a protocol instance to communicate with SEPA. In particular
-	 * use this method if you want to subscribe about changes in the semantic
-	 * graph. Otherwise use {@link #SPARQL11SEProtocol(SPARQL11SEProperties)}
+	 * Create a protocol instance to communicate with SEPA. In particular use this
+	 * method if you want to subscribe about changes in the semantic graph.
+	 * Otherwise use {@link #SPARQL11SEProtocol(SPARQL11SEProperties)}
+	 * 
 	 * @param properties
-	 * @param handler an handler to get notification about subscribe queries
+	 * @param handler
+	 *            an handler to get notification about subscribe queries
 	 * @throws SEPAProtocolException
+	 * @throws SEPASecurityException
 	 */
 	public SPARQL11SEProtocol(SPARQL11SEProperties properties, ISubscriptionHandler handler)
-			throws SEPAProtocolException {
+			throws SEPAProtocolException, SEPASecurityException {
 		super(properties);
+
+		this.properties = properties;
 
 		if (handler == null) {
 			logger.fatal("Handler is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Handler is null"));
 		}
 
-		try {
-			int port = properties.getWsPort();
-			if (port != -1)
+		// WS 
+		int port = properties.getWsPort();
+		if (port != -1)
 			wsClient = new SPARQL11SEWebsocket(
-					"ws://" + properties.getHost() + ":" + port + properties.getSubscribePath(),
+					"ws://" + properties.getHost() + ":" + port + properties.getSubscribePath(), handler);
+		else
+			wsClient = new SPARQL11SEWebsocket("ws://" + properties.getHost() + properties.getSubscribePath(), handler);
+		
+		// WSS
+		port = properties.getWssPort();
+		if (port != -1)
+			wssClient = new SPARQL11SESecureWebsocket("wss://" + properties.getHost() + ":" + port
+					+ properties.getSecurePath() + properties.getSubscribePath(), handler);
+		else
+			wssClient = new SPARQL11SESecureWebsocket(
+					"wss://" + properties.getHost() + properties.getSecurePath() + properties.getSubscribePath(),
 					handler);
-			else
-				wsClient = new SPARQL11SEWebsocket(
-						"ws://" + properties.getHost() + properties.getSubscribePath(),
-						handler);
-		} catch (URISyntaxException e) {
-			throw new SEPAProtocolException(e);
-		}
 	}
-
-	// public SPARQL11SEProtocol(SPARQL11SEProperties properties,
-	// ISubscriptionHandler handler) throws SEPAProtocolException,
-	// SEPASecurityException {
-	// this(properties, handler, "sepa.jks", "sepa2017");
-	// }
-	//
-	// public SPARQL11SEProtocol(SPARQL11SEProperties properties,
-	// ISubscriptionHandler handler, String jksName,
-	// String jksPassword) throws SEPASecurityException, SEPAProtocolException {
-	// super(properties);
-	//
-	// if (properties == null) {
-	// logger.fatal("Properties are null");
-	// throw new IllegalArgumentException("Properties are null");
-	// }
-	//
-	// this.properties = properties;
-	//
-	// // Create WebSocket clients (secure and not)
-	// try {
-	// wsClient = new SPARQL11SEWebsocket(
-	// "ws://" + properties.getHost() + ":" + properties.getWsPort() +
-	// properties.getSubscribePath(), handler);
-	// } catch (URISyntaxException e) {
-	// throw new SEPAProtocolException(e);
-	// }
-	//// wssClient = new Websocket("wss://" + properties.getHost() + ":" +
-	// properties.getWssPort()
-	//// + properties.getSecurePath() + properties.getSubscribePath(), true,
-	// handler);
-	// }
 
 	public String toString() {
 		return properties.toString();
@@ -176,12 +157,12 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	}
 
 	/**
-	 * Subscribe with a SPARQL 1.1 Subscription language.
-	 * All the notification will be forwarded to the {@link ISubscriptionHandler}
-	 * of this instance.
+	 * Subscribe with a SPARQL 1.1 Subscription language. All the notification will
+	 * be forwarded to the {@link ISubscriptionHandler} of this instance.
+	 * 
 	 * @param request
 	 * @return A valid {@link Response} if the subscription is successful <br>
-	 *     an {@link ErrorResponse} otherwise
+	 *         an {@link ErrorResponse} otherwise
 	 */
 	public Response subscribe(SubscribeRequest request) {
 		logger.debug(request.toString());
@@ -189,14 +170,14 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	}
 
 	/**
-	 * Unsubscribe with a SPARQL 1.1 Subscription language.
-	 * Note that you must supply a SPUID that identify the subscription
-	 * that you want to delete.
-	 * This primitive does not free any resources, you must call the {@link #close()}
+	 * Unsubscribe with a SPARQL 1.1 Subscription language. Note that you must
+	 * supply a SPUID that identify the subscription that you want to delete. This
+	 * primitive does not free any resources, you must call the {@link #close()}
 	 * method.
+	 * 
 	 * @param request
 	 * @return A valid {@link Response} if the unsubscription is successful <br>
-	 *     an {@link ErrorResponse} otherwise
+	 *         an {@link ErrorResponse} otherwise
 	 */
 	public Response unsubscribe(UnsubscribeRequest request) {
 		logger.debug(request.toString());
@@ -238,17 +219,23 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		return executeSPARQL11SEPrimitive(SPARQL11SEPrimitive.REQUESTTOKEN);
 	}
 
+	// Get expiring time
+	public long getTokenExpiringSeconds() throws SEPASecurityException {
+		return properties.getExpiringSeconds();
+	}
+
 	/**
 	 * Free the http connection manager and the WebSocket client.
+	 * 
 	 * @throws IOException
 	 */
-    @Override
-    public void close() throws IOException {
-        super.close();
-        wsClient.close();
-    }
+	@Override
+	public void close() throws IOException {
+		super.close();
+		wsClient.close();
+	}
 
-    protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op) {
+	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op) {
 		return executeSPARQL11SEPrimitive(op, null);
 	}
 
@@ -266,28 +253,29 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 		switch (op) {
 		case SUBSCRIBE:
+		case SECURESUBSCRIBE:
 			SubscribeRequest subscribe = (SubscribeRequest) request;
-			return wsClient.subscribe(subscribe.getSPARQL());
+			if (op == SPARQL11SEPrimitive.SUBSCRIBE)
+				return wsClient.subscribe(subscribe.getSPARQL());
+
+			try {
+				authorization = properties.getAccessToken();
+			} catch (SEPASecurityException e) {
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			}
+			return wssClient.secureSubscribe(subscribe.getSPARQL(), "Bearer " + authorization);
 		case UNSUBSCRIBE:
+		case SECUREUNSUBSCRIBE:
 			UnsubscribeRequest unsubscribe = (UnsubscribeRequest) request;
-			return wsClient.unsubscribe(unsubscribe.getSubscribeUUID());
-		// case SECURESUBSCRIBE:
-		// SubscribeRequest securesubscribe = (SubscribeRequest) request;
-		// try {
-		// return wssClient.subscribe(securesubscribe.getSPARQL(),
-		// securesubscribe.getAlias(),
-		// properties.getAccessToken());
-		// } catch (SEPASecurityException e2) {
-		// return new ErrorResponse(500,e2.getMessage());
-		// }
-		// case SECUREUNSUBSCRIBE:
-		// UnsubscribeRequest secureunsubscribe = (UnsubscribeRequest) request;
-		// try {
-		// return wssClient.unsubscribe(secureunsubscribe.getSubscribeUUID(),
-		// properties.getAccessToken());
-		// } catch (SEPASecurityException e2) {
-		// return new ErrorResponse(500,e2.getMessage());
-		// }
+			if (op == SPARQL11SEPrimitive.UNSUBSCRIBE)
+				return wsClient.unsubscribe(unsubscribe.getSubscribeUUID());
+
+			try {
+				return wssClient.unsubscribe(unsubscribe.getSubscribeUUID(), "Bearer " + properties.getAccessToken());
+			} catch (SEPASecurityException e) {
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			}
+
 		default:
 			break;
 		}
@@ -304,7 +292,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			try {
 				body = new ByteArrayEntity(new RegistrationRequest(identity).toString().getBytes("UTF-8"));
 			} catch (UnsupportedEncodingException e) {
-				return new ErrorResponse(500, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 			break;
 		case REQUESTTOKEN:
@@ -312,10 +300,10 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			try {
 				basic = properties.getBasicAuthorization();
 			} catch (SEPASecurityException e2) {
-				return new ErrorResponse(500, e2.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e2.getMessage());
 			}
 			if (basic == null)
-				return new ErrorResponse(0, 401, "Basic authorization in null. Register first");
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "Basic authorization in null. Register first");
 
 			path = properties.getTokenRequestPath();
 			port = properties.getHttpsPort();
@@ -333,14 +321,14 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			try {
 				authorization = "Bearer " + properties.getAccessToken();
 			} catch (SEPASecurityException e2) {
-				return new ErrorResponse(500, e2.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e2.getMessage());
 			}
 
 			String encodedContent;
 			try {
 				encodedContent = URLEncoder.encode(((UpdateRequest) request).getSPARQL(), "UTF-8");
 			} catch (UnsupportedEncodingException e) {
-				return new ErrorResponse(500, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 			body = new ByteArrayEntity(("update=" + encodedContent).getBytes());
 			body.setContentType(contentType);
@@ -354,13 +342,13 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			try {
 				authorization = "Bearer " + properties.getAccessToken();
 			} catch (SEPASecurityException e2) {
-				return new ErrorResponse(500, e2.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e2.getMessage());
 			}
 
 			try {
 				body = new ByteArrayEntity(((QueryRequest) request).getSPARQL().getBytes("UTF-8"));
 			} catch (UnsupportedEncodingException e) {
-				return new ErrorResponse(500, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 			break;
 		default:
@@ -371,7 +359,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		try {
 			uri = new URI("https", null, properties.getHost(), port, path, null, null);
 		} catch (URISyntaxException e1) {
-			return new ErrorResponse(500, e1.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
 		}
 
 		HttpUriRequest httpRequest = new HttpPost(uri);
@@ -393,7 +381,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			httpclient = new SSLSecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017").getSSLHttpClient();
 		} catch (KeyManagementException | UnrecoverableKeyException | NoSuchAlgorithmException | KeyStoreException
 				| CertificateException | IOException e) {
-			return new ErrorResponse(500, e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 		CloseableHttpResponse response = null;
 		String jsonResponse = null;
@@ -404,7 +392,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			try {
 				response = httpclient.execute(httpRequest);
 			} catch (IOException e) {
-				return new ErrorResponse(500, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 
 			timing = System.nanoTime() - timing;
@@ -423,18 +411,18 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			try {
 				jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
 			} catch (ParseException | IOException e) {
-				return new ErrorResponse(500, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 			try {
 				EntityUtils.consume(entity);
 			} catch (IOException e) {
-				return new ErrorResponse(500, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 		} finally {
 			try {
 				response.close();
 			} catch (IOException e) {
-				return new ErrorResponse(500, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 		}
 
@@ -443,26 +431,31 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			return parseSPARQL11SEResponse(jsonResponse, op);
 		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException
 				| BadPaddingException e) {
-			return new ErrorResponse(500, e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 	}
 
 	protected Response parseSPARQL11SEResponse(String response, SPARQL11SEPrimitive op) throws InvalidKeyException,
 			NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
 		if (response == null)
-			return new ErrorResponse(0, HttpStatus.SC_INTERNAL_SERVER_ERROR, "Response is null");
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Response is null");
 
+		// Parse JSON response
 		JsonObject json = null;
 		try {
 			json = new JsonParser().parse(response).getAsJsonObject();
 		} catch (JsonParseException | IllegalStateException e) {
-			return new ErrorResponse(0, HttpStatus.SC_INTERNAL_SERVER_ERROR, "Unknown response: " + response);
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Not JSON response: " + response);
 		}
 
 		// Error response
-		if (json.get("code") != null)
-			if (json.get("code").getAsInt() >= 400)
-				return new ErrorResponse(0, json.get("code").getAsInt(), json.get("body").getAsString());
+		try {
+			if (json.get("error") != null)
+				return new ErrorResponse(0, json.get("error").getAsJsonObject().get("code").getAsInt(),
+						json.get("error").getAsJsonObject().get("body").getAsString());
+		} catch (Exception e) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Unrecognized error message");
+		}
 
 		if (op == SPARQL11SEPrimitive.SECUREQUERY)
 			return new QueryResponse(json);
@@ -470,43 +463,31 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			return new UpdateResponse(response);
 
 		if (op == SPARQL11SEPrimitive.REGISTER) {
-			if (json.get("client_id") != null && json.get("client_secret") != null) {
-				try {
-					properties.setCredentials(json.get("client_id").getAsString(),
-							json.get("client_secret").getAsString());
-				} catch (SEPASecurityException | SEPAPropertiesException e) {
-					return new ErrorResponse(-1, HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to save credentials");
-				}
-
-				return new RegistrationResponse(json.get("client_id").getAsString(),
-						json.get("client_secret").getAsString(), json.get("signature"));
+			try {
+				String id = json.get("credentials").getAsJsonObject().get("client_id").getAsString();
+				String secret = json.get("credentials").getAsJsonObject().get("client_secret").getAsString();
+				JsonElement signature = json.get("credentials").getAsJsonObject().get("signature");
+				properties.setCredentials(id, secret);
+				return new RegistrationResponse(id, secret, signature);
+			} catch (Exception e) {
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
 			}
-			return new ErrorResponse(-1, HttpStatus.SC_INTERNAL_SERVER_ERROR,
-					"Credentials not found in registration response");
 		}
 
 		if (op == SPARQL11SEPrimitive.REQUESTTOKEN) {
-			if (json.get("access_token") != null && json.get("expires_in") != null && json.get("token_type") != null) {
-				int seconds = json.get("expires_in").getAsInt();
+			try {
+				int seconds = json.get("token").getAsJsonObject().get("expires_in").getAsInt();
+				String jwt = json.get("token").getAsJsonObject().get("access_token").getAsString();
+				String type = json.get("token").getAsJsonObject().get("token_type").getAsString();
 				Date expires = new Date();
 				expires.setTime(expires.getTime() + (1000 * seconds));
-				try {
-					properties.setJWT(json.get("access_token").getAsString(), expires,
-							json.get("token_type").getAsString());
-				} catch (SEPASecurityException | SEPAPropertiesException e) {
-					return new ErrorResponse(-1, HttpStatus.SC_INTERNAL_SERVER_ERROR, "Failed to save JWT");
-				}
-				return new JWTResponse(json.get("access_token").getAsString(), json.get("token_type").getAsString(),
-						json.get("expires_in").getAsLong());
-			} else if (json.get("code") != null && json.get("body") != null)
-				return new ErrorResponse(0, json.get("code").getAsInt(), json.get("body").getAsString());
-			else if (json.get("code") != null)
-				return new ErrorResponse(0, json.get("code").getAsInt(), "");
-
-			return new ErrorResponse(0, HttpStatus.SC_INTERNAL_SERVER_ERROR,
-					"Response not recognized: " + json.toString());
+				properties.setJWT(jwt, expires, type);
+				return new JWTResponse(jwt, type, seconds);
+			} catch (Exception e) {
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+			}
 		}
 
-		return new ErrorResponse(0, HttpStatus.SC_INTERNAL_SERVER_ERROR, "Response unknown: " + response);
+		return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Response unknown: " + response);
 	}
 }

@@ -46,8 +46,12 @@ public class UnsubscribeResponse extends Response {
 	public UnsubscribeResponse(Integer token, String spuid) {
 		super(token);
 
+		JsonObject response = new JsonObject();
+		
 		if (spuid != null)
-			json.add("unsubscribed", new JsonPrimitive(spuid));
+			response.add("spuid", new JsonPrimitive(spuid));
+		
+		json.add("unsubscribed", response);
 	}
 
 	/**
@@ -59,8 +63,12 @@ public class UnsubscribeResponse extends Response {
 	public UnsubscribeResponse(String spuid) {
 		super();
 
+		JsonObject response = new JsonObject();
+		
 		if (spuid != null)
-			json.add("unsubscribed", new JsonPrimitive(spuid));
+			response.add("spuid", new JsonPrimitive(spuid));
+		
+		json.add("unsubscribed", response);
 	}
 
 	/**
@@ -80,8 +88,11 @@ public class UnsubscribeResponse extends Response {
 	 * @return the spuid
 	 */
 	public String getSpuid() {
-		if (json.get("unsubscribed") == null)
+		try {
+			return json.get("unsubscribed").getAsJsonObject().get("spuid").getAsString();
+		}
+		catch(Exception e) {
 			return "";
-		return json.get("unsubscribed").getAsString();
+		}
 	}
 }

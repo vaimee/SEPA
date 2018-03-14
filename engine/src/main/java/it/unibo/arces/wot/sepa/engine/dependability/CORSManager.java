@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.security; 
+package it.unibo.arces.wot.sepa.engine.dependability; 
 
 import org.apache.http.Header;
 import org.apache.http.nio.protocol.HttpAsyncExchange;

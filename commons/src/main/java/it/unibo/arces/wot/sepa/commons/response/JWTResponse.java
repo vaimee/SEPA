@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.commons.response;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 // TODO: Auto-generated Javadoc
@@ -48,12 +49,16 @@ public class JWTResponse extends Response {
 	 */
 	public JWTResponse(String access_token, String token_type, long expiring) {
 		super(0);
+		JsonObject jwt = new JsonObject();
+		
 		if (access_token != null)
-			json.add("access_token", new JsonPrimitive(access_token));
+			jwt.add("access_token", new JsonPrimitive(access_token));
 		if (token_type != null)
-			json.add("token_type", new JsonPrimitive(token_type));
+			jwt.add("token_type", new JsonPrimitive(token_type));
 		if (expiring > 0)
-			json.add("expires_in", new JsonPrimitive(expiring));
+			jwt.add("expires_in", new JsonPrimitive(expiring));
+		
+		json.add("token", jwt);
 	}
 
 	/**
@@ -62,10 +67,12 @@ public class JWTResponse extends Response {
 	 * @return the access token
 	 */
 	public String getAccessToken() {
-		if (json.get("access_token") != null)
-			return json.get("access_token").getAsString();
-		return "";
-
+		try {
+			return json.get("token").getAsJsonObject().get("access_token").getAsString();
+		}
+		catch(Exception e) {
+			return "";
+		}
 	}
 
 	/**
@@ -74,10 +81,12 @@ public class JWTResponse extends Response {
 	 * @return the token type
 	 */
 	public String getTokenType() {
-		if (json.get("token_type") != null)
-			return json.get("token_type").getAsString();
-		return "";
-
+		try {
+			return json.get("token").getAsJsonObject().get("token_type").getAsString();
+		}
+		catch(Exception e) {
+			return "";
+		}
 	}
 
 	/**
@@ -86,8 +95,11 @@ public class JWTResponse extends Response {
 	 * @return the expires in
 	 */
 	public long getExpiresIn() {
-		if (json.get("expires_in") != null)
-			return json.get("expires_in").getAsLong();
-		return 0;
+		try {
+			return json.get("token").getAsJsonObject().get("expires_in").getAsLong();
+		}
+		catch(Exception e) {
+			return 0;
+		}
 	}
 }

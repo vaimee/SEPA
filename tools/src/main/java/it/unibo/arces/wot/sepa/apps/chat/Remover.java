@@ -2,6 +2,7 @@ package it.unibo.arces.wot.sepa.apps.chat;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
@@ -16,7 +17,7 @@ public class Remover extends Aggregator {
 	private Bindings sender = new Bindings();
 	private boolean joined = false;
 	
-	public Remover(String senderURI) throws SEPAProtocolException, SEPAPropertiesException {
+	public Remover(String senderURI) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
 		super(new ApplicationProfile("chat.jsap"), "RECEIVED", "REMOVE");
 		sender.addBinding("sender", new RDFTermURI(senderURI));
 	}

@@ -32,7 +32,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.response.Ping;
+//import it.unibo.arces.wot.sepa.commons.response.Ping;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
@@ -130,9 +130,9 @@ public abstract class SPU implements Runnable {
 		}
 	}
 
-	public void ping() throws IOException {
-		handler.sendPing(new Ping(getUUID()));
-	}
+//	public void ping() throws IOException {
+//		handler.sendPing(new Ping(getUUID()));
+//	}
 
 	@Override
 	public void run() {

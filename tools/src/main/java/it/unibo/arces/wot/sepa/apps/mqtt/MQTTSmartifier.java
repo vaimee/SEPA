@@ -49,8 +49,8 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	// Topics mapping
 	private HashMap<String, String> topic2observation = new HashMap<String, String>();
 
-	public MQTTSmartifier(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new ApplicationProfile(jsap), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
+	public MQTTSmartifier() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(new ApplicationProfile("mqtt.jsap"), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
 	}
 
 	@Override
@@ -176,7 +176,7 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 		}
 	}
 
-	public boolean start(boolean simulate) {
+	public boolean start() {
 		// Subscribe to observation-topic mapping
 		Response ret = subscribe(null);
 
@@ -187,7 +187,7 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 		SubscribeResponse results = (SubscribeResponse) ret;
 		onAddedResults(results.getBindingsResults());
 
-		if (simulate)
+		if (getApplicationProfile().getExtendedData().get("simulate").getAsBoolean())
 			simulator();
 		else {
 			// MQTT: begin

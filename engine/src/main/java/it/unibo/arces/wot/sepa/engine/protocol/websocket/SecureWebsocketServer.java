@@ -1,6 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
-
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
@@ -15,13 +14,18 @@ import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.request.Request;
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
+import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
 public class SecureWebsocketServer extends WebsocketServer implements SecureWebsocketServerMBean {
 	private AuthorizationManager oauth;
@@ -32,8 +36,10 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 		return "Secure Subscribe     | wss://%s:%d%s";
 	}
 
-	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,int keepAlivePeriod) throws SEPAProtocolException, SEPASecurityException {
-		super(port, path, scheduler,keepAlivePeriod);
+	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,
+			int keepAlivePeriod, DependabilityManager dependabilityMng)
+			throws SEPAProtocolException, SEPASecurityException {
+		super(port, path, scheduler, keepAlivePeriod, dependabilityMng);
 
 		if (oauth == null)
 			throw new IllegalArgumentException("Authorization manager is null");
@@ -49,43 +55,62 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 	}
 
 	@Override
-	public void onMessage(WebSocket conn, String message) {
-		logger.debug("@onMessage " + message);
-		
-		// JWT Validation
-		Response validation = validateToken(message);
-		if (validation.getClass().equals(ErrorResponse.class)) {
-			// Not authorized
-			jmx.onNotAuthorizedRequest();
-			
-			logger.warn("NOT AUTHORIZED");
-			conn.send(validation.toString());
-			return;
-		}
-
-		super.onMessage(conn, message);
-
-	}
-
-	private Response validateToken(String request) {
+	protected Request parseRequest(String request, WebSocket conn)
+			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException {
 		JsonObject req;
+
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
-		} catch (JsonParseException | IllegalStateException e) {
+			
+			if (req.get("subscribe") != null) {
+				Response ret = validateToken(req.get("subscribe").getAsJsonObject().get("authorization").getAsString());
+				if (ret.isError()) {
+					// Not authorized
+					jmx.onNotAuthorizedRequest();
 
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, e.getMessage());
+					logger.warn("NOT AUTHORIZED");
+					conn.send(ret.toString());
+					return null;
+				}
+				try {
+					return new SubscribeRequest(req.get("subscribe").getAsJsonObject().get("sparql").getAsString(),
+							req.get("subscribe").getAsJsonObject().get("alias").getAsString());
+				} catch (Exception e) {
+					return new SubscribeRequest(req.get("subscribe").getAsJsonObject().get("sparql").getAsString());
+				}
+			}
+			else if (req.get("unsubscribe") != null) {
+				Response ret = validateToken(
+						req.get("unsubscribe").getAsJsonObject().get("authorization").getAsString());
+				if (ret.isError()) {
+					// Not authorized
+					jmx.onNotAuthorizedRequest();
+
+					logger.warn("NOT AUTHORIZED");
+					conn.send(ret.toString());
+					return null;
+				}
+				return new UnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
+			}
+		} catch (Exception e) {
+			logger.debug(e.getLocalizedMessage());
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+			conn.send(response.toString());
+			return null;
 		}
+		
+		logger.debug("Unknown request: "+request);
+		ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Unknown request: "+request);
+		conn.send(response.toString());
+		return null;
+	}
 
-		if (req.get("authorization") == null)
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "authorization key is missing");
-
-		String oauthRequest = null;
+	private Response validateToken(String bearer) {
 		String jwt = null;
 		try {
-			oauthRequest = req.get("authorization").getAsString();
-			if (!oauthRequest.startsWith("Bearer "))
+			if (!bearer.startsWith("Bearer "))
 				new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "authorization value MUST be of type Bearer");
-			jwt = oauthRequest.substring(7);
+			jwt = bearer.substring(7);
 		} catch (Exception e) {
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "authorization key value is wrong");
 		}
@@ -107,14 +132,14 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 	@Override
 	public void onStart() {
 		System.out.println(welcomeMessage);
-		
-		synchronized(this) {
+
+		synchronized (this) {
 			notify();
 		}
 	}
-	
+
 	@Override
-	public long getNotAuthorized(){
+	public long getNotAuthorized() {
 		return jmx.getNotAuthorized();
 	}
 
