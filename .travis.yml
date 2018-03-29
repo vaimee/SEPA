@@ -7,13 +7,11 @@ services:
 jobs:
   include:
     - stage : test
-    - stage : package
-      script:
-        - mvn package
     - stage : integration
       before_script:
         - docker run --name blazegraph -d -p 9999:8080 lyrasis/blazegraph:2.1.4
         - sleep 30
+        - mvn package
         - cd engine/target
         - java -jar engine-0-SNAPSHOT.jar
         - sleep 30
