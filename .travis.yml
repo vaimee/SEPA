@@ -8,10 +8,11 @@ jobs:
   include:
     - stage : test
     - stage : integration
-      install:
-        - docker build -t blazegraph:2.1.4 2.1.4/
       before-script:
-        - docker run --name blazegraph -d -p 9999:8080 blazegraph:2.1.4
+        - docker run --name blazegraph -d -p 9999:8080 lyrasis/blazegraph:2.1.4
+        - sleep 30
+        - cd engine/target
+        - java -jar engine-0-SNAPSHOT.jar
         - sleep 30
       script:
         - mvn verify
