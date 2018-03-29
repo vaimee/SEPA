@@ -13,6 +13,7 @@ jobs:
         - sleep 30
         - mvn package
         - cd engine/target
+        - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
         - java -jar engine-0-SNAPSHOT.jar
         - sleep 30
       script:
