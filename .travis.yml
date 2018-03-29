@@ -14,8 +14,9 @@ jobs:
         - mvn package
         - cd engine/target
         - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
-        - java -jar engine-0-SNAPSHOT.jar &
+        - java -jar engine-0-SNAPSHOT.jar > log.txt &
         - sleep 30
+        - cd ../..
       script:
         - mvn verify
     - stage : deploy
