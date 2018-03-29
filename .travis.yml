@@ -2,3 +2,8 @@ language: java
 cache:
   directories:
   - $HOME/.m2
+jobs:
+  include:
+    - stage : test
+    - stage : integration
+    - stage : deploy
