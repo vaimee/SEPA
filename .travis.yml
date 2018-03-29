@@ -2,8 +2,17 @@ language: java
 cache:
   directories:
   - $HOME/.m2
+services:
+  - docker
 jobs:
   include:
     - stage : test
     - stage : integration
+      install:
+        - docker build -t blazegraph:2.1.4 2.1.4/
+      before-script:
+        - docker run --name blazegraph -d -p 9999:8080 blazegraph:2.1.4
+        - sleep 30
+      script:
+        - mvn verify
     - stage : deploy
