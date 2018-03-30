@@ -11,6 +11,7 @@ jobs:
       before_script:
         - docker run --name blazegraph -d -p 9999:8080 lyrasis/blazegraph:2.1.4
         - sleep 30
+        - wget localhost:9999/blazegraph/namespace/kb/sparql
         - mvn package
         - cd engine/target
         - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
