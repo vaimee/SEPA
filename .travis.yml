@@ -12,6 +12,7 @@ jobs:
         - docker run --name blazegraph -d -p 9999:8080 lyrasis/blazegraph:2.1.4
         - sleep 60
         - docker ps | grep blazegraph
+        - curl http://localhost:9999/bigdata/#query
         - wget localhost:9999/blazegraph/namespace/kb/sparql
         - mvn package
         - cd engine/target
