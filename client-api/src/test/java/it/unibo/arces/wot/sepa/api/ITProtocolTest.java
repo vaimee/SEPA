@@ -93,12 +93,12 @@ public class ITProtocolTest {
 
     private static Response SubmitQuery(SPARQL11SEProtocol client,String query) {
         final QueryRequest queryRequest = new QueryRequest(query);
-        return client.query(queryRequest);
+        return client.query(queryRequest,5000);
     }
 
     private static Response SubmitUpdate(SPARQL11SEProtocol client,String query) {
         final UpdateRequest updateRequest = new UpdateRequest(query);
-        return client.update(updateRequest);
+        return client.update(updateRequest,5000);
     }
 
     private static Response submitSubscribe(String query, SPARQL11SEProtocol client) {
