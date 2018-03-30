@@ -34,19 +34,19 @@ public class ITProtocolTest {
         }
     }
 
-    @Test
+    @Test(timeout=5000)
     public void Update(){
         final Response update = SubmitUpdate(client,TestQueries.SIMPLE_UPDATE);
         assertFalse(String.valueOf(update.getAsJsonObject()),update.isError());
     }
 
-    @Test
+    @Test(timeout=5000)
     public void Query(){
         final Response response = SubmitQuery(client, TestQueries.SIMPLE_QUERY);
         assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
     }
 
-    @Test
+    @Test(timeout=5000)
     public void Subscribe(){
         final Response response = submitSubscribe(TestQueries.SIMPLE_QUERY, client);
         assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
