@@ -13,7 +13,7 @@ jobs:
         - sleep 60
         - docker ps | grep blazegraph
         - curl http://localhost:9999/bigdata/#query
-        - wget localhost:9999/blazegraph/namespace/kb/sparql
+        - wget http://localhost:9999/blazegraph/namespace/kb/sparql
         - mvn package
         - cd engine/target
         - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
