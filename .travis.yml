@@ -23,7 +23,7 @@ jobs:
   - stage : deploy
     deploy:
       provider: script
-      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=$TRAVIS_TAG"
+      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy -X -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=$TRAVIS_TAG"
       skip_cleanup: true
       on:
         tags: true
