@@ -9,6 +9,7 @@ import java.util.HashMap;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.java_websocket.WebSocket;
 import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ClientHandshake;
@@ -39,6 +40,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	}
 
 	protected String welcomeMessage;
+	
+	private String path;
 
 	// Fragmentation support
 	private HashMap<WebSocket, String> fragmentedMessages = new HashMap<WebSocket, String>();
@@ -56,12 +59,13 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			DependabilityManager dependabilityMng) throws SEPAProtocolException {
 		super(new InetSocketAddress(port));
 
-		if (path == null || scheduler == null)
+		if (path == null || scheduler == null || dependabilityMng == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("One or more arguments are null"));
 
 		this.scheduler = scheduler;
 		this.dependabilityMng = dependabilityMng;
-
+		this.path = path;
+		
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
 		String address = getAddress().getAddress().toString();
@@ -78,15 +82,24 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-		logger.debug("@onOpen WebSocket: " + conn + " ClientHandshake: " + handshake);
+		logger.debug("@onOpen WebSocket: <" + conn + ">" + " Resource descriptor: "+conn.getResourceDescriptor());
 
+		if (!conn.getResourceDescriptor().equals(path)) {
+			logger.warn("Bad resource descriptor: "+conn.getResourceDescriptor()+ " Use: "+path);
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad resource descriptor: "+conn.getResourceDescriptor()+ " Use: "+path);
+			conn.send(response.toString());
+			return ;	
+		}
+		
 		fragmentedMessages.put(conn, null);
 	}
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-		logger.debug("@onClose Reason: <" + reason + "> Code: <" + code + "> Remote: <" + remote + ">¯");
+		logger.debug("@onClose WebSocket:<"+conn+"> Reason: <" + reason + "> Code: <" + code + "> Remote: <" + remote + ">");
 
+		if (!conn.getResourceDescriptor().equals(path)) return;
+			
 		fragmentedMessages.remove(conn);
 
 		// Unsubscribe all SPUs
@@ -102,6 +115,14 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 		logger.debug("Message from: " + conn.getRemoteSocketAddress() + " [" + message + "]");
 
+		if (!conn.getResourceDescriptor().equals(path)) {
+			logger.warn("Bad resource descriptor: "+conn.getResourceDescriptor()+ " Use: "+path);
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad resource descriptor: "+conn.getResourceDescriptor()+ " Use: "+path);
+			conn.send(response.toString());
+			return ;	
+		}
+		
+		// Parse the request
 		Request req = parseRequest(message,conn);
 		if (req == null) return;
 
@@ -163,8 +184,10 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onFragment(WebSocket conn, Framedata fragment) {
-		logger.debug("@onFragment " + fragment);
+		logger.debug("@onFragment WebSocket: <" +conn+"> Fragment data:<"+ fragment+">");
 
+		if (!conn.getResourceDescriptor().equals(path)) return;
+		
 		if (fragmentedMessages.get(conn) == null)
 			fragmentedMessages.put(conn, new String(fragment.getPayloadData().array(), Charset.forName("UTF-8")));
 		else
@@ -183,8 +206,10 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
-		logger.error("@onError WebSocket: " + conn + " Exception: " + ex);
+		logger.error("@onError WebSocket: <" + conn + "> Exception: " + ex);
 
+		if (!conn.getResourceDescriptor().equals(path)) return;
+		
 		jmx.onError();
 	}
 

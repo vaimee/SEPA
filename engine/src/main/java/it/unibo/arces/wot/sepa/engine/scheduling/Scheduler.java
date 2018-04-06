@@ -84,7 +84,7 @@ public class Scheduler implements SchedulerMBean {
 						return;
 					}
 					try {
-						responders.get(response.getToken()).sendResponse(response);
+						if (responders.get(response.getToken()) != null) responders.get(response.getToken()).sendResponse(response);
 					} catch (IOException e) {
 						logger.error("Failed to send response: " + e.getMessage());
 					}

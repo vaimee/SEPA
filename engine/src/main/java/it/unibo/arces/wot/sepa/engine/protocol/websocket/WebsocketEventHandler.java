@@ -34,7 +34,6 @@ public class WebsocketEventHandler implements EventHandler {
 	}
 	
 	private void send(Response ret) throws IOException {
-		if (!socket.isOpen()) throw new IOException("Socket closed");
 		try{
 			socket.send(ret.toString());
 		}
@@ -68,10 +67,4 @@ public class WebsocketEventHandler implements EventHandler {
 	public void notifyEvent(Notification notify) throws IOException {
 		send(notify);
 	}
-
-//	@Override
-//	public void sendPing(Ping ping) throws IOException {
-//		send(ping);
-//	}
-
 }

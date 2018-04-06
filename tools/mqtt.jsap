@@ -1,6 +1,6 @@
 {
 	"parameters" : {
-		"host" : "www.vaimee.com" ,
+		"host" : "localhost" ,
 		"concurrentRequests" : 5 ,
 		"ports" : {
 			"http" : 8000 ,
@@ -525,7 +525,7 @@
 		}
 		 ,
 		"ADD_OBSERVATION" : {
-			"sparql" : "INSERT {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; arces-monitor:hasMqttTopic ?topic ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/monitor#QuantityValue-\",STRUUID())) AS ?quantity) . FILTER NOT EXISTS {?observation rdf:type sosa:Observation}}" ,
+			"sparql" : "DELETE {?quantity qudt-1-1:numericValue ?value} WHERE {?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity. ?quantity qudt-1-1:numericValue ?value}; DELETE {?observation rdf:type sosa:Observation ; rdfs:label ?X ; sosa:hasFeatureOfInterest ?locati ; sosa:hasResult ?quantityOLD . ?quantityOLD rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unitOLD} WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?labelOLD ; sosa:hasFeatureOfInterest ?locationOLD ; sosa:hasResult ?quantityOLD . ?quantityOLD rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unitOLD};INSERT {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; arces-monitor:hasMqttTopic ?topic ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/monitor#QuantityValue-\",STRUUID())) AS ?quantity)}" ,
 			"forcedBindings" : {
 				"observation" : {
 					"type" : "uri" ,

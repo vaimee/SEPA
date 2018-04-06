@@ -17,6 +17,8 @@
 */
 package it.unibo.arces.wot.sepa.commons.response;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -39,8 +41,19 @@ public class UpdateResponse extends Response {
 	public UpdateResponse(Integer token, String body) {
 		super(token);
 
-		json.add("body", new JsonPrimitive(body));
-		json.add("code", new JsonPrimitive(200));
+		try {
+			JsonObject jbody = new JsonParser().parse(body).getAsJsonObject();
+			
+			json.add("updateResponse", new JsonObject());
+			json.get("updateResponse").getAsJsonObject().add("body", jbody);
+			json.get("updateResponse").getAsJsonObject().add("isJsonBody", new JsonPrimitive(true));
+			
+		}
+		catch(Exception e) {
+			json.add("updateResponse", new JsonObject());
+			json.get("updateResponse").getAsJsonObject().add("body", new JsonPrimitive(body));
+			json.get("updateResponse").getAsJsonObject().add("isJsonBody", new JsonPrimitive(false));
+		}
 	}
 
 	/**
@@ -52,8 +65,19 @@ public class UpdateResponse extends Response {
 	public UpdateResponse(String body) {
 		super();
 
-		json.add("body", new JsonPrimitive(body));
-		json.add("code", new JsonPrimitive(200));
+		try {
+			JsonObject jbody = new JsonParser().parse(body).getAsJsonObject();
+			
+			json.add("response", new JsonObject());
+			json.get("response").getAsJsonObject().add("body", jbody);
+			json.get("response").getAsJsonObject().add("isJson", new JsonPrimitive(true));
+			
+		}
+		catch(Exception e) {
+			json.add("response", new JsonObject());
+			json.get("response").getAsJsonObject().add("body", new JsonPrimitive(body));
+			json.get("response").getAsJsonObject().add("isJson", new JsonPrimitive(false));
+		}
 	}
 
 	public UpdateResponse(UpdateResponse ret) {

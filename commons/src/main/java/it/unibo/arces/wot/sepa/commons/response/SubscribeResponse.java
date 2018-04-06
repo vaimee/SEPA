@@ -30,8 +30,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  *
  * The JSON serialization is the following:
  *
- * {"subscribed" : {"spuid":"SPUID","alias":"ALIAS","firstResults":<BindingsResults>}}
- *
+ * {"notification" : {"spuid":"SPUID","alias":"ALIAS"(optional),"addedResults":<BindingsResults>,"removedResults:{},"sequence":0}}
  */
 
 public class SubscribeResponse extends Response {
@@ -41,7 +40,7 @@ public class SubscribeResponse extends Response {
 	}
 
 	public BindingsResults getBindingsResults() {
-		return new BindingsResults(json.get("subscribed").getAsJsonObject().get("firstResults").getAsJsonObject());
+		return new BindingsResults(json.get("notification").getAsJsonObject().get("addedResults").getAsJsonObject());
 	}
 	
 	/**
@@ -60,9 +59,13 @@ public class SubscribeResponse extends Response {
 		if (spuid != null)
 			response.add("spuid", new JsonPrimitive(spuid));
 		
-		response.add("firstResults", new BindingsResults(firstResults).toJson());
+		response.add("sequence", new JsonPrimitive(0));
 		
-		json.add("subscribed", response);
+		response.add("addedResults", new BindingsResults(firstResults).toJson());
+		if (firstResults != null) response.add("removedResults", new BindingsResults(firstResults.getVariables(),null).toJson());
+		else response.add("removedResults", new JsonObject());
+			
+		json.add("notification", response);
 	}
 
 	/**
@@ -84,9 +87,14 @@ public class SubscribeResponse extends Response {
 			response.add("spuid", new JsonPrimitive(spuid));
 		if (alias != null)
 			response.add("alias", new JsonPrimitive(alias));
-		response.add("firstResults", new BindingsResults(firstResults).toJson());
 		
-		json.add("subscribed", response);
+		response.add("sequence", new JsonPrimitive(0));
+		
+		response.add("addedResults", new BindingsResults(firstResults).toJson());
+		if (firstResults != null) response.add("removedResults", new BindingsResults(firstResults.getVariables(),null).toJson());
+		else response.add("removedResults", new JsonObject());
+				
+		json.add("notification", response);
 	}
 
 	/**
@@ -103,7 +111,12 @@ public class SubscribeResponse extends Response {
 		if (spuid != null)
 			response.add("spuid", new JsonPrimitive(spuid));
 		
-		json.add("subscribed", response);
+		response.add("sequence", new JsonPrimitive(0));
+		
+		response.add("addedResults", new JsonObject());
+		response.add("removedResults", new JsonObject());
+		
+		json.add("notification", response);
 	}
 
 	/**
@@ -131,7 +144,12 @@ public class SubscribeResponse extends Response {
 		if (alias != null)
 			response.add("alias", new JsonPrimitive(alias));
 		
-		json.add("subscribed", response);
+		response.add("sequence", new JsonPrimitive(0));
+		
+		response.add("addedResults", new JsonObject());
+		response.add("removedResults", new JsonObject());
+				
+		json.add("notification", response);
 	}
 
 	/**
@@ -141,7 +159,7 @@ public class SubscribeResponse extends Response {
 	 */
 	public String getSpuid() {
 		try {
-			return json.get("subscribed").getAsJsonObject().get("spuid").getAsString();
+			return json.get("notification").getAsJsonObject().get("spuid").getAsString();
 		}
 		catch(Exception e) {
 			return "";
@@ -155,7 +173,7 @@ public class SubscribeResponse extends Response {
 	 */
 	public String getAlias() {
 		try {
-			return json.get("subscribed").getAsJsonObject().get("alias").getAsString();
+			return json.get("notification").getAsJsonObject().get("alias").getAsString();
 		}
 		catch(Exception e) {
 			return "";

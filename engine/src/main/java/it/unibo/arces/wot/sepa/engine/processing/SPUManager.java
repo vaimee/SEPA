@@ -33,7 +33,6 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
@@ -58,9 +57,9 @@ public class SPUManager implements SPUManagerMBean {
 
 	private Semaphore endpointSemaphore;
 
-	//SPU Synchronization
+	// SPU Synchronization
 	private SPUSync spuSync = new SPUSync();
-	
+
 	public SPUManager(SPARQL11Properties endpointProperties, EngineProperties engineProperties,
 			Semaphore endpointSemaphore, UpdateProcessingQueue updateProcessingQueue) {
 		this.endpointProperties = endpointProperties;
@@ -132,35 +131,35 @@ public class SPUManager implements SPUManagerMBean {
 		thread2.start();
 
 		// Broken subscriptions detector thread
-//		Thread keepalive = new Thread() {
-//			public void run() {
-//				while (true) {
-//					try {
-//						Thread.sleep(SPUManagerBeans.getKeepalive());
-//					} catch (InterruptedException e) {
-//						return;
-//					}
-//
-//					synchronized (spus) {
-//						for (SPU spu : spus.values()) {
-//							try {
-//								spu.ping();
-//							} catch (Exception e) {
-//								// UNSUBSCRIBE SPU
-//								logger.warn("Ping failed");
-//
-//								synchronized (unsubscribeQueue) {
-//									unsubscribeQueue.offer(spu);
-//									unsubscribeQueue.notify();
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//		};
-//		keepalive.setName("SEPA SPU Keepalive");
-//		keepalive.start();
+		// Thread keepalive = new Thread() {
+		// public void run() {
+		// while (true) {
+		// try {
+		// Thread.sleep(SPUManagerBeans.getKeepalive());
+		// } catch (InterruptedException e) {
+		// return;
+		// }
+		//
+		// synchronized (spus) {
+		// for (SPU spu : spus.values()) {
+		// try {
+		// spu.ping();
+		// } catch (Exception e) {
+		// // UNSUBSCRIBE SPU
+		// logger.warn("Ping failed");
+		//
+		// synchronized (unsubscribeQueue) {
+		// unsubscribeQueue.offer(spu);
+		// unsubscribeQueue.notify();
+		// }
+		// }
+		// }
+		// }
+		// }
+		// }
+		// };
+		// keepalive.setName("SEPA SPU Keepalive");
+		// keepalive.start();
 
 		// Main update processing thread
 		Thread main = new Thread() {
@@ -174,10 +173,11 @@ public class SPUManager implements SPUManagerMBean {
 						// Wake-up all SPUs
 						synchronized (spus) {
 							logger.info("Activate SPUs (Total: " + spus.size() + ")");
-							
+
 							spuSync.startProcessing(spus.values());
-							
-							for (SPU spu : spus.values()) spu.process(update);
+
+							for (SPU spu : spus.values())
+								spu.process(update);
 						}
 
 						// Wait all SPUs completing processing (or timeout)
@@ -214,8 +214,7 @@ public class SPUManager implements SPUManagerMBean {
 		// TODO: choose different kinds of SPU based on subscribe request
 		SPU spu = null;
 		try {
-			spu = new SPUNaive(req, handler, endpointProperties, endpointSemaphore,spuSync);
-			// spu.addObserver(this);
+			spu = new SPUNaive(req, handler, endpointProperties, endpointSemaphore, spuSync);
 		} catch (SEPAProtocolException e) {
 			logger.debug("SPU creation failed: " + e.getMessage());
 
@@ -223,19 +222,22 @@ public class SPUManager implements SPUManagerMBean {
 		}
 
 		logger.debug("SPU init");
-		if (!spu.init()) {
+
+		Response init = spu.init();
+
+		if (init.isError()) {
 			logger.debug("SPU initialization failed");
-
-			return new ErrorResponse(req.getToken(), 500, "SPU initialization failed: " + req.toString());
+		} else {
+			synchronized (subscribeQueue) {
+				logger.debug("Add SPU to activation queue");
+				subscribeQueue.offer(spu);
+				subscribeQueue.notify();
+			}
 		}
 
-		synchronized (subscribeQueue) {
-			logger.debug("Add SPU to activation queue");
-			subscribeQueue.offer(spu);
-			subscribeQueue.notify();
-		}
-
-		return new SubscribeResponse(req.getToken(), spu.getUUID(), req.getAlias(), spu.getFirstResults());
+		// return new SubscribeResponse(req.getToken(), spu.getUUID(), req.getAlias(),
+		// spu.getFirstResults());
+		return init;
 	}
 
 	public Response unsubscribe(UnsubscribeRequest req) {
@@ -265,16 +267,16 @@ public class SPUManager implements SPUManagerMBean {
 	}
 
 	// SPU processing ended notification
-//	@Override
-//	public void update(Observable o, Object arg) {
-//		SPU spu = (SPU) o;
-//
-//		synchronized (processingSpus) {
-//			processingSpus.remove(spu);
-//			logger.debug("SPUs left: " + processingSpus.size());
-//			processingSpus.notify();
-//		}
-//	}
+	// @Override
+	// public void update(Observable o, Object arg) {
+	// SPU spu = (SPU) o;
+	//
+	// synchronized (processingSpus) {
+	// processingSpus.remove(spu);
+	// logger.debug("SPUs left: " + processingSpus.size());
+	// processingSpus.notify();
+	// }
+	// }
 
 	@Override
 	public long getRequests() {

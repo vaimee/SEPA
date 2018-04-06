@@ -29,12 +29,12 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-public abstract class GenericClient extends Client implements ISubscriptionHandler {
+public class GenericClient extends Client {
 
-	public GenericClient(ApplicationProfile appProfile) throws SEPAProtocolException, SEPASecurityException {
+	public GenericClient(ApplicationProfile appProfile,ISubscriptionHandler handler) throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile);
 
-		protocolClient = new SPARQL11SEProtocol(appProfile, this);
+		protocolClient = new SPARQL11SEProtocol(appProfile, handler);
 	}
 
 	public Response update(String SPARQL_UPDATE, Bindings forced) {

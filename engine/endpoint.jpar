@@ -16,5 +16,5 @@
 			"query" : "JSON" ,
 			"update" : "JSON"}
 		 ,
-		"default-graph-uri" : "http://www.vaimee.com/default"}
+		"default-graph-uri" : "http://default"}
 }
