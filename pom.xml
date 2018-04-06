@@ -59,12 +59,13 @@
       <maven.compiler.target>1.8</maven.compiler.target>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
       <revision>0-SNAPSHOT</revision>
+      <update>0</update>
   </properties>
     <distributionManagement>
         <repository>
             <id>bintray-arces-wot-sepa-java-libs</id>
             <name>arces-wot-sepa-java-libs</name>
-            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/${project.artifactId}/;publish=1</url>
+            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/${project.artifactId}/;publish=1;override=${update}</url>
         </repository>
     </distributionManagement>
     <build>
