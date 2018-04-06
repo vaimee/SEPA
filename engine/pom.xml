@@ -20,24 +20,6 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>cy.github</groupId>
-				<artifactId>github-release-plugin</artifactId>
-				<version>0.5.1</version>
-				<configuration>
-					<tagName>${project.artifactId}-${project.version}</tagName>
-					<preRelease>true</preRelease>
-				</configuration>
-
-				<executions>
-					<execution>
-						<goals>
-							<goal>gh-upload</goal>
-						</goals>
-						<phase>deploy</phase>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<version>3.0.1</version>
 				<executions>
