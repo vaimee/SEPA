@@ -18,7 +18,6 @@
 package it.unibo.arces.wot.sepa.commons.response;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
@@ -37,12 +36,10 @@ public class QueryResponse extends Response {
 	 * @param body
 	 *            the body
 	 */
-	public QueryResponse(Integer token, JsonObject body) {
+	public QueryResponse(Integer token, JsonObject bindingResultsJSON) {
 		super(token);
-
-		if (body != null)
-			json.add("body", body);
-		json.add("code", new JsonPrimitive(200));
+		json = bindingResultsJSON;
+		
 	}
 
 	/**
@@ -51,12 +48,9 @@ public class QueryResponse extends Response {
 	 * @param body
 	 *            the body
 	 */
-	public QueryResponse(JsonObject body) {
+	public QueryResponse(JsonObject bindingResultsJSON) {
 		super();
-
-		if (body != null)
-			json.add("body", body);
-		json.add("code", new JsonPrimitive(200));
+		json = bindingResultsJSON;
 	}
 
 	public QueryResponse(QueryResponse ret) {
@@ -69,9 +63,8 @@ public class QueryResponse extends Response {
 	 *
 	 * @return the bindings results
 	 */
-	public BindingsResults getBindingsResults() {
-		if (json.get("body") != null)
-			return new BindingsResults(json.get("body").getAsJsonObject());
-		return null;
+	public BindingsResults getBindingsResults() {	
+		if (json == null) return null;
+		return new BindingsResults(json);
 	}
 }

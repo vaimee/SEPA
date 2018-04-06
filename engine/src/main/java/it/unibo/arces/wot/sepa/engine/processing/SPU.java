@@ -72,7 +72,7 @@ public abstract class SPU implements Runnable {
 	protected BindingsResults firstResults = null;
 
 	// To be implemented by every specific SPU implementation
-	public abstract boolean init();
+	public abstract Response init();
 	public abstract Response processInternal(UpdateResponse update,int timeout);
 	
 	//Notification result

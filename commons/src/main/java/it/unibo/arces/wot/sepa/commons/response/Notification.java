@@ -21,6 +21,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -34,7 +35,6 @@ import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
  */
 
 public class Notification extends Response {
-	private ARBindingsResults results;
 	/**
 	 * Instantiates a new notification.
 	 *
@@ -47,19 +47,19 @@ public class Notification extends Response {
 	 */
 	public Notification(String spuid, ARBindingsResults results, Integer sequence) {
 		super();
-
-		this.results = results;
 		
 		JsonObject response = new JsonObject();
+		
+		if (spuid != null)
+			response.add("spuid", new JsonPrimitive(spuid));
+		
+		response.add("sequence", new JsonPrimitive(sequence));
 		
 		if (results != null) {
 			response.add("addedResults", results.getAddedBindings().toJson());
 			response.add("removedResults", results.getRemovedBindings().toJson());
 		}
-		if (spuid != null)
-			response.add("spuid", new JsonPrimitive(spuid));
-		response.add("sequence", new JsonPrimitive(sequence));
-		
+			
 		json.add("notification", response);
 	}
 
@@ -95,10 +95,12 @@ public class Notification extends Response {
 	 * @return the AR bindings results
 	 */
 	public ARBindingsResults getARBindingsResults() {
-		return results; 
-//		if (json.getAsJsonObject("results") != null)
-//			return new ARBindingsResults(json.getAsJsonObject("results"));
-//		return null;
+		try {
+			return new ARBindingsResults(new BindingsResults(json.get("notification").getAsJsonObject().get("addedResults").getAsJsonObject()),new BindingsResults(json.get("notification").getAsJsonObject().get("removedResults").getAsJsonObject()));	
+		}
+		catch(Exception e) {
+			return null;
+		}
 	}
 
 	/**
@@ -110,13 +112,4 @@ public class Notification extends Response {
 		
 		return json.get("sequence").getAsInt();
 	}
-
-	// /**
-	// * To be notified.
-	// *
-	// * @return true, if successful
-	// */
-	// public boolean toBeNotified() {
-	// return json.get("results") != null;
-	// }
 }

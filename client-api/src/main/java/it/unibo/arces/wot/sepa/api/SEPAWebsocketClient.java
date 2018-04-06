@@ -79,22 +79,32 @@ public class SEPAWebsocketClient extends WebSocketClient {
 	public void onMessage(String message) {
 		logger.debug("@onMessage " + message);
 
-		// Parse message
-		JsonObject notify = new JsonParser().parse(message).getAsJsonObject();
-
-		if (notify.get("ping") != null) {
-			if(handler!=null) handler.onPing();
-		} else if (notify.get("subscribed") != null) {
-			response = new SubscribeResponse(notify);
-			setResponse();
-		} else if (notify.get("unsubscribed") != null) {
+		JsonObject notify = null;
+		try {
+			// Parse message
+			notify = new JsonParser().parse(message).getAsJsonObject();
+		}
+		catch(IllegalStateException e) {
+			logger.debug(e.getMessage());
+			return;
+		}
+		
+		if (notify.get("error") != null) {
+			if(handler!=null) handler.onError(new ErrorResponse(notify));
+		} 
+		else if (notify.get("unsubscribed") != null) {
 			response = new UnsubscribeResponse(notify);
 			setResponse();
-		} else if (notify.get("notification") != null) {
-			if(handler!=null) handler.onSemanticEvent(new Notification(notify));
-		} else if (notify.get("error") != null) {
-			if(handler!=null) handler.onError(new ErrorResponse(notify));
-		} else
+		} 
+		else if (notify.get("notification") != null) {
+			JsonObject notification = notify.get("notification").getAsJsonObject();
+			if (notification.get("sequence").getAsInt() == 0) {
+				response = new SubscribeResponse(notify);
+				setResponse();	
+			}
+			else if(handler!=null) handler.onSemanticEvent(new Notification(notify));	
+		}
+		else
 			logger.error("Unknown message: " + message);
 	}
 }

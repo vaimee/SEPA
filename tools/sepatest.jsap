@@ -1,1 +1,183 @@
-{"parameters":{"host":"localhost","ports":{"http":8000,"https":8443,"ws":9000,"wss":9443},"paths":{"query":"/query","update":"/update","subscribe":"/subscribe","register":"/oauth/register","tokenRequest":"/oauth/token","securePath":"/secure"},"methods":{"query":"POST","update":"URL_ENCODED_POST"},"formats":{"query":"JSON","update":"HTML"},"security":{"client_id":"C9R99vAYs9sLcHVf3xMU5KJ55rok9HJfwzbi7XI2dcmcyQCRt591KfThGZLZfwvh","client_secret":"jMZeF7+lodAiLojjKlnpN0Pdi/Ifh76Tl/bwBVa14ED7oPa4Na3EZXHrT6UxJOBW","jwt":"xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfucfBAB1iq4pImSubb9YmqLK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYll/zqRa29xTwQ36s5G36Us97Fza9QCQqiVdixO3OswTI59jzpzosYO8Xqs+rHfKv/r2wHKqARBD353bHkiT6FAeX6T7ZyDMpseT2k3N8+eMVlWIprMzsfR4Fs/vAvqJPFSr2xSHkdbYOW/tiqByrlrD7+w2MQU/1+dY/YaAtFOfKQ/10fWE9DfgFea1720WKxbwTg5WInAqJ69o/IaQ+AMfm2lGVlKVU7+OKdbA+aE9BXaNUxuUFnzEo2rsB6Rzk6HkOsR+jXa0FilpjVj3gtSmB/+XjIJi7lBAme1UOT69yJjACM+3PkmSFgzwo+UOpf56bMR08loAPkd53Bnn1gaEm1A/Yl63n+lIPYlp1LudkrbGTWT+PoxSbBTORkyPzTWI7li1b2xHM6bau7D59/vT/Sj6u8STtLSM+qQUvODEE6k6JHom7vaTkqSRlIrmAeJHRvwbfH5cENH3m/85L7gr8dmlb9h221oSED7JLXdQUvw8qbrro9O+aj8NrdKQbM00BpMqulUkzlIdP+2ns2vC9UOamudnyglGPGEFqX3BzoO600P8prXd5W6N3xu7HaFY11mXT2CmCCxMmXccYxdA/SxTi7ZNPJ6F136Uz9looqNteB25jnF+RxXpi209jViNgVn3eL8Ty6TDJi2+fKB","expires":"orGllhcVY6+20mklCnT0yw==","type":"XPrHEX2xHy+5IuXHPHigMw=="}},"graphs":{"default-graph-uri ":"http://default","named-graph-uri":"","using-graph-uri":"","using-named-graph-uri":""},"namespaces":{"sepa":"http://wot.arces.unibo.it/sepa#","rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"},"extended":{"notificationMaxDelay":2000,"sequence":[{"name":"Update","type":"UPDATE","id":"U1","secure":false,"passed":true},{"name":"Query","type":"QUERY","id":"Q1","results":1,"secure":false,"passed":true},{"name":"Subscribe","type":"SUBSCRIBE","id":"Q1","results":1,"secure":false,"passed":true},{"name":"Update","type":"UPDATE","id":"U2","secure":false,"passed":true},{"name":"Notification","type":"WAIT_NOTIFICATION","passed":true},{"name":"Unsubscribe","type":"UNSUBSCRIBE","secure":false,"passed":true},{"name":"Update","type":"UPDATE","id":"U2","secure":false,"passed":true},{"name":"Notification (not received)","type":"WAIT_NOTIFICATION","passed":false},{"id":"RegisterMePlease!","name":"Register not allowed","type":"REGISTER","passed":false},{"id":"SEPATest","name":"Register allowed","type":"REGISTER","passed":true},{"name":"Get token","type":"GET_TOKEN","passed":true},{"name":"Update (secure)","type":"UPDATE","id":"U1","secure":true,"passed":true},{"name":"Query (secure)","type":"QUERY","id":"Q1","results":1,"secure":true,"passed":true},{"name":"Subscribe (secure)","type":"SUBSCRIBE","id":"Q1","results":1,"secure":true,"passed":true},{"name":"Update (secure)","type":"UPDATE","id":"U2","secure":true,"passed":true},{"name":"Notification","type":"WAIT_NOTIFICATION","passed":true},{"name":"Unsubscribe (secure)","type":"UNSUBSCRIBE","secure":true,"passed":true},{"name":"Update (secure)","type":"UPDATE","id":"U2","secure":true,"passed":true},{"name":"Notification (not received)","type":"WAIT_NOTIFICATION","passed":false}]},"updates":{"U1":{"sparql":"delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {?s ?p ?o}"},"U2":{"sparql":"delete {?s ?p ?o} insert {sepa:S sepa:P \"123\"} where {?s ?p ?o}"}},"queries":{"Q1":{"sparql":"select * where {?x ?y \"ვაიმეე\"}"}}}
+{
+	"parameters" : {
+		"host" : "localhost" ,
+		"ports" : {
+			"http" : 8000 ,
+			"https" : 8443 ,
+			"ws" : 9000 ,
+			"wss" : 9443}
+		 ,
+		"paths" : {
+			"query" : "/query" ,
+			"update" : "/update" ,
+			"subscribe" : "/subscribe" ,
+			"register" : "/oauth/register" ,
+			"tokenRequest" : "/oauth/token" ,
+			"securePath" : "/secure"}
+		 ,
+		"methods" : {
+			"query" : "POST" ,
+			"update" : "URL_ENCODED_POST"}
+		 ,
+		"formats" : {
+			"query" : "JSON" ,
+			"update" : "HTML"}
+		 ,
+		"security" : {
+			"client_id" : "jiaYPftwUV/4TTkN2dQc6WNXBYU+cJMG79I5SEW18ctKUCWxs1F5JzCf7uSterGW" ,
+			"client_secret" : "Iz92skCzei8REglLhvVeTB+WW2/DW8hxyEoKu+n0aU52MW9t9KRq7hJ0Xun/NHhZ" ,
+			"jwt" : "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWftK56PsU42Txsi/0zHaB5i2K5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYnwLv53hPmxZ0jLJK4FVOu0N+WbAWXug07dfuC8K7jgkTEbh7T/Yj9MX5+tAQjT5+rK71nTQwVpyK1VzXNzbLWzBrJ+qcZZa++1HjBOQsLR8YOGlWD0EJEYyM5FhR24i3Ci/0BV0LrVqBotrceOefyZLUW4BA6uuAGpM1NZ3KfVivPhSiFwsj3hM1aMTR/WGwlaurT7h6RpBUl5xHktv/bFMIFeD/vby4Th0SxZ1JBJDDgrxtg/1azDYjfjNG+iqBL5DaFYicEbChPZzxp5dPQremWX/8aQPVzPQiNFvyjjs4iajSHHYrBU0p0a78k8teseDGhe7/D6hX9amOnihp4hS11fm7ZGwdPY4CxRL0Oq6JUPvFXfgwx2Bxzu935oUhS7rE1j0Gc7WJohcvF7aHdJPcvpjT7fBgECfljM1yPpAvUtPCjey6a4uyDuRYYc74DQpPLM+cl+glP9NfFB/b5e5BILbwO4J7ZDrWDQRuoiomQC1PdSM06rxCeD3CeVqtQT/V2pz50z1/E/molGwRAzSN0cCWAy7gLnPeBMWfJFP5xx1kay68wdr2mIkbFhyjyOTEUf4Qd0ugqnijAvKF4hWVPFyJc1SjvKXjGx8xh2yXBwKKbI/C4v9wPgJx1LrYzPCjMb4WT8/DPnWaMU4q6G" ,
+			"expires" : "mNjmof5VwLs1C1/ei46D9w==" ,
+			"type" : "XPrHEX2xHy+5IuXHPHigMw=="}
+	}
+	 ,
+	"graphs" : {
+		"default-graph-uri " : "http://default" ,
+		"named-graph-uri" : "" ,
+		"using-graph-uri" : "" ,
+		"using-named-graph-uri" : ""}
+	 ,
+	"namespaces" : {
+		"sepa" : "http://wot.arces.unibo.it/sepa#" ,
+		"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#"}
+	 ,
+	"extended" : {
+		"notificationMaxDelay" : 2000 ,
+		"sequence" : [{
+				"name" : "Update" ,
+				"type" : "UPDATE" ,
+				"id" : "U1" ,
+				"secure" : false ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Query" ,
+				"type" : "QUERY" ,
+				"id" : "Q1" ,
+				"results" : 1 ,
+				"secure" : false ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Subscribe" ,
+				"type" : "SUBSCRIBE" ,
+				"id" : "Q1" ,
+				"results" : 1 ,
+				"secure" : false ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Update" ,
+				"type" : "UPDATE" ,
+				"id" : "U2" ,
+				"secure" : false ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Notification" ,
+				"type" : "WAIT_NOTIFICATION" ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Unsubscribe" ,
+				"type" : "UNSUBSCRIBE" ,
+				"secure" : false ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Update" ,
+				"type" : "UPDATE" ,
+				"id" : "U2" ,
+				"secure" : false ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Notification (not received)" ,
+				"type" : "WAIT_NOTIFICATION" ,
+				"passed" : false}
+			 ,
+			{
+				"id" : "RegisterMePlease!" ,
+				"name" : "Register not allowed" ,
+				"type" : "REGISTER" ,
+				"passed" : false}
+			 ,
+			{
+				"id" : "SEPATest" ,
+				"name" : "Register allowed" ,
+				"type" : "REGISTER" ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Get token" ,
+				"type" : "GET_TOKEN" ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Update (secure)" ,
+				"type" : "UPDATE" ,
+				"id" : "U1" ,
+				"secure" : true ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Query (secure)" ,
+				"type" : "QUERY" ,
+				"id" : "Q1" ,
+				"results" : 1 ,
+				"secure" : true ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Subscribe (secure)" ,
+				"type" : "SUBSCRIBE" ,
+				"id" : "Q1" ,
+				"results" : 1 ,
+				"secure" : true ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Update (secure)" ,
+				"type" : "UPDATE" ,
+				"id" : "U2" ,
+				"secure" : true ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Notification" ,
+				"type" : "WAIT_NOTIFICATION" ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Unsubscribe (secure)" ,
+				"type" : "UNSUBSCRIBE" ,
+				"secure" : true ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Update (secure)" ,
+				"type" : "UPDATE" ,
+				"id" : "U2" ,
+				"secure" : true ,
+				"passed" : true}
+			 ,
+			{
+				"name" : "Notification (not received)" ,
+				"type" : "WAIT_NOTIFICATION" ,
+				"passed" : false}
+		]
+	}
+	 ,
+	"updates" : {
+		"U1" : {
+			"sparql" : "delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {?s ?p ?o}"}
+		 ,
+		"U2" : {
+			"sparql" : "delete {?s ?p ?o} insert {sepa:S sepa:P \"123\"} where {?s ?p ?o}"}
+	}
+	 ,
+	"queries" : {
+		"Q1" : {
+			"sparql" : "select * where {?x ?y \"ვაიმეე\"}"}
+	}
+}

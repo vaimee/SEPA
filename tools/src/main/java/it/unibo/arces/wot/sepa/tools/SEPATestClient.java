@@ -29,6 +29,7 @@ import com.google.gson.JsonElement;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.GenericClient;
+import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -38,7 +39,7 @@ import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 
-public class SEPATestClient extends GenericClient {
+public class SEPATestClient {
 	protected static final Logger logger = LogManager.getLogger("SEPATest");
 	protected Results results;
 	protected String spuid = null;
@@ -49,9 +50,42 @@ public class SEPATestClient extends GenericClient {
 	protected JsonArray sequence;
 
 	private ApplicationProfile appProfile;
+	private SubscriptionHandler handler =  new SubscriptionHandler();
+	private GenericClient client;
+	
+	class SubscriptionHandler implements ISubscriptionHandler {
+		@Override
+		public void onSemanticEvent(Notification notify) {
+			synchronized (sync) {
+				logger.debug(notify.toString());
+				notificationReceived = true;
+				sync.notify();
+			}
 
+		}
+
+		@Override
+		public void onPing() {
+
+		}
+
+		@Override
+		public void onBrokenSocket() {
+
+		}
+
+		@Override
+		public void onError(ErrorResponse errorResponse) {
+			synchronized (sync) {
+				logger.debug(errorResponse.toString());
+				sync.notify();
+			}
+
+		}	
+	}
+	
 	public SEPATestClient(ApplicationProfile appProfile) throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile);
+		client = new GenericClient(appProfile,handler);
 
 		sequence = appProfile.getExtendedData().getAsJsonObject().get("sequence").getAsJsonArray();
 		notificationMaxDelay = appProfile.getExtendedData().getAsJsonObject().get("notificationMaxDelay").getAsLong();
@@ -119,9 +153,9 @@ public class SEPATestClient extends GenericClient {
 
 		Response response;
 		if (secure)
-			response = secureUpdate(sparql, null);
+			response = client.secureUpdate(sparql, null);
 		else
-			response = update(sparql, null);
+			response = client.update(sparql, null);
 
 		logger.debug(response.toString());
 
@@ -138,9 +172,9 @@ public class SEPATestClient extends GenericClient {
 
 		Response response;
 		if (!secure)
-			response = query(sparql, null);
+			response = client.query(sparql, null);
 		else
-			response = secureQuery(sparql, null);
+			response = client.secureQuery(sparql, null);
 
 		logger.debug(response.toString());
 
@@ -164,9 +198,9 @@ public class SEPATestClient extends GenericClient {
 		Response response;
 
 		if (!secure)
-			response = subscribe(sparql, null);
+			response = client.subscribe(sparql, null);
 		else
-			response = secureSubscribe(sparql, null);
+			response = client.secureSubscribe(sparql, null);
 
 		logger.debug(response.toString());
 
@@ -180,7 +214,7 @@ public class SEPATestClient extends GenericClient {
 	
 	public boolean waitTokenToExpire() {
 		try {
-			Thread.sleep(getTokenExpiringSeconds());
+			Thread.sleep(client.getTokenExpiringSeconds());
 		} catch (InterruptedException | SEPASecurityException e) {
 			return false;
 		}
@@ -205,9 +239,9 @@ public class SEPATestClient extends GenericClient {
 	public boolean unsubscribeTest(String spuid, boolean secure) {
 		Response response;
 		if (!secure)
-			response = unsubscribe(spuid);
+			response = client.unsubscribe(spuid);
 		else
-			response = secureUnsubscribe(spuid);
+			response = client.secureUnsubscribe(spuid);
 
 		logger.debug(response.toString());
 
@@ -216,13 +250,13 @@ public class SEPATestClient extends GenericClient {
 
 	public boolean registrationTest(String id) {
 		Response response;
-		response = register(id);
+		response = client.register(id);
 		return !response.getClass().equals(ErrorResponse.class);
 	}
 
 	public boolean requestAccessTokenTest() {
 		Response response;
-		response = requestToken();
+		response = client.requestToken();
 
 		logger.debug(response.toString());
 
@@ -318,36 +352,6 @@ public class SEPATestClient extends GenericClient {
 		}
 
 		results.print();
-	}
-
-	@Override
-	public void onSemanticEvent(Notification notify) {
-		synchronized (sync) {
-			logger.debug(notify.toString());
-			notificationReceived = true;
-			sync.notify();
-		}
-
-	}
-
-	@Override
-	public void onPing() {
-
-	}
-
-	@Override
-	public void onBrokenSocket() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onError(ErrorResponse errorResponse) {
-		synchronized (sync) {
-			logger.debug(errorResponse.toString());
-			sync.notify();
-		}
-
 	}
 	
 	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException { 

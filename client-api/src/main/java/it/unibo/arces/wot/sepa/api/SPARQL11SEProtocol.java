@@ -111,21 +111,22 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			throws SEPAProtocolException, SEPASecurityException {
 		super(properties);
 
-		this.properties = properties;
-
 		if (handler == null) {
 			logger.fatal("Handler is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Handler is null"));
 		}
+		
+		this.properties = properties;
+		
 
-		// WS 
+		// WS
 		int port = properties.getWsPort();
 		if (port != -1)
 			wsClient = new SPARQL11SEWebsocket(
 					"ws://" + properties.getHost() + ":" + port + properties.getSubscribePath(), handler);
 		else
 			wsClient = new SPARQL11SEWebsocket("ws://" + properties.getHost() + properties.getSubscribePath(), handler);
-		
+
 		// WSS
 		port = properties.getWssPort();
 		if (port != -1)
@@ -271,11 +272,11 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 				return wsClient.unsubscribe(unsubscribe.getSubscribeUUID());
 
 			try {
-				return wssClient.unsubscribe(unsubscribe.getSubscribeUUID(), "Bearer " + properties.getAccessToken());
+				return wssClient.secureUnsubscribe(unsubscribe.getSubscribeUUID(),
+						"Bearer " + properties.getAccessToken());
 			} catch (SEPASecurityException e) {
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
-
 		default:
 			break;
 		}
