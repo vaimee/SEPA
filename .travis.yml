@@ -20,12 +20,13 @@ jobs:
     - cd ../..
     script:
     - mvn verify
-deploy:
-  provider: script
-  script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=$TRAVIS_TAG"
-  skip_cleanup: true
-  on:
-    tags: true
+  - stage : deploy
+    deploy:
+      provider: script
+      script: "cp .travis.settings.xml $HOME/.m2/settings.xml && mvn deploy -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=$TRAVIS_TAG"
+      skip_cleanup: true
+      on:
+        tags: true
 env:
   CI_DEPLOY_USERNAME:
     secure: LOeS8eSq/6qopcdIcWomgbZTLgkUMAfEwPNyJhK8s03R5pF1elZNWTVRawOUXYg/7ygGA/BL3IMVTdh/u6zvgU5n8qW+3Je4gfsWupoPJexDwbGCxAwJj5NNVhslzb+hmKlZuPDGmuKkdvvL04YNkVxBbl+BywUWu0cnrPPWDGyvtKVmx6Vz8LjWQvKbc5GZVmj6NfL05aaJz+FT9Y+hhK2SJ1yipcYRDj/RF3JJ2wjU6QSzzGRuWrKM2Ga26LoerG3s4n9VqRwCEN78wlKb+y7eF54rnZY/nKdQaTTHp0heXVHMhy+oNkybZvaj7MNDPJvh9dVI4k5atnLID1svfPK8f+HwPrRTPRwE1zVMbV686iqKkcVGqCf7WnMj4nHP9e3cNK08g6elfdeF+3fHKWro585ZQq9H3bmmQFWAa8Ib6vsRosEbKKomYjt87zPM452pUBRZGP3kezgn+b1SPU5RhTU3B8cU2b8bFXJ4IhUGy1+GQ3BuzSkxFAH4uPX4vFtXKnxb4tMVqrpfI98krWUYbj2XEzB3uJxhL93fRsDJm4BQaPMS8Wu25obMcB2yG/iBcpn5MqKvxU6o44woBk62PNI+dL8yN7dkHQT05oYJRoqE6H1InQQRMrO+qdGYLuGcD/UXK5XxqhDZylacvfLpoxShpDsqM4ow5Y0jC7M=
