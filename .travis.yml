@@ -35,5 +35,4 @@ jobs:
         file: engine/target/engine-$TRAVIS_TAG.jar
         on:
           repo: arces-wot/SEPA
-    on:
-      tags: true
+    if: tag IS present
