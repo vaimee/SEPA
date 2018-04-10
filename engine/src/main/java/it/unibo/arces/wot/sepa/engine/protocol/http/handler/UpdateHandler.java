@@ -68,11 +68,17 @@ public class UpdateHandler extends SPARQL11Handler {
 			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
 		}
 
-		if (headers[0].getValue().equals("application/sparql-update")) {
+		// Content-Type header can have parameters like charset
+		// i.e: Content-Type: text/html; charset=utf-8
+		// Note: header.getValue() returns text/html; charset=utf-8
+		// TODO: handle charset
+		String contentType = headers[0].getElements()[0].getName();
+
+		if (contentType.equals("application/sparql-update")) {
 			logger.debug("update via POST directly");
 			
 			return new UpdateRequest(body);
-		} else if (headers[0].getValue().equals("application/x-www-form-urlencoded")) {
+		} else if (contentType.equals("application/x-www-form-urlencoded")) {
 			try {
 				Map<String,String> params = HttpUtilities.splitQuery(body);
 				
