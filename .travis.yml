@@ -29,10 +29,13 @@ jobs:
       - provider: script
         script: "mvn --settings .travis.settings.xml deploy -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=$TRAVIS_TAG"
         skip_cleanup: true
+        on:
+          tags: true
       - provider: releases
         api_key:
           secure: iWFo6sUzF3kwPua8eoy5hngBIwb1vN2uQd/hXJRlMGYIxIW00/uaUmYaIXrufUeu1BCHB1NIB+Et6SgdLuZfD4TFhlMXyLKCiGhRxhS6xal6U8pZ9mv0aGTCtWc3QEOksiQvSPQaSZz0nQwS+bGhjbkir7hSf1it5wIcz2d1xIwvJexBqVbV6gbAYbevaW41WD8bnICO76fUW5y+9EELB2AFRo4NBoetFUSEB5OSrfBreJXTreaM5l6QpHoiHOWHQ15v+FScj2D+KGshwotPdQNwXEBc06twpBNeiZRerUUUfDfzJJNuS18UUAqqW634SPkR5+5DTKdV03kRg6oLsmHic/UEJ6ilThuC2glCeZXgHkDmYPuSBdPrgEzw1MB3aBs60KERttwDm8XrVtLDVtADmqo3vt15NklZIttSLPazXVU86YomOdRaeepdBXAJf4Ovyc7LtgtKQcMlV5b9lWtjNheep4FCXt+a63FQp95fpUfJG0DQ2xSdcJntnPAxDx8eVnc5q8LtkSMb/26vTLJnUwwJXyH2JvaG5diwBtxJfM7VJqCQ2+CFbmStcG6p0Z2LuHln+bPUkpY/oUh6UIIsZ6yu4cHxRgGAC8DlC59t4xb3bwwAlHsBDHciwmE5TMed3VkGiNS02wLh0aU6lEcwUezGvXkgnNFDJxQYZsw=
         file: engine/target/engine-$TRAVIS_TAG.jar
         on:
+          tags: true
           repo: arces-wot/SEPA
     if: tag IS present
