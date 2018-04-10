@@ -50,9 +50,8 @@ public class UpdateHandler extends SPARQL11Handler {
 	protected Request parse(HttpAsyncExchange exchange) {
 		if (!exchange.getRequest().getRequestLine().getMethod().toUpperCase().equals("POST")) {
 			logger.error("UNSUPPORTED METHOD: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());
-			HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST,
+			throw new SPARQL11ProtocolException( HttpStatus.SC_BAD_REQUEST,
 					"Unsupported method: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());
-			return null;
 		}
 
 		String body = null;
@@ -66,8 +65,7 @@ public class UpdateHandler extends SPARQL11Handler {
 		Header[] headers = exchange.getRequest().getHeaders("Content-Type");
 		if (headers.length != 1) {
 			logger.error("Content-Type is missing");
-			HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
-			return null;
+			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
 		}
 
 		if (headers[0].getValue().equals("application/sparql-update")) {
@@ -81,14 +79,12 @@ public class UpdateHandler extends SPARQL11Handler {
 				if (params.get("update") != null) return new UpdateRequest(params.get("update"));		
 			} catch (UnsupportedEncodingException e1) {
 				logger.error(e1.getMessage());
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e1.getMessage());
-				return null;
+				throw new SPARQL11ProtocolException( HttpStatus.SC_BAD_REQUEST, e1.getMessage());
 			}
 		}
 
 		logger.error("Request MUST conform to SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
-		HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST,
+		throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,
 				"Request MUST conform to SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
-		return null;
 	}
 }
