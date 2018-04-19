@@ -37,14 +37,17 @@ public class RegistrationRequest {
 	 * @param id the unique identifier of the client
 	 */
 	public RegistrationRequest(String id) {
-		json.add("client_identity", new JsonPrimitive(id));
+		JsonObject body = new JsonObject();
+		body.add("client_identity", new JsonPrimitive(id));
 		JsonArray grants = new JsonArray();
 		grants.add("client_credentials");
-		json.add("grant_types", grants);
+		body.add("grant_types", grants);
+		
+		json.add("register", body);
 	}
 	
 	/**
-	 * {"client_identity":"id","grant_types":["client_credentials"]}.
+	 * {"register":{"client_identity":"id","grant_types":["client_credentials"]}}.
 	 *
 	 * @return the string
 	 */

@@ -27,6 +27,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
@@ -34,7 +35,6 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
-import java.util.HashSet;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -43,18 +43,18 @@ public class SPUNaive extends SPU {
 	private final Logger logger;
 
 	private BindingsResults lastBindings = null;
-	private Integer sequence = 0;
+	private Integer sequence = 1;
 
 	public SPUNaive(SubscribeRequest subscribe, EventHandler handler, SPARQL11Properties endpointProperties,
-			Semaphore endpointSemaphore, HashSet<SPU> queue) throws SEPAProtocolException {
-		super(subscribe, endpointProperties, handler, endpointSemaphore, queue);
+			Semaphore endpointSemaphore, SPUSync sync) throws SEPAProtocolException {
+		super(subscribe, endpointProperties, handler, endpointSemaphore, sync);
 
 		logger = LogManager.getLogger("SPUNaive" + getUUID());
 		logger.debug("SPU: " + this.getUUID() + " request: " + subscribe);
 	}
 
 	@Override
-	public boolean init() {
+	public Response init() {
 		logger.debug("Process SPARQL query " + request);
 
 		// Process the SPARQL query
@@ -62,7 +62,7 @@ public class SPUNaive extends SPU {
 
 		if (ret.getClass().equals(ErrorResponse.class)) {
 			logger.error("Not initialized");
-			return false;
+			return ret;
 		}
 
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
@@ -70,7 +70,7 @@ public class SPUNaive extends SPU {
 
 		logger.debug("First results: " + firstResults.toString());
 
-		return true;
+		return new SubscribeResponse(request.getToken(), getUUID(), request.getAlias(), getFirstResults());
 	}
 
 	@Override

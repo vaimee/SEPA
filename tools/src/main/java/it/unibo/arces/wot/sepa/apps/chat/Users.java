@@ -1,5 +1,8 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
+import java.util.HashMap;
+import java.util.Set;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -9,42 +12,25 @@ import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
-import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.pattern.Consumer;
 
-public class MessageReceiver extends Aggregator {
-	private Bindings message = new Bindings();
-
-	private ChatListener listener;
+public class Users extends Consumer {
+	private HashMap<String,String> usersList = new HashMap<String,String>();
 	private boolean joined = false;
-
-	public MessageReceiver(String receiver, ApplicationProfile jsap, ChatListener listener)
-			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(jsap, "RECEIVE_MESSAGE", "DELETE_MESSAGES");
-
-		message.addBinding("receiver", new RDFTermLiteral(receiver));
-
-		this.listener = listener;
+	
+	public Users() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
+		super(new ApplicationProfile("chat.jsap"), "USERS");
 	}
 
 	public boolean joinChat() {
 		if (joined)
 			return true;
 
-		Response ret = subscribe(message);
+		Response ret = subscribe(null);
 		joined = !ret.isError();
-
-		if (joined) {
-			for (Bindings bindings : ((SubscribeResponse) ret).getBindingsResults().getBindings()) {
-				listener.onMessageReceived(
-							new Message(
-									bindings.getBindingValue("sender"),
-									message.getBindingValue("receiver"),
-									bindings.getBindingValue("text"), 
-									bindings.getBindingValue("time")));
-			}
-		}
+				
+		if (joined) onAddedResults(((SubscribeResponse) ret).getBindingsResults());
 
 		return joined;
 	}
@@ -57,45 +43,52 @@ public class MessageReceiver extends Aggregator {
 		
 		return !joined;
 	}
-
+	
+	public Set<String> getUsers() {
+		return usersList.keySet();
+	}
+	
+	public String getUserName(String user) {
+		return usersList.get(user);
+	}
+	
 	@Override
-	public void onAddedResults(BindingsResults results) {
-
-		for (Bindings bindings : results.getBindings()) {
-			listener.onMessageReceived(
-					new Message(
-							bindings.getBindingValue("sender"), 
-							message.getBindingValue("receiver"),
-							bindings.getBindingValue("text"), 
-							bindings.getBindingValue("time")));
-		}
-
-		// Delete messages
-		update(message);
+	public void onResults(ARBindingsResults results) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
-	public void onResults(ARBindingsResults results) {
-
+	public void onAddedResults(BindingsResults results) {
+		for (Bindings bindings : results.getBindings()) {
+			usersList.put(bindings.getBindingValue("user"), bindings.getBindingValue("userName"));
+		}
+		
 	}
 
 	@Override
 	public void onRemovedResults(BindingsResults results) {
-
+		for (Bindings bindings : results.getBindings()) {
+			usersList.remove(bindings.getBindingValue("user"));
+		}
 	}
 
 	@Override
 	public void onPing() {
-
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
 	public void onBrokenSocket() {
 		joined = false;
+		
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-
+		// TODO Auto-generated method stub
+		
 	}
+
 }

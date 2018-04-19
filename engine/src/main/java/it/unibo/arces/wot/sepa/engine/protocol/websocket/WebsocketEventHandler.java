@@ -9,10 +9,13 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.response.Ping;
+//import it.unibo.arces.wot.sepa.commons.response.Ping;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
+import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
+import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 
 public class WebsocketEventHandler implements EventHandler {
 	private final Logger logger = LogManager.getLogger("WebsocketEventHandler");
@@ -21,14 +24,16 @@ public class WebsocketEventHandler implements EventHandler {
 	private WebsocketBeans jmx;
 	private Instant start;
 	
-	public WebsocketEventHandler(WebSocket s,WebsocketBeans jmx){
+	// Dependability manager
+	private DependabilityManager dependabilityMng;
+	
+	public WebsocketEventHandler(WebSocket s,WebsocketBeans jmx,DependabilityManager dependabilityMng){
 		socket = s;
 		this.jmx = jmx;
-		start = Instant.now();
+		this.dependabilityMng = dependabilityMng;
 	}
 	
 	private void send(Response ret) throws IOException {
-		if (!socket.isOpen()) throw new IOException("Socket closed");
 		try{
 			socket.send(ret.toString());
 		}
@@ -37,13 +42,21 @@ public class WebsocketEventHandler implements EventHandler {
 		}	
 	}
 	
+	public void startTiming() {
+		start = Instant.now();
+	}
+	
 	@Override
 	public void sendResponse(Response response) throws IOException {
 		long timing = 0;
-		if (response.isSubscribeResponse())
+		if (response.isSubscribeResponse()) {
 			timing = jmx.subscribeTimings(start);
-		else if (response.isUnsubscribeResponse())
+			dependabilityMng.onSubscribe(socket, ((SubscribeResponse)response).getSpuid());
+		}
+		else if (response.isUnsubscribeResponse()) {
 			timing = jmx.unsubscribeTimings(start);
+			dependabilityMng.onUnsubscribe(socket, ((UnsubscribeResponse)response).getSpuid());
+		}
 			
 		logger.info("Response #"+response.getToken()+" ("+timing+" ms)");
 		logger.debug(response);
@@ -54,10 +67,4 @@ public class WebsocketEventHandler implements EventHandler {
 	public void notifyEvent(Notification notify) throws IOException {
 		send(notify);
 	}
-
-	@Override
-	public void sendPing(Ping ping) throws IOException {
-		send(ping);
-	}
-
 }

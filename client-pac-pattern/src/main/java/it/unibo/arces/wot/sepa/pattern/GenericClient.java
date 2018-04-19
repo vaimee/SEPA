@@ -29,27 +29,59 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-public abstract class GenericClient extends Client implements ISubscriptionHandler {	
-	
-	public GenericClient(ApplicationProfile appProfile) throws SEPAProtocolException, SEPASecurityException {
+public class GenericClient extends Client {
+
+	public GenericClient(ApplicationProfile appProfile,ISubscriptionHandler handler) throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile);
-		
-		protocolClient = new SPARQL11SEProtocol(appProfile,this);
+
+		protocolClient = new SPARQL11SEProtocol(appProfile, handler);
+	}
+
+	public Response update(String SPARQL_UPDATE, Bindings forced) {
+		return protocolClient.update(new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE, forced)));
+	}
+
+	public Response secureUpdate(String SPARQL_UPDATE, Bindings forced) {
+		return protocolClient.secureUpdate(new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE, forced)));
+	}
+
+	public Response query(String SPARQL_QUERY, Bindings forced) {
+		return protocolClient.query(new QueryRequest(prefixes() + replaceBindings(SPARQL_QUERY, forced)));
+	}
+
+	public Response secureQuery(String SPARQL_QUERY, Bindings forced) {
+		return protocolClient.secureQuery(new QueryRequest(prefixes() + replaceBindings(SPARQL_QUERY, forced)));
+	}
+
+	public Response subscribe(String SPARQL_SUBSCRIBE, Bindings forced) {
+		return protocolClient.subscribe(new SubscribeRequest(prefixes() + replaceBindings(SPARQL_SUBSCRIBE, forced)));
+	}
+
+	public Response secureSubscribe(String SPARQL_SUBSCRIBE, Bindings forced) {
+		return protocolClient
+				.secureSubscribe(new SubscribeRequest(prefixes() + replaceBindings(SPARQL_SUBSCRIBE, forced)));
+	}
+
+	public Response unsubscribe(String subID) {
+		return protocolClient.unsubscribe(new UnsubscribeRequest(subID));
+	}
+
+	public Response secureUnsubscribe(String subID) {
+		return protocolClient.secureUnsubscribe(new UnsubscribeRequest(subID));
+	}
+
+	// Registration to the Authorization Server (AS)
+	public Response register(String identity) {
+		return protocolClient.register(identity);
+	}
+
+	// Token request to the Authorization Server (AS)
+	public Response requestToken() {
+		return protocolClient.requestToken();
 	}
 	
-	public Response update(String SPARQL_UPDATE,Bindings forced) {
-		return protocolClient.update(new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE,forced)));	
-	 }
-	
-	public Response query(String SPARQL_QUERY,Bindings forced) {	
-		return protocolClient.query(new QueryRequest(prefixes() + replaceBindings(SPARQL_QUERY,forced)));
-	}
-	
-	public Response subscribe(String SPARQL_SUBSCRIBE,Bindings forced) {		
-		return protocolClient.subscribe(new SubscribeRequest(prefixes() + replaceBindings(SPARQL_SUBSCRIBE,forced)));	
-	}
-	 
-	public Response unsubscribe(String subID)  {
-		return protocolClient.unsubscribe(new UnsubscribeRequest(subID));	
+	// Retrieve the token expiring seconds
+	public long getTokenExpiringSeconds() throws SEPASecurityException {
+		return protocolClient.getTokenExpiringSeconds();
 	}
 }

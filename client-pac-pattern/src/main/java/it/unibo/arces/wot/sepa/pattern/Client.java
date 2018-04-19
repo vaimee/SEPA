@@ -114,11 +114,38 @@ public abstract class Client {
 					if(uri.getSchemeSpecificPart().startsWith("/")) value = "<"+value+">";	
 				}
 			}
-			replacedSparql = replacedSparql.replace("?"+var,value);
+			//Matching variables
+			/*
+			    [108]  	Var	  ::=  	VAR1 | VAR2
+			    [143]  	VAR1	  ::=  	'?' VARNAME
+				[144]  	VAR2	  ::=  	'$' VARNAME
+			    [164]  	PN_CHARS_BASE	  ::=  	[A-Z] | [a-z] | [#x00C0-#x00D6] | [#x00D8-#x00F6] | [#x00F8-#x02FF] | [#x0370-#x037D] | [#x037F-#x1FFF] 
+			    									| [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
+				[165]  	PN_CHARS_U	  ::=  	PN_CHARS_BASE | '_'
+  				[166]  	VARNAME	  ::=  	( PN_CHARS_U | [0-9] ) ( PN_CHARS_U | [0-9] | #x00B7 | [#x0300-#x036F] | [#x203F-#x2040] )*
+			 * */
+			int start = 0;
+			while (start != -1) {
+				int index = replacedSparql.indexOf("?"+var,start);
+				if (index == -1) index = replacedSparql.indexOf("$"+var,start);
+				if (index != -1) {
+					start = index +1;
+					int unicode = replacedSparql.codePointAt(index+var.length()+1);
+					if (!isValidVarChar(unicode)) {
+						replacedSparql = replacedSparql.substring(0, index) + value + replacedSparql.substring(index+var.length()+1);
+					}
+				} else start = index;
+			}
 			
 			selectPattern = selectPattern.replace("?"+var, "");
 		}
 		
 		return selectPattern+replacedSparql;
+	}
+	
+	private boolean isValidVarChar(int c) {
+		return ((c == '_') || (c == 0x00B7) || (0x0300 <= c && c <= 0x036F) || (0x203F <= c && c <= 0x2040) || ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') || ('0' <= c && c <= '9') || (0x00C0 <= c && c <= 0x00D6) || (0x00D8 <= c && c <= 0x00F6) || (0x00F8 <= c && c <= 0x02FF) || (0x0370 <= c && c <= 0x037D) 
+				|| (0x037F <= c && c <= 0x1FFF) || (0x200C <= c && c <= 0x200D) || (0x2070 <= c && c <= 0x218F) || (0x2C00 <= c && c <= 0x2FEF) || (0x3001 <= c && c <= 0xD7FF) 
+				|| (0xF900 <= c && c <= 0xFDCF) || (0xFDF0 <= c && c <= 0xFFFD) || (0x10000 <= c && c <= 0xEFFFF));
 	}
 }

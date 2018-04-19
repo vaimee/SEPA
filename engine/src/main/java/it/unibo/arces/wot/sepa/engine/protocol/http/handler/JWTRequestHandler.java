@@ -16,8 +16,8 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
-import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
 
 public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	protected static final Logger logger = LogManager.getLogger("TokenRequestHandler");
@@ -49,29 +49,35 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		if (headers.length == 0) {
 			logger.error("Content-Type is missing");
 			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
+			return;
 		}
 		if (headers.length > 1) {
 			logger.error("Too many Content-Type headers");
 			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Too many Content-Type headers");
+			return;
 		}
 		if (!headers[0].getValue().equals("application/json")) {
 			logger.error("Content-Type must be: application/json");
 			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST,
 					"Content-Type must be: application/json");
+			return;
 		}
 
 		headers = request.getHeaders("Accept");
 		if (headers.length == 0) {
 			logger.error("Accept is missing");
 			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Accept is missing");
+			return;
 		}
 		if (headers.length > 1) {
 			logger.error("Too many Accept headers");
 			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Too many Accept headers");
+			return;
 		}
 		if (!headers[0].getValue().equals("application/json")) {
 			logger.error("Accept must be: application/json");
 			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST, "Accept must be: application/json");
+			return;
 		}
 
 		// Authorization header

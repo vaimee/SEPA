@@ -5,7 +5,7 @@ package it.unibo.arces.wot.sepa.apps.chat;
  */
 public interface ChatListener {
     void onMessageReceived(Message message);
-    void onMessageSent(Message message);
-    void onMessageRead(Message message);
+    //void onMessageSent(Message message);
+    //void onMessageRead(Message message);
     void onBrokenConnection();
 }

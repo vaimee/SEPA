@@ -11,7 +11,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpRequest;
-import org.apache.http.HttpStatus;
+//import org.apache.http.HttpStatus;
 import org.apache.http.ParseException;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
@@ -25,6 +25,8 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+
 public class HttpUtilities {
 	private static final Logger logger = LogManager.getLogger("Utilities");
 
@@ -37,14 +39,18 @@ public class HttpUtilities {
 
 	public static void sendFailureResponse(HttpAsyncExchange exchange, int httpResponseCode,
 			String responseBody) {
-		JsonObject json = new JsonObject();
+		/*JsonObject json = new JsonObject();
 		if (httpResponseCode != HttpStatus.SC_GATEWAY_TIMEOUT) 
 			json = buildEchoResponse(exchange.getRequest());
 
 		json.add("body", new JsonPrimitive(responseBody));
 		json.add("code", new JsonPrimitive(httpResponseCode));
 
-		sendResponse(exchange,httpResponseCode, json.toString());
+		sendResponse(exchange,httpResponseCode, json.toString());*/
+		
+		ErrorResponse error = new ErrorResponse(httpResponseCode,responseBody);
+		
+		sendResponse(exchange,httpResponseCode, error.toString());
 	}
 
 	public static JsonObject buildEchoResponse(HttpRequest request) {

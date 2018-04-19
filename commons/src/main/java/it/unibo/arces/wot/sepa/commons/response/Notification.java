@@ -21,22 +21,20 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 // TODO: Auto-generated Javadoc
 /**
  * This class represents a SPARQL Notification (see SPARQL 1.1 Subscription
  * Language)
  *
- * The JSON serialization looks like:
- * {@code
- * { "spuid" : "SPUID" , "sequence" : "SEQUENTIAL NUMBER", "results" : <JSON
- * Notification Results> }
- * }
+ * The JSON serialization looks like: {@code
+ * { "notification":{"spuid" : "SPUID" , "sequence" : "SEQUENTIAL NUMBER", "addedResults" : <JSON
+ * Notification Results>, "removedResults" : <JSON Notification Results> }} }
  * 
  */
 
 public class Notification extends Response {
-
 	/**
 	 * Instantiates a new notification.
 	 *
@@ -49,12 +47,20 @@ public class Notification extends Response {
 	 */
 	public Notification(String spuid, ARBindingsResults results, Integer sequence) {
 		super();
-
-		if (results != null)
-			json.add("results", results.toJson());
+		
+		JsonObject response = new JsonObject();
+		
 		if (spuid != null)
-			json.add("spuid", new JsonPrimitive(spuid));
-		json.add("sequence", new JsonPrimitive(sequence));
+			response.add("spuid", new JsonPrimitive(spuid));
+		
+		response.add("sequence", new JsonPrimitive(sequence));
+		
+		if (results != null) {
+			response.add("addedResults", results.getAddedBindings().toJson());
+			response.add("removedResults", results.getRemovedBindings().toJson());
+		}
+			
+		json.add("notification", response);
 	}
 
 	/**
@@ -75,9 +81,12 @@ public class Notification extends Response {
 	 * @return the spuid
 	 */
 	public String getSpuid() {
-		if (json.get("spuid") != null)
-			return json.get("spuid").getAsString();
-		return "";
+		try {
+			return json.get("notification").getAsJsonObject().get("spuid").getAsString();
+		}
+		catch(Exception e) {
+			return "";
+		}
 	}
 
 	/**
@@ -86,9 +95,12 @@ public class Notification extends Response {
 	 * @return the AR bindings results
 	 */
 	public ARBindingsResults getARBindingsResults() {
-		if (json.getAsJsonObject("results") != null)
-			return new ARBindingsResults(json.getAsJsonObject("results"));
-		return null;
+		try {
+			return new ARBindingsResults(new BindingsResults(json.get("notification").getAsJsonObject().get("addedResults").getAsJsonObject()),new BindingsResults(json.get("notification").getAsJsonObject().get("removedResults").getAsJsonObject()));	
+		}
+		catch(Exception e) {
+			return null;
+		}
 	}
 
 	/**
@@ -97,15 +109,7 @@ public class Notification extends Response {
 	 * @return the sequence
 	 */
 	public Integer getSequence() {
+		
 		return json.get("sequence").getAsInt();
 	}
-
-//	/**
-//	 * To be notified.
-//	 *
-//	 * @return true, if successful
-//	 */
-//	public boolean toBeNotified() {
-//		return json.get("results") != null;
-//	}
 }
