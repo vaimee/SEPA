@@ -284,7 +284,7 @@ public class SEPATest {
 		return !response.getClass().equals(ErrorResponse.class);
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SEPASecurityException {
 		boolean ret = false;
 
 		try {
@@ -357,12 +357,12 @@ public class SEPATest {
 			logger.error("Subscribe FAILED");
 
 		// PING
-		ret = waitPing();
-		results.addResult("Subscribe - ping", ret);
-		if (ret)
-			logger.info("Ping received PASSED");
-		else
-			logger.error("Ping recevied FAILED");
+//		ret = waitPing();
+//		results.addResult("Subscribe - ping", ret);
+//		if (ret)
+//			logger.info("Ping received PASSED");
+//		else
+//			logger.error("Ping recevied FAILED");
 
 		// TRIGGER A NOTIFICATION
 		ret = updateTest(
@@ -393,12 +393,12 @@ public class SEPATest {
 			logger.error("Unsubscribe FAILED");
 
 		// PING
-		ret = !waitPing();
-		results.addResult("Unsubscribe - ping", ret);
-		if (ret)
-			logger.info("Ping not received PASSED");
-		else
-			logger.error("Ping not recevied FAILED");
+//		ret = !waitPing();
+//		results.addResult("Unsubscribe - ping", ret);
+//		if (ret)
+//			logger.info("Ping not received PASSED");
+//		else
+//			logger.error("Ping not recevied FAILED");
 
 		// **********************
 		// Enable security

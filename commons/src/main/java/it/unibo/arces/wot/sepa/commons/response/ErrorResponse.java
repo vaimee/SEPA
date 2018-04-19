@@ -53,10 +53,10 @@ import com.google.gson.JsonPrimitive;
 
  * The JSON representation of an error response follows:<br>
  *
- * {<br>
+ * {"error":{<br>
  * 		"body" : "Internal Server Error: SPARQL endpoint not found" , <br>
  * 		"code" : 500<br>
- * }<br>
+ * }}<br>
  * <br> Body is optional
 * */
 public class ErrorResponse extends Response {	
@@ -70,8 +70,11 @@ public class ErrorResponse extends Response {
 	public ErrorResponse(int token,int code,String message) {
 		super(token);
 
-		if (message != null) json.add("body", new JsonPrimitive(message));
-		json.add("code", new JsonPrimitive(code));
+		JsonObject body = new JsonObject();
+		if (message != null) body.add("body", new JsonPrimitive(message));
+		body.add("code", new JsonPrimitive(code));
+		
+		json.add("error", body);
 	}
 	
 	/**
@@ -83,8 +86,11 @@ public class ErrorResponse extends Response {
 	public ErrorResponse(int code,String message) {
 		super();
 
-		if (message != null) json.add("body", new JsonPrimitive(message));
-		json.add("code", new JsonPrimitive(code));
+		JsonObject body = new JsonObject();
+		if (message != null) body.add("body", new JsonPrimitive(message));
+		body.add("code", new JsonPrimitive(code));
+		
+		json.add("error", body);
 	}
 	
 	/**
@@ -95,7 +101,10 @@ public class ErrorResponse extends Response {
 	public ErrorResponse(int code) {
 		super();
 
-		json.add("code", new JsonPrimitive(code));
+		JsonObject body = new JsonObject();
+		body.add("code", new JsonPrimitive(code));
+		
+		json.add("error", body);
 	}
 	
 	public ErrorResponse(JsonObject notify) {
@@ -118,7 +127,7 @@ public class ErrorResponse extends Response {
 	 * @return the error code
 	 */
 	public int getErrorCode() {
-		return json.get("code").getAsInt();
+		return json.get("error").getAsJsonObject().get("code").getAsInt();
 	}
 	
 	/**
@@ -127,7 +136,11 @@ public class ErrorResponse extends Response {
 	 * @return the error message
 	 */
 	public String getErrorMessage() {
-		if (json.get("body") != null) return json.get("body").getAsString();
-		return "";
+		try {
+			return json.get("error").getAsJsonObject().get("body").getAsString(); 
+		}
+		catch(Exception e) {
+			return "Failed to parse error message body";
+		}
 	}
 }

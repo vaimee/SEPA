@@ -84,6 +84,7 @@ import javax.swing.JSplitPane;
 
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.GenericClient;
+import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -109,7 +110,7 @@ import javax.swing.event.ChangeEvent;
 public class Dashboard {
 	private static final Logger logger = LogManager.getLogger("Dashboard");
 
-	private static final String versionLabel = "SEPA Dashboard Ver 0.9.8";
+	private static final String versionLabel = "SEPA Dashboard Ver 0.9.9";
 
 	private Properties appProperties = new Properties();
 
@@ -126,7 +127,8 @@ public class Dashboard {
 	private SortedListModel subscribeListDM = new SortedListModel();
 
 	private GenericClient sepaClient;
-
+	private DashboardHandler handler = new DashboardHandler();
+	
 	private JTabbedPane subscriptions;
 	private HashMap<String, BindingsTableModel> subscriptionResultsDM = new HashMap<String, BindingsTableModel>();
 	private HashMap<String, JLabel> subscriptionResultsLabels = new HashMap<String, JLabel>();
@@ -134,13 +136,7 @@ public class Dashboard {
 
 	private JCheckBox chckbxClearonnotify;
 
-	class SEPADashbooard extends GenericClient {
-
-		public SEPADashbooard(ApplicationProfile appProfile) throws SEPAProtocolException, SEPASecurityException {
-			super(appProfile);
-			// TODO Auto-generated constructor stub
-		}
-
+	class DashboardHandler implements ISubscriptionHandler {
 		@Override
 		public void onSemanticEvent(Notification n) {
 			ARBindingsResults notify = n.getARBindingsResults();
@@ -170,22 +166,15 @@ public class Dashboard {
 
 		@Override
 		public void onPing() {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public void onBrokenSocket() {
-			// TODO Auto-generated method stub
-
 		}
 
 		@Override
 		public void onError(ErrorResponse errorResponse) {
-			// TODO Auto-generated method stub
-
-		}
-
+		}	
 	}
 
 	private class SortedListModel extends AbstractListModel<String> {
@@ -667,8 +656,20 @@ public class Dashboard {
 	 */
 	public Dashboard() {
 		initialize();
-
+		
 		loadSAP(null);
+		
+		try {
+			sepaClient = new GenericClient(appProfile,handler);
+		} catch (SEPAProtocolException | SEPASecurityException e) {
+			logger.error(e.getMessage());
+			System.exit(-1);
+		}
+		
+		// Enable all the buttons
+		btnUpdate.setEnabled(true);
+		btnSubscribe.setEnabled(true);
+		btnQuery.setEnabled(true);
 	}
 
 	private boolean loadSAP(String file) {
@@ -737,16 +738,6 @@ public class Dashboard {
 			return false;
 		}
 
-		try {
-			sepaClient = new SEPADashbooard(appProfile);
-		} catch (SEPAProtocolException | SEPASecurityException e) {
-			logger.error(e.getMessage());
-			lblInfo.setText("Error: " + e.getMessage());
-			lblInfo.setToolTipText("Error: " + e.getMessage());
-			frmSepaDashboard.setTitle(versionLabel + " - " + e.getMessage());
-			return false;
-		}
-
 		frmSepaDashboard.setTitle(versionLabel + " - " + file);
 
 		// Loading namespaces
@@ -768,11 +759,6 @@ public class Dashboard {
 			// subscribeListDM.addElement(subscribe);
 			subscribeListDM.add(subscribe);
 		}
-
-		// Enable all the buttons
-		btnUpdate.setEnabled(true);
-		btnSubscribe.setEnabled(true);
-		btnQuery.setEnabled(true);
 
 		labelUrl.setText(appProfile.getHost());
 

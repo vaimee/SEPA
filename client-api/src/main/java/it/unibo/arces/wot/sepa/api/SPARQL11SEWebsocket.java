@@ -9,111 +9,107 @@ import org.apache.logging.log4j.Logger;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-public class SPARQL11SEWebsocket implements ISubscriptionHandler {
+public class SPARQL11SEWebsocket {
 	private Logger logger = LogManager.getLogger("SPARQL11SEWebsocket");
 
 	private long TIMEOUT = 5000;
 
-	private ISubscriptionHandler handler;
+	protected SEPAWebsocketClient client = null;
 	private URI wsURI = null;
-	private SEPAWebsocketClient client = null;
-	private boolean connected = false;
-	
-	public SPARQL11SEWebsocket(String wsUrl, ISubscriptionHandler handler) throws URISyntaxException {
-		wsURI = new URI(wsUrl);
+	private ISubscriptionHandler handler = null;
 
-		if (handler == null) {
-			logger.fatal("Notification handler is null. Client cannot be initialized");
-			throw new IllegalArgumentException("Notificaton handler is null");
+	public SPARQL11SEWebsocket(String wsUrl, ISubscriptionHandler handler) throws SEPAProtocolException {
+		try {
+			if (handler == null) {
+				logger.fatal("Notification handler is null. Client cannot be initialized");
+				throw new SEPAProtocolException(new IllegalArgumentException("Notificaton handler is null"));
+			}
+			wsURI = new URI(wsUrl);
+		} catch (URISyntaxException e) {
+			throw new SEPAProtocolException(e);
 		}
-
+		
 		this.handler = handler;
 	}
 
+	public Response subscribe(String sparql, String alias) {
+		return _subscribe(sparql, null, alias);
+	}
+
 	public Response subscribe(String sparql) {
-		if (sparql == null)
-			return new ErrorResponse(500, "SPARQL query is null");
+		return _subscribe(sparql, null, null);
+	}
 
-		// Create SPARQL 1.1 Subscribe request
-		JsonObject request = new JsonObject();
-		request.add("subscribe", new JsonPrimitive(sparql));
-
-		if (!connected) {
-			client = new SEPAWebsocketClient(wsURI, this);
+	protected boolean connect() {
+		if (client == null)
 			try {
-				if(!client.connectBlocking()) {
+				client = new SEPAWebsocketClient(wsURI, handler);
+				if (!client.connectBlocking()) {
 					logger.error("Not connected");
-					return new ErrorResponse(500,"Not connected");
+					return false;
 				}
 			} catch (InterruptedException e) {
 				logger.debug(e);
-				return new ErrorResponse(500,"Not connected");
+				return false;
 			}
-		}
-		
-		// Send request and wait for response
-		Response ret = client.sendAndReceive(request.toString(), TIMEOUT);
-		
-		if (ret.isSubscribeResponse()) connected = true;
-		
-		return ret;
+		return true;
 	}
 
-	public Response unsubscribe(String spuid) {
-		if (spuid == null)
-			return new ErrorResponse(500, "SPUID is null");
+	protected Response _subscribe(String sparql, String authorization, String alias) {
+		if (sparql == null)
+			return new ErrorResponse(500, "SPARQL query is null");
 
-		// Create SPARQL 1.1 Unsubscribe request
-		JsonObject request = new JsonObject();
-		if (spuid != null)
-			request.add("unsubscribe", new JsonPrimitive(spuid));
-
-		if (!connected) {
-			client = new SEPAWebsocketClient(wsURI, this);
-			try {
-				if(!client.connectBlocking()) {
-					logger.error("Not connected");
-					return new ErrorResponse(500,"Not connected");
-				}
-			} catch (InterruptedException e) {
-				return new ErrorResponse(500,"Not connected");
-			}
+		if (!connect()) {
+			return new ErrorResponse(500, "Failed to connect");
 		}
 		
+		// Create SPARQL 1.1 Subscribe request
+		JsonObject body = new JsonObject();
+		JsonObject request = new JsonObject();
+		body.add("sparql", new JsonPrimitive(sparql));
+		if (authorization != null)
+			body.add("authorization", new JsonPrimitive(authorization));
+		if (alias != null)
+			body.add("alias", new JsonPrimitive(alias));
+		request.add("subscribe", body);
+
 		// Send request and wait for response
 		return client.sendAndReceive(request.toString(), TIMEOUT);
 	}
 
-	@Override
-	public void onSemanticEvent(Notification notify) {
-		handler.onSemanticEvent(notify);
+	public Response unsubscribe(String spuid) {
+		return _unsubscribe(spuid, null);
 	}
 
-	@Override
-	public void onPing() {
-		handler.onPing();
-	}
+	protected Response _unsubscribe(String spuid, String authorization) {
+		if (spuid == null)
+			return new ErrorResponse(500, "SPUID is null");
+		
+		if (client == null)
+			return new ErrorResponse(500, "Client not connected");
+		
+		if (client.isClosed())
+			return new ErrorResponse(500, "Socket is closed");
+		
+		// Create SPARQL 1.1 Unsubscribe request
+		JsonObject request = new JsonObject();
+		JsonObject body = new JsonObject();
+		body.add("spuid", new JsonPrimitive(spuid));
+		if (authorization != null)
+			body.add("authorization", new JsonPrimitive(authorization));
+		request.add("unsubscribe", body);
 
-	@Override
-	public void onBrokenSocket() {	
-		if(connected) {
-			connected = false;
-			handler.onBrokenSocket();	
-		}
-	}
-
-	@Override
-	public void onError(ErrorResponse errorResponse) {
-		handler.onError(errorResponse);
+		// Send request and wait for response
+		return client.sendAndReceive(request.toString(), TIMEOUT);
 	}
 
 	public void close() {
-		if (connected){
-				client.close();
+		if (client.isOpen()) {
+			client.close();
 		}
 	}
 

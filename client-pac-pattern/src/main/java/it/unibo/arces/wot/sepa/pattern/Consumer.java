@@ -26,7 +26,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
@@ -40,7 +40,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	protected String sparqlSubscribe = null;
 	protected String subID = "";
 	
-	public Consumer(ApplicationProfile appProfile, String subscribeID) throws SEPAProtocolException {
+	public Consumer(ApplicationProfile appProfile, String subscribeID) throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile);
 
 		if (subscribeID == null) {

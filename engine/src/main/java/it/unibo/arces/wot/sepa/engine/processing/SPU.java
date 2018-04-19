@@ -19,7 +19,6 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
@@ -33,7 +32,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.response.Ping;
+//import it.unibo.arces.wot.sepa.commons.response.Ping;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
@@ -73,23 +72,23 @@ public abstract class SPU implements Runnable {
 	protected BindingsResults firstResults = null;
 
 	// To be implemented by every specific SPU implementation
-	public abstract boolean init();
+	public abstract Response init();
 	public abstract Response processInternal(UpdateResponse update,int timeout);
 	
 	//Notification result
 	private Response notify;
 	
 	// List of processing SPU
-	private HashSet<SPU> queue;
+	private SPUSync sync;
 	
 	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler,
-			Semaphore endpointSemaphore, HashSet<SPU> queue) throws SEPAProtocolException {
+			Semaphore endpointSemaphore, SPUSync sync) throws SEPAProtocolException {
 		if (eventHandler == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe event handler is null"));
-		if (queue == null)
-			throw new SEPAProtocolException(new IllegalArgumentException("SPU processing queue is null"));
+		if (sync == null)
+			throw new SEPAProtocolException(new IllegalArgumentException("SPU sync is null"));
 		
-		this.queue = queue;
+		this.sync = sync;
 		
 		uuid = prefix + UUID.randomUUID().toString();
 		logger = LogManager.getLogger("SPU" + uuid);
@@ -131,9 +130,9 @@ public abstract class SPU implements Runnable {
 		}
 	}
 
-	public void ping() throws IOException {
-		handler.sendPing(new Ping(getUUID()));
-	}
+//	public void ping() throws IOException {
+//		handler.sendPing(new Ping(getUUID()));
+//	}
 
 	@Override
 	public void run() {
@@ -161,11 +160,7 @@ public abstract class SPU implements Runnable {
 				
 				// Notify SPU manager
 				logger.debug("Notify SPU manager. Running: " + running);
-				synchronized (queue) {
-					queue.remove(this);
-					logger.debug("SPUs left: " + queue.size());
-					queue.notify();
-				}
+				sync.endProcessing(this);
 			}
 
 			// Wait next request...

@@ -36,7 +36,8 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
-
+import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
+import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
@@ -46,10 +47,8 @@ import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
-import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
-
 /**
- * This class represents the SPARQL Subscription Engine (Core) of the Semantic
+ * This class represents the SPARQL Subscription Broker (Core) of the Semantic
  * Event Processing Architecture (SEPA)
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
@@ -61,7 +60,7 @@ public class Engine implements EngineMBean {
 
 	// Scheduler request queue
 	private final SchedulerRequestResponseQueue schedulerQueue = new SchedulerRequestResponseQueue();
-	
+
 	// Primitives scheduler/dispatcher
 	private Scheduler scheduler = null;
 
@@ -79,6 +78,9 @@ public class Engine implements EngineMBean {
 
 	// Outh 2.0 Authorization Server
 	private AuthorizationManager oauth;
+
+	// Dependability manager
+	private DependabilityManager dependabilityMng;
 
 	// JKS Credentials
 	private String storeName = "sepa.jks";
@@ -145,9 +147,9 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 		System.out
-				.println("# SEPA Engine Ver 0.8.4  Copyright (C) 2016-2017                                         #");
+				.println("# SEPA Broker Copyright (C) 2016-2018                                                    #");
 		System.out
-				.println("# Web of Things & Dynamic Data Research @ ARCES - University of Bologna (Italy)          #");
+				.println("# Dynamic Linked Data & Web of Things Research @ ARCES - University of Bologna (Italy)   #");
 		System.out
 				.println("#                                                                                        #");
 		System.out
@@ -181,26 +183,73 @@ public class Engine implements EngineMBean {
 		try {
 			properties = new EngineProperties("engine.jpar");
 		} catch (SEPAPropertiesException e) {
-			System.err.println("Open and modify JPAR file and run again the engine");
+			System.err.println("Open and modify *engine.jpar* file and run again the engine");
+			System.exit(1);
+		}
+		SPARQL11Properties endpointProperties = null;
+		try {
+			endpointProperties = new SPARQL11Properties("endpoint.jpar");
+		} catch (SEPAPropertiesException e2) {
+			System.err.println("Open and modify *endpoint.jpar* file and run again the engine");
 			System.exit(1);
 		}
 
 		// SPARQL 1.1 SE request scheduler
-		scheduler = new Scheduler(properties,schedulerQueue);
+		scheduler = new Scheduler(properties, schedulerQueue);
+
+		// Dependability manager
+		dependabilityMng = new DependabilityManager(scheduler);
 
 		// SEPA Processor
 		try {
-			processor = new Processor(new SPARQL11Properties("endpoint.jpar"), properties,schedulerQueue);
-		} catch (SEPAProtocolException | SEPAPropertiesException e1) {
+			processor = new Processor(endpointProperties, properties, schedulerQueue);
+		} catch (SEPAProtocolException e1) {
 			System.err.println(e1.getMessage());
 			System.exit(1);
 		}
 		processor.setName("SEPA Processor");
 		processor.start();
 
-		//scheduler.addObserver(processor);
-		//processor.addObserver(scheduler);
-
+		// SPARQL protocol service
+		int port = endpointProperties.getHttpPort();
+		String portS = "";
+		if (port != -1) portS = String.format(":%d", port);
+		
+		String queryMethod = "";
+		switch (endpointProperties.getQueryMethod()) {
+		case POST:
+			queryMethod = " (Method: POST)";
+			break;
+		case GET:
+			queryMethod = " (Method: GET)";
+			break;
+		case URL_ENCODED_POST:
+			queryMethod = " (Method: URL ENCODED POST)";
+			break;
+		}
+		
+		String updateMethod = "";
+		switch (endpointProperties.getUpdateMethod()) {
+		case POST:
+			updateMethod = " (Method: POST)";
+			break;
+		case GET:
+			updateMethod = " (Method: GET)";
+			break;
+		case URL_ENCODED_POST:
+			updateMethod = " (Method: URL ENCODED POST)";
+			break;
+		}
+		
+		System.out.println("SPARQL 1.1 endpoint");
+		System.out.println("----------------------");
+		System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getHost()+portS
+				+ endpointProperties.getQueryPath()+ queryMethod);
+		System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getHost()+portS
+				+ endpointProperties.getUpdatePath() + updateMethod);
+		System.out.println("----------------------");
+		System.out.println("");
+		
 		// Protocol gates
 		System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 		System.out.println("----------------------");
@@ -219,25 +268,25 @@ public class Engine implements EngineMBean {
 		httpsGate = new HttpsGate(properties, scheduler, oauth);
 
 		wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
-				properties.getKeepAlivePeriod());
+				properties.getKeepAlivePeriod(), dependabilityMng);
 
 		wssServer = new SecureWebsocketServer(properties.getWssPort(),
 				properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth,
-				properties.getKeepAlivePeriod());
+				properties.getKeepAlivePeriod(), dependabilityMng);
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
 		wsServer.start();
-		synchronized(wsServer) {
+		synchronized (wsServer) {
 			try {
 				wsServer.wait(5000);
 			} catch (InterruptedException e) {
 				throw new SEPAProtocolException(e);
 			}
 		}
-		
+
 		wssServer.start();
-		synchronized(wssServer) {
+		synchronized (wssServer) {
 			try {
 				wssServer.wait(5000);
 			} catch (InterruptedException e) {
@@ -249,18 +298,17 @@ public class Engine implements EngineMBean {
 		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
-		System.out.println("*                      SEPA Engine Ver 0.8.4 is up and running                          *");
+		System.out.println("*                      SEPA Broker Ver 0.8.5 is up and running                          *");
 		System.out.println("*                                Let Things Talk!                                       *");
-		System.out.println("*****************************************************************************************");	
+		System.out.println("*****************************************************************************************");
 	}
 
 	public static void main(String[] args) throws SEPASecurityException, SEPAProtocolException {
 		engine = new Engine(args);
-		
+
 		// Attach CTRL+C hook
 		Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(engine));
 	}
-
 
 	public void shutdown() {
 		System.out.println("Stopping...");

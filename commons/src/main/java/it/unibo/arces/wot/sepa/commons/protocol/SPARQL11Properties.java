@@ -51,11 +51,11 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 				"update" : "/blazegraph/namespace/kb/sparql"}
 			 ,
 			"methods" : {
-				"query" : "GET|POST|URL_ENCODED_POST" ,
-				"update" : "POST|URL_ENCODED_POST"}
+				"query" : "GET | POST | URL_ENCODED_POST" ,
+				"update" : "POST | URL_ENCODED_POST"}
 			 ,
 			"formats" : {
-				"query" : "JSON|XML|CSV" ,
+				"query" : "JSON | XML | CSV" ,
 				"update" : "HTML"},
 			"default-graph-uri" :"http://default-graph-URI"
 		}
@@ -194,9 +194,9 @@ public class SPARQL11Properties {
 	protected void defaults() {
 		parameters.add("host", new JsonPrimitive("localhost"));
 
-		// JsonObject ports = new JsonObject();
-		// ports.add("http", new JsonPrimitive(9999));
-		// parameters.add("ports", ports);
+//		JsonObject ports = new JsonObject();
+//		ports.add("http", new JsonPrimitive(8000));
+//		parameters.add("ports", ports);
 
 		JsonObject paths = new JsonObject();
 		paths.add("query", new JsonPrimitive("/query"));

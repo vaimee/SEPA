@@ -1,0 +1,1 @@
+{"parameters":{"host":"localhost","paths":{"query":"/query","update":"/update","subscribe":"/subscribe","register":"/oauth/register","tokenRequest":"/oauth/token","securePath":"/secure"},"methods":{"query":"POST","update":"URL_ENCODED_POST"},"formats":{"query":"JSON","update":"HTML"}}}

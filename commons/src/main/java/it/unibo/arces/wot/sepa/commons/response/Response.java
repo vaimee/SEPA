@@ -98,7 +98,7 @@ public abstract class Response {
 	 *
 	 * @return the as json object
 	 */
-	public JsonObject getAsJsonObject(){
+	/*public JsonObject getAsJsonObject(){
 		return json;
-	}
+	}*/
 }
