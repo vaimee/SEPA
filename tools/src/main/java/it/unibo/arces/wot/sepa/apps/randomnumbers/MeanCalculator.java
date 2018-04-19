@@ -99,11 +99,6 @@ public class MeanCalculator extends Aggregator {
 		
 	}
 
-	@Override
-	public void onPing() {
-		// TODO Auto-generated method stub
-		
-	}
 
 	@Override
 	public void onBrokenSocket() {

@@ -15,6 +15,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
+import it.unibo.arces.wot.sepa.engine.dependability.Timing;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 
 public class SPARQL11ResponseHandler implements ResponseHandler {
@@ -31,14 +32,7 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 
 	@Override
 	public void sendResponse(Response response) {
-		
-		/*JsonObject json = new JsonParser().parse(response.toString()).getAsJsonObject();
-		
-		if (response.getClass().equals(QueryResponse.class))
-			HttpUtilities.sendResponse(handler, json.get("code").getAsInt(), json.get("body").toString());
-		else
-			HttpUtilities.sendResponse(handler, json.get("code").getAsInt(), json.toString());	
-		*/
+		Timing.logTiming(response, "RESPONDING", Instant.now());
 		
 		if (response.isError()) {
 			ErrorResponse err = (ErrorResponse) response;
@@ -47,7 +41,7 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 		else
 			HttpUtilities.sendResponse(handler, HttpStatus.SC_OK, response.toString());
 		
-		
+		Timing.logTiming(response, "RESPONSE_SENT", Instant.now());
 		logger.info("Response #"+response.getToken()+" ("+jmx.timings(handler)+" ms)");	
 	}
 

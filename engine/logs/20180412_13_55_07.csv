@@ -1,0 +1,27 @@
+*** Security check ***
+Register: 43663312-cb08-473a-b521-2769cb348dc3
+Register: 43663312-cb08-473a-b521-2769cb348dc3
+Authorize identity:43663312-cb08-473a-b521-2769cb348dc3
+ID:SECRET=de7f54c8-b101-4dd1-b2fe-01a9fb198d8d:e3d45114-1cd0-4e43-9b00-50c7b48c7387
+Authorization Basic ZGU3ZjU0YzgtYjEwMS00ZGQxLWIyZmUtMDFhOWZiMTk4ZDhkOmUzZDQ1MTE0LTFjZDAtNGU0My05YjAwLTUwYzdiNDhjNzM4Nw==
+Get token
+Credentials: de7f54c8-b101-4dd1-b2fe-01a9fb198d8d e3d45114-1cd0-4e43-9b00-50c7b48c7387
+Access token: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJTRVBBVGVzdCIsImF1ZCI6WyJodHRwczpcL1wvd290LmFyY2VzLnVuaWJvLml0Ojg0NDNcL3NwYXJxbCIsIndzczpcL1wvd290LmFyY2VzLnVuaWJvLml0Ojk0NDNcL3NwYXJxbCJdLCJuYmYiOjE1MjM1NDEzMDcsImlzcyI6Imh0dHBzOlwvXC93b3QuYXJjZXMudW5pYm8uaXQ6ODQ0M1wvb2F1dGhcL3Rva2VuIiwiZXhwIjoxNTIzNTQxMzEzLCJpYXQiOjE1MjM1NDEzMDgsImp0aSI6ImRlN2Y1NGM4LWIxMDEtNGRkMS1iMmZlLTAxYTlmYjE5OGQ4ZDplM2Q0NTExNC0xY2QwLTRlNDMtOWIwMC01MGM3YjQ4YzczODcifQ.j--osVCHej_Nih-CWtbBxcZgLbkKeoYyoJzZo3mkwQSY7sZIJ9Um_9qKRubhuUm4CBYDhKk3IQBXt7nf_nlbmxPHTSdrxAfmaIX47pOHh7wDk-jjA_DFnzBFAStlemj7RI9nZA1IN26S7IiuJ9KVGAQoa7KImDDj5996-K2VVmzOReSOW5vGY2_HJy0YBE-jDWYNqquyQrvTjPCw4jJLFpff6s0aVMKtMtbg12WYntwF8DixpG6FmuYYB7jF_Nu5rcG78Ehw4DyFu4nD5wWvfb-aOsxk2saHSqDGqI-TTEkpXEN7nDyKbxzd5psVovbYSgHO-61FIjbf0gCzEwpPhw
+Validate token
+PASSED
+**********************
+@onOpen WebSocket: <org.java_websocket.WebSocketImpl@65b28f7d> Resource descriptor: /subscribe
+Message from: /127.0.0.1:50948 [{"subscribe":{"sparql":"PREFIX td:<http://wot.arces.unibo.it/ontology/web_of_things#> PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX qmul:<http://eecs.qmul.ac.uk/wot#> PREFIX wot:<http://wot.arces.unibo.it/sepa#> SELECT ?thing ?property ?action ?event ?tName ?pName ?aName ?eName WHERE {?thing rdf:type td:Thing . ?thing td:hasName ?tName . OPTIONAL {?thing td:hasEvent ?event . ?event td:hasName ?eName } . OPTIONAL { ?thing td:hasAction ?action . ?action td:hasName ?aName } . OPTIONAL { ?thing td:hasProperty ?property . ?property td:hasName ?pName }"}}]
+SUBSCRIBE -1 SCHEDULING 989000000
+SUBSCRIBE -1 REQUEST 987000000
+Get token #0 (Available: 99)
+Subscribe request #0
+SUBSCRIBE 0 SCHEDULED 1523541316991
+SUBSCRIBE #0 PREFIX td:<http://wot.arces.unibo.it/ontology/web_of_things#> PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX qmul:<http://eecs.qmul.ac.uk/wot#> PREFIX wot:<http://wot.arces.unibo.it/sepa#> SELECT ?thing ?property ?action ?event ?tName ?pName ?aName ?eName WHERE {?thing rdf:type td:Thing . ?thing td:hasName ?tName . OPTIONAL {?thing td:hasEvent ?event . ?event td:hasName ?eName } . OPTIONAL { ?thing td:hasAction ?action . ?action td:hasName ?aName } . OPTIONAL { ?thing td:hasProperty ?property . ?property td:hasName ?pName }
+SUBSCRIBE #0 PREFIX td:<http://wot.arces.unibo.it/ontology/web_of_things#> PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX qmul:<http://eecs.qmul.ac.uk/wot#> PREFIX wot:<http://wot.arces.unibo.it/sepa#> SELECT ?thing ?property ?action ?event ?tName ?pName ?aName ?eName WHERE {?thing rdf:type td:Thing . ?thing td:hasName ?tName . OPTIONAL {?thing td:hasEvent ?event . ?event td:hasName ?eName } . OPTIONAL { ?thing td:hasAction ?action . ?action td:hasName ?aName } . OPTIONAL { ?thing td:hasProperty ?property . ?property td:hasName ?pName }
+SPU: sepa://spuid/ab9d1583-1505-4d0b-b898-59e9eb133d49 request: SUBSCRIBE #0 PREFIX td:<http://wot.arces.unibo.it/ontology/web_of_things#> PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX qmul:<http://eecs.qmul.ac.uk/wot#> PREFIX wot:<http://wot.arces.unibo.it/sepa#> SELECT ?thing ?property ?action ?event ?tName ?pName ?aName ?eName WHERE {?thing rdf:type td:Thing . ?thing td:hasName ?tName . OPTIONAL {?thing td:hasEvent ?event . ?event td:hasName ?eName } . OPTIONAL { ?thing td:hasAction ?action . ?action td:hasName ?aName } . OPTIONAL { ?thing td:hasProperty ?property . ?property td:hasName ?pName }
+SPU init
+Process SPARQL query SUBSCRIBE #0 PREFIX td:<http://wot.arces.unibo.it/ontology/web_of_things#> PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX qmul:<http://eecs.qmul.ac.uk/wot#> PREFIX wot:<http://wot.arces.unibo.it/sepa#> SELECT ?thing ?property ?action ?event ?tName ?pName ?aName ?eName WHERE {?thing rdf:type td:Thing . ?thing td:hasName ?tName . OPTIONAL {?thing td:hasEvent ?event . ?event td:hasName ?eName } . OPTIONAL { ?thing td:hasAction ?action . ?action td:hasName ?aName } . OPTIONAL { ?thing td:hasProperty ?property . ?property td:hasName ?pName }
+SUBSCRIBE 0 ENDPOINT_REQUEST 1523541317001
+Execute SPARQL 1.1 QUERY (timeout: 5000 ms) GET http://mml.arces.unibo.it:8890/sparql?query=PREFIX+td%3A%3Chttp%3A%2F%2Fwot.arces.unibo.it%2Fontology%2Fweb_of_things%23%3E+PREFIX+rdf%3A%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E+PREFIX+qmul%3A%3Chttp%3A%2F%2Feecs.qmul.ac.uk%2Fwot%23%3E+PREFIX+wot%3A%3Chttp%3A%2F%2Fwot.arces.unibo.it%2Fsepa%23%3E+SELECT+%3Fthing+%3Fproperty+%3Faction+%3Fevent+%3FtName+%3FpName+%3FaName+%3FeName+WHERE+%7B%3Fthing+rdf%3Atype+td%3AThing+.+%3Fthing+td%3AhasName+%3FtName+.+OPTIONAL+%7B%3Fthing+td%3AhasEvent+%3Fevent+.+%3Fevent+td%3AhasName+%3FeName+%7D+.+OPTIONAL+%7B+%3Fthing+td%3AhasAction+%3Faction+.+%3Faction+td%3AhasName+%3FaName+%7D+.+OPTIONAL+%7B+%3Fthing+td%3AhasProperty+%3Fproperty+.+%3Fproperty+td%3AhasName+%3FpName+%7D&format=application%2Fsparql-results%2Bjson&default-graph-uri=http%3A%2F%2Fdefault HTTP/1.1
+QUERY_TIME (112 ms)

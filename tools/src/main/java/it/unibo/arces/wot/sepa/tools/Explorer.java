@@ -86,12 +86,6 @@ public class Explorer {
 //		}
 
 		@Override
-		public void onPing() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
 		public void onBrokenSocket() {
 			// TODO Auto-generated method stub
 			
@@ -177,12 +171,6 @@ public class Explorer {
 //			
 //			onAddedResults(bindingsResults);
 //		}
-
-		@Override
-		public void onPing() {
-			// TODO Auto-generated method stub
-			
-		}
 
 		@Override
 		public void onBrokenSocket() {

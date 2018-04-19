@@ -1,20 +1,23 @@
 {
-	"parameters" : {
-		"host" : "localhost" ,
-		"ports" : {
-			"http" : 8890}
-		 ,
-		"paths" : {
-			"query" : "/sparql" ,
-			"update" : "/sparql"}
-		 ,
-		"methods" : {
-			"query" : "GET" ,
-			"update" : "GET"}
-		 ,
-		"formats" : {
-			"query" : "JSON" ,
-			"update" : "JSON"}
-		 ,
-		"default-graph-uri" : "http://default"}
+	"host": "mml.arces.unibo.it",
+	"sparql11protocol": {
+		"protocol": "http",
+		"port": 8890,
+		"query": {
+			"path": "/sparql",
+			"method": "GET",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/sparql",
+			"method": "GET",
+			"format": "JSON"
+		}
+	},
+	"graphs": {
+		"default-graph-uri": "http://default",
+		"named-graph-uri": "http://default",
+		"using-graph-uri": "http://default",
+		"using-named-graph-uri": "http://default"
+	}
 }

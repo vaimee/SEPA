@@ -71,12 +71,14 @@ public class UpdateHandler extends SPARQL11Handler {
 		}
 
 		if (headers[0].getValue().equals("application/sparql-update")) {
-			logger.debug("update via POST directly");
+			logger.debug("update via POST directly: "+body);
 			
 			return new UpdateRequest(body);
 		} else if (headers[0].getValue().equals("application/x-www-form-urlencoded")) {
 			try {
 				Map<String,String> params = HttpUtilities.splitQuery(body);
+				
+				logger.debug("update via URL ENCODED POST directly: "+params.get("update"));
 				
 				if (params.get("update") != null) return new UpdateRequest(params.get("update"));		
 			} catch (UnsupportedEncodingException e1) {

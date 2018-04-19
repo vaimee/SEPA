@@ -14,13 +14,13 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public class SPARQL11SEWebsocket {
-	private Logger logger = LogManager.getLogger("SPARQL11SEWebsocket");
+	protected Logger logger = LogManager.getLogger("SPARQL11SEWebsocket");
 
 	private long TIMEOUT = 5000;
 
 	protected SEPAWebsocketClient client = null;
-	private URI wsURI = null;
-	private ISubscriptionHandler handler = null;
+	protected URI wsURI = null;
+	protected ISubscriptionHandler handler = null;
 
 	public SPARQL11SEWebsocket(String wsUrl, ISubscriptionHandler handler) throws SEPAProtocolException {
 		try {
@@ -66,6 +66,14 @@ public class SPARQL11SEWebsocket {
 		if (!connect()) {
 			return new ErrorResponse(500, "Failed to connect");
 		}
+		
+		if (!client.isOpen())
+			try {
+				client.reconnectBlocking();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				return new ErrorResponse(500, "Failed to re-connect");
+			}
 		
 		// Create SPARQL 1.1 Subscribe request
 		JsonObject body = new JsonObject();

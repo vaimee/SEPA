@@ -35,15 +35,17 @@ public interface ISubscriptionHandler {
 	void onSemanticEvent(Notification notify);
 
 	/**
-	 * SEPA sends periodic messages to check client status.
-	 */
-	void onPing();
-
-	/**
 	 * This method is called after the connection with SEPA is lost.
 	 * Notice that it is also called even after {@link SEPAWebsocketClient#close()}
 	 * is used.
 	 */
 	void onBrokenSocket();
+	
+	/**
+	 * This method is called if an error occurred
+	 * @param errorResponse the error
+	 * 
+	 * @see ErrorResponse
+	 */
 	void onError(ErrorResponse errorResponse);
 }

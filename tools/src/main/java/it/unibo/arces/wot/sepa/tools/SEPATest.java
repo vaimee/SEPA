@@ -17,7 +17,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package it.unibo.arces.wot.sepa.tools;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
@@ -129,15 +128,6 @@ public class SEPATest {
 			synchronized (sync) {
 				logger.debug(notify.toString());
 				notificationReceived = true;
-				sync.notify();
-			}
-		}
-
-		@Override
-		public void onPing() {
-			synchronized (sync) {
-				logger.debug(new Date() + " Ping");
-				pingReceived = true;
 				sync.notify();
 			}
 		}
