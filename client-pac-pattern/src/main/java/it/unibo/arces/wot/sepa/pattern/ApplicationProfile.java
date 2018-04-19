@@ -307,7 +307,7 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	}
 
 	public String getFileName() {
-		return propertiesFile;
+		return propertiesFile.getName();
 	}
 
 	public String printParameters() {

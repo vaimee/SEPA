@@ -66,20 +66,26 @@ public class HttpUtilities {
 		}
 		json.add("headers", headers);
 
-		String body = "";
-		HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-		try {
-			body = EntityUtils.toString(entity);
-		} catch (ParseException | IOException e) {
-			body = e.getMessage();
-			logger.error(body);
-		}
-
-		json.add("body", new JsonPrimitive(body));
+		json.add("body",getRequestBodyJSON(request));
 
 		return json;
 	}
-	
+
+	private static JsonPrimitive getRequestBodyJSON(HttpRequest request) {
+		String body = "";
+		// Check if the request has a body ( a POST or PUT )
+		if(request instanceof HttpEntityEnclosingRequest) {
+			HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+			try {
+				body = EntityUtils.toString(entity);
+			} catch (ParseException | IOException e) {
+				body = e.getMessage();
+				logger.error(body);
+			}
+		}
+		return new JsonPrimitive(body);
+	}
+
 	public static Map<String, String> splitQuery(String query) throws UnsupportedEncodingException {
 	    Map<String, String> query_pairs = new LinkedHashMap<String, String>();
 	    String[] pairs = query.split("&");

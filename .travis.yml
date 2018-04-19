@@ -1,0 +1,42 @@
+language: java
+cache:
+  directories:
+  - "$HOME/.m2"
+services:
+- docker
+jobs:
+  include:
+  - stage: test
+  - stage: integration
+    before_script:
+    - docker run --name blazegraph -d -p 9999:9999 nawer/blazegraph:2.1.1
+    - sleep 30
+    - wget http://localhost:9999/blazegraph/namespace/kb/sparql
+    - mvn package
+    - cd engine/target
+    - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
+    - java -jar engine-0-SNAPSHOT.jar > log.txt &
+    - sleep 30
+    - cd ../..
+    script:
+    - mvn verify
+  - stage: deploy
+    env:
+     - secure: UBX6IAsuQFTWSlR5n/75KLa1bPFBFNg2K50d59mgrTPSfPt9zWyW04qCrirR8MGCO6SRBs1PZTR4odCwn3gMRNU388IVBauNiBw3nFkHUWeW61GXFIbZcUCwmzZasfhFlqtq9BAb+jhcsgM1EQQtz9Y6ZxgyA0O3bCEv2oJsCbdR74qGR1rfpLhGy8jUMzMWGEZ/MWyRM/HyQYXiUiQBcAdqwZVImc7k9+sZmo5gSchI0bhl/DZlzE/PvVGMh+asypYsSpOIF7HijLNVPy7pzXRWmnA4aTX2s93YSZaaB+Ux1VUPClGfzk+ZaopdzqC7L00+cBBd7r6vEUftbAoL/nIvti0TvL2onhtIGPeA5pozroUxAOgH4/ImndVm/ZZoawp2psix4wMC8yVg94hxBfZN/HU96Rh6ckHY4u5faLE7yEBmTEu9G4nz3pZnY8bj+sJBwXq9J1UB0FjTCnivZTAFQWMIcG1UBNhrnvrh/mBhnLr4sXnK5x1Y9ufzJlcVIWmnWUcEjWRRc26r9AVAxrPMRx0t2bY+Hqr/ggM2+zlKMIf/nYI5JtDbseXdldIJeGT4bVMq2q9I0TF9Kg4oSznyn5dO/IfN1wb2M67ZJPpHpQL1wX0HsLgj/5z09wBo7DLO4A24c5+iP32SuRORGmzJxeAsAnw+OKK7Y3IHgHU=
+     - secure: VwdLUM5qY/ZeI9i5MP++ynsnSeXNYkx9pH2Q6yVudxHLPIzPdD+AzKDvQVkwwzZyU7tMe8UUPi+t8dYQNAPzQ5iqPtRigGF5BCPXXZ9L9K2e/tJbnRwZ5Qbm2XtAdLjA7cSWK+qwgbczT5+h9L/iKS+VwuvMg2OlLDBKlfFGoonp6fStNVAQibbVNJEwL2i7biAUI+UG3ILDscGAauhoDBZjRgkg2PPyOITf7EXj2G9Gmb14ta3Kv1cKUzsXMXkf+6gfRHpmdtVvb0+ZduV4ZMdfiRKs7dNkLsq/CqKitOt/GlxDgEI72dK9hkkitQGfMmA3PFp3ELaRxR3rqpy41XGOH2UD/TEF1VTTsIugrIzq1QuP8moDQEfBZVRoWWyCuRaEKGbOL8NrkHyF94M03SXQ4NneHsV4dUWfw5w2yJvz9LdSsm+5LBHroXkJD8/9nuB14lNK+KvZMqGtkwitTkhwSbV8aB7iwtZdtNQadpjosRcjd58AbKBYPMH7xXF49EguesIrZHgCwzTZ4/90tO3nqg9oqzFlwIGRmV9UUcFRkpQ4KgyKJI3rxWEgoUx0pCY6DgNYpPRf2Bs+7nNvlsHbLUDQIsI0DEb8ulUKk0Ht1l6OjmsXubkeZthilwRofxhEMfIULR0lisOIcdr9Jywxmr0AimMhhbZ69kmSqWM=
+    script: mvn package -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=$TRAVIS_TAG
+    deploy:
+      - provider: script
+        script: "mvn --settings .travis.settings.xml deploy -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=$TRAVIS_TAG"
+        skip_cleanup: true
+        on:
+          tags: true
+      - provider: releases
+        api_key:
+          secure: iWFo6sUzF3kwPua8eoy5hngBIwb1vN2uQd/hXJRlMGYIxIW00/uaUmYaIXrufUeu1BCHB1NIB+Et6SgdLuZfD4TFhlMXyLKCiGhRxhS6xal6U8pZ9mv0aGTCtWc3QEOksiQvSPQaSZz0nQwS+bGhjbkir7hSf1it5wIcz2d1xIwvJexBqVbV6gbAYbevaW41WD8bnICO76fUW5y+9EELB2AFRo4NBoetFUSEB5OSrfBreJXTreaM5l6QpHoiHOWHQ15v+FScj2D+KGshwotPdQNwXEBc06twpBNeiZRerUUUfDfzJJNuS18UUAqqW634SPkR5+5DTKdV03kRg6oLsmHic/UEJ6ilThuC2glCeZXgHkDmYPuSBdPrgEzw1MB3aBs60KERttwDm8XrVtLDVtADmqo3vt15NklZIttSLPazXVU86YomOdRaeepdBXAJf4Ovyc7LtgtKQcMlV5b9lWtjNheep4FCXt+a63FQp95fpUfJG0DQ2xSdcJntnPAxDx8eVnc5q8LtkSMb/26vTLJnUwwJXyH2JvaG5diwBtxJfM7VJqCQ2+CFbmStcG6p0Z2LuHln+bPUkpY/oUh6UIIsZ6yu4cHxRgGAC8DlC59t4xb3bwwAlHsBDHciwmE5TMed3VkGiNS02wLh0aU6lEcwUezGvXkgnNFDJxQYZsw=
+        file: engine/target/engine-$TRAVIS_TAG.jar
+        skip_cleanup: true
+        on:
+          tags: true
+          repo: arces-wot/SEPA
+    if: tag IS present

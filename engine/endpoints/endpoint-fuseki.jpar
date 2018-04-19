@@ -5,8 +5,8 @@
 			"http" : 3030}
 		 ,
 		"paths" : {
-			"query" : "/sepa/query" ,
-			"update" : "/sepa/update"}
+			"query" : "/ds/query" ,
+			"update" : "/ds/update"}
 		 ,
 		"methods" : {
 			"query" : "POST" ,
