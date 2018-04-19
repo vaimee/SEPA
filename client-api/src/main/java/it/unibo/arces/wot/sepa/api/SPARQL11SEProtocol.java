@@ -55,6 +55,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SPARQL11SEPrimitive;
+import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
@@ -115,27 +116,30 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			logger.fatal("Handler is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Handler is null"));
 		}
-		
+
 		this.properties = properties;
-		
 
-		// WS
-		int port = properties.getWsPort();
-		if (port != -1)
-			wsClient = new SPARQL11SEWebsocket(
-					"ws://" + properties.getHost() + ":" + port + properties.getSubscribePath(), handler);
-		else
-			wsClient = new SPARQL11SEWebsocket("ws://" + properties.getHost() + properties.getSubscribePath(), handler);
-
-		// WSS
-		port = properties.getWssPort();
-		if (port != -1)
-			wssClient = new SPARQL11SESecureWebsocket("wss://" + properties.getHost() + ":" + port
-					+ properties.getSecurePath() + properties.getSubscribePath(), handler);
-		else
-			wssClient = new SPARQL11SESecureWebsocket(
-					"wss://" + properties.getHost() + properties.getSecurePath() + properties.getSubscribePath(),
-					handler);
+		if (properties.getSubscriptionProtocol().equals(SubscriptionProtocol.WS)) {
+			// WS
+			int port = properties.getWsPort();
+			if (port != -1)
+				wsClient = new SPARQL11SEWebsocket(
+						"ws://" + properties.getHost() + ":" + port + properties.getSubscribePath(), handler);
+			else
+				wsClient = new SPARQL11SEWebsocket("ws://" + properties.getHost() + properties.getSubscribePath(),
+						handler);
+		}
+		else if (properties.getSubscriptionProtocol().equals(SubscriptionProtocol.WSS)) {
+			// WSS
+			int port = properties.getWssPort();
+			if (port != -1)
+				wssClient = new SPARQL11SESecureWebsocket("wss://" + properties.getHost() + ":" + port
+						+ properties.getSecurePath() + properties.getSubscribePath(), handler);
+			else
+				wssClient = new SPARQL11SESecureWebsocket(
+						"wss://" + properties.getHost() + properties.getSecurePath() + properties.getSubscribePath(),
+						handler);
+		}
 	}
 
 	public String toString() {
@@ -233,7 +237,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	@Override
 	public void close() throws IOException {
 		super.close();
-		wsClient.close();
+		if (wsClient != null) wsClient.close();
 	}
 
 	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op) {
@@ -256,21 +260,32 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		case SUBSCRIBE:
 		case SECURESUBSCRIBE:
 			SubscribeRequest subscribe = (SubscribeRequest) request;
-			if (op == SPARQL11SEPrimitive.SUBSCRIBE)
+			if (op == SPARQL11SEPrimitive.SUBSCRIBE) {
+				if (wsClient == null) return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Secure mode: unsecure request not allowed");
+				
 				return wsClient.subscribe(subscribe.getSPARQL());
+			}
 
 			try {
 				authorization = properties.getAccessToken();
 			} catch (SEPASecurityException e) {
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
+			
+			if (wssClient == null) return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Unsecure mode: secure request not allowed");
+			
 			return wssClient.secureSubscribe(subscribe.getSPARQL(), "Bearer " + authorization);
 		case UNSUBSCRIBE:
 		case SECUREUNSUBSCRIBE:
 			UnsubscribeRequest unsubscribe = (UnsubscribeRequest) request;
-			if (op == SPARQL11SEPrimitive.UNSUBSCRIBE)
+			if (op == SPARQL11SEPrimitive.UNSUBSCRIBE) {
+				if (wsClient == null) return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Secure mode: unsecure request not allowed");
+				
 				return wsClient.unsubscribe(unsubscribe.getSubscribeUUID());
+			}
 
+			if (wssClient == null) return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Unsecure mode: secure request not allowed");
+			
 			try {
 				return wssClient.secureUnsubscribe(unsubscribe.getSubscribeUUID(),
 						"Bearer " + properties.getAccessToken());
@@ -398,6 +413,10 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 			timing = System.nanoTime() - timing;
 
+			if (response == null) {
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Response is null");
+			}
+
 			logger.debug("Response: " + response);
 			if (op.equals(SPARQL11SEPrimitive.REGISTER))
 				logger.debug("REGISTER " + timing / 1000000 + " ms");
@@ -421,7 +440,8 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			}
 		} finally {
 			try {
-				response.close();
+				if (response != null)
+					response.close();
 			} catch (IOException e) {
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}

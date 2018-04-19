@@ -13,13 +13,13 @@ import org.apache.http.nio.protocol.HttpAsyncRequestConsumer;
 import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 
 import org.apache.http.protocol.HttpContext;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.CORSManager;
+import it.unibo.arces.wot.sepa.engine.dependability.Timing;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
@@ -116,6 +116,9 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			return;
 		}
 
+		Timing.logTiming(sepaRequest, "REQUEST", start);
+		Timing.logTiming(sepaRequest, "SCHEDULING", Instant.now());
+			
 		// Schedule request
 		scheduler.schedule(sepaRequest, new SPARQL11ResponseHandler(httpExchange, jmx, start));
 	}

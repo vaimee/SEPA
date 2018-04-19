@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.time.Instant;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +32,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.dependability.Timing;
 
 public class QueryProcessor {
 	private static final Logger logger = LogManager.getLogger("QueryProcessor");
@@ -53,7 +55,9 @@ public class QueryProcessor {
 		
 		//QUERY the endpoint
 		long start = System.currentTimeMillis();
+		Timing.logTiming(req, "ENDPOINT_REQUEST", Instant.now());
 		Response ret = endpoint.query(req, timeout);
+		Timing.logTiming(req, "ENDPOINT_RESPONSE", Instant.now());
 		long stop = System.currentTimeMillis();
 		
 		if (endpointSemaphore != null) endpointSemaphore.release();

@@ -120,7 +120,7 @@ public class QueryHandler extends SPARQL11Handler {
 			}
 
 			if (headers[0].getValue().equals("application/sparql-query")) {
-				logger.debug("query via POST directly");
+				logger.debug("query via POST directly: "+body);
 				
 				return new QueryRequest(body);
 			} else if (headers[0].getValue().equals("application/x-www-form-urlencoded")) {
@@ -137,7 +137,7 @@ public class QueryHandler extends SPARQL11Handler {
 				for (String param : parameters) {
 					String[] value = param.split("=");
 					if (value[0].equals("query")) {
-						logger.debug("query via URL-encoded");
+						logger.debug("query via URL-encoded: "+value[1]);
 						
 						return new QueryRequest(value[1]);
 					}

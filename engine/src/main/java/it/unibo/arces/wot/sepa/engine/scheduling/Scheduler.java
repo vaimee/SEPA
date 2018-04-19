@@ -19,9 +19,8 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
-//import java.util.Observable;
-//import java.util.Observer;
 import java.util.Vector;
 
 import org.apache.logging.log4j.Logger;
@@ -37,6 +36,7 @@ import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.core.SchedulerRequestResponseQueue;
+import it.unibo.arces.wot.sepa.engine.dependability.Timing;
 
 /**
  * This class represents the scheduler of the SPARQL Event Processing Engine
@@ -114,6 +114,9 @@ public class Scheduler implements SchedulerMBean {
 		responders.put(token, handler);
 
 		queue.addRequest(new ScheduledRequest(token, request, handler));
+		
+		Timing.logTiming(request, "SCHEDULED", Instant.now());
+		
 //		// Notify observers
 //		setChanged();
 //		notifyObservers(new ScheduledRequest(token, request, handler));

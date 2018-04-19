@@ -379,12 +379,6 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	}
 
 	@Override
-	public void onPing() {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public void onBrokenSocket() {
 		// TODO Auto-generated method stub
 

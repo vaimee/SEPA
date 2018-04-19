@@ -60,8 +60,20 @@ public class SPARQL11SESecureWebsocket extends SPARQL11SEWebsocket {
 	
 	@Override
 	protected boolean connect() {
-		if (!super.connect()) return false;
-		client.setSocket(secureSocket);
+		if (client == null)
+			try {
+				client = new SEPAWebsocketClient(wsURI, handler);
+				// Enable secure socket
+				client.setSocket(secureSocket);
+				
+				if (!client.connectBlocking()) {
+					logger.error("Not connected");
+					return false;
+				}
+			} catch (InterruptedException e) {
+				logger.debug(e);
+				return false;
+			}
 		return true;
 	}
 	

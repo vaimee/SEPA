@@ -4,9 +4,11 @@ import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.HashMap;
 
 import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -111,6 +113,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
+		Instant start = Instant.now();
+		
 		jmx.onMessage();
 
 		logger.debug("Message from: " + conn.getRemoteSocketAddress() + " [" + message + "]");
@@ -132,6 +136,23 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		}
 		activeSockets.get(conn).startTiming();
 
+		if(req.isQueryRequest()) {
+			logger.log(Level.getLevel("timing"), "QUERY" + " " + req.getToken()+ " SCHEDULING "+Instant.now().getNano());
+			logger.log(Level.getLevel("timing"), "QUERY"  + " " + req.getToken()+ " REQUEST "+start.getNano());
+		}		
+		else if (req.isUpdateRequest()) {
+			logger.log(Level.getLevel("timing"), "UPDATE" + " " + req.getToken()+ " SCHEDULING "+Instant.now().getNano());
+			logger.log(Level.getLevel("timing"), "UPDATE"  + " " + req.getToken()+ " REQUEST "+start.getNano());
+		}
+		else if (req.isSubscribeRequest()) {
+			logger.log(Level.getLevel("timing"), "SUBSCRIBE" + " " + req.getToken()+ " SCHEDULING "+Instant.now().getNano());
+			logger.log(Level.getLevel("timing"), "SUBSCRIBE"  + " " + req.getToken()+ " REQUEST "+start.getNano());
+		}
+		else {
+			logger.log(Level.getLevel("timing"), "UNSUBSCRIBE" + " " + req.getToken()+ " SCHEDULING "+Instant.now().getNano());
+			logger.log(Level.getLevel("timing"), "UNSUBSCRIBE"  + " " + req.getToken()+ " REQUEST "+start.getNano());
+		}
+		
 		// Schedule the request
 		scheduler.schedule(req, activeSockets.get(conn));
 	}
