@@ -1,3 +1,6 @@
+# ignoring local engine configuration files
+engine/*.jpar
+engine/sepa.jks
 
 # Created by https://www.gitignore.io/api/java,maven,eclipse,intellij
 

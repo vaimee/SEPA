@@ -92,7 +92,6 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 	public SPARQL11SEProtocol(SPARQL11SEProperties properties) throws SEPAProtocolException {
 		super(properties);
-
 		this.properties = properties;
 	}
 
@@ -100,7 +99,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * Create a protocol instance to communicate with SEPA. In particular use this
 	 * method if you want to subscribe about changes in the semantic graph.
 	 * Otherwise use {@link #SPARQL11SEProtocol(SPARQL11SEProperties)}
-	 * 
+	 *
 	 * @param properties
 	 * @param handler
 	 *            an handler to get notification about subscribe queries
@@ -115,9 +114,9 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			logger.fatal("Handler is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Handler is null"));
 		}
-		
+
 		this.properties = properties;
-		
+
 
 		// WS
 		int port = properties.getWsPort();
@@ -160,7 +159,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	/**
 	 * Subscribe with a SPARQL 1.1 Subscription language. All the notification will
 	 * be forwarded to the {@link ISubscriptionHandler} of this instance.
-	 * 
+	 *
 	 * @param request
 	 * @return A valid {@link Response} if the subscription is successful <br>
 	 *         an {@link ErrorResponse} otherwise
@@ -175,7 +174,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * supply a SPUID that identify the subscription that you want to delete. This
 	 * primitive does not free any resources, you must call the {@link #close()}
 	 * method.
-	 * 
+	 *
 	 * @param request
 	 * @return A valid {@link Response} if the unsubscription is successful <br>
 	 *         an {@link ErrorResponse} otherwise
@@ -227,14 +226,16 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 	/**
 	 * Free the http connection manager and the WebSocket client.
-	 * 
+	 *
 	 * @throws IOException
 	 */
-	@Override
-	public void close() throws IOException {
-		super.close();
-		wsClient.close();
-	}
+    @Override
+    public void close() throws IOException {
+        super.close();
+        if (wsClient != null) {
+			wsClient.close();
+		}
+    }
 
 	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op) {
 		return executeSPARQL11SEPrimitive(op, null);

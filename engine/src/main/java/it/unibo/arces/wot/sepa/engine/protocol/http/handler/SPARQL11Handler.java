@@ -85,15 +85,15 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			jmx.corsFailed();
 			return;
 		}
+		Request sepaRequest = null;
 
-		// Parsing SPARQL 1.1 request and attach a token
-		Request sepaRequest = parse(httpExchange);
-
-		// Parsing failed
-		if (sepaRequest == null) {
+		try {
+			// Parsing SPARQL 1.1 request and attach a token
+			sepaRequest = parse(httpExchange);
+		} catch (SPARQL11ProtocolException e) {
 			logger.error("Parsing failed: " + httpExchange.getRequest());
-			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST,
-					"Parsing failed: " + httpExchange.getRequest());
+			HttpUtilities.sendFailureResponse(httpExchange, e.getCode(),
+					"Parsing failed: " + e.getBody());
 			jmx.parsingFailed();
 			return;
 		}
