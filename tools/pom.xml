@@ -3,7 +3,7 @@
   <parent>
     <groupId>it.unibo.arces.wot</groupId>
     <artifactId>sepa</artifactId>
-    <version>0.8.0</version>
+    <version>${revision}</version>
   </parent>
   <artifactId>tools</artifactId>
 	<dependencies>
@@ -46,17 +46,17 @@
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>
 			<artifactId>commons</artifactId>
-			<version>0.8.0</version>
+			<version>${revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>
 			<artifactId>client-api</artifactId>
-			<version>0.8.0</version>
+			<version>${revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>
 			<artifactId>client-pac-pattern</artifactId>
-			<version>0.8.0</version>
+			<version>${revision}</version>
 		</dependency>
 	</dependencies>
 	<properties>
