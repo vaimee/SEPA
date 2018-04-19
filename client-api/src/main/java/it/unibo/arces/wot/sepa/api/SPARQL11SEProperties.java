@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.api;
 
+import java.io.File;
 import java.security.Key;
 
 import java.util.Base64;
@@ -38,7 +39,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 
 /**
  * The Class SPARQL11SEProperties.
- * 
+ *
  * <pre>
  "sparql11seprotocol": {
 		"protocol": "ws",
@@ -71,10 +72,10 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 	/**
 	 * The new primitives introduced by the SPARQL 1.1 SE Protocol are:
-	 * 
+	 *
 	 * SECUREUPDATE,SECUREQUERY,SUBSCRIBE,SECURESUBSCRIBE,UNSUBSCRIBE,SECUREUNSUBSCRIBE,REGISTER,REQUESTTOKEN
-	 * 
-	 * 
+	 *
+	 *
 	 * @author Luca Roffia (luca.roffia@unibo.it)
 	 * @version 0.1
 	 */
@@ -95,7 +96,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		REQUESTTOKEN,
 		/** A secure query primitive. */
 		SECUREQUERY
-	};
+	}
 
 	public enum SubscriptionProtocol {
 		WS, WSS
@@ -113,7 +114,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	 * @throws SEPAPropertiesException
 	 */
 	public SPARQL11SEProperties(String propertiesFile, byte[] secret) throws SEPAPropertiesException {
-		super(propertiesFile);
+		this(new File(propertiesFile));
 
 		SEPAEncryption.init(secret);
 	}
@@ -130,6 +131,16 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 		if (propertiesFile == null)
 			throw new IllegalArgumentException("Argument is null");
+	}
+	/**
+	 * Instantiates a new SPARQL 11 SE properties.
+	 *
+	 * @param propertiesFile
+	 *            the properties file
+	 * @throws SEPAPropertiesException
+	 */
+	public SPARQL11SEProperties(File propertiesFile) throws SEPAPropertiesException {
+		super(propertiesFile);
 	}
 
 	public String toString() {
@@ -205,7 +216,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 						.get(protocol).getAsJsonObject().get("port").getAsInt();
 				jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
 						.get(protocol).getAsJsonObject().get("path").getAsString();
-				
+
 				break;
 			case "wss":
 				subscriptionProtocol = SubscriptionProtocol.WSS;
@@ -434,7 +445,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 					new JsonPrimitive(SEPAEncryption.encrypt(secret)));
 		}
 
-		storeProperties(propertiesFile);
+		storeProperties(propertiesFile.getAbsolutePath());
 	}
 
 	/**
@@ -448,7 +459,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	 *            the token type (e.g., bearer)
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
-	 * 
+	 *
 	 */
 	public void setJWT(String jwt, Date expires, String type) throws SEPASecurityException, SEPAPropertiesException {
 
@@ -469,7 +480,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 					new JsonPrimitive(SEPAEncryption.encrypt(type)));
 		}
 
-		storeProperties(propertiesFile);
+		storeProperties(propertiesFile.getAbsolutePath());
 	}
 
 	/**
@@ -507,9 +518,9 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		 *            the data
 		 * @return the string
 		 * @throws SEPASecurityException
-		 * 
+		 *
 		 */
-		public static String encrypt(String Data) throws SEPASecurityException {
+		static String encrypt(String Data) throws SEPASecurityException {
 			Cipher c;
 			try {
 				c = Cipher.getInstance(ALGO);
@@ -528,9 +539,9 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		 *            the encrypted data
 		 * @return the string
 		 * @throws SEPASecurityException
-		 * 
+		 *
 		 */
-		public static String decrypt(String encryptedData) throws SEPASecurityException {
+		static String decrypt(String encryptedData) throws SEPASecurityException {
 			Cipher c;
 			try {
 				c = Cipher.getInstance(ALGO);

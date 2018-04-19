@@ -1,4 +1,5 @@
 # SEPA - SPARQL Event Processing Architecture
+[![Build Status](https://travis-ci.org/arces-wot/SEPA.svg?branch=master)](https://travis-ci.org/arces-wot/SEPA)
 
 SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification.
 
@@ -36,7 +37,7 @@ The default version of `endpoint.jpar` (will be removed soon!) configures the en
 	}
 }
 ```
-The default version of  `engine.jpar` configures the engine to listen for for incoming [SPARQL 1.1 SE Protocol](http://wot.arces.unibo.it/TR/sparql11-se-protocol/) requests at the following URLs:
+The default version of  `engine.jpar` configures the engine to listen for incoming [SPARQL 1.1 SE Protocol](http://wot.arces.unibo.it/TR/sparql11-se-protocol/) requests at the following URLs:
 
 1. Query: http://localhost:8000/query
 2. Update: http://localhost:8000/update
