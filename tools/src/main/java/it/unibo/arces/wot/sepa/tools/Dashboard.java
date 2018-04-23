@@ -55,6 +55,7 @@ import org.apache.logging.log4j.Logger;
 
 import javax.swing.JPanel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -104,8 +105,11 @@ import java.awt.event.KeyEvent;
 
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class Dashboard {
 	private static final Logger logger = LogManager.getLogger("Dashboard");
@@ -128,7 +132,7 @@ public class Dashboard {
 
 	private GenericClient sepaClient;
 	private DashboardHandler handler = new DashboardHandler();
-	
+
 	private JTabbedPane subscriptions;
 	private HashMap<String, BindingsTableModel> subscriptionResultsDM = new HashMap<String, BindingsTableModel>();
 	private HashMap<String, JLabel> subscriptionResultsLabels = new HashMap<String, JLabel>();
@@ -165,16 +169,15 @@ public class Dashboard {
 		}
 
 		@Override
-		public void onPing() {
-		}
-
-		@Override
 		public void onBrokenSocket() {
+
 		}
 
 		@Override
 		public void onError(ErrorResponse errorResponse) {
-		}	
+			lblInfo.setText(errorResponse.getErrorMessage());
+			lblInfo.setToolTipText(errorResponse.getErrorMessage());
+		}
 	}
 
 	private class SortedListModel extends AbstractListModel<String> {
@@ -656,16 +659,9 @@ public class Dashboard {
 	 */
 	public Dashboard() {
 		initialize();
-		
+
 		loadSAP(null);
-		
-		try {
-			sepaClient = new GenericClient(appProfile,handler);
-		} catch (SEPAProtocolException | SEPASecurityException e) {
-			logger.error(e.getMessage());
-			System.exit(-1);
-		}
-		
+
 		// Enable all the buttons
 		btnUpdate.setEnabled(true);
 		btnSubscribe.setEnabled(true);
@@ -774,6 +770,14 @@ public class Dashboard {
 
 		lblInfo.setText("JSAP loaded");
 		lblInfo.setToolTipText("JSAP loaded");
+
+		try {
+			sepaClient = new GenericClient(appProfile, handler);
+		} catch (SEPAProtocolException | SEPASecurityException e) {
+			logger.error(e.getMessage());
+			System.exit(-1);
+		}
+
 		return true;
 	}
 
@@ -870,7 +874,7 @@ public class Dashboard {
 		gbc_label1.gridy = 0;
 		configuration.add(label1, gbc_label1);
 
-		JButton btnLoadXmlProfile = new JButton("Load SAP profile");
+		JButton btnLoadXmlProfile = new JButton("Load JSAP");
 		btnLoadXmlProfile.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				// String path = appProperties.getProperty("path");
@@ -1520,6 +1524,12 @@ public class Dashboard {
 		scrollPane_4.setViewportView(namespacesTable);
 
 		JPanel infoPanel = new JPanel();
+		infoPanel.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+
+			}
+		});
 		GridBagConstraints gbc_infoPanel = new GridBagConstraints();
 		gbc_infoPanel.anchor = GridBagConstraints.SOUTH;
 		gbc_infoPanel.fill = GridBagConstraints.HORIZONTAL;
@@ -1534,6 +1544,20 @@ public class Dashboard {
 		infoPanel.setLayout(gbl_infoPanel);
 
 		lblInfo = new JLabel("Info");
+		lblInfo.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				JOptionPane optionPane = new JOptionPane() {
+					public int getMaxCharactersPerLineCount() {
+						return 100;
+					}
+				};
+				optionPane.setMessage("<html>" + lblInfo.getText() + "</html>");
+				optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
+				JDialog dialog = optionPane.createDialog(null, "Info");
+				dialog.setVisible(true);
+			}
+		});
 		GridBagConstraints gbc_lblInfo = new GridBagConstraints();
 		gbc_lblInfo.anchor = GridBagConstraints.WEST;
 		gbc_lblInfo.insets = new Insets(0, 10, 0, 5);
@@ -1541,7 +1565,7 @@ public class Dashboard {
 		gbc_lblInfo.gridy = 0;
 		infoPanel.add(lblInfo, gbc_lblInfo);
 		ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
-		
+
 		chckbxClearonnotify = new JCheckBox("ClearOnNotify");
 		chckbxClearonnotify.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {

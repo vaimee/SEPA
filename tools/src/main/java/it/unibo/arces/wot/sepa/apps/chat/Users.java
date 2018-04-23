@@ -16,9 +16,9 @@ import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Consumer;
 
 public class Users extends Consumer {
-	private HashMap<String,String> usersList = new HashMap<String,String>();
+	private HashMap<String, String> usersList = new HashMap<String, String>();
 	private boolean joined = false;
-	
+
 	public Users() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
 		super(new ApplicationProfile("chat.jsap"), "USERS");
 	}
@@ -29,66 +29,74 @@ public class Users extends Consumer {
 
 		Response ret = subscribe(null);
 		joined = !ret.isError();
-				
-		if (joined) onAddedResults(((SubscribeResponse) ret).getBindingsResults());
+
+		if (joined)
+			onAddedResults(((SubscribeResponse) ret).getBindingsResults());
 
 		return joined;
 	}
 
 	public boolean leaveChat() {
-		if(!joined) return true;
-		
-		Response ret = unsubscribe();	
+		if (!joined)
+			return true;
+
+		Response ret = unsubscribe();
 		joined = !ret.isUnsubscribeResponse();
-		
+
 		return !joined;
 	}
-	
+
 	public Set<String> getUsers() {
-		return usersList.keySet();
+		synchronized (usersList) {
+			return usersList.keySet();
+		}
 	}
-	
+
 	public String getUserName(String user) {
-		return usersList.get(user);
+		synchronized (usersList) {
+			return usersList.get(user);
+		}
 	}
-	
+
 	@Override
 	public void onResults(ARBindingsResults results) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void onAddedResults(BindingsResults results) {
-		for (Bindings bindings : results.getBindings()) {
-			usersList.put(bindings.getBindingValue("user"), bindings.getBindingValue("userName"));
+		synchronized (usersList) {
+			for (Bindings bindings : results.getBindings()) {
+				usersList.put(bindings.getBindingValue("user"), bindings.getBindingValue("userName"));
+			}
 		}
-		
+
 	}
 
 	@Override
 	public void onRemovedResults(BindingsResults results) {
-		for (Bindings bindings : results.getBindings()) {
-			usersList.remove(bindings.getBindingValue("user"));
+		synchronized (usersList) {
+			for (Bindings bindings : results.getBindings()) {
+				usersList.remove(bindings.getBindingValue("user"));
+			}
 		}
-	}
-
-	@Override
-	public void onPing() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void onBrokenSocket() {
 		joined = false;
 		
+		while (!joinChat()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				return;
+			}
+		}
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		// TODO Auto-generated method stub
-		
+
 	}
 
 }

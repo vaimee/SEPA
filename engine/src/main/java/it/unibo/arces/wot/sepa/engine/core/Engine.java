@@ -24,7 +24,13 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
+
+import org.apache.logging.log4j.LogManager;
 
 import com.nimbusds.jose.JOSEException;
 
@@ -89,6 +95,19 @@ public class Engine implements EngineMBean {
 	private String jwtPassword = "sepa2017";
 	private String serverCertificate = "sepacert";
 
+	// Logging file name
+	private void setLoggingFileName() {
+		// Logging
+		TimeZone tz = TimeZone.getTimeZone("UTC");
+		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
+		df.setTimeZone(tz);
+		String nowAsISO = df.format(new Date());
+		System.setProperty("logFilename", nowAsISO);
+		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
+				.getContext(false);
+		ctx.reconfigure();
+	}
+
 	private void printUsage() {
 		System.out.println("Usage:");
 		System.out.println("java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [JKS OPTIONS]");
@@ -141,6 +160,9 @@ public class Engine implements EngineMBean {
 	}
 
 	public Engine(String[] args) throws SEPASecurityException, SEPAProtocolException {
+		// Set logging file name with the current timestamp YYYYMMDD_HH_MM_SS
+		setLoggingFileName();
+		
 		// Command arguments
 		parsingArgument(args);
 
@@ -213,8 +235,9 @@ public class Engine implements EngineMBean {
 		// SPARQL protocol service
 		int port = endpointProperties.getHttpPort();
 		String portS = "";
-		if (port != -1) portS = String.format(":%d", port);
-		
+		if (port != -1)
+			portS = String.format(":%d", port);
+
 		String queryMethod = "";
 		switch (endpointProperties.getQueryMethod()) {
 		case POST:
@@ -227,7 +250,7 @@ public class Engine implements EngineMBean {
 			queryMethod = " (Method: URL ENCODED POST)";
 			break;
 		}
-		
+
 		String updateMethod = "";
 		switch (endpointProperties.getUpdateMethod()) {
 		case POST:
@@ -240,16 +263,16 @@ public class Engine implements EngineMBean {
 			updateMethod = " (Method: URL ENCODED POST)";
 			break;
 		}
-		
+
 		System.out.println("SPARQL 1.1 endpoint");
 		System.out.println("----------------------");
-		System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getHost()+portS
-				+ endpointProperties.getQueryPath()+ queryMethod);
-		System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getHost()+portS
+		System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getHost() + portS
+				+ endpointProperties.getQueryPath() + queryMethod);
+		System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getHost() + portS
 				+ endpointProperties.getUpdatePath() + updateMethod);
 		System.out.println("----------------------");
 		System.out.println("");
-		
+
 		// Protocol gates
 		System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 		System.out.println("----------------------");

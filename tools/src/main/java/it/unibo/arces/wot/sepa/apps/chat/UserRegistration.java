@@ -8,7 +8,7 @@ import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class UserRegistration extends Producer {
-
+	
 	public UserRegistration() throws SEPAProtocolException, SEPAPropertiesException {
 		super(new ApplicationProfile("chat.jsap"), "REGISTER_USER");
 	}

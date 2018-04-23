@@ -42,7 +42,7 @@ public class ITSecureProtocolTest {
     public void RequestToken() throws SEPASecurityException {
         Response response;
         response = client.requestToken();
-        assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
+        assertFalse(String.valueOf(response),response.isError());
 
         assertFalse("SEPA returned an expired token",properties.isTokenExpired());
     }

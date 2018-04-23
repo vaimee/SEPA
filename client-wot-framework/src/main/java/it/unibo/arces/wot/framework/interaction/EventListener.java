@@ -102,12 +102,6 @@ public abstract class EventListener {
 		}
 
 		@Override
-		public void onPing() {
-			onConnectionStatus(true);
-			
-		}
-
-		@Override
 		public void onBrokenSocket() {
 			onConnectionStatus(false);
 			
@@ -148,12 +142,6 @@ public abstract class EventListener {
 
 		@Override
 		public void onRemovedResults(BindingsResults results) {
-			
-		}
-
-		@Override
-		public void onPing() {
-			onConnectionStatus(true);
 			
 		}
 

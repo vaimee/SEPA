@@ -9,8 +9,7 @@
 			"maxConcurrentRequests" : 5}
 		 ,
 		"spu" : {
-			"keepalive" : 5000,
-			"timeout" : 10000}
+			"keepalive" : 5000}
 		 ,
 		"ports" : {
 			"http" : 8000 ,
