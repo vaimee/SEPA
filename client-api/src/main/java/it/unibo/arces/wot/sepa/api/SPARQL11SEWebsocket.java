@@ -116,9 +116,13 @@ public class SPARQL11SEWebsocket {
 	}
 
 	public void close() {
-		if (client.isOpen()) {
+		if (isConnected()) {
 			client.close();
 		}
+	}
+
+	private boolean isConnected() {
+		return client != null && client.isOpen();
 	}
 
 }

@@ -27,6 +27,7 @@ import java.util.Date;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.google.gson.JsonElement;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -205,7 +206,8 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		super.validate();
 
 		try {
-			String protocol = jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString();
+			JsonElement sparql11seprotocol = jsap.get("sparql11seprotocol");
+			String protocol = sparql11seprotocol.getAsJsonObject().get("protocol").getAsString();
 
 			jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject().get(protocol);
 
