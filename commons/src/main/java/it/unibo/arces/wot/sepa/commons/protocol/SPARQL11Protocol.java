@@ -157,7 +157,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					.setConnectTimeout(timeout).build();
 			
 			// Set request entity
-			if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
+			if (properties.getUpdateMethod().equals(HTTPMethod.GET)) {
 				// ***********************
 				// OpenLink VIRTUOSO PATCH
 				// ***********************
@@ -330,8 +330,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		try {
 			if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
 
-				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8") + "&format="
-						+ URLEncoder.encode(properties.getQueryAcceptHeader(), "UTF-8");
+				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8");
 				if (properties.getDefaultGraphURI() != null) {
 					query += "&default-graph-uri=" + URLEncoder.encode(properties.getDefaultGraphURI(), "UTF-8");
 				}
@@ -360,6 +359,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				queryRequest = queryPostRequest;
 			}
 
+			queryRequest.addHeader("Accept",properties.getQueryAcceptHeader());
 			// Execute HTTP request
 			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " + timeout + " ms) " + queryRequest.toString(), timeout);
 			timing = System.nanoTime();
