@@ -25,6 +25,16 @@
 				"port": 9443,
 				"path": "/subscribe"
 			}
+		},
+		"security": {
+			"register": "/oauth/register",
+			"tokenRequest": "/oauth/token",
+			"securePath": "/secure",
+			"client_id": "ryd7aRCosLlFYowQ5jid0lOlEdMhmbBFFCRZy6fA8KZtsQnuqhfg1zXbzCxpNPih",
+			"client_secret": "N5UgtT0EWMYV3aIsC+iyAB5kk2maR8MrEXV1+NaEocLFz4eYeVT1mKoRIDwgbpsJ",
+			"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfsRgSntEVGcQQR//AJ7psDRK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYmjDdzXXWr/jf1HAP4lTU6IeQqN57UDzW9Mr4Y/+5CnidJI5/KxklwtkuhlzeMQupyx34x2j1BAIJLuPIZHnU1oufaKo3I4b6us1FC0JxtftwpFmv5bnXCHKhsygqwQiqSoS6//kP9HugQjTW7b7kFcUsSriJhJNxztijHcYC1YSpLts3699qLcVmlh0+rF5lDncLv15C4CrA4Ro5BGp6AoAChOSB9WFxmivcFefl9V01XlsXMV64aVHzjFMWWXeLR0TXTDIih8LRJKFcAmM4M6ULqqyl9ELprG9axFSN2GINfkTopEKcGeCWEwJRbHxzor7qgxAzafboWDRb1J0DQxvTNuzK47b9i8QGRiWVkiS6rGnAArdIIiLLPzqOfR0/aGwuFrHfGoxxrJJvatKH9+IwZKW/lSg5XU23MSqKrLALOCInXDVMiK25w0nAff4P0hAnCEkUzkntRbGTrcPuUV8j298e7/NmelTlHqw8xZMf+0iZMBQrgzuXWni4Ok9+bMu65HZ4pBHEBJz5296s093a9/GHcRZaL6jUwd31/MD08PdBu6SYUVS7YKqND6U1jKt9w25i4xnOoJ9sBPcIMDCmgia/gqjR8kaTSgABEogibvwQvDnLpgcHKkh7U5lRegzxeDVO1V63Xj1tJgeGbB",
+			"expires": "QWAE7shP6t6lAuzmw5A8ZQ==",
+			"type": "XPrHEX2xHy+5IuXHPHigMw=="
 		}
 	},
 	"graphs": {
