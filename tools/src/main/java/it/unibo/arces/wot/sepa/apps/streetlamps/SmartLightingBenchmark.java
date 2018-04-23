@@ -190,12 +190,6 @@ public abstract class SmartLightingBenchmark {
 		}
 
 		@Override
-		public void onPing() {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
 		public void onBrokenSocket() {
 			// TODO Auto-generated method stub
 			
@@ -269,12 +263,6 @@ public abstract class SmartLightingBenchmark {
 		public void onRemovedResults(BindingsResults results) {
 			// TODO Auto-generated method stub
 
-		}
-
-		@Override
-		public void onPing() {
-			// TODO Auto-generated method stub
-			
 		}
 
 		@Override

@@ -37,38 +37,31 @@ public class ITProtocolTest {
     @Test(timeout=5000)
     public void Update(){
         final Response update = SubmitUpdate(client,TestQueries.SIMPLE_UPDATE);
-        assertFalse(String.valueOf(update.getAsJsonObject()),update.isError());
+        assertFalse(String.valueOf(update),update.isError());
     }
 
     @Test(timeout=5000)
     public void Query(){
         final Response response = SubmitQuery(client, TestQueries.SIMPLE_QUERY);
-        assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
+        assertFalse(String.valueOf(response),response.isError());
     }
 
     @Test(timeout=5000)
     public void Subscribe(){
         final Response response = submitSubscribe(TestQueries.SIMPLE_QUERY, client);
-        assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
-    }
-
-    @Test(timeout=5000)
-    public void Ping() throws InterruptedException {
-        final Response response = submitSubscribe(TestQueries.SIMPLE_QUERY, client);
-        assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
-        assertTrue(subHandler.pingRecived());
+        assertFalse(String.valueOf(response),response.isError());
     }
 
     @Test(timeout=20000)
     public void NotificationTest() throws InterruptedException {
         final Response response = submitSubscribe(TestQueries.NOTIF_QUERY, client);
-        assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
+        assertFalse(String.valueOf(response),response.isError());
 
         final Response update = SubmitUpdate(client,TestQueries.NOTIF_UPDATE);
-        assertFalse(String.valueOf(update.getAsJsonObject()),update.isError());
+        assertFalse(String.valueOf(update),update.isError());
 
         final Response notification = subHandler.getResponse();
-        assertFalse(String.valueOf(notification.getAsJsonObject()),notification.isError());
+        assertFalse(String.valueOf(notification),notification.isError());
 
 
     }
@@ -78,7 +71,7 @@ public class ITProtocolTest {
         Update();
 
         final Response response = SubmitQuery(client, TestQueries.UTF8_RESULT_QUERY);
-        assertFalse(String.valueOf(response.getAsJsonObject()),response.isError());
+        assertFalse(String.valueOf(response),response.isError());
 
         QueryResponse queryResponse = (QueryResponse) response;
         List<Bindings> results = queryResponse.getBindingsResults().getBindings();

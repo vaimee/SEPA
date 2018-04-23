@@ -82,7 +82,9 @@ public class UpdateHandler extends SPARQL11Handler {
 			try {
 				Map<String,String> params = HttpUtilities.splitQuery(body);
 				
-				if (params.get("update") != null) return new UpdateRequest(params.get("update"));		
+				logger.debug("update via URL ENCODED POST directly: "+params.get("update"));
+
+				if (params.get("update") != null) return new UpdateRequest(params.get("update"));
 			} catch (UnsupportedEncodingException e1) {
 				logger.error(e1.getMessage());
 				throw new SPARQL11ProtocolException( HttpStatus.SC_BAD_REQUEST, e1.getMessage());

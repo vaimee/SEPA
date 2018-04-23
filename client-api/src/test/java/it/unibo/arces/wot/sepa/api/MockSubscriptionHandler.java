@@ -19,11 +19,6 @@ public class MockSubscriptionHandler implements ISubscriptionHandler {
         notSemaphore.release();
     }
 
-    @Override
-    public void onPing() {
-        ping = true;
-        pingSemaphore.release();
-    }
 
     @Override
     public void onBrokenSocket() {

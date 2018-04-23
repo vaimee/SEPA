@@ -75,12 +75,6 @@ public class GarbageCollector extends Aggregator {
 	}
 
 	@Override
-	public void onPing() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
 	public void onBrokenSocket() {
 		// TODO Auto-generated method stub
 		

@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 
@@ -40,7 +37,6 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 
 public class SEPATestClient {
-	protected static final Logger logger = LogManager.getLogger("SEPATest");
 	protected Results results;
 	protected String spuid = null;
 	protected boolean notificationReceived = false;
@@ -57,30 +53,23 @@ public class SEPATestClient {
 		@Override
 		public void onSemanticEvent(Notification notify) {
 			synchronized (sync) {
-				logger.debug(notify.toString());
+				System.out.println(notify.toString());
 				notificationReceived = true;
 				sync.notify();
 			}
-
-		}
-
-		@Override
-		public void onPing() {
-
 		}
 
 		@Override
 		public void onBrokenSocket() {
-
+			System.out.println("Broken socket!");
 		}
 
 		@Override
 		public void onError(ErrorResponse errorResponse) {
 			synchronized (sync) {
-				logger.debug(errorResponse.toString());
+				System.out.println(errorResponse.toString());
 				sync.notify();
 			}
-
 		}	
 	}
 	
@@ -105,9 +94,9 @@ public class SEPATestClient {
 
 		public void print() {
 			if (failed > 0)
-				logger.error("*** TEST FAILED (" + failed + "/" + results.size() + ") ***");
+				System.out.println("*** TEST FAILED (" + failed + "/" + results.size() + ") ***");
 			else
-				logger.info("*** ვაიმეე TEST PASSED (" + results.size() + ") ვაიმეე ***");
+				System.out.println("*** ვაიმეე TEST PASSED (" + results.size() + ") ვაიმეე ***");
 			int index = 1;
 			for (Result res : results) {
 				res.print(index++);
@@ -134,9 +123,9 @@ public class SEPATestClient {
 
 		public void print(int index) {
 			if (success)
-				logger.info(index + " " + toString());
+				System.out.println(index + " " + toString());
 			else
-				logger.error(index + " " + toString());
+				System.out.println(index + " " + toString());
 		}
 	}
 
@@ -147,9 +136,9 @@ public class SEPATestClient {
 		String sparql = appProfile.update(id);
 
 		if (!secure)
-			logger.debug("UPDATE: " + sparql);
+			System.out.println("UPDATE: " + sparql);
 		else
-			logger.debug("SECURE UPDATE: " + sparql);
+			System.out.println("SECURE UPDATE: " + sparql);
 
 		Response response;
 		if (secure)
@@ -157,7 +146,7 @@ public class SEPATestClient {
 		else
 			response = client.update(sparql, null);
 
-		logger.debug(response.toString());
+		System.out.println(response.toString());
 
 		return response.isUpdateResponse();
 	}
@@ -166,9 +155,9 @@ public class SEPATestClient {
 		String sparql = appProfile.subscribe(id);
 
 		if (!secure)
-			logger.debug("QUERY: " + sparql);
+			System.out.println("QUERY: " + sparql);
 		else
-			logger.debug("SECURE QUERY: " + sparql);
+			System.out.println("SECURE QUERY: " + sparql);
 
 		Response response;
 		if (!secure)
@@ -176,7 +165,7 @@ public class SEPATestClient {
 		else
 			response = client.secureQuery(sparql, null);
 
-		logger.debug(response.toString());
+		System.out.println(response.toString());
 
 		if (response.isQueryResponse()) {
 			QueryResponse queryResponse = (QueryResponse) response;
@@ -191,9 +180,9 @@ public class SEPATestClient {
 		String sparql = appProfile.subscribe(id);
 
 		if (secure)
-			logger.debug("SECURE SUBSCRIBE: " + sparql);
+			System.out.println("SECURE SUBSCRIBE: " + sparql);
 		else
-			logger.debug("SUBSCRIBE: " + sparql);
+			System.out.println("SUBSCRIBE: " + sparql);
 
 		Response response;
 
@@ -202,7 +191,7 @@ public class SEPATestClient {
 		else
 			response = client.secureSubscribe(sparql, null);
 
-		logger.debug(response.toString());
+		System.out.println(response.toString());
 
 		if (response.isSubscribeResponse()) {
 			spuid = ((SubscribeResponse) response).getSpuid();
@@ -214,6 +203,7 @@ public class SEPATestClient {
 	
 	public boolean waitTokenToExpire() {
 		try {
+			System.out.println("Wait token to expire");
 			Thread.sleep(client.getTokenExpiringSeconds());
 		} catch (InterruptedException | SEPASecurityException e) {
 			return false;
@@ -227,9 +217,10 @@ public class SEPATestClient {
 			if (notificationReceived)
 				return true;
 			try {
+				System.out.println("Wait notification");
 				sync.wait(notificationMaxDelay);
 			} catch (InterruptedException e) {
-				logger.error(e.getMessage());
+				System.out.println(e.getMessage());
 			}
 		}
 
@@ -238,27 +229,42 @@ public class SEPATestClient {
 
 	public boolean unsubscribeTest(String spuid, boolean secure) {
 		Response response;
+		
+		if (secure)
+			System.out.println("SECURE UNSUBSCRIBE: " + spuid);
+		else
+			System.out.println("UNSUBSCRIBE: " + spuid);
+		
 		if (!secure)
 			response = client.unsubscribe(spuid);
 		else
 			response = client.secureUnsubscribe(spuid);
 
-		logger.debug(response.toString());
+		System.out.println(response.toString());
 
 		return response.isUnsubscribeResponse();
 	}
 
 	public boolean registrationTest(String id) {
 		Response response;
+		
+		System.out.println("REGISTER: " + id);
+		
 		response = client.register(id);
+		
+		System.out.println(response.toString());
+		
 		return !response.getClass().equals(ErrorResponse.class);
 	}
 
 	public boolean requestAccessTokenTest() {
 		Response response;
+		
+		System.out.println("REQUEST ACCESS TOKEN");
+		
 		response = client.requestToken();
 
-		logger.debug(response.toString());
+		System.out.println(response.toString());
 
 		return !response.getClass().equals(ErrorResponse.class);
 	}
@@ -355,32 +361,35 @@ public class SEPATestClient {
 	}
 	
 	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException { 
-		logger.warn("**********************************************************");
-		logger.warn("***     SPARQL 1.1 SE Protocol Service test suite      ***");
-		logger.warn("**********************************************************");
-		logger.warn("***   WARNING: the RDF store content will be ERASED    ***");
-		logger.warn("***         Do you want to continue (yes/no)?          ***");
-		logger.warn("**********************************************************");
+		System.out.println("**********************************************************");
+		System.out.println("***     SPARQL 1.1 SE Protocol Service test suite      ***");
+		System.out.println("**********************************************************");
+		System.out.println("***   WARNING: the RDF store content will be ERASED    ***");
+		System.out.println("***         Do you want to continue (yes/no)?          ***");
+		System.out.println("**********************************************************");
 		Scanner scanner = new Scanner(System.in);
 		scanner.useDelimiter("\\n"); // "\\z" means end of input
 		String input = scanner.next();
 		if (!input.equals("yes")) {
 			scanner.close();
-			logger.info("Bye bye! :-)");
+			System.out.println("Bye bye! :-)");
 			System.exit(0);
 		}
-		logger.warn("**********************************************************");
-		logger.warn("***                Are you sure (yes/no)?              ***");
-		logger.warn("**********************************************************");
+		System.out.println("**********************************************************");
+		System.out.println("***                Are you sure (yes/no)?              ***");
+		System.out.println("**********************************************************");
 		input = scanner.next();
 		if (!input.equals("yes")) {
 			scanner.close();
-			logger.info("Bye bye! :-)");
+			System.out.println("Bye bye! :-)");
 			System.exit(0);
 		}
 		scanner.close();
 		
 		SEPATestClient test = new SEPATestClient(new ApplicationProfile("sepatest.jsap"));
+		test.run();
+		
+		test = new SEPATestClient(new ApplicationProfile("sepatest-secure.jsap"));
 		test.run();
 		
 		System.exit(0);

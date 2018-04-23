@@ -157,7 +157,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					.setConnectTimeout(timeout).build();
 			
 			// Set request entity
-			if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
+			if (properties.getUpdateMethod().equals(HTTPMethod.GET)) {
 				// ***********************
 				// OpenLink VIRTUOSO PATCH
 				// ***********************
@@ -172,10 +172,10 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 				String url;
 				if (properties.getHttpPort() != -1)
-					url = "http://" + properties.getHost() + ":" + properties.getHttpPort() + "/"
+					url = "http://" + properties.getHost() + ":" + properties.getHttpPort()
 							+ properties.getUpdatePath() + "?" + query;
 				else
-					url = "http://" + properties.getHost() + "/" + properties.getUpdatePath() + "?" + query;
+					url = "http://" + properties.getHost() + properties.getUpdatePath() + "?" + query;
 
 				HttpGet queryGetRequest;
 				queryGetRequest = new HttpGet(url);
@@ -195,7 +195,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			}
 			
 			// Execute HTTP request
-			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " + timeout + " ms) " + updatePostRequest.toString(),
+			logger.debug("Execute SPARQL 1.1 UPDATE (timeout: " + timeout + " ms) " + updateRequest.toString(),
 					timeout);
 			long timing = System.nanoTime();
 			httpResponse = httpClient.execute(updateRequest);
@@ -330,18 +330,17 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		try {
 			if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
 
-				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8") + "&format="
-						+ URLEncoder.encode(properties.getQueryAcceptHeader(), "UTF-8");
+				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8");
 				if (properties.getDefaultGraphURI() != null) {
 					query += "&default-graph-uri=" + URLEncoder.encode(properties.getDefaultGraphURI(), "UTF-8");
 				}
 
 				String url;
 				if (properties.getHttpPort() != -1)
-					url = "http://" + properties.getHost() + ":" + properties.getHttpPort() + "/"
+					url = "http://" + properties.getHost() + ":" + properties.getHttpPort() 
 							+ properties.getQueryPath() + "?" + query;
 				else
-					url = "http://" + properties.getHost() + "/" + properties.getQueryPath() + "?" + query;
+					url = "http://" + properties.getHost() + properties.getQueryPath() + "?" + query;
 
 				HttpGet queryGetRequest;
 				queryGetRequest = new HttpGet(url);
@@ -360,6 +359,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				queryRequest = queryPostRequest;
 			}
 
+			queryRequest.addHeader("Accept",properties.getQueryAcceptHeader());
 			// Execute HTTP request
 			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " + timeout + " ms) " + queryRequest.toString(), timeout);
 			timing = System.nanoTime();
@@ -392,7 +392,8 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		if (responseCode >= 400) {
 			try {
 				return new ErrorResponse(req.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());
-			} catch (JsonParseException e) {
+			} catch (JsonParseException | IllegalStateException e) {
+				logger.error(e.getMessage());
 				return new ErrorResponse(req.getToken(), responseCode, responseBody);
 			}
 		}

@@ -1,5 +1,8 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -14,12 +17,18 @@ import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 
 public class Remover extends Aggregator {
+	private static final Logger logger = LogManager.getLogger();
+	
 	private Bindings sender = new Bindings();
 	private boolean joined = false;
+	private Timings timings;
 	
-	public Remover(String senderURI) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
+	public Remover(String senderURI,Timings timings,ChatClient client) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
 		super(new ApplicationProfile("chat.jsap"), "RECEIVED", "REMOVE");
+		
 		sender.addBinding("sender", new RDFTermURI(senderURI));
+		
+		this.timings = timings;
 	}
 
 	public boolean joinChat() {
@@ -28,57 +37,62 @@ public class Remover extends Aggregator {
 
 		Response ret = subscribe(sender);
 		joined = !ret.isError();
-				
-		if (joined) onAddedResults(((SubscribeResponse) ret).getBindingsResults());
+
+		if (joined)
+			onAddedResults(((SubscribeResponse) ret).getBindingsResults());
 
 		return joined;
 	}
 
 	public boolean leaveChat() {
-		if(!joined) return true;
-		
-		Response ret = unsubscribe();	
+		if (!joined)
+			return true;
+
+		Response ret = unsubscribe();
 		joined = !ret.isUnsubscribeResponse();
-		
+
 		return !joined;
 	}
-	
+
 	@Override
 	public void onResults(ARBindingsResults results) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void onAddedResults(BindingsResults results) {
 		for (Bindings bindings : results.getBindings()) {
-			System.out.println("Remove "+bindings);
+			logger.info("RECEIVED From: "+bindings.getBindingValue("message"));
+			
+			// Variables: ?message ?time
+			timings.received(bindings.getBindingValue("message"));
+			
+			timings.removeStart(bindings.getBindingValue("message"));
 			update(bindings);
+			timings.removeStop(bindings.getBindingValue("message"));
 		}
-		
+
 	}
 
 	@Override
 	public void onRemovedResults(BindingsResults results) {
-		// TODO Auto-generated method stub
-		
-	}
 
-	@Override
-	public void onPing() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
 	public void onBrokenSocket() {
 		joined = false;
 		
+		while (!joinChat()) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				return;
+			}
+		}
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		// TODO Auto-generated method stub
 		
 	}
 

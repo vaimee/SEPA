@@ -5,47 +5,45 @@ public class Message {
 	private String to;
 	private String time;
 	private String text;
+	private String msg;
 	
-	public Message(String from,String to,String text,String time) {
-		this.setFrom(from);
-		this.setText(text);
-		this.setTime(time);
-		this.setTo(to);
+	/**
+	 * Represent a chat message
+	 * 
+	 * */
+	public Message(String msg, String from,String to,String text,String time) {
+		this.msg = msg;
+		this.from = from;
+		this.to= to;
+		this.text = text;
+		this.time = time;
 	}
 
+	public String getMessage() {
+		return msg;
+		
+	}
 	public String getTo() {
 		return to;
-	}
-
-	public void setFrom(String from) {
-		this.from = from;
 	}
 
 	public String getTime() {
 		return time;
 	}
 
-	public void setTime(String time) {
-		this.time = time;
-	}
-
 	public String getText() {
 		return text;
 	}
 
-	public void setText(String text) {
-		this.text = text;
-	}
-
     public String toString() {
-        return time+" ["+from+"]-->["+to+"] "+text;
+        return "From: <"+from+"> To: <"+to+"> Message: <"+text+">";
+    }
+    
+    public String toCSV() {
+    		return msg+ " " +from + " "+ to + " " + text+ " "+ time;
     }
 
 	public String getFrom() {
 		return from;
-	}
-
-	public void setTo(String to) {
-		this.to = to;
 	}
 }

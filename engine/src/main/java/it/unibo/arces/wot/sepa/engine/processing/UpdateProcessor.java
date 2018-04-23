@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.time.Instant;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -30,6 +31,7 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.dependability.Timing;
 
 public class UpdateProcessor {
 	private static final Logger logger = LogManager.getLogger("UpdateProcessor");
@@ -54,7 +56,9 @@ public class UpdateProcessor {
 		
 		// UPDATE the endpoint
 		long start = System.currentTimeMillis();		
+		Timing.logTiming(req, "ENDPOINT_REQUEST", Instant.now());
 		Response ret = endpoint.update(req, timeout);		
+		Timing.logTiming(req, "ENDPOINT_RESPONSE", Instant.now());
 		long stop = System.currentTimeMillis();
 		
 		if (endpointSemaphore != null) endpointSemaphore.release();
