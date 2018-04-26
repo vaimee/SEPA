@@ -42,17 +42,17 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  * query via POST directly    |   POST         default-graph-uri (0 or more)
  *                            |                named-graph-uri (0 or more)       application/sparql-query            Unencoded SPARQL query string
                                   using-named-graph-uri (0 or more)
- *
+ * 
  * 2.1.4 Specifying an RDF Dataset
- *
- * A SPARQL query is executed against an RDF Dataset. The RDF Dataset for a query may be specified either via the default-graph-uri and named-graph-uri parameters in the
- * SPARQL Protocol or in the SPARQL query string using the FROM and FROM NAMED keywords.
- *
- * If different RDF Datasets are specified in both the protocol request and the SPARQL query string,
+ * 
+ * A SPARQL query is executed against an RDF Dataset. The RDF Dataset for a query may be specified either via the default-graph-uri and named-graph-uri parameters in the 
+ * SPARQL Protocol or in the SPARQL query string using the FROM and FROM NAMED keywords. 
+ * 
+ * If different RDF Datasets are specified in both the protocol request and the SPARQL query string, 
  * then the SPARQL service must execute the query using the RDF Dataset given in the protocol request.
- *
+ * 
  * Note that a service may reject a query with HTTP response code 400 if the service does not allow protocol clients to specify the RDF Dataset.
- * If an RDF Dataset is not specified in either the protocol request or the SPARQL query string,
+ * If an RDF Dataset is not specified in either the protocol request or the SPARQL query string, 
  * then implementations may execute the query against an implementation-defined default RDF dataset.
  * </pre>
  * 
@@ -77,9 +77,9 @@ public class QueryHandler extends SPARQL11Handler {
 			if (requestUri.indexOf('?') == -1) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"Wrong request uri: ? not found in "+requestUri);
 			}
-
+			
 			String queryParameters = requestUri.substring(requestUri.indexOf('?') + 1);
-
+			
 			if (!queryParameters.contains("query=")) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, "Wrong request uri: 'query=' not found in "+queryParameters);
 			}
@@ -115,7 +115,7 @@ public class QueryHandler extends SPARQL11Handler {
 			}
 
 			if (headers[0].getValue().equals("application/sparql-query")) {
-				logger.debug("query via POST directly: "+body);
+				logger.debug("query via POST directly");
 				
 				return new QueryRequest(body);
 			} else if (headers[0].getValue().equals("application/x-www-form-urlencoded")) {
@@ -131,7 +131,7 @@ public class QueryHandler extends SPARQL11Handler {
 				for (String param : parameters) {
 					String[] value = param.split("=");
 					if (value[0].equals("query")) {
-						logger.debug("query via URL-encoded: "+value[1]);
+						logger.debug("query via URL-encoded");
 						
 						return new QueryRequest(value[1]);
 					}
