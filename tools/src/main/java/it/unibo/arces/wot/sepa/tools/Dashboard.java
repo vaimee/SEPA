@@ -1552,7 +1552,7 @@ public class Dashboard {
 						return 100;
 					}
 				};
-				optionPane.setMessage("<html>" + lblInfo.getText() + "</html>");
+				optionPane.setMessage(lblInfo.getText());
 				optionPane.setMessageType(JOptionPane.INFORMATION_MESSAGE);
 				JDialog dialog = optionPane.createDialog(null, "Info");
 				dialog.setVisible(true);
