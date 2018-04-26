@@ -20,7 +20,6 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -32,30 +31,24 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 
 public abstract class Client {	
 	private final Logger logger = LogManager.getLogger("Client");
-	
-	protected HashMap<String,String> prefix2URIMap = new HashMap<String,String>();	
+		
 	protected ApplicationProfile appProfile;
 	protected SPARQL11SEProtocol protocolClient = null;
+	protected String prefixes = "";
 	
 	public ApplicationProfile getApplicationProfile() {
 		return appProfile;
 	}
 	
 	private void addNamespaces(ApplicationProfile appProfile) {
-		Set<String> prefixes = appProfile.getPrefixes();
-		for (String prefix : prefixes) {
-			if (prefix2URIMap.containsKey(prefix)) {
-				prefix2URIMap.remove(prefix);
-			}
-			prefix2URIMap.put(prefix, appProfile.getNamespaceURI(prefix));
+		Set<String> appPrefixes = appProfile.getPrefixes();
+		for (String prefix : appPrefixes) {
+			prefixes += "PREFIX " + prefix + ":<" + appProfile.getNamespaceURI(prefix) + "> ";
 		}
 	}
 	
 	protected String prefixes() {
-		String ret = "";
-		for (String prefix : prefix2URIMap.keySet())
-			ret += "PREFIX " + prefix + ":<" + prefix2URIMap.get(prefix) + "> ";
-		return ret;
+		return prefixes;
 	}
 	
 	public Client(ApplicationProfile appProfile) throws SEPAProtocolException {
@@ -107,7 +100,8 @@ public abstract class Client {
 				try {
 					uri = new URI(value);
 				} catch (URISyntaxException e) {
-					logger.error("Not a URI: "+value);
+					//byte[] chars = value.getBytes();
+					logger.error(e.getMessage());
 				}
 				
 				if (uri != null) {
