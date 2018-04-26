@@ -321,7 +321,7 @@ public class Engine implements EngineMBean {
 		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
-		System.out.println("*                      SEPA Broker Ver 0.8.5 is up and running                          *");
+		System.out.println("*                      SEPA Broker Ver 0.9.0 is up and running                          *");
 		System.out.println("*                                Let Things Talk!                                       *");
 		System.out.println("*****************************************************************************************");
 	}
