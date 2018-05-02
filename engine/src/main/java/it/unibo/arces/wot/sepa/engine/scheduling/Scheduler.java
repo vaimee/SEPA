@@ -42,8 +42,7 @@ import it.unibo.arces.wot.sepa.engine.dependability.Timing;
  * This class represents the scheduler of the SPARQL Event Processing Engine
  */
 
-//public class Scheduler extends Observable implements SchedulerMBean, Observer {
-public class Scheduler implements SchedulerMBean {
+public class Scheduler extends Thread implements SchedulerMBean {
 	private static final Logger logger = LogManager.getLogger("Scheduler");
 
 	// Request tokens
@@ -74,29 +73,7 @@ public class Scheduler implements SchedulerMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
 		
-		Thread responseThread = new Thread() {
-			public void run() {
-				while(true) {
-					Response response;
-					try {
-						response = queue.waitResponse();
-					} catch (InterruptedException e) {
-						return;
-					}
-					try {
-						if (responders.get(response.getToken()) != null) responders.get(response.getToken()).sendResponse(response);
-					} catch (IOException e) {
-						logger.error("Failed to send response: " + e.getMessage());
-					}
-					responders.remove(response.getToken());
-
-					// RELEASE TOKEN
-					releaseToken(response.getToken());
-				}
-			}
-		};
-		responseThread.setName("SEPA Response Scheduler");
-		responseThread.start();
+		this.setName("SEPA Response Scheduler");
 	}
 
 	public synchronized void schedule(Request request, ResponseHandler handler) {
@@ -116,25 +93,7 @@ public class Scheduler implements SchedulerMBean {
 		queue.addRequest(new ScheduledRequest(token, request, handler));
 		
 		Timing.logTiming(request, "SCHEDULED", Instant.now());
-		
-//		// Notify observers
-//		setChanged();
-//		notifyObservers(new ScheduledRequest(token, request, handler));
 	}
-
-//	@Override
-//	public void update(Observable o, Object arg) {
-//		Response response = (Response) arg;
-//		try {
-//			responders.get(response.getToken()).sendResponse(response);
-//		} catch (IOException e) {
-//			logger.error("Failed to send response: " + e.getMessage());
-//		}
-//		responders.remove(response.getToken());
-//
-//		// RELEASE TOKEN
-//		releaseToken(response.getToken());
-//	}
 
 	/**
 	 * Returns a new token if more tokens are available or -1 otherwise
@@ -174,6 +133,27 @@ public class Scheduler implements SchedulerMBean {
 			logger.debug("Release token #" + token + " (Available: " + tokens.size() + ")");
 
 			SchedulerBeans.tokenLeft(tokens.size());
+		}
+	}
+
+	@Override
+	public void run() {
+		while(true) {
+			Response response;
+			try {
+				response = queue.waitResponse();
+			} catch (InterruptedException e) {
+				return;
+			}
+			try {
+				if (responders.get(response.getToken()) != null) responders.get(response.getToken()).sendResponse(response);
+			} catch (IOException e) {
+				logger.error("Failed to send response: " + e.getMessage());
+			}
+			responders.remove(response.getToken());
+
+			// RELEASE TOKEN
+			releaseToken(response.getToken());
 		}
 	}
 

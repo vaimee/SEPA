@@ -71,25 +71,21 @@ public abstract class SPU implements Runnable {
 	// Query first results
 	protected BindingsResults firstResults = null;
 
-	// To be implemented by every specific SPU implementation
-	public abstract Response init();
-	public abstract Response processInternal(UpdateResponse update,int timeout);
-	
 	//Notification result
 	private Response notify;
-	
+
 	// List of processing SPU
 	private SPUSync sync;
-	
+
 	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler,
 			Semaphore endpointSemaphore, SPUSync sync) throws SEPAProtocolException {
 		if (eventHandler == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe event handler is null"));
 		if (sync == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("SPU sync is null"));
-		
+
 		this.sync = sync;
-		
+
 		uuid = prefix + UUID.randomUUID().toString();
 		logger = LogManager.getLogger("SPU" + uuid);
 
@@ -101,6 +97,10 @@ public abstract class SPU implements Runnable {
 		running = true;
 	}
 
+	// To be implemented by every specific SPU implementation
+	public abstract Response init();
+	public abstract Response processInternal(UpdateResponse update,int timeout);
+	
 	public BindingsResults getFirstResults() {
 		return firstResults;
 	}
