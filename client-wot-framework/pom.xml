@@ -21,14 +21,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>it.unibo.arces.wot</groupId>
-      <artifactId>client-pac-pattern</artifactId>
-      <version>0.8.0</version>
-    </dependency>
+			<groupId>it.unibo.arces.wot</groupId>
+			<artifactId>client-pac-pattern</artifactId>
+			<version>${revision}</version>
+		</dependency>
   </dependencies>
   <parent>
     <groupId>it.unibo.arces.wot</groupId>
     <artifactId>sepa</artifactId>
-    <version>0.8.0</version>
+    <version>${revision}</version>
   </parent>
 </project>

@@ -244,8 +244,13 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	}
 
 	public String getSecurePath() {
-		return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("securePath")
-				.getAsString();
+		try {
+			return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("securePath")
+					.getAsString();
+		} catch (Exception e) {
+			return "";
+		}
+
 	}
 
 	public int getWsPort() {
@@ -258,13 +263,18 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	}
 
 	public String getSubscribePath() {
-		switch (jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()) {
-		case "ws":
-			return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
-					.get("ws").getAsJsonObject().get("path").getAsString();
-		case "wss":
-			return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
-					.get("wss").getAsJsonObject().get("path").getAsString();
+		try {
+			switch (jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()) {
+
+			case "ws":
+				return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
+						.get("ws").getAsJsonObject().get("path").getAsString();
+			case "wss":
+				return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
+						.get("wss").getAsJsonObject().get("path").getAsString();
+			}
+		} catch (Exception e) {
+			return null;
 		}
 		return null;
 	}
@@ -289,13 +299,23 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	}
 
 	public String getRegisterPath() {
-		return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("register")
-				.getAsString();
+		try{
+			return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("register").getAsString();
+		}
+		catch(Exception e) {
+			return "";
+		}
+				
 	}
 
 	public String getTokenRequestPath() {
-		return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("tokenRequest")
-				.getAsString();
+		try{
+			return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("tokenRequest").getAsString();
+		}
+		catch(Exception e) {
+			return "";
+		}
+				
 	}
 
 	private String getSecurityEncryptedValue(String value) throws SEPASecurityException {
@@ -389,12 +409,8 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	 * @throws SEPASecurityException
 	 */
 	public String getBasicAuthorization() throws SEPASecurityException {
-		String encryptedValue;
-
-		if (jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("client_id") != null
-				&& jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject()
-						.get("client_secret") != null) {
-			encryptedValue = jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject()
+		try {
+			String encryptedValue = jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject()
 					.get("client_id").getAsString();
 
 			String id = SEPAEncryption.decrypt(encryptedValue);
@@ -404,21 +420,14 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 			String secret = SEPAEncryption.decrypt(encryptedValue);
 
-			String authorization;
-			try {
-				byte[] buf = Base64.getEncoder().encode((id + ":" + secret).getBytes("UTF-8"));
-				// authorization = Base64.getEncoder().encode((id + ":" +
-				// secret).getBytes("UTF-8")).toString();
-				authorization = new String(buf, "UTF-8");
-			} catch (Exception e) {
-				throw new SEPASecurityException(e);
-			}
-
-			return authorization;// .replace("\n", "");
-
+			byte[] buf = Base64.getEncoder().encode((id + ":" + secret).getBytes("UTF-8"));
+			// authorization = Base64.getEncoder().encode((id + ":" +
+			// secret).getBytes("UTF-8")).toString();
+			return new String(buf, "UTF-8");
 		}
-
-		return null;
+		catch(Exception e) {
+			throw new SEPASecurityException(e);	
+		}
 	}
 
 	/**

@@ -17,7 +17,9 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-public interface EngineMBean {	
+public interface EngineMBean {
+	public String getVersion();
+	
 	public String getUpTime();
 	
 	public String getURL_Query();
