@@ -1548,6 +1548,11 @@ public class Dashboard {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				JOptionPane optionPane = new JOptionPane() {
+					/**
+					 * 
+					 */
+					private static final long serialVersionUID = -5251384434573221593L;
+
 					public int getMaxCharactersPerLineCount() {
 						return 100;
 					}
