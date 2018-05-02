@@ -226,6 +226,7 @@ public class Engine implements EngineMBean {
 
 		// SPARQL 1.1 SE request scheduler
 		scheduler = new Scheduler(properties, schedulerQueue);
+		scheduler.start();
 
 		// Dependability manager
 		dependabilityMng = new DependabilityManager(scheduler);
