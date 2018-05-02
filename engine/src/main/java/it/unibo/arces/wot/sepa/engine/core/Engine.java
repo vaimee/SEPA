@@ -213,9 +213,6 @@ public class Engine implements EngineMBean {
 			endpointProperties = null;
 		}
 
-		if (properties == null || endpointProperties == null)
-			System.exit(1);
-
 		// OAUTH 2.0 Authorization Manager
 		if (properties.isSecure()) {
 			try {
