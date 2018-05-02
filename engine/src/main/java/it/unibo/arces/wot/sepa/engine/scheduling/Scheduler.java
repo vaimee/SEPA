@@ -42,7 +42,6 @@ import it.unibo.arces.wot.sepa.engine.dependability.Timing;
  * This class represents the scheduler of the SPARQL Event Processing Engine
  */
 
-//public class Scheduler extends Observable implements SchedulerMBean, Observer {
 public class Scheduler extends Thread implements SchedulerMBean {
 	private static final Logger logger = LogManager.getLogger("Scheduler");
 
