@@ -116,25 +116,7 @@ public class Scheduler implements SchedulerMBean {
 		queue.addRequest(new ScheduledRequest(token, request, handler));
 		
 		Timing.logTiming(request, "SCHEDULED", Instant.now());
-		
-//		// Notify observers
-//		setChanged();
-//		notifyObservers(new ScheduledRequest(token, request, handler));
 	}
-
-//	@Override
-//	public void update(Observable o, Object arg) {
-//		Response response = (Response) arg;
-//		try {
-//			responders.get(response.getToken()).sendResponse(response);
-//		} catch (IOException e) {
-//			logger.error("Failed to send response: " + e.getMessage());
-//		}
-//		responders.remove(response.getToken());
-//
-//		// RELEASE TOKEN
-//		releaseToken(response.getToken());
-//	}
 
 	/**
 	 * Returns a new token if more tokens are available or -1 otherwise
