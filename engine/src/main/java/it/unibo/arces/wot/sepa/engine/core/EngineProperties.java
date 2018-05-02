@@ -34,39 +34,43 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import org.apache.logging.log4j.LogManager;
 
 /**
- {
-	"parameters" : {
-		"scheduler" : {
-			"queueSize" : 100}
-		 ,
-		"processor" : {
-			"updateTimeout" : 5000 ,
-			"queryTimeout" : 5000 ,
-			"maxConcurrentRequests" : 10}
-		 ,
-		"spu" : {
-			"keepalive" : 5000}
-		 ,
-		"ports" : {
-			"http" : 8000 ,
-			"ws" : 9000 ,
-			"https" : 8443 ,
-			"wss" : 9443}
-		 ,
-		"paths" : {
-			"update" : "/update" ,
-			"query" : "/query" ,
-			"subscribe" : "/subscribe" ,
-			"register" : "/oauth/register" ,
-			"tokenRequest" : "/oauth/token" ,
-			"securePath" : "/secure"}
+{
+	"parameters": {
+		"scheduler": {
+			"queueSize": 100
+		},
+		"processor": {
+			"updateTimeout": 5000,
+			"queryTimeout": 5000,
+			"maxConcurrentRequests": 5
+		},
+		"spu": {
+			"timeout": 2000
+		},
+		"gates": {
+			"secure": false,
+			"ports": {
+				"http": 8000,
+				"ws": 9000,
+				"https": 8443,
+				"wss": 9443
+			},
+			"paths": {
+				"update": "/update",
+				"query": "/query",
+				"subscribe": "/subscribe",
+				"register": "/oauth/register",
+				"tokenRequest": "/oauth/token",
+				"securePath": "/secure"
+			}
+		}
 	}
 }
  */
 public class EngineProperties {
 	private static final Logger logger = LogManager.getLogger("EngineProperties");
 
-	private String defaultsFileName = "defaults.jpar";
+	private String defaultsFileName = "engine.jpar";
 
 	private JsonObject properties = new JsonObject();
 
@@ -82,11 +86,11 @@ public class EngineProperties {
 				properties = new JsonParser().parse(in).getAsJsonObject();
 				if (properties.get("parameters") == null) {
 					logger.warn("parameters key is missing");
-					throw new SEPAPropertiesException(new NoSuchElementException("parameters key is missing"));
+					throw new SEPAPropertiesException(new NoSuchElementException("Parameters key is missing"));
 				}
 				properties = properties.get("parameters").getAsJsonObject();
 
-				checkParameters();
+				validate();
 			}
 			if (in != null)
 				in.close();
@@ -103,10 +107,9 @@ public class EngineProperties {
 			}
 
 			logger.warn(
-					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to \"" + propertiesFile + "\"");
+					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
 			throw new SEPAPropertiesException(new FileNotFoundException(
-					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to \"" + propertiesFile + "\""));
-
+					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker"));
 		}
 	}
 
@@ -129,55 +132,64 @@ public class EngineProperties {
 		processor.add("maxConcurrentRequests", new JsonPrimitive(5));
 		parameters.add("processor", processor);
 
-		// SPU properties
+		// SPU
 		JsonObject spu = new JsonObject();
-		scheduler.add("keepalive", new JsonPrimitive(5000));
+		spu.add("timeout", new JsonPrimitive(5000));
 		parameters.add("spu", spu);
-
+		
+		// Gates
+		JsonObject gates = new JsonObject();
+		gates.add("secure", new JsonPrimitive(false));
+		
 		// Ports
 		JsonObject ports = new JsonObject();
 		ports.add("http", new JsonPrimitive(8000));
 		ports.add("https", new JsonPrimitive(8443));
 		ports.add("ws", new JsonPrimitive(9000));
 		ports.add("wss", new JsonPrimitive(9443));
-		parameters.add("ports", ports);
-
+				
 		// URI patterns
 		JsonObject paths = new JsonObject();
-		parameters.add("securePath", new JsonPrimitive("/secure"));
+		paths.add("securePath", new JsonPrimitive("/secure"));
 		paths.add("update", new JsonPrimitive("/update"));
 		paths.add("query", new JsonPrimitive("/query"));
 		paths.add("subscribe", new JsonPrimitive("/subscribe"));
 		paths.add("unsubscribe", new JsonPrimitive("/unsubscribe"));
 		paths.add("register", new JsonPrimitive("/oauth/register"));
 		paths.add("tokenRequest", new JsonPrimitive("/oauth/token"));
-		parameters.add("paths", paths);
-
+		
+		gates.add("paths", paths);
+		gates.add("ports", ports);
+		parameters.add("gates", gates);
+		
 		properties.add("parameters", parameters);
 	}
 
-	protected void checkParameters() throws SEPAPropertiesException {
+	protected void validate() throws SEPAPropertiesException {
 		try {
 			properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
 
 			properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
 			properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
 			properties.get("processor").getAsJsonObject().get("maxConcurrentRequests").getAsInt();
-			properties.get("spu").getAsJsonObject().get("keepalive").getAsInt();
 
-			properties.get("ports").getAsJsonObject().get("http").getAsInt();
-			properties.get("ports").getAsJsonObject().get("https").getAsInt();
-			properties.get("ports").getAsJsonObject().get("ws").getAsInt();
-			properties.get("ports").getAsJsonObject().get("wss").getAsInt();
+			properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
+			
+			properties.get("gates").getAsJsonObject().get("secure").getAsBoolean();
+			
+			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("http").getAsInt();
+			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("https").getAsInt();
+			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("ws").getAsInt();
+			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("wss").getAsInt();
 
-			properties.get("paths").getAsJsonObject().get("securePath").getAsString();
-			properties.get("paths").getAsJsonObject().get("update").getAsString();
-			properties.get("paths").getAsJsonObject().get("query").getAsString();
-			properties.get("paths").getAsJsonObject().get("subscribe").getAsString();
-			properties.get("paths").getAsJsonObject().get("register").getAsString();
-			properties.get("paths").getAsJsonObject().get("tokenRequest").getAsString();
+			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("securePath").getAsString();
+			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("update").getAsString();
+			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("query").getAsString();
+			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("subscribe").getAsString();
+			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("register").getAsString();
+			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("tokenRequest").getAsString();
 		} catch (Exception e) {
-			throw new SEPAPropertiesException(e);
+			throw new SEPAPropertiesException(new Exception("Failed to validate jpar: "+e.getMessage()));
 		}
 	}
 
@@ -187,94 +199,142 @@ public class EngineProperties {
 		out.close();
 	}
 
-	private int getParameter(String rootKey, String nestedKey, int def) {
-		try {
-			if (rootKey == null)
-				return def;
-			if (nestedKey == null)
-				return properties.get(rootKey).getAsInt();
-			return properties.get(rootKey).getAsJsonObject().get(nestedKey).getAsInt();
-		} catch (Exception e) {
-		}
-
-		return def;
+	public boolean isSecure() {
+		return properties.get("gates").getAsJsonObject().get("secure").getAsBoolean();
 	}
-
-	private String getParameter(String rootKey, String nestedKey, String def) {
-		try {
-			if (rootKey == null)
-				return def;
-			if (nestedKey == null)
-				return properties.get(rootKey).getAsString();
-			return properties.get(rootKey).getAsJsonObject().get(nestedKey).getAsString();
-		} catch (Exception e) {
-		}
-
-		return def;
-	}
-
 	public int getMaxConcurrentRequests() {
-		return getParameter("processor", "maxConcurrentRequests", 5);
+		try {
+			return properties.get("processor").getAsJsonObject().get("maxConcurrentRequests").getAsInt();
+		}
+		catch(Exception e) {
+			return 5;
+		}
 	}
 	
 	public int getUpdateTimeout() {
-		return getParameter("processor", "updateTimeout", 5000);
+		try {
+			return properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
+		}
+		catch(Exception e) {
+			return 5000;
+		}
 	}
 
 	public int getQueryTimeout() {
-		return getParameter("processor", "queryTimeout", 5000);
+		try {
+			return properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
+		}
+		catch(Exception e) {
+			return 5000;
+		}
 	}
 
 	public int getSchedulingQueueSize() {
-		return getParameter("scheduler", "queueSize", 1000);
-	}
-
-	public int getKeepAlivePeriod() {
-		return getParameter("spu", "keepalive", 5000);
+		try {
+			return properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
+		}
+		catch(Exception e) {
+			return 1000;
+		}
 	}
 
 	public int getWsPort() {
-		return getParameter("ports", "ws", 9000);
+		try {
+			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("ws").getAsInt();
+		}
+		catch(Exception e) {
+			return 9000;
+		}
 	}
 
 	public int getHttpPort() {
-		return getParameter("ports", "http", 8000);
+		try {
+			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("http").getAsInt();
+		}
+		catch(Exception e) {
+			return 8000;
+		}
 	}
 
 	public int getHttpsPort() {
-		return getParameter("ports", "https", 8443);
+		try {
+			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("https").getAsInt();
+		}
+		catch(Exception e) {
+			return 8443;
+		}
 	}
 
 	public int getWssPort() {
-		return getParameter("ports", "wss", 9443);
+		try {
+			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("wss").getAsInt();
+		}
+		catch(Exception e) {
+			return 9443;
+		}
 	}
 
 	public String getUpdatePath() {
-		return getParameter("paths", "update", "/update");
+		try {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("update").getAsString();
+		}
+		catch(Exception e) {
+			return "/update";
+		}
 	}
 
 	public String getSubscribePath() {
-		return getParameter("paths", "subscribe", "/subscribe");
+		try {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("subscribe").getAsString();
+		}
+		catch(Exception e) {
+			return "/subscribe";
+		}
 	}
 
 	public String getQueryPath() {
-		return getParameter("paths", "query", "/query");
+		try {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("query").getAsString();
+		}
+		catch(Exception e) {
+			return "/query";
+		}
 	}
 
 	public String getRegisterPath() {
-		return getParameter("paths", "register", "/oauth/register");
+		try {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("register").getAsString();
+		}
+		catch(Exception e) {
+			return "/oauth/register";
+		}
 	}
 
 	public String getTokenRequestPath() {
-		return getParameter("paths", "tokenRequest", "/oauth/token");
+		try {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("tokenRequest").getAsString();
+		}
+		catch(Exception e) {
+			return "/oauth/token";
+		}
 	}
 
 	public String getSecurePath() {
-		return getParameter("paths", "securePath", "/secure");
+		try {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("securePath").getAsString();
+		}
+		catch(Exception e) {
+			return "/secure";
+		}
 	}
 
 	public int getSPUProcessingTimeout() {
-		return getParameter("spu", "timeout", 2000);
+		try {
+			return properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
+		}
+		catch(Exception e) {
+			return 2000;
+		}
 	}
 
 }

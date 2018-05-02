@@ -20,12 +20,7 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.util.HashSet;
 import java.util.Map.Entry;
-//import java.util.NoSuchElementException;
 import java.util.Set;
-
-//import javax.crypto.BadPaddingException;
-//import javax.crypto.IllegalBlockSizeException;
-//import javax.crypto.NoSuchPaddingException;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +36,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
 /**
- * SAP file example *
+ * JSAP file example
  * 
  * <pre>
  * {
@@ -150,12 +145,16 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 		super(propertiesFile, secret);
 	}
 
-	protected Logger logger = LogManager.getLogger("JSAP");
+	protected Logger logger = LogManager.getLogger();
 
 	public JsonObject getExtendedData() {
-		if (jsap.get("extended") == null)
-			return null;
-		return jsap.get("extended").getAsJsonObject();
+		try {
+			return jsap.get("extended").getAsJsonObject();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
+		return null;
 	}
 
 	/**
@@ -179,40 +178,48 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	 * </pre>
 	 */
 	public String update(String updateID) {
-		JsonElement elem = null;
-		if ((elem = jsap.get("updates")) != null)
-			if ((elem = elem.getAsJsonObject().get(updateID)) != null)
-				if ((elem = elem.getAsJsonObject().get("sparql")) != null)
-					return elem.getAsString();
+		try {
+			return jsap.get("updates").getAsJsonObject().get(updateID).getAsJsonObject().get("sparql").getAsString();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
 		return null;
 	}
 
 	public String subscribe(String subscribeID) {
-		JsonElement elem = null;
-		if ((elem = jsap.get("queries")) != null)
-			if ((elem = elem.getAsJsonObject().get(subscribeID)) != null)
-				if ((elem = elem.getAsJsonObject().get("sparql")) != null)
-					return elem.getAsString();
+		try {
+			return jsap.get("queries").getAsJsonObject().get(subscribeID).getAsJsonObject().get("sparql").getAsString();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
 		return null;
 	}
 
 	public Set<String> getUpdateIds() {
-		JsonElement elem;
 		HashSet<String> ret = new HashSet<String>();
-		if ((elem = jsap.get("updates")) != null)
-			for (Entry<String, JsonElement> key : elem.getAsJsonObject().entrySet()) {
+
+		try {
+			for (Entry<String, JsonElement> key : jsap.get("updates").getAsJsonObject().entrySet()) {
 				ret.add(key.getKey());
 			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
 		return ret;
 	}
 
 	public Set<String> getSubscribeIds() {
-		JsonElement elem;
 		HashSet<String> ret = new HashSet<String>();
-		if ((elem = jsap.get("queries")) != null)
-			for (Entry<String, JsonElement> key : elem.getAsJsonObject().entrySet()) {
+
+		try {
+			for (Entry<String, JsonElement> key : jsap.get("queries").getAsJsonObject().entrySet()) {
 				ret.add(key.getKey());
 			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
 		return ret;
 	}
 
@@ -234,48 +241,44 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	 * </pre>
 	 */
 	public Bindings updateBindings(String selectedValue) {
-		JsonElement elem;
 		Bindings ret = new Bindings();
-		if ((elem = jsap.get("updates")) != null)
-			if ((elem = elem.getAsJsonObject().get(selectedValue)) != null)
-				if ((elem = elem.getAsJsonObject().get("forcedBindings")) != null) {
-					for (Entry<String, JsonElement> binding : elem.getAsJsonObject().entrySet()) {
-						JsonObject value = binding.getValue().getAsJsonObject();
-						RDFTerm bindingValue = null;
 
-						if (value.get("type") != null) {
-							if (value.get("type").getAsString().equals("uri")) {
-								bindingValue = new RDFTermURI(value.get("value").getAsString());
-							} else {
-								bindingValue = new RDFTermLiteral(value.get("value").getAsString());
-							}
-						}
-						ret.addBinding(binding.getKey(), bindingValue);
-					}
+		try {
+			for (Entry<String, JsonElement> binding : jsap.get("updates").getAsJsonObject().get(selectedValue)
+					.getAsJsonObject().get("forcedBindings").getAsJsonObject().entrySet()) {
+				RDFTerm bindingValue = null;
+				if (binding.getValue().getAsJsonObject().get("type").getAsString().equals("uri")) {
+					bindingValue = new RDFTermURI(binding.getValue().getAsJsonObject().get("value").getAsString());
+				} else {
+					bindingValue = new RDFTermLiteral(binding.getValue().getAsJsonObject().get("value").getAsString());
 				}
+				ret.addBinding(binding.getKey(), bindingValue);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
 		return ret;
 	}
 
 	public Bindings subscribeBindings(String selectedValue) {
-		JsonElement elem;
 		Bindings ret = new Bindings();
-		if ((elem = jsap.get("queries")) != null)
-			if ((elem = elem.getAsJsonObject().get(selectedValue)) != null)
-				if ((elem = elem.getAsJsonObject().get("forcedBindings")) != null) {
-					for (Entry<String, JsonElement> binding : elem.getAsJsonObject().entrySet()) {
-						JsonObject value = binding.getValue().getAsJsonObject();
-						RDFTerm bindingValue = null;
 
-						if (value.get("type") != null) {
-							if (value.get("type").getAsString().equals("uri")) {
-								bindingValue = new RDFTermURI(value.get("value").getAsString());
-							} else {
-								bindingValue = new RDFTermLiteral(value.get("value").getAsString());
-							}
-						}
-						ret.addBinding(binding.getKey(), bindingValue);
-					}
+		try {
+			for (Entry<String, JsonElement> binding : jsap.get("queries").getAsJsonObject().get(selectedValue)
+					.getAsJsonObject().get("forcedBindings").getAsJsonObject().entrySet()) {
+				RDFTerm bindingValue = null;
+				if (binding.getValue().getAsJsonObject().get("type").getAsString().equals("uri")) {
+					bindingValue = new RDFTermURI(binding.getValue().getAsJsonObject().get("value").getAsString());
+				} else {
+					bindingValue = new RDFTermLiteral(binding.getValue().getAsJsonObject().get("value").getAsString());
 				}
+				ret.addBinding(binding.getKey(), bindingValue);
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+
 		return ret;
 	}
 
@@ -288,22 +291,24 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	 */
 
 	public Set<String> getPrefixes() {
-		JsonElement elem;
 		HashSet<String> ret = new HashSet<String>();
-		if ((elem = jsap.get("namespaces")) != null)
-			for (Entry<String, JsonElement> key : elem.getAsJsonObject().entrySet()) {
+
+		try {
+			for (Entry<String, JsonElement> key : jsap.get("namespaces").getAsJsonObject().entrySet())
 				ret.add(key.getKey());
-			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
 		return ret;
 	}
 
 	public String getNamespaceURI(String prefix) {
-		JsonElement elem;
-		String ret = null;
-		if ((elem = jsap.get("namespaces")) != null)
-			if ((elem = elem.getAsJsonObject().get(prefix)) != null)
-				return elem.getAsString();
-		return ret;
+		try {
+			return jsap.get("namespaces").getAsJsonObject().get(prefix).getAsString();
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			return null;
+		}
 	}
 
 	public String getFileName() {

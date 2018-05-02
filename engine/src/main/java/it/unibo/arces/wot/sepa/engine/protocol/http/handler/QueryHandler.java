@@ -18,7 +18,6 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 /**

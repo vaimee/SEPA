@@ -14,6 +14,15 @@ public class EngineBeans {
 	private static String registrationURL;
 	private static String tokenRequestURL;
 	
+	private static String version;
+	
+	public static void setVersion(String v) {
+		version = v;
+	}
+	public static String getVersion() {
+		return version;
+	}
+	
 	public static void setQueryURL(String s) {
 		queryURL = s;
 	}
