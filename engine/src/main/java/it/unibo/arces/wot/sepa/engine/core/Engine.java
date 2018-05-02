@@ -58,11 +58,12 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  * Event Processing Architecture (SEPA)
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.8.4
+ * @version 0.9.0
  */
 
 public class Engine implements EngineMBean {
 	private static Engine engine;
+	private static String version = "0.9.1";
 
 	// Scheduler request queue
 	private final SchedulerRequestResponseQueue schedulerQueue = new SchedulerRequestResponseQueue();
@@ -162,18 +163,18 @@ public class Engine implements EngineMBean {
 	public Engine(String[] args) throws SEPASecurityException, SEPAProtocolException {
 		// Set logging file name with the current timestamp YYYYMMDD_HH_MM_SS
 		setLoggingFileName();
-		
+
 		// Command arguments
 		parsingArgument(args);
 
 		System.out
 				.println("##########################################################################################");
 		System.out
-				.println("# SEPA Broker Copyright (C) 2016-2018                                                    #");
+				.println("# SEPA Broker                                                                            #");
 		System.out
-				.println("# Dynamic Linked Data & Web of Things Research @ ARCES - University of Bologna (Italy)   #");
+				.println("# Dynamic Linked Data & Web of Things Research - University of Bologna (Italy)           #");
 		System.out
-				.println("#                                                                                        #");
+				.println("# Copyright (C) 2016-2018                                                                #");
 		System.out
 				.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
 		System.out
@@ -185,35 +186,45 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("# GITHUB: https://github.com/arces-wot/sepa                                              #");
 		System.out
-				.println("# WEB: http://wot.arces.unibo.it                                                         #");
+				.println("# WEB: http://site.unibo.it/wot                                                          #");
 		System.out
 				.println("# WIKI: https: // github.com/arces-wot/SEPA/wiki                                         #");
 		System.out
 				.println("##########################################################################################");
 
-		// OAUTH 2.0 Authorization Manager
-		try {
-			oauth = new AuthorizationManager(storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
-		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
-				| CertificateException | IOException | JOSEException e1) {
-			System.err.println(e1.getLocalizedMessage());
-			System.exit(1);
-		}
+		// Beans
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+		EngineBeans.setVersion(version);
 
 		// Initialize SPARQL 1.1 SE processing service properties
 		EngineProperties properties = null;
 		try {
 			properties = new EngineProperties("engine.jpar");
 		} catch (SEPAPropertiesException e) {
-			System.err.println("Open and modify *engine.jpar* file and run again the engine");
-			System.exit(1);
+			System.err.println("Failed to load engine.jpar: "+e.getMessage());
+			properties = null;
 		}
+
 		SPARQL11Properties endpointProperties = null;
 		try {
 			endpointProperties = new SPARQL11Properties("endpoint.jpar");
 		} catch (SEPAPropertiesException e2) {
-			System.err.println("Open and modify *endpoint.jpar* file and run again the engine");
+			System.err.println("Failed to load endpoint.jpar: "+e2.getMessage());
+			endpointProperties = null;
+		}
+
+		if (properties == null || endpointProperties == null)
 			System.exit(1);
+
+		// OAUTH 2.0 Authorization Manager
+		if (properties.isSecure()) {
+			try {
+				oauth = new AuthorizationManager(storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
+			} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
+					| CertificateException | IOException | JOSEException e1) {
+				System.err.println(e1.getLocalizedMessage());
+				System.exit(1);
+			}
 		}
 
 		// SPARQL 1.1 SE request scheduler
@@ -277,7 +288,10 @@ public class Engine implements EngineMBean {
 		System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 		System.out.println("----------------------");
 		try {
-			httpGate = new HttpGate(properties, scheduler);
+			if (!properties.isSecure())
+				httpGate = new HttpGate(properties, scheduler);
+			else
+				httpsGate = new HttpsGate(properties, scheduler, oauth);
 		} catch (SEPAProtocolException e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
@@ -288,40 +302,39 @@ public class Engine implements EngineMBean {
 		System.out.println("");
 		System.out.println("SPARQL 1.1 SE Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)");
 		System.out.println("----------------------");
-		httpsGate = new HttpsGate(properties, scheduler, oauth);
 
-		wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
-				properties.getKeepAlivePeriod(), dependabilityMng);
+		if (!properties.isSecure()) {
+			wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
+					dependabilityMng);
+			wsServer.start();
+			synchronized (wsServer) {
+				try {
+					wsServer.wait(5000);
+				} catch (InterruptedException e) {
+					throw new SEPAProtocolException(e);
+				}
+			}
+		} else {
+			wssServer = new SecureWebsocketServer(properties.getWssPort(),
+					properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth, dependabilityMng);
 
-		wssServer = new SecureWebsocketServer(properties.getWssPort(),
-				properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth,
-				properties.getKeepAlivePeriod(), dependabilityMng);
-
-		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
-
-		wsServer.start();
-		synchronized (wsServer) {
-			try {
-				wsServer.wait(5000);
-			} catch (InterruptedException e) {
-				throw new SEPAProtocolException(e);
+			wssServer.start();
+			synchronized (wssServer) {
+				try {
+					wssServer.wait(5000);
+				} catch (InterruptedException e) {
+					throw new SEPAProtocolException(e);
+				}
 			}
 		}
 
-		wssServer.start();
-		synchronized (wssServer) {
-			try {
-				wssServer.wait(5000);
-			} catch (InterruptedException e) {
-				throw new SEPAProtocolException(e);
-			}
-		}
 		System.out.println("----------------------");
 
 		// Welcome message
 		System.out.println("");
 		System.out.println("*****************************************************************************************");
-		System.out.println("*                      SEPA Broker Ver 0.9.0 is up and running                          *");
+		System.out.println(
+				"*                      SEPA Broker Ver " + version + " is up and running                          *");
 		System.out.println("*                                Let Things Talk!                                       *");
 		System.out.println("*****************************************************************************************");
 	}
@@ -426,5 +439,10 @@ public class Engine implements EngineMBean {
 	@Override
 	public String getEndpoint_QueryMethod() {
 		return ProcessorBeans.getEndpointQueryMethod();
+	}
+
+	@Override
+	public String getVersion() {
+		return EngineBeans.getVersion();
 	}
 }
