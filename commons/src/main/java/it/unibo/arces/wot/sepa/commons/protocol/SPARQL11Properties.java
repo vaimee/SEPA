@@ -117,10 +117,10 @@ public class SPARQL11Properties {
 	};
 
 	/** The defaults file name. */
-	protected String defaultsFileName = "defaults.jpar";
+	protected String defaultsFileName = "endpoint.jpar";
 
 	/** The properties file. */
-	protected File propertiesFile = new File("endpoint.jpar");
+	protected File propertiesFile = new File(defaultsFileName);
 
 	/** The parameters. */
 	protected JsonObject jsap = new JsonObject();
@@ -153,10 +153,10 @@ public class SPARQL11Properties {
 				throw new SEPAPropertiesException(e1);
 			}
 
-			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to\"" + propertiesFile.getName() + "\"");
+			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
 
 			throw new SEPAPropertiesException(new Exception(
-					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" and rename it to\"" + propertiesFile.getName() + "\""));
+					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker"));
 		}
 	}
 
@@ -186,24 +186,31 @@ public class SPARQL11Properties {
 	 * </pre>
 	 */
 	protected void defaults() {
-		jsap.add("host", new JsonPrimitive("localhost"));
+		jsap.add("host", new JsonPrimitive("mml.arces.unibo.it"));
 
 		JsonObject sparql11protocol = new JsonObject();
 		sparql11protocol.add("protocol", new JsonPrimitive("http"));
-		sparql11protocol.add("port", new JsonPrimitive(8000));
+		sparql11protocol.add("port", new JsonPrimitive(8890));
 
 		JsonObject query = new JsonObject();
-		query.add("path", new JsonPrimitive("/query"));
+		query.add("path", new JsonPrimitive("/sparql"));
 		query.add("method", new JsonPrimitive("GET"));
 		query.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("query", query);
 
 		JsonObject update = new JsonObject();
-		update.add("path", new JsonPrimitive("/update"));
-		update.add("method", new JsonPrimitive("POST"));
+		update.add("path", new JsonPrimitive("/sparql"));
+		update.add("method", new JsonPrimitive("GET"));
 		update.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("update", update);
 
+		JsonObject graphs = new JsonObject();
+		graphs.add("default-graph-uri", new JsonPrimitive("http://default"));
+		graphs.add("named-graph-uri", new JsonPrimitive("http://default"));
+		graphs.add("using-graph-uri", new JsonPrimitive("http://default"));
+		graphs.add("using-named-graph-uri", new JsonPrimitive("http://default"));
+		jsap.add("graphs", graphs);
+		
 		jsap.add("sparql11protocol", sparql11protocol);
 	}
 

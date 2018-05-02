@@ -66,7 +66,6 @@ public class SPUManager implements SPUManagerMBean {
 		this.endpointSemaphore = endpointSemaphore;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
-		SPUManagerBeans.setKeepalive(engineProperties.getKeepAlivePeriod());
 		SPUManagerBeans.setSPUProcessingTimeout(engineProperties.getSPUProcessingTimeout());
 
 		// Unsubscribe request activator thread

@@ -36,10 +36,9 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 		return "Secure Subscribe     | wss://%s:%d%s";
 	}
 
-	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth,
-			int keepAlivePeriod, DependabilityManager dependabilityMng)
+	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth, DependabilityManager dependabilityMng)
 			throws SEPAProtocolException, SEPASecurityException {
-		super(port, path, scheduler, keepAlivePeriod, dependabilityMng);
+		super(port, path, scheduler, dependabilityMng);
 
 		if (oauth == null)
 			throw new IllegalArgumentException("Authorization manager is null");

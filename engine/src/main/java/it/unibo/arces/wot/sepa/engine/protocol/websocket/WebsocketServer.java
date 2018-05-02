@@ -57,7 +57,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	// Dependability manager
 	private DependabilityManager dependabilityMng;
 
-	public WebsocketServer(int port, String path, Scheduler scheduler, int keepAlivePeriod,
+	public WebsocketServer(int port, String path, Scheduler scheduler,
 			DependabilityManager dependabilityMng) throws SEPAProtocolException {
 		super(new InetSocketAddress(port));
 
