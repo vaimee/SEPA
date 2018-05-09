@@ -16,13 +16,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.processing;
+package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
+import it.unibo.arces.wot.sepa.engine.processing.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -42,17 +43,17 @@ import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
-public class SPUManager implements SPUManagerMBean {
-	private final Logger logger = LogManager.getLogger("SPUManager");
+public class SubscribeProcessor implements SPUManagerMBean {
+	private final Logger logger = LogManager.getLogger("SubscribeProcessor");
 
 	private SPARQL11Properties endpointProperties;
 
-	// SPUs and SPUIDs hash map
-	private HashMap<String, SPU> spus = new HashMap<String, SPU>();
+
+	private SPUManager spuManager =  new SPUManager();
 
 	// Request queue
 	private ConcurrentLinkedQueue<SPU> subscribeQueue = new ConcurrentLinkedQueue<SPU>();
-	private ConcurrentLinkedQueue<SPU> unsubscribeQueue = new ConcurrentLinkedQueue<SPU>();
+	private ConcurrentLinkedQueue<String> unsubscribeQueue = new ConcurrentLinkedQueue<>();
 	private ConcurrentLinkedQueue<UpdateResponse> updateQueue = new ConcurrentLinkedQueue<UpdateResponse>();
 
 	private Semaphore endpointSemaphore;
@@ -60,8 +61,8 @@ public class SPUManager implements SPUManagerMBean {
 	// SPU Synchronization
 	private SPUSync spuSync = new SPUSync();
 
-	public SPUManager(SPARQL11Properties endpointProperties, EngineProperties engineProperties,
-			Semaphore endpointSemaphore, UpdateProcessingQueue updateProcessingQueue) {
+	public SubscribeProcessor(SPARQL11Properties endpointProperties, EngineProperties engineProperties,
+							  Semaphore endpointSemaphore, UpdateProcessingQueue updateProcessingQueue) {
 		this.endpointProperties = endpointProperties;
 		this.endpointSemaphore = endpointSemaphore;
 
@@ -72,18 +73,14 @@ public class SPUManager implements SPUManagerMBean {
 		Thread thread1 = new Thread() {
 			public void run() {
 				while (true) {
-					SPU spu;
-					while ((spu = unsubscribeQueue.poll()) != null) {
-						logger.debug("Terminating: " + spu.getUUID());
+					String spuUID;
+					while ((spuUID = unsubscribeQueue.poll()) != null) {
+						logger.debug("Terminating: " + spuUID);
 
-						synchronized (spus) {
-							// Terminate SPU and remove from active SPUs
-							spu.terminate();
-							spus.remove(spu.getUUID());
-						}
+						spuManager.UnRegister(spuUID);
 
-						SPUManagerBeans.setActiveSPUs(spus.size());
-						logger.debug("Active SPUs: " + spus.size());
+						SPUManagerBeans.setActiveSPUs(spuManager.size());
+						logger.debug("Active SPUs: " + spuManager.size());
 					}
 					synchronized (unsubscribeQueue) {
 						try {
@@ -109,12 +106,10 @@ public class SPUManager implements SPUManagerMBean {
 						th.setName("SPU_" + spu.getUUID());
 						th.start();
 
-						synchronized (spus) {
-							spus.put(spu.getUUID(), spu);
-						}
+						spuManager.Register(spu);
 
-						SPUManagerBeans.setActiveSPUs(spus.size());
-						logger.debug(spu.getUUID() + " ACTIVATED (total: " + spus.size() + ")");
+						SPUManagerBeans.setActiveSPUs(spuManager.size());
+						logger.debug(spu.getUUID() + " ACTIVATED (total: " + spuManager.size() + ")");
 					}
 					synchronized (subscribeQueue) {
 						try {
@@ -169,15 +164,13 @@ public class SPUManager implements SPUManagerMBean {
 						logger.info("*** PROCESSING SUBSCRIPTIONS BEGIN *** ");
 						Instant start = Instant.now();
 
-						// Wake-up all SPUs
-						synchronized (spus) {
-							logger.info("Activate SPUs (Total: " + spus.size() + ")");
+						logger.info("Activate SPUs (Total: " + spuManager.size() + ")");
 
-							spuSync.startProcessing(spus.values());
+						spuSync.startProcessing(spuManager.GetAll());
+							//TODO: filter algorithm
+                        for (SPU spu : spuManager.GetAll())
+                            spu.process(update);
 
-							for (SPU spu : spus.values())
-								spu.process(update);
-						}
 
 						// Wait all SPUs completing processing (or timeout)
 						spuSync.waitEndOfProcessing();
@@ -246,11 +239,11 @@ public class SPUManager implements SPUManagerMBean {
 
 		String spuid = req.getSubscribeUUID();
 
-		if (!spus.containsKey(spuid))
+		if (!spuManager.isValidSPUID(spuid))
 			return new ErrorResponse(req.getToken(), 404, "SPUID not found: " + spuid);
 
 		synchronized (unsubscribeQueue) {
-			unsubscribeQueue.offer(spus.get(spuid));
+			unsubscribeQueue.offer(spuid);
 			unsubscribeQueue.notify();
 		}
 
