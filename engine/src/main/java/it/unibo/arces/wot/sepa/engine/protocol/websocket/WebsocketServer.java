@@ -38,7 +38,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	protected Scheduler scheduler;
 
 	protected String getWelcomeMessage() {
-		return "Subscribe            | ws://%s:%d%s";
+		return "SPARQL 1.1 Subscribe | ws://%s:%d%s";
 	}
 
 	protected String welcomeMessage;

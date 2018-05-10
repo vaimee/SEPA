@@ -33,7 +33,7 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 
 	@Override
 	protected String getWelcomeMessage() {
-		return "Secure Subscribe     | wss://%s:%d%s";
+		return "SPARQL 1.1 Subscribe | wss://%s:%d%s";
 	}
 
 	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth, DependabilityManager dependabilityMng)

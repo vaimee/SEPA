@@ -17,7 +17,7 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-import java.io.FileNotFoundException;
+//import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,38 +34,13 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import org.apache.logging.log4j.LogManager;
 
 /**
-{
-	"parameters": {
-		"scheduler": {
-			"queueSize": 100
-		},
-		"processor": {
-			"updateTimeout": 5000,
-			"queryTimeout": 5000,
-			"maxConcurrentRequests": 5
-		},
-		"spu": {
-			"timeout": 2000
-		},
-		"gates": {
-			"secure": false,
-			"ports": {
-				"http": 8000,
-				"ws": 9000,
-				"https": 8443,
-				"wss": 9443
-			},
-			"paths": {
-				"update": "/update",
-				"query": "/query",
-				"subscribe": "/subscribe",
-				"register": "/oauth/register",
-				"tokenRequest": "/oauth/token",
-				"securePath": "/secure"
-			}
-		}
-	}
-}
+ * { "parameters": { "scheduler": { "queueSize": 100 }, "processor": {
+ * "updateTimeout": 5000, "queryTimeout": 5000, "maxConcurrentRequests": 5 },
+ * "spu": { "timeout": 2000 }, "gates": { "secure": false, "ports": { "http":
+ * 8000, "ws": 9000, "https": 8443, "wss": 9443 }, "paths": { "update":
+ * "/update", "query": "/query", "subscribe": "/subscribe", "register":
+ * "/oauth/register", "tokenRequest": "/oauth/token", "securePath": "/secure" }
+ * } } }
  */
 public class EngineProperties {
 	private static final Logger logger = LogManager.getLogger("EngineProperties");
@@ -106,10 +81,10 @@ public class EngineProperties {
 				throw new SEPAPropertiesException(e1);
 			}
 
-			logger.warn(
-					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
-			throw new SEPAPropertiesException(new FileNotFoundException(
-					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker"));
+			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
+			// throw new SEPAPropertiesException(new FileNotFoundException(
+			// "USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again
+			// the broker"));
 		}
 	}
 
@@ -136,18 +111,18 @@ public class EngineProperties {
 		JsonObject spu = new JsonObject();
 		spu.add("timeout", new JsonPrimitive(5000));
 		parameters.add("spu", spu);
-		
+
 		// Gates
 		JsonObject gates = new JsonObject();
 		gates.add("secure", new JsonPrimitive(false));
-		
+
 		// Ports
 		JsonObject ports = new JsonObject();
 		ports.add("http", new JsonPrimitive(8000));
 		ports.add("https", new JsonPrimitive(8443));
 		ports.add("ws", new JsonPrimitive(9000));
 		ports.add("wss", new JsonPrimitive(9443));
-				
+
 		// URI patterns
 		JsonObject paths = new JsonObject();
 		paths.add("securePath", new JsonPrimitive("/secure"));
@@ -157,11 +132,11 @@ public class EngineProperties {
 		paths.add("unsubscribe", new JsonPrimitive("/unsubscribe"));
 		paths.add("register", new JsonPrimitive("/oauth/register"));
 		paths.add("tokenRequest", new JsonPrimitive("/oauth/token"));
-		
+
 		gates.add("paths", paths);
 		gates.add("ports", ports);
 		parameters.add("gates", gates);
-		
+
 		properties.add("parameters", parameters);
 	}
 
@@ -174,9 +149,9 @@ public class EngineProperties {
 			properties.get("processor").getAsJsonObject().get("maxConcurrentRequests").getAsInt();
 
 			properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
-			
+
 			properties.get("gates").getAsJsonObject().get("secure").getAsBoolean();
-			
+
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("http").getAsInt();
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("https").getAsInt();
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("ws").getAsInt();
@@ -189,7 +164,7 @@ public class EngineProperties {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("register").getAsString();
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("tokenRequest").getAsString();
 		} catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("Failed to validate jpar: "+e.getMessage()));
+			throw new SEPAPropertiesException(new Exception("Failed to validate jpar: " + e.getMessage()));
 		}
 	}
 
@@ -200,22 +175,25 @@ public class EngineProperties {
 	}
 
 	public boolean isSecure() {
-		return properties.get("gates").getAsJsonObject().get("secure").getAsBoolean();
+		try {
+			return properties.get("gates").getAsJsonObject().get("secure").getAsBoolean();
+		} catch (Exception e) {
+			return false;
+		}
 	}
+
 	public int getMaxConcurrentRequests() {
 		try {
 			return properties.get("processor").getAsJsonObject().get("maxConcurrentRequests").getAsInt();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return 5;
 		}
 	}
-	
+
 	public int getUpdateTimeout() {
 		try {
 			return properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return 5000;
 		}
 	}
@@ -223,8 +201,7 @@ public class EngineProperties {
 	public int getQueryTimeout() {
 		try {
 			return properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return 5000;
 		}
 	}
@@ -232,8 +209,7 @@ public class EngineProperties {
 	public int getSchedulingQueueSize() {
 		try {
 			return properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return 1000;
 		}
 	}
@@ -241,8 +217,7 @@ public class EngineProperties {
 	public int getWsPort() {
 		try {
 			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("ws").getAsInt();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return 9000;
 		}
 	}
@@ -250,8 +225,7 @@ public class EngineProperties {
 	public int getHttpPort() {
 		try {
 			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("http").getAsInt();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return 8000;
 		}
 	}
@@ -259,8 +233,7 @@ public class EngineProperties {
 	public int getHttpsPort() {
 		try {
 			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("https").getAsInt();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return 8443;
 		}
 	}
@@ -268,8 +241,7 @@ public class EngineProperties {
 	public int getWssPort() {
 		try {
 			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("wss").getAsInt();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return 9443;
 		}
 	}
@@ -277,17 +249,16 @@ public class EngineProperties {
 	public String getUpdatePath() {
 		try {
 			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("update").getAsString();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return "/update";
 		}
 	}
 
 	public String getSubscribePath() {
 		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("subscribe").getAsString();
-		}
-		catch(Exception e) {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("subscribe")
+					.getAsString();
+		} catch (Exception e) {
 			return "/subscribe";
 		}
 	}
@@ -295,35 +266,34 @@ public class EngineProperties {
 	public String getQueryPath() {
 		try {
 			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("query").getAsString();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return "/query";
 		}
 	}
 
 	public String getRegisterPath() {
 		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("register").getAsString();
-		}
-		catch(Exception e) {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("register")
+					.getAsString();
+		} catch (Exception e) {
 			return "/oauth/register";
 		}
 	}
 
 	public String getTokenRequestPath() {
 		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("tokenRequest").getAsString();
-		}
-		catch(Exception e) {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("tokenRequest")
+					.getAsString();
+		} catch (Exception e) {
 			return "/oauth/token";
 		}
 	}
 
 	public String getSecurePath() {
 		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("securePath").getAsString();
-		}
-		catch(Exception e) {
+			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("securePath")
+					.getAsString();
+		} catch (Exception e) {
 			return "/secure";
 		}
 	}
@@ -331,8 +301,7 @@ public class EngineProperties {
 	public int getSPUProcessingTimeout() {
 		try {
 			return properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
-		}
-		catch(Exception e) {
+		} catch (Exception e) {
 			return 2000;
 		}
 	}
