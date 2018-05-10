@@ -168,7 +168,7 @@ public class SubscribeProcessor implements SPUManagerMBean {
 
 						spuSync.startProcessing(spuManager.GetAll());
 							//TODO: filter algorithm
-                        for (SPU spu : spuManager.GetAll())
+                        for (ISubscriptionProcUnit spu : spuManager.GetAll())
                             spu.process(update);
 
 

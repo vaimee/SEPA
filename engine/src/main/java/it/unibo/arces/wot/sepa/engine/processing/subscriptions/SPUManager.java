@@ -8,9 +8,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class SPUManager {
-    HashMap<String,SPU> spus = new HashMap<>();
+    HashMap<String,ISubscriptionProcUnit> spus = new HashMap<>();
 
-    public synchronized void Register(SPU spu){
+    public synchronized void Register(ISubscriptionProcUnit spu){
         spus.put(spu.getUUID(),spu);
     }
 
@@ -26,11 +26,11 @@ public class SPUManager {
         return spus.containsKey(id);
     }
 
-    public synchronized Iterator<SPU> Filter(UpdateRequest request){
+    public synchronized Iterator<ISubscriptionProcUnit> Filter(UpdateRequest request){
         return spus.values().iterator();
     }
 
-    public synchronized Collection<SPU> GetAll(){
+    public synchronized Collection<ISubscriptionProcUnit> GetAll(){
         return spus.values();
     }
 
