@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 
 public class SPUManager {
-    HashMap<String,ISubscriptionProcUnit> spus = new HashMap<>();
+    private HashMap<String,ISubscriptionProcUnit> spus = new HashMap<>();
 
     public synchronized void Register(ISubscriptionProcUnit spu){
         spus.put(spu.getUUID(),spu);
