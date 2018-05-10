@@ -23,6 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.ISubscriptionProcUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -49,7 +50,7 @@ import it.unibo.arces.wot.sepa.engine.core.EventHandler;
  */
 
 //public abstract class SPU extends Observable implements Runnable {
-public abstract class SPU implements Runnable {
+public abstract class SPU implements ISubscriptionProcUnit {
 	private final Logger logger;
 
 	// The URI of the subscription (i.e., sepa://spuid/UUID)
@@ -97,14 +98,14 @@ public abstract class SPU implements Runnable {
 		running = true;
 	}
 
-	// To be implemented by every specific SPU implementation
-	public abstract Response init();
 	public abstract Response processInternal(UpdateResponse update,int timeout);
 	
+	@Override
 	public BindingsResults getFirstResults() {
 		return firstResults;
 	}
 
+	@Override
 	public void terminate() {
 		synchronized (updateQueue) {
 			running = false;
@@ -119,10 +120,12 @@ public abstract class SPU implements Runnable {
 		return ((SPU) obj).getUUID().equals(getUUID());
 	}
 
+	@Override
 	public String getUUID() {
 		return uuid;
 	}
 
+	@Override
 	public void process(UpdateResponse res) {
 		synchronized (updateQueue) {
 			updateQueue.offer(res);
