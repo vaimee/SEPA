@@ -1,7 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.engine.processing.SPU;
 
 import java.util.Collection;
 import java.util.HashMap;
