@@ -1,5 +1,5 @@
 {
-	"host": "localhost",
+	"host": "mml.arces.unibo.it",
 	"sparql11protocol": {
 		"protocol": "http",
 		"port": 8000,
@@ -45,8 +45,8 @@
 	"extended": {
 		"simulate": false,
 		"mqtt": {
-			"url": "giove.arces.unibo.it",
-			"port": 52877,
+			"url": "test.mosquitto.org",
+			"port": 1883,
 			"topics": [
 				"#"
 			],
@@ -511,7 +511,7 @@
 	},
 	"updates": {
 		"MQTT_MESSAGE": {
-			"sparql": "DELETE {?node mqtt:hasValue ?oldValue } INSERT {?node rdf:type mqtt:Node ; mqtt:hasValue ?value ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker } WHERE { {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/mqtt#Node-\",STRUUID())) AS ?node) . FILTER NOT EXISTS {?nodeOld rdf:type mqtt:Node ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker } } UNION { ?node mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker ; mqtt:hasValue ?oldValue ; rdf:type mqtt:Node } }",
+			"sparql": "INSERT {?message rdf:type mqtt:Message ; mqtt:hasValue ?value ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker ; mqtt:timestamp ?timestamp} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/mqtt#Message-\",STRUUID())) AS ?message) . BIND(now() AS ?timestamp)}",
 			"forcedBindings": {
 				"value": {
 					"type": "literal",
@@ -604,14 +604,14 @@
 				}
 			}
 		},
-		"COUNT_TOPICS": {
-			"sparql": "SELECT (COUNT(?topic) AS ?topics) WHERE {?node rdf:type mqtt:Node ; mqtt:hasTopic ?topic}"
+		"MQTT_TOPICS_COUNT": {
+			"sparql": "SELECT (COUNT(DISTINCT ?topic) AS ?topics) WHERE {?message rdf:type mqtt:Message ; mqtt:hasTopic ?topic}"
 		},
-		"TOPIC": {
-			"sparql": "SELECT ?topic WHERE {?node rdf:type mqtt:Node ; mqtt:hasTopic ?topic}"
+		"MQTT_TOPICS": {
+			"sparql": "SELECT DISTINCT ?broker ?topic WHERE {?message rdf:type mqtt:Message ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker}"
 		},
-		"VALUE": {
-			"sparql": "SELECT ?value WHERE {?node rdf:type mqtt:Node ; mqtt:hasTopic ?topic; mqtt:hasValue ?value}",
+		"MQTT_TOPIC_VALUE": {
+			"sparql": "SELECT ?value WHERE {?message rdf:type mqtt:Message ; mqtt:hasTopic ?topic; mqtt:hasValue ?value}",
 			"forcedBindings": {
 				"topic": {
 					"type": "literal",
@@ -619,8 +619,8 @@
 				}
 			}
 		},
-		"NODE": {
-			"sparql": "SELECT ?topic ?value WHERE {?node rdf:type mqtt:Node ; mqtt:hasValue ?value ; mqtt:hasTopic ?topic}"
+		"MQTT_MESSAGES": {
+			"sparql": "SELECT ?broker ?topic ?value WHERE {?message rdf:type mqtt:Message ; mqtt:hasValue ?value ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker}"
 		}
 	}
 }
