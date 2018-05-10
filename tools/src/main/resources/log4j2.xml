@@ -12,7 +12,7 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="timing">
+		<Root level="info">
 			<AppenderRef ref="Console"/>
 			<AppenderRef ref="Logging"/>
 		</Root>
