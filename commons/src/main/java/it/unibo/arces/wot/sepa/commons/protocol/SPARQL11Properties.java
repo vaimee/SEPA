@@ -155,8 +155,8 @@ public class SPARQL11Properties {
 
 			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
 
-			throw new SEPAPropertiesException(new Exception(
-					"USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker"));
+			//throw new SEPAPropertiesException(new Exception(
+			//		"USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker"));
 		}
 	}
 
@@ -186,21 +186,21 @@ public class SPARQL11Properties {
 	 * </pre>
 	 */
 	protected void defaults() {
-		jsap.add("host", new JsonPrimitive("mml.arces.unibo.it"));
+		jsap.add("host", new JsonPrimitive("localhost"));
 
 		JsonObject sparql11protocol = new JsonObject();
 		sparql11protocol.add("protocol", new JsonPrimitive("http"));
-		sparql11protocol.add("port", new JsonPrimitive(8890));
+		sparql11protocol.add("port", new JsonPrimitive(9999));
 
 		JsonObject query = new JsonObject();
-		query.add("path", new JsonPrimitive("/sparql"));
-		query.add("method", new JsonPrimitive("GET"));
+		query.add("path", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
+		query.add("method", new JsonPrimitive("POST"));
 		query.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("query", query);
 
 		JsonObject update = new JsonObject();
-		update.add("path", new JsonPrimitive("/sparql"));
-		update.add("method", new JsonPrimitive("GET"));
+		update.add("path", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
+		update.add("method", new JsonPrimitive("POST"));
 		update.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("update", update);
 
