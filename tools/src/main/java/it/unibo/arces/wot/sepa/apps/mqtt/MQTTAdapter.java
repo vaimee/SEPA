@@ -32,7 +32,7 @@ import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class MQTTAdapter extends Producer implements MqttCallback {
-	private static final Logger logger = LogManager.getLogger("MQTT-SEPA-Adapter");
+	private static final Logger logger = LogManager.getLogger();
 
 	private MqttClient mqttClient;
 	private String[] topicsFilter = null;
@@ -103,6 +103,11 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	}
 
 	public boolean start() {
+		/*
+		 * test.mosquitto.org 1883
+		 * giove.arces.unibo.it 52877
+		 * 
+		 * */
 		// MQTT
 		JsonObject mqtt = getApplicationProfile().getExtendedData().get("mqtt").getAsJsonObject();
 

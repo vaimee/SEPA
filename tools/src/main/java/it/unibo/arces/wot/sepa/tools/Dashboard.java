@@ -114,7 +114,7 @@ import java.awt.event.MouseEvent;
 public class Dashboard {
 	private static final Logger logger = LogManager.getLogger("Dashboard");
 
-	private static final String versionLabel = "SEPA Dashboard Ver 0.9.9";
+	private static final String versionLabel = "SEPA Dashboard Ver 0.9.1";
 
 	private Properties appProperties = new Properties();
 
