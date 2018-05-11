@@ -9,17 +9,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Unsubscriber thread. It loops over Unsubcribe Request queue and removes the SPU from
- * SPUManager
+ * SpuManager
  * 
- * @see SPUManager
+ * @see SpuManager
  */
 public class Unsubcriber extends Thread {
     private final Logger logger = LogManager.getLogger("Unsubscriber");
     private final BlockingQueue<String> unsubscribeQueue;
-    private final SPUManager spuManager;
+    private final SpuManager spuManager;
     private final AtomicBoolean end = new AtomicBoolean(false);
 
-    public Unsubcriber(BlockingQueue<String> unsubscribeQueue, SPUManager manager){
+    public Unsubcriber(BlockingQueue<String> unsubscribeQueue, SpuManager manager){
         super("SEPA SPU Unsubscriber");
         this.unsubscribeQueue = unsubscribeQueue;
         spuManager = manager;
