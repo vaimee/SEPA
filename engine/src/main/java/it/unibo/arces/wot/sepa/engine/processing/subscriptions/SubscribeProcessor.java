@@ -64,7 +64,7 @@ public class SubscribeProcessor implements SPUManagerMBean {
 	private SPUSync spuSync = new SPUSync();
 
 	public SubscribeProcessor(SPARQL11Properties endpointProperties, EngineProperties engineProperties,
-							  Semaphore endpointSemaphore, UpdateProcessingQueue updateProcessingQueue) {
+							  Semaphore endpointSemaphore) {
 		this.endpointProperties = endpointProperties;
 		this.endpointSemaphore = endpointSemaphore;
 
@@ -73,48 +73,6 @@ public class SubscribeProcessor implements SPUManagerMBean {
 
 		this.subscriber = new Subscriber(subscribeQueue,spuManager);
 		this.unsubscriber = new Unsubcriber(unsubscribeQueue,spuManager);
-
-		// Main update processing thread
-		Thread main = new Thread() {
-			public void run() {
-				while (true) {
-					UpdateResponse update;
-					while ((update = updateQueue.poll()) != null) {
-						logger.info("*** PROCESSING SUBSCRIPTIONS BEGIN *** ");
-						Instant start = Instant.now();
-
-						logger.info("Activate SPUs (Total: " + spuManager.size() + ")");
-
-						spuSync.startProcessing(spuManager.getAll());
-							//TODO: filter algorithm
-                        for (ISubscriptionProcUnit spu : spuManager.getAll())
-                            spu.process(update);
-
-
-						// Wait all SPUs completing processing (or timeout)
-						spuSync.waitEndOfProcessing();
-
-						Instant stop = Instant.now();
-						SPUManagerBeans.timings(start, stop);
-
-						// Notify processor of end of processing
-						updateProcessingQueue.updateEOP(new SPUEndOfProcessing(!spuSync.isEmpty()));
-
-						logger.info("*** PROCESSING SUBSCRIPTIONS END *** ");
-					}
-					synchronized (updateQueue) {
-						try {
-							updateQueue.wait();
-						} catch (InterruptedException e) {
-							return;
-						}
-					}
-				}
-			}
-		};
-		main.setName("SEPA SPU Manager");
-		main.start();
-
 	}
 
 	public void start(){
@@ -175,11 +133,25 @@ public class SubscribeProcessor implements SPUManagerMBean {
 	}
 
 	public void process(UpdateResponse update) {
-		synchronized (updateQueue) {
-			logger.debug("Add to update response queue: " + update);
-			updateQueue.offer(update);
-			updateQueue.notify();
-		}
+		logger.info("*** PROCESSING SUBSCRIPTIONS BEGIN *** ");
+		Instant start = Instant.now();
+
+		logger.info("Activate SPUs (Total: " + spuManager.size() + ")");
+
+		spuSync.startProcessing(spuManager.getAll());
+
+		//TODO: filter algorithm
+		for (ISubscriptionProcUnit spu : spuManager.getAll())
+			spu.process(update);
+
+
+		// Wait all SPUs completing processing (or timeout)
+		spuSync.waitEndOfProcessing();
+
+		Instant stop = Instant.now();
+		SPUManagerBeans.timings(start, stop);
+
+		logger.info("*** PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
 	@Override

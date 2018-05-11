@@ -51,7 +51,7 @@ public class Processor extends Thread implements ProcessorMBean {
 	
 	// Scheduler queue
 	private SchedulerRequestResponseQueue queue;
-	private final UpdateProcessingQueue updateProcessingQueue = new UpdateProcessingQueue();
+
 
 	// Concurrent endpoint limit
 	private Semaphore endpointSemaphore = null;
@@ -76,7 +76,7 @@ public class Processor extends Thread implements ProcessorMBean {
 		queryProcessor = new QueryProcessor(endpointProperties, endpointSemaphore);
 
 		// SPU manager
-		subscribeProcessor = new SubscribeProcessor(endpointProperties, properties, endpointSemaphore, updateProcessingQueue);
+		subscribeProcessor = new SubscribeProcessor(endpointProperties, properties, endpointSemaphore);
 		// subscribeProcessor.addObserver(this);
 
 		// JMX
@@ -110,16 +110,6 @@ public class Processor extends Thread implements ProcessorMBean {
 
 				if (ret.isUpdateResponse()) {
 					subscribeProcessor.process((UpdateResponse) ret);
-
-					try {
-
-						//Pointless syncronization ( Se rimaniamo con il modello che nessul'altro update
-						// può essere processato fino a che tutte le spu non hanno finito
-						// allora non serve.
-						updateProcessingQueue.waitUpdateEOP();
-					} catch (InterruptedException e1) {
-						return;
-					}
 				}
 			} else if (request.isQueryRequest()) {
 				logger.info("Query request #" + request.getToken());
