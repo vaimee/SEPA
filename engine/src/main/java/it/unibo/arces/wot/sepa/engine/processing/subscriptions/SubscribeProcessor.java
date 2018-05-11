@@ -152,11 +152,8 @@ public class SubscribeProcessor implements SPUManagerMBean {
 		if (init.isError()) {
 			logger.debug("SPU initialization failed");
 		} else {
-			synchronized (subscribeQueue) {
-				logger.debug("Add SPU to activation queue");
-				subscribeQueue.offer(spu);
-				subscribeQueue.notify();
-			}
+			logger.debug("Add SPU to activation queue");
+			subscribeQueue.offer(spu);
 		}
 
 		return init;
@@ -172,10 +169,7 @@ public class SubscribeProcessor implements SPUManagerMBean {
 		if (!spuManager.isValidSpuId(spuid))
 			return new ErrorResponse(req.getToken(), 404, "SPUID not found: " + spuid);
 
-		synchronized (unsubscribeQueue) {
-			unsubscribeQueue.offer(spuid);
-			unsubscribeQueue.notify();
-		}
+		unsubscribeQueue.offer(spuid);
 
 		return new UnsubscribeResponse(req.getToken(), spuid);
 	}
