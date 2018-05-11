@@ -366,6 +366,9 @@ public class Engine implements EngineMBean {
 			System.err.println(e.getMessage());
 		}
 
+		System.out.println("Stopping Processor...");
+		processor.interrupt();
+
 		System.out.println("Stopped...bye bye :-)");
 	}
 

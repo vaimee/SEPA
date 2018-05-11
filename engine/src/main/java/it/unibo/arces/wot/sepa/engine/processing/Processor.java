@@ -153,6 +153,18 @@ public class Processor extends Thread implements ProcessorMBean {
 	}
 
 	@Override
+	public synchronized void start() {
+		super.start();
+		subscribeProcessor.start();
+	}
+
+	@Override
+	public void interrupt() {
+		super.interrupt();
+		subscribeProcessor.stop();
+	}
+
+	@Override
 	public void reset() {
 		ProcessorBeans.reset();
 	}

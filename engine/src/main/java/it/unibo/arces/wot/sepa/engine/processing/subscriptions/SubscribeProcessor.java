@@ -19,8 +19,8 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 import it.unibo.arces.wot.sepa.engine.processing.*;
@@ -45,6 +45,8 @@ import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
 public class SubscribeProcessor implements SPUManagerMBean {
 	private final Logger logger = LogManager.getLogger("SubscribeProcessor");
+	private final Subscriber subscriber;
+	private final Unsubcriber unsubscriber;
 
 	private SPARQL11Properties endpointProperties;
 
@@ -52,8 +54,8 @@ public class SubscribeProcessor implements SPUManagerMBean {
 	private SPUManager spuManager =  new SPUManager();
 
 	// Request queue
-	private ConcurrentLinkedQueue<SPU> subscribeQueue = new ConcurrentLinkedQueue<SPU>();
-	private ConcurrentLinkedQueue<String> unsubscribeQueue = new ConcurrentLinkedQueue<>();
+	private LinkedBlockingQueue<ISubscriptionProcUnit> subscribeQueue = new LinkedBlockingQueue<>();
+	private LinkedBlockingQueue<String> unsubscribeQueue = new LinkedBlockingQueue<>();
 	private ConcurrentLinkedQueue<UpdateResponse> updateQueue = new ConcurrentLinkedQueue<UpdateResponse>();
 
 	private Semaphore endpointSemaphore;
@@ -69,91 +71,8 @@ public class SubscribeProcessor implements SPUManagerMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SPUManagerBeans.setSPUProcessingTimeout(engineProperties.getSPUProcessingTimeout());
 
-		// Unsubscribe request activator thread
-		Thread thread1 = new Thread() {
-			public void run() {
-				while (true) {
-					String spuUID;
-					while ((spuUID = unsubscribeQueue.poll()) != null) {
-						logger.debug("Terminating: " + spuUID);
-
-						spuManager.UnRegister(spuUID);
-
-						SPUManagerBeans.setActiveSPUs(spuManager.size());
-						logger.debug("Active SPUs: " + spuManager.size());
-					}
-					synchronized (unsubscribeQueue) {
-						try {
-							unsubscribeQueue.wait();
-						} catch (InterruptedException e) {
-							return;
-						}
-					}
-				}
-			}
-		};
-		thread1.setName("SEPA SPU Unsubscribe");
-		thread1.start();
-
-		// Subscribe request activator thread
-		Thread thread2 = new Thread() {
-			public void run() {
-				while (true) {
-					SPU spu;
-					while ((spu = subscribeQueue.poll()) != null) {
-						// Start the SPU thread
-						Thread th = new Thread(spu);
-						th.setName("SPU_" + spu.getUUID());
-						th.start();
-
-						spuManager.Register(spu);
-
-						SPUManagerBeans.setActiveSPUs(spuManager.size());
-						logger.debug(spu.getUUID() + " ACTIVATED (total: " + spuManager.size() + ")");
-					}
-					synchronized (subscribeQueue) {
-						try {
-							subscribeQueue.wait();
-						} catch (InterruptedException e) {
-							return;
-						}
-					}
-				}
-			}
-		};
-		thread2.setName("SEPA SPU Subscribe");
-		thread2.start();
-
-		// Broken subscriptions detector thread
-		// Thread keepalive = new Thread() {
-		// public void run() {
-		// while (true) {
-		// try {
-		// Thread.sleep(SPUManagerBeans.getKeepalive());
-		// } catch (InterruptedException e) {
-		// return;
-		// }
-		//
-		// synchronized (spus) {
-		// for (SPU spu : spus.values()) {
-		// try {
-		// spu.ping();
-		// } catch (Exception e) {
-		// // UNSUBSCRIBE SPU
-		// logger.warn("Ping failed");
-		//
-		// synchronized (unsubscribeQueue) {
-		// unsubscribeQueue.offer(spu);
-		// unsubscribeQueue.notify();
-		// }
-		// }
-		// }
-		// }
-		// }
-		// }
-		// };
-		// keepalive.setName("SEPA SPU Keepalive");
-		// keepalive.start();
+		this.subscriber = new Subscriber(subscribeQueue,spuManager);
+		this.unsubscriber = new Unsubcriber(unsubscribeQueue,spuManager);
 
 		// Main update processing thread
 		Thread main = new Thread() {
@@ -166,9 +85,9 @@ public class SubscribeProcessor implements SPUManagerMBean {
 
 						logger.info("Activate SPUs (Total: " + spuManager.size() + ")");
 
-						spuSync.startProcessing(spuManager.GetAll());
+						spuSync.startProcessing(spuManager.getAll());
 							//TODO: filter algorithm
-                        for (ISubscriptionProcUnit spu : spuManager.GetAll())
+                        for (ISubscriptionProcUnit spu : spuManager.getAll())
                             spu.process(update);
 
 
@@ -196,6 +115,19 @@ public class SubscribeProcessor implements SPUManagerMBean {
 		main.setName("SEPA SPU Manager");
 		main.start();
 
+	}
+
+	public void start(){
+		this.subscriber.start();
+		this.unsubscriber.start();
+	}
+
+	public void stop(){
+		this.subscriber.finish();
+		this.unsubscriber.finish();
+
+		this.subscriber.interrupt();
+		this.unsubscriber.interrupt();
 	}
 
 	public Response subscribe(SubscribeRequest req, EventHandler handler) {
@@ -227,8 +159,6 @@ public class SubscribeProcessor implements SPUManagerMBean {
 			}
 		}
 
-		// return new SubscribeResponse(req.getToken(), spu.getUUID(), req.getAlias(),
-		// spu.getFirstResults());
 		return init;
 	}
 
@@ -239,7 +169,7 @@ public class SubscribeProcessor implements SPUManagerMBean {
 
 		String spuid = req.getSubscribeUUID();
 
-		if (!spuManager.isValidSPUID(spuid))
+		if (!spuManager.isValidSpuId(spuid))
 			return new ErrorResponse(req.getToken(), 404, "SPUID not found: " + spuid);
 
 		synchronized (unsubscribeQueue) {
@@ -257,18 +187,6 @@ public class SubscribeProcessor implements SPUManagerMBean {
 			updateQueue.notify();
 		}
 	}
-
-	// SPU processing ended notification
-	// @Override
-	// public void update(Observable o, Object arg) {
-	// SPU spu = (SPU) o;
-	//
-	// synchronized (processingSpus) {
-	// processingSpus.remove(spu);
-	// logger.debug("SPUs left: " + processingSpus.size());
-	// processingSpus.notify();
-	// }
-	// }
 
 	@Override
 	public long getRequests() {
