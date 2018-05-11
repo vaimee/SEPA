@@ -9,27 +9,27 @@ import java.util.Iterator;
 public class SPUManager {
     private HashMap<String,ISubscriptionProcUnit> spus = new HashMap<>();
 
-    public synchronized void Register(ISubscriptionProcUnit spu){
+    public synchronized void register(ISubscriptionProcUnit spu){
         spus.put(spu.getUUID(),spu);
     }
 
-    public synchronized void UnRegister(String spuID){
-        if(!isValidSPUID(spuID)){
+    public synchronized void unRegister(String spuID){
+        if(!isValidSpuId(spuID)){
             throw new IllegalArgumentException("Unregistering a not existing SPUID: "+ spuID);
         }
         spus.get(spuID).terminate();
         spus.remove(spuID);
     }
 
-    public synchronized boolean isValidSPUID(String id){
+    public synchronized boolean isValidSpuId(String id){
         return spus.containsKey(id);
     }
 
-    public synchronized Iterator<ISubscriptionProcUnit> Filter(UpdateRequest request){
+    public synchronized Iterator<ISubscriptionProcUnit> filter(UpdateRequest request){
         return spus.values().iterator();
     }
 
-    public synchronized Collection<ISubscriptionProcUnit> GetAll(){
+    public synchronized Collection<ISubscriptionProcUnit> getAll(){
         return spus.values();
     }
 
