@@ -6,7 +6,11 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 
-public class SPUManager {
+/**
+ * SpuManager is a monitor class. It takes care of the SPU collection and it encapsulate filtering algorithms based
+ * on the internal structure.
+ */
+public class SpuManager {
     private HashMap<String,ISubscriptionProcUnit> spus = new HashMap<>();
 
     public synchronized void register(ISubscriptionProcUnit spu){

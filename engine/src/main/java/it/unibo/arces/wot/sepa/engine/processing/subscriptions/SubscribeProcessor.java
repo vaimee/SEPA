@@ -51,7 +51,7 @@ public class SubscribeProcessor implements SPUManagerMBean {
 	private SPARQL11Properties endpointProperties;
 
 
-	private SPUManager spuManager =  new SPUManager();
+	private SpuManager spuManager =  new SpuManager();
 
 	// Request queue
 	private LinkedBlockingQueue<ISubscriptionProcUnit> subscribeQueue = new LinkedBlockingQueue<>();

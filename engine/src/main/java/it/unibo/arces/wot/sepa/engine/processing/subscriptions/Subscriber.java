@@ -1,7 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
-import it.unibo.arces.wot.sepa.engine.processing.SPU;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,9 +11,9 @@ public class Subscriber extends Thread {
     private final Logger logger = LogManager.getLogger("Subscriber");
     private final AtomicBoolean end = new AtomicBoolean(false);
     private final BlockingQueue<ISubscriptionProcUnit> subscriptionQueue;
-    private final SPUManager spuManager;
+    private final SpuManager spuManager;
 
-    public Subscriber(BlockingQueue<ISubscriptionProcUnit> subscriptionQueue, SPUManager manager){
+    public Subscriber(BlockingQueue<ISubscriptionProcUnit> subscriptionQueue, SpuManager manager){
         super("SEPA SPU Subscriber");
         this.subscriptionQueue = subscriptionQueue;
         spuManager = manager;
