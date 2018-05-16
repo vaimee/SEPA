@@ -101,7 +101,7 @@ public abstract class SPU implements ISubscriptionProcUnit {
 	public abstract Response processInternal(UpdateResponse update,int timeout);
 	
 	@Override
-	public BindingsResults getFirstResults() {
+	public BindingsResults getCurrentResults() {
 		return firstResults;
 	}
 
@@ -133,9 +133,6 @@ public abstract class SPU implements ISubscriptionProcUnit {
 		}
 	}
 
-//	public void ping() throws IOException {
-//		handler.sendPing(new Ping(getUUID()));
-//	}
 
 	@Override
 	public void run() {

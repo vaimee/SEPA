@@ -389,8 +389,8 @@ public class SEPATestClient {
 		SEPATestClient test = new SEPATestClient(new ApplicationProfile("sepatest.jsap"));
 		test.run();
 		
-		test = new SEPATestClient(new ApplicationProfile("sepatest-secure.jsap"));
-		test.run();
+		//test = new SEPATestClient(new ApplicationProfile("sepatest-secure.jsap"));
+		//test.run();
 		
 		System.exit(0);
 	}

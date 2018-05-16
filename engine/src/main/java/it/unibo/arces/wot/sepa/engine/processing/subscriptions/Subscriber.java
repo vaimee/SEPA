@@ -11,9 +11,9 @@ public class Subscriber extends Thread {
     private final Logger logger = LogManager.getLogger("Subscriber");
     private final AtomicBoolean end = new AtomicBoolean(false);
     private final BlockingQueue<ISubscriptionProcUnit> subscriptionQueue;
-    private final SpuManager spuManager;
+    private final SPUManager spuManager;
 
-    public Subscriber(BlockingQueue<ISubscriptionProcUnit> subscriptionQueue, SpuManager manager){
+    public Subscriber(BlockingQueue<ISubscriptionProcUnit> subscriptionQueue, SPUManager manager){
         super("SEPA SPU Subscriber");
         this.subscriptionQueue = subscriptionQueue;
         spuManager = manager;

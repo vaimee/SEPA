@@ -70,7 +70,7 @@ public class SPUNaive extends SPU {
 
 		logger.debug("First results: " + firstResults.toString());
 
-		return new SubscribeResponse(request.getToken(), getUUID(), request.getAlias(), getFirstResults());
+		return new SubscribeResponse(request.getToken(), getUUID(), request.getAlias(), getCurrentResults());
 	}
 
 	@Override

@@ -115,20 +115,25 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	 * 
 	 * <pre>
 	 * update via URL-encoded POST 
-	 * - HTTP Method: POST
-	 * - Query String Parameters: None
-	 * - Request Content Type: <b>application/x-www-form-urlencoded</b>
-	 * - Request Message Body: URL-encoded, ampersand-separated query parameters. <b>update</b> (exactly 1). using-graph-uri (0 or more). using-named-graph-uri (0 or more)
+	 * - Method: <b>POST</b>
+	 * - Parameters: None
+	 * - Content Type: <b>application/x-www-form-urlencoded</b>
+	 * - Body: URL-encoded, ampersand-separated query parameters. 
+	 * 	<b>update</b> (exactly 1). 
+	 * 	<b>using-graph-uri</b> (0 or more). 
+	 * 	<b>using-named-graph-uri</b> (0 or more)
 	 * 
 	 * update via POST directly
-	 * - HTTP Method: POST
-	 * - Query String parameters: using-graph-uri (0 or more); using-named-graph-uri (0 or more)
-	 * - Request Content Type: <b>application/sparql-update</b>
-	 * - Request Message Body: Unencoded SPARQL update request string
+	 * - Method: <b>POST</b>
+	 * - Parameters: 
+	 * 	<b>using-graph-uri</b> (0 or more); 
+	 * 	<b>using-named-graph-uri</b> (0 or more)
+	 * - Content Type: <b>application/sparql-update</b>
+	 * - Body: Unencoded SPARQL update request string
 	 * </pre>
 	 * 
 	 * 2.2.3 Specifying an RDF Dataset
-	 * 
+	 * <pre>
 	 * SPARQL Update requests are executed against a Graph Store, a mutable
 	 * container of RDF graphs managed by a SPARQL service. The WHERE clause of a
 	 * SPARQL update DELETE/INSERT operation [UPDATE] matches against data in an RDF
@@ -151,6 +156,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	 * 
 	 * UPDATE 2.2 update operation The response to an update request indicates
 	 * success or failure of the request via HTTP response status code.
+	 * </pre>
 	 */
 	public Response update(UpdateRequest req, int timeout) {
 		StringEntity requestEntity = null;

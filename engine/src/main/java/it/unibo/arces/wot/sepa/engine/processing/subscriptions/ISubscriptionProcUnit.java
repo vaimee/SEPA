@@ -7,8 +7,8 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 public interface ISubscriptionProcUnit extends Runnable {
 
     Response init();
-    //TODO: refactor getCurrentResults
-    BindingsResults getFirstResults();
+
+    BindingsResults getCurrentResults();
 
     void terminate();
 
