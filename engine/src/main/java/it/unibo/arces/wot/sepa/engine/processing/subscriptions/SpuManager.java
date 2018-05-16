@@ -1,6 +1,7 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ public class SpuManager {
         return spus.containsKey(id);
     }
 
-    public synchronized Iterator<ISubscriptionProcUnit> filter(UpdateRequest request){
+    public synchronized Iterator<ISubscriptionProcUnit> filter(UpdateResponse response){
         return spus.values().iterator();
     }
 
