@@ -58,12 +58,13 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  * Event Processing Architecture (SEPA)
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.9.0
+ * @version 0.9.1
  */
 
 public class Engine implements EngineMBean {
 	private static Engine engine;
 	private static String version = "0.9.1";
+	private EngineProperties properties = null;
 
 	// Scheduler request queue
 	private final SchedulerRequestResponseQueue schedulerQueue = new SchedulerRequestResponseQueue();
@@ -187,8 +188,7 @@ public class Engine implements EngineMBean {
 				.println("# GITHUB: https://github.com/arces-wot/sepa                                              #");
 		System.out
 				.println("# WEB: http://site.unibo.it/wot                                                          #");
-		System.out
-				.println("# WIKI: https: // github.com/arces-wot/SEPA/wiki                                         #");
+		System.out.println("# WIKI: https://github.com/arces-wot/SEPA/wiki                                         #");
 		System.out
 				.println("##########################################################################################");
 
@@ -197,20 +197,19 @@ public class Engine implements EngineMBean {
 		EngineBeans.setVersion(version);
 
 		// Initialize SPARQL 1.1 SE processing service properties
-		EngineProperties properties = null;
 		try {
 			properties = new EngineProperties("engine.jpar");
 		} catch (SEPAPropertiesException e) {
-			System.err.println("Failed to load engine.jpar: "+e.getMessage());
-			properties = null;
+			// System.err.println("Failed to load engine.jpar: "+e.getMessage());
+			// properties = null;
 		}
 
 		SPARQL11Properties endpointProperties = null;
 		try {
 			endpointProperties = new SPARQL11Properties("endpoint.jpar");
 		} catch (SEPAPropertiesException e2) {
-			System.err.println("Failed to load endpoint.jpar: "+e2.getMessage());
-			endpointProperties = null;
+			// System.err.println("Failed to load endpoint.jpar: "+e2.getMessage());
+			// endpointProperties = null;
 		}
 
 		// OAUTH 2.0 Authorization Manager
@@ -298,7 +297,7 @@ public class Engine implements EngineMBean {
 		// Protocol gates
 		System.out.println("----------------------");
 		System.out.println("");
-		System.out.println("SPARQL 1.1 SE Protocol (https://wot.arces.unibo.it/TR/sparql11-se-protocol/)");
+		System.out.println("SPARQL 1.1 SE Protocol (https://mml.arces.unibo.it/TR/sparql11-se-protocol/)");
 		System.out.println("----------------------");
 
 		if (!properties.isSecure()) {
@@ -347,24 +346,32 @@ public class Engine implements EngineMBean {
 	public void shutdown() {
 		System.out.println("Stopping...");
 
-		System.out.println("Stopping HTTP gate...");
-		httpGate.shutdown();
-
-		System.out.println("Stopping HTTPS gate...");
-		httpsGate.shutdown();
-
-		try {
-			System.out.println("Stopping WS gate...");
-			wsServer.stop(wsShutdownTimeout);
-		} catch (InterruptedException e) {
-			System.err.println(e.getMessage());
+		if (!properties.isSecure()) {
+			System.out.println("Stopping HTTP gate...");
+			httpGate.shutdown();
+			
+			try {
+				System.out.println("Stopping WS gate...");
+				wsServer.stop(wsShutdownTimeout);
+			} catch (InterruptedException e) {
+				System.err.println(e.getMessage());
+			}
 		}
-		try {
-			System.out.println("Stopping WSS gate...");
-			wssServer.stop(wsShutdownTimeout);
-		} catch (InterruptedException e) {
-			System.err.println(e.getMessage());
+
+		if (properties.isSecure()) {
+			System.out.println("Stopping HTTPS gate...");
+			httpsGate.shutdown();
+			
+			try {
+				System.out.println("Stopping WSS gate...");
+				wssServer.stop(wsShutdownTimeout);
+			} catch (InterruptedException e) {
+				System.err.println(e.getMessage());
+			}
 		}
+
+		System.out.println("Stopping Processor...");
+		processor.interrupt();
 
 		System.out.println("Stopped...bye bye :-)");
 	}

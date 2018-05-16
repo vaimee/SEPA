@@ -102,6 +102,11 @@ The SEPA engine is also distributed with a default [JMX](http://www.oracle.com/t
 5. go on...
 The project is cloned. Enjoy!
 
+### Build with maven
+After the project is cloned use:
+`mvn install -DskipTests`
+
+
 ## History
 
 SEPA has been inspired and influenced by [Smart-M3](https://sourceforge.net/projects/smart-m3/). SEPA authors have been involved in the development of Smart-M3 since its [origin](https://artemis-ia.eu/project/4-sofia.html). 
@@ -112,7 +117,7 @@ All the SEPA software components have been implemented from scratch.
 
 ## Credits
 
-SEPA stands for *SPARQL Event Processing Architecture*. SEPA is promoted and maintained by the [**Web of Things Research Group**](http://wot.arces.unibo.it) @ [**ARCES**](http://www.arces.unibo.it), the *Advanced Research Center on Electronic Systems "Ercole De Castro"* of the [**University of Bologna**](http://www.unibo.it).
+SEPA stands for *SPARQL Event Processing Architecture*. SEPA is promoted and maintained by the [**Dynamic linked data and Web of Things Research Group**](https://site.unibo.it/wot/en) @ [**ARCES**](http://www.arces.unibo.it), the *Advanced Research Center on Electronic Systems "Ercole De Castro"* of the [**University of Bologna**](http://www.unibo.it).
 
 ## License
 

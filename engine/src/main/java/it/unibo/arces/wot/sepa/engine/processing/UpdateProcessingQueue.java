@@ -1,5 +1,7 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUEndOfProcessing;
+
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class UpdateProcessingQueue {

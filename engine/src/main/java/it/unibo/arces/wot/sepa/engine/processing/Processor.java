@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.util.concurrent.Semaphore;
 
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SubscribeProcessor;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -46,11 +47,11 @@ public class Processor extends Thread implements ProcessorMBean {
 	// Processors
 	private final UpdateProcessor updateProcessor;
 	private final QueryProcessor queryProcessor;
-	private final SPUManager spuManager;
+	private final SubscribeProcessor subscribeProcessor;
 	
 	// Scheduler queue
 	private SchedulerRequestResponseQueue queue;
-	private final UpdateProcessingQueue updateProcessingQueue = new UpdateProcessingQueue();
+
 
 	// Concurrent endpoint limit
 	private Semaphore endpointSemaphore = null;
@@ -75,8 +76,8 @@ public class Processor extends Thread implements ProcessorMBean {
 		queryProcessor = new QueryProcessor(endpointProperties, endpointSemaphore);
 
 		// SPU manager
-		spuManager = new SPUManager(endpointProperties, properties, endpointSemaphore, updateProcessingQueue);
-		// spuManager.addObserver(this);
+		subscribeProcessor = new SubscribeProcessor(endpointProperties, properties, endpointSemaphore);
+		// subscribeProcessor.addObserver(this);
 
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
@@ -108,13 +109,7 @@ public class Processor extends Thread implements ProcessorMBean {
 				queue.addResponse(ret);
 
 				if (ret.isUpdateResponse()) {
-					spuManager.process((UpdateResponse) ret);
-
-					try {
-						updateProcessingQueue.waitUpdateEOP();
-					} catch (InterruptedException e1) {
-						return;
-					}
+					subscribeProcessor.process((UpdateResponse) ret);
 				}
 			} else if (request.isQueryRequest()) {
 				logger.info("Query request #" + request.getToken());
@@ -132,7 +127,7 @@ public class Processor extends Thread implements ProcessorMBean {
 				logger.info("Subscribe request #" + request.getToken());
 				logger.debug(request);
 
-				Response ret = spuManager.subscribe((SubscribeRequest) request,
+				Response ret = subscribeProcessor.subscribe((SubscribeRequest) request,
 						(EventHandler) scheduledRequest.getHandler());
 
 				queue.addResponse(ret);
@@ -140,11 +135,23 @@ public class Processor extends Thread implements ProcessorMBean {
 				logger.info("Unsubscribe request #" + request.getToken());
 				logger.debug(request);
 
-				Response ret = spuManager.unsubscribe((UnsubscribeRequest) request);
+				Response ret = subscribeProcessor.unsubscribe((UnsubscribeRequest) request);
 
 				queue.addResponse(ret);
 			}
 		}
+	}
+
+	@Override
+	public synchronized void start() {
+		super.start();
+		subscribeProcessor.start();
+	}
+
+	@Override
+	public void interrupt() {
+		super.interrupt();
+		subscribeProcessor.stop();
 	}
 
 	@Override
