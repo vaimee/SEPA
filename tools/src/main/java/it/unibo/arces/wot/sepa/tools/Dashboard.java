@@ -35,7 +35,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -67,10 +66,8 @@ import javax.swing.JFileChooser;
 import javax.swing.JScrollPane;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
@@ -110,6 +107,7 @@ import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import javax.swing.border.EtchedBorder;
 
 public class Dashboard {
 	private static final Logger logger = LogManager.getLogger("Dashboard");
@@ -419,16 +417,17 @@ public class Dashboard {
 			if (res == null)
 				return;
 
-			Date date = new Date();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-			String timestamp = sdf.format(date);
+//			Date date = new Date();
+//			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+//			String timestamp = sdf.format(date);
 
-			Set<String> vars = res.getAddedBindings().getVariables();
-			vars.addAll(res.getRemovedBindings().getVariables());
+			ArrayList<String> vars = res.getAddedBindings().getVariables();
+			for (String var : res.getRemovedBindings().getVariables()) {
+				if (!vars.contains(var)) vars.add(var);
+			}
 
 			if (!columns.containsAll(vars) || columns.size() != vars.size()) {
 				columns.clear();
-				vars.add("");
 				columns.addAll(vars);
 				super.fireTableStructureChanged();
 			}
@@ -439,17 +438,18 @@ public class Dashboard {
 					for (String var : sol.getVariables()) {
 						row.put(var, new BindingValue(sol.getBindingValue(var), sol.isLiteral(var), true));
 					}
-					row.put("", new BindingValue(timestamp, false, true));
+					//row.put("", new BindingValue(timestamp, false, true));
 					rows.add(row);
 				}
 			}
+			
 			if (res.getRemovedBindings() != null) {
 				for (Bindings sol : res.getRemovedBindings().getBindings()) {
 					HashMap<String, BindingValue> row = new HashMap<String, BindingValue>();
 					for (String var : sol.getVariables()) {
 						row.put(var, new BindingValue(sol.getBindingValue(var), sol.isLiteral(var), false));
 					}
-					row.put("", new BindingValue(timestamp, false, false));
+					//row.put("", new BindingValue(timestamp, false, false));
 					rows.add(row);
 				}
 			}
@@ -518,15 +518,15 @@ public class Dashboard {
 			if (bindingsResults == null)
 				return;
 
-			Date date = new Date();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-			String timestamp = sdf.format(date);
+			//Date date = new Date();
+			//SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+			//String timestamp = sdf.format(date);
 
-			Set<String> vars = bindingsResults.getVariables();
+			ArrayList<String> vars = bindingsResults.getVariables();
 
 			if (!columns.containsAll(vars) || columns.size() != vars.size()) {
 				columns.clear();
-				vars.add("");
+				//vars.add("");
 				columns.addAll(vars);
 				super.fireTableStructureChanged();
 			}
@@ -536,7 +536,7 @@ public class Dashboard {
 				for (String var : sol.getVariables()) {
 					row.put(var, new BindingValue(sol.getBindingValue(var), sol.isLiteral(var), true));
 				}
-				row.put("", new BindingValue(timestamp, false, true));
+				//row.put("", new BindingValue(timestamp, false, true));
 				rows.add(row);
 			}
 
@@ -856,7 +856,7 @@ public class Dashboard {
 		gbc_configuration.gridy = 0;
 		frmSepaDashboard.getContentPane().add(configuration, gbc_configuration);
 		configuration
-				.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+				.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "SPARQL 1.1 SE Protocol configuration", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		GridBagLayout gbl_configuration = new GridBagLayout();
 		gbl_configuration.columnWidths = new int[] { 46, 45, 31, 20, 0, 24, 0, 0, 0, 0, 0, 0, 37, 0 };
 		gbl_configuration.rowHeights = new int[] { 9, -25, 0 };
@@ -1067,8 +1067,8 @@ public class Dashboard {
 		frmSepaDashboard.getContentPane().add(tabbedPane, gbc_tabbedPane);
 
 		JPanel primitives = new JPanel();
-		tabbedPane.addTab("Primitives", null, primitives, null);
-		primitives.setBorder(new TitledBorder(null, "Primitives", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		tabbedPane.addTab("SPARQL 1.1 primitives", null, primitives, null);
+		primitives.setBorder(new TitledBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null), "SPARQL 1.1 Updates and Queries", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		GridBagLayout gbl_primitives = new GridBagLayout();
 		gbl_primitives.columnWidths = new int[] { 684, 0, 0 };
 		gbl_primitives.rowHeights = new int[] { 114, 115, 0, 0, 0 };
@@ -1094,7 +1094,7 @@ public class Dashboard {
 		gbl_panel_4.rowWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		panel_4.setLayout(gbl_panel_4);
 
-		JLabel lblUpdates = new JLabel("UPDATEs");
+		JLabel lblUpdates = new JLabel("UPDATES");
 		GridBagConstraints gbc_lblUpdates = new GridBagConstraints();
 		gbc_lblUpdates.anchor = GridBagConstraints.NORTH;
 		gbc_lblUpdates.insets = new Insets(0, 0, 5, 0);
@@ -1181,7 +1181,7 @@ public class Dashboard {
 		gbl_panel_6.rowWeights = new double[] { 0.0, 1.0, Double.MIN_VALUE };
 		panel_6.setLayout(gbl_panel_6);
 
-		JLabel lblSubscribes = new JLabel("SUBSCRIBEs");
+		JLabel lblSubscribes = new JLabel("QUERIES");
 		GridBagConstraints gbc_lblSubscribes = new GridBagConstraints();
 		gbc_lblSubscribes.anchor = GridBagConstraints.NORTH;
 		gbc_lblSubscribes.insets = new Insets(0, 0, 5, 0);
