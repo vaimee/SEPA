@@ -194,13 +194,13 @@ public class SPARQL11Properties {
 
 		JsonObject query = new JsonObject();
 		query.add("path", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
-		query.add("method", new JsonPrimitive("GET"));
+		query.add("method", new JsonPrimitive("POST"));
 		query.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("query", query);
 
 		JsonObject update = new JsonObject();
 		update.add("path", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
-		update.add("method", new JsonPrimitive("URL_ENCODED_POST"));
+		update.add("method", new JsonPrimitive("POST"));
 		update.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("update", update);
 
