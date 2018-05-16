@@ -139,7 +139,8 @@ public class SubscribeProcessor implements SPUManagerMBean {
 
 		spuSync.startProcessing(spuManager.getAll());
 
-		//TODO: filter algorithm
+		// TODO: filter algorithm
+		// Synchronize on spuManger to avoid changes of SPU collection
 		synchronized (spuManager) {
 			for (ISubscriptionProcUnit spu : spuManager.getAll())
 				spu.process(update);
