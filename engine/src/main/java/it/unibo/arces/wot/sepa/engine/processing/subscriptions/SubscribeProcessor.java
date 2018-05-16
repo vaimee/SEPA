@@ -19,11 +19,9 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.time.Instant;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import it.unibo.arces.wot.sepa.engine.processing.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 

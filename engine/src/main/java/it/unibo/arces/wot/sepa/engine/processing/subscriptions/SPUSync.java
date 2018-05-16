@@ -1,9 +1,10 @@
-package it.unibo.arces.wot.sepa.engine.processing;
+package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.util.Collection;
 import java.util.HashSet;
 
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.ISubscriptionProcUnit;
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPU;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
