@@ -18,9 +18,7 @@
 package it.unibo.arces.wot.sepa.commons.sparql;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -61,7 +59,7 @@ public class BindingsResults {
 	 * @param solutions
 	 *            the solutions
 	 */
-	public BindingsResults(Set<String> varSet, List<Bindings> solutions) {
+	public BindingsResults(ArrayList<String> varSet, List<Bindings> solutions) {
 		results = new JsonObject();
 
 		JsonObject vars = new JsonObject();
@@ -114,8 +112,8 @@ public class BindingsResults {
 	 *
 	 * @return the variables
 	 */
-	public Set<String> getVariables() {
-		Set<String> vars = new HashSet<String>();
+	public ArrayList<String> getVariables() {
+		ArrayList<String> vars = new ArrayList<String>();
 		JsonArray variables = getVariablesArray();
 		if (variables == null)
 			return vars;

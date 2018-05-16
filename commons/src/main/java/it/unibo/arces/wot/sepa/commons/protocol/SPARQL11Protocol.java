@@ -19,6 +19,7 @@
 package it.unibo.arces.wot.sepa.commons.protocol;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -27,6 +28,7 @@ import java.nio.charset.Charset;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -127,19 +129,25 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	 * 
 	 * 2.2.3 Specifying an RDF Dataset
 	 * 
-	 * SPARQL Update requests are executed against a Graph Store, a mutable container of RDF graphs 
-	 * managed by a SPARQL service. The WHERE clause of a SPARQL update DELETE/INSERT operation [UPDATE] matches 
-	 * against data in an RDF Dataset, which is a subset of the Graph Store. The RDF Dataset for an update operation 
-	 * may be specified either in the operation string itself using the USING, USING NAMED, and/or WITH keywords, 
-	 * or it may be specified via the using-graph-uri and using-named-graph-uri parameters.
+	 * SPARQL Update requests are executed against a Graph Store, a mutable
+	 * container of RDF graphs managed by a SPARQL service. The WHERE clause of a
+	 * SPARQL update DELETE/INSERT operation [UPDATE] matches against data in an RDF
+	 * Dataset, which is a subset of the Graph Store. The RDF Dataset for an update
+	 * operation may be specified either in the operation string itself using the
+	 * USING, USING NAMED, and/or WITH keywords, or it may be specified via the
+	 * using-graph-uri and using-named-graph-uri parameters.
 	 * 
-	 * It is an error to supply the using-graph-uri or using-named-graph-uri parameters when using this protocol 
-	 * to convey a SPARQL 1.1 Update request that contains an operation that uses the USING, USING NAMED, or WITH clause.
+	 * It is an error to supply the using-graph-uri or using-named-graph-uri
+	 * parameters when using this protocol to convey a SPARQL 1.1 Update request
+	 * that contains an operation that uses the USING, USING NAMED, or WITH clause.
 	 * 
-	 * A SPARQL Update processor should treat each occurrence of the using-graph-uri=g parameter in an update protocol operation 
-	 * as if a USING <g> clause were included for every operation in the SPARQL 1.1 Update request. 
-	 * Similarly, a SPARQL Update processor should treat each occurrence of the using-named-graph-uri=g parameter 
-	 * in an update protocol operation as if a USING NAMED <g> clause were included for every operation in the SPARQL 1.1 Update request.
+	 * A SPARQL Update processor should treat each occurrence of the
+	 * using-graph-uri=g parameter in an update protocol operation as if a USING <g>
+	 * clause were included for every operation in the SPARQL 1.1 Update request.
+	 * Similarly, a SPARQL Update processor should treat each occurrence of the
+	 * using-named-graph-uri=g parameter in an update protocol operation as if a
+	 * USING NAMED <g> clause were included for every operation in the SPARQL 1.1
+	 * Update request.
 	 * 
 	 * UPDATE 2.2 update operation The response to an update request indicates
 	 * success or failure of the request via HTTP response status code.
@@ -153,9 +161,9 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		String responseBody = null;
 
 		try {
-			RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout)
-					.setConnectTimeout(timeout).build();
-			
+			RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout)
+					.build();
+
 			// Set request entity
 			if (properties.getUpdateMethod().equals(HTTPMethod.GET)) {
 				// ***********************
@@ -163,7 +171,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				// ***********************
 				// SPARQL 1.1 Update are issued as GET requests using the "query" URL parameter
 				// The "default-graph-uri" parameter is REQUIRED
-				
+
 				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8") + "&format="
 						+ URLEncoder.encode(properties.getUpdateAcceptHeader(), "UTF-8");
 				if (properties.getDefaultGraphURI() != null) {
@@ -172,8 +180,8 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 				String url;
 				if (properties.getHttpPort() != -1)
-					url = "http://" + properties.getHost() + ":" + properties.getHttpPort()
-							+ properties.getUpdatePath() + "?" + query;
+					url = "http://" + properties.getHost() + ":" + properties.getHttpPort() + properties.getUpdatePath()
+							+ "?" + query;
 				else
 					url = "http://" + properties.getHost() + properties.getUpdatePath() + "?" + query;
 
@@ -189,11 +197,11 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 				}
 				updatePostRequest.setEntity(requestEntity);
-				
+
 				updatePostRequest.setConfig(requestConfig);
 				updateRequest = updatePostRequest;
 			}
-			
+
 			// Execute HTTP request
 			logger.debug("Execute SPARQL 1.1 UPDATE (timeout: " + timeout + " ms) " + updateRequest.toString(),
 					timeout);
@@ -327,45 +335,66 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout)
 				.build();
 
-		try {
-			if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
+		if (properties.getQueryMethod().equals(HTTPMethod.GET)) {
 
-				String query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8");
-				if (properties.getDefaultGraphURI() != null) {
+			String query = null;
+			try {
+				query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				logger.error(e.getMessage());
+				return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			}
+			if (properties.getDefaultGraphURI() != null) {
+				try {
 					query += "&default-graph-uri=" + URLEncoder.encode(properties.getDefaultGraphURI(), "UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					logger.error(e.getMessage());
+					return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 				}
-
-				String url;
-				if (properties.getHttpPort() != -1)
-					url = "http://" + properties.getHost() + ":" + properties.getHttpPort() 
-							+ properties.getQueryPath() + "?" + query;
-				else
-					url = "http://" + properties.getHost() + properties.getQueryPath() + "?" + query;
-
-				HttpGet queryGetRequest;
-				queryGetRequest = new HttpGet(url);
-				queryGetRequest.setConfig(requestConfig);
-				queryRequest = queryGetRequest;
-
-			} else {
-				// Set request entity
-				if (properties.getQueryMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
-					requestEntity = new StringEntity("query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"));
-				} else if (properties.getQueryMethod().equals(HTTPMethod.POST)) {
-					requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
-				}
-				queryPostRequest.setEntity(requestEntity);
-				queryPostRequest.setConfig(requestConfig);
-				queryRequest = queryPostRequest;
 			}
 
-			queryRequest.addHeader("Accept",properties.getQueryAcceptHeader());
-			// Execute HTTP request
-			logger.debug("Execute SPARQL 1.1 QUERY (timeout: " + timeout + " ms) " + queryRequest.toString(), timeout);
-			timing = System.nanoTime();
+			String url;
+			if (properties.getHttpPort() != -1)
+				url = "http://" + properties.getHost() + ":" + properties.getHttpPort() + properties.getQueryPath()
+						+ "?" + query;
+			else
+				url = "http://" + properties.getHost() + properties.getQueryPath() + "?" + query;
+
+			HttpGet queryGetRequest = null;
+			try{
+				queryGetRequest = new HttpGet(url);
+			}
+			catch (IllegalArgumentException e) {
+				logger.error(e.getMessage());
+				return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			}
+			queryGetRequest.setConfig(requestConfig);
+			queryRequest = queryGetRequest;
+
+		} else {
+			// Set request entity
+			if (properties.getQueryMethod().equals(HTTPMethod.URL_ENCODED_POST)) {
+				try {
+					requestEntity = new StringEntity("query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"));
+				} catch (UnsupportedEncodingException e) {
+					logger.error(e.getMessage());
+					return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+				}
+			} else if (properties.getQueryMethod().equals(HTTPMethod.POST)) {
+				requestEntity = new StringEntity(req.getSPARQL(), "UTF-8");
+				//requestEntity.setContentEncoding("UTF-8");
+			}
+			queryPostRequest.setEntity(requestEntity);
+			queryPostRequest.setConfig(requestConfig);
+			queryRequest = queryPostRequest;
+		}
+
+		queryRequest.addHeader("Accept", properties.getQueryAcceptHeader());
+		// Execute HTTP request
+		logger.debug("Execute SPARQL 1.1 QUERY (timeout: " + timeout + " ms) " + queryRequest.toString(), timeout);
+		timing = System.nanoTime();
+		try {
 			httpResponse = httpClient.execute(queryRequest);
-			timing = System.nanoTime() - timing;
-			logger.debug("QUERY_TIME (" + timing / 1000000 + " ms)");
 
 			// Status code
 			responseCode = httpResponse.getStatusLine().getStatusCode();
@@ -375,12 +404,18 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
 			EntityUtils.consume(responseEntity);
 
-		} catch (IOException e) {
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+		} catch (ClientProtocolException e1) {
+			logger.error(e1.getMessage());
+			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
+		} catch (IOException e1) {
+			logger.error(e1.getMessage());
+			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
 		} finally {
 			try {
 				if (httpResponse != null)
 					httpResponse.close();
+				timing = System.nanoTime() - timing;
+				logger.debug("QUERY_TIME (" + timing / 1000000 + " ms)");
 			} catch (IOException e) {
 				return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}

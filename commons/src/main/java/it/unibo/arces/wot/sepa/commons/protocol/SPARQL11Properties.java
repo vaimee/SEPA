@@ -194,22 +194,22 @@ public class SPARQL11Properties {
 
 		JsonObject query = new JsonObject();
 		query.add("path", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
-		query.add("method", new JsonPrimitive("POST"));
+		query.add("method", new JsonPrimitive("GET"));
 		query.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("query", query);
 
 		JsonObject update = new JsonObject();
 		update.add("path", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
-		update.add("method", new JsonPrimitive("POST"));
+		update.add("method", new JsonPrimitive("URL_ENCODED_POST"));
 		update.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("update", update);
 
-		JsonObject graphs = new JsonObject();
-		graphs.add("default-graph-uri", new JsonPrimitive("http://default"));
-		graphs.add("named-graph-uri", new JsonPrimitive("http://default"));
-		graphs.add("using-graph-uri", new JsonPrimitive("http://default"));
-		graphs.add("using-named-graph-uri", new JsonPrimitive("http://default"));
-		jsap.add("graphs", graphs);
+//		JsonObject graphs = new JsonObject();
+//		graphs.add("default-graph-uri", new JsonPrimitive("http://default"));
+//		graphs.add("named-graph-uri", new JsonPrimitive("http://default"));
+//		graphs.add("using-graph-uri", new JsonPrimitive("http://default"));
+//		graphs.add("using-named-graph-uri", new JsonPrimitive("http://default"));
+//		jsap.add("graphs", graphs);
 		
 		jsap.add("sparql11protocol", sparql11protocol);
 	}
