@@ -16,14 +16,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.processing;
+package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
-import it.unibo.arces.wot.sepa.engine.processing.subscriptions.ISubscriptionProcUnit;
+import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

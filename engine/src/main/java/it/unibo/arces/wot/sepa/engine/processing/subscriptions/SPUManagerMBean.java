@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.processing;
+package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 public interface SPUManagerMBean {
 	public long getRequests();
