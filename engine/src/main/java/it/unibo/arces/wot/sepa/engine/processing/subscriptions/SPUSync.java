@@ -1,8 +1,10 @@
-package it.unibo.arces.wot.sepa.engine.processing;
+package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.util.Collection;
 import java.util.HashSet;
 
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.ISubscriptionProcUnit;
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPU;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,9 +14,9 @@ public class SPUSync {
 	private final Logger logger = LogManager.getLogger("SPUSync");
 
 	// SPU synchronization
-	private HashSet<SPU> processingSpus = new HashSet<SPU>();
+	private HashSet<ISubscriptionProcUnit> processingSpus = new HashSet<>();
 
-	public void startProcessing(Collection<SPU> spus) {
+	public void startProcessing(Collection<ISubscriptionProcUnit> spus) {
 		synchronized (processingSpus) {
 			processingSpus.clear();
 			processingSpus.addAll(spus);

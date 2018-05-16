@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.processing;
+package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import org.apache.logging.log4j.Logger;
 
