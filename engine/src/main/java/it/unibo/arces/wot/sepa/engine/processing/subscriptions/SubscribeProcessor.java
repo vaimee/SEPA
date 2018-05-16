@@ -56,7 +56,6 @@ public class SubscribeProcessor implements SPUManagerMBean {
 	// Request queue
 	private LinkedBlockingQueue<ISubscriptionProcUnit> subscribeQueue = new LinkedBlockingQueue<>();
 	private LinkedBlockingQueue<String> unsubscribeQueue = new LinkedBlockingQueue<>();
-	private ConcurrentLinkedQueue<UpdateResponse> updateQueue = new ConcurrentLinkedQueue<UpdateResponse>();
 
 	private Semaphore endpointSemaphore;
 
@@ -141,9 +140,10 @@ public class SubscribeProcessor implements SPUManagerMBean {
 		spuSync.startProcessing(spuManager.getAll());
 
 		//TODO: filter algorithm
-		for (ISubscriptionProcUnit spu : spuManager.getAll())
-			spu.process(update);
-
+		synchronized (spuManager) {
+			for (ISubscriptionProcUnit spu : spuManager.getAll())
+				spu.process(update);
+		}
 
 		// Wait all SPUs completing processing (or timeout)
 		spuSync.waitEndOfProcessing();
