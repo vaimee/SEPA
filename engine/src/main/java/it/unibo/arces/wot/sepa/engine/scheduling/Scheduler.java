@@ -35,7 +35,6 @@ import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
 
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
-import it.unibo.arces.wot.sepa.engine.core.SchedulerRequestResponseQueue;
 import it.unibo.arces.wot.sepa.engine.dependability.Timing;
 
 /**

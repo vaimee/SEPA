@@ -4,18 +4,18 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.ISubscriptionProcUnit;
-import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SpuManager;
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 public class SPUMangerTest {
 
-    private SpuManager spuManger;
+    private SPUManager spuManger;
 
     @Before
     public void Init(){
-        spuManger = new SpuManager();
+        spuManger = new SPUManager();
     }
 
     @Test
@@ -60,7 +60,7 @@ public class SPUMangerTest {
         }
 
         @Override
-        public BindingsResults getFirstResults() {
+        public BindingsResults getCurrentResults() {
             return null;
         }
 

@@ -36,8 +36,8 @@ import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
-import it.unibo.arces.wot.sepa.engine.core.SchedulerRequestResponseQueue;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerRequestResponseQueue;
 
 import org.apache.logging.log4j.LogManager;
 

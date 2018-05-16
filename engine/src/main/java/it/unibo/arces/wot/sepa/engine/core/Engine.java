@@ -52,6 +52,7 @@ import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsGate;
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerRequestResponseQueue;
 
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the Semantic
