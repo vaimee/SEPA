@@ -38,7 +38,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
 /**
@@ -144,7 +144,7 @@ public abstract class SPU implements ISubscriptionProcUnit {
 				logger.debug("* PROCESSING *");
 
 				//Asynchronous processing and waiting for result
-				notify = processInternal(updateResponse,SPUManagerBeans.getSPUProcessingTimeout());
+				notify = processInternal(updateResponse,SubscribeProcessorBeans.getSPUProcessingTimeout());
 				
 				// Notify event handler
 				if (handler != null) { 

@@ -7,9 +7,9 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 public class PingPongClient extends BasicClient {
 	private int index = 0;
 	
-	public PingPongClient(String userURI, Users users,Timings timings)
+	public PingPongClient(String userURI, Users users)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(userURI, users,1,timings);
+		super(userURI, users,1);
 	}
 	
 	@Override

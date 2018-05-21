@@ -26,7 +26,9 @@ package it.unibo.arces.wot.sepa.commons.request;
 * */
 
 public class QueryRequest extends Request {
-
+	private String default_graph_uri = null;
+	private String named_graph_uri = null;
+	
 	/**
 	 * Instantiates a new query request.
 	 *
@@ -53,6 +55,26 @@ public class QueryRequest extends Request {
 		if (token != -1) return "QUERY #"+token+" "+sparql;
 		return "QUERY "+sparql;
 		
+	}
+
+	public String getAcceptHeader() {
+		return "application/sparql-results+json";
+	}
+
+	public String getDefaultGraphUri() {
+		return default_graph_uri;
+	}
+
+	public void setDefaultGraphUri(String graphUri) {
+		this.default_graph_uri = graphUri;
+	}
+
+	public String getNamedGraphUri() {
+		return named_graph_uri;
+	}
+
+	public void setNamedGraphUri(String graphUri) {
+		this.named_graph_uri = graphUri;
 	}
 
 }

@@ -26,7 +26,13 @@ import it.unibo.arces.wot.sepa.commons.request.Request;
 * */
 
 public class UpdateRequest extends Request {
-
+	 /* It is an error to supply the using-graph-uri or using-named-graph-uri
+	 * parameters when using this protocol to convey a SPARQL 1.1 Update request
+	 * that contains an operation that uses the USING, USING NAMED, or WITH clause.
+	 */
+	private String using_graph_uri = null;
+	private String named_graph_uri = null;
+	
 	/**
 	 * Instantiates a new update request.
 	 *
@@ -52,5 +58,34 @@ public class UpdateRequest extends Request {
 	public String toString() {
 		if (token != -1) return "UPDATE #"+token+" "+sparql;
 		return "UPDATE "+sparql;
+	}
+
+	/* SPARQL Update requests are executed against a Graph Store, a mutable
+	 * container of RDF graphs managed by a SPARQL service. The WHERE clause of a
+	 * SPARQL update DELETE/INSERT operation [UPDATE] matches against data in an RDF
+	 * Dataset, which is a subset of the Graph Store. The RDF Dataset for an update
+	 * operation may be specified either in the operation string itself using the
+	 * USING, USING NAMED, and/or WITH keywords, or it may be specified via the
+	 * using-graph-uri and using-named-graph-uri parameters.
+	 */
+	
+	public String getUsingGraphUri() {
+		return using_graph_uri;
+	}
+
+	public void setUsingGraphUri(String using_graph_uri) {
+		this.using_graph_uri = using_graph_uri;
+	}
+
+	public String getUsingNamedGraphUri() {
+		return named_graph_uri;
+	}
+
+	public void setNamedGraphUri(String named_graph_uri) {
+		this.named_graph_uri = named_graph_uri;
+	}
+
+	public String getAcceptHeader() {
+		return "application/json";
 	}
 }

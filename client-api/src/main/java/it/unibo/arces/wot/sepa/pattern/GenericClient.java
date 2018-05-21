@@ -33,12 +33,34 @@ public class GenericClient extends Client {
 
 	public GenericClient(ApplicationProfile appProfile,ISubscriptionHandler handler) throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile);
-
 		protocolClient = new SPARQL11SEProtocol(appProfile, handler);
 	}
 
+	public Response update(String ID,String SPARQL_UPDATE, Bindings forced,String usingGraphUri,String usingNamedGraphUri) throws SEPAProtocolException, SEPASecurityException {
+		protocolClient = new SPARQL11SEProtocol(appProfile,ID,true);
+		// TODO: move default timeout in jsap
+		UpdateRequest req = new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE, forced));
+		// Graphs
+		req.setUsingGraphUri(usingGraphUri);
+		req.setNamedGraphUri(usingNamedGraphUri);
+		// Authentication
+		if (appProfile.isAuthenticationRequiredForUpdate(SPARQL_UPDATE)) {
+			
+		}
+		return protocolClient.update(req,5000);
+	}
+	
+	public Response update(String ID,String SPARQL_UPDATE, Bindings forced,int timeout) throws SEPAProtocolException, SEPASecurityException {
+		protocolClient = new SPARQL11SEProtocol(appProfile,ID,true);
+		return protocolClient.update(new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE, forced)),timeout);
+	}
+	
+	public Response update(String SPARQL_UPDATE, Bindings forced,int timeout) {
+		return protocolClient.update(new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE, forced)),timeout);
+	}
 	public Response update(String SPARQL_UPDATE, Bindings forced) {
-		return protocolClient.update(new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE, forced)));
+		// TODO: move default timeout in jsap
+		return protocolClient.update(new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE, forced)),5000);
 	}
 
 	public Response secureUpdate(String SPARQL_UPDATE, Bindings forced) {

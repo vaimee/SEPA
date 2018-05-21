@@ -1,6 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
-import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,7 +14,7 @@ public class Subscriber extends Thread {
     private final SPUManager spuManager;
 
     public Subscriber(BlockingQueue<ISubscriptionProcUnit> subscriptionQueue, SPUManager manager){
-        super("SEPA SPU Subscriber");
+        super("SEPA-SPU-Subscriber");
         this.subscriptionQueue = subscriptionQueue;
         spuManager = manager;
     }
@@ -32,7 +32,7 @@ public class Subscriber extends Thread {
 
                 spuManager.register(spu);
 
-                SPUManagerBeans.setActiveSPUs(spuManager.size());
+                SubscribeProcessorBeans.setActiveSPUs(spuManager.size());
                 logger.debug(spu.getUUID() + " ACTIVATED (total: " + spuManager.size() + ")");
             } catch (InterruptedException e) {
                 logger.info(e);

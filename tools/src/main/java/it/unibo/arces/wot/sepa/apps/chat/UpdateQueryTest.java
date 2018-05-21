@@ -40,15 +40,15 @@ public class UpdateQueryTest extends GenericClient  {
 	public UpdateQueryTest(ISubscriptionHandler handler) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		super(new ApplicationProfile("chat.jsap"), handler);
 
-		SEND = appProfile.update("SEND");
-		SET_RECEIVED = appProfile.update("SET_RECEIVED");
-		REMOVE = appProfile.update("REMOVE");
-		DELETE_ALL = appProfile.update("DELETE_ALL");
-		REGISTER_USER = appProfile.update("REGISTER_USER");
+		SEND = appProfile.getSPARQLUpdate("SEND");
+		SET_RECEIVED = appProfile.getSPARQLUpdate("SET_RECEIVED");
+		REMOVE = appProfile.getSPARQLUpdate("REMOVE");
+		DELETE_ALL = appProfile.getSPARQLUpdate("DELETE_ALL");
+		REGISTER_USER = appProfile.getSPARQLUpdate("REGISTER_USER");
 
-		SENT = appProfile.subscribe("SENT");
-		RECEIVED = appProfile.subscribe("RECEIVED");
-		USERS = appProfile.subscribe("USERS");
+		SENT = appProfile.getSPARQLQuery("SENT");
+		RECEIVED = appProfile.getSPARQLQuery("RECEIVED");
+		USERS = appProfile.getSPARQLQuery("USERS");
 
 		clients = appProfile.getExtendedData().get("clients").getAsInt();
 		

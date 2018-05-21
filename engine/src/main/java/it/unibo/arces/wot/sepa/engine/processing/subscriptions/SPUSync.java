@@ -8,7 +8,7 @@ import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPU;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
 
 public class SPUSync {
 	private final Logger logger = LogManager.getLogger("SPUSync");
@@ -29,7 +29,7 @@ public class SPUSync {
 			while (!processingSpus.isEmpty()) {
 				logger.info(String.format("Wait (%s) SPUs to complete processing...", processingSpus.size()));
 				try {
-					processingSpus.wait(SPUManagerBeans.getSPUProcessingTimeout());
+					processingSpus.wait(SubscribeProcessorBeans.getSPUProcessingTimeout());
 				} catch (InterruptedException e) {
 					return;
 				}

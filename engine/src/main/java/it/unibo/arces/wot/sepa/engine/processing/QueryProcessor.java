@@ -18,7 +18,6 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.time.Instant;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
@@ -30,22 +29,25 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.dependability.Timing;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class QueryProcessor {
-	private static final Logger logger = LogManager.getLogger("QueryProcessor");
+	private static final Logger logger = LogManager.getLogger();
 
 	private SPARQL11Protocol endpoint;	
 	private Semaphore endpointSemaphore;
+	private SPARQL11Properties properties;
 	
 	public QueryProcessor(SPARQL11Properties properties,Semaphore endpointSemaphore) throws SEPAProtocolException  {	
-		endpoint = new SPARQL11Protocol(properties);
+		this.endpoint = new SPARQL11Protocol(properties);
 		this.endpointSemaphore = endpointSemaphore;
+		this.properties = properties;
 	}
 
 	public synchronized Response process(QueryRequest req, int timeout) {		
+		long start = Timings.getTime();
+		
 		if (endpointSemaphore != null)
 			try {
 				endpointSemaphore.acquire();
@@ -54,17 +56,13 @@ public class QueryProcessor {
 			}
 		
 		//QUERY the endpoint
-		long start = System.currentTimeMillis();
-		Timing.logTiming(req, "ENDPOINT_REQUEST", Instant.now());
-		Response ret = endpoint.query(req, timeout);
-		Timing.logTiming(req, "ENDPOINT_RESPONSE", Instant.now());
-		long stop = System.currentTimeMillis();
+		Response ret = endpoint.query(req, timeout,properties.getQueryMethod());
 		
 		if (endpointSemaphore != null) endpointSemaphore.release();
 
+		long stop = Timings.getTime();
 		logger.debug("Response: "+ret.toString());
-		logger.debug("* QUERY PROCESSING ("+(stop-start)+" ms) *");
-		
+		Timings.log("QUERY_PROCESSING_TIME", start, stop);
 		ProcessorBeans.queryTimings(start, stop);
 		
 		return ret;

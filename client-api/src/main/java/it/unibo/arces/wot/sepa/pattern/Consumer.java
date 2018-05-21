@@ -48,13 +48,13 @@ public abstract class Consumer extends Client implements IConsumer {
 			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe ID is null"));
 		}
 
-		if (appProfile.subscribe(subscribeID) == null) {
+		if (appProfile.getSPARQLQuery(subscribeID) == null) {
 			logger.fatal("SUBSCRIBE ID [" + subscribeID + "] not found in " + appProfile.getFileName());
 			throw new IllegalArgumentException(
 					"SUBSCRIBE ID [" + subscribeID + "] not found in " + appProfile.getFileName());
 		}
 
-		sparqlSubscribe = appProfile.subscribe(subscribeID);
+		sparqlSubscribe = appProfile.getSPARQLQuery(subscribeID);
 		
 		protocolClient = new SPARQL11SEProtocol(appProfile,this);
 	}

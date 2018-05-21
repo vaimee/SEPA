@@ -1,6 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
-import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,7 +20,7 @@ public class Unsubcriber extends Thread {
     private final AtomicBoolean end = new AtomicBoolean(false);
 
     public Unsubcriber(BlockingQueue<String> unsubscribeQueue, SPUManager manager){
-        super("SEPA SPU Unsubscriber");
+        super("SEPA-SPU-Unsubscriber");
         this.unsubscribeQueue = unsubscribeQueue;
         spuManager = manager;
     }
@@ -35,7 +35,7 @@ public class Unsubcriber extends Thread {
 
                 spuManager.unRegister(spuUID);
 
-                SPUManagerBeans.setActiveSPUs(spuManager.size());
+                SubscribeProcessorBeans.setActiveSPUs(spuManager.size());
                 logger.debug("Active SPUs: " + spuManager.size());
             } catch (InterruptedException e) {
                 logger.info(e);

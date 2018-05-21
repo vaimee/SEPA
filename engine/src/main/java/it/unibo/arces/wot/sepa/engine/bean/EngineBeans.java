@@ -74,6 +74,6 @@ public class EngineBeans {
 	public static void resetAll() {
 		ProcessorBeans.reset();
 		SchedulerBeans.reset();
-		SPUManagerBeans.reset();
+		SubscribeProcessorBeans.reset();
 	}
 }

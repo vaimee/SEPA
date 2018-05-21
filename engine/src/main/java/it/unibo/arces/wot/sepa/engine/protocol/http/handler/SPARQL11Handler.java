@@ -1,7 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http.handler;
 
 import java.io.IOException;
-import java.time.Instant;
 
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
@@ -19,12 +18,12 @@ import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.CORSManager;
-import it.unibo.arces.wot.sepa.engine.dependability.Timing;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SPARQL11HandlerMBean {
-	private static final Logger logger = LogManager.getLogger("SPARQL11Handler");
+	private static final Logger logger = LogManager.getLogger();
 
 	private Scheduler scheduler;
 
@@ -77,9 +76,6 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
-
-		Instant start = Instant.now();
-
 		// CORS
 		if (!corsHandling(httpExchange)) {
 			jmx.corsFailed();
@@ -115,12 +111,10 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			jmx.authorizingFailed();
 			return;
 		}
-
-		Timing.logTiming(sepaRequest, "REQUEST", start);
-		Timing.logTiming(sepaRequest, "SCHEDULING", Instant.now());
 			
 		// Schedule request
-		scheduler.schedule(sepaRequest, new SPARQL11ResponseHandler(httpExchange, jmx, start));
+		Timings.log(sepaRequest);
+		scheduler.schedule(sepaRequest, new SPARQL11ResponseHandler(httpExchange, jmx));
 	}
 
 	@Override
@@ -136,17 +130,17 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 
 	@Override
 	public float getHandlingTime_ms() {
-		return jmx.getHandlingTime_ms();
+		return jmx.getHandlingTime();
 	}
 
 	@Override
 	public float getHandlingMinTime_ms() {
-		return jmx.getHandlingMinTime_ms();
+		return jmx.getHandlingMinTime();
 	}
 
 	@Override
 	public float getHandlingAvgTime_ms() {
-		return jmx.getHandlingAvgTime_ms();
+		return jmx.getHandlingAvgTime();
 	}
 
 	@Override

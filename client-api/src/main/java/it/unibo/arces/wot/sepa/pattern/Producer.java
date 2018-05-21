@@ -1,4 +1,4 @@
-/* This class abstracts the aggregator client of the SEPA Application Design Pattern
+/* This class implements a SEPA producer
  * 
  * Author: Luca Roffia (luca.roffia@unibo.it)
 
@@ -22,46 +22,48 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-public abstract class Aggregator extends Consumer implements IConsumer,IProducer {
+public class Producer extends Client implements IProducer {
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
 	
-	private static final Logger logger = LogManager.getLogger("Aggregator");
+	private static final Logger logger = LogManager.getLogger("Producer");
 	
-	public Aggregator(ApplicationProfile appProfile,String subscribeID,String updateID) throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile,subscribeID);
+	public Producer(ApplicationProfile appProfile,String updateID) throws SEPAProtocolException  {
+		super(appProfile);
 		
-		if (updateID == null){
-			logger.fatal("Update ID is null");
-			throw new SEPAProtocolException(new IllegalArgumentException("Update ID is null null"));
-		}
-		
-		if (appProfile.update(updateID) == null) {
-			logger.fatal("UPDATE ID " +updateID+" not found in "+appProfile.getFileName());
-			throw new IllegalArgumentException("UPDATE ID " +updateID+" not found in "+appProfile.getFileName());
+		if (appProfile.getSPARQLUpdate(updateID) == null) {
+			logger.fatal("UPDATE ID [" +updateID+"] not found in "+appProfile.getFileName());
+			throw new IllegalArgumentException("UPDATE ID [" +updateID+"] not found in "+appProfile.getFileName());
 		}
 		
 		SPARQL_ID = updateID;
 		
-		sparqlUpdate = appProfile.update(updateID);
-	} 
-
-	public final Response update(Bindings forcedBindings){	 
-		 if (protocolClient == null || sparqlUpdate == null) {
-			 logger.fatal("Aggregator not initialized");			 
-			 return new ErrorResponse(-1,400,"Aggregator not initialized");
+		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
+		
+		protocolClient = new SPARQL11SEProtocol(appProfile);
+	}
+	
+	public Response update(Bindings forcedBindings) {
+		//TODO : move default timeout in jsap
+		return update(forcedBindings,5000);
+	}
+	
+	public Response update(Bindings forcedBindings,int timeout){	 
+		 if (sparqlUpdate == null || protocolClient == null) {
+			 logger.fatal("Producer not initialized");
+			 return new ErrorResponse(-1,400,"Producer not initialized");
 		 }
-		 
-		 String sparql = prefixes() + replaceBindings(sparqlUpdate,forcedBindings);		 		 
+
+		 String sparql = prefixes() + replaceBindings(sparqlUpdate,forcedBindings);
 		 
 		 logger.debug("<UPDATE> "+ SPARQL_ID+" ==> "+sparql);
 		 
-		 return protocolClient.update(new UpdateRequest(sparql));
+		 return protocolClient.update(new UpdateRequest(sparql),timeout);		 
 	 }
 }

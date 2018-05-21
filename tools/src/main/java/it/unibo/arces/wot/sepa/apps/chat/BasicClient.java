@@ -16,9 +16,9 @@ public class BasicClient extends ChatClient {
 	private int notifications = 0;
 	private int expectedNotifications = 0;
 	
-	public BasicClient(String userURI, Users users, int messages,Timings timings)
+	public BasicClient(String userURI, Users users, int messages)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(userURI,timings);
+		super(userURI);
 		this.user = userURI;
 		this.users = users;
 		this.messages = messages;

@@ -50,11 +50,6 @@
 			<version>4.4.6</version>
 		</dependency>
 
-		<dependency>
-			<groupId>it.unibo.arces.wot</groupId>
-			<artifactId>commons</artifactId>
-			<version>${revision}</version>
-		</dependency>
 
 	</dependencies>
 </project>

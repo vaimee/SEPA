@@ -77,11 +77,26 @@ public class UpdateHandler extends SPARQL11Handler {
 		if (contentType.equals("application/sparql-update")) {
 			logger.debug("update via POST directly");
 			
-			return new UpdateRequest(body);
+			UpdateRequest ret = new UpdateRequest(body);
+			try {
+				String requestUri = exchange.getRequest().getRequestLine().getUri();
+				if (requestUri.indexOf('?') != -1) {
+					String[] split = requestUri.split("\\?");
+					if (split.length == 2) {
+						Map<String,String> params = HttpUtilities.splitQuery(split[1]);
+						if (params.get("using-graph-uri") != null) ret.setUsingGraphUri(params.get("using-graph-uri"));
+						if (params.get("named-graph-uri") != null) ret.setNamedGraphUri(params.get("named-graph-uri"));	
+					}
+				}
+			} catch (UnsupportedEncodingException e) {
+				logger.error(e.getMessage());
+				throw new SPARQL11ProtocolException( HttpStatus.SC_BAD_REQUEST, e.getMessage());
+			}
+			
+			return ret;
 		} else if (contentType.equals("application/x-www-form-urlencoded")) {
 			try {
-				Map<String,String> params = HttpUtilities.splitQuery(body);
-				
+				Map<String,String> params = HttpUtilities.splitQuery(body);				
 				logger.debug("update via URL ENCODED POST directly: "+params.get("update"));
 
 				if (params.get("update") != null) return new UpdateRequest(params.get("update"));

@@ -2,7 +2,7 @@ package it.unibo.arces.wot.sepa.engine.bean;
 
 import java.time.Instant;
 
-public class SPUManagerBeans {
+public class SubscribeProcessorBeans {
 	private static long requests = 0;
 
 	private static float minTime = -1;

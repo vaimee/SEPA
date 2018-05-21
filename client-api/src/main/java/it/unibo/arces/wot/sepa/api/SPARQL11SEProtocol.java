@@ -58,6 +58,7 @@ import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SPARQL11SEPrimitive;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
 
@@ -73,6 +74,7 @@ import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 
 /**
  * This class implements the SPARQL 1.1 Secure event protocol with SPARQL 1.1
@@ -96,6 +98,44 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		this.properties = properties;
 	}
 
+
+	public SPARQL11SEProtocol(ApplicationProfile appProfile, String id, boolean update) throws SEPAProtocolException, SEPASecurityException {
+		super(appProfile,id,update);
+	}
+
+	public SPARQL11SEProtocol(ApplicationProfile appProfile, ISubscriptionHandler handler,String id) throws SEPAProtocolException, SEPASecurityException {
+		super(appProfile,id,false);
+		
+		if (handler == null) {
+			logger.fatal("Handler is null");
+			throw new SEPAProtocolException(new IllegalArgumentException("Handler is null"));
+		}
+
+		this.properties = appProfile;
+		
+		if (appProfile.getSubscribeProtocol(id).equals(SubscriptionProtocol.WS)) {
+			// WS
+			int port = appProfile.getSubscribePort(id);
+			if (port != -1)
+				wsClient = new SPARQL11SEWebsocket(
+						"ws://" + appProfile.getSubscribeHost(id) + ":" + port + appProfile.getSubscribePath(id), handler);
+			else
+				wsClient = new SPARQL11SEWebsocket("ws://" + appProfile.getSubscribeHost(id) + appProfile.getSubscribePath(id),
+						handler);
+		}
+		else if (appProfile.getSubscribeProtocol(id).equals(SubscriptionProtocol.WSS)) {
+			// WSS
+			int port = appProfile.getSubscribePort(id);
+			if (port != -1)
+				wssClient = new SPARQL11SESecureWebsocket("wss://" + appProfile.getSubscribeHost(id) + ":" + port
+						+ appProfile.getSubscribePath(id), handler);
+			else
+				wssClient = new SPARQL11SESecureWebsocket(
+						"wss://" + appProfile.getSubscribeHost(id) + appProfile.getSubscribePath(id),
+						handler);
+		}
+	}
+	
 	/**
 	 * Create a protocol instance to communicate with SEPA. In particular use this
 	 * method if you want to subscribe about changes in the semantic graph.
@@ -121,7 +161,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 		if (properties.getSubscriptionProtocol().equals(SubscriptionProtocol.WS)) {
 			// WS
-			int port = properties.getWsPort();
+			int port = properties.getSubscribePort();
 			if (port != -1)
 				wsClient = new SPARQL11SEWebsocket(
 						"ws://" + properties.getHost() + ":" + port + properties.getSubscribePath(), handler);
@@ -131,13 +171,13 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		}
 		else if (properties.getSubscriptionProtocol().equals(SubscriptionProtocol.WSS)) {
 			// WSS
-			int port = properties.getWssPort();
+			int port = properties.getSubscribePort();
 			if (port != -1)
 				wssClient = new SPARQL11SESecureWebsocket("wss://" + properties.getHost() + ":" + port
-						+ properties.getSecurePath() + properties.getSubscribePath(), handler);
+						+ properties.getSubscribePath(), handler);
 			else
 				wssClient = new SPARQL11SESecureWebsocket(
-						"wss://" + properties.getHost() + properties.getSecurePath() + properties.getSubscribePath(),
+						"wss://" + properties.getHost() + properties.getSubscribePath(),
 						handler);
 		}
 	}
@@ -149,10 +189,19 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	/**
 	 * {@inheritDoc}
 	 */
-	public Response update(UpdateRequest request) {
-		return super.update(request, 0);
+	public Response update(UpdateRequest request,int timeout,HTTPMethod method) {
+		return super.update(request, timeout,method);
+	}
+	
+	public Response update(UpdateRequest request,int timeout) {
+		return super.update(request, timeout,HTTPMethod.POST);
 	}
 
+	public Response update(UpdateRequest request) {
+		//TODO: read default timeout from jsap
+		return super.update(request, 5000,HTTPMethod.POST);
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -248,7 +297,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 	protected Response executeSPARQL11SEPrimitive(SPARQL11SEPrimitive op, Object request) {
 		// Create the HTTPS request
-		URI uri;
+		URI uri = null;
 		String path = null;
 		int port = 0;
 
@@ -300,8 +349,11 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 		switch (op) {
 		case REGISTER:
-			path = properties.getRegisterPath();
-			port = properties.getHttpsPort();
+			try {
+				uri = new URI(properties.getRegisterUrl());
+			} catch (URISyntaxException e1) {
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
+			}
 
 			accept = "application/json";
 			contentType = "application/json";
@@ -314,6 +366,12 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			}
 			break;
 		case REQUESTTOKEN:
+			try {
+				uri = new URI(properties.getTokenRequestUrl());
+			} catch (URISyntaxException e1) {
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
+			}
+			
 			String basic;
 			try {
 				basic = properties.getBasicAuthorization();
@@ -323,15 +381,13 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			if (basic == null)
 				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "Basic authorization in null. Register first");
 
-			path = properties.getTokenRequestPath();
-			port = properties.getHttpsPort();
 
 			authorization = "Basic " + basic;
 			contentType = "application/json";
 			accept = "application/json";
 			break;
 		case SECUREUPDATE:
-			path = properties.getSecurePath() + properties.getUpdatePath();
+			path = properties.getUpdatePath();
 			port = properties.getHttpsPort();
 
 			accept = "text/plain";
@@ -352,7 +408,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 			body.setContentType(contentType);
 			break;
 		case SECUREQUERY:
-			path = properties.getSecurePath() + properties.getQueryPath();
+			path = properties.getQueryPath();
 			port = properties.getHttpsPort();
 
 			accept = "application/sparql-results+json";
@@ -375,7 +431,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 		// POST request
 		try {
-			uri = new URI("https", null, properties.getHost(), port, path, null, null);
+			if (uri == null) uri = new URI("https", null, properties.getHost(), port, path, null, null);
 		} catch (URISyntaxException e1) {
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
 		}
