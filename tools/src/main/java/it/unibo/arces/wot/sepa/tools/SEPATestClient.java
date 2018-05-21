@@ -133,7 +133,7 @@ public class SEPATestClient {
 
 		notificationReceived = false;
 
-		String sparql = appProfile.update(id);
+		String sparql = appProfile.getSPARQLUpdate(id);
 
 		if (!secure)
 			System.out.println("UPDATE: " + sparql);
@@ -152,7 +152,7 @@ public class SEPATestClient {
 	}
 
 	public boolean queryTest(String id, int number, boolean secure) {
-		String sparql = appProfile.subscribe(id);
+		String sparql = appProfile.getSPARQLQuery(id);
 
 		if (!secure)
 			System.out.println("QUERY: " + sparql);
@@ -177,7 +177,7 @@ public class SEPATestClient {
 	}
 
 	public boolean subscribeTest(String id, long results, boolean secure) {
-		String sparql = appProfile.subscribe(id);
+		String sparql = appProfile.getSPARQLQuery(id);
 
 		if (secure)
 			System.out.println("SECURE SUBSCRIBE: " + sparql);

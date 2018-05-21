@@ -11,11 +11,11 @@ public abstract class ChatClient implements Runnable {
 	private Remover remover;
 	protected String userURI;
 	
-	public ChatClient(String userURI,Timings timings) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+	public ChatClient(String userURI) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		this.userURI = userURI;
-		sender = new Sender(userURI,timings);
-		receiver = new Receiver(userURI,timings,this);
-		remover = new Remover(userURI,timings,this);
+		sender = new Sender(userURI);
+		receiver = new Receiver(userURI,this);
+		remover = new Remover(userURI,this);
 	}
 	
 	public boolean joinChat() {

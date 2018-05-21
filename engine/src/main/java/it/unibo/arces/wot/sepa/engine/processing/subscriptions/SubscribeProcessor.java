@@ -36,18 +36,17 @@ import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
-import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
 
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
-public class SubscribeProcessor implements SPUManagerMBean {
+public class SubscribeProcessor implements SubscribeProcessorMBean {
 	private final Logger logger = LogManager.getLogger("SubscribeProcessor");
 	private final Subscriber subscriber;
 	private final Unsubcriber unsubscriber;
 
 	private SPARQL11Properties endpointProperties;
-
 
 	private SPUManager spuManager =  new SPUManager();
 
@@ -66,7 +65,7 @@ public class SubscribeProcessor implements SPUManagerMBean {
 		this.endpointSemaphore = endpointSemaphore;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
-		SPUManagerBeans.setSPUProcessingTimeout(engineProperties.getSPUProcessingTimeout());
+		SubscribeProcessorBeans.setSPUProcessingTimeout(engineProperties.getSPUProcessingTimeout());
 
 		this.subscriber = new Subscriber(subscribeQueue,spuManager);
 		this.unsubscriber = new Unsubcriber(unsubscribeQueue,spuManager);
@@ -88,7 +87,7 @@ public class SubscribeProcessor implements SPUManagerMBean {
 	public Response subscribe(SubscribeRequest req, EventHandler handler) {
 		logger.debug(req.toString());
 
-		SPUManagerBeans.subscribeRequest();
+		SubscribeProcessorBeans.subscribeRequest();
 
 		// TODO: choose different kinds of SPU based on subscribe request
 		SPU spu = null;
@@ -117,7 +116,7 @@ public class SubscribeProcessor implements SPUManagerMBean {
 	public Response unsubscribe(UnsubscribeRequest req) {
 		logger.debug(req);
 
-		SPUManagerBeans.unsubscribeRequest();
+		SubscribeProcessorBeans.unsubscribeRequest();
 
 		String spuid = req.getSubscribeUUID();
 
@@ -148,78 +147,78 @@ public class SubscribeProcessor implements SPUManagerMBean {
 		spuSync.waitEndOfProcessing();
 
 		Instant stop = Instant.now();
-		SPUManagerBeans.timings(start, stop);
+		SubscribeProcessorBeans.timings(start, stop);
 
 		logger.info("*** PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
 	@Override
 	public long getRequests() {
-		return SPUManagerBeans.getRequests();
+		return SubscribeProcessorBeans.getRequests();
 	}
 
 	@Override
 	public long getSPUs_current() {
-		return SPUManagerBeans.getSPUs_current();
+		return SubscribeProcessorBeans.getSPUs_current();
 	}
 
 	@Override
 	public long getSPUs_max() {
-		return SPUManagerBeans.getSPUs_max();
+		return SubscribeProcessorBeans.getSPUs_max();
 	}
 
 	@Override
 	public float getSPUs_time() {
-		return SPUManagerBeans.getSPUs_time();
+		return SubscribeProcessorBeans.getSPUs_time();
 	}
 
 	@Override
 	public void reset() {
-		SPUManagerBeans.reset();
+		SubscribeProcessorBeans.reset();
 	}
 
 	@Override
 	public void setKeepalive(int t) {
-		SPUManagerBeans.setKeepalive(t);
+		SubscribeProcessorBeans.setKeepalive(t);
 	}
 
 	@Override
 	public int getKeepalive() {
-		return SPUManagerBeans.getKeepalive();
+		return SubscribeProcessorBeans.getKeepalive();
 	}
 
 	@Override
 	public float getSPUs_time_min() {
-		return SPUManagerBeans.getSPUs_time_min();
+		return SubscribeProcessorBeans.getSPUs_time_min();
 	}
 
 	@Override
 	public float getSPUs_time_max() {
-		return SPUManagerBeans.getSPUs_time_max();
+		return SubscribeProcessorBeans.getSPUs_time_max();
 	}
 
 	@Override
 	public float getSPUs_time_average() {
-		return SPUManagerBeans.getSPUs_time_averaae();
+		return SubscribeProcessorBeans.getSPUs_time_averaae();
 	}
 
 	@Override
 	public long getSubscribeRequests() {
-		return SPUManagerBeans.getSubscribeRequests();
+		return SubscribeProcessorBeans.getSubscribeRequests();
 	}
 
 	@Override
 	public long getUnsubscribeRequests() {
-		return SPUManagerBeans.getUnsubscribeRequests();
+		return SubscribeProcessorBeans.getUnsubscribeRequests();
 	}
 
 	@Override
 	public long getSPUProcessingTimeout() {
-		return SPUManagerBeans.getSPUProcessingTimeout();
+		return SubscribeProcessorBeans.getSPUProcessingTimeout();
 	}
 
 	@Override
 	public void setSPUProcessingTimeout(long t) {
-		SPUManagerBeans.setActiveSPUs(t);
+		SubscribeProcessorBeans.setActiveSPUs(t);
 	}
 }

@@ -21,17 +21,15 @@ public class Receiver extends Aggregator {
 	
 	private Bindings message = new Bindings();
 	private boolean joined = false;
-	private Timings timings;
 	
 	private ChatClient client;
 	
-	public Receiver(String receiverURI,Timings timings,ChatClient client)
+	public Receiver(String receiverURI,ChatClient client)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		super(new ApplicationProfile("chat.jsap"), "SENT", "SET_RECEIVED");
 
 		message.addBinding("receiver", new RDFTermURI(receiverURI));
 		
-		this.timings = timings;
 		this.client = client;
 	}
 
@@ -63,18 +61,15 @@ public class Receiver extends Aggregator {
 		// Variables: ?message ?sender ?name ?text ?time
 		for (Bindings bindings : results.getBindings()) {
 			logger.info("SENT "+bindings.getBindingValue("message"));
-			
-			timings.sent(bindings.getBindingValue("message"),bindings.getBindingValue("sender"),message.getBindingValue("receiver"),bindings.getBindingValue("text"));
-			
 			client.onMessage(bindings.getBindingValue("sender"), bindings.getBindingValue("text"));
 			
 			// Set received
 			Bindings setReceived = new Bindings();
 			setReceived.addBinding("message", new RDFTermURI(bindings.getBindingValue("message")));
 
-			timings.setReceivedStart(bindings.getBindingValue("message"));
+			
 			update(setReceived);
-			timings.setReceivedStop(bindings.getBindingValue("message"));
+			
 		}
 	}
 

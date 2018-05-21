@@ -9,11 +9,7 @@ public class SchedulerRequestResponseQueue {
 	private LinkedBlockingQueue<Response> responses = new LinkedBlockingQueue<Response>();
 	
 	public void addRequest(ScheduledRequest req) {
-		try {
-			requests.put(req);
-		} catch (InterruptedException e) {
-			return;
-		}
+		requests.offer(req);
 	}
 	
 	public ScheduledRequest waitRequest() throws InterruptedException {
@@ -21,11 +17,7 @@ public class SchedulerRequestResponseQueue {
 	}
 	
 	public void addResponse(Response res) {
-		try {
-			responses.put(res);
-		} catch (InterruptedException e) {
-			return;
-		}
+		responses.offer(res);
 	}
 	
 	public Response waitResponse() throws InterruptedException {

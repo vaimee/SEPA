@@ -42,7 +42,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerRequestResponseQueue;
 import org.apache.logging.log4j.LogManager;
 
 public class Processor extends Thread implements ProcessorMBean {
-	private final Logger logger = LogManager.getLogger("Processor");
+	private final Logger logger = LogManager.getLogger();
 
 	// Processors
 	private final UpdateProcessor updateProcessor;
@@ -121,7 +121,7 @@ public class Processor extends Thread implements ProcessorMBean {
 						queue.addResponse(ret);
 					}
 				};
-				queryProcessing.setName("SEPA Query Processing Thread-" + request.getToken());
+				queryProcessing.setName("SEPA-Query-Processing-Thread-" + request.getToken());
 				queryProcessing.start();
 			} else if (request.isSubscribeRequest()) {
 				logger.info("Subscribe request #" + request.getToken());

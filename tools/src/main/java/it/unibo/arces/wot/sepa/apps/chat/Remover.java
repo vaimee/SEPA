@@ -21,14 +21,11 @@ public class Remover extends Aggregator {
 	
 	private Bindings sender = new Bindings();
 	private boolean joined = false;
-	private Timings timings;
 	
-	public Remover(String senderURI,Timings timings,ChatClient client) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
+	public Remover(String senderURI,ChatClient client) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
 		super(new ApplicationProfile("chat.jsap"), "RECEIVED", "REMOVE");
 		
 		sender.addBinding("sender", new RDFTermURI(senderURI));
-		
-		this.timings = timings;
 	}
 
 	public boolean joinChat() {
@@ -64,11 +61,7 @@ public class Remover extends Aggregator {
 			logger.info("RECEIVED From: "+bindings.getBindingValue("message"));
 			
 			// Variables: ?message ?time
-			timings.received(bindings.getBindingValue("message"));
-			
-			timings.removeStart(bindings.getBindingValue("message"));
 			update(bindings);
-			timings.removeStop(bindings.getBindingValue("message"));
 		}
 
 	}

@@ -238,7 +238,7 @@ public class Engine implements EngineMBean {
 			System.err.println(e1.getMessage());
 			System.exit(1);
 		}
-		processor.setName("SEPA Processor");
+		processor.setName("SEPA-Processor");
 		processor.start();
 
 		// SPARQL protocol service

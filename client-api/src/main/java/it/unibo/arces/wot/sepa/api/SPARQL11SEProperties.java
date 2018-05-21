@@ -55,9 +55,8 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 			}
 		},
 		"security": {
-			"register": "/oauth/register",
-			"tokenRequest": "/oauth/token",
-			"securePath": "/secure",
+			"register": "https://localhost:8443/oauth/register",
+			"tokenRequest": "https://localhost:8443/oauth/token",
 			"client_id": "jaJBrmgtqgW9jTLHeVbzSCH6ZIN1Qaf3XthmwLxjhw3WuXtt7VELmfibRNvOdKLs",
 			"client_secret": "fkITPTMsHUEb9gVVRMP5CAeIE1LrfBYtNLdqtlTVZ/CqgqcuzEw+ZcVegW5dMnIg",
 			"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfvx34vSSnhpkfcdYbZ+7KDaK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkfP7DEKe7LScGYaT4RcuIfNmywI4fAWabAI4zqedYbd5lXmYhbSmXviPTOQPKxhmZptZ6F5Q178nfK6Bik4/0PwUlgMsC6oVFeJtyPWvjfEP0nx9tGMOt+z9Rvbd7enGWRFspUQJS2zzmGlHW1m5QNFdtOCfTLUOKkyZV4JUQxI1CaP+QbIyIihuQDvIMbmNgbvDNBkj9VQOzg1WB7mj4nn4w7T8I9MpOxAXxnaPUvDk8QnL/5leQcUiFVTa1zlzambQ8xr/BojFB52fIz8LsrDRW/+/0CJJVTFYD6OZ/gepFyLK4yOu/rOiTLT5CF9H2NZQd7bi85zSmi50RHFa3358LvL50c4G84Gz7mkDTBV9JxBhlWVNvD5VR58rPcgESwlGEL2YmOQCZzYGWjTc5cyI/50ZX83sTlTbfs+Tab3pBlsRQu36iNznleeKPj6uVvql+3uvcjMEBqqXvj8TKxMi9tCfHA1vt9RijOap8ROHtnIe4iMovPzkOCMiHJPcwbnyi+6jHbrPI18WGghceZQT23qKHDUYQo2NiehLQG9MQZA1Ncx2w4evBTBX8lkBS4aLoCUoTZTlNFSDOohUHJCbeig9eV77JbLo0a4+PNH9bgM/icSnIG5TidBGyJpEkVtD7+/KphwM89izJam3OT",
@@ -133,6 +132,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		if (propertiesFile == null)
 			throw new IllegalArgumentException("Argument is null");
 	}
+
 	/**
 	 * Instantiates a new SPARQL 11 SE properties.
 	 *
@@ -159,13 +159,12 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 			},
 			"wss": {
 				"port": 9443,
-				"path": "/subscribe"
+				"path": "/secure/subscribe"
 			}
 		},
 		"security": {
-			"register": "/oauth/register",
-			"tokenRequest": "/oauth/token",
-			"securePath": "/secure",
+			"register": "https://localhost:8443/oauth/register",
+			"tokenRequest": "https://localhost:8443/oauth/token",
 			"client_id": "jaJBrmgtqgW9jTLHeVbzSCH6ZIN1Qaf3XthmwLxjhw3WuXtt7VELmfibRNvOdKLs",
 			"client_secret": "fkITPTMsHUEb9gVVRMP5CAeIE1LrfBYtNLdqtlTVZ/CqgqcuzEw+ZcVegW5dMnIg",
 			"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfvx34vSSnhpkfcdYbZ+7KDaK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkfP7DEKe7LScGYaT4RcuIfNmywI4fAWabAI4zqedYbd5lXmYhbSmXviPTOQPKxhmZptZ6F5Q178nfK6Bik4/0PwUlgMsC6oVFeJtyPWvjfEP0nx9tGMOt+z9Rvbd7enGWRFspUQJS2zzmGlHW1m5QNFdtOCfTLUOKkyZV4JUQxI1CaP+QbIyIihuQDvIMbmNgbvDNBkj9VQOzg1WB7mj4nn4w7T8I9MpOxAXxnaPUvDk8QnL/5leQcUiFVTa1zlzambQ8xr/BojFB52fIz8LsrDRW/+/0CJJVTFYD6OZ/gepFyLK4yOu/rOiTLT5CF9H2NZQd7bi85zSmi50RHFa3358LvL50c4G84Gz7mkDTBV9JxBhlWVNvD5VR58rPcgESwlGEL2YmOQCZzYGWjTc5cyI/50ZX83sTlTbfs+Tab3pBlsRQu36iNznleeKPj6uVvql+3uvcjMEBqqXvj8TKxMi9tCfHA1vt9RijOap8ROHtnIe4iMovPzkOCMiHJPcwbnyi+6jHbrPI18WGghceZQT23qKHDUYQo2NiehLQG9MQZA1Ncx2w4evBTBX8lkBS4aLoCUoTZTlNFSDOohUHJCbeig9eV77JbLo0a4+PNH9bgM/icSnIG5TidBGyJpEkVtD7+/KphwM89izJam3OT",
@@ -234,8 +233,6 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 						.getAsString();
 				jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("tokenRequest")
 						.getAsString();
-				jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("securePath")
-						.getAsString();
 			}
 
 		} catch (Exception e) {
@@ -243,47 +240,24 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		}
 	}
 
-	public String getSecurePath() {
-		try {
-			return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("securePath")
-					.getAsString();
-		} catch (Exception e) {
-			return "";
-		}
-
-	}
-
-	public int getWsPort() {
-		try {
-			return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
-					.get("ws").getAsJsonObject().get("port").getAsInt();
-		} catch (Exception e) {
-			return -1;
-		}
-	}
-
 	public String getSubscribePath() {
 		try {
-			switch (jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()) {
-
-			case "ws":
-				return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
-						.get("ws").getAsJsonObject().get("path").getAsString();
-			case "wss":
-				return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
-						.get("wss").getAsJsonObject().get("path").getAsString();
-			}
+			return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
+						.get(jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()).getAsJsonObject().get("path").getAsString();
+			
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			return null;
 		}
-		return null;
 	}
 
-	public int getWssPort() {
+	public int getSubscribePort() {
 		try {
 			return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
-					.get("wss").getAsJsonObject().get("port").getAsInt();
+						.get(jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()).getAsJsonObject().get("port").getAsInt();
+			
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			return -1;
 		}
 	}
@@ -298,24 +272,24 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		return -1;
 	}
 
-	public String getRegisterPath() {
-		try{
-			return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("register").getAsString();
-		}
-		catch(Exception e) {
+	public String getRegisterUrl() {
+		try {
+			return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("register")
+					.getAsString();
+		} catch (Exception e) {
 			return "";
 		}
-				
+
 	}
 
-	public String getTokenRequestPath() {
-		try{
-			return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("tokenRequest").getAsString();
-		}
-		catch(Exception e) {
+	public String getTokenRequestUrl() {
+		try {
+			return jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject()
+					.get("tokenRequest").getAsString();
+		} catch (Exception e) {
 			return "";
 		}
-				
+
 	}
 
 	private String getSecurityEncryptedValue(String value) throws SEPASecurityException {
@@ -424,9 +398,8 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 			// authorization = Base64.getEncoder().encode((id + ":" +
 			// secret).getBytes("UTF-8")).toString();
 			return new String(buf, "UTF-8");
-		}
-		catch(Exception e) {
-			throw new SEPASecurityException(e);	
+		} catch (Exception e) {
+			throw new SEPASecurityException(e);
 		}
 	}
 

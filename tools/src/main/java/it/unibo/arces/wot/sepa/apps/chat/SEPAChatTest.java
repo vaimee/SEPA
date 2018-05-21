@@ -20,8 +20,6 @@ public class SEPAChatTest {
 	private int MESSAGES = 10;
 	private Users users;
 	private static List<Thread> clients = new ArrayList<Thread>();
-
-	private static Timings timings = new Timings();
 	
 	private enum CLIENT_TYPE {
 		PING_PONG, BASIC
@@ -67,13 +65,13 @@ public class SEPAChatTest {
 			ChatClient client = null;
 			switch (type) {
 			case BASIC:
-				client = new BasicClient(user, users,MESSAGES,timings);
+				client = new BasicClient(user, users,MESSAGES);
 				break;
 			case PING_PONG:
-				client = new PingPongClient(user, users,timings);
+				client = new PingPongClient(user, users);
 				break;
 			default:
-				client = new BasicClient(user, users,MESSAGES,timings);
+				client = new BasicClient(user, users,MESSAGES);
 			}
 
 			Thread th = new Thread(client);
@@ -98,8 +96,6 @@ public class SEPAChatTest {
 		}
 
 		for (Thread th:clients) th.join(60000);
-		
-		timings.logToFile();
 		
 		System.exit(0);
 	}

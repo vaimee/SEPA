@@ -1,6 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
-public interface SPUManagerMBean {
+public interface SubscribeProcessorMBean {
 	public long getRequests();
 	public long getSubscribeRequests();
 	public long getUnsubscribeRequests();

@@ -1,9 +1,10 @@
 package it.unibo.arces.wot.sepa.engine.bean;
 
-import java.time.Instant;
 import java.util.HashMap;
 
 import org.apache.http.nio.protocol.HttpAsyncExchange;
+
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class HTTPHandlerBeans {
 	private long requests = 0;
@@ -14,13 +15,13 @@ public class HTTPHandlerBeans {
 	private long validatingFailedRequests = 0;
 	private long authorizingFailedRequests = 0;
 	
-	private float requestHandlingTime = -1;
+	private long requestHandlingTime = -1;
 	private float requestHandlingAverageTime = -1;
-	private float requestHandlingMinTime = -1;
-	private float requestHandlingMaxTime = -1;
+	private long requestHandlingMinTime = -1;
+	private long requestHandlingMaxTime = -1;
 	private float handledRequests = 0;
 
-	private HashMap<HttpAsyncExchange,Instant> timings = new HashMap<HttpAsyncExchange,Instant>();
+	private HashMap<HttpAsyncExchange,Long> timings = new HashMap<HttpAsyncExchange,Long>();
 	
 	public void reset() {
 		 requests = 0;
@@ -38,17 +39,19 @@ public class HTTPHandlerBeans {
 		 handledRequests = 0;
 	}
 
-	public void newRequest(HttpAsyncExchange handler, Instant start) {
+	public long start(HttpAsyncExchange handler) {
 		requests++;
-		timings.put(handler, start);
+		long start = Timings.getTime();
+		timings.put(handler, start );
+		return start;
 	}
 	
-	public float timings(HttpAsyncExchange handler) {
+	public synchronized long stop(HttpAsyncExchange handler) {
 
 		handledRequests++;
 		if (timings.get(handler) == null) return 0;
 		
-		requestHandlingTime = Instant.now().toEpochMilli() - timings.get(handler).toEpochMilli();
+		requestHandlingTime = Timings.getTime() - timings.get(handler);
 		timings.remove(handler);
 
 		if (requestHandlingMinTime == -1)
@@ -71,19 +74,19 @@ public class HTTPHandlerBeans {
 
 	}
 
-	public float getHandlingTime_ms() {
+	public long getHandlingTime() {
 		return requestHandlingTime;
 	}
 
-	public float getHandlingMinTime_ms() {
+	public long getHandlingMinTime() {
 		return requestHandlingMinTime;
 	}
 
-	public float getHandlingAvgTime_ms() {
+	public float getHandlingAvgTime() {
 		return requestHandlingAverageTime;
 	}
 
-	public float getHandlingMaxTime_ms() {
+	public long getHandlingMaxTime_ms() {
 		return requestHandlingMaxTime;
 	}
 	
