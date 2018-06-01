@@ -20,6 +20,8 @@ package it.unibo.arces.wot.sepa.commons.request;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
+
 // TODO: Auto-generated Javadoc
 /**
  * This class represents a generic request (i.e., QUERY, UPDATE, SUBSCRIBE,
@@ -41,13 +43,23 @@ public abstract class Request {
 	 * https://tools.ietf.org/html/rfc7617
 	 */
 
-	private enum AUTHENTICATION_SCHEMA {
+	protected enum AUTHENTICATION_SCHEMA {
 		DISABLED, BASIC
 	};
 
-	private AUTHENTICATION_SCHEMA authorization = AUTHENTICATION_SCHEMA.DISABLED;
-	private String basicAuthorizationHeader;
+	protected AUTHENTICATION_SCHEMA authorization = AUTHENTICATION_SCHEMA.DISABLED;
+	protected String basicAuthorizationHeader;
 
+	protected HTTPMethod method = HTTPMethod.POST;
+	protected String id = null;
+
+	protected int timeout = 5000;
+	
+	protected String scheme = null;
+	protected String host = null;
+	protected int port = -1;
+	protected String path = null;
+	
 	/**
 	 * Instantiates a new request.
 	 *
@@ -127,12 +139,43 @@ public abstract class Request {
 		case BASIC:
 			return basicAuthorizationHeader;
 		default:
-			return "";
+			return null;
 		}
 	}
 
 	public boolean isAuthenticationRequired() {
 		return authorization != AUTHENTICATION_SCHEMA.DISABLED;
 	}
+	
+	public HTTPMethod getHttpMethod() {
+		return method;
+	}
+	
+	public String getID() {
+		return id;
+	}
+	
+	public int getTimeout() {
+		return timeout;
+	}
+	
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
 
+	public String getScheme() {
+		return scheme;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public String getPath() {
+		return path;
+	}
 }

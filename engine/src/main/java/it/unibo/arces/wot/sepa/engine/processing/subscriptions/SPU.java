@@ -24,16 +24,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
 import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-//import it.unibo.arces.wot.sepa.commons.response.Ping;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 

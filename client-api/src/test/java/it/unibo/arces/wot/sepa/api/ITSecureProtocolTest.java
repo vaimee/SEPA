@@ -1,12 +1,14 @@
 package it.unibo.arces.wot.sepa.api;
 
+import it.unibo.arces.wot.sepa.api.protocol.websocket.WebSocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import java.io.File;
 import java.net.URL;
 import static org.junit.Assert.*;
 
@@ -17,14 +19,26 @@ public class ITSecureProtocolTest {
 
     private final static String VALID_ID = "SEPATest";
     private final static String NOT_VALID_ID = "RegisterMePlease";
-    private SPARQL11SEProperties properties;
+    private ApplicationProfile properties;
 
     @Before
     public void setUp() throws Exception {
         URL config = Thread.currentThread().getContextClassLoader().getResource("dev.jsap");
-        properties = new SPARQL11SEProperties(new File(config.getPath()));
+        properties = new ApplicationProfile(config.getPath());
         subHandler = new MockSubscriptionHandler();
-        client = new SPARQL11SEProtocol(properties,subHandler);
+        
+        ISubscriptionProtocol protocol = null;
+		switch (properties.getSubscribeProtocol(null)) {
+		case WS:
+			protocol = new WebSocketSubscriptionProtocol(properties.getSubscribeHost(null),
+					properties.getSubscribePort(null), properties.getSubscribePath(null), false);
+			break;
+		case WSS:
+			protocol = new WebSocketSubscriptionProtocol(properties.getSubscribeHost(null),
+					properties.getSubscribePort(null), properties.getSubscribePath(null), true);
+			break;
+		}
+		client = new SPARQL11SEProtocol(properties,protocol, subHandler);
     }
 
     @Test

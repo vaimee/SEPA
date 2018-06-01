@@ -68,7 +68,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 public class SPARQL11SEProperties extends SPARQL11Properties {
 
 	/** The Constant logger. */
-	private static final Logger logger = LogManager.getLogger("SPARQL11SEProperties");
+	private static final Logger logger = LogManager.getLogger();
 
 	/**
 	 * The new primitives introduced by the SPARQL 1.1 SE Protocol are:
@@ -240,6 +240,15 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		}
 	}
 
+	public String getDefaultHost() {
+		try {
+			return jsap.get("sparql11seprotocol").getAsJsonObject().get("host").getAsString();
+		}
+		catch(Exception e) {
+			return super.getDefaultHost();
+		}
+	}
+	
 	public String getSubscribePath() {
 		try {
 			return jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()

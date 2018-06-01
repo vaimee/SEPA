@@ -1,9 +1,9 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http.handler;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
+import java.util.Map;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -18,6 +18,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 /**
@@ -40,7 +41,6 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  *----------------------------------------------------------------------------------------------------------------------------------------																													
  * query via POST directly    |   POST         default-graph-uri (0 or more)
  *                            |                named-graph-uri (0 or more)       application/sparql-query            Unencoded SPARQL query string
-                                  using-named-graph-uri (0 or more)
  * 
  * 2.1.4 Specifying an RDF Dataset
  * 
@@ -61,85 +61,83 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  * @see UpdateRequest
  */
 public class QueryHandler extends SPARQL11Handler {
-	protected static final Logger logger = LogManager.getLogger("QueryHandler");
-	
+	protected static final Logger logger = LogManager.getLogger();
+
 	public QueryHandler(Scheduler scheduler) throws IllegalArgumentException {
 		super(scheduler);
 	}
 
 	@Override
-	protected Request parse(HttpAsyncExchange exchange) {
+	protected Request parse(HttpAsyncExchange exchange) throws SPARQL11ProtocolException {
 		switch (exchange.getRequest().getRequestLine().getMethod().toUpperCase()) {
 		case "GET":
 			logger.debug("query via GET");
-			String requestUri = exchange.getRequest().getRequestLine().getUri();
-			if (requestUri.indexOf('?') == -1) {
-				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"Wrong request uri: ? not found in "+requestUri);
-			}
-			
-			String queryParameters = requestUri.substring(requestUri.indexOf('?') + 1);
-			
-			if (!queryParameters.contains("query=")) {
-				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, "Wrong request uri: 'query=' not found in "+queryParameters);
-			}
-			String[] query = queryParameters.split("&");
-			for (String param : query) {
-				String[] value = param.split("=");
-				if (value[0].equals("query")) {
-					String sparql = "";
-					try {
-						sparql = URLDecoder.decode(value[1], "UTF-8");
-					} catch (UnsupportedEncodingException e) {
-						throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
-					}
-					
-					return new QueryRequest(sparql);
-				}
-			}
-			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, "Wrong format: " + exchange.getRequest().getRequestLine());
-
-		case "POST":
-			String body = null;
-			HttpEntity entity = ((HttpEntityEnclosingRequest) exchange.getRequest()).getEntity();
 			try {
-				body = EntityUtils.toString(entity, Charset.forName("UTF-8"));
-			} catch (ParseException | IOException e) {
-				body = e.getLocalizedMessage();
-			}
+				String requestUri = exchange.getRequest().getRequestLine().getUri();
 
-			Header[] headers = exchange.getRequest().getHeaders("Content-Type");
-			if (headers.length != 1) {
-				logger.error("Content-Type is missing");
-				throw new SPARQL11ProtocolException( HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
-			}
-
-			if (headers[0].getValue().equals("application/sparql-query")) {
-				logger.debug("query via POST directly");
-				
-				return new QueryRequest(body);
-			} else if (headers[0].getValue().equals("application/x-www-form-urlencoded")) {
-				String decodedBody;
-				try {
-					decodedBody = URLDecoder.decode(body, "UTF-8");
-				} catch (UnsupportedEncodingException e) {
-					logger.error(e.getMessage());
-					throw new SPARQL11ProtocolException( HttpStatus.SC_BAD_REQUEST, e.getMessage());
+				if (requestUri.indexOf('?') == -1) {
+					throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,
+							"Wrong request uri: ? not found in " + requestUri);
 				}
 
-				String[] parameters = decodedBody.split("&");
-				for (String param : parameters) {
-					String[] value = param.split("=");
-					if (value[0].equals("query")) {
-						logger.debug("query via URL-encoded");
-						
-						return new QueryRequest(value[1]);
+				String queryParameters = requestUri.substring(requestUri.indexOf('?') + 1);
+				Map<String, String> params = HttpUtilities.splitQuery(queryParameters);
+
+				if (params.get("query") == null) {
+					throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,
+							"Wrong request uri: 'query=' not found in " + queryParameters);
+				}
+
+				String sparql = URLDecoder.decode(params.get("query"), "UTF-8");
+				String graphUri = params.get("default-graph-uri");
+				String namedGraphUri = params.get("named-graph-uri");
+
+				return new QueryRequest(sparql, graphUri, namedGraphUri);
+			} catch (Exception e) {
+				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
+			}
+		case "POST":
+			try {
+				HttpEntity entity = ((HttpEntityEnclosingRequest) exchange.getRequest()).getEntity();
+				String body = EntityUtils.toString(entity, Charset.forName("UTF-8"));
+
+				Header[] headers = exchange.getRequest().getHeaders("Content-Type");
+				if (headers.length != 1) {
+					logger.error("Content-Type is missing");
+					throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
+				}
+
+				if (headers[0].getValue().equals("application/sparql-query")) {
+					logger.debug("query via POST directly");
+
+					String requestUri = exchange.getRequest().getRequestLine().getUri();
+					String graphUri = null;
+					String namedGraphUri = null;
+
+					if (requestUri.indexOf('?') != -1) {
+						String queryParameters = requestUri.substring(requestUri.indexOf('?') + 1);
+						Map<String, String> params = HttpUtilities.splitQuery(queryParameters);
+						graphUri = params.get("default-graph-uri");
+						namedGraphUri = params.get("named-graph-uri");
 					}
+
+					return new QueryRequest(body, graphUri, namedGraphUri);
+				} else if (headers[0].getValue().equals("application/x-www-form-urlencoded")) {
+					String decodedBody = URLDecoder.decode(body, "UTF-8");
+					Map<String, String> params = HttpUtilities.splitQuery(decodedBody);
+					return new QueryRequest(params.get("query"), params.get("default-graph-uri"),
+							params.get("named-graph-uri"));
 				}
+
+				logger.error("Request MUST conform to SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
+				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,
+						"Request MUST conform to SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
+
+			} catch (ParseException | IOException e) {
+				logger.error(e.getMessage());
+				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}
 
-			logger.error("Request MUST conform to SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
-			throw new SPARQL11ProtocolException(HttpStatus.SC_NOT_FOUND,
-					"Request MUST conform to SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 		}
 
 		logger.error("UNSUPPORTED METHOD: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());

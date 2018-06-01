@@ -26,9 +26,9 @@ public class ProcessorBeans {
 	private static int queryTimeout;
 	
 	public static void setEndpoint(SPARQL11Properties prop) {
-		host = prop.getHost();
-		port = prop.getHttpPort();
-		queryPath = prop.getQueryPath();
+		host = prop.getDefaultHost();
+		port = prop.getDefaultPort();
+		queryPath = prop.getDefaultQueryPath();
 		updatePath = prop.getUpdatePath();
 		updateMethod = prop.getUpdateMethod().name();
 		queryMethod = prop.getQueryMethod().name();

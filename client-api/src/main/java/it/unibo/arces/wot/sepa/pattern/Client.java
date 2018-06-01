@@ -25,15 +25,13 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 
-public abstract class Client {	
-	private final Logger logger = LogManager.getLogger("Client");
+public abstract class Client implements java.io.Closeable {	
+	protected final Logger logger = LogManager.getLogger();
 		
 	protected ApplicationProfile appProfile;
-	protected SPARQL11SEProtocol protocolClient = null;
 	protected String prefixes = "";
 	
 	public ApplicationProfile getApplicationProfile() {
@@ -77,9 +75,14 @@ public abstract class Client {
 			if (bindings.getBindingValue(var) == null) continue;
 			
 			String value = bindings.getBindingValue(var);
+			if (value == null) continue;
 			
 			//Use single quote "'" so that the literal value can contain also double quotes """
-			if (bindings.isLiteral(var)) value = "'"+value+"'";
+			if (bindings.isLiteral(var)) {
+				value = "'"+value+"'";
+				if (bindings.getLanguage(var)!=null) value += "@"+bindings.getLanguage(var);
+				else if (bindings.getDatatype(var) != null) value += "^^" + bindings.getDatatype(var);
+			}
 			else {
 				// See https://www.w3.org/TR/rdf-sparql-query/#QSynIRI
 				// https://docs.oracle.com/javase/7/docs/api/java/net/URI.html

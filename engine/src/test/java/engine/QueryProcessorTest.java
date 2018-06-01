@@ -23,7 +23,7 @@ public class QueryProcessorTest {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			System.out.println(processor.process(new QueryRequest("select ?s ?p ?o where {?s ?p ?o}"),0));	
+			System.out.println(processor.process(new QueryRequest("select ?s ?p ?o where {?s ?p ?o}")));	
 		}
 		
 	}

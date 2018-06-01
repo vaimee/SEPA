@@ -18,6 +18,10 @@
 
 package it.unibo.arces.wot.sepa.commons.request;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 
 // TODO: Auto-generated Javadoc
@@ -31,7 +35,7 @@ public class UpdateRequest extends Request {
 	 * that contains an operation that uses the USING, USING NAMED, or WITH clause.
 	 */
 	private String using_graph_uri = null;
-	private String named_graph_uri = null;
+	private String using_named_graph_uri = null;
 	
 	/**
 	 * Instantiates a new update request.
@@ -51,6 +55,27 @@ public class UpdateRequest extends Request {
 	public UpdateRequest(String sparql) {
 		super(sparql);
 	}
+	
+	public UpdateRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String using_graph_uri,String using_named_graph_uri) {
+		super(token,sparql);
+		
+		super.method = method;
+		super.host = host;
+		super.port = port;
+		super.path = path;
+		super.timeout = timeout;
+		super.scheme = scheme;
+		
+		this.using_graph_uri = using_graph_uri;
+		this.using_named_graph_uri = using_named_graph_uri;
+	}
+	
+	public UpdateRequest(String sparql,String using_graph_uri,String using_named_graph_uri) {
+		super(sparql);
+		
+		this.using_graph_uri = using_graph_uri;
+		this.using_named_graph_uri = using_named_graph_uri;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
@@ -69,20 +94,14 @@ public class UpdateRequest extends Request {
 	 * using-graph-uri and using-named-graph-uri parameters.
 	 */
 	
-	public String getUsingGraphUri() {
-		return using_graph_uri;
+	public String getUsingGraphUri() throws UnsupportedEncodingException {
+		if (using_graph_uri == null) return null;
+		return URLDecoder.decode(using_graph_uri,"UTF-8");
 	}
 
-	public void setUsingGraphUri(String using_graph_uri) {
-		this.using_graph_uri = using_graph_uri;
-	}
-
-	public String getUsingNamedGraphUri() {
-		return named_graph_uri;
-	}
-
-	public void setNamedGraphUri(String named_graph_uri) {
-		this.named_graph_uri = named_graph_uri;
+	public String getUsingNamedGraphUri() throws UnsupportedEncodingException {
+		if (using_named_graph_uri == null) return null;
+		return URLDecoder.decode(using_named_graph_uri,"UTF-8");
 	}
 
 	public String getAcceptHeader() {

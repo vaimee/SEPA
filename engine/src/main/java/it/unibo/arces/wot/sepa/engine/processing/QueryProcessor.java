@@ -18,8 +18,10 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Semaphore;
 
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,42 +31,54 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class QueryProcessor {
 	private static final Logger logger = LogManager.getLogger();
 
-	private SPARQL11Protocol endpoint;	
+	private SPARQL11Protocol endpoint;
 	private Semaphore endpointSemaphore;
 	private SPARQL11Properties properties;
-	
-	public QueryProcessor(SPARQL11Properties properties,Semaphore endpointSemaphore) throws SEPAProtocolException  {	
-		this.endpoint = new SPARQL11Protocol(properties);
+
+	public QueryProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
+		this.endpoint = new SPARQL11Protocol();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 	}
 
-	public synchronized Response process(QueryRequest req, int timeout) {		
+	public synchronized Response process(QueryRequest req) {
 		long start = Timings.getTime();
-		
+
 		if (endpointSemaphore != null)
 			try {
 				endpointSemaphore.acquire();
 			} catch (InterruptedException e) {
-				return new ErrorResponse(500,e.getMessage());
+				return new ErrorResponse(500, e.getMessage());
 			}
-		
-		//QUERY the endpoint
-		Response ret = endpoint.query(req, timeout,properties.getQueryMethod());
-		
-		if (endpointSemaphore != null) endpointSemaphore.release();
+
+		Response ret;
+		QueryRequest request;
+		try {
+			request = new QueryRequest(req.getToken(), properties.getQueryMethod(), properties.getDefaultProtocolScheme(),
+					properties.getDefaultHost(), properties.getDefaultPort(), properties.getDefaultQueryPath(),
+					req.getSPARQL(), req.getTimeout(), req.getDefaultGraphUri(), req.getNamedGraphUri());
+		} catch (UnsupportedEncodingException e) {
+			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+		}
+		try {
+			ret = endpoint.query(request);
+		} finally {
+			if (endpointSemaphore != null)
+				endpointSemaphore.release();
+		}
 
 		long stop = Timings.getTime();
-		logger.debug("Response: "+ret.toString());
+		logger.debug("Response: " + ret.toString());
 		Timings.log("QUERY_PROCESSING_TIME", start, stop);
 		ProcessorBeans.queryTimings(start, stop);
-		
+
 		return ret;
 	}
 }

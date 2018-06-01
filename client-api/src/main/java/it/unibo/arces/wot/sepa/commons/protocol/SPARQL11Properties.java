@@ -262,10 +262,18 @@ public class SPARQL11Properties {
 	 *
 	 * @return the host (default is localhost)
 	 */
-	public String getHost() {
-		if (jsap.get("sparql11protocol").getAsJsonObject().get("host") != null)
+	public String getDefaultHost() {
+		try {
 			return jsap.get("sparql11protocol").getAsJsonObject().get("host").getAsString();
-		return jsap.get("host").getAsString();
+		}
+		catch(Exception e) {
+			try {
+				return jsap.get("host").getAsString();
+			}
+			catch(Exception e1) {
+				return null;
+			}
+		}
 	}
 
 	/**
@@ -273,7 +281,7 @@ public class SPARQL11Properties {
 	 *
 	 * @return the update port
 	 */
-	public int getHttpPort() {
+	public int getDefaultPort() {
 		try {
 			return jsap.get("sparql11protocol").getAsJsonObject().get("port").getAsInt();
 		} catch (Exception e) {
@@ -399,7 +407,7 @@ public class SPARQL11Properties {
 	 *
 	 * @return the query path (default is /query)
 	 */
-	public String getQueryPath() {
+	public String getDefaultQueryPath() {
 		return jsap.get("sparql11protocol").getAsJsonObject().get("query").getAsJsonObject().get("path").getAsString();
 	}
 
@@ -468,7 +476,7 @@ public class SPARQL11Properties {
 		}
 	}
 
-	public String getProtocolScheme() {
+	public String getDefaultProtocolScheme() {
 		return jsap.get("sparql11protocol").getAsJsonObject().get("protocol").getAsString();
 	}
 	

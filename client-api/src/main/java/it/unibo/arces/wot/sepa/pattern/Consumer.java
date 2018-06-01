@@ -18,29 +18,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.api.ISubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
+import it.unibo.arces.wot.sepa.api.protocol.websocket.WebSocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 
 public abstract class Consumer extends Client implements IConsumer {
 	private static final Logger logger = LogManager.getLogger("Consumer");
-	
+
 	protected String sparqlSubscribe = null;
 	protected String subID = "";
+	private Bindings forcedBindings;
 	
-	public Consumer(ApplicationProfile appProfile, String subscribeID) throws SEPAProtocolException, SEPASecurityException {
+	protected SPARQL11SEProtocol client;
+
+	public Consumer(ApplicationProfile appProfile, String subscribeID)
+			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile);
 
 		if (subscribeID == null) {
@@ -55,43 +62,54 @@ public abstract class Consumer extends Client implements IConsumer {
 		}
 
 		sparqlSubscribe = appProfile.getSPARQLQuery(subscribeID);
+
+		forcedBindings = appProfile.getQueryBindings(subscribeID);
 		
-		protocolClient = new SPARQL11SEProtocol(appProfile,this);
+		if (sparqlSubscribe == null) {
+			logger.fatal("SPARQL subscribe is null");
+			throw new SEPAProtocolException(new IllegalArgumentException("SPARQL subscribe is null"));
+		}
+
+		ISubscriptionProtocol protocol = null;
+		switch (appProfile.getSubscribeProtocol(subscribeID)) {
+		case WS:
+			protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
+					appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID), false);
+			break;
+		case WSS:
+			protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
+					appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID), true);
+			break;
+		}
+		client = new SPARQL11SEProtocol(appProfile,protocol, this);
+	}
+	
+	public final void setSubscribeBindingValue(String variable, String value) throws IllegalArgumentException {
+		forcedBindings.setBindingValue(variable, value);
+		
 	}
 
-	public final Response subscribe(Bindings forcedBindings){
-		if (sparqlSubscribe == null) {
-			logger.fatal("SPARQL SUBSCRIBE not defined");
-			return null;
-		}
-
-		if (protocolClient == null) {
-			logger.fatal("Client not initialized");
-			return null;
-		}
-
+	public final Response subscribe() {
 		String sparql = prefixes() + replaceBindings(sparqlSubscribe, forcedBindings);
 
-		logger.debug("<SUBSCRIBE> ==> " + sparql);
+		Response response = client.subscribe(new SubscribeRequest(sparql));
 
-		Response response = protocolClient.subscribe(new SubscribeRequest(sparql));
-		
 		if (response.isSubscribeResponse()) {
-			subID = ((SubscribeResponse)response).getSpuid();	
+			subID = ((SubscribeResponse) response).getSpuid();
 		}
-		
+
 		return response;
 	}
 
 	public final Response unsubscribe() {
 		logger.debug("UNSUBSCRIBE " + subID);
 
-		if (protocolClient == null) {
-			logger.fatal("Client not initialized");
-			return new ErrorResponse(-1,400,"Client not initialized");
-		}
+		return client.unsubscribe(new UnsubscribeRequest(subID));
+	}
 
-		return protocolClient.unsubscribe(new UnsubscribeRequest(subID));
+	@Override
+	public void close() throws IOException {
+		client.close();
 	}
 
 	@Override
@@ -106,6 +124,6 @@ public abstract class Consumer extends Client implements IConsumer {
 			onAddedResults(added);
 		if (!removed.isEmpty())
 			onRemovedResults(removed);
-		onResults(results);	
+		onResults(results);
 	}
 }

@@ -242,7 +242,7 @@ public class Engine implements EngineMBean {
 		processor.start();
 
 		// SPARQL protocol service
-		int port = endpointProperties.getHttpPort();
+		int port = endpointProperties.getDefaultPort();
 		String portS = "";
 		if (port != -1)
 			portS = String.format(":%d", port);
@@ -275,9 +275,9 @@ public class Engine implements EngineMBean {
 
 		System.out.println("SPARQL 1.1 endpoint");
 		System.out.println("----------------------");
-		System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getHost() + portS
-				+ endpointProperties.getQueryPath() + queryMethod);
-		System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getHost() + portS
+		System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getDefaultHost() + portS
+				+ endpointProperties.getDefaultQueryPath() + queryMethod);
+		System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getDefaultHost() + portS
 				+ endpointProperties.getUpdatePath() + updateMethod);
 		System.out.println("----------------------");
 		System.out.println("");

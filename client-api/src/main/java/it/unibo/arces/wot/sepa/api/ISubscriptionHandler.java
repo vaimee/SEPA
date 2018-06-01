@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.api;
 
+import it.unibo.arces.wot.sepa.api.protocol.websocket.SEPAWebsocketClient;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 
@@ -39,7 +40,7 @@ public interface ISubscriptionHandler {
 	 * Notice that it is also called even after {@link SEPAWebsocketClient#close()}
 	 * is used.
 	 */
-	void onBrokenSocket();
+	void onBrokenConnection();
 	
 	/**
 	 * This method is called if an error occurred
