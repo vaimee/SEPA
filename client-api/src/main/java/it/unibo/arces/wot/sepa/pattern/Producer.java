@@ -18,23 +18,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
-import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public class Producer extends Client implements IProducer {
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
+	private Bindings forcedBindings;
 	
 	private static final Logger logger = LogManager.getLogger("Producer");
 	
-	public Producer(ApplicationProfile appProfile,String updateID) throws SEPAProtocolException  {
+	private final SPARQL11Protocol client = new SPARQL11Protocol();
+	
+	public Producer(ApplicationProfile appProfile,String updateID) throws SEPAProtocolException, SEPASecurityException  {
 		super(appProfile);
 		
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
@@ -46,24 +51,28 @@ public class Producer extends Client implements IProducer {
 		
 		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
 		
-		protocolClient = new SPARQL11SEProtocol(appProfile);
+		forcedBindings = appProfile.getUpdateBindings(updateID);
 	}
 	
-	public Response update(Bindings forcedBindings) {
-		//TODO : move default timeout in jsap
-		return update(forcedBindings,5000);
+	public final Response update() {
+		return update(0);
 	}
 	
-	public Response update(Bindings forcedBindings,int timeout){	 
-		 if (sparqlUpdate == null || protocolClient == null) {
-			 logger.fatal("Producer not initialized");
-			 return new ErrorResponse(-1,400,"Producer not initialized");
-		 }
-
-		 String sparql = prefixes() + replaceBindings(sparqlUpdate,forcedBindings);
+	public final Response update(int timeout){	 
+		 UpdateRequest req = new UpdateRequest(-1,appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
+					appProfile.getUpdatePath(SPARQL_ID), prefixes() + replaceBindings(sparqlUpdate, forcedBindings), timeout,
+					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID));
 		 
-		 logger.debug("<UPDATE> "+ SPARQL_ID+" ==> "+sparql);
-		 
-		 return protocolClient.update(new UpdateRequest(sparql),timeout);		 
+		 return client.update(req);		 
 	 }
+
+	@Override
+	public void close() throws IOException {
+		client.close();
+	}
+
+	public final void setUpdateBindingValue(String variable, String value) throws IllegalArgumentException {
+		forcedBindings.setBindingValue(variable, value);
+		
+	}
 }

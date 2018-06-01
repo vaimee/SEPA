@@ -33,9 +33,10 @@ public abstract class RDFTerm {
 	/**
 	 * Gets the value.
 	 *
-	 * @return the value
+	 * @return the value or null if tha value has not been assigned
 	 */
 	public String getValue() {
+		if (!json.has("value")) return null;
 		return json.get("value").getAsString();
 	}
 
@@ -65,9 +66,10 @@ public abstract class RDFTerm {
 	 * @param value
 	 *            the value
 	 */
-	public RDFTerm(String value) {
+	public RDFTerm(String value) throws IllegalArgumentException {
 		json = new JsonObject();
-		json.add("value", new JsonPrimitive(value));
+		
+		if (value != null) json.add("value", new JsonPrimitive(value));
 	}
 
 	/*

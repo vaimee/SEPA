@@ -1,11 +1,14 @@
 package it.unibo.arces.wot.sepa.api;
 
+import it.unibo.arces.wot.sepa.api.protocol.websocket.WebSocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,9 +25,21 @@ public class ITProtocolTest {
 
     @Before
     public void setUp() throws Exception {
-        final SPARQL11SEProperties properties = ConfigurationProvider.GetTestEnvConfiguration();
+        final ApplicationProfile properties = ConfigurationProvider.GetTestEnvConfiguration();
         subHandler = new MockSubscriptionHandler();
-        client = new SPARQL11SEProtocol(properties,subHandler);
+        
+        ISubscriptionProtocol protocol = null;
+		switch (properties.getSubscribeProtocol(null)) {
+		case WS:
+			protocol = new WebSocketSubscriptionProtocol(properties.getSubscribeHost(null),
+					properties.getSubscribePort(null), properties.getSubscribePath(null), false);
+			break;
+		case WSS:
+			protocol = new WebSocketSubscriptionProtocol(properties.getSubscribeHost(null),
+					properties.getSubscribePort(null), properties.getSubscribePath(null), true);
+			break;
+		}
+		client = new SPARQL11SEProtocol(properties,protocol, subHandler);
     }
 
     @After
@@ -86,12 +101,13 @@ public class ITProtocolTest {
 
     private static Response SubmitQuery(SPARQL11SEProtocol client,String query) {
         final QueryRequest queryRequest = new QueryRequest(query);
-        return client.query(queryRequest,5000);
+
+        return client.query(queryRequest);
     }
 
     private static Response SubmitUpdate(SPARQL11SEProtocol client,String query) {
         final UpdateRequest updateRequest = new UpdateRequest(query);
-        return client.update(updateRequest,5000);
+        return client.update(updateRequest);
     }
 
     private static Response submitSubscribe(String query, SPARQL11SEProtocol client) {

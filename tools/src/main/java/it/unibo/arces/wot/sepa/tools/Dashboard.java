@@ -110,12 +110,13 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.LineBorder;
-import java.awt.SystemColor;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
 
 public class Dashboard {
 	private static final Logger logger = LogManager.getLogger("Dashboard");
 
-	private static final String versionLabel = "SEPA Dashboard Ver 0.9.1";
+	private static final String versionLabel = "SEPA Dashboard Ver 0.9.2";
 
 	private Properties appProperties = new Properties();
 
@@ -170,7 +171,7 @@ public class Dashboard {
 		}
 
 		@Override
-		public void onBrokenSocket() {
+		public void onBrokenConnection() {
 
 		}
 
@@ -239,6 +240,8 @@ public class Dashboard {
 	private JList<String> subscribesList;
 
 	ApplicationProfile appProfile;
+	private JTextField updateTimeout;
+	private JTextField queryTimeout;
 
 	private class CopyAction extends AbstractAction {
 
@@ -734,7 +737,7 @@ public class Dashboard {
 		lblInfo.setToolTipText("JSAP loaded");
 
 		try {
-			sepaClient = new GenericClient(appProfile, handler);
+			sepaClient = new GenericClient(appProfile);
 		} catch (SEPAProtocolException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 			System.exit(-1);
@@ -845,6 +848,7 @@ public class Dashboard {
 		panel_1.setLayout(gbl_panel_1);
 
 		JLabel updateUrl = new JLabel("-");
+		updateUrl.setForeground(UIManager.getColor("Desktop.background"));
 		updateUrl.setFont(new Font("Lucida Grande", Font.BOLD, 13));
 		GridBagConstraints gbc_updateUrl = new GridBagConstraints();
 		gbc_updateUrl.gridwidth = 2;
@@ -862,6 +866,7 @@ public class Dashboard {
 		panel_1.add(lblUsinggraphuri, gbc_lblUsinggraphuri);
 
 		JLabel lblUsinggraphuri_1 = new JLabel("using-graph-uri:");
+		lblUsinggraphuri_1.setForeground(UIManager.getColor("Desktop.background"));
 		GridBagConstraints gbc_lblUsinggraphuri_1 = new GridBagConstraints();
 		gbc_lblUsinggraphuri_1.anchor = GridBagConstraints.EAST;
 		gbc_lblUsinggraphuri_1.insets = new Insets(0, 0, 5, 5);
@@ -870,6 +875,7 @@ public class Dashboard {
 		panel_1.add(lblUsinggraphuri_1, gbc_lblUsinggraphuri_1);
 
 		JLabel updateUsingGraphUri = new JLabel("-");
+		updateUsingGraphUri.setForeground(UIManager.getColor("Desktop.background"));
 		updateUsingGraphUri.setFont(new Font("Lucida Grande", Font.BOLD, 13));
 		GridBagConstraints gbc_updateUsingGraphUri = new GridBagConstraints();
 		gbc_updateUsingGraphUri.anchor = GridBagConstraints.WEST;
@@ -879,6 +885,7 @@ public class Dashboard {
 		panel_1.add(updateUsingGraphUri, gbc_updateUsingGraphUri);
 
 		JLabel lblNamedgraphuri = new JLabel("using-named-graph-uri:");
+		lblNamedgraphuri.setForeground(UIManager.getColor("Desktop.background"));
 		GridBagConstraints gbc_lblNamedgraphuri = new GridBagConstraints();
 		gbc_lblNamedgraphuri.anchor = GridBagConstraints.EAST;
 		gbc_lblNamedgraphuri.insets = new Insets(0, 0, 0, 5);
@@ -887,6 +894,7 @@ public class Dashboard {
 		panel_1.add(lblNamedgraphuri, gbc_lblNamedgraphuri);
 
 		JLabel updateNamedGraphUri = new JLabel("-");
+		updateNamedGraphUri.setForeground(UIManager.getColor("Desktop.background"));
 		updateNamedGraphUri.setFont(new Font("Lucida Grande", Font.BOLD, 13));
 		GridBagConstraints gbc_updateNamedGraphUri = new GridBagConstraints();
 		gbc_updateNamedGraphUri.anchor = GridBagConstraints.WEST;
@@ -910,6 +918,7 @@ public class Dashboard {
 		panel_2.setLayout(gbl_panel_2);
 
 		JLabel queryUrl = new JLabel("-");
+		queryUrl.setForeground(UIManager.getColor("Desktop.background"));
 		queryUrl.setFont(new Font("Lucida Grande", Font.BOLD, 13));
 		GridBagConstraints gbc_queryUrl = new GridBagConstraints();
 		gbc_queryUrl.gridwidth = 2;
@@ -920,6 +929,7 @@ public class Dashboard {
 		panel_2.add(queryUrl, gbc_queryUrl);
 		
 		JLabel subscribeUrl = new JLabel("-");
+		subscribeUrl.setForeground(UIManager.getColor("Desktop.background"));
 		subscribeUrl.setFont(new Font("Lucida Grande", Font.BOLD, 13));
 		GridBagConstraints gbc_subscribeUrl = new GridBagConstraints();
 		gbc_subscribeUrl.gridwidth = 2;
@@ -930,6 +940,7 @@ public class Dashboard {
 		panel_2.add(subscribeUrl, gbc_subscribeUrl);
 
 		JLabel lblDefaultgraphuri = new JLabel("default-graph-uri:");
+		lblDefaultgraphuri.setForeground(UIManager.getColor("Desktop.background"));
 		GridBagConstraints gbc_lblDefaultgraphuri = new GridBagConstraints();
 		gbc_lblDefaultgraphuri.anchor = GridBagConstraints.EAST;
 		gbc_lblDefaultgraphuri.insets = new Insets(0, 0, 5, 5);
@@ -938,6 +949,7 @@ public class Dashboard {
 		panel_2.add(lblDefaultgraphuri, gbc_lblDefaultgraphuri);
 
 		JLabel queryDefaultGraphUri = new JLabel("-");
+		queryDefaultGraphUri.setForeground(UIManager.getColor("Desktop.background"));
 		queryDefaultGraphUri.setFont(new Font("Lucida Grande", Font.BOLD, 13));
 		GridBagConstraints gbc_queryDefaultGraphUri = new GridBagConstraints();
 		gbc_queryDefaultGraphUri.anchor = GridBagConstraints.WEST;
@@ -947,6 +959,7 @@ public class Dashboard {
 		panel_2.add(queryDefaultGraphUri, gbc_queryDefaultGraphUri);
 
 		JLabel lblNamedgraphuri_1 = new JLabel("named-graph-uri:");
+		lblNamedgraphuri_1.setForeground(UIManager.getColor("Desktop.background"));
 		GridBagConstraints gbc_lblNamedgraphuri_1 = new GridBagConstraints();
 		gbc_lblNamedgraphuri_1.anchor = GridBagConstraints.EAST;
 		gbc_lblNamedgraphuri_1.insets = new Insets(0, 0, 0, 5);
@@ -955,6 +968,7 @@ public class Dashboard {
 		panel_2.add(lblNamedgraphuri_1, gbc_lblNamedgraphuri_1);
 
 		JLabel queryNamedGraphUri = new JLabel("-");
+		queryNamedGraphUri.setForeground(UIManager.getColor("Desktop.background"));
 		queryNamedGraphUri.setFont(new Font("Lucida Grande", Font.BOLD, 13));
 		GridBagConstraints gbc_queryNamedGraphUri = new GridBagConstraints();
 		gbc_queryNamedGraphUri.anchor = GridBagConstraints.WEST;
@@ -981,6 +995,7 @@ public class Dashboard {
 		panel_4.setLayout(gbl_panel_4);
 
 		JLabel lblUpdates = new JLabel("UPDATES");
+		lblUpdates.setForeground(UIManager.getColor("Desktop.background"));
 		GridBagConstraints gbc_lblUpdates = new GridBagConstraints();
 		gbc_lblUpdates.anchor = GridBagConstraints.NORTH;
 		gbc_lblUpdates.insets = new Insets(0, 0, 5, 0);
@@ -1043,6 +1058,7 @@ public class Dashboard {
 		panel_5.setLayout(gbl_panel_5);
 
 		JLabel lblForcedBindings = new JLabel("Forced bindings");
+		lblForcedBindings.setForeground(UIManager.getColor("CheckBox.select"));
 		GridBagConstraints gbc_lblForcedBindings = new GridBagConstraints();
 		gbc_lblForcedBindings.anchor = GridBagConstraints.NORTH;
 		gbc_lblForcedBindings.insets = new Insets(0, 0, 5, 0);
@@ -1078,6 +1094,7 @@ public class Dashboard {
 		panel_6.setLayout(gbl_panel_6);
 
 		JLabel lblSubscribes = new JLabel("QUERIES");
+		lblSubscribes.setForeground(UIManager.getColor("Desktop.background"));
 		GridBagConstraints gbc_lblSubscribes = new GridBagConstraints();
 		gbc_lblSubscribes.anchor = GridBagConstraints.NORTH;
 		gbc_lblSubscribes.insets = new Insets(0, 0, 5, 0);
@@ -1100,30 +1117,32 @@ public class Dashboard {
 				if (e.getValueIsAdjusting() == false) {
 
 					if (subscribesList.getSelectedIndex() != -1) {
-						String sparql = appProfile.getSPARQLQuery(subscribesList.getSelectedValue());
+						String ID = subscribesList.getSelectedValue();
+						
+						String sparql = appProfile.getSPARQLQuery(ID);
 						sparql = sparql.replaceFirst("\n", "");
 						sparql = sparql.replaceAll("\t", "");
 						sparql = sparql.trim();
 						SPARQLSubscribe.setText(sparql);
 						
-						String request = appProfile.getQueryUrl(updatesList.getSelectedValue());
-						if(appProfile.getQueryMethod().equals(HTTPMethod.GET)) request = "GET " + request;
-						else if(appProfile.getQueryMethod().equals(HTTPMethod.POST)) request = "POST " + request;
-						else if(appProfile.getQueryMethod().equals(HTTPMethod.URL_ENCODED_POST)) request = "URL ENCODED POST " + request;
+						String request = appProfile.getQueryUrl(ID);
+						if(appProfile.getQueryMethod(ID).equals(HTTPMethod.GET)) request = "GET " + request;
+						else if(appProfile.getQueryMethod(ID).equals(HTTPMethod.POST)) request = "POST " + request;
+						else if(appProfile.getQueryMethod(ID).equals(HTTPMethod.URL_ENCODED_POST)) request = "URL ENCODED POST " + request;
 						
 						queryUrl.setText(request);
-						subscribeUrl.setText(appProfile.getSubscribeUrl(updatesList.getSelectedValue()));
+						subscribeUrl.setText(appProfile.getSubscribeUrl(ID));
 						
-						queryDefaultGraphUri.setText(appProfile.getDefaultGraphURI(subscribesList.getSelectedValue()));
-						queryNamedGraphUri.setText(appProfile.getNamedGraphURI(subscribesList.getSelectedValue()));	
-					}
-
-					Bindings bindings = appProfile.getQueryBindings(subscribesList.getSelectedValue());
-					subscribeForcedBindingsDM.clearBindings();
-					if (bindings == null)
-						return;
-					for (String var : bindings.getVariables()) {
-						subscribeForcedBindingsDM.addBindings(var, bindings.isLiteral(var));
+						queryDefaultGraphUri.setText(appProfile.getDefaultGraphURI(ID));
+						queryNamedGraphUri.setText(appProfile.getNamedGraphURI(ID));	
+						
+						Bindings bindings = appProfile.getQueryBindings(ID);
+						subscribeForcedBindingsDM.clearBindings();
+						if (bindings == null)
+							return;
+						for (String var : bindings.getVariables()) {
+							subscribeForcedBindingsDM.addBindings(var, bindings.isLiteral(var));
+						}
 					}
 				}
 			}
@@ -1141,6 +1160,7 @@ public class Dashboard {
 		panel_7.setLayout(gbl_panel_7);
 
 		JLabel lblForcedBindings_1 = new JLabel("Forced bindings");
+		lblForcedBindings_1.setForeground(UIManager.getColor("CheckBox.select"));
 		GridBagConstraints gbc_lblForcedBindings_1 = new GridBagConstraints();
 		gbc_lblForcedBindings_1.anchor = GridBagConstraints.NORTH;
 		gbc_lblForcedBindings_1.insets = new Insets(0, 0, 5, 0);
@@ -1170,47 +1190,6 @@ public class Dashboard {
 		scrollPane_Update.setViewportView(SPARQLUpdate);
 		SPARQLUpdate.setLineWrap(true);
 
-		btnUpdate = new JButton("UPDATE");
-		btnUpdate.setEnabled(false);
-		btnUpdate.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				Bindings forced = new Bindings();
-				for (int index = 0; index < updateForcedBindingsDM.getRowCount(); index++) {
-					String value = (String) updateForcedBindingsDM.getValueAt(index, 1);
-					String var = (String) updateForcedBindingsDM.getValueAt(index, 0);
-					boolean literal = (boolean) updateForcedBindingsDM.getValueAt(index, 2);
-					if (value.equals("")) {
-						lblInfo.setText("Please specify binding value: " + var);
-						lblInfo.setToolTipText("Please specify binding value: " + var);
-						return;
-					}
-
-					if (literal)
-						forced.addBinding(var, new RDFTermLiteral(value));
-					else
-						forced.addBinding(var, new RDFTermURI(value));
-				}
-
-				String update = SPARQLUpdate.getText().replaceAll("[\n\t]", "");
-
-				long start = System.currentTimeMillis();
-				Response result;
-				try {
-					result = sepaClient.update(updatesList.getSelectedValue(),update, forced,appProfile.getUsingGraphURI(updatesList.getSelectedValue()),appProfile.getUsingNamedGraphURI(updatesList.getSelectedValue()));
-				} catch (SEPAProtocolException | SEPASecurityException e1) {
-					result = new ErrorResponse(500,e1.getMessage());
-				}
-				long stop = System.currentTimeMillis();
-
-				String status = "DONE";
-				if (result.isError()) {
-					status = "FAILED " + ((ErrorResponse) result).getErrorMessage();
-				}
-				lblInfo.setText("UPDATE (" + (stop - start) + " ms): " + status);
-				lblInfo.setToolTipText("UPDATE (" + (stop - start) + " ms): " + status);
-			}
-		});
-
 		JScrollPane scrollPane_Subscribe = new JScrollPane();
 		GridBagConstraints gbc_scrollPane_Subscribe = new GridBagConstraints();
 		gbc_scrollPane_Subscribe.fill = GridBagConstraints.BOTH;
@@ -1222,11 +1201,102 @@ public class Dashboard {
 		SPARQLSubscribe = new JTextArea();
 		scrollPane_Subscribe.setViewportView(SPARQLSubscribe);
 		SPARQLSubscribe.setLineWrap(true);
-		GridBagConstraints gbc_btnUpdate = new GridBagConstraints();
-		gbc_btnUpdate.insets = new Insets(0, 0, 5, 5);
-		gbc_btnUpdate.gridx = 0;
-		gbc_btnUpdate.gridy = 3;
-		primitives.add(btnUpdate, gbc_btnUpdate);
+		
+		JPanel panel_3 = new JPanel();
+		GridBagConstraints gbc_panel_3 = new GridBagConstraints();
+		gbc_panel_3.insets = new Insets(0, 0, 5, 5);
+		gbc_panel_3.fill = GridBagConstraints.BOTH;
+		gbc_panel_3.gridx = 0;
+		gbc_panel_3.gridy = 3;
+		primitives.add(panel_3, gbc_panel_3);
+		GridBagLayout gbl_panel_3 = new GridBagLayout();
+		gbl_panel_3.columnWidths = new int[]{58, 108, 0};
+		gbl_panel_3.rowHeights = new int[]{0, 0};
+		gbl_panel_3.columnWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel_3.rowWeights = new double[]{1.0, Double.MIN_VALUE};
+		panel_3.setLayout(gbl_panel_3);
+		
+				btnUpdate = new JButton("UPDATE");
+				btnUpdate.setForeground(UIManager.getColor("Desktop.background"));
+				GridBagConstraints gbc_btnUpdate = new GridBagConstraints();
+				gbc_btnUpdate.fill = GridBagConstraints.HORIZONTAL;
+				gbc_btnUpdate.insets = new Insets(0, 0, 0, 5);
+				gbc_btnUpdate.gridx = 0;
+				gbc_btnUpdate.gridy = 0;
+				panel_3.add(btnUpdate, gbc_btnUpdate);
+				btnUpdate.setEnabled(false);
+				
+				JPanel panel_10 = new JPanel();
+				GridBagConstraints gbc_panel_10 = new GridBagConstraints();
+				gbc_panel_10.anchor = GridBagConstraints.WEST;
+				gbc_panel_10.fill = GridBagConstraints.VERTICAL;
+				gbc_panel_10.gridx = 1;
+				gbc_panel_10.gridy = 0;
+				panel_3.add(panel_10, gbc_panel_10);
+				GridBagLayout gbl_panel_10 = new GridBagLayout();
+				gbl_panel_10.columnWidths = new int[]{80, 245, 0};
+				gbl_panel_10.rowHeights = new int[]{0, 0};
+				gbl_panel_10.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+				gbl_panel_10.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+				panel_10.setLayout(gbl_panel_10);
+				
+				updateTimeout = new JTextField();
+				GridBagConstraints gbc_updateTimeout = new GridBagConstraints();
+				gbc_updateTimeout.fill = GridBagConstraints.HORIZONTAL;
+				gbc_updateTimeout.insets = new Insets(0, 0, 0, 5);
+				gbc_updateTimeout.gridx = 0;
+				gbc_updateTimeout.gridy = 0;
+				panel_10.add(updateTimeout, gbc_updateTimeout);
+				updateTimeout.setText("5000");
+				updateTimeout.setColumns(10);
+				
+				JLabel lblTimeoutms = new JLabel("timeout (ms)");
+				lblTimeoutms.setForeground(UIManager.getColor("Button.disabledText"));
+				GridBagConstraints gbc_lblTimeoutms = new GridBagConstraints();
+				gbc_lblTimeoutms.fill = GridBagConstraints.HORIZONTAL;
+				gbc_lblTimeoutms.gridx = 1;
+				gbc_lblTimeoutms.gridy = 0;
+				panel_10.add(lblTimeoutms, gbc_lblTimeoutms);
+				btnUpdate.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						Bindings forced = new Bindings();
+						for (int index = 0; index < updateForcedBindingsDM.getRowCount(); index++) {
+							String value = (String) updateForcedBindingsDM.getValueAt(index, 1);
+							String var = (String) updateForcedBindingsDM.getValueAt(index, 0);
+							boolean literal = (boolean) updateForcedBindingsDM.getValueAt(index, 2);
+							if (value.equals("")) {
+								lblInfo.setText("Please specify binding value: " + var);
+								lblInfo.setToolTipText("Please specify binding value: " + var);
+								return;
+							}
+
+							if (literal)
+								forced.addBinding(var, new RDFTermLiteral(value));
+							else
+								forced.addBinding(var, new RDFTermURI(value));
+						}
+
+						String update = SPARQLUpdate.getText().replaceAll("[\n\t]", "");
+
+						long start = System.currentTimeMillis();
+						Response result;
+						String ID = updatesList.getSelectedValue();
+						try {
+							int timeout = Integer.parseInt(updateTimeout.getText());
+							result = sepaClient.update(ID,update, forced,appProfile.getUsingGraphURI(ID),appProfile.getUsingNamedGraphURI(ID),appProfile.getUpdateMethod(ID),timeout);
+						} catch (SEPAProtocolException | SEPASecurityException | IOException e1) {
+							result = new ErrorResponse(500,e1.getMessage());
+						}
+						long stop = System.currentTimeMillis();
+
+						String status = "DONE";
+						if (result.isError()) {
+							status = "FAILED " + ((ErrorResponse) result).getErrorMessage();
+						}
+						lblInfo.setText("UPDATE (" + (stop - start) + " ms): " + status);
+						lblInfo.setToolTipText("UPDATE (" + (stop - start) + " ms): " + status);
+					}
+				});
 
 		JPanel panel = new JPanel();
 		GridBagConstraints gbc_panel = new GridBagConstraints();
@@ -1236,162 +1306,200 @@ public class Dashboard {
 		gbc_panel.gridy = 3;
 		primitives.add(panel, gbc_panel);
 		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[] { 0, 0, 0 };
+		gbl_panel.columnWidths = new int[] { 116, 126, 86, 0, 0 };
 		gbl_panel.rowHeights = new int[] { 0, 0 };
-		gbl_panel.columnWeights = new double[] { 1.0, 1.0, Double.MIN_VALUE };
+		gbl_panel.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		gbl_panel.rowWeights = new double[] { 1.0, Double.MIN_VALUE };
 		panel.setLayout(gbl_panel);
+		
+				btnSubscribe = new JButton("SUBSCRIBE");
+				btnSubscribe.setForeground(UIManager.getColor("RadioButton.select"));
+				btnSubscribe.setEnabled(false);
+				btnSubscribe.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						if (btnSubscribe.getText().equals("SUBSCRIBE")) {
+							Bindings forced = new Bindings();
+							for (int index = 0; index < subscribeForcedBindings.getRowCount(); index++) {
+								String value = (String) subscribeForcedBindings.getValueAt(index, 1);
+								boolean literal = (boolean) subscribeForcedBindings.getValueAt(index, 2);
+								String var = (String) subscribeForcedBindings.getValueAt(index, 0);
 
-		btnQuery = new JButton("QUERY");
-		btnQuery.setEnabled(false);
-		btnQuery.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				Bindings forced = new Bindings();
-				for (int index = 0; index < subscribeForcedBindings.getRowCount(); index++) {
-					String value = (String) subscribeForcedBindings.getValueAt(index, 1);
-					boolean literal = (boolean) subscribeForcedBindings.getValueAt(index, 2);
-					String var = (String) subscribeForcedBindings.getValueAt(index, 0);
+								if (value.equals("")) {
+									lblInfo.setText("Please specify binding value: " + var);
+									lblInfo.setToolTipText("Please specify binding value: " + var);
+									return;
+								}
+								;
 
-					if (value.equals("")) {
-						lblInfo.setText("Please specify binding value: " + var);
-						lblInfo.setToolTipText("Please specify binding value: " + var);
-						return;
-					}
+								if (literal)
+									forced.addBinding(var, new RDFTermLiteral(value));
+								else
+									forced.addBinding(var, new RDFTermURI(value));
+							}
 
-					if (literal)
-						forced.addBinding(var, new RDFTermLiteral(value));
-					else
-						forced.addBinding(var, new RDFTermURI(value));
-				}
+							String query = SPARQLSubscribe.getText().replaceAll("[\n\t]", "");
+							String ID = subscribesList.getSelectedValue();
+							
+							try {
+								response = sepaClient.subscribe(ID, query, forced, appProfile.getDefaultGraphURI(ID),
+										appProfile.getNamedGraphURI(ID), handler);
+							} catch (SEPAProtocolException | SEPASecurityException e1) {
+								lblInfo.setText(e1.getMessage());
+								return;
+							}
 
-				String query = SPARQLSubscribe.getText().replaceAll("[\n\t]", "");
+							if (response.getClass().equals(ErrorResponse.class)) {
+								lblInfo.setText(response.toString());
+								lblInfo.setToolTipText(response.toString());
+								return;
+							}
 
-				lblInfo.setText("Running query...");
-				long start = System.currentTimeMillis();
-				response = sepaClient.query(query, forced);
-				long stop = System.currentTimeMillis();
+							// SPUID and results
+							String spuid = ((SubscribeResponse) response).getSpuid();
+							BindingsResults ret = ((SubscribeResponse) response).getBindingsResults();
 
-				String status = "DONE";
-				if (response.isError()) {
-					status = "FAILED " + ((ErrorResponse) response).getErrorMessage();
-				} else {
-					bindingsDM.clear();
-					BindingsResults ret = ((QueryResponse) response).getBindingsResults();
-					bindingsDM.setAddedResults(ret, null);
-					status = " " + ret.size() + " bindings results";
-				}
+							// Subscription panel
+							JPanel sub = new JPanel();
 
-				lblInfo.setText("QUERY (" + (stop - start) + " ms) :" + status);
-				lblInfo.setToolTipText("QUERY (" + (stop - start) + " ms) :" + status);
-			}
-		});
-		GridBagConstraints gbc_btnQuery = new GridBagConstraints();
-		gbc_btnQuery.insets = new Insets(0, 0, 0, 5);
-		gbc_btnQuery.gridx = 0;
-		gbc_btnQuery.gridy = 0;
-		panel.add(btnQuery, gbc_btnQuery);
+							// Results label
+							JLabel infoLabel = new JLabel();
+							infoLabel.setText("Subscribed. First results: " + ret.size());
+							subscriptionResultsLabels.put(spuid, infoLabel);
 
-		btnSubscribe = new JButton("SUBSCRIBE");
-		btnSubscribe.setEnabled(false);
-		btnSubscribe.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (btnSubscribe.getText().equals("SUBSCRIBE")) {
-					Bindings forced = new Bindings();
-					for (int index = 0; index < subscribeForcedBindings.getRowCount(); index++) {
-						String value = (String) subscribeForcedBindings.getValueAt(index, 1);
-						boolean literal = (boolean) subscribeForcedBindings.getValueAt(index, 2);
-						String var = (String) subscribeForcedBindings.getValueAt(index, 0);
+							// Results table
+							subscriptionResultsDM.put(spuid, new BindingsTableModel());
+							JTable bindingsResultsTable = new JTable(subscriptionResultsDM.get(spuid));
+							bindingsResultsTable.setDefaultRenderer(Object.class, bindingsRender);
+							bindingsResultsTable.setAutoCreateRowSorter(true);
+							bindingsResultsTable.registerKeyboardAction(new CopyAction(),
+									KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+									JComponent.WHEN_FOCUSED);
+							bindingsResultsTable.setCellSelectionEnabled(true);
+							subscriptionResultsTables.put(spuid, bindingsResultsTable);
+							subscriptionResultsDM.get(spuid).setAddedResults(ret, spuid);
+							JScrollPane bindingsResults = new JScrollPane();
+							bindingsResults.setViewportView(bindingsResultsTable);
 
-						if (value.equals("")) {
-							lblInfo.setText("Please specify binding value: " + var);
-							lblInfo.setToolTipText("Please specify binding value: " + var);
-							return;
+							// Unsubscribe button
+							JButton unsubscribeButton = new JButton(spuid);
+							unsubscribeButton.setEnabled(true);
+							unsubscribeButton.addActionListener(new ActionListener() {
+								public void actionPerformed(ActionEvent e) {
+									response = sepaClient.unsubscribe(spuid);
+
+									// if (response.isUnsubscribeResponse()) {
+									subscriptions.remove(sub);
+									subscriptionResultsDM.remove(spuid);
+									subscriptionResultsLabels.remove(spuid);
+									subscriptionResultsTables.remove(spuid);
+									// }
+								}
+							});
+
+							// Query label
+							JLabel queryLabel = new JLabel(
+									"<html>" + query + " forced bindings: " + forced.toString() + "</html>");
+							queryLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+							// Layout
+							GridBagConstraints layoutFill = new GridBagConstraints();
+							layoutFill.fill = GridBagConstraints.BOTH;
+							sub.setLayout(new BoxLayout(sub, BoxLayout.Y_AXIS));
+							sub.setName(subscribesList.getSelectedValue());
+
+							// Add components
+							sub.add(queryLabel);
+							sub.add(unsubscribeButton);
+							sub.add(bindingsResults);
+							sub.add(infoLabel);
+
+							subscriptions.add(sub, layoutFill);
 						}
-						;
-
-						if (literal)
-							forced.addBinding(var, new RDFTermLiteral(value));
-						else
-							forced.addBinding(var, new RDFTermURI(value));
 					}
+				});
+				
+						btnQuery = new JButton("QUERY");
+						btnQuery.setForeground(UIManager.getColor("Desktop.background"));
+						GridBagConstraints gbc_btnQuery = new GridBagConstraints();
+						gbc_btnQuery.fill = GridBagConstraints.HORIZONTAL;
+						gbc_btnQuery.insets = new Insets(0, 0, 0, 5);
+						gbc_btnQuery.gridx = 0;
+						gbc_btnQuery.gridy = 0;
+						panel.add(btnQuery, gbc_btnQuery);
+						btnQuery.setEnabled(false);
+						btnQuery.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								Bindings forced = new Bindings();
+								for (int index = 0; index < subscribeForcedBindings.getRowCount(); index++) {
+									String value = (String) subscribeForcedBindings.getValueAt(index, 1);
+									boolean literal = (boolean) subscribeForcedBindings.getValueAt(index, 2);
+									String var = (String) subscribeForcedBindings.getValueAt(index, 0);
 
-					String query = SPARQLSubscribe.getText().replaceAll("[\n\t]", "");
+									if (value.equals("")) {
+										lblInfo.setText("Please specify binding value: " + var);
+										lblInfo.setToolTipText("Please specify binding value: " + var);
+										return;
+									}
 
-					response = sepaClient.subscribe(query, forced);
+									if (literal)
+										forced.addBinding(var, new RDFTermLiteral(value));
+									else
+										forced.addBinding(var, new RDFTermURI(value));
+								}
 
-					if (response.getClass().equals(ErrorResponse.class)) {
-						lblInfo.setText(response.toString());
-						lblInfo.setToolTipText(response.toString());
-						return;
-					}
+								String query = SPARQLSubscribe.getText().replaceAll("[\n\t]", "");
 
-					// SPUID and results
-					String spuid = ((SubscribeResponse) response).getSpuid();
-					BindingsResults ret = ((SubscribeResponse) response).getBindingsResults();
+								String ID = subscribesList.getSelectedValue();
+								
+								lblInfo.setText("Running query...");
+								long start = System.currentTimeMillis();
+								try {
+									int timeout = Integer.parseInt(queryTimeout.getText());
+									response = sepaClient.query(ID,query, forced,appProfile.getDefaultGraphURI(ID),appProfile.getNamedGraphURI(ID),appProfile.getQueryMethod(ID),timeout);
+								} catch (SEPAProtocolException | SEPASecurityException | IOException e1) {
+									lblInfo.setText(e1.getMessage());
+									return;
+								}
+								long stop = System.currentTimeMillis();
 
-					// Subscription panel
-					JPanel sub = new JPanel();
+								String status = "DONE";
+								if (response.isError()) {
+									status = "FAILED " + ((ErrorResponse) response).getErrorMessage();
+								} else {
+									bindingsDM.clear();
+									BindingsResults ret = ((QueryResponse) response).getBindingsResults();
+									bindingsDM.setAddedResults(ret, null);
+									status = " " + ret.size() + " bindings results";
+								}
 
-					// Results label
-					JLabel infoLabel = new JLabel();
-					infoLabel.setText("Subscribed. First results: " + ret.size());
-					subscriptionResultsLabels.put(spuid, infoLabel);
-
-					// Results table
-					subscriptionResultsDM.put(spuid, new BindingsTableModel());
-					JTable bindingsResultsTable = new JTable(subscriptionResultsDM.get(spuid));
-					bindingsResultsTable.setDefaultRenderer(Object.class, bindingsRender);
-					bindingsResultsTable.setAutoCreateRowSorter(true);
-					bindingsResultsTable.registerKeyboardAction(new CopyAction(),
-							KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-							JComponent.WHEN_FOCUSED);
-					bindingsResultsTable.setCellSelectionEnabled(true);
-					subscriptionResultsTables.put(spuid, bindingsResultsTable);
-					subscriptionResultsDM.get(spuid).setAddedResults(ret, spuid);
-					JScrollPane bindingsResults = new JScrollPane();
-					bindingsResults.setViewportView(bindingsResultsTable);
-
-					// Unsubscribe button
-					JButton unsubscribeButton = new JButton(spuid);
-					unsubscribeButton.setEnabled(true);
-					unsubscribeButton.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							response = sepaClient.unsubscribe(spuid);
-
-							// if (response.isUnsubscribeResponse()) {
-							subscriptions.remove(sub);
-							subscriptionResultsDM.remove(spuid);
-							subscriptionResultsLabels.remove(spuid);
-							subscriptionResultsTables.remove(spuid);
-							// }
-						}
-					});
-
-					// Query label
-					JLabel queryLabel = new JLabel(
-							"<html>" + query + " forced bindings: " + forced.toString() + "</html>");
-					queryLabel.setFont(new Font("Arial", Font.BOLD, 14));
-
-					// Layout
-					GridBagConstraints layoutFill = new GridBagConstraints();
-					layoutFill.fill = GridBagConstraints.BOTH;
-					sub.setLayout(new BoxLayout(sub, BoxLayout.Y_AXIS));
-					sub.setName(subscribesList.getSelectedValue());
-
-					// Add components
-					sub.add(queryLabel);
-					sub.add(unsubscribeButton);
-					sub.add(bindingsResults);
-					sub.add(infoLabel);
-
-					subscriptions.add(sub, layoutFill);
-				}
-			}
-		});
-		GridBagConstraints gbc_btnSubscribe = new GridBagConstraints();
-		gbc_btnSubscribe.gridx = 1;
-		gbc_btnSubscribe.gridy = 0;
-		panel.add(btnSubscribe, gbc_btnSubscribe);
+								lblInfo.setText("QUERY (" + (stop - start) + " ms) :" + status);
+								lblInfo.setToolTipText("QUERY (" + (stop - start) + " ms) :" + status);
+							}
+						});
+				GridBagConstraints gbc_btnSubscribe = new GridBagConstraints();
+				gbc_btnSubscribe.fill = GridBagConstraints.HORIZONTAL;
+				gbc_btnSubscribe.insets = new Insets(0, 0, 0, 5);
+				gbc_btnSubscribe.gridx = 1;
+				gbc_btnSubscribe.gridy = 0;
+				panel.add(btnSubscribe, gbc_btnSubscribe);
+				
+				queryTimeout = new JTextField();
+				queryTimeout.setText("5000");
+				GridBagConstraints gbc_queryTimeout = new GridBagConstraints();
+				gbc_queryTimeout.insets = new Insets(0, 0, 0, 5);
+				gbc_queryTimeout.fill = GridBagConstraints.HORIZONTAL;
+				gbc_queryTimeout.gridx = 2;
+				gbc_queryTimeout.gridy = 0;
+				panel.add(queryTimeout, gbc_queryTimeout);
+				queryTimeout.setColumns(10);
+				
+				JLabel lblTimeoutms_1 = new JLabel("timeout (ms)");
+				lblTimeoutms_1.setForeground(UIManager.getColor("Button.disabledText"));
+				GridBagConstraints gbc_lblTimeoutms_1 = new GridBagConstraints();
+				gbc_lblTimeoutms_1.anchor = GridBagConstraints.WEST;
+				gbc_lblTimeoutms_1.gridx = 3;
+				gbc_lblTimeoutms_1.gridy = 0;
+				panel.add(lblTimeoutms_1, gbc_lblTimeoutms_1);
 
 		JScrollPane bindingsResults = new JScrollPane();
 		GridBagConstraints gbc_bindingsResults = new GridBagConstraints();
@@ -1477,7 +1585,8 @@ public class Dashboard {
 		});
 
 		JButton btnLoadXmlProfile = new JButton("Load JSAP");
-		btnLoadXmlProfile.setBackground(SystemColor.textHighlight);
+		btnLoadXmlProfile.setForeground(UIManager.getColor("Button.light"));
+		btnLoadXmlProfile.setBackground(UIManager.getColor("Button.background"));
 		GridBagConstraints gbc_btnLoadXmlProfile = new GridBagConstraints();
 		gbc_btnLoadXmlProfile.insets = new Insets(0, 0, 0, 5);
 		gbc_btnLoadXmlProfile.gridx = 0;
@@ -1567,6 +1676,8 @@ public class Dashboard {
 		chckbxAutoscroll.setSelected(true);
 
 		JButton btnClean = new JButton("Clear");
+		btnClean.setForeground(UIManager.getColor("Button.light"));
+		btnClean.setBackground(UIManager.getColor("Separator.shadow"));
 		GridBagConstraints gbc_btnClean = new GridBagConstraints();
 		gbc_btnClean.anchor = GridBagConstraints.NORTHWEST;
 		gbc_btnClean.gridx = 5;

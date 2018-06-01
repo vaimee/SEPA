@@ -2,6 +2,7 @@ package it.unibo.arces.wot.sepa.engine.protocol.http.handler;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -77,29 +78,33 @@ public class UpdateHandler extends SPARQL11Handler {
 		if (contentType.equals("application/sparql-update")) {
 			logger.debug("update via POST directly");
 			
-			UpdateRequest ret = new UpdateRequest(body);
+			String usingGraphUri = null;
+			String usingNamedGraphUri = null;
+			
 			try {
 				String requestUri = exchange.getRequest().getRequestLine().getUri();
 				if (requestUri.indexOf('?') != -1) {
 					String[] split = requestUri.split("\\?");
 					if (split.length == 2) {
 						Map<String,String> params = HttpUtilities.splitQuery(split[1]);
-						if (params.get("using-graph-uri") != null) ret.setUsingGraphUri(params.get("using-graph-uri"));
-						if (params.get("named-graph-uri") != null) ret.setNamedGraphUri(params.get("named-graph-uri"));	
+						if (params.get("using-graph-uri") != null) usingGraphUri =  URLDecoder.decode(params.get("using-graph-uri"), "UTF-8");
+						if (params.get("using-named-graph-uri") != null) usingNamedGraphUri = URLDecoder.decode(params.get("using-named-graph-uri"), "UTF-8");
 					}
 				}
 			} catch (UnsupportedEncodingException e) {
 				logger.error(e.getMessage());
 				throw new SPARQL11ProtocolException( HttpStatus.SC_BAD_REQUEST, e.getMessage());
-			}
+			}			
 			
-			return ret;
+			return new UpdateRequest(body,usingGraphUri,usingNamedGraphUri);
 		} else if (contentType.equals("application/x-www-form-urlencoded")) {
 			try {
-				Map<String,String> params = HttpUtilities.splitQuery(body);				
+				String decodedBody = URLDecoder.decode(body, "UTF-8");
+				Map<String,String> params = HttpUtilities.splitQuery(decodedBody);				
 				logger.debug("update via URL ENCODED POST directly: "+params.get("update"));
 
-				if (params.get("update") != null) return new UpdateRequest(params.get("update"));
+				if (params.get("update") != null) return new UpdateRequest(params.get("update"),params.get("using-graph-uri"),params.get("using-named-graph-uri"));
+			
 			} catch (UnsupportedEncodingException e1) {
 				logger.error(e1.getMessage());
 				throw new SPARQL11ProtocolException( HttpStatus.SC_BAD_REQUEST, e1.getMessage());

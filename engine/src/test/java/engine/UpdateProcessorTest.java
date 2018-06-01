@@ -23,7 +23,7 @@ public class UpdateProcessorTest {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			System.out.println(processor.process(new UpdateRequest("PREFIX test:<http://sepa/test#> delete {?s ?p ?o} insert {test:s test:p \""+Math.random()+"\"} where {?s ?p ?o}"),0));
+			System.out.println(processor.process(new UpdateRequest("PREFIX test:<http://sepa/test#> delete {?s ?p ?o} insert {test:s test:p \""+Math.random()+"\"} where {?s ?p ?o}")));
 		}
 		
 	}

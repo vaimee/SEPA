@@ -18,8 +18,10 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Semaphore;
 
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -38,33 +40,42 @@ public class UpdateProcessor {
 	private SPARQL11Protocol endpoint;
 	private Semaphore endpointSemaphore;
 	private SPARQL11Properties properties;
-	
-	public UpdateProcessor(SPARQL11Properties properties,Semaphore endpointSemaphore) throws SEPAProtocolException  {				
-		endpoint = new SPARQL11Protocol(properties);
+
+	public UpdateProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
+		endpoint = new SPARQL11Protocol();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 	}
 
-	public synchronized Response process(UpdateRequest req, int timeout) {
+	public synchronized Response process(UpdateRequest req) {
 		long start = Timings.getTime();
-		
+
 		if (endpointSemaphore != null)
 			try {
 				endpointSemaphore.acquire();
 			} catch (InterruptedException e) {
-				return new ErrorResponse(500,e.getMessage());
+				return new ErrorResponse(500, e.getMessage());
 			}
-		
+
 		// UPDATE the endpoint
-		Response ret = endpoint.update(req, timeout,properties.getUpdateMethod());		
-		
-		if (endpointSemaphore != null) endpointSemaphore.release();
+		Response ret;
+		try {
+			ret = endpoint.update(new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
+					properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
+					properties.getUpdatePath(), req.getSPARQL(), req.getTimeout(), req.getUsingGraphUri(),
+					req.getUsingNamedGraphUri()));
+		} catch (UnsupportedEncodingException e) {
+			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+		} finally {
+			if (endpointSemaphore != null)
+				endpointSemaphore.release();
+		}
 		
 		long stop = Timings.getTime();
-		logger.debug("Response: "+ret.toString());
+		logger.debug("Response: " + ret.toString());
 		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
 		ProcessorBeans.updateTimings(start, stop);
-		
+
 		return ret;
 	}
 }

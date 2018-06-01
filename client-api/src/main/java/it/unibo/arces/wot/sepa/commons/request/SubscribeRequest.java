@@ -35,7 +35,7 @@ public class SubscribeRequest extends QueryRequest {
 	 * @param sparql the sparql
 	 */
 	public SubscribeRequest(String sparql) {
-		super(sparql);
+		this(-1,sparql);
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class SubscribeRequest extends QueryRequest {
 	 * @param alias the alias
 	 */
 	public SubscribeRequest(String sparql,String alias) {
-		super(sparql);
+		this(-1,sparql,alias);
 		this.alias = alias;
 	}
 

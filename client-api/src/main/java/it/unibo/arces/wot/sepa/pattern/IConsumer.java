@@ -22,11 +22,10 @@ import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
-import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public interface IConsumer extends ISubscriptionHandler {	
-	Response subscribe(Bindings forcedBindings) ;
+	Response subscribe() ;
 	Response unsubscribe();
 	
 	void onResults(ARBindingsResults results);

@@ -52,7 +52,6 @@ public class Processor extends Thread implements ProcessorMBean {
 	// Scheduler queue
 	private SchedulerRequestResponseQueue queue;
 
-
 	// Concurrent endpoint limit
 	private Semaphore endpointSemaphore = null;
 
@@ -77,7 +76,6 @@ public class Processor extends Thread implements ProcessorMBean {
 
 		// SPU manager
 		subscribeProcessor = new SubscribeProcessor(endpointProperties, properties, endpointSemaphore);
-		// subscribeProcessor.addObserver(this);
 
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
@@ -103,7 +101,8 @@ public class Processor extends Thread implements ProcessorMBean {
 				logger.debug(request);
 
 				// Process update request
-				Response ret = updateProcessor.process((UpdateRequest) request, ProcessorBeans.getUpdateTimeout());
+				request.setTimeout(ProcessorBeans.getUpdateTimeout());
+				Response ret = updateProcessor.process((UpdateRequest) request);
 
 				// // Notify update result
 				queue.addResponse(ret);
@@ -115,9 +114,11 @@ public class Processor extends Thread implements ProcessorMBean {
 				logger.info("Query request #" + request.getToken());
 				logger.debug(request);
 
+				request.setTimeout(ProcessorBeans.getQueryTimeout());
+				
 				Thread queryProcessing = new Thread() {
 					public void run() {
-						Response ret = queryProcessor.process((QueryRequest) request, ProcessorBeans.getQueryTimeout());
+						Response ret = queryProcessor.process((QueryRequest) request);
 						queue.addResponse(ret);
 					}
 				};

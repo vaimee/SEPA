@@ -38,4 +38,12 @@ public class RDFTermURI extends RDFTerm {
 		super(value);
 		json.add("type", new JsonPrimitive("uri"));
 	}
+	
+	/**
+	 * Instantiates a new RDF term URI with null value
+	 *
+	 */
+	public RDFTermURI() {
+		this(null);
+	}
 }

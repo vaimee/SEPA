@@ -24,15 +24,15 @@ import java.util.Set;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 // TODO: Auto-generated Javadoc
 /**
  * This class represents a query solution of a SPARQL 1.1 Query
  * 
- * An example of the internal representation as JSON object follows:
- * {@code
- * { "x" : { "type": "bnode", "value": "r2" }, "hpage" : { "type": "uri",
- * "value": "http://work.example.org/alice/" }, "blurb" : { "datatype":
+ * An example of the internal representation as JSON object follows: {@code {
+ * "x" : { "type": "bnode", "value": "r2" }, "hpage" : { "type": "uri", "value":
+ * "http://work.example.org/alice/" }, "blurb" : { "datatype":
  * "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral", "type": "literal",
  * "value": "<p xmlns=\"http://www.w3.org/1999/xhtml\">My name is <b>alice</b>
  * </p>
@@ -82,11 +82,30 @@ public class Bindings {
 	 *            the variable
 	 * @return the binding value
 	 */
+	public void setBindingValue(String variable,String value) throws IllegalArgumentException {
+		if (variable == null || value == null) throw new IllegalArgumentException("One or more arguments are null");
+		try {
+			solution.get(variable).getAsJsonObject().add("value", new JsonPrimitive(value));
+		}
+		catch(Exception e) {
+			throw new IllegalArgumentException(String.format("Variable not found: %s",variable));
+		}		
+	}
+	
+	/**
+	 * Gets the binding value.
+	 *
+	 * @param variable
+	 *            the variable
+	 * @return the binding value
+	 */
 	public String getBindingValue(String variable) {
-		if (solution.get(variable) == null)
+		try {
+			return solution.get(variable).getAsJsonObject().get("value").getAsString();	
+		}
+		catch(Exception e) {
 			return null;
-		JsonObject json = solution.get(variable).getAsJsonObject();
-		return json.get("value").getAsString();
+		}		
 	}
 
 	/**
@@ -94,15 +113,16 @@ public class Bindings {
 	 *
 	 * @param variable
 	 *            the variable
-	 * @return the datatype
+	 * @return the datatype or null if the variable is not found, the term is not a
+	 *         literal or the datatype has not been specified
 	 */
 	public String getDatatype(String variable) {
-		if (solution.get(variable) == null)
+		try {
+			return solution.get(variable).getAsJsonObject().get("datatype").getAsString();
+		}
+		catch(Exception e) {
 			return null;
-		JsonObject json = solution.get(variable).getAsJsonObject();
-		if (json.get("datatype") == null)
-			return null;
-		return json.get("datatype").getAsString();
+		}
 	}
 
 	/**
@@ -110,15 +130,16 @@ public class Bindings {
 	 *
 	 * @param variable
 	 *            the variable
-	 * @return the language
+	 * @return the language or null if the variable is not found, the term is not a
+	 *         literal or the language has not been specified
 	 */
 	public String getLanguage(String variable) {
-		if (solution.get(variable) == null)
+		try {
+			return solution.get(variable).getAsJsonObject().get("xml:lang").getAsString();	
+		}
+		catch(Exception e) {
 			return null;
-		JsonObject json = solution.get(variable).getAsJsonObject();
-		if (json.get("xml:lang") == null)
-			return null;
-		return json.get("xml:lang").getAsString();
+		}
 	}
 
 	/**
@@ -128,11 +149,11 @@ public class Bindings {
 	 *            the variable
 	 * @return true, if is literal
 	 */
-	public boolean isLiteral(String variable) {
-		if (solution.get(variable) == null)
-			return false;
-		JsonObject json = solution.get(variable).getAsJsonObject();
-		return json.get("type").getAsString().equals("literal");
+	public boolean isLiteral(String variable) throws IllegalArgumentException {
+		if (!solution.has(variable))
+			throw new IllegalArgumentException("Variable not found");
+
+		return (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("literal") || solution.get(variable).getAsJsonObject().get("type").getAsString().equals("typed-literal"));
 	}
 
 	/**
@@ -142,11 +163,11 @@ public class Bindings {
 	 *            the variable
 	 * @return true, if is uri
 	 */
-	public boolean isURI(String variable) {
-		if (solution.get(variable) == null)
-			return false;
-		JsonObject json = solution.get(variable).getAsJsonObject();
-		return json.get("type").getAsString().equals("uri");
+	public boolean isURI(String variable) throws IllegalArgumentException {
+		if (!solution.has(variable))
+			throw new IllegalArgumentException("Variable not found");
+
+		return solution.get(variable).getAsJsonObject().get("type").getAsString().equals("uri");
 	}
 
 	/**
@@ -157,10 +178,10 @@ public class Bindings {
 	 * @return true, if is b node
 	 */
 	public boolean isBNode(String variable) {
-		if (solution.get(variable) == null)
-			return false;
-		JsonObject json = solution.get(variable).getAsJsonObject();
-		return json.get("type").getAsString().equals("bnode");
+		if (!solution.has(variable))
+			throw new IllegalArgumentException("Variable not found");
+
+		return solution.get(variable).getAsJsonObject().get("type").getAsString().equals("bnode");
 	}
 
 	/**

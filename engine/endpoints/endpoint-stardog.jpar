@@ -1,0 +1,29 @@
+{
+	"host": "localhost",
+	"sparql11protocol": {
+		"protocol": "http",
+		"port": 5280,
+		"query": {
+			"path": "/dotone/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/dotone/update",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"authentication": {
+			"basic": {
+				"user": "admin",
+				"pass": "admin"
+			}
+		}
+	},
+	"graphs": {
+		"default-graph-uri": "http://www.dotone.eu/",
+		"named-graph-uri": "http://www.dotone.eu/",
+		"using-graph-uri": "http://www.dotone.eu/",
+		"using-named-graph-uri": "http://www.dotone.eu/"
+	}
+}

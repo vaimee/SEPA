@@ -22,12 +22,19 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class RDFTermLiteral.
  */
 public class RDFTermLiteral extends RDFTerm {
 
+	/**
+	 * Instantiates a new RDF term literal with a null value
+	 *
+	 */
+	public RDFTermLiteral() {
+		this(null,null,null);
+	}
+	
 	/**
 	 * Instantiates a new RDF term literal.
 	 *
@@ -35,47 +42,58 @@ public class RDFTermLiteral extends RDFTerm {
 	 *            the value
 	 */
 	public RDFTermLiteral(String value) {
-		super(value);
-
-		json.add("type", new JsonPrimitive("literal"));
+		this(value,null,null);
 	}
 
 	/**
 	 * Instantiates a new RDF term literal.
-	 *
-	 * @param value
-	 *            the value
-	 * @param lanOrDT
-	 *            the lan or DT
-	 * @param lan
-	 *            the lan
+	 * 
+	 * @param value the value
+	 * 
+	 * @param datatype a XSD datatype (https://www.w3.org/TR/xmlschema-2/) 
+	 * 
+	 * @param language if not null, it is a language identifier (RFC3066 (http://www.ietf.org/rfc/rfc3066.txt)) and the datatype is set to "xsd:string" by default
 	 */
-	public RDFTermLiteral(String value, String lanOrDT, boolean lan) {
+	public RDFTermLiteral(String value, String datatype, String language) {
 		super(value);
 
 		json.add("type", new JsonPrimitive("literal"));
-
-		if (lan)
-			json.add("xml:lang", new JsonPrimitive(lanOrDT));
-		else
-			json.add("datatype", new JsonPrimitive(lanOrDT));
+		
+		if (language != null) {
+			json.add("xml:lang", new JsonPrimitive(language));
+			json.add("datatype", new JsonPrimitive("xsd:string"));
+		}
+		else if (datatype != null) json.add("datatype", new JsonPrimitive(datatype));
 	}
 
 	/**
+	 * Instantiates a new RDF term literal.
+	 * 
+	 * @param value the value
+	 * 
+	 * @param datatype an XSD datatype (https://www.w3.org/TR/xmlschema-2/)
+	 */
+	public RDFTermLiteral(String value, String datatype) {
+		this(value,datatype,null);
+	}
+	
+	/**
 	 * Gets the language tag.
 	 *
-	 * @return the language tag
+	 * @return the language tag or null if it is not defined
 	 */
 	public String getLanguageTag() {
+		if (!json.has("xml:lang")) return null;
 		return json.get("xml:lang").getAsString();
 	}
 
 	/**
 	 * Gets the datatype.
 	 *
-	 * @return the datatype
+	 * @return the datatype or null if it is not defined
 	 */
 	public String getDatatype() {
+		if (!json.has("datatype")) return null;
 		return json.get("datatype").getAsString();
 	}
 }
