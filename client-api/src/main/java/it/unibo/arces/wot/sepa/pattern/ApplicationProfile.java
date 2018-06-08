@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -145,10 +146,28 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 public class ApplicationProfile extends SPARQL11SEProperties {
 	public ApplicationProfile(String propertiesFile) throws SEPAPropertiesException {
 		super(propertiesFile);
+		
+		if (!jsap.has("namespaces")) {
+			jsap.add("namespaces", new JsonObject());
+		}
+		
+		if(!jsap.get("namespaces").getAsJsonObject().has("rdf")) jsap.get("namespaces").getAsJsonObject().add("rdf", new JsonPrimitive("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
+		if(!jsap.get("namespaces").getAsJsonObject().has("rdfs")) jsap.get("namespaces").getAsJsonObject().add("rdfs", new JsonPrimitive("http://www.w3.org/2000/01/rdf-schema#"));
+		if(!jsap.get("namespaces").getAsJsonObject().has("owl")) jsap.get("namespaces").getAsJsonObject().add("owl", new JsonPrimitive("http://www.w3.org/2002/07/owl#"));
+		if(!jsap.get("namespaces").getAsJsonObject().has("xsd")) jsap.get("namespaces").getAsJsonObject().add("xsd", new JsonPrimitive("http://www.w3.org/2001/XMLSchema#"));
 	}
 
 	public ApplicationProfile(String propertiesFile, byte[] secret) throws SEPAPropertiesException {
 		super(propertiesFile, secret);
+		
+		if (!jsap.has("namespaces")) {
+			jsap.add("namespaces", new JsonObject());
+		}
+		
+		if(!jsap.get("namespaces").getAsJsonObject().has("rdf")) jsap.get("namespaces").getAsJsonObject().add("rdf", new JsonPrimitive("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
+		if(!jsap.get("namespaces").getAsJsonObject().has("rdfs")) jsap.get("namespaces").getAsJsonObject().add("rdfs", new JsonPrimitive("http://www.w3.org/2000/01/rdf-schema#"));
+		if(!jsap.get("namespaces").getAsJsonObject().has("owl")) jsap.get("namespaces").getAsJsonObject().add("owl", new JsonPrimitive("http://www.w3.org/2002/07/owl#"));
+		if(!jsap.get("namespaces").getAsJsonObject().has("xsd")) jsap.get("namespaces").getAsJsonObject().add("xsd", new JsonPrimitive("http://www.w3.org/2001/XMLSchema#"));
 	}
 
 	protected Logger logger = LogManager.getLogger();
@@ -166,7 +185,6 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	/*
 	 * UPDATE
 	 */
-
 	public boolean isAuthenticationRequiredForUpdate(String id) {
 		try {
 			return jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject().has("authentication");

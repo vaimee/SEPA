@@ -28,7 +28,7 @@ import com.google.gson.JsonPrimitive;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 public class HttpUtilities {
-	private static final Logger logger = LogManager.getLogger("Utilities");
+	private static final Logger logger = LogManager.getLogger();
 
 	public static void sendResponse(HttpAsyncExchange exchange, int httpResponseCode, String body) {
 		exchange.getResponse().setStatusCode(httpResponseCode);
@@ -39,14 +39,6 @@ public class HttpUtilities {
 
 	public static void sendFailureResponse(HttpAsyncExchange exchange, int httpResponseCode,
 			String responseBody) {
-		/*JsonObject json = new JsonObject();
-		if (httpResponseCode != HttpStatus.SC_GATEWAY_TIMEOUT) 
-			json = buildEchoResponse(exchange.getRequest());
-
-		json.add("body", new JsonPrimitive(responseBody));
-		json.add("code", new JsonPrimitive(httpResponseCode));
-
-		sendResponse(exchange,httpResponseCode, json.toString());*/
 		
 		ErrorResponse error = new ErrorResponse(httpResponseCode,responseBody);
 		

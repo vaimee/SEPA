@@ -33,7 +33,7 @@ import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class WebsocketServer extends WebSocketServer implements WebsocketServerMBean {
-	private final Logger logger = LogManager.getLogger("WebsocketServer");
+	private static final Logger logger = LogManager.getLogger();
 
 	protected Scheduler scheduler;
 

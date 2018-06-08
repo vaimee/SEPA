@@ -6,7 +6,6 @@ public interface ProcessorMBean {
 	
 	public long getProcessedRequests();
 	public long getProcessedQueryRequests();
-//	public long getProcessedSPURequests();
 	public long getProcessedUpdateRequests();
 	
 	public float getTimings_UpdateTime_ms();

@@ -28,7 +28,7 @@ import it.unibo.arces.wot.sepa.engine.protocol.http.handler.JWTRequestHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class HttpsGate {
-	protected static final Logger logger = LogManager.getLogger("HttpsGate");
+	protected static final Logger logger = LogManager.getLogger();
 
 	protected EngineProperties properties;
 	protected Scheduler scheduler;
@@ -97,7 +97,7 @@ public class HttpsGate {
 		try {
 			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
-			logger.info(serverInfo+" interrupted: " + e.getMessage());
+			logger.debug(serverInfo+" interrupted: " + e.getMessage());
 		}
 	}
 }

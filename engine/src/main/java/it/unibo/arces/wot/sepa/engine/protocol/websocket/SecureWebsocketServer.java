@@ -29,7 +29,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SecureWebsocketServer extends WebsocketServer implements SecureWebsocketServerMBean {
 	private AuthorizationManager oauth;
-	private Logger logger = LogManager.getLogger("SecureWebsocketServer");
+	private final static Logger logger = LogManager.getLogger();
 
 	@Override
 	protected String getWelcomeMessage() {

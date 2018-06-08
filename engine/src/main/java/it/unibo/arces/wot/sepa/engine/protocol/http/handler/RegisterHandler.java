@@ -30,7 +30,7 @@ import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 
 public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
-	private static final Logger logger = LogManager.getLogger("RegisterHandler");
+	private static final Logger logger = LogManager.getLogger();
 
 	private AuthorizationManager am;
 
@@ -47,7 +47,7 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	@Override
 	public void handle(HttpRequest data, HttpAsyncExchange exchange, HttpContext context)
 			throws HttpException, IOException {
-		logger.info(">> REGISTRATION");
+		logger.debug(">> REGISTRATION");
 
 		String name = null;
 

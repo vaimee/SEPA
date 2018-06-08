@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @see SPUManager
  */
 public class Unsubcriber extends Thread {
-    private final Logger logger = LogManager.getLogger("Unsubscriber");
+    private final Logger logger = LogManager.getLogger();
     private final BlockingQueue<String> unsubscribeQueue;
     private final SPUManager spuManager;
     private final AtomicBoolean end = new AtomicBoolean(false);
@@ -38,7 +38,7 @@ public class Unsubcriber extends Thread {
                 SubscribeProcessorBeans.setActiveSPUs(spuManager.size());
                 logger.debug("Active SPUs: " + spuManager.size());
             } catch (InterruptedException e) {
-                logger.info(e);
+                logger.debug(e);
             }
         }
     }

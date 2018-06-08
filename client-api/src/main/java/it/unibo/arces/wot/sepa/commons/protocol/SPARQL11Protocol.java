@@ -34,7 +34,6 @@ import javax.net.ssl.SSLException;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -85,7 +84,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		try {
 			// Execute HTTP request
-			logger.debug(req.toString()+" (timeout: " + request.getTimeout() + " ms) ");
+			logger.trace(req.toString()+" (timeout: " + request.getTimeout() + " ms) ");
 			long start = Timings.getTime();
 			httpResponse = httpClient.execute(req);
 			long stop = Timings.getTime();
@@ -100,7 +99,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			// Body
 			responseEntity = httpResponse.getEntity();
 			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
-			logger.debug(String.format("Response code: %d", responseCode));
+			logger.debug(String.format("Response code: %d #%d", responseCode,request.getToken()));
 			EntityUtils.consume(responseEntity);
 		
 			// http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.html#d5e279

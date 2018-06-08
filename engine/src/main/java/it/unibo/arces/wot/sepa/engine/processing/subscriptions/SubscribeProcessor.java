@@ -42,7 +42,7 @@ import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
 public class SubscribeProcessor implements SubscribeProcessorMBean {
-	private final Logger logger = LogManager.getLogger("SubscribeProcessor");
+	private final Logger logger = LogManager.getLogger();
 	private final Subscriber subscriber;
 	private final Unsubcriber unsubscriber;
 
@@ -85,7 +85,7 @@ public class SubscribeProcessor implements SubscribeProcessorMBean {
 	}
 
 	public Response subscribe(SubscribeRequest req, EventHandler handler) {
-		logger.debug(req.toString());
+		logger.trace(req.toString());
 
 		SubscribeProcessorBeans.subscribeRequest();
 
@@ -114,7 +114,7 @@ public class SubscribeProcessor implements SubscribeProcessorMBean {
 	}
 
 	public Response unsubscribe(UnsubscribeRequest req) {
-		logger.debug(req);
+		logger.trace(req);
 
 		SubscribeProcessorBeans.unsubscribeRequest();
 
@@ -129,10 +129,10 @@ public class SubscribeProcessor implements SubscribeProcessorMBean {
 	}
 
 	public void process(UpdateResponse update) {
-		logger.info("*** PROCESSING SUBSCRIPTIONS BEGIN *** ");
+		logger.debug("*** PROCESSING SUBSCRIPTIONS BEGIN *** ");
 		Instant start = Instant.now();
 
-		logger.info("Activate SPUs (Total: " + spuManager.size() + ")");
+		logger.debug("Activate SPUs (Total: " + spuManager.size() + ")");
 
 		spuSync.startProcessing(spuManager.getAll());
 
@@ -149,7 +149,7 @@ public class SubscribeProcessor implements SubscribeProcessorMBean {
 		Instant stop = Instant.now();
 		SubscribeProcessorBeans.timings(start, stop);
 
-		logger.info("*** PROCESSING SUBSCRIPTIONS END *** ");
+		logger.debug("*** PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
 	@Override
