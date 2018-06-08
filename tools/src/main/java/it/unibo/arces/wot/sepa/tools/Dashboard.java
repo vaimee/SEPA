@@ -226,7 +226,6 @@ public class Dashboard {
 	private DefaultTableModel propertiesDM;
 	private String propertiesHeader[] = new String[] { "Property", "Domain", "Range", "Comment" };
 
-	private Response response;
 	private JFrame frmSepaDashboard;
 
 	static Dashboard window;
@@ -1127,7 +1126,6 @@ public class Dashboard {
 				JComponent.WHEN_FOCUSED);
 		updateForcedBindings.setCellSelectionEnabled(true);
 
-		
 		JSplitPane splitPane_3 = new JSplitPane();
 		GridBagConstraints gbc_splitPane_3 = new GridBagConstraints();
 		gbc_splitPane_3.insets = new Insets(0, 0, 5, 0);
@@ -1357,7 +1355,7 @@ public class Dashboard {
 				KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
 				JComponent.WHEN_FOCUSED);
 		bindingsResultsTable.setCellSelectionEnabled(true);
-		
+
 		subscriptions = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.addTab("Active subscriptions", null, subscriptions, null);
 
@@ -1593,13 +1591,14 @@ public class Dashboard {
 				unsubscribeButton.setEnabled(true);
 				unsubscribeButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						response = sepaClient.unsubscribe(results.getSpuid());
+						Response response = sepaClient.unsubscribe(results.getSpuid());
 
-						subscriptions.remove(sub);
-						subscriptionResultsDM.remove(results.getSpuid());
-						subscriptionResultsLabels.remove(results.getSpuid());
-						subscriptionResultsTables.remove(results.getSpuid());
-
+						if (response.isUnsubscribeResponse()) {
+							subscriptions.remove(sub);
+							subscriptionResultsDM.remove(results.getSpuid());
+							subscriptionResultsLabels.remove(results.getSpuid());
+							subscriptionResultsTables.remove(results.getSpuid());
+						}
 					}
 				});
 
@@ -1615,10 +1614,9 @@ public class Dashboard {
 				sub.setName(queryList.getSelectedValue());
 
 				JLabel info = new JLabel("Info");
-				info.setText(
-						String.format("Results: %d (%d ms)",
-								results.getBindingsResults().size(), (stop.toEpochMilli() - start.toEpochMilli())));
-				
+				info.setText(String.format("Results: %d (%d ms)", results.getBindingsResults().size(),
+						(stop.toEpochMilli() - start.toEpochMilli())));
+
 				// Add components
 				sub.add(queryLabel);
 				sub.add(unsubscribeButton);
@@ -1688,8 +1686,7 @@ public class Dashboard {
 				lblInfo.setText(
 						ret.toString() + String.format(" (%d ms)", (stop.toEpochMilli() - start.toEpochMilli())));
 			else {
-				lblInfo.setText(String.format("Update OK (%d ms)",
-						(stop.toEpochMilli() - start.toEpochMilli())));
+				lblInfo.setText(String.format("Update OK (%d ms)", (stop.toEpochMilli() - start.toEpochMilli())));
 			}
 		} catch (NumberFormatException | SEPAProtocolException | SEPASecurityException | IOException e) {
 			lblInfo.setText(e.getMessage());

@@ -34,6 +34,7 @@ import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermBNode;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
@@ -97,16 +98,18 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 				"sparql" : "..." ,
 				"forcedBindings" : {
 					"variable_1" : {
-						"type" : "xsd data type" ,
-						"value" : ""}
+						"type" : "literal" ,
+						"datatype": "xsd datatype"
+						"value" : "..."}
 					 ,
 					"variable_2" : {
-						"type" : "xsd data type" ,
-						"value" : ""}
+						"type" : "uri",
+						"value" : "..."}
 					 ,
 					"variable_N" : {
-						"type" : "xsd data type" ,
-						"value" : ""}
+						"type" : "bNode",
+						"value" : "..."
+					}
 				},
 				"sparql11protocol" :{...} (optional)
 			}
@@ -146,28 +149,38 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 public class ApplicationProfile extends SPARQL11SEProperties {
 	public ApplicationProfile(String propertiesFile) throws SEPAPropertiesException {
 		super(propertiesFile);
-		
-		if (!jsap.has("namespaces")) {
+
+		if (!jsap.has("namespaces"))
 			jsap.add("namespaces", new JsonObject());
-		}
-		
-		if(!jsap.get("namespaces").getAsJsonObject().has("rdf")) jsap.get("namespaces").getAsJsonObject().add("rdf", new JsonPrimitive("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-		if(!jsap.get("namespaces").getAsJsonObject().has("rdfs")) jsap.get("namespaces").getAsJsonObject().add("rdfs", new JsonPrimitive("http://www.w3.org/2000/01/rdf-schema#"));
-		if(!jsap.get("namespaces").getAsJsonObject().has("owl")) jsap.get("namespaces").getAsJsonObject().add("owl", new JsonPrimitive("http://www.w3.org/2002/07/owl#"));
-		if(!jsap.get("namespaces").getAsJsonObject().has("xsd")) jsap.get("namespaces").getAsJsonObject().add("xsd", new JsonPrimitive("http://www.w3.org/2001/XMLSchema#"));
+
+		if (!jsap.get("namespaces").getAsJsonObject().has("rdf"))
+			jsap.get("namespaces").getAsJsonObject().add("rdf",
+					new JsonPrimitive("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
+		if (!jsap.get("namespaces").getAsJsonObject().has("rdfs"))
+			jsap.get("namespaces").getAsJsonObject().add("rdfs",
+					new JsonPrimitive("http://www.w3.org/2000/01/rdf-schema#"));
+		if (!jsap.get("namespaces").getAsJsonObject().has("owl"))
+			jsap.get("namespaces").getAsJsonObject().add("owl", new JsonPrimitive("http://www.w3.org/2002/07/owl#"));
+		if (!jsap.get("namespaces").getAsJsonObject().has("xsd"))
+			jsap.get("namespaces").getAsJsonObject().add("xsd", new JsonPrimitive("http://www.w3.org/2001/XMLSchema#"));
 	}
 
 	public ApplicationProfile(String propertiesFile, byte[] secret) throws SEPAPropertiesException {
 		super(propertiesFile, secret);
-		
-		if (!jsap.has("namespaces")) {
+
+		if (!jsap.has("namespaces"))
 			jsap.add("namespaces", new JsonObject());
-		}
-		
-		if(!jsap.get("namespaces").getAsJsonObject().has("rdf")) jsap.get("namespaces").getAsJsonObject().add("rdf", new JsonPrimitive("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-		if(!jsap.get("namespaces").getAsJsonObject().has("rdfs")) jsap.get("namespaces").getAsJsonObject().add("rdfs", new JsonPrimitive("http://www.w3.org/2000/01/rdf-schema#"));
-		if(!jsap.get("namespaces").getAsJsonObject().has("owl")) jsap.get("namespaces").getAsJsonObject().add("owl", new JsonPrimitive("http://www.w3.org/2002/07/owl#"));
-		if(!jsap.get("namespaces").getAsJsonObject().has("xsd")) jsap.get("namespaces").getAsJsonObject().add("xsd", new JsonPrimitive("http://www.w3.org/2001/XMLSchema#"));
+
+		if (!jsap.get("namespaces").getAsJsonObject().has("rdf"))
+			jsap.get("namespaces").getAsJsonObject().add("rdf",
+					new JsonPrimitive("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
+		if (!jsap.get("namespaces").getAsJsonObject().has("rdfs"))
+			jsap.get("namespaces").getAsJsonObject().add("rdfs",
+					new JsonPrimitive("http://www.w3.org/2000/01/rdf-schema#"));
+		if (!jsap.get("namespaces").getAsJsonObject().has("owl"))
+			jsap.get("namespaces").getAsJsonObject().add("owl", new JsonPrimitive("http://www.w3.org/2002/07/owl#"));
+		if (!jsap.get("namespaces").getAsJsonObject().has("xsd"))
+			jsap.get("namespaces").getAsJsonObject().add("xsd", new JsonPrimitive("http://www.w3.org/2001/XMLSchema#"));
 	}
 
 	protected Logger logger = LogManager.getLogger();
@@ -577,48 +590,69 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	 * <pre>
 	 * "forcedBindings" : {
 					"variable_1" : {
-						"type" : "xsd:short"}
+						"type" : "literal",
+						"datatype" : "xsd:short"}
 					 ,
 					"variable_2" : {
-						"type" : "xsd:anyURI"}
+						"type" : "uri"}
 					 ,
 					 "variable_3" : {
-					 	"type" : "xsd:string",
+					 	"type": "literal",
+					 	"datatype" : "xsd:string",
 					 	"language" : "it"},
 					 ...
 					"variable_N" : {
-						"type" : "xsd:dateTime" ,
+						"type" : "literal",
+						"datatype" : "xsd:dateTime" ,
 						"value" : "1985-08-03T01:02:03Z"}
 				}
 	 * </pre>
 	 */
 	public Bindings getUpdateBindings(String id) throws IllegalArgumentException {
-		if (!jsap.get("updates").getAsJsonObject().has(id)) throw new IllegalArgumentException("Update ID not found");
-		
+		if (!jsap.get("updates").getAsJsonObject().has(id))
+			throw new IllegalArgumentException("Update ID not found");
+
 		Bindings ret = new Bindings();
 
-		if (!jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject()
-					.has("forcedBindings")) return ret;
-		
+		if (!jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject().has("forcedBindings"))
+			return ret;
+
 		try {
 			for (Entry<String, JsonElement> binding : jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject()
 					.get("forcedBindings").getAsJsonObject().entrySet()) {
+				if (!binding.getValue().getAsJsonObject().has("type")) {
+					logger.error("JSAP missing binding type: " + binding);
+					continue;
+				}
+
 				RDFTerm bindingValue = null;
 				String value = null;
-				if(binding.getValue().getAsJsonObject().has("value")) value = binding.getValue().getAsJsonObject().get("value").getAsString();
-				
-				String datatype = null;
-				if (binding.getValue().getAsJsonObject().has("type")) datatype = binding.getValue().getAsJsonObject().get("type").getAsString();
-					
-				if (datatype.equals("xsd:anyURI")) {
-					bindingValue = new RDFTermURI(value);
-				} else {
+				if (binding.getValue().getAsJsonObject().has("value"))
+					value = binding.getValue().getAsJsonObject().get("value").getAsString();
+
+				switch (binding.getValue().getAsJsonObject().get("datatype").getAsString()) {
+				case "literal":
+					String datatype = null;
+					if (binding.getValue().getAsJsonObject().has("datatype"))
+						datatype = binding.getValue().getAsJsonObject().get("datatype").getAsString();
 					
 					String language = null;
-					if(binding.getValue().getAsJsonObject().has("language")) language = binding.getValue().getAsJsonObject().get("language").getAsString();
+					if (binding.getValue().getAsJsonObject().has("language"))
+						language = binding.getValue().getAsJsonObject().get("language").getAsString();
 					
-					bindingValue = new RDFTermLiteral(value,datatype,language);
+					bindingValue = new RDFTermLiteral(value, datatype, language);
+					break;
+				case "uri":
+					bindingValue = new RDFTermURI(value);
+					break;
+				case "bnode":
+					bindingValue = new RDFTermBNode(value);
+					break;
+				default:
+					logger.error("JSAP unknown type: " + binding);
+					continue;
 				}
+
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
@@ -627,32 +661,36 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 		return ret;
 	}
 
-	public Bindings getQueryBindings(String id) throws IllegalArgumentException  {
-		if (!jsap.get("queries").getAsJsonObject().has(id)) throw new IllegalArgumentException("Query ID not found");
-		
+	public Bindings getQueryBindings(String id) throws IllegalArgumentException {
+		if (!jsap.get("queries").getAsJsonObject().has(id))
+			throw new IllegalArgumentException("Query ID not found");
+
 		Bindings ret = new Bindings();
 
-		if (!jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject()
-				.has("forcedBindings")) return ret;
-		
+		if (!jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().has("forcedBindings"))
+			return ret;
+
 		try {
 			for (Entry<String, JsonElement> binding : jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject()
 					.get("forcedBindings").getAsJsonObject().entrySet()) {
 				RDFTerm bindingValue = null;
 				String value = null;
-				if(binding.getValue().getAsJsonObject().has("value")) value = binding.getValue().getAsJsonObject().get("value").getAsString();
-				
+				if (binding.getValue().getAsJsonObject().has("value"))
+					value = binding.getValue().getAsJsonObject().get("value").getAsString();
+
 				String datatype = null;
-				if (binding.getValue().getAsJsonObject().has("type")) datatype = binding.getValue().getAsJsonObject().get("type").getAsString();
-					
+				if (binding.getValue().getAsJsonObject().has("type"))
+					datatype = binding.getValue().getAsJsonObject().get("type").getAsString();
+
 				if (datatype.equals("xsd:anyURI")) {
 					bindingValue = new RDFTermURI(value);
 				} else {
-					
+
 					String language = null;
-					if(binding.getValue().getAsJsonObject().has("language")) language = binding.getValue().getAsJsonObject().get("language").getAsString();
-					
-					bindingValue = new RDFTermLiteral(value,datatype,language);
+					if (binding.getValue().getAsJsonObject().has("language"))
+						language = binding.getValue().getAsJsonObject().get("language").getAsString();
+
+					bindingValue = new RDFTermLiteral(value, datatype, language);
 				}
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
