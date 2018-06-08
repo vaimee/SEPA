@@ -72,7 +72,7 @@ public abstract class Client implements java.io.Closeable {
 			replacedSparql = replacedSparql.substring(sparql.indexOf('{'), replacedSparql.length());
 		}
 		for (String var : bindings.getVariables()) {
-			if (bindings.getBindingValue(var) == null) continue;
+			//if (bindings.getBindingValue(var) == null) continue;
 			
 			String value = bindings.getBindingValue(var);
 			if (value == null) continue;
