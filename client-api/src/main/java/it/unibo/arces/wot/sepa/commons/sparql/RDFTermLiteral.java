@@ -64,6 +64,7 @@ public class RDFTermLiteral extends RDFTerm {
 			json.add("datatype", new JsonPrimitive("xsd:string"));
 		}
 		else if (datatype != null) json.add("datatype", new JsonPrimitive(datatype));
+		else json.add("datatype", new JsonPrimitive("xsd:string"));
 	}
 
 	/**

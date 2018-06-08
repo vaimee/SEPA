@@ -1,0 +1,137 @@
+{
+	"host": "localhost",
+	"authentication": {
+		"basic": {
+			"user": "admin",
+			"pass": "admin"
+		}
+	},
+	"sparql11protocol": {
+		"protocol": "http",
+		"port": 8000,
+		"query": {
+			"path": "/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/update",
+			"method": "POST",
+			"format": "JSON"
+		}
+	},
+	"sparql11seprotocol": {
+		"protocol": "ws",
+		"availableProtocols": {
+			"ws": {
+				"port": 9000,
+				"path": "/subscribe"
+			},
+			"wss": {
+				"port": 9443,
+				"path": "/subscribe"
+			}
+		},
+		"security": {
+			"register": "/oauth/register",
+			"tokenRequest": "/oauth/token",
+			"securePath": "/secure",
+			"client_id": "jaJBrmgtqgW9jTLHeVbzSCH6ZIN1Qaf3XthmwLxjhw3WuXtt7VELmfibRNvOdKLs",
+			"client_secret": "fkITPTMsHUEb9gVVRMP5CAeIE1LrfBYtNLdqtlTVZ/CqgqcuzEw+ZcVegW5dMnIg",
+			"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfvx34vSSnhpkfcdYbZ+7KDaK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkfP7DEKe7LScGYaT4RcuIfNmywI4fAWabAI4zqedYbd5lXmYhbSmXviPTOQPKxhmZptZ6F5Q178nfK6Bik4/0PwUlgMsC6oVFeJtyPWvjfEP0nx9tGMOt+z9Rvbd7enGWRFspUQJS2zzmGlHW1m5QNFdtOCfTLUOKkyZV4JUQxI1CaP+QbIyIihuQDvIMbmNgbvDNBkj9VQOzg1WB7mj4nn4w7T8I9MpOxAXxnaPUvDk8QnL/5leQcUiFVTa1zlzambQ8xr/BojFB52fIz8LsrDRW/+/0CJJVTFYD6OZ/gepFyLK4yOu/rOiTLT5CF9H2NZQd7bi85zSmi50RHFa3358LvL50c4G84Gz7mkDTBV9JxBhlWVNvD5VR58rPcgESwlGEL2YmOQCZzYGWjTc5cyI/50ZX83sTlTbfs+Tab3pBlsRQu36iNznleeKPj6uVvql+3uvcjMEBqqXvj8TKxMi9tCfHA1vt9RijOap8ROHtnIe4iMovPzkOCMiHJPcwbnyi+6jHbrPI18WGghceZQT23qKHDUYQo2NiehLQG9MQZA1Ncx2w4evBTBX8lkBS4aLoCUoTZTlNFSDOohUHJCbeig9eV77JbLo0a4+PNH9bgM/icSnIG5TidBGyJpEkVtD7+/KphwM89izJam3OT",
+			"expires": "04/5tRBT5n/VJ0XQASgs/w==",
+			"type": "XPrHEX2xHy+5IuXHPHigMw=="
+		}
+	},
+	"graphs": {
+		"default-graph-uri": "http://default",
+		"named-graph-uri": "http://default",
+		"using-graph-uri": "http://default",
+		"using-named-graph-uri": "http://default"
+	},
+	"namespaces": {
+		"sepa": "http://mml.arces.unibo.it/sepa#",
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	},
+	"extended": {
+		
+	},
+	"updates": {
+		"DATATYPE_TEST": {
+			"sparql": "INSERT DATA {?uri sepa:number ?number ; sepa:timestamp ?timestamp}",
+			"forcedBindings": {
+				"number": {
+					"type": "literal",
+					"datatype": "xsd:integer",
+					"value": "0"
+				},
+				"timestamp": {
+					"type": "literal",
+					"datatype": "xsd:dateTime",
+					"value": "1985-08-03"
+				},
+				"uri": {
+					"type": "uri",
+					"value": "sepa:thisIsAnURI"
+				}
+			}
+		},
+		"KARTULI": {
+			"sparql": "delete {?sub sepa:kartuli ?obj} where {?sub sepa:kartuli ?obj}; insert {?sub sepa:kartuli \"ვაიმეე\"} where {BIND(IRI(CONCAT(\"http://mml.arces.unibo.it/sepa#\",STRUUID())) AS ?sub) }"
+		},
+		"RANDOM_STRING": {
+			"sparql": "insert {?sub sepa:randomString ?string} where {BIND(IRI(CONCAT(\"http://mml.arces.unibo.it/sepa#Subject-\",STRUUID())) AS ?sub) BIND(STRUUID() AS ?string) }",
+			"graphs": {
+				"using-graph-uri": "http://default/strings"
+			}
+		},
+		"NUMBER": {
+			"sparql": "insert {?sub sepa:number ?number} where {BIND(IRI(CONCAT(\"http://mml.arces.unibo.it/sepa#Subject-\",STRUUID())) AS ?sub) }",
+			"forcedBindings": {
+				"number": {
+					"type": "literal",
+					"datatype": "xsd:integer",
+					"value": "0"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": "http://default/numbers"
+			}
+		},
+		"DELETE_ALL_NUMBERS": {
+			"sparql": "delete {?x ?y ?z} where {?x ?y ?z}",
+			"graphs": {
+				"using-graph-uri": "http://default/numbers"
+			}
+		},
+		"DELETE_ALL": {
+			"sparql": "delete {?x ?y ?z} where {?x ?y ?z}"
+		},
+		"DELETE_ALL_STRINGS": {
+			"sparql": "delete {?x ?y ?z} where {?x ?y ?z}",
+			"graphs": {
+				"using-graph-uri": "http://default/strings"
+			}
+		}
+	},
+	"queries": {
+		"DATATYPE": {
+			"sparql": "SELECT * WHERE {?uri sepa:number ?number ; sepa:timestamp ?timestamp}"
+		},
+		"KARTULI": {
+			"sparql": "select * where {?sub sepa:kartuli \"ვაიმეე\"}"
+		},
+		"RANDOM_STRING": {
+			"sparql": "select * where {?sub sepa:randomString ?obj}",
+			"graphs": {
+				"default-graph-uri": "http://default/strings"
+			}
+		},
+		"NUMBERS": {
+			"sparql": "select * where {?s sepa:number ?o}",
+			"graphs": {
+				"default-graph-uri": "http://default/numbers"
+			}
+		}
+	}
+}

@@ -93,6 +93,7 @@ import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermBNode;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
@@ -120,9 +121,13 @@ import javax.swing.JTextArea;
 
 public class Dashboard {
 	private static final Logger logger = LogManager.getLogger();
+	static Dashboard window;
 
 	private static final String versionLabel = "SEPA Dashboard Ver 0.9.2";
 
+	private GenericClient sepaClient;
+	private DashboardHandler handler = new DashboardHandler();
+	private ApplicationProfile appProfile;
 	private Properties appProperties = new Properties();
 
 	private DefaultTableModel namespacesDM;
@@ -135,10 +140,7 @@ public class Dashboard {
 	private ForcedBindingsTableModel subscribeForcedBindingsDM = new ForcedBindingsTableModel();
 
 	private SortedListModel updateListDM = new SortedListModel();
-	private SortedListModel subscribeListDM = new SortedListModel();
-
-	private GenericClient sepaClient;
-	private DashboardHandler handler = new DashboardHandler();
+	private SortedListModel queryListDM = new SortedListModel();
 
 	private JTabbedPane subscriptions;
 	private HashMap<String, BindingsTableModel> subscriptionResultsDM = new HashMap<String, BindingsTableModel>();
@@ -228,46 +230,37 @@ public class Dashboard {
 
 	private JFrame frmSepaDashboard;
 
-	static Dashboard window;
+	private Panel sparqlTab;
+
 	private JTable namespacesTable;
-
-	private JLabel lblInfo;
-	private JCheckBox chckbxAutoscroll;
-
-	ApplicationProfile appProfile;
-	private JTextField updateTimeout;
-	private JTextField queryTimeout;
 	private JTable bindingsResultsTable;
 	private JTable updateForcedBindings;
 	private JTable queryForcedBindings;
 
+	private JLabel lblInfo;
 	private JLabel updateURL;
-
 	private JLabel usingGraphURI;
-
 	private JLabel usingNamedGraphURI;
-
 	private JLabel defaultGraphURI;
-
 	private JLabel namedGraphURI;
-
 	private JLabel subscribeURL;
-
 	private JLabel queryURL;
 
+	private JCheckBox chckbxAutoscroll;
+
+	private JTextField updateTimeout;
+	private JTextField queryTimeout;
+
 	private JButton updateButton;
-
 	private JButton queryButton;
-
 	private JButton subscribeButton;
 
 	private String updateID;
-
 	private String queryID;
 
-	private Panel sparqlTab;
-
 	private JList<String> queryList;
+	private JList<String> updateList;
+	private JTabbedPane mainTabs;
 
 	private class CopyAction extends AbstractAction {
 
@@ -315,8 +308,8 @@ public class Dashboard {
 			super.fireTableDataChanged();
 		}
 
-		public void addBindings(String variable, String literal) {
-			rowValues.add(new String[] { variable, "" });
+		public void addBindings(String variable, String literal, String value) {
+			rowValues.add(new String[] { variable, value });
 			rowTypes.add(literal);
 
 			super.fireTableDataChanged();
@@ -455,17 +448,6 @@ public class Dashboard {
 				super.fireTableStructureChanged();
 			}
 
-			if (res.getAddedBindings() != null) {
-				for (Bindings sol : res.getAddedBindings().getBindings()) {
-					HashMap<String, BindingValue> row = new HashMap<String, BindingValue>();
-					for (String var : sol.getVariables()) {
-						row.put(var, new BindingValue(sol.getBindingValue(var), sol.isLiteral(var), true));
-					}
-					// row.put("", new BindingValue(timestamp, false, true));
-					rows.add(row);
-				}
-			}
-
 			if (res.getRemovedBindings() != null) {
 				for (Bindings sol : res.getRemovedBindings().getBindings()) {
 					HashMap<String, BindingValue> row = new HashMap<String, BindingValue>();
@@ -477,6 +459,17 @@ public class Dashboard {
 				}
 			}
 
+			if (res.getAddedBindings() != null) {
+				for (Bindings sol : res.getAddedBindings().getBindings()) {
+					HashMap<String, BindingValue> row = new HashMap<String, BindingValue>();
+					for (String var : sol.getVariables()) {
+						row.put(var, new BindingValue(sol.getBindingValue(var), sol.isLiteral(var), true));
+					}
+					// row.put("", new BindingValue(timestamp, false, true));
+					rows.add(row);
+				}
+			}
+			
 			if (chckbxAutoscroll.isSelected())
 				if (spuid != null)
 					subscriptionResultsTables.get(spuid)
@@ -723,6 +716,35 @@ public class Dashboard {
 	}
 
 	private boolean loadSAP(String file) {
+		namespacesDM.getDataVector().clear();
+		updateListDM.clear();
+		queryListDM.clear();
+		updateForcedBindingsDM.clearBindings();
+		subscribeForcedBindingsDM.clearBindings();
+
+		queryURL.setText("-");
+		updateURL.setText("-");
+
+		defaultGraphURI.setText("-");
+		namedGraphURI.setText("-");
+		usingGraphURI.setText("-");
+		usingNamedGraphURI.setText("-");
+		subscribeURL.setText("-");
+
+		queryList.clearSelection();
+		updateList.clearSelection();
+
+		querySPARQL.setText("");
+		updateSPARQL.setText("");
+
+		bindingsDM.clear();
+
+		updateButton.setEnabled(false);
+		queryButton.setEnabled(false);
+		subscribeButton.setEnabled(false);
+
+		lblInfo.setText("Loading JSAP...");
+
 		if (file == null) {
 			FileInputStream in = null;
 			try {
@@ -754,11 +776,6 @@ public class Dashboard {
 			}
 			file = path;
 		}
-		namespacesDM.getDataVector().clear();
-		updateListDM.clear();
-		subscribeListDM.clear();
-		updateForcedBindingsDM.clearBindings();
-		subscribeForcedBindingsDM.clearBindings();
 
 		try {
 			appProfile = new ApplicationProfile(file);
@@ -789,14 +806,15 @@ public class Dashboard {
 		// Loading subscribes
 		for (String subscribe : appProfile.getQueryIds()) {
 			// subscribeListDM.addElement(subscribe);
-			subscribeListDM.add(subscribe);
+			queryListDM.add(subscribe);
 		}
 
 		lblInfo.setText("JSAP loaded");
 		lblInfo.setToolTipText("JSAP loaded");
 
 		try {
-			sepaClient = new GenericClient(appProfile);
+			if (sepaClient == null) sepaClient = new GenericClient(appProfile);
+			else sepaClient.changeProfile(appProfile);
 		} catch (SEPAProtocolException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 			System.exit(-1);
@@ -872,17 +890,17 @@ public class Dashboard {
 		gridBagLayout.rowWeights = new double[] { 1.0, 0.0, Double.MIN_VALUE };
 		frmSepaDashboard.getContentPane().setLayout(gridBagLayout);
 
-		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		GridBagConstraints gbc_tabbedPane = new GridBagConstraints();
-		gbc_tabbedPane.insets = new Insets(0, 0, 5, 0);
-		gbc_tabbedPane.fill = GridBagConstraints.BOTH;
-		gbc_tabbedPane.gridx = 0;
-		gbc_tabbedPane.gridy = 0;
-		frmSepaDashboard.getContentPane().add(tabbedPane, gbc_tabbedPane);
+		mainTabs = new JTabbedPane(JTabbedPane.TOP);
+		GridBagConstraints gbc_mainTabs = new GridBagConstraints();
+		gbc_mainTabs.insets = new Insets(0, 0, 5, 0);
+		gbc_mainTabs.fill = GridBagConstraints.BOTH;
+		gbc_mainTabs.gridx = 0;
+		gbc_mainTabs.gridy = 0;
+		frmSepaDashboard.getContentPane().add(mainTabs, gbc_mainTabs);
 
 		sparqlTab = new Panel();
-		tabbedPane.addTab("SPARQL", null, sparqlTab, null);
-		tabbedPane.setEnabledAt(0, true);
+		mainTabs.addTab("SPARQL", null, sparqlTab, null);
+		mainTabs.setEnabledAt(0, true);
 		GridBagLayout gbl_sparqlTab = new GridBagLayout();
 		gbl_sparqlTab.columnWidths = new int[] { 338, 0, 0 };
 		gbl_sparqlTab.rowHeights = new int[] { 0, 155, -19, 39, 0, 0 };
@@ -1073,7 +1091,7 @@ public class Dashboard {
 		gbc_scrollPane.gridy = 1;
 		panel_2.add(scrollPane, gbc_scrollPane);
 
-		JList<String> updateList = new JList<String>();
+		updateList = new JList<String>();
 		updateList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
 				selectUpdateID(updateList.getSelectedValue());
@@ -1167,7 +1185,7 @@ public class Dashboard {
 			}
 		});
 		queryList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		queryList.setModel(subscribeListDM);
+		queryList.setModel(queryListDM);
 		scrollPane_1.setViewportView(queryList);
 
 		JPanel panel_5 = new JPanel();
@@ -1357,10 +1375,10 @@ public class Dashboard {
 		bindingsResultsTable.setCellSelectionEnabled(true);
 
 		subscriptions = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.addTab("Active subscriptions", null, subscriptions, null);
+		mainTabs.addTab("Active subscriptions", null, subscriptions, null);
 
 		JPanel namespaces = new JPanel();
-		tabbedPane.addTab("Namespaces", null, namespaces, null);
+		mainTabs.addTab("Namespaces", null, namespaces, null);
 		namespaces.setBorder(new TitledBorder(null, "Namespaces", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		GridBagLayout gbl_namespaces = new GridBagLayout();
 		gbl_namespaces.columnWidths = new int[] { 0, 0, 0 };
@@ -1564,48 +1582,15 @@ public class Dashboard {
 				lblInfo.setText(
 						ret.toString() + String.format(" (%d ms)", (stop.toEpochMilli() - start.toEpochMilli())));
 			else {
-				SubscribeResponse results = (SubscribeResponse) ret;
+				String spuid = ((SubscribeResponse) ret).getSpuid();
+				BindingsResults results = ((SubscribeResponse) ret).getBindingsResults();
+
 				lblInfo.setText(
-						String.format("Results: %d (%d ms). Notifications available in the <Active subscriptions> tab",
-								results.getBindingsResults().size(), (stop.toEpochMilli() - start.toEpochMilli())));
-				// Results table
-				subscriptionResultsDM.put(results.getSpuid(), new BindingsTableModel());
-				JTable bindingsResultsTable = new JTable(subscriptionResultsDM.get(results.getSpuid()));
-				bindingsResultsTable.setDefaultRenderer(Object.class, bindingsRender);
-				bindingsResultsTable.setAutoCreateRowSorter(true);
-				bindingsResultsTable.registerKeyboardAction(new CopyAction(),
-						KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-						JComponent.WHEN_FOCUSED);
-				bindingsResultsTable.setCellSelectionEnabled(true);
-				subscriptionResultsTables.put(results.getSpuid(), bindingsResultsTable);
-				subscriptionResultsDM.get(results.getSpuid()).setAddedResults(results.getBindingsResults(),
-						results.getSpuid());
-				JScrollPane bindingsResults = new JScrollPane();
-				bindingsResults.setViewportView(bindingsResultsTable);
+						String.format("Subscribed in %d ms (first results: %d)",
+								 (stop.toEpochMilli() - start.toEpochMilli()),results.size()));
 
 				// Subscription panel
 				JPanel sub = new JPanel();
-
-				// Unsubscribe button
-				JButton unsubscribeButton = new JButton(results.getSpuid());
-				unsubscribeButton.setEnabled(true);
-				unsubscribeButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						Response response = sepaClient.unsubscribe(results.getSpuid());
-
-						if (response.isUnsubscribeResponse()) {
-							subscriptions.remove(sub);
-							subscriptionResultsDM.remove(results.getSpuid());
-							subscriptionResultsLabels.remove(results.getSpuid());
-							subscriptionResultsTables.remove(results.getSpuid());
-						}
-					}
-				});
-
-				// Query label
-				JLabel queryLabel = new JLabel(
-						"<html>" + querySPARQL.getText() + " forced bindings: " + bindings.toString() + "</html>");
-				queryLabel.setFont(new Font("Arial", Font.BOLD, 14));
 
 				// Layout
 				GridBagConstraints layoutFill = new GridBagConstraints();
@@ -1613,17 +1598,64 @@ public class Dashboard {
 				sub.setLayout(new BoxLayout(sub, BoxLayout.Y_AXIS));
 				sub.setName(queryList.getSelectedValue());
 
-				JLabel info = new JLabel("Info");
-				info.setText(String.format("Results: %d (%d ms)", results.getBindingsResults().size(),
-						(stop.toEpochMilli() - start.toEpochMilli())));
+				// Query label
+				JLabel queryLabel = new JLabel(
+						"<html>" + querySPARQL.getText() + " forced bindings: " + bindings.toString() + "</html>");
+				queryLabel.setFont(new Font("Arial", Font.BOLD, 14));
 
-				// Add components
+				// Info label
+				JLabel info = new JLabel("Info");
+				info.setText(String.format("Results: %d (%d ms)", results.size(),
+						(stop.toEpochMilli() - start.toEpochMilli())));
+				subscriptionResultsLabels.put(spuid, info);
+
+				// Unsubscribe button
+				JButton unsubscribeButton = new JButton(spuid);
+				unsubscribeButton.setEnabled(true);
+				unsubscribeButton.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						Response response = sepaClient.unsubscribe(spuid);
+
+						if (response.isUnsubscribeResponse()) {
+							subscriptions.remove(sub);
+							subscriptionResultsDM.remove(spuid);
+							subscriptionResultsLabels.remove(spuid);
+							subscriptionResultsTables.remove(spuid);
+						}
+						else
+							subscriptionResultsLabels.get(spuid).setText(response.toString());
+					}
+				});
+
+				// Results table
+				subscriptionResultsDM.put(spuid, new BindingsTableModel());
+
+				JTable bindingsResultsTable = new JTable(subscriptionResultsDM.get(spuid));
+				JScrollPane bindingsResults = new JScrollPane();
+				bindingsResults.setViewportView(bindingsResultsTable);
+
+				bindingsResultsTable.setDefaultRenderer(Object.class, bindingsRender);
+				bindingsResultsTable.setAutoCreateRowSorter(true);
+				bindingsResultsTable.registerKeyboardAction(new CopyAction(),
+						KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+						JComponent.WHEN_FOCUSED);
+				bindingsResultsTable.setCellSelectionEnabled(true);
+
+				subscriptionResultsTables.put(spuid, bindingsResultsTable);
+
+				subscriptionResultsDM.get(spuid).setAddedResults(results, spuid);
+
+				// Add all elements
 				sub.add(queryLabel);
 				sub.add(unsubscribeButton);
 				sub.add(bindingsResults);
 				sub.add(info);
 
+				// Add tab
 				subscriptions.add(sub, layoutFill);
+				
+				subscriptions.setSelectedIndex(subscriptions.getTabCount()-1);
+				mainTabs.setSelectedIndex(1);
 			}
 		} catch (SEPAProtocolException | SEPASecurityException e) {
 			lblInfo.setText(e.getMessage());
@@ -1637,10 +1669,12 @@ public class Dashboard {
 			String type = queryForcedBindings.getValueAt(row, 2).toString();
 			String value = queryForcedBindings.getValueAt(row, 1).toString();
 			String variable = queryForcedBindings.getValueAt(row, 0).toString();
-			if (type.equals("xsd:anyURI"))
+			if (type.equals("URI"))
 				bindings.addBinding(variable, new RDFTermURI(value));
+			else if (type.equals("BNODE"))
+				bindings.addBinding(variable, new RDFTermBNode(value));
 			else
-				bindings.addBinding(variable, new RDFTermLiteral(value, type));
+				bindings.addBinding(variable, new RDFTermLiteral(value,type));
 		}
 
 		try {
@@ -1670,10 +1704,12 @@ public class Dashboard {
 			String type = updateForcedBindings.getValueAt(row, 2).toString();
 			String value = updateForcedBindings.getValueAt(row, 1).toString();
 			String variable = updateForcedBindings.getValueAt(row, 0).toString();
-			if (type.equals("xsd:anyURI"))
+			if (type.equals("URI"))
 				bindings.addBinding(variable, new RDFTermURI(value));
+			else if (type.equals("BNODE"))
+				bindings.addBinding(variable, new RDFTermBNode(value));
 			else
-				bindings.addBinding(variable, new RDFTermLiteral(value, type));
+				bindings.addBinding(variable, new RDFTermLiteral(value,type));
 		}
 
 		try {
@@ -1694,6 +1730,8 @@ public class Dashboard {
 	}
 
 	protected void selectUpdateID(String id) {
+		if (id == null)
+			return;
 		updateID = id;
 		ApplicationProfile app = sepaClient.getApplicationProfile();
 		updateSPARQL.setText(app.getSPARQLUpdate(id));
@@ -1702,9 +1740,12 @@ public class Dashboard {
 		updateForcedBindingsDM.clearBindings();
 		for (String variable : bindings.getVariables()) {
 			if (bindings.isURI(variable))
-				updateForcedBindingsDM.addBindings(variable, "xsd:anyURI");
+				updateForcedBindingsDM.addBindings(variable, "URI", bindings.getBindingValue(variable));
+			else if (bindings.isLiteral(variable))
+				updateForcedBindingsDM.addBindings(variable, bindings.getDatatype(variable),
+						bindings.getBindingValue(variable));
 			else
-				updateForcedBindingsDM.addBindings(variable, bindings.getDatatype(variable));
+				updateForcedBindingsDM.addBindings(variable, "BNODE", bindings.getBindingValue(variable));
 		}
 
 		String port = "";
@@ -1725,6 +1766,9 @@ public class Dashboard {
 	}
 
 	private void selectQueryID(String id) {
+		if (id == null)
+			return;
+
 		queryID = id;
 		ApplicationProfile app = sepaClient.getApplicationProfile();
 		querySPARQL.setText(app.getSPARQLQuery(id));
@@ -1733,9 +1777,12 @@ public class Dashboard {
 		subscribeForcedBindingsDM.clearBindings();
 		for (String variable : bindings.getVariables()) {
 			if (bindings.isURI(variable))
-				subscribeForcedBindingsDM.addBindings(variable, "xsd:anyURI");
+				subscribeForcedBindingsDM.addBindings(variable, "URI", bindings.getBindingValue(variable));
+			else if (bindings.isLiteral(variable))
+				subscribeForcedBindingsDM.addBindings(variable, bindings.getDatatype(variable),
+						bindings.getBindingValue(variable));
 			else
-				subscribeForcedBindingsDM.addBindings(variable, bindings.getDatatype(variable));
+				subscribeForcedBindingsDM.addBindings(variable, "BNODE", bindings.getBindingValue(variable));
 		}
 
 		String port = "";
@@ -1769,7 +1816,7 @@ public class Dashboard {
 	private boolean checkType(String value, String type) {
 		try {
 			switch (type) {
-			case "xsd:anyURI":
+			case "URI":
 				if (value.equals(""))
 					return false;
 				URI check = new URI(value);
