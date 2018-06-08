@@ -108,7 +108,7 @@ public class QueryHandler extends SPARQL11Handler {
 				}
 
 				if (headers[0].getValue().equals("application/sparql-query")) {
-					logger.debug("query via POST directly");
+					logger.trace("query via POST directly");
 
 					String requestUri = exchange.getRequest().getRequestLine().getUri();
 					String graphUri = null;

@@ -43,7 +43,7 @@ import org.apache.logging.log4j.LogManager;
  * } } }
  */
 public class EngineProperties {
-	private static final Logger logger = LogManager.getLogger("EngineProperties");
+	private static final Logger logger = LogManager.getLogger();
 
 	private String defaultsFileName = "engine.jpar";
 

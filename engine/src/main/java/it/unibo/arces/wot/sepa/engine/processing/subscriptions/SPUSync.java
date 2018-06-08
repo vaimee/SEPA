@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
 
 public class SPUSync {
-	private final Logger logger = LogManager.getLogger("SPUSync");
+	private final Logger logger = LogManager.getLogger();
 
 	// SPU synchronization
 	private HashSet<ISubscriptionProcUnit> processingSpus = new HashSet<>();
@@ -27,7 +27,7 @@ public class SPUSync {
 		// Wait all SPUs completing processing (or timeout)
 		synchronized (processingSpus) {
 			while (!processingSpus.isEmpty()) {
-				logger.info(String.format("Wait (%s) SPUs to complete processing...", processingSpus.size()));
+				logger.debug(String.format("Wait (%s) SPUs to complete processing...", processingSpus.size()));
 				try {
 					processingSpus.wait(SubscribeProcessorBeans.getSPUProcessingTimeout());
 				} catch (InterruptedException e) {

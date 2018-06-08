@@ -109,7 +109,7 @@ public class CORSManager {
 			if (!fieldNames.equals("")) exchange.getResponse().addHeader("Access-Control-Allow-Headers", fieldNames);		   
 			
 			for (Header head : exchange.getResponse().getAllHeaders())
-				logger.debug("Header: ",head.getName());
+				logger.debug(head);
 			return true;
 		}
 		else {

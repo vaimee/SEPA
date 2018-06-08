@@ -8,7 +8,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Subscriber extends Thread {
-    private final Logger logger = LogManager.getLogger("Subscriber");
+    private final Logger logger = LogManager.getLogger();
     private final AtomicBoolean end = new AtomicBoolean(false);
     private final BlockingQueue<ISubscriptionProcUnit> subscriptionQueue;
     private final SPUManager spuManager;
@@ -35,7 +35,7 @@ public class Subscriber extends Thread {
                 SubscribeProcessorBeans.setActiveSPUs(spuManager.size());
                 logger.debug(spu.getUUID() + " ACTIVATED (total: " + spuManager.size() + ")");
             } catch (InterruptedException e) {
-                logger.info(e);
+                logger.debug(e);
             }
         }
     }

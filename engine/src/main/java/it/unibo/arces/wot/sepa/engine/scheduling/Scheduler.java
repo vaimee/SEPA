@@ -107,7 +107,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		Integer token = tokens.get(0);
 		tokens.removeElementAt(0);
 
-		logger.debug("Get token #" + token + " (Available: " + tokens.size() + ")");
+		logger.trace("Get token #" + token + " (Available: " + tokens.size() + ")");
 
 		SchedulerBeans.tokenLeft(tokens.size());
 
@@ -128,7 +128,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			logger.warn("Request to release a unused token: " + token + " (Available tokens: " + tokens.size() + ")");
 		} else {
 			tokens.insertElementAt(token, tokens.size());
-			logger.debug("Release token #" + token + " (Available: " + tokens.size() + ")");
+			logger.trace("Release token #" + token + " (Available: " + tokens.size() + ")");
 
 			SchedulerBeans.tokenLeft(tokens.size());
 		}

@@ -97,8 +97,8 @@ public class Processor extends Thread implements ProcessorMBean {
 
 			Request request = scheduledRequest.getRequest();
 			if (request.isUpdateRequest()) {
-				logger.info("Update request #" + request.getToken());
-				logger.debug(request);
+				logger.debug("Update request #" + request.getToken());
+				logger.trace(request);
 
 				// Process update request
 				request.setTimeout(ProcessorBeans.getUpdateTimeout());
@@ -111,8 +111,8 @@ public class Processor extends Thread implements ProcessorMBean {
 					subscribeProcessor.process((UpdateResponse) ret);
 				}
 			} else if (request.isQueryRequest()) {
-				logger.info("Query request #" + request.getToken());
-				logger.debug(request);
+				logger.debug("Query request #" + request.getToken());
+				logger.trace(request);
 
 				request.setTimeout(ProcessorBeans.getQueryTimeout());
 				
@@ -125,8 +125,8 @@ public class Processor extends Thread implements ProcessorMBean {
 				queryProcessing.setName("SEPA-Query-Processing-Thread-" + request.getToken());
 				queryProcessing.start();
 			} else if (request.isSubscribeRequest()) {
-				logger.info("Subscribe request #" + request.getToken());
-				logger.debug(request);
+				logger.debug("Subscribe request #" + request.getToken());
+				logger.trace(request);
 
 				Response ret = subscribeProcessor.subscribe((SubscribeRequest) request,
 						(EventHandler) scheduledRequest.getHandler());

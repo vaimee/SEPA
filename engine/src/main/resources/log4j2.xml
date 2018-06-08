@@ -4,6 +4,9 @@
 	<!-- 
 Standard Level	intLevel
 OFF					0
+
+*TIMING*				50
+
 FATAL				100
 ERROR				200
 WARN					300
@@ -25,7 +28,7 @@ ALL					Integer.MAX_VALUE
 	<Loggers>
 		<Root level="debug">
 			<AppenderRef ref="Console" level="debug"/>
-			<AppenderRef ref="Console" level="timing"/> 
+			<AppenderRef ref="Console" level="timing"/>
 		</Root>
 	</Loggers>
 </Configuration>

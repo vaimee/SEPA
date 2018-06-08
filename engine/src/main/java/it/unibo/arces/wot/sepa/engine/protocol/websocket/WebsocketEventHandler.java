@@ -18,7 +18,7 @@ import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 
 public class WebsocketEventHandler implements EventHandler {
-	private final Logger logger = LogManager.getLogger("WebsocketEventHandler");
+	private static final Logger logger = LogManager.getLogger();
 	
 	private WebSocket socket;
 	private WebsocketBeans jmx;
@@ -58,8 +58,8 @@ public class WebsocketEventHandler implements EventHandler {
 			dependabilityMng.onUnsubscribe(socket, ((UnsubscribeResponse)response).getSpuid());
 		}
 			
-		logger.info("Response #"+response.getToken()+" ("+timing+" ms)");
-		logger.debug(response);
+		logger.debug("Response #"+response.getToken()+" ("+timing+" ms)");
+		logger.trace(response);
 		send(response);
 	}
 

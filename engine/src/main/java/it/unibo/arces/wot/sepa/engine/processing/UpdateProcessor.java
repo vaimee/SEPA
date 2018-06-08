@@ -72,7 +72,7 @@ public class UpdateProcessor {
 		}
 		
 		long stop = Timings.getTime();
-		logger.debug("Response: " + ret.toString());
+		logger.trace("Response: " + ret.toString());
 		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
 		ProcessorBeans.updateTimings(start, stop);
 

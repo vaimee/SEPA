@@ -75,7 +75,7 @@ public class QueryProcessor {
 		}
 
 		long stop = Timings.getTime();
-		logger.debug("Response: " + ret.toString());
+		logger.trace("Response: " + ret.toString());
 		Timings.log("QUERY_PROCESSING_TIME", start, stop);
 		ProcessorBeans.queryTimings(start, stop);
 

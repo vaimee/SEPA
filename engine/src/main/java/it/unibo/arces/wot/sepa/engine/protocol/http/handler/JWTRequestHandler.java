@@ -20,7 +20,7 @@ import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 
 public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
-	protected static final Logger logger = LogManager.getLogger("TokenRequestHandler");
+	protected static final Logger logger = LogManager.getLogger();
 
 	private AuthorizationManager am;
 
@@ -39,7 +39,7 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	@Override
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
-		logger.info(">> REQUEST TOKEN");
+		logger.debug(">> REQUEST TOKEN");
 
 		Header[] headers;
 		// Parsing and validating request headers
