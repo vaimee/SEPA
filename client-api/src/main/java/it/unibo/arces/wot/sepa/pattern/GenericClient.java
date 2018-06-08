@@ -48,6 +48,18 @@ public class GenericClient extends Client {
 		super(appProfile);
 	}
 
+	public void changeProfile(ApplicationProfile appProfile) throws SEPAProtocolException {
+		if (appProfile == null) {
+			logger.fatal("Application profile is null. Client cannot be initialized");
+			throw new SEPAProtocolException(new IllegalArgumentException("Application profile is null"));
+		}
+		this.appProfile = appProfile;
+
+		logger.debug("SEPA parameters: " + appProfile.printParameters());
+
+		addNamespaces(appProfile);
+	}
+	
 	public Response update(String ID, String SPARQL_UPDATE, Bindings forced, String usingGraphUri,
 			String usingNamedGraphUri, HTTPMethod method, int timeout)
 			throws SEPAProtocolException, SEPASecurityException, IOException {
@@ -115,7 +127,7 @@ public class GenericClient extends Client {
 	}
 
 	public Response unsubscribe(String subID) {
-		if (!subscriptions.contains(subID))
+		if (!subscriptions.containsKey(subID))
 			return new ErrorResponse(400, subID + " not present");
 
 		return subscriptions.get(subID).unsubscribe(new UnsubscribeRequest(subID));

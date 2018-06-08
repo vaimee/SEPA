@@ -255,6 +255,7 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 			return jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject().get("sparql11protocol")
 					.getAsJsonObject().get("host").getAsString();
 		} catch (Exception e) {
+			logger.debug(e.getMessage());
 		}
 
 		return super.getDefaultHost();
@@ -610,7 +611,7 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 	 */
 	public Bindings getUpdateBindings(String id) throws IllegalArgumentException {
 		if (!jsap.get("updates").getAsJsonObject().has(id))
-			throw new IllegalArgumentException("Update ID not found");
+			throw new IllegalArgumentException("Update ID not found: "+id);
 
 		Bindings ret = new Bindings();
 
@@ -620,6 +621,7 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 		try {
 			for (Entry<String, JsonElement> binding : jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject()
 					.get("forcedBindings").getAsJsonObject().entrySet()) {
+				
 				if (!binding.getValue().getAsJsonObject().has("type")) {
 					logger.error("JSAP missing binding type: " + binding);
 					continue;
@@ -630,7 +632,7 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 				if (binding.getValue().getAsJsonObject().has("value"))
 					value = binding.getValue().getAsJsonObject().get("value").getAsString();
 
-				switch (binding.getValue().getAsJsonObject().get("datatype").getAsString()) {
+				switch (binding.getValue().getAsJsonObject().get("type").getAsString()) {
 				case "literal":
 					String datatype = null;
 					if (binding.getValue().getAsJsonObject().has("datatype"))
@@ -673,25 +675,36 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 		try {
 			for (Entry<String, JsonElement> binding : jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject()
 					.get("forcedBindings").getAsJsonObject().entrySet()) {
+				
+				
 				RDFTerm bindingValue = null;
 				String value = null;
 				if (binding.getValue().getAsJsonObject().has("value"))
 					value = binding.getValue().getAsJsonObject().get("value").getAsString();
 
-				String datatype = null;
-				if (binding.getValue().getAsJsonObject().has("type"))
-					datatype = binding.getValue().getAsJsonObject().get("type").getAsString();
-
-				if (datatype.equals("xsd:anyURI")) {
-					bindingValue = new RDFTermURI(value);
-				} else {
-
+				switch (binding.getValue().getAsJsonObject().get("type").getAsString()) {
+				case "literal":
+					String datatype = null;
+					if (binding.getValue().getAsJsonObject().has("datatype"))
+						datatype = binding.getValue().getAsJsonObject().get("datatype").getAsString();
+					
 					String language = null;
 					if (binding.getValue().getAsJsonObject().has("language"))
 						language = binding.getValue().getAsJsonObject().get("language").getAsString();
-
+					
 					bindingValue = new RDFTermLiteral(value, datatype, language);
+					break;
+				case "uri":
+					bindingValue = new RDFTermURI(value);
+					break;
+				case "bnode":
+					bindingValue = new RDFTermBNode(value);
+					break;
+				default:
+					logger.error("JSAP unknown type: " + binding);
+					continue;
 				}
+				
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {

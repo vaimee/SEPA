@@ -71,6 +71,7 @@ public class SEPAWebsocketClient extends WebSocketClient {
 
 	@Override
 	public void onError(Exception ex) {
+		ex.printStackTrace();
 		ErrorResponse error = new ErrorResponse(500, ex.getMessage());
 		logger.debug("@onError: " + error);
 		if(handler!=null) handler.onError(error);
@@ -86,27 +87,27 @@ public class SEPAWebsocketClient extends WebSocketClient {
 			jsonMessage = new JsonParser().parse(message).getAsJsonObject();
 		}
 		catch(IllegalStateException e) {
-			logger.debug(e.getMessage());
+			logger.error(e.getMessage());
 			return;
 		}
 		
-		if (jsonMessage.get("error") != null) {
-			response = new ErrorResponse(jsonMessage);
-			setResponse();
-			if(handler!=null) handler.onError((ErrorResponse) response);
-		} 
-		else if (jsonMessage.get("unsubscribed") != null) {
-			response = new UnsubscribeResponse(jsonMessage);
-			setResponse();
-		} 
-		else if (jsonMessage.get("notification") != null) {
+		if (jsonMessage.has("notification")) {
 			JsonObject notification = jsonMessage.get("notification").getAsJsonObject();
 			if (notification.get("sequence").getAsInt() == 0) {
 				response = new SubscribeResponse(jsonMessage);
 				setResponse();	
 			}
-			else if(handler!=null) handler.onSemanticEvent(new Notification(jsonMessage));	
+			else if(handler!=null) handler.onSemanticEvent(new Notification(jsonMessage));
 		}
+		else if (jsonMessage.has("error")) {
+			response = new ErrorResponse(jsonMessage);
+			setResponse();
+			if(handler!=null) handler.onError((ErrorResponse) response);
+		} 
+		else if (jsonMessage.has("unsubscribed")) {
+			response = new UnsubscribeResponse(jsonMessage);
+			setResponse();
+		} 
 		else
 			logger.error("Unknown message: " + message);
 	}
