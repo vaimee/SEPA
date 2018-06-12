@@ -20,14 +20,17 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
 
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public class Producer extends Client implements IProducer {
@@ -37,9 +40,9 @@ public class Producer extends Client implements IProducer {
 	
 	private static final Logger logger = LogManager.getLogger("Producer");
 	
-	private final SPARQL11Protocol client = new SPARQL11Protocol();
+	private SPARQL11Protocol client;
 	
-	public Producer(ApplicationProfile appProfile,String updateID) throws SEPAProtocolException, SEPASecurityException  {
+	public Producer(JSAP appProfile,String updateID) throws SEPAProtocolException, SEPASecurityException  {
 		super(appProfile);
 		
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
@@ -52,16 +55,24 @@ public class Producer extends Client implements IProducer {
 		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
 		
 		forcedBindings = appProfile.getUpdateBindings(updateID);
+		
+		if (appProfile.getUpdateProtocolScheme(updateID).equals("https")) {
+			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
+			
+		}
+		else client = new SPARQL11Protocol();
 	}
 	
-	public final Response update() {
+	public final Response update() throws SEPASecurityException, IOException, SEPAPropertiesException {
 		return update(0);
 	}
 	
-	public final Response update(int timeout){	 
-		 UpdateRequest req = new UpdateRequest(-1,appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
+	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException{	 
+		if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+				
+		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
 					appProfile.getUpdatePath(SPARQL_ID), prefixes() + replaceBindings(sparqlUpdate, forcedBindings), timeout,
-					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID));
+					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
 		 
 		 return client.update(req);		 
 	 }

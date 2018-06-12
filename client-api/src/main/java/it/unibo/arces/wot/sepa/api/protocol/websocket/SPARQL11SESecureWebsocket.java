@@ -18,8 +18,6 @@ import javax.net.ssl.TrustManagerFactory;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public class SPARQL11SESecureWebsocket extends SPARQL11SEWebsocket {
 
@@ -31,32 +29,32 @@ public class SPARQL11SESecureWebsocket extends SPARQL11SEWebsocket {
 	
 	private Socket secureSocket = null;
 	
-	@Override
-	public Response subscribe(String sparql,String alias)  {
-		return new ErrorResponse(500,"Not implemented. Use the secure version.");
-	}
-	
-	@Override
-	public Response subscribe(String sparql) {
-		return new ErrorResponse(500,"Not implemented. Use the secure version.");
-	}
-	
-	public Response secureSubscribe(String sparql,String authorization,String alias) {
-		return _subscribe(sparql,authorization,alias);
-	}
-	
-	public Response secureSubscribe(String sparql,String authorization) {
-		return _subscribe(sparql,authorization,null);
-	}
-	
-	@Override
-	public Response unsubscribe(String spuid) {
-		return new ErrorResponse(500,"Not implemented. Use the secure version.");
-	}
-	
-	public Response secureUnsubscribe(String spuid,String authorization) {
-		return _unsubscribe(spuid,authorization);
-	}
+//	@Override
+//	public Response subscribe(String sparql,String alias)  {
+//		return new ErrorResponse(500,"Not implemented. Use the secure version.");
+//	}
+//	
+//	@Override
+//	public Response subscribe(String sparql) {
+//		return new ErrorResponse(500,"Not implemented. Use the secure version.");
+//	}
+//	
+//	public Response secureSubscribe(String sparql,String authorization,String alias) {
+//		return _subscribe(sparql,authorization,alias);
+//	}
+//	
+//	public Response secureSubscribe(String sparql,String authorization) {
+//		return _subscribe(sparql,authorization,null);
+//	}
+//	
+//	@Override
+//	public Response unsubscribe(String spuid) {
+//		return new ErrorResponse(500,"Not implemented. Use the secure version.");
+//	}
+//	
+//	public Response secureUnsubscribe(String spuid,String authorization) {
+//		return _unsubscribe(spuid,authorization);
+//	}
 	
 	@Override
 	protected boolean connect() {

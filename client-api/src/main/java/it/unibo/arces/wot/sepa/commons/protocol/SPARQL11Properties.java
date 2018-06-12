@@ -19,7 +19,6 @@
 package it.unibo.arces.wot.sepa.commons.protocol;
 
 import java.io.*;
-import java.util.Base64;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,6 +62,15 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 				"pass": "admin"
 			}
 		}
+	},
+	"authentication": {
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token",
+		"client_id": "jaJBrmgtqgW9jTLHeVbzSCH6ZIN1Qaf3XthmwLxjhw3WuXtt7VELmfibRNvOdKLs",
+		"client_secret": "fkITPTMsHUEb9gVVRMP5CAeIE1LrfBYtNLdqtlTVZ/CqgqcuzEw+ZcVegW5dMnIg",
+		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfvx34vSSnhpkfcdYbZ+7KDaK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkfP7DEKe7LScGYaT4RcuIfNmywI4fAWabAI4zqedYbd5lXmYhbSmXviPTOQPKxhmZptZ6F5Q178nfK6Bik4/0PwUlgMsC6oVFeJtyPWvjfEP0nx9tGMOt+z9Rvbd7enGWRFspUQJS2zzmGlHW1m5QNFdtOCfTLUOKkyZV4JUQxI1CaP+QbIyIihuQDvIMbmNgbvDNBkj9VQOzg1WB7mj4nn4w7T8I9MpOxAXxnaPUvDk8QnL/5leQcUiFVTa1zlzambQ8xr/BojFB52fIz8LsrDRW/+/0CJJVTFYD6OZ/gepFyLK4yOu/rOiTLT5CF9H2NZQd7bi85zSmi50RHFa3358LvL50c4G84Gz7mkDTBV9JxBhlWVNvD5VR58rPcgESwlGEL2YmOQCZzYGWjTc5cyI/50ZX83sTlTbfs+Tab3pBlsRQu36iNznleeKPj6uVvql+3uvcjMEBqqXvj8TKxMi9tCfHA1vt9RijOap8ROHtnIe4iMovPzkOCMiHJPcwbnyi+6jHbrPI18WGghceZQT23qKHDUYQo2NiehLQG9MQZA1Ncx2w4evBTBX8lkBS4aLoCUoTZTlNFSDOohUHJCbeig9eV77JbLo0a4+PNH9bgM/icSnIG5TidBGyJpEkVtD7+/KphwM89izJam3OT",
+		"expires": "04/5tRBT5n/VJ0XQASgs/w==",
+		"type": "XPrHEX2xHy+5IuXHPHigMw=="
 	},
 	"graphs": {							(optional)
 		"default-graph-uri": "http://default",
@@ -131,7 +139,7 @@ public class SPARQL11Properties {
 
 	/** The parameters. */
 	protected JsonObject jsap = new JsonObject();
-
+	
 	public SPARQL11Properties(String propertiesFile) throws SEPAPropertiesException {
 		this(new File(propertiesFile));
 	}
@@ -140,6 +148,14 @@ public class SPARQL11Properties {
 		loadProperties(jsapFile);
 	}
 
+	public SPARQL11Properties(String propertiesFile, byte[] secret) throws SEPAPropertiesException {
+		this(new File(propertiesFile));
+	}
+
+	public SPARQL11Properties(File jsapFile, byte[] secret) throws SEPAPropertiesException {
+		loadProperties(jsapFile);
+	}
+	
 	private void loadProperties(File jsapFile) throws SEPAPropertiesException {
 		try (final FileReader in = new FileReader(jsapFile)) {
 			jsap = new JsonParser().parse(in).getAsJsonObject();
@@ -478,30 +494,5 @@ public class SPARQL11Properties {
 
 	public String getDefaultProtocolScheme() {
 		return jsap.get("sparql11protocol").getAsJsonObject().get("protocol").getAsString();
-	}
-	
-	public boolean isAuthenticationRequired() {
-		try {
-			return jsap.get("sparql11protocol").getAsJsonObject().has("authentication");
-		}
-		catch(Exception e) {
-			return false;
-		}
-	}
-	
-	public String getAuthorizationHeader() {
-		try {
-			if(jsap.get("sparql11protocol").getAsJsonObject().get("authentication").getAsJsonObject().has("basic")) {
-				String user = jsap.get("sparql11protocol").getAsJsonObject().get("authentication").getAsJsonObject().get("basic").getAsJsonObject().get("user").getAsString();
-				String pass = jsap.get("sparql11protocol").getAsJsonObject().get("authentication").getAsJsonObject().get("basic").getAsJsonObject().get("pass").getAsString();
-				byte[] buf = Base64.getEncoder().encode((user + ":" + pass).getBytes("UTF-8"));
-				return "Basic " +new String(buf, "UTF-8");
-			}
-		}
-		catch(Exception e) {
-			logger.warn(e.getMessage());
-			return "";
-		}
-		return "";
 	}
 }

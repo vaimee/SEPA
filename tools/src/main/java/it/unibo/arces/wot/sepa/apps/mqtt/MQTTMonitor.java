@@ -19,7 +19,7 @@ public class MQTTMonitor {
 	private static MQTTInitializer mqttInitializer;
 
 	public static void main(String[] args)
-			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException {
 
 		logger.info("Create initializer");
 		mqttInitializer = new MQTTInitializer();

@@ -174,14 +174,38 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
 			
-			if (req.get("subscribe") != null) {
+			if (req.has("subscribe")) {
+				String sparql = null;
+				String alias = null;
+				String defaultGraphUri = null;
+				String namedGraphUri = null;
+				
 				try {
-					return new SubscribeRequest(req.get("subscribe").getAsJsonObject().get("sparql").getAsString(), req.get("subscribe").getAsJsonObject().get("alias").getAsString());
-				} catch (Exception e) {
-					return new SubscribeRequest(req.get("subscribe").getAsJsonObject().get("sparql").getAsString());
+					sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
 				}
+				catch(Exception e) {
+					logger.error("SPARQL member not found");
+					return null;
+				}
+				
+				try {
+					alias = req.get("subscribe").getAsJsonObject().get("alias").getAsString();
+				}
+				catch(Exception e) {}
+				
+				try {
+					defaultGraphUri = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsString();
+				}
+				catch(Exception e) {}
+				
+				try {
+					namedGraphUri = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsString();
+				}
+				catch(Exception e) {}
+				
+				return new SubscribeRequest(sparql,alias,defaultGraphUri,namedGraphUri,null);
 			} 
-			else if (req.get("unsubscribe") != null) return new UnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
+			else if (req.has("unsubscribe")) return new UnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
 			
 		} catch (Exception e) {
 			logger.debug(e.getLocalizedMessage());

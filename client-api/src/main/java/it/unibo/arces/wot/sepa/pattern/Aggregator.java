@@ -18,13 +18,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import java.io.IOException;
+
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public abstract class Aggregator extends Consumer implements IConsumer,IProducer {
@@ -34,7 +39,7 @@ public abstract class Aggregator extends Consumer implements IConsumer,IProducer
 	
 	private static final Logger logger = LogManager.getLogger("Aggregator");
 	
-	public Aggregator(ApplicationProfile appProfile,String subscribeID,String updateID) throws SEPAProtocolException, SEPASecurityException {
+	public Aggregator(JSAP appProfile,String subscribeID,String updateID) throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile,subscribeID);
 		
 		if (updateID == null){
@@ -54,14 +59,16 @@ public abstract class Aggregator extends Consumer implements IConsumer,IProducer
 		updateForcedBindings = appProfile.getUpdateBindings(updateID);
 	} 
 
-	public final Response update(){	
+	public final Response update() throws SEPASecurityException, IOException, SEPAPropertiesException{	
 		return update(0);
 	}
 	
-	public final Response update(int timeout){	 
-		 UpdateRequest req = new UpdateRequest(-1,appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
+	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException{	 
+		if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+		
+		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
 					appProfile.getUpdatePath(SPARQL_ID), prefixes() + replaceBindings(sparqlUpdate, updateForcedBindings), timeout,
-					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID));
+					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
 		 
 		 return client.update(req);	
 	 }

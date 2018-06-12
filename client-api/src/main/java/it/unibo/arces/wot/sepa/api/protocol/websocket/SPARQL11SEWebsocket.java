@@ -6,11 +6,10 @@ import java.net.URISyntaxException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
@@ -39,14 +38,48 @@ public class SPARQL11SEWebsocket {
 		
 		this.handler = handler;
 	}
+	
+	public Response subscribe(SubscribeRequest req) {
+		if (req.getSPARQL() == null)
+			return new ErrorResponse(500, "SPARQL query is null");
 
-	public Response subscribe(String sparql, String alias) {
-		return _subscribe(sparql, null, alias);
+		try {
+			if (!connect()) {
+				return new ErrorResponse(500, "Failed to connect");
+			}
+		} catch (SEPAProtocolException e1) {
+			return new ErrorResponse(500,e1.getMessage());
+		}
+		
+		if (!client.isOpen())
+			try {
+				client.reconnectBlocking();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+				return new ErrorResponse(500, "Failed to re-connect");
+			}
+		
+//		// Create SPARQL 1.1 Subscribe request
+//		JsonObject body = new JsonObject();
+//		JsonObject request = new JsonObject();
+//		body.add("sparql", new JsonPrimitive(req.getSPARQL() ));
+//		if (req.getAuthorizationHeader() != null)
+//			body.add("authorization", new JsonPrimitive(req.getAuthorizationHeader()));
+//		if (req.getAlias() != null)
+//			body.add("alias", new JsonPrimitive(req.getAlias()));
+//		request.add("subscribe", body);
+
+		// Send request and wait for response
+		return client.sendAndReceive(req.toString(), TIMEOUT);
 	}
 
-	public Response subscribe(String sparql) {
-		return _subscribe(sparql, null, null);
-	}
+//	public Response subscribe(String sparql, String alias) {
+//		return _subscribe(sparql, null, alias);
+//	}
+//
+//	public Response subscribe(String sparql) {
+//		return _subscribe(sparql, null, null);
+//	}
 
 	protected boolean connect() throws SEPAProtocolException {
 		if (handler == null) {
@@ -68,46 +101,42 @@ public class SPARQL11SEWebsocket {
 		return true;
 	}
 
-	protected Response _subscribe(String sparql, String authorization, String alias) {
-		if (sparql == null)
-			return new ErrorResponse(500, "SPARQL query is null");
+//	protected Response _subscribe(String sparql, String authorization, String alias) {
+//		if (sparql == null)
+//			return new ErrorResponse(500, "SPARQL query is null");
+//
+//		try {
+//			if (!connect()) {
+//				return new ErrorResponse(500, "Failed to connect");
+//			}
+//		} catch (SEPAProtocolException e1) {
+//			return new ErrorResponse(500,e1.getMessage());
+//		}
+//		
+//		if (!client.isOpen())
+//			try {
+//				client.reconnectBlocking();
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//				return new ErrorResponse(500, "Failed to re-connect");
+//			}
+//		
+//		// Create SPARQL 1.1 Subscribe request
+//		JsonObject body = new JsonObject();
+//		JsonObject request = new JsonObject();
+//		body.add("sparql", new JsonPrimitive(sparql));
+//		if (authorization != null)
+//			body.add("authorization", new JsonPrimitive(authorization));
+//		if (alias != null)
+//			body.add("alias", new JsonPrimitive(alias));
+//		request.add("subscribe", body);
+//
+//		// Send request and wait for response
+//		return client.sendAndReceive(request.toString(), TIMEOUT);
+//	}
 
-		try {
-			if (!connect()) {
-				return new ErrorResponse(500, "Failed to connect");
-			}
-		} catch (SEPAProtocolException e1) {
-			return new ErrorResponse(500,e1.getMessage());
-		}
-		
-		if (!client.isOpen())
-			try {
-				client.reconnectBlocking();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-				return new ErrorResponse(500, "Failed to re-connect");
-			}
-		
-		// Create SPARQL 1.1 Subscribe request
-		JsonObject body = new JsonObject();
-		JsonObject request = new JsonObject();
-		body.add("sparql", new JsonPrimitive(sparql));
-		if (authorization != null)
-			body.add("authorization", new JsonPrimitive(authorization));
-		if (alias != null)
-			body.add("alias", new JsonPrimitive(alias));
-		request.add("subscribe", body);
-
-		// Send request and wait for response
-		return client.sendAndReceive(request.toString(), TIMEOUT);
-	}
-
-	public Response unsubscribe(String spuid) {
-		return _unsubscribe(spuid, null);
-	}
-
-	protected Response _unsubscribe(String spuid, String authorization) {
-		if (spuid == null)
+	public Response unsubscribe(UnsubscribeRequest req) {
+		if (req.getSubscribeUUID() == null)
 			return new ErrorResponse(500, "SPUID is null");
 		
 		if (client == null)
@@ -115,18 +144,32 @@ public class SPARQL11SEWebsocket {
 		
 		if (client.isClosed())
 			return new ErrorResponse(500, "Socket is closed");
-		
-		// Create SPARQL 1.1 Unsubscribe request
-		JsonObject request = new JsonObject();
-		JsonObject body = new JsonObject();
-		body.add("spuid", new JsonPrimitive(spuid));
-		if (authorization != null)
-			body.add("authorization", new JsonPrimitive(authorization));
-		request.add("unsubscribe", body);
 
 		// Send request and wait for response
-		return client.sendAndReceive(request.toString(), TIMEOUT);
+		return client.sendAndReceive(req.toString(), TIMEOUT);
 	}
+
+//	protected Response _unsubscribe(String spuid, String authorization) {
+//		if (spuid == null)
+//			return new ErrorResponse(500, "SPUID is null");
+//		
+//		if (client == null)
+//			return new ErrorResponse(500, "Client not connected");
+//		
+//		if (client.isClosed())
+//			return new ErrorResponse(500, "Socket is closed");
+//		
+//		// Create SPARQL 1.1 Unsubscribe request
+//		JsonObject request = new JsonObject();
+//		JsonObject body = new JsonObject();
+//		body.add("spuid", new JsonPrimitive(spuid));
+//		if (authorization != null)
+//			body.add("authorization", new JsonPrimitive(authorization));
+//		request.add("unsubscribe", body);
+//
+//		// Send request and wait for response
+//		return client.sendAndReceive(request.toString(), TIMEOUT);
+//	}
 
 	public void close() {
 		if (isConnected()) {
@@ -137,5 +180,4 @@ public class SPARQL11SEWebsocket {
 	private boolean isConnected() {
 		return client != null && client.isOpen();
 	}
-
 }

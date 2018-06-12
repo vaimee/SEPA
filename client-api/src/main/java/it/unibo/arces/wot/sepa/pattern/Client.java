@@ -18,27 +18,34 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 
 public abstract class Client implements java.io.Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
-	protected ApplicationProfile appProfile;
+	protected JSAP appProfile;
 	protected String prefixes = "";
 
-	public ApplicationProfile getApplicationProfile() {
+	public JSAP getApplicationProfile() {
 		return appProfile;
 	}
 
-	protected void addNamespaces(ApplicationProfile appProfile) {
+	protected void addNamespaces(JSAP appProfile) {
 		Set<String> appPrefixes = appProfile.getPrefixes();
 		for (String prefix : appPrefixes) {
 			prefixes += "PREFIX " + prefix + ":<" + appProfile.getNamespaceURI(prefix) + "> ";
@@ -49,7 +56,7 @@ public abstract class Client implements java.io.Closeable {
 		return prefixes;
 	}
 
-	public Client(ApplicationProfile appProfile) throws SEPAProtocolException {
+	public Client(JSAP appProfile) throws SEPAProtocolException {
 		if (appProfile == null) {
 			logger.fatal("Application profile is null. Client cannot be initialized");
 			throw new SEPAProtocolException(new IllegalArgumentException("Application profile is null"));
@@ -196,5 +203,25 @@ public abstract class Client implements java.io.Closeable {
 				|| (0x0370 <= c && c <= 0x037D) || (0x037F <= c && c <= 0x1FFF) || (0x200C <= c && c <= 0x200D)
 				|| (0x2070 <= c && c <= 0x218F) || (0x2C00 <= c && c <= 0x2FEF) || (0x3001 <= c && c <= 0xD7FF)
 				|| (0xF900 <= c && c <= 0xFDCF) || (0xFDF0 <= c && c <= 0xFFFD) || (0x10000 <= c && c <= 0xEFFFF));
+	}
+	
+	protected boolean getToken() throws SEPASecurityException, IOException, SEPAPropertiesException {
+		if (!appProfile.getAuthenticationProperties().isTokenExpired()) return true;
+
+		SEPASecurityManager security = new SEPASecurityManager();
+		
+		Response ret = security.requestToken(appProfile.getAuthenticationProperties().getTokenRequestUrl(),
+				appProfile.getAuthenticationProperties().getBasicAuthorizationHeader());
+		
+		if (ret.isJWTResponse()) {
+			JWTResponse token = (JWTResponse) ret;
+			Date expires = new Date();
+			expires.setTime(expires.getTime() + (1000 * token.getExpiresIn()));
+			appProfile.getAuthenticationProperties().setJWT(token.getAccessToken(), expires, token.getTokenType());
+			return true;
+		}
+		
+		logger.error(ret);
+		return false;
 	}
 }

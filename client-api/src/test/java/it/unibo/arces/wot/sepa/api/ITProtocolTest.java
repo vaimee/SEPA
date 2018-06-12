@@ -7,7 +7,7 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
-import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import org.junit.After;
 import org.junit.Before;
@@ -22,10 +22,11 @@ public class ITProtocolTest {
 
     private SPARQL11SEProtocol client;
     private MockSubscriptionHandler subHandler;
-
+    private JSAP properties = null;
+    
     @Before
     public void setUp() throws Exception {
-        final ApplicationProfile properties = ConfigurationProvider.GetTestEnvConfiguration();
+        properties = ConfigurationProvider.GetTestEnvConfiguration();
         subHandler = new MockSubscriptionHandler();
         
         ISubscriptionProtocol protocol = null;
@@ -39,7 +40,7 @@ public class ITProtocolTest {
 					properties.getSubscribePort(null), properties.getSubscribePath(null), true);
 			break;
 		}
-		client = new SPARQL11SEProtocol(properties,protocol, subHandler);
+		client = new SPARQL11SEProtocol(protocol, subHandler);
     }
 
     @After
@@ -111,7 +112,7 @@ public class ITProtocolTest {
     }
 
     private static Response submitSubscribe(String query, SPARQL11SEProtocol client) {
-        SubscribeRequest sub = new SubscribeRequest(query);
+        SubscribeRequest sub = new SubscribeRequest(query,null,null,null,null);
         return client.subscribe(sub);
     }
 }

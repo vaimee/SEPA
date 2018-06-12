@@ -3,7 +3,8 @@ package it.unibo.arces.wot.sepa.api;
 import it.unibo.arces.wot.sepa.api.protocol.websocket.WebSocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -19,12 +20,12 @@ public class ITSecureProtocolTest {
 
     private final static String VALID_ID = "SEPATest";
     private final static String NOT_VALID_ID = "RegisterMePlease";
-    private ApplicationProfile properties;
+    private JSAP properties;
 
     @Before
     public void setUp() throws Exception {
         URL config = Thread.currentThread().getContextClassLoader().getResource("dev.jsap");
-        properties = new ApplicationProfile(config.getPath());
+        properties = new JSAP(config.getPath());
         subHandler = new MockSubscriptionHandler();
         
         ISubscriptionProtocol protocol = null;
@@ -38,16 +39,16 @@ public class ITSecureProtocolTest {
 					properties.getSubscribePort(null), properties.getSubscribePath(null), true);
 			break;
 		}
-		client = new SPARQL11SEProtocol(properties,protocol, subHandler);
+		client = new SPARQL11SEProtocol(protocol, subHandler);
     }
 
     @Test
-    public void Register(){
+    public void Register() throws SEPASecurityException{
         Response response;
-        response = client.register(NOT_VALID_ID);
+        response = new SEPASecurityManager().register(properties.getAuthenticationProperties().getRegisterUrl(),NOT_VALID_ID);
         assertTrue("Accepted not valid ID",response.isError());
 
-        response = client.register(VALID_ID);
+        response = new SEPASecurityManager().register(properties.getAuthenticationProperties().getRegisterUrl(),VALID_ID);
         assertTrue("Not accepted valid ID",response.isError());
     }
 
@@ -55,9 +56,9 @@ public class ITSecureProtocolTest {
     @Ignore
     public void RequestToken() throws SEPASecurityException {
         Response response;
-        response = client.requestToken();
+        response = new SEPASecurityManager().requestToken(properties.getAuthenticationProperties().getTokenRequestUrl(),properties.getAuthenticationProperties().getBasicAuthorizationHeader());
         assertFalse(String.valueOf(response),response.isError());
 
-        assertFalse("SEPA returned an expired token",properties.isTokenExpired());
+        assertFalse("SEPA returned an expired token",properties.getAuthenticationProperties().isTokenExpired());
     }
 }

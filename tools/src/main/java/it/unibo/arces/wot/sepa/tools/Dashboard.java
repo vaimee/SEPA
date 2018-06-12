@@ -77,7 +77,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JSplitPane;
 
-import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.GenericClient;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SubscriptionProtocol;
@@ -127,7 +127,7 @@ public class Dashboard {
 
 	private GenericClient sepaClient;
 	private DashboardHandler handler = new DashboardHandler();
-	private ApplicationProfile appProfile;
+	private JSAP appProfile;
 	private Properties appProperties = new Properties();
 
 	private DefaultTableModel namespacesDM;
@@ -778,7 +778,7 @@ public class Dashboard {
 		}
 
 		try {
-			appProfile = new ApplicationProfile(file);
+			appProfile = new JSAP(file);
 		} catch (SEPAPropertiesException e) {
 			logger.error(e.getMessage());
 			lblInfo.setText("Error: " + e.getMessage());
@@ -1274,7 +1274,11 @@ public class Dashboard {
 		panel_11.add(updateButton, gbc_updateButton);
 		updateButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				update();
+				try {
+					update();
+				} catch (SEPAPropertiesException e1) {
+					logger.error(e1.getMessage());
+				}
 			}
 		});
 		updateButton.setForeground(UIManager.getColor("Desktop.background"));
@@ -1318,7 +1322,11 @@ public class Dashboard {
 		panel_12.add(queryButton, gbc_queryButton);
 		queryButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				query();
+				try {
+					query();
+				} catch (SEPAPropertiesException e1) {
+					logger.error(e1.getMessage());
+				}
 			}
 		});
 		queryButton.setForeground(UIManager.getColor("Desktop.background"));
@@ -1332,7 +1340,11 @@ public class Dashboard {
 		panel_12.add(subscribeButton, gbc_subscribeButton);
 		subscribeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				subscribe();
+				try {
+					subscribe();
+				} catch (IOException | SEPAPropertiesException e1) {
+					logger.error(e1);
+				}
 			}
 		});
 		subscribeButton.setForeground(UIManager.getColor("Button.select"));
@@ -1562,7 +1574,7 @@ public class Dashboard {
 		}
 	}
 
-	protected void subscribe() {
+	protected void subscribe() throws IOException, SEPAPropertiesException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
 			String type = queryForcedBindings.getValueAt(row, 2).toString();
@@ -1575,8 +1587,7 @@ public class Dashboard {
 		}
 		try {
 			Instant start = Instant.now();
-			Response ret = sepaClient.subscribe(queryID, querySPARQL.getText(), bindings, defaultGraphURI.getText(),
-					namedGraphURI.getText(), handler);
+		Response ret = sepaClient.subscribe(queryID, querySPARQL.getText(),bindings, handler);
 			Instant stop = Instant.now();
 			if (ret.isError())
 				lblInfo.setText(
@@ -1614,7 +1625,13 @@ public class Dashboard {
 				unsubscribeButton.setEnabled(true);
 				unsubscribeButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						Response response = sepaClient.unsubscribe(spuid);
+						Response response = null;
+						try {
+							response = sepaClient.unsubscribe(spuid);
+						} catch (SEPASecurityException | IOException | SEPAPropertiesException e1) {
+							logger.error(e1);
+							return;
+						}
 
 						if (response.isUnsubscribeResponse()) {
 							subscriptions.remove(sub);
@@ -1663,7 +1680,7 @@ public class Dashboard {
 
 	}
 
-	protected void query() {
+	protected void query() throws SEPAPropertiesException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
 			String type = queryForcedBindings.getValueAt(row, 2).toString();
@@ -1679,9 +1696,7 @@ public class Dashboard {
 
 		try {
 			Instant start = Instant.now();
-			Response ret = sepaClient.query(queryID, querySPARQL.getText(), bindings, defaultGraphURI.getText(),
-					namedGraphURI.getText(), sepaClient.getApplicationProfile().getQueryMethod(queryID),
-					Integer.parseInt(queryTimeout.getText()));
+			Response ret = sepaClient.query(queryID,querySPARQL.getText(),bindings,Integer.parseInt(queryTimeout.getText()));
 			Instant stop = Instant.now();
 			if (ret.isError())
 				lblInfo.setText(
@@ -1698,7 +1713,7 @@ public class Dashboard {
 		}
 	}
 
-	protected void update() {
+	protected void update() throws SEPAPropertiesException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < updateForcedBindings.getRowCount(); row++) {
 			String type = updateForcedBindings.getValueAt(row, 2).toString();
@@ -1714,9 +1729,7 @@ public class Dashboard {
 
 		try {
 			Instant start = Instant.now();
-			Response ret = sepaClient.update(updateID, updateSPARQL.getText(), bindings, usingGraphURI.getText(),
-					usingNamedGraphURI.getText(), sepaClient.getApplicationProfile().getUpdateMethod(updateID),
-					Integer.parseInt(updateTimeout.getText()));
+			Response ret = sepaClient.update(updateID, updateSPARQL.getText(), bindings,Integer.parseInt(updateTimeout.getText()));
 			Instant stop = Instant.now();
 			if (ret.isError())
 				lblInfo.setText(
@@ -1733,7 +1746,7 @@ public class Dashboard {
 		if (id == null)
 			return;
 		updateID = id;
-		ApplicationProfile app = sepaClient.getApplicationProfile();
+		JSAP app = sepaClient.getApplicationProfile();
 		updateSPARQL.setText(app.getSPARQLUpdate(id));
 
 		Bindings bindings = app.getUpdateBindings(id);
@@ -1770,7 +1783,7 @@ public class Dashboard {
 			return;
 
 		queryID = id;
-		ApplicationProfile app = sepaClient.getApplicationProfile();
+		JSAP app = sepaClient.getApplicationProfile();
 		querySPARQL.setText(app.getSPARQLQuery(id));
 
 		Bindings bindings = app.getQueryBindings(id);

@@ -26,6 +26,10 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -45,6 +49,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
@@ -53,6 +58,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 import org.apache.logging.log4j.Logger;
@@ -74,17 +80,42 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	protected static String mBeanName = "arces.unibo.SEPA.server:type=SPARQL11Protocol";
 
 	/** The http client. */
-	final CloseableHttpClient httpClient = HttpClients.createDefault();
-	
+	protected CloseableHttpClient httpClient = HttpClients.createDefault();
+
+	/** The security manager */
+	protected SEPASecurityManager sm;
+
+	// "sepa.jks", "sepa2017", "sepa2017"
+	public SPARQL11Protocol(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
+		sm = new SEPASecurityManager("TLSv1", jksName, jksPassword, keyPassword);
+		
+		try {
+			httpClient = sm.getSSLHttpClient();
+		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException
+				| IOException e) {
+			throw new SEPASecurityException(e);
+		}
+	}
+
+	public SPARQL11Protocol() {
+		httpClient = HttpClients.createDefault();
+	}
+
 	private Response executeRequest(HttpUriRequest req, Request request) {
 		CloseableHttpResponse httpResponse = null;
 		HttpEntity responseEntity = null;
 		int responseCode = 0;
 		String responseBody = null;
 
+		// Add "Authorization" header if required
+		String authorizationHeader = request.getAuthorizationHeader();
+		if (authorizationHeader != null) {
+			req.setHeader("Authorization", authorizationHeader);
+		}
+
 		try {
 			// Execute HTTP request
-			logger.trace(req.toString()+" (timeout: " + request.getTimeout() + " ms) ");
+			logger.trace(req.toString() + " (timeout: " + request.getTimeout() + " ms) ");
 			long start = Timings.getTime();
 			httpResponse = httpClient.execute(req);
 			long stop = Timings.getTime();
@@ -99,26 +130,25 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			// Body
 			responseEntity = httpResponse.getEntity();
 			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
-			logger.debug(String.format("Response code: %d #%d", responseCode,request.getToken()));
+			logger.debug(String.format("Response code: %d #%d", responseCode, request.getToken()));
 			EntityUtils.consume(responseEntity);
-		
+
 			// http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.html#d5e279
 		} catch (IOException e) {
 			if (e instanceof InterruptedIOException) {
 				return new ErrorResponse(request.getToken(), HttpStatus.SC_SERVICE_UNAVAILABLE, e.getMessage());
-	        }
-	        if (e instanceof UnknownHostException) {
-	        		return new ErrorResponse(request.getToken(), HttpStatus.SC_NOT_FOUND, e.getMessage());
-	        }
-	        if (e instanceof ConnectTimeoutException) {
-	        		return new ErrorResponse(request.getToken(), HttpStatus.SC_REQUEST_TIMEOUT, e.getMessage());
-	        }
-	        if (e instanceof SSLException) {
-	        	return new ErrorResponse(request.getToken(), HttpStatus.SC_UNAUTHORIZED, e.getMessage());
-	        }
+			}
+			if (e instanceof UnknownHostException) {
+				return new ErrorResponse(request.getToken(), HttpStatus.SC_NOT_FOUND, e.getMessage());
+			}
+			if (e instanceof ConnectTimeoutException) {
+				return new ErrorResponse(request.getToken(), HttpStatus.SC_REQUEST_TIMEOUT, e.getMessage());
+			}
+			if (e instanceof SSLException) {
+				return new ErrorResponse(request.getToken(), HttpStatus.SC_UNAUTHORIZED, e.getMessage());
+			}
 			return new ErrorResponse(request.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-		} 
-		finally {
+		} finally {
 			try {
 				if (httpResponse != null)
 					httpResponse.close();
@@ -134,7 +164,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		if (request.getClass().equals(UpdateRequest.class))
 			return new UpdateResponse(request.getToken(), responseBody);
-		
+
 		try {
 			return new QueryResponse(request.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());
 		} catch (Exception e) {
@@ -217,15 +247,15 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			if (req.getUsingGraphUri() != null) {
 
 				graphs += "using-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(), "UTF-8");
-				//graphs += "using-graph-uri=" + req.getUsingGraphUri();
-				
+				// graphs += "using-graph-uri=" + req.getUsingGraphUri();
+
 				if (req.getUsingNamedGraphUri() != null) {
-					//graphs += "&using-named-graph-uri=" + req.getUsingNamedGraphUri();
+					// graphs += "&using-named-graph-uri=" + req.getUsingNamedGraphUri();
 					graphs += "&using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
 				}
 			} else if (req.getUsingNamedGraphUri() != null) {
 				graphs += "using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
-//				graphs += "using-named-graph-uri=" + req.getUsingNamedGraphUri();
+				// graphs += "using-named-graph-uri=" + req.getUsingNamedGraphUri();
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
@@ -237,7 +267,6 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		String host = req.getHost();
 		int port = req.getPort();
 		String updatePath = req.getPath();
-		String authorizationHeader = req.getAuthorizationHeader();
 
 		try {
 			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
@@ -253,11 +282,6 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		}
 
 		post.setHeader("Accept", req.getAcceptHeader());
-
-		// Add "Authorization" header if required
-		if (authorizationHeader != null) {
-			post.setHeader("Authorization", authorizationHeader);
-		}
 
 		requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 		post.setEntity(requestEntity);
@@ -293,12 +317,13 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		} catch (Exception e) {
 			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}
-		
+
 		// 2) SPARQL 1.1 Update are issued as GET request (like for a SPARQL 1.1 Query)
 		String query;
 		try {
 			// custom "format" parameter
-			query = "query=" + URLEncoder.encode(fixedSparql, "UTF-8") + "&format="+ URLEncoder.encode(req.getAcceptHeader(), "UTF-8");
+			query = "query=" + URLEncoder.encode(fixedSparql, "UTF-8") + "&format="
+					+ URLEncoder.encode(req.getAcceptHeader(), "UTF-8");
 		} catch (UnsupportedEncodingException e1) {
 			logger.error(e1.getMessage());
 			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
@@ -309,13 +334,13 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		try {
 			if (req.getUsingGraphUri() != null) {
 
-				graphs += "default-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(),"UTF-8");
+				graphs += "default-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(), "UTF-8");
 
 				if (req.getUsingNamedGraphUri() != null) {
-					graphs += "&named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(),"UTF-8");
+					graphs += "&named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
 				}
 			} else if (req.getUsingNamedGraphUri() != null) {
-				graphs += "named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(),"UTF-8");
+				graphs += "named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
@@ -325,14 +350,13 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		if (!graphs.equals(""))
 			query += "&" + graphs;
 
-		logger.debug("Query: "+query);
-		
+		logger.debug("Query: " + query);
+
 		// Setting URL
 		String scheme = req.getScheme();
 		String host = req.getHost();
 		int port = req.getPort();
 		String queryPath = req.getPath();
-		String authorizationHeader = req.getAuthorizationHeader();
 
 		String url;
 		if (port != -1)
@@ -344,11 +368,6 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		get = new HttpGet(url);
 
 		get.setHeader("Accept", req.getAcceptHeader());
-
-		// Add "Authorization" header if required
-		if (authorizationHeader != null) {
-			get.setHeader("Authorization", authorizationHeader);
-		}
 
 		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(req.getTimeout())
 				.setConnectTimeout(req.getTimeout()).build();
@@ -452,19 +471,19 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	private Response post(QueryRequest req) {
 		StringEntity requestEntity = null;
 		HttpPost post;
-		
+
 		// Graphs
 		String graphs = "";
 		try {
 			if (req.getDefaultGraphUri() != null) {
 
-				graphs += "default-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(),"UTF-8");
+				graphs += "default-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
 
 				if (req.getNamedGraphUri() != null) {
-					graphs += "&named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(),"UTF-8");
+					graphs += "&named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
 				}
 			} else if (req.getNamedGraphUri() != null) {
-				graphs += "named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(),"UTF-8");
+				graphs += "named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
@@ -476,7 +495,6 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		String host = req.getHost();
 		int port = req.getPort();
 		String queryPath = req.getPath();
-		String authorizationHeader = req.getAuthorizationHeader();
 
 		try {
 			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
@@ -492,11 +510,6 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		}
 
 		post.setHeader("Accept", req.getAcceptHeader());
-
-		// Add "Authorization" header if required
-		if (authorizationHeader != null) {
-			post.setHeader("Authorization", authorizationHeader);
-		}
 
 		requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 		post.setEntity(requestEntity);
@@ -521,13 +534,13 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		try {
 			if (req.getDefaultGraphUri() != null) {
 
-				graphs += "default-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(),"UTF-8");
+				graphs += "default-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
 
 				if (req.getNamedGraphUri() != null) {
-					graphs += "&named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(),"UTF-8");
+					graphs += "&named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
 				}
 			} else if (req.getNamedGraphUri() != null) {
-				graphs += "named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(),"UTF-8");
+				graphs += "named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
@@ -543,7 +556,6 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		String host = req.getHost();
 		int port = req.getPort();
 		String queryPath = req.getPath();
-		String authorizationHeader = req.getAuthorizationHeader();
 
 		if (port != -1)
 			url = scheme + "://" + host + ":" + port + queryPath + "?" + query;
@@ -555,13 +567,8 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		get.setHeader("Accept", req.getAcceptHeader());
 
-		// Add "Authorization" header if required
-		if (authorizationHeader != null) {
-			get.setHeader("Authorization", authorizationHeader);
-		}
-
-		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(req.getTimeout()).setConnectTimeout(req.getTimeout())
-				.build();
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(req.getTimeout())
+				.setConnectTimeout(req.getTimeout()).build();
 		get.setConfig(requestConfig);
 
 		return executeRequest(get, req);

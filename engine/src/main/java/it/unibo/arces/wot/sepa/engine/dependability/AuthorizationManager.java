@@ -68,11 +68,12 @@ import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
-import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.engine.bean.AuthorizationManagerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 
@@ -99,7 +100,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	private JsonElement jwkPublicKey;
 	private ConfigurableJWTProcessor<SEPASecurityContext> jwtProcessor;
 	private SEPASecurityContext context = new SEPASecurityContext();
-	private SSLSecurityManager sManager;
+	private SEPASecurityManager sManager;
 	
 	/**
 	Security context. Provides additional information necessary for processing a JOSE object.
@@ -204,11 +205,11 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		return true;
 	}
 	
-	public AuthorizationManager(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException {	
+	public AuthorizationManager(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {	
 		SEPABeans.registerMBean("SEPA:type=AuthorizationManager",this);	
 		
 		//sManager = new SSLSecurityManager(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate,false,true,null);
-		sManager = new SSLSecurityManager("TLSv1",keystoreFileName, keystorePwd,keyPwd);
+		sManager = new SEPASecurityManager("TLSv1",keystoreFileName, keystorePwd,keyPwd);
 		init(sManager.getKeyStore(),keyAlias, keyPwd);
 		
 		securityCheck(UUID.randomUUID().toString());

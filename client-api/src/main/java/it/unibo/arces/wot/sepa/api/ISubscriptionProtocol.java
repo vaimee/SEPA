@@ -1,6 +1,8 @@
 package it.unibo.arces.wot.sepa.api;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public interface ISubscriptionProtocol {
@@ -9,12 +11,9 @@ public interface ISubscriptionProtocol {
 
 	void close();
 
-	Response subscribe(String sparql);
+	Response subscribe(SubscribeRequest request);
 
-	Response secureSubscribe(String sparql, String authorization);
-
-	Response unsubscribe(String subscribeUUID);
-
-	Response secureUnsubscribe(String subscribeUUID, String authorization);
-
+	Response unsubscribe(UnsubscribeRequest request);
+	
+	boolean isSecure();
 }

@@ -17,12 +17,8 @@
 */
 package it.unibo.arces.wot.sepa.commons.request;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
-
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 
-// TODO: Auto-generated Javadoc
 /**
  * This class represents a generic request (i.e., QUERY, UPDATE, SUBSCRIBE,
  * UNSUBSCRIBE)
@@ -36,19 +32,19 @@ public abstract class Request {
 	/** The sparql. */
 	protected String sparql;
 
-	/**
-	 * Authorization related members
-	 * 
-	 * 1) The 'Basic' HTTP Authentication Scheme,
-	 * https://tools.ietf.org/html/rfc7617
-	 */
-
-	protected enum AUTHENTICATION_SCHEMA {
-		DISABLED, BASIC
-	};
-
-	protected AUTHENTICATION_SCHEMA authorization = AUTHENTICATION_SCHEMA.DISABLED;
-	protected String basicAuthorizationHeader;
+//	/**
+//	 * Authorization related members
+//	 * 
+//	 * 1) The 'Basic' HTTP Authentication Scheme,
+//	 * https://tools.ietf.org/html/rfc7617
+//	 */
+//
+//	protected enum AUTHENTICATION_SCHEMA {
+//		DISABLED, BASIC
+//	};
+//
+//	protected AUTHENTICATION_SCHEMA authorization = AUTHENTICATION_SCHEMA.DISABLED;
+//	protected String basicAuthorizationHeader;
 
 	protected HTTPMethod method = HTTPMethod.POST;
 	protected String id = null;
@@ -59,6 +55,8 @@ public abstract class Request {
 	protected String host = null;
 	protected int port = -1;
 	protected String path = null;
+
+	protected String authorizationHeader = null;
 	
 	/**
 	 * Instantiates a new request.
@@ -67,7 +65,18 @@ public abstract class Request {
 	 *            the token
 	 * @param sparql
 	 *            the sparql
+	 * @param auth
+	 *            the authorization header (e.g., Basic ... , Bearer ... , ...). 
+	 *            
+	 *            The 'Basic' HTTP Authentication Scheme, https://tools.ietf.org/html/rfc7617
 	 */
+
+	public Request(int token, String sparql,String auth) {
+		this.token = token;
+		this.sparql = sparql;
+		this.authorizationHeader = auth;
+	}
+	
 	public Request(int token, String sparql) {
 		this.token = token;
 		this.sparql = sparql;
@@ -82,6 +91,12 @@ public abstract class Request {
 	public Request(String sparql) {
 		this.token = -1;
 		this.sparql = sparql;
+	}
+	
+	public Request(String sparql,String auth) {
+		this.token = -1;
+		this.sparql = sparql;
+		this.authorizationHeader = auth;
 	}
 
 	public void setToken(int token) {
@@ -122,30 +137,30 @@ public abstract class Request {
 		return this.getClass().equals(UnsubscribeRequest.class);
 	}
 
-	public boolean setBasicAuthentication(String user, String pass) {
-		authorization = AUTHENTICATION_SCHEMA.BASIC;
-
-		try {
-			byte[] buf = Base64.getEncoder().encode((user + ":" + pass).getBytes("UTF-8"));
-			basicAuthorizationHeader = "Basic " +new String(buf, "UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			return false;
-		}
-		return true;
-	}
-
-	public String getAuthorizationHeader() {
-		switch (authorization) {
-		case BASIC:
-			return basicAuthorizationHeader;
-		default:
-			return null;
-		}
-	}
-
-	public boolean isAuthenticationRequired() {
-		return authorization != AUTHENTICATION_SCHEMA.DISABLED;
-	}
+//	public boolean setBasicAuthentication(String user, String pass) {
+//		authorization = AUTHENTICATION_SCHEMA.BASIC;
+//
+//		try {
+//			byte[] buf = Base64.getEncoder().encode((user + ":" + pass).getBytes("UTF-8"));
+//			basicAuthorizationHeader = "Basic " +new String(buf, "UTF-8");
+//		} catch (UnsupportedEncodingException e) {
+//			return false;
+//		}
+//		return true;
+//	}
+//
+//	public String getAuthorizationHeader() {
+//		switch (authorization) {
+//		case BASIC:
+//			return basicAuthorizationHeader;
+//		default:
+//			return null;
+//		}
+//	}
+//
+//	public boolean isAuthenticationRequired() {
+//		return authorization != AUTHENTICATION_SCHEMA.DISABLED;
+//	}
 	
 	public HTTPMethod getHttpMethod() {
 		return method;
@@ -177,5 +192,9 @@ public abstract class Request {
 
 	public String getPath() {
 		return path;
+	}
+
+	public String getAuthorizationHeader() {
+		return authorizationHeader;
 	}
 }

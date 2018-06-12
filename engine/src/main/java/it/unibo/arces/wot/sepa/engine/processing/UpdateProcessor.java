@@ -63,7 +63,7 @@ public class UpdateProcessor {
 			ret = endpoint.update(new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
 					properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
 					properties.getUpdatePath(), req.getSPARQL(), req.getTimeout(), req.getUsingGraphUri(),
-					req.getUsingNamedGraphUri()));
+					req.getUsingNamedGraphUri(),req.getAuthorizationHeader()));
 		} catch (UnsupportedEncodingException e) {
 			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		} finally {
