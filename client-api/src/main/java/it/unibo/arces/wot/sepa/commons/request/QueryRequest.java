@@ -31,8 +31,8 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 * */
 
 public class QueryRequest extends Request {
-	private String default_graph_uri = null;
-	private String named_graph_uri = null;
+	protected String default_graph_uri = null;
+	protected String named_graph_uri = null;
 	
 	/**
 	 * Instantiates a new query request.
@@ -60,7 +60,7 @@ public class QueryRequest extends Request {
 		this.named_graph_uri = named_graph_uri;
 	}
 	
-	public QueryRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String default_graph_uri,String named_graph_uri) throws UnsupportedEncodingException {
+	public QueryRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String default_graph_uri,String named_graph_uri,String authorization) throws UnsupportedEncodingException {
 		super(token,sparql);
 		
 		super.method = method;
@@ -70,10 +70,17 @@ public class QueryRequest extends Request {
 		super.timeout = timeout;
 		super.scheme = scheme;
 		
+		super.authorizationHeader = authorization;
+		
 		this.default_graph_uri = default_graph_uri;
 		this.named_graph_uri = named_graph_uri;
 	}
 	
+	public QueryRequest(HTTPMethod queryMethod, String queryProtocolScheme, String queryHost, int queryPort,
+			String queryPath, String string, int timeout, String defaultGraphURI, String namedGraphURI,String authorization) throws UnsupportedEncodingException {
+		this(-1,queryMethod,  queryProtocolScheme,  queryHost,  queryPort,queryPath,  string,  timeout,  defaultGraphURI,  namedGraphURI,authorization);
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

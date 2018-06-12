@@ -63,7 +63,7 @@ public class QueryProcessor {
 		try {
 			request = new QueryRequest(req.getToken(), properties.getQueryMethod(), properties.getDefaultProtocolScheme(),
 					properties.getDefaultHost(), properties.getDefaultPort(), properties.getDefaultQueryPath(),
-					req.getSPARQL(), req.getTimeout(), req.getDefaultGraphUri(), req.getNamedGraphUri());
+					req.getSPARQL(), req.getTimeout(), req.getDefaultGraphUri(), req.getNamedGraphUri(),req.getAuthorizationHeader());
 		} catch (UnsupportedEncodingException e) {
 			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}

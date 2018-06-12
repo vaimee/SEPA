@@ -2,10 +2,7 @@ package it.unibo.arces.wot.sepa.apps.mqtt;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,15 +24,15 @@ import com.google.gson.JsonParser;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
-import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	private static final Logger logger = LogManager.getLogger("MQTTSmartifier");
@@ -48,7 +45,7 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	private HashMap<String, String> topic2observation = new HashMap<String, String>();
 
 	public MQTTSmartifier() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new ApplicationProfile("mqtt.jsap"), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
+		super(new JSAP("mqtt.jsap"), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
 	}
 
 	@Override
@@ -58,7 +55,7 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 		}
 	}
 
-	private void updateObservationValue(String observation, String value) {
+	private void updateObservationValue(String observation, String value) throws SEPASecurityException, IOException, SEPAPropertiesException {
 		setUpdateBindingValue("observation",observation);
 		setUpdateBindingValue("value",value);
 		update();
@@ -171,7 +168,7 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 		}
 	}
 
-	public boolean start() {
+	public boolean start() throws SEPASecurityException, IOException, SEPAPropertiesException {
 		// Subscribe to observation-topic mapping
 		Response ret = subscribe();
 
@@ -226,14 +223,8 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 			logger.info("Connecting...");
 			MqttConnectOptions options = new MqttConnectOptions();
 			if (sslEnabled) {
-				SSLSecurityManager sm;
-				try {
-					sm = new SSLSecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017");
-				} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException
-						| NoSuchAlgorithmException | CertificateException | IOException e) {
-					logger.error(e.getMessage());
-					return false;
-				}
+				SEPASecurityManager sm = new SEPASecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017");
+				
 				logger.info("Set SSL security");
 				try {
 					options.setSocketFactory(sm.getSSLContext().getSocketFactory());

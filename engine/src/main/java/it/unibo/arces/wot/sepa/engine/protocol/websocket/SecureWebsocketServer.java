@@ -61,8 +61,9 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
 			
-			if (req.get("subscribe") != null) {
-				Response ret = validateToken(req.get("subscribe").getAsJsonObject().get("authorization").getAsString());
+			if (req.has("subscribe")) {
+				String auth = req.get("subscribe").getAsJsonObject().get("authorization").getAsString();
+				Response ret = validateToken(auth);
 				if (ret.isError()) {
 					// Not authorized
 					jmx.onNotAuthorizedRequest();
@@ -71,14 +72,38 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 					conn.send(ret.toString());
 					return null;
 				}
+				
+				String sparql = null;
+				String alias = null;
+				String defaultGraphUri = null;
+				String namedGraphUri = null;
+				
 				try {
-					return new SubscribeRequest(req.get("subscribe").getAsJsonObject().get("sparql").getAsString(),
-							req.get("subscribe").getAsJsonObject().get("alias").getAsString());
-				} catch (Exception e) {
-					return new SubscribeRequest(req.get("subscribe").getAsJsonObject().get("sparql").getAsString());
+					sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
 				}
+				catch(Exception e) {
+					logger.error("SPARQL member not found");
+					return null;
+				}
+				
+				try {
+					alias = req.get("subscribe").getAsJsonObject().get("alias").getAsString();
+				}
+				catch(Exception e) {}
+				
+				try {
+					defaultGraphUri = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsString();
+				}
+				catch(Exception e) {}
+				
+				try {
+					namedGraphUri = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsString();
+				}
+				catch(Exception e) {}
+				
+				return new SubscribeRequest(sparql,alias,defaultGraphUri,namedGraphUri,auth);
 			}
-			else if (req.get("unsubscribe") != null) {
+			else if (req.has("unsubscribe")) {
 				Response ret = validateToken(
 						req.get("unsubscribe").getAsJsonObject().get("authorization").getAsString());
 				if (ret.isError()) {

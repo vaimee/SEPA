@@ -56,7 +56,7 @@ public class UpdateRequest extends Request {
 		super(sparql);
 	}
 	
-	public UpdateRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String using_graph_uri,String using_named_graph_uri) {
+	public UpdateRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String using_graph_uri,String using_named_graph_uri,String authorization) {
 		super(token,sparql);
 		
 		super.method = method;
@@ -66,8 +66,12 @@ public class UpdateRequest extends Request {
 		super.timeout = timeout;
 		super.scheme = scheme;
 		
+		super.authorizationHeader = authorization;
+		
 		this.using_graph_uri = using_graph_uri;
 		this.using_named_graph_uri = using_named_graph_uri;
+		
+		
 	}
 	
 	public UpdateRequest(String sparql,String using_graph_uri,String using_named_graph_uri) {
@@ -75,6 +79,11 @@ public class UpdateRequest extends Request {
 		
 		this.using_graph_uri = using_graph_uri;
 		this.using_named_graph_uri = using_named_graph_uri;
+	}
+
+	public UpdateRequest(HTTPMethod updateMethod, String updateProtocolScheme, String updateHost, int updatePort,
+			String updatePath, String sparql, int timeout, String usingGraphURI, String usingNamedGraphURI,String authorization) {
+		this(-1,updateMethod,  updateProtocolScheme,  updateHost,  updatePort,updatePath,  sparql,  timeout,  usingGraphURI,  usingNamedGraphURI,authorization);
 	}
 
 	/* (non-Javadoc)

@@ -17,77 +17,57 @@
 */
 package it.unibo.arces.wot.sepa.commons.request;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 
 // TODO: Auto-generated Javadoc
 /**
  * This class represents the request of performing a SPARQL 1.1 Subscribe
-* */
+ */
 
 public class SubscribeRequest extends QueryRequest {
-	
+
 	/** The alias. */
 	private String alias = null;
-	
-	/**
-	 * Instantiates a new subscribe request.
-	 *
-	 * @param sparql the sparql
-	 */
-	public SubscribeRequest(String sparql) {
-		this(-1,sparql);
+
+	public SubscribeRequest(String sparql, String alias, String defaultGraphURI, String namedGraphURI,
+			String authorization) {
+		this(-1, sparql, alias, defaultGraphURI, namedGraphURI, authorization);
 	}
 
-	/**
-	 * Instantiates a new subscribe request.
-	 *
-	 * @param sparql the sparql
-	 * @param alias the alias
-	 */
-	public SubscribeRequest(String sparql,String alias) {
-		this(-1,sparql,alias);
-		this.alias = alias;
-	}
-
-	/**
-	 * Instantiates a new subscribe request.
-	 *
-	 * @param token the token
-	 * @param sparql the sparql
-	 * @param alias the alias
-	 */
-	public SubscribeRequest(Integer token, String sparql, String alias) {
+	public SubscribeRequest(Integer token, String sparql, String alias, String defaultGraphURI, String namedGraphURI,
+			String authorization) {
 		super(token, sparql);
+		
 		this.alias = alias;
+		
+		default_graph_uri = defaultGraphURI;
+		named_graph_uri = namedGraphURI;
+		authorizationHeader = authorization;
 	}
 
-	/**
-	 * Instantiates a new subscribe request.
-	 *
-	 * @param token the token
-	 * @param sparql the sparql
-	 */
-	public SubscribeRequest(Integer token, String sparql) {
-		super(token, sparql);
-	}
-
-	/* (non-Javadoc)
-	 * @see wot.arces.unibo.SEPA.commons.request.QueryRequest#toString()
-	 */
+	@Override
 	public String toString() {
-		String str = "SUBSCRIBE";
-		if (token != -1) str += " #"+token;
-		if (alias != null) str += "("+alias+")";
-		str += " "+sparql;
+		// Create SPARQL 1.1 Subscribe JSON request
+		JsonObject body = new JsonObject();
+		JsonObject request = new JsonObject();
+		body.add("sparql", new JsonPrimitive(getSPARQL()));
+		if (getAuthorizationHeader() != null)
+			body.add("authorization", new JsonPrimitive(getAuthorizationHeader()));
+		if (getAlias() != null)
+			body.add("alias", new JsonPrimitive(getAlias()));
+		request.add("subscribe", body);
 
-		return str;
+		return request.toString();
 	}
-	
+
 	/**
-	 * This method returns the alias of the subscription. 
+	 * This method returns the alias of the subscription.
 	 * 
 	 * @return The subscription alias or <i>null</i> is not present
-	* */
+	 */
 	public String getAlias() {
 		return alias;
 	}

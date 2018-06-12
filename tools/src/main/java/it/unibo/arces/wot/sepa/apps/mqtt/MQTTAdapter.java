@@ -3,10 +3,7 @@ package it.unibo.arces.wot.sepa.apps.mqtt;
 import java.io.IOException;
 
 import java.security.KeyManagementException;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -25,8 +22,8 @@ import com.google.gson.JsonObject;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
-import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class MQTTAdapter extends Producer implements MqttCallback {
@@ -48,7 +45,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	}
 	
 	public MQTTAdapter() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new ApplicationProfile("mqtt.jsap"), "MQTT_MESSAGE");
+		super(new JSAP("mqtt.jsap"), "MQTT_MESSAGE");
 	}
 
 	@Override
@@ -100,7 +97,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		update();
 	}
 
-	public boolean start() {
+	public boolean start() throws SEPASecurityException {
 		/*
 		 * test.mosquitto.org 1883
 		 * giove.arces.unibo.it 52877
@@ -146,16 +143,9 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		logger.info("Connecting...");
 		MqttConnectOptions options = new MqttConnectOptions();
 		if (sslEnabled) {
-			SSLSecurityManager sm;
-			try {
-				sm = new SSLSecurityManager("TLSv1","sepa.jks", "sepa2017", "sepa2017");
-			} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
-					| CertificateException | IOException e) {
-				logger.error(e.getMessage());
-				return false;
-			}
 			logger.info("Set SSL security");
 			try {
+				SEPASecurityManager sm = new SEPASecurityManager("TLSv1","sepa.jks", "sepa2017", "sepa2017");
 				options.setSocketFactory(sm.getSSLContext().getSocketFactory());
 			} catch (KeyManagementException | NoSuchAlgorithmException e) {
 				logger.error(e.getMessage());

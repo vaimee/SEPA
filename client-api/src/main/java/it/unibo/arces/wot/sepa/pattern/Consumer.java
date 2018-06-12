@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
 
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,10 +30,12 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.api.ISubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.api.protocol.websocket.WebSocketSubscriptionProtocol;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
@@ -46,7 +49,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	
 	protected SPARQL11SEProtocol client;
 
-	public Consumer(ApplicationProfile appProfile, String subscribeID)
+	public Consumer(JSAP appProfile, String subscribeID)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile);
 
@@ -81,7 +84,7 @@ public abstract class Consumer extends Client implements IConsumer {
 					appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID), true);
 			break;
 		}
-		client = new SPARQL11SEProtocol(appProfile,protocol, this);
+		client = new SPARQL11SEProtocol(protocol, this);
 	}
 	
 	public final void setSubscribeBindingValue(String variable, String value) throws IllegalArgumentException {
@@ -89,10 +92,14 @@ public abstract class Consumer extends Client implements IConsumer {
 		
 	}
 
-	public final Response subscribe() {
+	public final Response subscribe() throws SEPASecurityException, IOException, SEPAPropertiesException {
+		if (client.isSecure()) {
+			if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+		}
+		
 		String sparql = prefixes() + replaceBindings(sparqlSubscribe, forcedBindings);
 
-		Response response = client.subscribe(new SubscribeRequest(sparql));
+		Response response = client.subscribe(new SubscribeRequest(sparql,null,appProfile.getDefaultGraphURI(subID),appProfile.getNamedGraphURI(subID),appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
 
 		if (response.isSubscribeResponse()) {
 			subID = ((SubscribeResponse) response).getSpuid();
@@ -101,10 +108,14 @@ public abstract class Consumer extends Client implements IConsumer {
 		return response;
 	}
 
-	public final Response unsubscribe() {
+	public final Response unsubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException {
 		logger.debug("UNSUBSCRIBE " + subID);
 
-		return client.unsubscribe(new UnsubscribeRequest(subID));
+		if (client.isSecure()) {
+			if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+		}
+		
+		return client.unsubscribe(new UnsubscribeRequest(subID,appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
 	}
 
 	@Override

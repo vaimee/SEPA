@@ -17,6 +17,9 @@
 */
 package it.unibo.arces.wot.sepa.commons.request;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+
 import it.unibo.arces.wot.sepa.commons.request.Request;
 
 // TODO: Auto-generated Javadoc
@@ -24,40 +27,56 @@ import it.unibo.arces.wot.sepa.commons.request.Request;
  * The Class UnsubscribeRequest.
  */
 public class UnsubscribeRequest extends Request {
-	
+
 	/**
 	 * Instantiates a new unsubscribe request.
 	 *
-	 * @param token the token
-	 * @param subId the sub id
+	 * @param token
+	 *            the token
+	 * @param subId
+	 *            the sub id
 	 */
-	public UnsubscribeRequest(Integer token, String subId) {
+	public UnsubscribeRequest(Integer token, String subId,String authorization) {
 		super(token, subId);
-	}
 	
+		super.authorizationHeader = authorization;
+	}
+
 	/**
 	 * Instantiates a new unsubscribe request.
 	 *
-	 * @param subID the sub ID
+	 * @param subID
+	 *            the sub ID
 	 */
+	public UnsubscribeRequest(String subID,String authorization) {
+		super(subID);
+		
+		super.authorizationHeader = authorization;
+	}
+
 	public UnsubscribeRequest(String subID) {
 		super(subID);
 	}
-
+	
 	/**
 	 * Gets the subscribe UUID.
 	 *
 	 * @return the subscribe UUID
 	 */
-	public String getSubscribeUUID(){
+	public String getSubscribeUUID() {
 		return super.getSPARQL();
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	@Override
 	public String toString() {
-		if (token != -1) return "UNSUBSCRIBE #"+token+" "+getSubscribeUUID();
-		return "UNSUBSCRIBE "+getSubscribeUUID();
+		// Create SPARQL 1.1 Subscribe JSON request
+		JsonObject body = new JsonObject();
+		JsonObject request = new JsonObject();
+		body.add("spuid", new JsonPrimitive(getSubscribeUUID()));
+		if (getAuthorizationHeader() != null)
+			body.add("authorization", new JsonPrimitive(getAuthorizationHeader()));
+		request.add("unsubscribe", body);
+
+		return request.toString();
 	}
 }

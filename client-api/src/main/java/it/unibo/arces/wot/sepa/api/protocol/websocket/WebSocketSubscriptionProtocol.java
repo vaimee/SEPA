@@ -6,6 +6,8 @@ import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.ISubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
@@ -47,35 +49,37 @@ public class WebSocketSubscriptionProtocol implements ISubscriptionProtocol {
 	}
 
 	@Override
-	public Response subscribe(String sparql) {
-		if (wsClient == null)
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
+	public Response subscribe(SubscribeRequest request) {
+		if (request.getAuthorizationHeader() == null) {
+			if (wsClient == null)
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");	
+			return wsClient.subscribe(request);
+		}
+		else {
+			if (wssClient == null)
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
 
-		return wsClient.subscribe(sparql);
+			return wssClient.subscribe(request);
+		}
 	}
 
 	@Override
-	public Response secureSubscribe(String sparql, String authorization) {
-		if (wssClient == null)
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
+	public Response unsubscribe(UnsubscribeRequest request) {
+		if (request.getAuthorizationHeader() == null) {
+			if (wsClient == null)
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");	
+			return wsClient.unsubscribe(request);
+		}
+		else {
+			if (wssClient == null)
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
 
-		return wssClient.secureSubscribe(sparql, authorization);
+			return wssClient.unsubscribe(request);
+		}
 	}
 
 	@Override
-	public Response unsubscribe(String subscribeUUID) {
-		if (wsClient == null)
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
-
-		return wsClient.unsubscribe(subscribeUUID);
+	public boolean isSecure() {
+		return wssClient != null;
 	}
-
-	@Override
-	public Response secureUnsubscribe(String subscribeUUID, String authorization) {
-		if (wssClient == null)
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
-
-		return wssClient.secureUnsubscribe(subscribeUUID, authorization);
-	}
-
 }

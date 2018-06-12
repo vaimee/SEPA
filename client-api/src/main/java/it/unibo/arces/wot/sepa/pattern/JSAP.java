@@ -32,6 +32,7 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermBNode;
@@ -43,8 +44,8 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
  * 
  * <pre>
  * {
- * "host" : "localhost" ,
- 	"sparql11protocol": {
+ "host" : "localhost",
+ "sparql11protocol": {
  		"host":"override default host", 	(optional)
 		"protocol": "http",
 		"port": 8000,					(optional)
@@ -73,16 +74,17 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 				"port": 9443,
 				"path": "/secure/subscribe"
 			}
-		},
-		"security": {
-			"register": "https://localhost:8443/oauth/register",
-			"tokenRequest": "https://localhost:8443/oauth/token",
-			"client_id": "jaJBrmgtqgW9jTLHeVbzSCH6ZIN1Qaf3XthmwLxjhw3WuXtt7VELmfibRNvOdKLs",
-			"client_secret": "fkITPTMsHUEb9gVVRMP5CAeIE1LrfBYtNLdqtlTVZ/CqgqcuzEw+ZcVegW5dMnIg",
-			"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfvx34vSSnhpkfcdYbZ+7KDaK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkfP7DEKe7LScGYaT4RcuIfNmywI4fAWabAI4zqedYbd5lXmYhbSmXviPTOQPKxhmZptZ6F5Q178nfK6Bik4/0PwUlgMsC6oVFeJtyPWvjfEP0nx9tGMOt+z9Rvbd7enGWRFspUQJS2zzmGlHW1m5QNFdtOCfTLUOKkyZV4JUQxI1CaP+QbIyIihuQDvIMbmNgbvDNBkj9VQOzg1WB7mj4nn4w7T8I9MpOxAXxnaPUvDk8QnL/5leQcUiFVTa1zlzambQ8xr/BojFB52fIz8LsrDRW/+/0CJJVTFYD6OZ/gepFyLK4yOu/rOiTLT5CF9H2NZQd7bi85zSmi50RHFa3358LvL50c4G84Gz7mkDTBV9JxBhlWVNvD5VR58rPcgESwlGEL2YmOQCZzYGWjTc5cyI/50ZX83sTlTbfs+Tab3pBlsRQu36iNznleeKPj6uVvql+3uvcjMEBqqXvj8TKxMi9tCfHA1vt9RijOap8ROHtnIe4iMovPzkOCMiHJPcwbnyi+6jHbrPI18WGghceZQT23qKHDUYQo2NiehLQG9MQZA1Ncx2w4evBTBX8lkBS4aLoCUoTZTlNFSDOohUHJCbeig9eV77JbLo0a4+PNH9bgM/icSnIG5TidBGyJpEkVtD7+/KphwM89izJam3OT",
-			"expires": "04/5tRBT5n/VJ0XQASgs/w==",
-			"type": "XPrHEX2xHy+5IuXHPHigMw=="
-		},
+		}
+	},
+	"authentication": {
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token",
+		"client_id": "jaJBrmgtqgW9jTLHeVbzSCH6ZIN1Qaf3XthmwLxjhw3WuXtt7VELmfibRNvOdKLs",
+		"client_secret": "fkITPTMsHUEb9gVVRMP5CAeIE1LrfBYtNLdqtlTVZ/CqgqcuzEw+ZcVegW5dMnIg",
+		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfvx34vSSnhpkfcdYbZ+7KDaK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkfP7DEKe7LScGYaT4RcuIfNmywI4fAWabAI4zqedYbd5lXmYhbSmXviPTOQPKxhmZptZ6F5Q178nfK6Bik4/0PwUlgMsC6oVFeJtyPWvjfEP0nx9tGMOt+z9Rvbd7enGWRFspUQJS2zzmGlHW1m5QNFdtOCfTLUOKkyZV4JUQxI1CaP+QbIyIihuQDvIMbmNgbvDNBkj9VQOzg1WB7mj4nn4w7T8I9MpOxAXxnaPUvDk8QnL/5leQcUiFVTa1zlzambQ8xr/BojFB52fIz8LsrDRW/+/0CJJVTFYD6OZ/gepFyLK4yOu/rOiTLT5CF9H2NZQd7bi85zSmi50RHFa3358LvL50c4G84Gz7mkDTBV9JxBhlWVNvD5VR58rPcgESwlGEL2YmOQCZzYGWjTc5cyI/50ZX83sTlTbfs+Tab3pBlsRQu36iNznleeKPj6uVvql+3uvcjMEBqqXvj8TKxMi9tCfHA1vt9RijOap8ROHtnIe4iMovPzkOCMiHJPcwbnyi+6jHbrPI18WGghceZQT23qKHDUYQo2NiehLQG9MQZA1Ncx2w4evBTBX8lkBS4aLoCUoTZTlNFSDOohUHJCbeig9eV77JbLo0a4+PNH9bgM/icSnIG5TidBGyJpEkVtD7+/KphwM89izJam3OT",
+		"expires": "04/5tRBT5n/VJ0XQASgs/w==",
+		"type": "XPrHEX2xHy+5IuXHPHigMw=="
+	},
 	"graphs": {
 		"default-graph-uri ": "http://default",
 		"named-graph-uri": "http://default",
@@ -99,8 +101,8 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 				"forcedBindings" : {
 					"variable_1" : {
 						"type" : "literal" ,
-						"datatype": "xsd datatype"
-						"value" : "..."}
+						"datatype": "xsd datatype" (optional. Default: xsd:string)
+						"value" : "..."} (optional)
 					 ,
 					"variable_2" : {
 						"type" : "uri",
@@ -112,6 +114,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 					}
 				},
 				"sparql11protocol" :{...} (optional)
+				"authentication" : {...} (optional)
 			}
 			 ,
 			"UPDATE_N" : {
@@ -124,19 +127,21 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 				"sparql" : "..." ,
 				"forcedBindings" : {
 					"variable_1" : {
-						"type" : "xsd data type" ,
-						"value" : ""}
+						"type" : "literal" ,
+						"datatype": "xsd datatype" (optional)
+						"value" : "..."}	(optional)
 					 ,
 					"variable_2" : {
-						"type" : "xsd data type" ,
-						"value" : ""}
+						"type" : "uri",
+						"value" : "..."} (optional)
 					 ,
 					"variable_N" : {
-						"type" : "xsd data type" ,
-						"value" : ""}
+						"type" : "bNode",
+						"value" : "..."} (optional)
 				},
 				"sparql11protocol" :{...} (optional),
 				"sparql11seprotocol" :{...} (optional)
+				"authentication" : {...} (optional)
 			}
 			 ,
 			"QUERY_N" : {
@@ -146,8 +151,10 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 		}}
  * </pre>
  */
-public class ApplicationProfile extends SPARQL11SEProperties {
-	public ApplicationProfile(String propertiesFile) throws SEPAPropertiesException {
+public class JSAP extends SPARQL11SEProperties {
+	private AuthenticationProperties auth;
+	
+	public JSAP(String propertiesFile) throws SEPAPropertiesException {
 		super(propertiesFile);
 
 		if (!jsap.has("namespaces"))
@@ -163,28 +170,16 @@ public class ApplicationProfile extends SPARQL11SEProperties {
 			jsap.get("namespaces").getAsJsonObject().add("owl", new JsonPrimitive("http://www.w3.org/2002/07/owl#"));
 		if (!jsap.get("namespaces").getAsJsonObject().has("xsd"))
 			jsap.get("namespaces").getAsJsonObject().add("xsd", new JsonPrimitive("http://www.w3.org/2001/XMLSchema#"));
-	}
-
-	public ApplicationProfile(String propertiesFile, byte[] secret) throws SEPAPropertiesException {
-		super(propertiesFile, secret);
-
-		if (!jsap.has("namespaces"))
-			jsap.add("namespaces", new JsonObject());
-
-		if (!jsap.get("namespaces").getAsJsonObject().has("rdf"))
-			jsap.get("namespaces").getAsJsonObject().add("rdf",
-					new JsonPrimitive("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-		if (!jsap.get("namespaces").getAsJsonObject().has("rdfs"))
-			jsap.get("namespaces").getAsJsonObject().add("rdfs",
-					new JsonPrimitive("http://www.w3.org/2000/01/rdf-schema#"));
-		if (!jsap.get("namespaces").getAsJsonObject().has("owl"))
-			jsap.get("namespaces").getAsJsonObject().add("owl", new JsonPrimitive("http://www.w3.org/2002/07/owl#"));
-		if (!jsap.get("namespaces").getAsJsonObject().has("xsd"))
-			jsap.get("namespaces").getAsJsonObject().add("xsd", new JsonPrimitive("http://www.w3.org/2001/XMLSchema#"));
+		
+		auth = new AuthenticationProperties(propertiesFile);
 	}
 
 	protected Logger logger = LogManager.getLogger();
 
+	public AuthenticationProperties getAuthenticationProperties() {
+		return auth;
+	}
+	
 	public JsonObject getExtendedData() {
 		try {
 			return jsap.get("extended").getAsJsonObject();

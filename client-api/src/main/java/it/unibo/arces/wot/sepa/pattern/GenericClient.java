@@ -19,7 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
+
 import java.util.Hashtable;
+
+import org.apache.http.HttpStatus;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.ISubscriptionProtocol;
@@ -27,28 +30,30 @@ import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.protocol.websocket.WebSocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 public class GenericClient extends Client {
 
 	private Hashtable<String, SPARQL11SEProtocol> subscribedClients = new Hashtable<String, SPARQL11SEProtocol>();
 	private Hashtable<String, SPARQL11SEProtocol> subscriptions = new Hashtable<String, SPARQL11SEProtocol>();
 
-	public GenericClient(ApplicationProfile appProfile) throws SEPAProtocolException, SEPASecurityException {
+	public GenericClient(JSAP appProfile) throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile);
 	}
 
-	public void changeProfile(ApplicationProfile appProfile) throws SEPAProtocolException {
+	public void changeProfile(JSAP appProfile) throws SEPAProtocolException {
 		if (appProfile == null) {
 			logger.fatal("Application profile is null. Client cannot be initialized");
 			throw new SEPAProtocolException(new IllegalArgumentException("Application profile is null"));
@@ -59,41 +64,103 @@ public class GenericClient extends Client {
 
 		addNamespaces(appProfile);
 	}
+
+	public Response update(String ID, String sparql, Bindings forced, int timeout)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+		SPARQL11Protocol client;
+
+		if (appProfile.getUpdateProtocolScheme(ID).equals("https")) {
+			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
+			if(!getToken()) {
+				client.close();
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+			}
+		}
+		else client = new SPARQL11Protocol();
+
+		Response ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
+				appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
+				appProfile.getUpdatePath(ID), prefixes() + replaceBindings(sparql, forced),
+				timeout, appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID),
+				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
+		client.close();
+
+		return ret;
+	}
 	
-	public Response update(String ID, String SPARQL_UPDATE, Bindings forced, String usingGraphUri,
-			String usingNamedGraphUri, HTTPMethod method, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException {
+	public Response update(String ID, Bindings forced, int timeout)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+		SPARQL11Protocol client;
 
-		UpdateRequest req = new UpdateRequest(-1,method, appProfile.getUpdateProtocolScheme(ID),
-				appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),
-				prefixes() + replaceBindings(SPARQL_UPDATE, forced), timeout, usingGraphUri, usingNamedGraphUri);
+		if (appProfile.getUpdateProtocolScheme(ID).equals("https")) {
+			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
+			if(!getToken()) {
+				client.close();
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+			}
+		}
+		else client = new SPARQL11Protocol();
 
-		SPARQL11Protocol client = new SPARQL11Protocol();
-		Response ret = client.update(req);
+		Response ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
+				appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
+				appProfile.getUpdatePath(ID), prefixes() + replaceBindings(appProfile.getSPARQLUpdate(ID), forced),
+				timeout, appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID),
+				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
 		client.close();
 
 		return ret;
 	}
 
-	public Response query(String ID, String SPARQL_QUERY, Bindings forced, String defaultGraphUri, String namedGraphUri,
-			HTTPMethod method, int timeout) throws SEPAProtocolException, SEPASecurityException, IOException {
+	public Response query(String ID, Bindings forced, int timeout)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+		SPARQL11Protocol client;
 
-		QueryRequest req = new QueryRequest(-1,method, appProfile.getQueryProtocolScheme(ID), appProfile.getQueryHost(ID),
-				appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
-				prefixes() + replaceBindings(SPARQL_QUERY, forced), timeout, defaultGraphUri, namedGraphUri);
-
-		SPARQL11Protocol client = new SPARQL11Protocol();
-		Response ret = client.query(req);
+		if (appProfile.getQueryProtocolScheme(ID).equals("https")) {
+			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
+			if(!getToken()) {
+				client.close();
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+			}
+		}
+		else client = new SPARQL11Protocol();
+		
+		Response ret = client.query(new QueryRequest(appProfile.getQueryMethod(ID),
+				appProfile.getQueryProtocolScheme(ID), appProfile.getQueryHost(ID), appProfile.getQueryPort(ID),
+				appProfile.getQueryPath(ID), prefixes() + replaceBindings(appProfile.getSPARQLQuery(ID), forced),
+				timeout, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
+				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
 		client.close();
 
 		return ret;
 	}
 
-	public Response subscribe(String ID, String SPARQL_SUBSCRIBE, Bindings forced, String defaultGraphUri,
-			String namedGraphUri, ISubscriptionHandler handler) throws SEPAProtocolException, SEPASecurityException {
+	public Response query(String ID, String sparql, Bindings forced, int timeout)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+		SPARQL11Protocol client;
 
-		SubscribeRequest req = new SubscribeRequest(prefixes() + replaceBindings(SPARQL_SUBSCRIBE, forced));
+		if (appProfile.getQueryProtocolScheme(ID).equals("https")) {
+			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
+			if(!getToken()) {
+				client.close();
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+			}
+		}
+		else client = new SPARQL11Protocol();
+		
+		Response ret = client.query(new QueryRequest(appProfile.getQueryMethod(ID),
+				appProfile.getQueryProtocolScheme(ID), appProfile.getQueryHost(ID), appProfile.getQueryPort(ID),
+				appProfile.getQueryPath(ID), prefixes() + replaceBindings(sparql, forced),
+				timeout, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
+				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
+		client.close();
 
+		return ret;
+	}
+	
+	public Response subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+
+		// Create client
 		String url;
 		if (appProfile.getSubscribeProtocol(ID).equals(SubscriptionProtocol.WS)) {
 			url = "ws_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
@@ -112,25 +179,84 @@ public class GenericClient extends Client {
 			case WSS:
 				protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
 						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), true);
+				
+				if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+				
 				break;
 			}
-			
-			subscribedClients.put(url,new SPARQL11SEProtocol(appProfile,protocol, handler));
+
+			subscribedClients.put(url, new SPARQL11SEProtocol(protocol, handler));
 		}
 
+		// Send request
+		SubscribeRequest req = new SubscribeRequest(prefixes() + replaceBindings(sparql, forced),
+				null, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
+				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
+		
 		Response ret = subscribedClients.get(url).subscribe(req);
 
+		// Parse response
+		if (ret.isSubscribeResponse())
+			subscriptions.put(((SubscribeResponse) ret).getSpuid(), subscribedClients.get(url));
+
+		return ret;
+	}
+	
+	public Response subscribe(String ID, Bindings forced, ISubscriptionHandler handler)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+
+		// Create client
+		String url;
+		if (appProfile.getSubscribeProtocol(ID).equals(SubscriptionProtocol.WS)) {
+			url = "ws_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
+					+ appProfile.getSubscribePath(ID);
+		} else {
+			url = "wss_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
+					+ appProfile.getSubscribePath(ID);
+		}
+		if (!subscribedClients.containsKey(url)) {
+			ISubscriptionProtocol protocol = null;
+			switch (appProfile.getSubscribeProtocol(ID)) {
+			case WS:
+				protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
+						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), false);
+				break;
+			case WSS:
+				protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
+						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), true);
+				
+				if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+				
+				break;
+			}
+
+			subscribedClients.put(url, new SPARQL11SEProtocol(protocol, handler));
+		}
+
+		// Send request
+		SubscribeRequest req = new SubscribeRequest(prefixes() + replaceBindings(appProfile.getSPARQLQuery(ID), forced),
+				null, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
+				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
+		
+		Response ret = subscribedClients.get(url).subscribe(req);
+
+		// Parse response
 		if (ret.isSubscribeResponse())
 			subscriptions.put(((SubscribeResponse) ret).getSpuid(), subscribedClients.get(url));
 
 		return ret;
 	}
 
-	public Response unsubscribe(String subID) {
+	public Response unsubscribe(String subID) throws SEPASecurityException, IOException, SEPAPropertiesException {
 		if (!subscriptions.containsKey(subID))
-			return new ErrorResponse(400, subID + " not present");
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, subID + " not present");
 
-		return subscriptions.get(subID).unsubscribe(new UnsubscribeRequest(subID));
+		if (subscriptions.get(subID).isSecure()) {
+			if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+		}
+		
+		return subscriptions.get(subID).unsubscribe(
+				new UnsubscribeRequest(subID, appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
 	}
 
 	@Override
@@ -139,61 +265,18 @@ public class GenericClient extends Client {
 			client.close();
 	}
 
-//	public Response secureUpdate(String SPARQL_UPDATE, Bindings forced) {
-//		return protocolClient.secureUpdate(new UpdateRequest(prefixes() + replaceBindings(SPARQL_UPDATE, forced)));
-//	}
-//
-//	public Response query(String SPARQL_QUERY, Bindings forced) {
-//		return protocolClient.query(new QueryRequest(prefixes() + replaceBindings(SPARQL_QUERY, forced)));
-//	}
-//
-//	public Response secureQuery(String SPARQL_QUERY, Bindings forced) {
-//		return protocolClient.secureQuery(new QueryRequest(prefixes() + replaceBindings(SPARQL_QUERY, forced)));
-//	}
-//
-//	public Response secureSubscribe(String SPARQL_SUBSCRIBE, Bindings forced) {
-//		return protocolClient
-//				.secureSubscribe(new SubscribeRequest(prefixes() + replaceBindings(SPARQL_SUBSCRIBE, forced)));
-//	}
-//
-//	public Response secureUnsubscribe(String subID) {
-//		return protocolClient.secureUnsubscribe(new UnsubscribeRequest(subID));
-//	}
+	// Registration to the Authorization Server (AS)
+	public Response register(String identity) throws SEPASecurityException, SEPAPropertiesException {
+		SEPASecurityManager security = new SEPASecurityManager();
 
-//	// Registration to the Authorization Server (AS)
-//	public Response register(String identity) {
-//		SPARQL11SEProtocol client = new SPARQL11SEProtocol();
-//		Response ret = client.register(identity);
-//		try {
-//			client.close();
-//		} catch (IOException e) {
-//			logger.warn(e.getMessage());
-//		}
-//		return ret;
-//	}
-//
-//	// Token request to the Authorization Server (AS)
-//	public Response requestToken() {
-//		SPARQL11SEProtocol client = new SPARQL11SEProtocol();
-//		Response ret = client.requestToken();
-//		try {
-//			client.close();
-//		} catch (IOException e) {
-//			logger.warn(e.getMessage());
-//		}
-//		return ret;
-//	}
-//
-//	// Retrieve the token expiring seconds
-//	public long getTokenExpiringSeconds() throws SEPASecurityException {
-//		SPARQL11SEProtocol client = new SPARQL11SEProtocol();
-//		long ret = client.getTokenExpiringSeconds();
-//		try {
-//			client.close();
-//		} catch (IOException e) {
-//			logger.warn(e.getMessage());
-//		}
-//		return ret;
-//	}
+		Response ret = security.register(appProfile.getAuthenticationProperties().getRegisterUrl(), identity);
 
+		if (ret.isRegistrationResponse()) {
+			RegistrationResponse registration = (RegistrationResponse) ret;
+			appProfile.getAuthenticationProperties().setCredentials(registration.getClientId(),
+					registration.getClientSecret());
+		}
+
+		return ret;
+	}
 }

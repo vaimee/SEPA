@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.apps.mqtt;
 
+import java.io.IOException;
 import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
@@ -11,17 +12,17 @@ import com.google.gson.JsonObject;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class MQTTInitializer extends Producer {
 	private static final Logger logger = LogManager.getLogger();
 	
 	public MQTTInitializer() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
-		super(new ApplicationProfile("mqtt.jsap"), "ADD_OBSERVATION");
+		super(new JSAP("mqtt.jsap"), "ADD_OBSERVATION");
 	}
 	
-	public void init() {
+	public void init() throws SEPASecurityException, IOException, SEPAPropertiesException {
 		logger.info("Parse semantic mappings");
 		JsonObject mappings = getApplicationProfile().getExtendedData().get("semantic-mappings")
 				.getAsJsonObject();
@@ -30,7 +31,7 @@ public class MQTTInitializer extends Producer {
 		for (Entry<String, JsonElement> mapping : mappings.entrySet()) addObservation(mapping);	
 	}
 	
-	private void addObservation(Entry<String, JsonElement> mapping) {
+	private void addObservation(Entry<String, JsonElement> mapping) throws SEPASecurityException, IOException, SEPAPropertiesException {
 		String topic = mapping.getKey();
 
 		String observation = mapping.getValue().getAsJsonObject().get("observation").getAsString();
