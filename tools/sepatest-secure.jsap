@@ -4,12 +4,12 @@
 		"protocol": "https",
 		"port": 8443,
 		"query": {
-			"path": "/query",
+			"path": "/secure/query",
 			"method": "POST",
 			"format": "JSON"
 		},
 		"update": {
-			"path": "/update",
+			"path": "/secure/update",
 			"method": "POST",
 			"format": "JSON"
 		}
@@ -23,18 +23,17 @@
 			},
 			"wss": {
 				"port": 9443,
-				"path": "/subscribe"
+				"path": "/secure/subscribe"
 			}
 		}
 	},
 	"authentication": {
-		"register": "/oauth/register",
-		"tokenRequest": "/oauth/token",
-		"securePath": "/secure",
-		"client_id": "ryd7aRCosLlFYowQ5jid0lOlEdMhmbBFFCRZy6fA8KZtsQnuqhfg1zXbzCxpNPih",
-		"client_secret": "N5UgtT0EWMYV3aIsC+iyAB5kk2maR8MrEXV1+NaEocLFz4eYeVT1mKoRIDwgbpsJ",
-		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfsRgSntEVGcQQR//AJ7psDRK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYmjDdzXXWr/jf1HAP4lTU6IeQqN57UDzW9Mr4Y/+5CnidJI5/KxklwtkuhlzeMQupyx34x2j1BAIJLuPIZHnU1oufaKo3I4b6us1FC0JxtftwpFmv5bnXCHKhsygqwQiqSoS6//kP9HugQjTW7b7kFcUsSriJhJNxztijHcYC1YSpLts3699qLcVmlh0+rF5lDncLv15C4CrA4Ro5BGp6AoAChOSB9WFxmivcFefl9V01XlsXMV64aVHzjFMWWXeLR0TXTDIih8LRJKFcAmM4M6ULqqyl9ELprG9axFSN2GINfkTopEKcGeCWEwJRbHxzor7qgxAzafboWDRb1J0DQxvTNuzK47b9i8QGRiWVkiS6rGnAArdIIiLLPzqOfR0/aGwuFrHfGoxxrJJvatKH9+IwZKW/lSg5XU23MSqKrLALOCInXDVMiK25w0nAff4P0hAnCEkUzkntRbGTrcPuUV8j298e7/NmelTlHqw8xZMf+0iZMBQrgzuXWni4Ok9+bMu65HZ4pBHEBJz5296s093a9/GHcRZaL6jUwd31/MD08PdBu6SYUVS7YKqND6U1jKt9w25i4xnOoJ9sBPcIMDCmgia/gqjR8kaTSgABEogibvwQvDnLpgcHKkh7U5lRegzxeDVO1V63Xj1tJgeGbB",
-		"expires": "QWAE7shP6t6lAuzmw5A8ZQ==",
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token",
+		"client_id": "/Jl3tCgdcITFDGwvZc1uU6HIXFrzRG86TipxeMlTLHTTcDxv7Jd8WwGbDcnCsOXu",
+		"client_secret": "5hxu6NNu1b90apLo+enncmVqBb4TZ52TgfS9/Odv83XKz54Qn6XxcFozCPfXgkCE",
+		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfs6S0KjyGmz2uItkCJ9H74fK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkYWKxOC4COdNRtVu7rg5GSB/eB7UZs7f+B0WqYL4JnSCRFlsQfvdfz4qcBG54NaCBo8DVzJgepsV9VehT9P5QEe+x5IyPbGA90/889ZMzfn/8nTgaq2PSsFXnhEC/E3qocmsViba+3Fgbf/uV31v42WrAwgEYotiOauU4ovw8uXwP+jVuwPPt0DlduAiHaAZtspq00sDIJxdyLrNHnSUpSAYQ4TgE/lY850QsapHjDbziwOREkq3JIZZ23cIA03pG0NQHFmIClRlogDWwmjYIdyCk6lP5UH07HDnm+RF1FSig6VBfhRbikGJEFfYH1rEuN2eXpEeM8AnpSb+/dv9Yk/X/Dw4PQG+4KN9jZm4YmLiIuHI3dkgGdG+GMCrHH+xvMEyVd7jS5VPeLpQ9WsH/6JfgrekfTyswiEt/WVzmIs+kqov27hqNfwdeUuFqKIgtVTONLbaNoPrRZUaf3PBTfZFoDWhCRiJSeEDToBLT2n/NADkun6gRrFRLjrrfbvQVLrLrj9ExO746qi+1CQnozl25naixdbmcCRytzXX4jsmLCJRjFJm4eioUXe5jfTR8vfiEL3Gtzmaq67dtE68leMZenuuAy5MLtPTkxRACANPvvce1/g7mjmG5ZeLp5XR65q4TYyHQbKkoYFZkOhLoW",
+		"expires": "X1z+7ZLml+hDHC2fIp47NQ==",
 		"type": "XPrHEX2xHy+5IuXHPHigMw=="
 	},
 	"graphs": {
@@ -63,19 +62,9 @@
 				"passed": true
 			},
 			{
-				"name": "Get token",
-				"type": "GET_TOKEN",
-				"passed": true
-			},
-			{
 				"name": "Update (secure)",
 				"type": "UPDATE",
 				"id": "U1",
-				"passed": true
-			},
-			{
-				"name": "Get token",
-				"type": "GET_TOKEN",
 				"passed": true
 			},
 			{
@@ -86,20 +75,10 @@
 				"passed": true
 			},
 			{
-				"name": "Get token",
-				"type": "GET_TOKEN",
-				"passed": true
-			},
-			{
 				"name": "Subscribe (secure)",
 				"type": "SUBSCRIBE",
 				"id": "Q1",
 				"results": 1,
-				"passed": true
-			},
-			{
-				"name": "Get token",
-				"type": "GET_TOKEN",
 				"passed": true
 			},
 			{
@@ -115,18 +94,8 @@
 				"passed": true
 			},
 			{
-				"name": "Get token",
-				"type": "GET_TOKEN",
-				"passed": true
-			},
-			{
 				"name": "Unsubscribe (secure)",
 				"type": "UNSUBSCRIBE",
-				"passed": true
-			},
-			{
-				"name": "Get token",
-				"type": "GET_TOKEN",
 				"passed": true
 			},
 			{
@@ -144,10 +113,10 @@
 	},
 	"updates": {
 		"U1": {
-			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {?s ?p ?o}"
+			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {OPTIONAL{?s ?p ?o}}"
 		},
 		"U2": {
-			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P 123} where {?s ?p ?o}"
+			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P 123} where {OPTIONAL{?s ?p ?o}}"
 		}
 	},
 	"queries": {

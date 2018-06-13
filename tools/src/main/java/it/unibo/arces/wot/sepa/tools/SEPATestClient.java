@@ -356,23 +356,23 @@ public class SEPATestClient {
 		Scanner scanner = new Scanner(System.in);
 		scanner.useDelimiter("\\n"); // "\\z" means end of input
 		String input = scanner.next();
-		if (!input.equals("yes")) {
-			scanner.close();
-			System.out.println("Bye bye! :-)");
-			System.exit(0);
-		}
-		System.out.println("**********************************************************");
-		System.out.println("***                Are you sure (yes/no)?              ***");
-		System.out.println("**********************************************************");
-		input = scanner.next();
-		if (!input.equals("yes")) {
-			scanner.close();
-			System.out.println("Bye bye! :-)");
-			System.exit(0);
-		}
 		scanner.close();
+		if (!input.equals("yes")) {
+			System.out.println("Bye bye! :-)");
+			System.exit(0);
+		}
+//		System.out.println("**********************************************************");
+//		System.out.println("***                Are you sure (yes/no)?              ***");
+//		System.out.println("**********************************************************");
+//		input = scanner.next();
+//		if (!input.equals("yes")) {
+//			scanner.close();
+//			System.out.println("Bye bye! :-)");
+//			System.exit(0);
+//		}
+//		scanner.close();
 		
-		SEPATestClient test = new SEPATestClient(new JSAP("sepatest.jsap"));
+		SEPATestClient test = new SEPATestClient(new JSAP("sepatest-secure.jsap"));
 		test.run();
 		
 		//test = new SEPATestClient(new ApplicationProfile("sepatest-secure.jsap"));
