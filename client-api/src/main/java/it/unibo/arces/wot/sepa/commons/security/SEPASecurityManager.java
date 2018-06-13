@@ -202,7 +202,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 	}
 
 	public SEPASecurityManager() throws SEPASecurityException {
-		this("http","sepa.jks","sepa2017","sepa2017");
+		this("TLSv1","sepa.jks","sepa2017","sepa2017");
 	}
 	/**
 	 * Gets the SSL context.
@@ -283,6 +283,8 @@ public class SEPASecurityManager implements HostnameVerifier {
 			httpRequest.setHeader("Content-Type", "application/json");
 			httpRequest.setHeader("Accept",  "application/json");
 			httpRequest.setEntity(body);
+			
+			logger.trace(httpRequest);
 			
 			response = getSSLHttpClient().execute(httpRequest);
 			
