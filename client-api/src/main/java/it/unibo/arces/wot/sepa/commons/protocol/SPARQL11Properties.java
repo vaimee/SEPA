@@ -307,11 +307,14 @@ public class SPARQL11Properties {
 
 	/**
 	 * Gets the default graph URI.
-	 *
-	 * "graphs": { "default-graph-uri": "http://default", "named-graph-uri":
-	 * "http://default", "using-graph-uri": "http://default",
-	 * "using-named-graph-uri": "http://default" }
-	 * 
+<pre>
+"graphs": { 
+	"default-graph-uri": "http://default", 
+	"named-graph-uri": "http://default", 
+	"using-graph-uri": "http://default",
+	"using-named-graph-uri": "http://default"
+}
+</pre> 
 	 * @return the default graph URI
 	 */
 	public String getDefaultGraphURI() {
@@ -325,10 +328,14 @@ public class SPARQL11Properties {
 	/**
 	 * Gets the named graph URI.
 	 *
-	 * "graphs": { "default-graph-uri ": "http://default", "named-graph-uri":
-	 * "http://default", "using-graph-uri": "http://default",
-	 * "using-named-graph-uri": "http://default" }
-	 * 
+<pre>
+"graphs": { 
+	"default-graph-uri": "http://default", 
+	"named-graph-uri": "http://default", 
+	"using-graph-uri": "http://default",
+	"using-named-graph-uri": "http://default"
+}
+</pre> 
 	 * @return the default graph URI
 	 */
 	public String getNamedGraphURI() {
@@ -342,10 +349,14 @@ public class SPARQL11Properties {
 	/**
 	 * Gets the using graph URI.
 	 *
-	 * "graphs": { "default-graph-uri ": "http://default", "named-graph-uri":
-	 * "http://default", "using-graph-uri": "http://default",
-	 * "using-named-graph-uri": "http://default" }
-	 * 
+<pre>
+"graphs": { 
+	"default-graph-uri": "http://default", 
+	"named-graph-uri": "http://default", 
+	"using-graph-uri": "http://default",
+	"using-named-graph-uri": "http://default"
+}
+</pre> 
 	 * @return the default graph URI
 	 */
 	public String getUsingGraphURI() {
@@ -359,10 +370,14 @@ public class SPARQL11Properties {
 	/**
 	 * Gets the using named graph URI.
 	 *
-	 * "graphs": { "default-graph-uri ": "http://default", "named-graph-uri":
-	 * "http://default", "using-graph-uri": "http://default",
-	 * "using-named-graph-uri": "http://default" }
-	 * 
+<pre>
+"graphs": { 
+	"default-graph-uri": "http://default", 
+	"named-graph-uri": "http://default", 
+	"using-graph-uri": "http://default",
+	"using-named-graph-uri": "http://default"
+}
+</pre> 
 	 * @return the default graph URI
 	 */
 	public String getUsingNamedGraphURI() {

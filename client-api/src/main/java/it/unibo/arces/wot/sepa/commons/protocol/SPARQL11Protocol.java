@@ -130,7 +130,10 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			// Body
 			responseEntity = httpResponse.getEntity();
 			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
-			logger.debug(String.format("Response code: %d #%d", responseCode, request.getToken()));
+			if (request.getToken() != -1)
+				logger.debug(String.format("Response code: %d #%d", responseCode, request.getToken()));
+			else
+				logger.debug(String.format("Response code: %d", responseCode));
 			EntityUtils.consume(responseEntity);
 
 			// http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.html#d5e279

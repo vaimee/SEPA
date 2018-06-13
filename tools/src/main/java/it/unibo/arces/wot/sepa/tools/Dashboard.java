@@ -469,7 +469,7 @@ public class Dashboard {
 					rows.add(row);
 				}
 			}
-			
+
 			if (chckbxAutoscroll.isSelected())
 				if (spuid != null)
 					subscriptionResultsTables.get(spuid)
@@ -813,8 +813,10 @@ public class Dashboard {
 		lblInfo.setToolTipText("JSAP loaded");
 
 		try {
-			if (sepaClient == null) sepaClient = new GenericClient(appProfile);
-			else sepaClient.changeProfile(appProfile);
+			if (sepaClient == null)
+				sepaClient = new GenericClient(appProfile);
+			else
+				sepaClient.changeProfile(appProfile);
 		} catch (SEPAProtocolException | SEPASecurityException e) {
 			logger.error(e.getMessage());
 			System.exit(-1);
@@ -1585,10 +1587,12 @@ public class Dashboard {
 			else
 				bindings.addBinding(variable, new RDFTermLiteral(value, type));
 		}
+
 		try {
 			Instant start = Instant.now();
-		Response ret = sepaClient.subscribe(queryID, querySPARQL.getText(),bindings, handler);
+			Response ret = sepaClient.subscribe(queryID, querySPARQL.getText(), bindings, handler);
 			Instant stop = Instant.now();
+			
 			if (ret.isError())
 				lblInfo.setText(
 						ret.toString() + String.format(" (%d ms)", (stop.toEpochMilli() - start.toEpochMilli())));
@@ -1596,9 +1600,8 @@ public class Dashboard {
 				String spuid = ((SubscribeResponse) ret).getSpuid();
 				BindingsResults results = ((SubscribeResponse) ret).getBindingsResults();
 
-				lblInfo.setText(
-						String.format("Subscribed in %d ms (first results: %d)",
-								 (stop.toEpochMilli() - start.toEpochMilli()),results.size()));
+				lblInfo.setText(String.format("Subscribed in %d ms (first results: %d)",
+						(stop.toEpochMilli() - start.toEpochMilli()), results.size()));
 
 				// Subscription panel
 				JPanel sub = new JPanel();
@@ -1638,8 +1641,7 @@ public class Dashboard {
 							subscriptionResultsDM.remove(spuid);
 							subscriptionResultsLabels.remove(spuid);
 							subscriptionResultsTables.remove(spuid);
-						}
-						else
+						} else
 							subscriptionResultsLabels.get(spuid).setText(response.toString());
 					}
 				});
@@ -1670,8 +1672,8 @@ public class Dashboard {
 
 				// Add tab
 				subscriptions.add(sub, layoutFill);
-				
-				subscriptions.setSelectedIndex(subscriptions.getTabCount()-1);
+
+				subscriptions.setSelectedIndex(subscriptions.getTabCount() - 1);
 				mainTabs.setSelectedIndex(1);
 			}
 		} catch (SEPAProtocolException | SEPASecurityException e) {
@@ -1691,12 +1693,13 @@ public class Dashboard {
 			else if (type.equals("BNODE"))
 				bindings.addBinding(variable, new RDFTermBNode(value));
 			else
-				bindings.addBinding(variable, new RDFTermLiteral(value,type));
+				bindings.addBinding(variable, new RDFTermLiteral(value, type));
 		}
 
 		try {
 			Instant start = Instant.now();
-			Response ret = sepaClient.query(queryID,querySPARQL.getText(),bindings,Integer.parseInt(queryTimeout.getText()));
+			Response ret = sepaClient.query(queryID, querySPARQL.getText(), bindings,
+					Integer.parseInt(queryTimeout.getText()));
 			Instant stop = Instant.now();
 			if (ret.isError())
 				lblInfo.setText(
@@ -1724,12 +1727,13 @@ public class Dashboard {
 			else if (type.equals("BNODE"))
 				bindings.addBinding(variable, new RDFTermBNode(value));
 			else
-				bindings.addBinding(variable, new RDFTermLiteral(value,type));
+				bindings.addBinding(variable, new RDFTermLiteral(value, type));
 		}
 
 		try {
 			Instant start = Instant.now();
-			Response ret = sepaClient.update(updateID, updateSPARQL.getText(), bindings,Integer.parseInt(updateTimeout.getText()));
+			Response ret = sepaClient.update(updateID, updateSPARQL.getText(), bindings,
+					Integer.parseInt(updateTimeout.getText()));
 			Instant stop = Instant.now();
 			if (ret.isError())
 				lblInfo.setText(

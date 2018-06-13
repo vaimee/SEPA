@@ -103,14 +103,22 @@ public class UpdateRequest extends Request {
 	 * using-graph-uri and using-named-graph-uri parameters.
 	 */
 	
-	public String getUsingGraphUri() throws UnsupportedEncodingException {
+	public String getUsingGraphUri() {
 		if (using_graph_uri == null) return null;
-		return URLDecoder.decode(using_graph_uri,"UTF-8");
+		try {
+			return URLDecoder.decode(using_graph_uri,"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
 	}
 
-	public String getUsingNamedGraphUri() throws UnsupportedEncodingException {
+	public String getUsingNamedGraphUri() {
 		if (using_named_graph_uri == null) return null;
-		return URLDecoder.decode(using_named_graph_uri,"UTF-8");
+		try {
+			return URLDecoder.decode(using_named_graph_uri,"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
 	}
 
 	public String getAcceptHeader() {

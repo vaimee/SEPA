@@ -18,10 +18,8 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Semaphore;
 
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -59,18 +57,15 @@ public class UpdateProcessor {
 
 		// UPDATE the endpoint
 		Response ret;
-		try {
-			ret = endpoint.update(new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
-					properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
-					properties.getUpdatePath(), req.getSPARQL(), req.getTimeout(), req.getUsingGraphUri(),
-					req.getUsingNamedGraphUri(),req.getAuthorizationHeader()));
-		} catch (UnsupportedEncodingException e) {
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-		} finally {
-			if (endpointSemaphore != null)
-				endpointSemaphore.release();
-		}
-		
+
+		ret = endpoint.update(new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
+				properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
+				properties.getUpdatePath(), req.getSPARQL(), req.getTimeout(), req.getUsingGraphUri(),
+				req.getUsingNamedGraphUri(), req.getAuthorizationHeader()));
+
+		if (endpointSemaphore != null)
+			endpointSemaphore.release();
+
 		long stop = Timings.getTime();
 		logger.trace("Response: " + ret.toString());
 		Timings.log("UPDATE_PROCESSING_TIME", start, stop);

@@ -189,7 +189,7 @@ public class Engine implements EngineMBean {
 				.println("# GITHUB: https://github.com/arces-wot/sepa                                              #");
 		System.out
 				.println("# WEB: http://site.unibo.it/wot                                                          #");
-		System.out.println("# WIKI: https://github.com/arces-wot/SEPA/wiki                                         #");
+		System.out.println("# WIKI: https://github.com/arces-wot/SEPA/wiki                                           #");
 		System.out
 				.println("##########################################################################################");
 
@@ -350,7 +350,7 @@ public class Engine implements EngineMBean {
 		if (!properties.isSecure()) {
 			System.out.println("Stopping HTTP gate...");
 			httpGate.shutdown();
-			
+
 			try {
 				System.out.println("Stopping WS gate...");
 				wsServer.stop(wsShutdownTimeout);
@@ -362,7 +362,7 @@ public class Engine implements EngineMBean {
 		if (properties.isSecure()) {
 			System.out.println("Stopping HTTPS gate...");
 			httpsGate.shutdown();
-			
+
 			try {
 				System.out.println("Stopping WSS gate...");
 				wssServer.stop(wsShutdownTimeout);
