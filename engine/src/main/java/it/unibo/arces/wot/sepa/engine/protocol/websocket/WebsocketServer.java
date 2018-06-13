@@ -4,11 +4,9 @@ import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-import java.time.Instant;
 import java.util.HashMap;
 
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,6 +29,7 @@ import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class WebsocketServer extends WebSocketServer implements WebsocketServerMBean {
 	private static final Logger logger = LogManager.getLogger();
@@ -42,7 +41,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	}
 
 	protected String welcomeMessage;
-	
+
 	private String path;
 
 	// Fragmentation support
@@ -57,8 +56,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	// Dependability manager
 	private DependabilityManager dependabilityMng;
 
-	public WebsocketServer(int port, String path, Scheduler scheduler,
-			DependabilityManager dependabilityMng) throws SEPAProtocolException {
+	public WebsocketServer(int port, String path, Scheduler scheduler, DependabilityManager dependabilityMng)
+			throws SEPAProtocolException {
 		super(new InetSocketAddress(port));
 
 		if (path == null || scheduler == null || dependabilityMng == null)
@@ -67,7 +66,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		this.scheduler = scheduler;
 		this.dependabilityMng = dependabilityMng;
 		this.path = path;
-		
+
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 
 		String address = getAddress().getAddress().toString();
@@ -84,24 +83,27 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-		logger.debug("@onOpen WebSocket: <" + conn + ">" + " Resource descriptor: "+conn.getResourceDescriptor());
+		logger.debug("@onOpen WebSocket: <" + conn + ">" + " Resource descriptor: " + conn.getResourceDescriptor());
 
 		if (!conn.getResourceDescriptor().equals(path)) {
-			logger.warn("Bad resource descriptor: "+conn.getResourceDescriptor()+ " Use: "+path);
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad resource descriptor: "+conn.getResourceDescriptor()+ " Use: "+path);
+			logger.warn("Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST,
+					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 			conn.send(response.toString());
-			return ;	
+			return;
 		}
-		
+
 		fragmentedMessages.put(conn, null);
 	}
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-		logger.debug("@onClose WebSocket:<"+conn+"> Reason: <" + reason + "> Code: <" + code + "> Remote: <" + remote + ">");
+		logger.debug("@onClose WebSocket:<" + conn + "> Reason: <" + reason + "> Code: <" + code + "> Remote: <"
+				+ remote + ">");
 
-		if (!conn.getResourceDescriptor().equals(path)) return;
-			
+		if (!conn.getResourceDescriptor().equals(path))
+			return;
+
 		fragmentedMessages.remove(conn);
 
 		// Unsubscribe all SPUs
@@ -113,22 +115,22 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
-		Instant start = Instant.now();
-		
 		jmx.onMessage();
 
 		logger.debug("Message from: " + conn.getRemoteSocketAddress() + " [" + message + "]");
 
 		if (!conn.getResourceDescriptor().equals(path)) {
-			logger.warn("Bad resource descriptor: "+conn.getResourceDescriptor()+ " Use: "+path);
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad resource descriptor: "+conn.getResourceDescriptor()+ " Use: "+path);
+			logger.warn("Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST,
+					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 			conn.send(response.toString());
-			return ;	
+			return;
 		}
-		
+
 		// Parse the request
-		Request req = parseRequest(message,conn);
-		if (req == null) return;
+		Request req = parseRequest(message, conn);
+		if (req == null)
+			return;
 
 		// Add active socket
 		if (!activeSockets.containsKey(conn)) {
@@ -136,77 +138,69 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		}
 		activeSockets.get(conn).startTiming();
 
-		if(req.isQueryRequest()) {
-			logger.log(Level.getLevel("timing"), "QUERY" + " " + req.getToken()+ " SCHEDULING "+Instant.now().getNano());
-			logger.log(Level.getLevel("timing"), "QUERY"  + " " + req.getToken()+ " REQUEST "+start.getNano());
-		}		
-		else if (req.isUpdateRequest()) {
-			logger.log(Level.getLevel("timing"), "UPDATE" + " " + req.getToken()+ " SCHEDULING "+Instant.now().getNano());
-			logger.log(Level.getLevel("timing"), "UPDATE"  + " " + req.getToken()+ " REQUEST "+start.getNano());
-		}
-		else if (req.isSubscribeRequest()) {
-			logger.log(Level.getLevel("timing"), "SUBSCRIBE" + " " + req.getToken()+ " SCHEDULING "+Instant.now().getNano());
-			logger.log(Level.getLevel("timing"), "SUBSCRIBE"  + " " + req.getToken()+ " REQUEST "+start.getNano());
-		}
-		else {
-			logger.log(Level.getLevel("timing"), "UNSUBSCRIBE" + " " + req.getToken()+ " SCHEDULING "+Instant.now().getNano());
-			logger.log(Level.getLevel("timing"), "UNSUBSCRIBE"  + " " + req.getToken()+ " REQUEST "+start.getNano());
-		}
-		
+		Timings.log(req);
+
 		// Schedule the request
 		scheduler.schedule(req, activeSockets.get(conn));
 	}
 
-	/*
+	/**
 	 * SPARQL 1.1 Subscribe language
 	 * 
-	 * {"subscribe":{"sparql":"SPARQL Query 1.1", "authorization": "Bearer JWT",
-	 * "alias":"an alias for the subscription"}}
-	 * 
-	 * {"unsubscribe":{"spuid":"SPUID", "authorization": "Bearer JWT"}}
-	 * 
-	 * If security is not required (i.e., ws), authorization key MAY be missing
+	 * <pre>
+	{"subscribe":{
+		"sparql":"SPARQL Query 1.1", 
+		"authorization": "Bearer JWT", (optional)
+		"alias":"an alias for the subscription", (optional)
+		"default-graph-uri": "graphURI", (optional)
+		"named-graph-uri": "graphURI" (optional)
+	}}
+	
+	{"unsubscribe":{
+		"spuid":"SPUID", 
+		"authorization": "Bearer JWT" (optional)
+	}}
+	 * </pre>
 	 */
-	protected Request parseRequest(String request,WebSocket conn)
+	protected Request parseRequest(String request, WebSocket conn)
 			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException {
 		JsonObject req;
 
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
-			
+
 			if (req.has("subscribe")) {
 				String sparql = null;
 				String alias = null;
 				String defaultGraphUri = null;
 				String namedGraphUri = null;
-				
+
 				try {
 					sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
-				}
-				catch(Exception e) {
+				} catch (Exception e) {
 					logger.error("SPARQL member not found");
 					return null;
 				}
-				
+
 				try {
 					alias = req.get("subscribe").getAsJsonObject().get("alias").getAsString();
+				} catch (Exception e) {
 				}
-				catch(Exception e) {}
-				
+
 				try {
 					defaultGraphUri = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsString();
+				} catch (Exception e) {
 				}
-				catch(Exception e) {}
-				
+
 				try {
 					namedGraphUri = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsString();
+				} catch (Exception e) {
 				}
-				catch(Exception e) {}
-				
-				return new SubscribeRequest(sparql,alias,defaultGraphUri,namedGraphUri,null);
-			} 
-			else if (req.has("unsubscribe")) return new UnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
-			
+
+				return new SubscribeRequest(sparql, alias, defaultGraphUri, namedGraphUri, null);
+			} else if (req.has("unsubscribe"))
+				return new UnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
+
 		} catch (Exception e) {
 			logger.debug(e.getLocalizedMessage());
 			ErrorResponse response = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -214,8 +208,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			return null;
 		}
 
-		logger.debug("Bad request: "+request);
-		ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request: "+request);
+		logger.debug("Bad request: " + request);
+		ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request: " + request);
 		conn.send(response.toString());
 		return null;
 	}
@@ -229,10 +223,11 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onFragment(WebSocket conn, Framedata fragment) {
-		logger.debug("@onFragment WebSocket: <" +conn+"> Fragment data:<"+ fragment+">");
+		logger.debug("@onFragment WebSocket: <" + conn + "> Fragment data:<" + fragment + ">");
 
-		if (!conn.getResourceDescriptor().equals(path)) return;
-		
+		if (!conn.getResourceDescriptor().equals(path))
+			return;
+
 		if (fragmentedMessages.get(conn) == null)
 			fragmentedMessages.put(conn, new String(fragment.getPayloadData().array(), Charset.forName("UTF-8")));
 		else
@@ -253,8 +248,9 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	public void onError(WebSocket conn, Exception ex) {
 		logger.error("@onError WebSocket: <" + conn + "> Exception: " + ex);
 
-		if (!conn.getResourceDescriptor().equals(path)) return;
-		
+		if (!conn.getResourceDescriptor().equals(path))
+			return;
+
 		jmx.onError();
 	}
 

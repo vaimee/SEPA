@@ -53,14 +53,14 @@ public class QueryRequest extends Request {
 		super(sparql);
 	}
 
-	public QueryRequest(String sparql,String default_graph_uri,String named_graph_uri) throws UnsupportedEncodingException {
+	public QueryRequest(String sparql,String default_graph_uri,String named_graph_uri) {
 		super(sparql);
 		
 		this.default_graph_uri = default_graph_uri;
 		this.named_graph_uri = named_graph_uri;
 	}
 	
-	public QueryRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String default_graph_uri,String named_graph_uri,String authorization) throws UnsupportedEncodingException {
+	public QueryRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String default_graph_uri,String named_graph_uri,String authorization) {
 		super(token,sparql);
 		
 		super.method = method;
@@ -77,7 +77,7 @@ public class QueryRequest extends Request {
 	}
 	
 	public QueryRequest(HTTPMethod queryMethod, String queryProtocolScheme, String queryHost, int queryPort,
-			String queryPath, String string, int timeout, String defaultGraphURI, String namedGraphURI,String authorization) throws UnsupportedEncodingException {
+			String queryPath, String string, int timeout, String defaultGraphURI, String namedGraphURI,String authorization) {
 		this(-1,queryMethod,  queryProtocolScheme,  queryHost,  queryPort,queryPath,  string,  timeout,  defaultGraphURI,  namedGraphURI,authorization);
 	}
 
@@ -94,13 +94,21 @@ public class QueryRequest extends Request {
 		return "application/sparql-results+json";
 	}
 
-	public String getDefaultGraphUri() throws UnsupportedEncodingException {
+	public String getDefaultGraphUri() {
 		if (default_graph_uri == null) return null;
-		return URLDecoder.decode(default_graph_uri,"UTF-8");
+		try {
+			return URLDecoder.decode(default_graph_uri,"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
 	}
 
-	public String getNamedGraphUri() throws UnsupportedEncodingException {
+	public String getNamedGraphUri() {
 		if (named_graph_uri == null) return null;
-		return URLDecoder.decode(named_graph_uri,"UTF-8");
+		try {
+			return URLDecoder.decode(named_graph_uri,"UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
 	}
 }

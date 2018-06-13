@@ -64,189 +64,35 @@ public class GenericClient extends Client {
 
 		addNamespaces(appProfile);
 	}
-
-	public Response update(String ID, String sparql, Bindings forced, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
-		SPARQL11Protocol client;
-
-		if (appProfile.getUpdateProtocolScheme(ID).equals("https")) {
-			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
-			if(!getToken()) {
-				client.close();
-				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
-			}
-		}
-		else client = new SPARQL11Protocol();
-
-		Response ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
-				appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
-				appProfile.getUpdatePath(ID), prefixes() + replaceBindings(sparql, forced),
-				timeout, appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID),
-				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
-		client.close();
-
-		return ret;
+	
+	public Response update(String ID, String sparql, Bindings forced, int timeout) throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+		return _update(ID,sparql,forced,timeout);
 	}
 	
-	public Response update(String ID, Bindings forced, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
-		SPARQL11Protocol client;
-
-		if (appProfile.getUpdateProtocolScheme(ID).equals("https")) {
-			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
-			if(!getToken()) {
-				client.close();
-				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
-			}
-		}
-		else client = new SPARQL11Protocol();
-
-		Response ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
-				appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
-				appProfile.getUpdatePath(ID), prefixes() + replaceBindings(appProfile.getSPARQLUpdate(ID), forced),
-				timeout, appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID),
-				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
-		client.close();
-
-		return ret;
-	}
-
-	public Response query(String ID, Bindings forced, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
-		SPARQL11Protocol client;
-
-		if (appProfile.getQueryProtocolScheme(ID).equals("https")) {
-			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
-			if(!getToken()) {
-				client.close();
-				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
-			}
-		}
-		else client = new SPARQL11Protocol();
-		
-		Response ret = client.query(new QueryRequest(appProfile.getQueryMethod(ID),
-				appProfile.getQueryProtocolScheme(ID), appProfile.getQueryHost(ID), appProfile.getQueryPort(ID),
-				appProfile.getQueryPath(ID), prefixes() + replaceBindings(appProfile.getSPARQLQuery(ID), forced),
-				timeout, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
-				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
-		client.close();
-
-		return ret;
+	public Response update(String ID, Bindings forced, int timeout) throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+		return _update(ID,null,forced,timeout);
 	}
 
 	public Response query(String ID, String sparql, Bindings forced, int timeout)
 			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
-		SPARQL11Protocol client;
-
-		if (appProfile.getQueryProtocolScheme(ID).equals("https")) {
-			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
-			if(!getToken()) {
-				client.close();
-				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
-			}
-		}
-		else client = new SPARQL11Protocol();
-		
-		Response ret = client.query(new QueryRequest(appProfile.getQueryMethod(ID),
-				appProfile.getQueryProtocolScheme(ID), appProfile.getQueryHost(ID), appProfile.getQueryPort(ID),
-				appProfile.getQueryPath(ID), prefixes() + replaceBindings(sparql, forced),
-				timeout, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
-				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
-		client.close();
-
-		return ret;
+		return _query(ID,sparql,forced,timeout);
+	}
+	
+	public Response query(String ID, Bindings forced, int timeout)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+		return _query(ID,null,forced,timeout);
 	}
 	
 	public Response subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler)
 			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
-
-		// Create client
-		String url;
-		if (appProfile.getSubscribeProtocol(ID).equals(SubscriptionProtocol.WS)) {
-			url = "ws_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
-					+ appProfile.getSubscribePath(ID);
-		} else {
-			url = "wss_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
-					+ appProfile.getSubscribePath(ID);
-		}
-		if (!subscribedClients.containsKey(url)) {
-			ISubscriptionProtocol protocol = null;
-			switch (appProfile.getSubscribeProtocol(ID)) {
-			case WS:
-				protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
-						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), false);
-				break;
-			case WSS:
-				protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
-						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), true);
-				
-				if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
-				
-				break;
-			}
-
-			subscribedClients.put(url, new SPARQL11SEProtocol(protocol, handler));
-		}
-
-		// Send request
-		SubscribeRequest req = new SubscribeRequest(prefixes() + replaceBindings(sparql, forced),
-				null, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
-				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
-		
-		Response ret = subscribedClients.get(url).subscribe(req);
-
-		// Parse response
-		if (ret.isSubscribeResponse())
-			subscriptions.put(((SubscribeResponse) ret).getSpuid(), subscribedClients.get(url));
-
-		return ret;
+		return _subscribe(ID,  sparql,  forced,  handler);
 	}
 	
 	public Response subscribe(String ID, Bindings forced, ISubscriptionHandler handler)
 			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
-
-		// Create client
-		String url;
-		if (appProfile.getSubscribeProtocol(ID).equals(SubscriptionProtocol.WS)) {
-			url = "ws_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
-					+ appProfile.getSubscribePath(ID);
-		} else {
-			url = "wss_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
-					+ appProfile.getSubscribePath(ID);
-		}
-		if (!subscribedClients.containsKey(url)) {
-			ISubscriptionProtocol protocol = null;
-			switch (appProfile.getSubscribeProtocol(ID)) {
-			case WS:
-				protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
-						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), false);
-				break;
-			case WSS:
-				protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
-						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), true);
-				
-				if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
-				
-				break;
-			}
-
-			subscribedClients.put(url, new SPARQL11SEProtocol(protocol, handler));
-		}
-
-		// Send request
-		SubscribeRequest req = new SubscribeRequest(prefixes() + replaceBindings(appProfile.getSPARQLQuery(ID), forced),
-				null, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
-				appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
-		
-		Response ret = subscribedClients.get(url).subscribe(req);
-
-		// Parse response
-		if (ret.isSubscribeResponse())
-			subscriptions.put(((SubscribeResponse) ret).getSpuid(), subscribedClients.get(url));
-
-		return ret;
+		return _subscribe(ID,  null,  forced,  handler);
 	}
-
+	
 	public Response unsubscribe(String subID) throws SEPASecurityException, IOException, SEPAPropertiesException {
 		if (!subscriptions.containsKey(subID))
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, subID + " not present");
@@ -255,9 +101,127 @@ public class GenericClient extends Client {
 			if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
 		}
 		
+		String auth = null;
+		try {
+			auth = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+		}
+		catch(Exception e) {}
+		
 		return subscriptions.get(subID).unsubscribe(
-				new UnsubscribeRequest(subID, appProfile.getAuthenticationProperties().getBearerAuthorizationHeader()));
+				new UnsubscribeRequest(subID, auth));
 	}
+	
+	private Response _update(String ID, String sparql, Bindings forced, int timeout)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+		SPARQL11Protocol client;
+
+		if (appProfile.getUpdateProtocolScheme(ID).equals("https")) {
+			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
+			if(!getToken()) {
+				client.close();
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+			}
+		}
+		else client = new SPARQL11Protocol();
+
+		String auth = null;
+		try {
+			auth = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+		}
+		catch(Exception e) {}
+		
+		if (sparql == null) sparql = appProfile.getSPARQLUpdate(ID);
+		Response ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
+				appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
+				appProfile.getUpdatePath(ID), prefixes() + replaceBindings(sparql, forced),
+				timeout, appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID),auth
+				));
+		client.close();
+
+		return ret;
+	}
+
+	public Response _query(String ID, String sparql, Bindings forced, int timeout)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+		SPARQL11Protocol client;
+
+		if (appProfile.getQueryProtocolScheme(ID).equals("https")) {
+			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
+			if(!getToken()) {
+				client.close();
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+			}
+		}
+		else client = new SPARQL11Protocol();
+		
+		String auth = null;
+		try {
+			auth = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+		}
+		catch(Exception e) {}
+		
+		if (sparql == null) sparql = appProfile.getSPARQLQuery(ID);
+		Response ret = client.query(new QueryRequest(appProfile.getQueryMethod(ID),
+				appProfile.getQueryProtocolScheme(ID), appProfile.getQueryHost(ID), appProfile.getQueryPort(ID),
+				appProfile.getQueryPath(ID), prefixes() + replaceBindings(sparql, forced),
+				timeout, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
+				auth));
+		client.close();
+
+		return ret;
+	}
+	
+	public Response _subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler)
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+
+		// Create client
+		String url;
+		if (appProfile.getSubscribeProtocol(ID).equals(SubscriptionProtocol.WS)) {
+			url = "ws_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
+					+ appProfile.getSubscribePath(ID);
+		} else {
+			url = "wss_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
+					+ appProfile.getSubscribePath(ID);
+		}
+		if (!subscribedClients.containsKey(url)) {
+			ISubscriptionProtocol protocol = null;
+			switch (appProfile.getSubscribeProtocol(ID)) {
+			case WS:
+				protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
+						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), false);
+				break;
+			case WSS:
+				protocol = new WebSocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
+						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), true);
+				
+				if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+				
+				break;
+			}
+
+			subscribedClients.put(url, new SPARQL11SEProtocol(protocol, handler));
+		}
+
+		String auth = null;
+		try {
+			auth = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+		}
+		catch(Exception e) {}
+		
+		// Send request
+		if (sparql == null) sparql = appProfile.getSPARQLQuery(ID);
+		SubscribeRequest req = new SubscribeRequest(prefixes() + replaceBindings(sparql, forced),
+				null, appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID),
+				auth);
+		
+		Response ret = subscribedClients.get(url).subscribe(req);
+
+		// Parse response
+		if (ret.isSubscribeResponse())
+			subscriptions.put(((SubscribeResponse) ret).getSpuid(), subscribedClients.get(url));
+
+		return ret;
+	}	
 
 	@Override
 	public void close() throws IOException {

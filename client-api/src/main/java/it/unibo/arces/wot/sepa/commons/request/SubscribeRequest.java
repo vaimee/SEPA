@@ -58,6 +58,13 @@ public class SubscribeRequest extends QueryRequest {
 			body.add("authorization", new JsonPrimitive(getAuthorizationHeader()));
 		if (getAlias() != null)
 			body.add("alias", new JsonPrimitive(getAlias()));
+		if (getDefaultGraphUri() != null) {
+			body.add("default-graph-uri", new JsonPrimitive(getDefaultGraphUri()));
+		}
+		if (getNamedGraphUri() != null) {
+			body.add("named-graph-uri", new JsonPrimitive(getNamedGraphUri()));
+		}
+		
 		request.add("subscribe", body);
 
 		return request.toString();
