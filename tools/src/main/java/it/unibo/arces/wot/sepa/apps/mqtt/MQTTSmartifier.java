@@ -1,9 +1,8 @@
 package it.unibo.arces.wot.sepa.apps.mqtt;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,11 +30,13 @@ import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class MQTTSmartifier extends Aggregator implements MqttCallback {
-	private static final Logger logger = LogManager.getLogger("MQTTSmartifier");
+	private static final Logger logger = LogManager.getLogger();
 
 	private MqttClient mqttClient;
 
@@ -45,20 +46,27 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	private HashMap<String, String> topic2observation = new HashMap<String, String>();
 
 	public MQTTSmartifier() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("mqtt.jsap"), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
+		super(new JSAP("swamp-demo.jsap"), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
 	}
 
 	@Override
 	public void onAddedResults(BindingsResults results) {
 		for (Bindings bindings : results.getBindings()) {
-			topic2observation.put(bindings.getBindingValue("topic"), bindings.getBindingValue("observation"));
+			topic2observation.put(bindings.getValue("topic"), bindings.getValue("observation"));
 		}
 	}
 
 	private void updateObservationValue(String observation, String value) throws SEPASecurityException, IOException, SEPAPropertiesException {
-		setUpdateBindingValue("observation",observation);
-		setUpdateBindingValue("value",value);
-		update();
+		if (value != null) {
+			if (value.equals("NaN")) return;
+			
+			RDFTermLiteral literal = new RDFTermLiteral(value,appProfile.getUpdateBindings("UPDATE_OBSERVATION_VALUE").getDatatype("value"));
+			
+			setUpdateBindingValue("observation",new RDFTermURI(observation));
+			setUpdateBindingValue("value",literal);
+			
+			update();
+		}
 	}
 
 	@Override
@@ -223,15 +231,10 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 			logger.info("Connecting...");
 			MqttConnectOptions options = new MqttConnectOptions();
 			if (sslEnabled) {
-				SEPASecurityManager sm = new SEPASecurityManager("TLSv1", "sepa.jks", "sepa2017", "sepa2017");
-				
 				logger.info("Set SSL security");
-				try {
-					options.setSocketFactory(sm.getSSLContext().getSocketFactory());
-				} catch (KeyManagementException | NoSuchAlgorithmException e) {
-					logger.error(e.getMessage());
-					return false;
-				}
+				
+				SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
+				options.setSocketFactory(sm.getSSLContext().getSocketFactory());
 			}
 			try {
 				mqttClient.connect(options);
@@ -259,81 +262,89 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	public void simulator() {
 		new Thread() {
 			public void run() {
-				// 6LowPan
-				// e.g. pepoli:6lowpan:network = | ID: NODO1 | Temperature: 24.60 | Humidity:
-				// 35.40 | Pressure: 1016.46
-				String pattern6LowPan = " | ID: %s | Temperature: %.2f | Humidity: %.2f | Pressure: %.2f";
-				String[] nodes6LowPan = { "NODO1", "NODO2", "NODO3" };
-				String topicLowPan = "pepoli:6lowpan:network";
-
-				// LoRa
-				// e.g. {"moistureValue":3247, "nodeId":"device3",
-				// "timestamp":"2017-11-15T10:00:02.123028089Z"}
-				String patternLoRa = "{\"moistureValue\":%.2f, \"nodeId\":\"%s\", \"timestamp\":\"2017-11-15T10:00:02.123028089Z\"}";
-				String[] nodesLoRa = { "device1", "device2" };
-				String topicLoRa = "ground/lora/moisture";
-
-				while (true) {
-
-					for (String node : nodes6LowPan) {
-						for (int j = 0; j < 100; j++) {
-							String value = String.format(pattern6LowPan, node, (float) j, (float)(100 - j),
-									(float)(10 * j));
-							try {
-								mqttMessage(topicLowPan, value);
-							} catch (Exception e) {
-								logger.error(e.getMessage());
-							}
+				JsonObject topics = getApplicationProfile().getExtendedData().get("simulation").getAsJsonObject();
+				
+				while(true) {
+					for(Entry<String, JsonElement> observation : topics.entrySet()) {
+						String topic = observation.getKey();
+						int min = observation.getValue().getAsJsonArray().get(0).getAsInt();
+						int max = observation.getValue().getAsJsonArray().get(1).getAsInt();
+						String value = String.format("%.2f", min + (Math.random() * (max-min)));
+						
+						try {
+							mqttMessage(topic, value);
+						} catch (Exception e) {
+							logger.error(e.getMessage());
 						}
-
-						// try {
-						// Thread.sleep(1000);
-						// } catch (InterruptedException e) {
-						// return;
-						// }
-					}
-
-					for (String device : nodesLoRa) {
-						for (int j = 0; j < 100; j++) {
-							String value = String.format(patternLoRa, (float) j, device);
-							try {
-								mqttMessage(topicLoRa, value);
-							} catch (Exception e) {
-								logger.error(e.getMessage());
-							}
-						}
-
-						// try {
-						// Thread.sleep(1000);
-						// } catch (InterruptedException e) {
-						// return;
-						// }
-					}
-
-					for (int i = 0; i < 35; i = i + 5) {
-						for (String topic : topic2observation.keySet()) {
-							if (topic.startsWith(topicLowPan.replace(":", "/")))
-								continue;
-							if (topic.startsWith(topicLoRa.replace(":", "/")))
-								continue;
-
-							try {
-								mqttMessage(topic, String.format("%d", 10 + i));
-							} catch (Exception e) {
-								logger.error(e.getMessage());
-							}
-
-							// try {
-							// Thread.sleep(1000);
-							// } catch (InterruptedException e) {
-							//// return;
-							// }
-
+						
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							return;
 						}
 					}
 				}
 			}
 		}.start();
+		
+//		new Thread() {
+//			public void run() {
+//				// 6LowPan
+//				// e.g. pepoli:6lowpan:network = | ID: NODO1 | Temperature: 24.60 | Humidity:
+//				// 35.40 | Pressure: 1016.46
+//				String pattern6LowPan = " | ID: %s | Temperature: %.2f | Humidity: %.2f | Pressure: %.2f";
+//				String[] nodes6LowPan = { "NODO1", "NODO2", "NODO3" };
+//				String topicLowPan = "pepoli:6lowpan:network";
+//
+//				// LoRa
+//				// e.g. {"moistureValue":3247, "nodeId":"device3",
+//				// "timestamp":"2017-11-15T10:00:02.123028089Z"}
+//				String patternLoRa = "{\"moistureValue\":%.2f, \"nodeId\":\"%s\", \"timestamp\":\"2017-11-15T10:00:02.123028089Z\"}";
+//				String[] nodesLoRa = { "device1", "device2" };
+//				String topicLoRa = "ground/lora/moisture";
+//
+//				while (true) {
+//
+//					for (String node : nodes6LowPan) {
+//						for (int j = 0; j < 100; j++) {
+//							String value = String.format(pattern6LowPan, node, (float) j, (float)(100 - j),
+//									(float)(10 * j));
+//							try {
+//								mqttMessage(topicLowPan, value);
+//							} catch (Exception e) {
+//								logger.error(e.getMessage());
+//							}
+//						}
+//					}
+//
+//					for (String device : nodesLoRa) {
+//						for (int j = 0; j < 100; j++) {
+//							String value = String.format(patternLoRa, (float) j, device);
+//							try {
+//								mqttMessage(topicLoRa, value);
+//							} catch (Exception e) {
+//								logger.error(e.getMessage());
+//							}
+//						}
+//					}
+//
+//					for (int i = 0; i < 35; i = i + 5) {
+//						for (String topic : topic2observation.keySet()) {
+//							if (topic.startsWith(topicLowPan.replace(":", "/")))
+//								continue;
+//							if (topic.startsWith(topicLoRa.replace(":", "/")))
+//								continue;
+//
+//							try {
+//								mqttMessage(topic, String.format("%d", 10 + i));
+//							} catch (Exception e) {
+//								logger.error(e.getMessage());
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}.start();
 	}
 
 	public void stop() {

@@ -26,10 +26,6 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,7 +45,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
@@ -85,22 +80,20 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	/** The security manager */
 	protected SEPASecurityManager sm;
 
-	// "sepa.jks", "sepa2017", "sepa2017"
-	public SPARQL11Protocol(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
-		sm = new SEPASecurityManager("TLSv1", jksName, jksPassword, keyPassword);
-		
-		try {
-			httpClient = sm.getSSLHttpClient();
-		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException
-				| IOException e) {
-			throw new SEPASecurityException(e);
-		}
+	public SPARQL11Protocol(SEPASecurityManager sm) {
+		if (sm == null) throw new IllegalArgumentException("Security manager is null");
+		this.sm = sm;
+		httpClient = sm.getSSLHttpClient();
 	}
 
 	public SPARQL11Protocol() {
 		httpClient = HttpClients.createDefault();
 	}
 
+	public boolean isSecure() {
+		return sm != null;
+	}
+	
 	private Response executeRequest(HttpUriRequest req, Request request) {
 		CloseableHttpResponse httpResponse = null;
 		HttpEntity responseEntity = null;
@@ -248,17 +241,12 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		try {
 			if (req.getUsingGraphUri() != null) {
-
 				graphs += "using-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(), "UTF-8");
-				// graphs += "using-graph-uri=" + req.getUsingGraphUri();
-
 				if (req.getUsingNamedGraphUri() != null) {
-					// graphs += "&using-named-graph-uri=" + req.getUsingNamedGraphUri();
 					graphs += "&using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
 				}
 			} else if (req.getUsingNamedGraphUri() != null) {
 				graphs += "using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
-				// graphs += "using-named-graph-uri=" + req.getUsingNamedGraphUri();
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
@@ -303,18 +291,25 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		Pattern p = null;
 		try {
 			p = Pattern.compile(
-					"(?<update>.*)(delete)([^{]*)(?<udtriples>.*)(insert)([^{]*)(?<uitriples>.*)|(?<delete>.*)(delete)([^{]*)(?<dtriples>.*)|(?<insert>.*)(insert)([^{]*)(?<itriples>.*)",
+					"(?<update>.*)(delete)([^{]*)(?<udtriples>.*)(insert)([^{]*)(?<uitriples>.*)|(?<delete>.*)(delete)(?<where>[^{]*)(?<dtriples>.*)|(?<insert>.*)(insert)([^{]*)(?<itriples>.*)",
 					Pattern.CASE_INSENSITIVE);
 
 			Matcher m = p.matcher(req.getSPARQL());
 			if (m.matches()) {
 				if (m.group("update") != null) {
-					fixedSparql = m.group("update") + " delete " + m.group("udtriples") + " insert "
+					fixedSparql = m.group("update") + " DELETE " + m.group("udtriples") + " INSERT "
 							+ m.group("uitriples");
 				} else if (m.group("insert") != null) {
-					fixedSparql = m.group("insert") + " insert " + m.group("itriples");
+					fixedSparql = m.group("insert") + " INSERT " + m.group("itriples");
 				} else {
-					fixedSparql = m.group("delete") + " delete " + m.group("dtriples");
+					if (m.group("where") != null) {
+						if (m.group("where").toLowerCase().contains("where")) {
+							fixedSparql = m.group("delete") + " DELETE " + m.group("where") + m.group("dtriples");
+						}
+						else
+							fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
+					}
+					else fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
 				}
 			}
 		} catch (Exception e) {

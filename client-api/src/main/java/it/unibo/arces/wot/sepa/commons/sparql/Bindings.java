@@ -74,6 +74,30 @@ public class Bindings {
 		}
 		return ret;
 	}
+	
+	public RDFTerm getRDFTerm(String variable) {
+		if (!solution.has(variable)) throw new IllegalArgumentException(String.format("Variable not found: %s",variable));
+		
+		try {
+			String type = solution.get(variable).getAsJsonObject().get("type").getAsString();
+			String value = solution.get(variable).getAsJsonObject().get("value").getAsString();
+			
+			switch(type) {
+			case "uri":
+				return new RDFTermURI(value);
+			case "literal":
+				if(solution.get(variable).getAsJsonObject().get("datatype") != null) return new RDFTermLiteral(value);
+				return new RDFTermLiteral(value,solution.get(variable).getAsJsonObject().get("datatype").getAsString());				
+			case "bnode":
+				return new RDFTermBNode(value);
+			}
+		}
+		catch(Exception e) {
+			
+		}
+		
+		return null;
+	}
 
 	/**
 	 * Gets the binding value.
@@ -82,10 +106,11 @@ public class Bindings {
 	 *            the variable
 	 * @return the binding value
 	 */
-	public void setBindingValue(String variable,String value) throws IllegalArgumentException {
+	public void setBindingValue(String variable,String value,String datatype) throws IllegalArgumentException {
 		if (variable == null || value == null) throw new IllegalArgumentException("One or more arguments are null");
 		try {
 			solution.get(variable).getAsJsonObject().add("value", new JsonPrimitive(value));
+			solution.get(variable).getAsJsonObject().add("datatype",new JsonPrimitive(datatype));
 		}
 		catch(Exception e) {
 			throw new IllegalArgumentException(String.format("Variable not found: %s",variable));
@@ -99,7 +124,32 @@ public class Bindings {
 	 *            the variable
 	 * @return the binding value
 	 */
-	public String getBindingValue(String variable) {
+	public void setBindingValue(String variable,RDFTerm value) throws IllegalArgumentException {
+		if (variable == null || value == null) throw new IllegalArgumentException("One or more arguments are null");
+			
+		try {
+			if (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("literal")) {
+				if(!value.getClass().equals(RDFTermLiteral.class)) throw new IllegalArgumentException("Value of ariable: "+variable+" must be a literal");
+				if (((RDFTermLiteral) value).getDatatype() != null) solution.get(variable).getAsJsonObject().add("datatype", new JsonPrimitive(((RDFTermLiteral) value).getDatatype()));
+			}
+			if (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("uri") && !value.getClass().equals(RDFTermURI.class))throw new IllegalArgumentException("Value of ariable: "+variable+" must be an URI");
+			if (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("bnode")  && !value.getClass().equals(RDFTermBNode.class)) throw new IllegalArgumentException("Value of ariable: "+variable+" must be a b-node");
+			
+			solution.get(variable).getAsJsonObject().add("value", new JsonPrimitive(value.getValue()));
+		}
+		catch(Exception e) {
+			throw new IllegalArgumentException(String.format("Variable not found: %s",variable));
+		}		
+	}
+	
+	/**
+	 * Gets the binding value.
+	 *
+	 * @param variable
+	 *            the variable
+	 * @return the binding value
+	 */
+	public String getValue(String variable) {
 		try {
 			return solution.get(variable).getAsJsonObject().get("value").getAsString();	
 		}

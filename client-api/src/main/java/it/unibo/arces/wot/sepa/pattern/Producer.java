@@ -25,6 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -32,13 +33,14 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 public class Producer extends Client implements IProducer {
+	private static final Logger logger = LogManager.getLogger();
+	
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
 	private Bindings forcedBindings;
-	
-	private static final Logger logger = LogManager.getLogger("Producer");
 	
 	private SPARQL11Protocol client;
 	
@@ -57,8 +59,8 @@ public class Producer extends Client implements IProducer {
 		forcedBindings = appProfile.getUpdateBindings(updateID);
 		
 		if (appProfile.getUpdateProtocolScheme(updateID).equals("https")) {
-			client = new SPARQL11Protocol("sepa.jks", "sepa2017", "sepa2017");
-			
+			SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
+			client = new SPARQL11Protocol(sm);
 		}
 		else client = new SPARQL11Protocol();
 	}
@@ -68,11 +70,17 @@ public class Producer extends Client implements IProducer {
 	}
 	
 	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException{	 
-		if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
-				
+		String authorizationHeader = null;
+		
+		if (isSecure()) {
+			if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+			if (appProfile.getAuthenticationProperties()!= null)
+				authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+		}
+		
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
 					appProfile.getUpdatePath(SPARQL_ID), prefixes() + replaceBindings(sparqlUpdate, forcedBindings), timeout,
-					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
+					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader);
 		 
 		 return client.update(req);		 
 	 }
@@ -82,7 +90,7 @@ public class Producer extends Client implements IProducer {
 		client.close();
 	}
 
-	public final void setUpdateBindingValue(String variable, String value) throws IllegalArgumentException {
+	public final void setUpdateBindingValue(String variable, RDFTerm value) throws IllegalArgumentException {
 		forcedBindings.setBindingValue(variable, value);
 		
 	}

@@ -248,7 +248,7 @@ public class SEPATestClient {
 		return !response.getClass().equals(ErrorResponse.class);
 	}
 
-	public boolean requestAccessTokenTest() throws SEPASecurityException {
+	public boolean requestAccessTokenTest() throws SEPASecurityException, SEPAPropertiesException {
 		System.out.println("REQUEST ACCESS TOKEN");
 		
 		Response response = new SEPASecurityManager().requestToken(appProfile.getAuthenticationProperties().getTokenRequestUrl(), appProfile.getAuthenticationProperties().getBasicAuthorizationHeader());

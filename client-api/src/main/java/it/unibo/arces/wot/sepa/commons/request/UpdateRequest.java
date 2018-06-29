@@ -91,7 +91,7 @@ public class UpdateRequest extends Request {
 	 */
 	public String toString() {
 		if (token != -1) return "UPDATE #"+token+" "+sparql;
-		return "UPDATE "+sparql;
+		return sparql;
 	}
 
 	/* SPARQL Update requests are executed against a Graph Store, a mutable

@@ -57,11 +57,12 @@ public class UpdateProcessor {
 
 		// UPDATE the endpoint
 		Response ret;
-
-		ret = endpoint.update(new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
+		UpdateRequest request = new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
 				properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
 				properties.getUpdatePath(), req.getSPARQL(), req.getTimeout(), req.getUsingGraphUri(),
-				req.getUsingNamedGraphUri(), req.getAuthorizationHeader()));
+				req.getUsingNamedGraphUri(), req.getAuthorizationHeader());
+		logger.trace(request);
+		ret = endpoint.update(request);
 
 		if (endpointSemaphore != null)
 			endpointSemaphore.release();

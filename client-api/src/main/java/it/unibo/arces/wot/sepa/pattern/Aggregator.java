@@ -25,55 +25,89 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
-public abstract class Aggregator extends Consumer implements IConsumer,IProducer {
+public abstract class Aggregator extends Consumer implements IConsumer, IProducer {
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
 	protected Bindings updateForcedBindings;
-	
+
 	private static final Logger logger = LogManager.getLogger("Aggregator");
-	
-	public Aggregator(JSAP appProfile,String subscribeID,String updateID) throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile,subscribeID);
-		
-		if (updateID == null){
+
+	public Aggregator(JSAP appProfile, String subscribeID, String updateID, SEPASecurityManager sm)
+			throws SEPAProtocolException, SEPASecurityException {
+		super(appProfile, subscribeID, sm);
+
+		if (updateID == null) {
 			logger.fatal("Update ID is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Update ID is null null"));
 		}
-		
-		if (appProfile.getSPARQLUpdate(updateID) == null) {
-			logger.fatal("UPDATE ID " +updateID+" not found in "+appProfile.getFileName());
-			throw new IllegalArgumentException("UPDATE ID " +updateID+" not found in "+appProfile.getFileName());
-		}
-		
-		SPARQL_ID = updateID;
-		
-		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
-		
-		updateForcedBindings = appProfile.getUpdateBindings(updateID);
-	} 
 
-	public final Response update() throws SEPASecurityException, IOException, SEPAPropertiesException{	
+		if (appProfile.getSPARQLUpdate(updateID) == null) {
+			logger.fatal("UPDATE ID " + updateID + " not found in " + appProfile.getFileName());
+			throw new IllegalArgumentException("UPDATE ID " + updateID + " not found in " + appProfile.getFileName());
+		}
+
+		SPARQL_ID = updateID;
+
+		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
+
+		updateForcedBindings = appProfile.getUpdateBindings(updateID);
+	}
+
+	public Aggregator(JSAP appProfile, String subscribeID, String updateID) throws SEPAProtocolException {
+		super(appProfile, subscribeID);
+
+		if (updateID == null) {
+			logger.fatal("Update ID is null");
+			throw new SEPAProtocolException(new IllegalArgumentException("Update ID is null null"));
+		}
+
+		if (appProfile.getSPARQLUpdate(updateID) == null) {
+			logger.fatal("UPDATE ID " + updateID + " not found in " + appProfile.getFileName());
+			throw new IllegalArgumentException("UPDATE ID " + updateID + " not found in " + appProfile.getFileName());
+		}
+
+		SPARQL_ID = updateID;
+
+		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
+
+		updateForcedBindings = appProfile.getUpdateBindings(updateID);
+	}
+
+	public final Response update() throws SEPASecurityException, IOException, SEPAPropertiesException {
 		return update(0);
 	}
-	
-	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException{	 
-		if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
-		
-		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
-					appProfile.getUpdatePath(SPARQL_ID), prefixes() + replaceBindings(sparqlUpdate, updateForcedBindings), timeout,
-					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
-		 
-		 return client.update(req);	
-	 }
-	
-	public final void setUpdateBindingValue(String variable, String value) throws IllegalArgumentException {
-		updateForcedBindings.setBindingValue(variable, value);	
+
+	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException {
+		String authorizationHeader = null;
+
+		if (isSecure()) {
+			if (!getToken())
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "Failed to get or renew token");
+			
+			if (appProfile.getAuthenticationProperties() != null)
+				authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+		}
+
+		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
+				appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
+				appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
+				prefixes() + replaceBindings(sparqlUpdate, updateForcedBindings), timeout,
+				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
+				authorizationHeader);
+
+		return client.update(req);
+	}
+
+	public final void setUpdateBindingValue(String variable, RDFTerm value) throws IllegalArgumentException {
+		updateForcedBindings.setBindingValue(variable, value);
 	}
 }

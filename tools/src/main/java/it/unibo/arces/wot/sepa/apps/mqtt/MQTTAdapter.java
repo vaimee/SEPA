@@ -2,9 +2,6 @@ package it.unibo.arces.wot.sepa.apps.mqtt;
 
 import java.io.IOException;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,6 +20,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
@@ -45,7 +44,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	}
 	
 	public MQTTAdapter() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("mqtt.jsap"), "MQTT_MESSAGE");
+		super(new JSAP("swamp-demo.jsap"), "MQTT_MESSAGE");
 	}
 
 	@Override
@@ -91,9 +90,9 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	public void messageArrived(String topic, MqttMessage value) throws Exception {
 		logger.info(topic + " " + value.toString());
 
-		setUpdateBindingValue("topic",topic);
-		setUpdateBindingValue("value",value.toString());
-		setUpdateBindingValue("broker",serverURI);
+		setUpdateBindingValue("topic",new RDFTermLiteral(topic));
+		setUpdateBindingValue("value",new RDFTermLiteral(value.toString()));
+		setUpdateBindingValue("broker",new RDFTermURI(serverURI));
 		update();
 	}
 
@@ -144,13 +143,9 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		MqttConnectOptions options = new MqttConnectOptions();
 		if (sslEnabled) {
 			logger.info("Set SSL security");
-			try {
-				SEPASecurityManager sm = new SEPASecurityManager("TLSv1","sepa.jks", "sepa2017", "sepa2017");
-				options.setSocketFactory(sm.getSSLContext().getSocketFactory());
-			} catch (KeyManagementException | NoSuchAlgorithmException e) {
-				logger.error(e.getMessage());
-				return false;
-			}
+			
+			SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
+			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
 		}
 		try {
 			mqttClient.connect(options);
