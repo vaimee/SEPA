@@ -20,16 +20,22 @@ public class MQTTMonitor {
 
 	public static void main(String[] args)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException {
-
-		logger.info("Create initializer");
+		// Logger
+		ObservationLogger analytics = new ObservationLogger();
+		analytics.subscribe();
+		
+		// Remover
+		ObservationRemover remover = new ObservationRemover();
+		remover.removeAll();
+		remover.close();
+		
+		// Inizializer
 		mqttInitializer = new MQTTInitializer();
 		mqttInitializer.init();
+		mqttInitializer.close();
 		
 		// Create MQTT smartifier
-		logger.info("Create MQTT smartifier");
 		smartifier = new MQTTSmartifier();
-
-		logger.info("Start MQTT smartifier");
 		if (smartifier.start()) {
 			logger.info("Press any key to exit...");
 			try {
@@ -43,6 +49,8 @@ public class MQTTMonitor {
 
 			logger.info("Stopped");
 		}
+		
+		analytics.close();
 		
 		System.exit(1);
 	}

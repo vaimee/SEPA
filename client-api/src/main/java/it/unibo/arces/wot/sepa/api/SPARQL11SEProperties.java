@@ -95,19 +95,19 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	 * @throws SEPAPropertiesException
 	 */
 	public SPARQL11SEProperties(String propertiesFile) throws SEPAPropertiesException {
-		super(new File(propertiesFile));
-	}
-
-	/**
-	 * Instantiates a new SPARQL 11 SE properties.
-	 *
-	 * @param propertiesFile
-	 *            the properties file
-	 * @throws SEPAPropertiesException
-	 */
-	public SPARQL11SEProperties(File propertiesFile) throws SEPAPropertiesException {
 		super(propertiesFile);
 	}
+
+//	/**
+//	 * Instantiates a new SPARQL 11 SE properties.
+//	 *
+//	 * @param propertiesFile
+//	 *            the properties file
+//	 * @throws SEPAPropertiesException
+//	 */
+//	public SPARQL11SEProperties(File propertiesFile) throws SEPAPropertiesException {
+//		super(propertiesFile);
+//	}
 
 	public String toString() {
 		return jsap.toString();

@@ -10,26 +10,27 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 public class WebSocketSubscriptionProtocol implements ISubscriptionProtocol {
 	private SPARQL11SEWebsocket wsClient = null;
 	private SPARQL11SESecureWebsocket wssClient = null;
 
-	public WebSocketSubscriptionProtocol(String host, int port, String path, boolean secure)
-			throws SEPAProtocolException, SEPASecurityException {
-		if (!secure) {
-			// WS
-			if (port != -1)
-				wsClient = new SPARQL11SEWebsocket("ws://" + host + ":" + port + path);
-			else
-				wsClient = new SPARQL11SEWebsocket("ws://" + host + path);
-		} else {
-			// WSS
-			if (port != -1)
-				wssClient = new SPARQL11SESecureWebsocket("wss://" + host + ":" + port + path);
-			else
-				wssClient = new SPARQL11SESecureWebsocket("wss://" + host + path);
-		}
+	public WebSocketSubscriptionProtocol(String host, int port, String path) throws SEPAProtocolException {
+		// WS
+		if (port != -1)
+			wsClient = new SPARQL11SEWebsocket("ws://" + host + ":" + port + path);
+		else
+			wsClient = new SPARQL11SEWebsocket("ws://" + host + path);
+	}
+
+	public WebSocketSubscriptionProtocol(String host, int port, String path, SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException {
+		// WSS
+		if (port != -1)
+			wssClient = new SPARQL11SESecureWebsocket("wss://" + host + ":" + port + path, sm);
+		else
+			wssClient = new SPARQL11SESecureWebsocket("wss://" + host + path,sm);
+
 	}
 
 	@Override
@@ -52,10 +53,9 @@ public class WebSocketSubscriptionProtocol implements ISubscriptionProtocol {
 	public Response subscribe(SubscribeRequest request) {
 		if (request.getAuthorizationHeader() == null) {
 			if (wsClient == null)
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");	
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
 			return wsClient.subscribe(request);
-		}
-		else {
+		} else {
 			if (wssClient == null)
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
 
@@ -67,10 +67,9 @@ public class WebSocketSubscriptionProtocol implements ISubscriptionProtocol {
 	public Response unsubscribe(UnsubscribeRequest request) {
 		if (request.getAuthorizationHeader() == null) {
 			if (wsClient == null)
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");	
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
 			return wsClient.unsubscribe(request);
-		}
-		else {
+		} else {
 			if (wssClient == null)
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Client not initialized");
 

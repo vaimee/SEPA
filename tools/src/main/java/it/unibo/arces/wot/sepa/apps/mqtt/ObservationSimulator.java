@@ -8,6 +8,8 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
@@ -17,17 +19,17 @@ public class ObservationSimulator extends Producer implements Runnable {
 	private int value = 15;
 	private long timeout = 2000;
 	
-	public ObservationSimulator(JSAP appProfile,String observation) throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile, "UPDATE_OBSERVATION_VALUE");
+	public ObservationSimulator(JSAP appProfile,String observation,String update) throws SEPAProtocolException, SEPASecurityException {
+		super(appProfile, update);
 		
-		this.setUpdateBindingValue("observation", observation);
+		this.setUpdateBindingValue("observation", new RDFTermURI(observation));
 	}
 	
 	public void simulate() throws SEPASecurityException, IOException, SEPAPropertiesException {
 		value += 5;
 		if (value > 45) value = 15;
 		
-		this.setUpdateBindingValue("value", String.format("%d", value));
+		this.setUpdateBindingValue("value", new RDFTermLiteral(String.format("%d", value),"xsd:decimal"));
 		update();
 	}
 
@@ -48,12 +50,12 @@ public class ObservationSimulator extends Producer implements Runnable {
 	}
 	
 	public static void main(String[] args) throws SEPAProtocolException, SEPAPropertiesException, InterruptedException, SEPASecurityException {
-		if (args.length != 2) {
+		if (args.length != 1) {
 			logger.error("Usage: java -jar ObservationSimulator.jar <file.jsap> <observation URI>");
 			System.exit(1);
 		}
 
-		ObservationSimulator sim = new ObservationSimulator(new JSAP(args[0]),args[1]);
+		ObservationSimulator sim = new ObservationSimulator(new JSAP(args[0]),args[1],"UPDATE_OBSERVATION_VALUE");
 		
 		Thread th = new Thread(sim);
 		th.start();

@@ -135,28 +135,24 @@ public class SPARQL11Properties {
 	protected String defaultsFileName = "endpoint.jpar";
 
 	/** The properties file. */
-	protected File propertiesFile = new File(defaultsFileName);
+	protected String propertiesFile = defaultsFileName;
 
 	/** The parameters. */
 	protected JsonObject jsap = new JsonObject();
 	
 	public SPARQL11Properties(String propertiesFile) throws SEPAPropertiesException {
-		this(new File(propertiesFile));
-	}
-
-	public SPARQL11Properties(File jsapFile) throws SEPAPropertiesException {
-		loadProperties(jsapFile);
+		loadProperties(propertiesFile);
 	}
 
 	public SPARQL11Properties(String propertiesFile, byte[] secret) throws SEPAPropertiesException {
-		this(new File(propertiesFile));
+		this(propertiesFile);
 	}
-
-	public SPARQL11Properties(File jsapFile, byte[] secret) throws SEPAPropertiesException {
-		loadProperties(jsapFile);
-	}
+//
+//	public SPARQL11Properties(File jsapFile, byte[] secret) throws SEPAPropertiesException {
+//		loadProperties(jsapFile);
+//	}
 	
-	private void loadProperties(File jsapFile) throws SEPAPropertiesException {
+	private void loadProperties(String jsapFile) throws SEPAPropertiesException {
 		try (final FileReader in = new FileReader(jsapFile)) {
 			jsap = new JsonParser().parse(in).getAsJsonObject();
 

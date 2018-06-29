@@ -12,14 +12,16 @@ import com.google.gson.JsonObject;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class MQTTInitializer extends Producer {
 	private static final Logger logger = LogManager.getLogger();
 	
-	public MQTTInitializer() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
-		super(new JSAP("mqtt.jsap"), "ADD_OBSERVATION");
+	public MQTTInitializer() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, IOException {
+		super(new JSAP("swamp-demo.jsap"), "ADD_OBSERVATION");
 	}
 	
 	public void init() throws SEPASecurityException, IOException, SEPAPropertiesException {
@@ -40,12 +42,12 @@ public class MQTTInitializer extends Producer {
 		String comment = mapping.getValue().getAsJsonObject().get("comment").getAsString();
 		String label = mapping.getValue().getAsJsonObject().get("label").getAsString();
 
-		setUpdateBindingValue("observation",observation);
-		setUpdateBindingValue("comment",comment);
-		setUpdateBindingValue("label",label);
-		setUpdateBindingValue("location",location);
-		setUpdateBindingValue("unit",unit);
-		setUpdateBindingValue("topic",topic);
+		setUpdateBindingValue("observation",new RDFTermURI(observation));
+		setUpdateBindingValue("comment", new RDFTermLiteral(comment));
+		setUpdateBindingValue("label",new RDFTermLiteral(label));
+		setUpdateBindingValue("location",new RDFTermURI(location));
+		setUpdateBindingValue("unit",new RDFTermURI(unit));
+		setUpdateBindingValue("topic",new RDFTermLiteral(topic));
 		update();
 	}
 

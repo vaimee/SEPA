@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.commons.security;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.Socket;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.security.KeyManagementException;
@@ -145,16 +146,9 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 	/** The ssl context. */
 	SSLContext sslContext;
-
-	/** The protocol. */
-	String protocol;
-
-	/** The storename. */
-	private String storename;
-
-	/** The password. */
-	private String password;
-
+	
+	SSLConnectionSocketFactory sslsf;
+	
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
 
@@ -171,7 +165,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 	 *            the key password
 	 * @throws SEPASecurityException 
 	 */
-	public SEPASecurityManager(String protocol, String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
+	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
 		// Arguments check
 		if (jksName == null || jksPassword == null)
 			throw new IllegalArgumentException("JKS name or password are null");
@@ -184,84 +178,45 @@ public class SEPASecurityManager implements HostnameVerifier {
 		try {
 			keystore = KeyStore.getInstance("JKS");
 			keystore.load(new FileInputStream(jksName), jksPassword.toCharArray());
+			
 			KeyManagerFactory kmfactory = KeyManagerFactory.getInstance("SunX509");
 			kmfactory.init(keystore, keyPassword.toCharArray());
+			
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
 			tmf.init(keystore);
 
-			sslContext = SSLContext.getInstance(protocol);
+			sslContext = SSLContext.getInstance("TLSv1");
 			sslContext.init(kmfactory.getKeyManagers(), tmf.getTrustManagers(), null);
+				
+			// Trust own CA and all self-signed certificates and allow TLSv1 protocol only
+			sslsf = new SSLConnectionSocketFactory(SSLContexts.custom()
+					.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(), new TrustSelfSignedStrategy()).build(), new String[] { "TLSv1" }, null,
+					this);
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableKeyException | KeyManagementException e) {
 			throw new SEPASecurityException(e);
 		}
-
-		this.protocol = protocol;
-		this.storename = jksName;
-		this.password = jksPassword;
-		this.protocol = protocol;
 	}
 
 	public SEPASecurityManager() throws SEPASecurityException {
-		this("TLSv1","sepa.jks","sepa2017","sepa2017");
+		this("sepa.jks","sepa2017","sepa2017");
 	}
-	/**
-	 * Gets the SSL context.
-	 *
-	 * @return the SSL context
-	 * @throws NoSuchAlgorithmException
-	 *             the no such algorithm exception
-	 * @throws KeyManagementException
-	 *             the key management exception
-	 */
-	public SSLContext getSSLContext() throws NoSuchAlgorithmException, KeyManagementException {
+	
+	public Socket getSSLSocket() throws IOException {
+		return sslContext.getSocketFactory().createSocket();	
+	}
+
+	public SSLContext getSSLContext() {
 		return sslContext;
 	}
 
-	/**
-	 * Gets the key store.
-	 *
-	 * @return the key store
-	 */
 	public KeyStore getKeyStore() {
 		return keystore;
 	}
 
-	/**
-	 * Gets the SSL http client.
-	 *
-	 * @return the SSL http client
-	 * @throws KeyManagementException
-	 *             the key management exception
-	 * @throws NoSuchAlgorithmException
-	 *             the no such algorithm exception
-	 * @throws KeyStoreException
-	 *             the key store exception
-	 * @throws CertificateException
-	 *             the certificate exception
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
-	 */
-	public CloseableHttpClient getSSLHttpClient() throws KeyManagementException, NoSuchAlgorithmException,
-			KeyStoreException, CertificateException, IOException {
-		// Trust own CA and all self-signed certificates
-		SSLContext sslcontext = null;
-
-		sslcontext = SSLContexts.custom()
-				.loadTrustMaterial(new File(storename), password.toCharArray(), new TrustSelfSignedStrategy()).build();
-
-		// Allow TLSv1 protocol only
-		SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslcontext, new String[] { protocol }, null,
-				this);
-
+	public CloseableHttpClient getSSLHttpClient() {
 		return HttpClients.custom().setSSLSocketFactory(sslsf).build();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see javax.net.ssl.HostnameVerifier#verify(java.lang.String,
-	 * javax.net.ssl.SSLSession)
-	 */
 	@Override
 	public boolean verify(String hostname, SSLSession session) {
 		// TODO IMPORTANT Verify X.509 certificate

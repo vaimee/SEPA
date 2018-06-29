@@ -209,7 +209,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		SEPABeans.registerMBean("SEPA:type=AuthorizationManager",this);	
 		
 		//sManager = new SSLSecurityManager(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate,false,true,null);
-		sManager = new SEPASecurityManager("TLSv1",keystoreFileName, keystorePwd,keyPwd);
+		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd,keyPwd);
 		init(sManager.getKeyStore(),keyAlias, keyPwd);
 		
 		securityCheck(UUID.randomUUID().toString());

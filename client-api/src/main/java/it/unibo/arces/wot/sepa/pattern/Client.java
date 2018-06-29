@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.pattern;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Set;
 
@@ -38,21 +39,28 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 public abstract class Client implements java.io.Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
+	protected static ArrayList<String> numbersOrBoolean = new ArrayList<String>();
+	
 	protected JSAP appProfile;
 	protected String prefixes = "";
+	protected boolean isSecure = false;
+	
+	protected SEPASecurityManager sm = null;
+	
+	public final boolean isSecure() {return isSecure;}
 
 	public JSAP getApplicationProfile() {
 		return appProfile;
 	}
 
-	protected void addNamespaces(JSAP appProfile) {
+	protected final void addNamespaces(JSAP appProfile) {
 		Set<String> appPrefixes = appProfile.getPrefixes();
 		for (String prefix : appPrefixes) {
 			prefixes += "PREFIX " + prefix + ":<" + appProfile.getNamespaceURI(prefix) + "> ";
 		}
 	}
 
-	protected String prefixes() {
+	protected final String prefixes() {
 		return prefixes;
 	}
 
@@ -63,12 +71,35 @@ public abstract class Client implements java.io.Closeable {
 		}
 		this.appProfile = appProfile;
 
-		logger.debug("SEPA parameters: " + appProfile.printParameters());
+		logger.trace("SEPA parameters: " + appProfile.printParameters());
 
 		addNamespaces(appProfile);
+		
+		if (appProfile.isSecure()) throw new IllegalArgumentException("Wrong construct. Security is enabled but security manager is null.");
+	
+		isSecure = appProfile.isSecure();
+		
+		numbersOrBoolean.add("xsd:integer");
+		numbersOrBoolean.add("xsd:decimal");
+		numbersOrBoolean.add("xsd:double");
+		numbersOrBoolean.add("xsd:boolean");
+		
+		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#integer");
+		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#decimal");
+		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#double");
+		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#boolean");
 	}
 
-	protected String replaceBindings(String sparql, Bindings bindings) {
+	public Client(JSAP appProfile,SEPASecurityManager sm) throws SEPAProtocolException {
+		this(appProfile);
+		
+		if (sm == null & appProfile.isSecure()) throw new IllegalArgumentException("Security is enabled but security manager is null");
+		
+		this.sm = sm;
+		isSecure = appProfile.isSecure();
+	}
+	
+	protected final String replaceBindings(String sparql, Bindings bindings) {
 		if (bindings == null || sparql == null)
 			return sparql;
 
@@ -80,7 +111,7 @@ public abstract class Client implements java.io.Closeable {
 			replacedSparql = replacedSparql.substring(sparql.indexOf('{'), replacedSparql.length());
 		}
 		for (String var : bindings.getVariables()) {
-			String value = bindings.getBindingValue(var);
+			String value = bindings.getValue(var);
 			if (value == null)
 				continue;
 
@@ -106,31 +137,44 @@ public abstract class Client implements java.io.Closeable {
 			 * 
 			 * Examples of literal syntax in SPARQL include:
 			 * 
-			 * - "chat" 
-			 * - 'chat'@fr with language tag "fr"
-			 * - "xyz"^^<http://example.org/ns/userDatatype> 
-			 * - "abc"^^appNS:appDataType 
-			 * - '''The librarian said, "Perhaps you would enjoy 'War and Peace'."''' 
-			 * - 1, which is the same as "1"^^xsd:integer 
-			 * - 1.3, which is the same as "1.3"^^xsd:decimal 
-			 * - 1.300, which is the same as "1.300"^^xsd:decimal
-			 * - 1.0e6, which is the same as "1.0e6"^^xsd:double 
-			 * - true, which is the same as "true"^^xsd:boolean 
-			 * - false, which is the same as "false"^^xsd:boolean 
+			 * - "chat" - 'chat'@fr with language tag "fr" -
+			 * "xyz"^^<http://example.org/ns/userDatatype> - "abc"^^appNS:appDataType -
+			 * '''The librarian said, "Perhaps you would enjoy 'War and Peace'."''' - 1,
+			 * which is the same as "1"^^xsd:integer - 1.3, which is the same as
+			 * "1.3"^^xsd:decimal - 1.300, which is the same as "1.300"^^xsd:decimal -
+			 * 1.0e6, which is the same as "1.0e6"^^xsd:double - true, which is the same as
+			 * "true"^^xsd:boolean - false, which is the same as "false"^^xsd:boolean
 			 * 
-			 * Tokens matching the productions
-			 * INTEGER, DECIMAL, DOUBLE and BooleanLiteral are equivalent to a typed literal
-			 * with the lexical value of the token and the corresponding datatype
-			 * (xsd:integer, xsd:decimal, xsd:double, xsd:boolean).
+			 * Tokens matching the productions INTEGER, DECIMAL, DOUBLE and BooleanLiteral
+			 * are equivalent to a typed literal with the lexical value of the token and the
+			 * corresponding datatype (xsd:integer, xsd:decimal, xsd:double, xsd:boolean).
 			 */
 
 			if (bindings.isLiteral(var)) {
 				String datatype = bindings.getDatatype(var);
-				if (datatype != "xsd:integer" && datatype != "xsd:decimal" && datatype != "xsd:double" && datatype != "xsd:boolean") {
+				String lang = bindings.getLanguage(var);
+				
+				// Not a number of boolean
+				if (!numbersOrBoolean.contains(datatype)) {
 					value = "'" + value + "'";
-					if (bindings.getLanguage(var) != null)
+					
+					// Check if datatype is a qname or not
+					URI uri = null;
+					try {
+						uri = new URI(datatype);
+					} catch (URISyntaxException e) {
+						logger.error(e.getMessage());
+					}
+					
+					if (uri != null) {
+						if (uri.getSchemeSpecificPart().startsWith("/"))
+							datatype = "<" + datatype + ">";
+					}
+					
+					if (lang != null)
 						value += "@" + bindings.getLanguage(var);
-					else value += "^^" + datatype;	
+					else
+						value += "^^" + datatype;
 				}
 			} else {
 				// See https://www.w3.org/TR/rdf-sparql-query/#QSynIRI
@@ -204,15 +248,19 @@ public abstract class Client implements java.io.Closeable {
 				|| (0x2070 <= c && c <= 0x218F) || (0x2C00 <= c && c <= 0x2FEF) || (0x3001 <= c && c <= 0xD7FF)
 				|| (0xF900 <= c && c <= 0xFDCF) || (0xFDF0 <= c && c <= 0xFFFD) || (0x10000 <= c && c <= 0xEFFFF));
 	}
-	
-	protected boolean getToken() throws SEPASecurityException, IOException, SEPAPropertiesException {
-		if (!appProfile.getAuthenticationProperties().isTokenExpired()) return true;
 
-		SEPASecurityManager security = new SEPASecurityManager();
-		
-		Response ret = security.requestToken(appProfile.getAuthenticationProperties().getTokenRequestUrl(),
+	protected boolean getToken() throws SEPASecurityException, IOException, SEPAPropertiesException {
+		try {
+			if (!appProfile.getAuthenticationProperties().isTokenExpired())
+				return true;
+		} catch (Exception e) {
+			logger.error("Authentication properties not found");
+			throw new SEPASecurityException(new NullPointerException("Authentication properties not found"));
+		}
+
+		Response ret = sm.requestToken(appProfile.getAuthenticationProperties().getTokenRequestUrl(),
 				appProfile.getAuthenticationProperties().getBasicAuthorizationHeader());
-		
+
 		if (ret.isJWTResponse()) {
 			JWTResponse token = (JWTResponse) ret;
 			Date expires = new Date();
@@ -220,7 +268,7 @@ public abstract class Client implements java.io.Closeable {
 			appProfile.getAuthenticationProperties().setJWT(token.getAccessToken(), expires, token.getTokenType());
 			return true;
 		}
-		
+
 		logger.error(ret);
 		return false;
 	}

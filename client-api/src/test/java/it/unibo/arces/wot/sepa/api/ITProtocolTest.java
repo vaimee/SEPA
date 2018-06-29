@@ -30,16 +30,9 @@ public class ITProtocolTest {
         subHandler = new MockSubscriptionHandler();
         
         ISubscriptionProtocol protocol = null;
-		switch (properties.getSubscribeProtocol(null)) {
-		case WS:
-			protocol = new WebSocketSubscriptionProtocol(properties.getSubscribeHost(null),
-					properties.getSubscribePort(null), properties.getSubscribePath(null), false);
-			break;
-		case WSS:
-			protocol = new WebSocketSubscriptionProtocol(properties.getSubscribeHost(null),
-					properties.getSubscribePort(null), properties.getSubscribePath(null), true);
-			break;
-		}
+		protocol = new WebSocketSubscriptionProtocol(properties.getSubscribeHost(null),
+					properties.getSubscribePort(null), properties.getSubscribePath(null));
+			
 		client = new SPARQL11SEProtocol(protocol, subHandler);
     }
 
@@ -96,7 +89,7 @@ public class ITProtocolTest {
         Bindings bindings = results.get(0);
         assertTrue("Binding variable is not a literal",bindings.isLiteral("o"));
 
-        String value = bindings.getBindingValue("o");
+        String value = bindings.getValue("o");
         assertEquals("Incorrect utf-8 value","測試",value);
     }
 

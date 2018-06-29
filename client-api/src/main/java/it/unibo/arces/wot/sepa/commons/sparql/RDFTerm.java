@@ -30,6 +30,18 @@ public abstract class RDFTerm {
 	/** The json. */
 	protected JsonObject json = null;
 
+	public boolean isURI() {
+		return this.getClass().equals(RDFTermURI.class);
+	}
+	
+	public boolean isLiteral() {
+		return this.getClass().equals(RDFTermLiteral.class);
+	}
+	
+	public boolean isBNode() {
+		return this.getClass().equals(RDFTermBNode.class);
+	}
+	
 	/**
 	 * Gets the value.
 	 *
