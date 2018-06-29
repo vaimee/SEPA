@@ -1,5 +1,10 @@
 {
 	"host": "localhost",
+	"oauth": {
+		"enable" : true,
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token"
+	},
 	"sparql11protocol": {
 		"protocol": "https",
 		"port": 8443,
@@ -26,15 +31,6 @@
 				"path": "/secure/subscribe"
 			}
 		}
-	},
-	"authentication": {
-		"register": "https://localhost:8443/oauth/register",
-		"tokenRequest": "https://localhost:8443/oauth/token",
-		"client_id": "/Jl3tCgdcITFDGwvZc1uU6HIXFrzRG86TipxeMlTLHTTcDxv7Jd8WwGbDcnCsOXu",
-		"client_secret": "5hxu6NNu1b90apLo+enncmVqBb4TZ52TgfS9/Odv83XKz54Qn6XxcFozCPfXgkCE",
-		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfs6S0KjyGmz2uItkCJ9H74fK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkYWKxOC4COdNRtVu7rg5GSB/eB7UZs7f+B0WqYL4JnSCRFlsQfvdfz4qcBG54NaCBo8DVzJgepsV9VehT9P5QEe+x5IyPbGA90/889ZMzfn/8nTgaq2PSsFXnhEC/E3qocmsViba+3Fgbf/uV31v42WrAwgEYotiOauU4ovw8uXwP+jVuwPPt0DlduAiHaAZtspq00sDIJxdyLrNHnSUpSAYQ4TgE/lY850QsapHjDbziwOREkq3JIZZ23cIA03pG0NQHFmIClRlogDWwmjYIdyCk6lP5UH07HDnm+RF1FSig6VBfhRbikGJEFfYH1rEuN2eXpEeM8AnpSb+/dv9Yk/X/Dw4PQG+4KN9jZm4YmLiIuHI3dkgGdG+GMCrHH+xvMEyVd7jS5VPeLpQ9WsH/6JfgrekfTyswiEt/WVzmIs+kqov27hqNfwdeUuFqKIgtVTONLbaNoPrRZUaf3PBTfZFoDWhCRiJSeEDToBLT2n/NADkun6gRrFRLjrrfbvQVLrLrj9ExO746qi+1CQnozl25naixdbmcCRytzXX4jsmLCJRjFJm4eioUXe5jfTR8vfiEL3Gtzmaq67dtE68leMZenuuAy5MLtPTkxRACANPvvce1/g7mjmG5ZeLp5XR65q4TYyHQbKkoYFZkOhLoW",
-		"expires": "X1z+7ZLml+hDHC2fIp47NQ==",
-		"type": "XPrHEX2xHy+5IuXHPHigMw=="
 	},
 	"graphs": {
 		"default-graph-uri": "http://sepatest",
