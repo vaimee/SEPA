@@ -14,8 +14,8 @@ import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class ObservationRemover extends Producer {
 
-	public ObservationRemover() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("swamp-demo.jsap"), "REMOVE_OBSERVATION");
+	public ObservationRemover(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(new JSAP(jsap), "REMOVE_OBSERVATION");
 	}
 	
 	public void remove(String observation) throws SEPASecurityException, IOException, SEPAPropertiesException {

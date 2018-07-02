@@ -1581,8 +1581,10 @@ public class Dashboard {
 			String type = queryForcedBindings.getValueAt(row, 2).toString();
 			String value = queryForcedBindings.getValueAt(row, 1).toString();
 			String variable = queryForcedBindings.getValueAt(row, 0).toString();
-			if (type.equals("xsd:anyURI"))
+			if (type.toUpperCase().equals("URI"))
 				bindings.addBinding(variable, new RDFTermURI(value));
+			else if (type.toUpperCase().equals("BNODE"))
+				bindings.addBinding(variable, new RDFTermBNode(value));
 			else
 				bindings.addBinding(variable, new RDFTermLiteral(value, type));
 		}
@@ -1686,9 +1688,9 @@ public class Dashboard {
 			String type = queryForcedBindings.getValueAt(row, 2).toString();
 			String value = queryForcedBindings.getValueAt(row, 1).toString();
 			String variable = queryForcedBindings.getValueAt(row, 0).toString();
-			if (type.equals("URI"))
+			if (type.toUpperCase().equals("URI"))
 				bindings.addBinding(variable, new RDFTermURI(value));
-			else if (type.equals("BNODE"))
+			else if (type.toUpperCase().equals("BNODE"))
 				bindings.addBinding(variable, new RDFTermBNode(value));
 			else
 				bindings.addBinding(variable, new RDFTermLiteral(value, type));

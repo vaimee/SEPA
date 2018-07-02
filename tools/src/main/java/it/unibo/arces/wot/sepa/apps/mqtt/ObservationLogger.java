@@ -16,9 +16,9 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class ObservationLogger extends Aggregator {
 
-	public ObservationLogger()
+	public ObservationLogger(String jsap)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("swamp-demo.jsap"), "OBSERVATIONS", "LOG_QUANTITY");
+		super(new JSAP(jsap), "OBSERVATIONS", "LOG_QUANTITY");
 	}
 
 	@Override

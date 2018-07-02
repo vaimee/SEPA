@@ -26,9 +26,8 @@ ALL					Integer.MAX_VALUE
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="error">
-			<AppenderRef ref="Console" level="error"/>
-			<AppenderRef ref="Console" level="error"/>
+		<Root level="trace">
+			<AppenderRef ref="Console" level="trace"/>
 		</Root>
 	</Loggers>
 </Configuration>

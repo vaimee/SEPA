@@ -17,11 +17,11 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
-public class MQTTInitializer extends Producer {
+public class MQTTMapper extends Producer {
 	private static final Logger logger = LogManager.getLogger();
 	
-	public MQTTInitializer() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, IOException {
-		super(new JSAP("swamp-demo.jsap"), "ADD_OBSERVATION");
+	public MQTTMapper(String jsap) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, IOException {
+		super(new JSAP(jsap), "ADD_OBSERVATION");
 	}
 	
 	public void init() throws SEPASecurityException, IOException, SEPAPropertiesException {
