@@ -45,8 +45,8 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	// Topics mapping
 	private HashMap<String, String> topic2observation = new HashMap<String, String>();
 
-	public MQTTSmartifier() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("swamp-demo.jsap"), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
+	public MQTTSmartifier(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(new JSAP(jsap), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
 	}
 
 	@Override

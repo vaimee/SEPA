@@ -16,26 +16,31 @@ public class MQTTMonitor {
 	private static MQTTSmartifier smartifier;
 	
 	// Add observation based on the semantic mapping stored in JSAP
-	private static MQTTInitializer mqttInitializer;
+	private static MQTTMapper mqttInitializer;
 
 	public static void main(String[] args)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException {
+		if (args.length != 1) {
+			logger.error("Please provide the jsap file as argument");
+			System.exit(-1);
+		}
+		
 		// Logger
-		ObservationLogger analytics = new ObservationLogger();
+		ObservationLogger analytics = new ObservationLogger(args[0]);
 		analytics.subscribe();
 		
 		// Remover
-		ObservationRemover remover = new ObservationRemover();
+		ObservationRemover remover = new ObservationRemover(args[0]);
 		remover.removeAll();
 		remover.close();
 		
 		// Inizializer
-		mqttInitializer = new MQTTInitializer();
+		mqttInitializer = new MQTTMapper(args[0]);
 		mqttInitializer.init();
 		mqttInitializer.close();
 		
 		// Create MQTT smartifier
-		smartifier = new MQTTSmartifier();
+		smartifier = new MQTTSmartifier(args[0]);
 		if (smartifier.start()) {
 			logger.info("Press any key to exit...");
 			try {

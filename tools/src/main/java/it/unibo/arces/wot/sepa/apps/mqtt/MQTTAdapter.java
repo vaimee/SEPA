@@ -33,7 +33,12 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	private String serverURI = null;
 
 	public static void main(String[] args) throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		MQTTAdapter adapter = new MQTTAdapter();
+		if (args.length != 1) {
+			logger.error("Please provide the jsap file as argument");
+			System.exit(-1);
+		}
+		
+		MQTTAdapter adapter = new MQTTAdapter(args[0]);
 		adapter.start();
 		
 		System.out.println("Press any key to exit...");
@@ -43,8 +48,8 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		adapter.close();
 	}
 	
-	public MQTTAdapter() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("swamp-demo.jsap"), "MQTT_MESSAGE");
+	public MQTTAdapter(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(new JSAP(jsap), "MQTT_MESSAGE");
 	}
 
 	@Override
