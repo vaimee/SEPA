@@ -9,37 +9,27 @@ import java.util.concurrent.Semaphore;
 public class MockSubscriptionHandler implements ISubscriptionHandler {
 
     private Response response;
-    private boolean ping = false;
-    private Semaphore pingSemaphore = new Semaphore(0);
-    private Semaphore notSemaphore = new Semaphore(0);
+    private Semaphore mutex = new Semaphore(0);
 
     @Override
     public void onSemanticEvent(Notification notify) {
-        this.response = notify;
-        notSemaphore.release();
+        response = notify;
+        mutex.release();
     }
-
 
     @Override
     public void onBrokenConnection() {
-        pingSemaphore.release();
-        notSemaphore.release();
+        mutex.release();
     }
 
     @Override
     public void onError(ErrorResponse errorResponse) {
-        pingSemaphore.release();
         response = errorResponse;
-        notSemaphore.release();
-    }
-
-    public boolean pingRecived() throws InterruptedException {
-        pingSemaphore.acquire();
-        return ping;
+        mutex.release();
     }
 
     public Response getResponse() throws InterruptedException {
-        notSemaphore.acquire();
+        mutex.acquire();
         return response;
     }
 }
