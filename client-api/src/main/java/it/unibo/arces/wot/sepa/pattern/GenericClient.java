@@ -52,10 +52,7 @@ public class GenericClient extends Client {
 	}
 
 	public GenericClient(JSAP appProfile, SEPASecurityManager sm) throws SEPAProtocolException {
-		super(appProfile);
-		if (sm == null)
-			throw new IllegalArgumentException("Security manager is null");
-		this.sm = sm;
+		super(appProfile,sm);
 	}
 
 	public Response update(String ID, String sparql, Bindings forced, int timeout)
