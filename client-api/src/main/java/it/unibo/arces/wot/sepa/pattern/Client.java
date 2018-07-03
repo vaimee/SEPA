@@ -74,8 +74,6 @@ public abstract class Client implements java.io.Closeable {
 		logger.trace("SEPA parameters: " + appProfile.printParameters());
 
 		addNamespaces(appProfile);
-		
-		if (appProfile.isSecure()) throw new IllegalArgumentException("Wrong construct. Security is enabled but security manager is null.");
 	
 		isSecure = appProfile.isSecure();
 		
@@ -96,7 +94,6 @@ public abstract class Client implements java.io.Closeable {
 		if (sm == null & appProfile.isSecure()) throw new IllegalArgumentException("Security is enabled but security manager is null");
 		
 		this.sm = sm;
-		isSecure = appProfile.isSecure();
 	}
 	
 	protected final String replaceBindings(String sparql, Bindings bindings) {

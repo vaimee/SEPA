@@ -19,7 +19,6 @@ package it.unibo.arces.wot.sepa.tools;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -77,6 +76,15 @@ public class SEPATestClient {
 	
 	public SEPATestClient(JSAP appProfile) throws SEPAProtocolException, SEPASecurityException {
 		client = new GenericClient(appProfile);
+
+		sequence = appProfile.getExtendedData().getAsJsonObject().get("sequence").getAsJsonArray();
+		notificationMaxDelay = appProfile.getExtendedData().getAsJsonObject().get("notificationMaxDelay").getAsLong();
+
+		this.appProfile = appProfile;
+	}
+	
+	public SEPATestClient(JSAP appProfile,SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException {
+		client = new GenericClient(appProfile,sm);
 
 		sequence = appProfile.getExtendedData().getAsJsonObject().get("sequence").getAsJsonArray();
 		notificationMaxDelay = appProfile.getExtendedData().getAsJsonObject().get("notificationMaxDelay").getAsLong();
@@ -346,38 +354,28 @@ public class SEPATestClient {
 		results.print();
 	}
 	
-	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException { 
+	public static void main(String[] args) throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, IOException { 
 		System.out.println("**********************************************************");
 		System.out.println("***     SPARQL 1.1 SE Protocol Service test suite      ***");
 		System.out.println("**********************************************************");
-		System.out.println("***   WARNING: the RDF store content will be ERASED    ***");
-		System.out.println("***         Do you want to continue (yes/no)?          ***");
-		System.out.println("**********************************************************");
-		Scanner scanner = new Scanner(System.in);
-		scanner.useDelimiter("\\n"); // "\\z" means end of input
-		String input = scanner.next();
-		scanner.close();
-		if (!input.equals("yes")) {
-			System.out.println("Bye bye! :-)");
-			System.exit(0);
+		
+		SEPASecurityManager sm = null;
+		JSAP jsap = null;
+		
+		if (args.length != 1) {
+			System.err.println("Usage: SEPATestClient <file.jsap>");
+			System.exit(-1);
 		}
-//		System.out.println("**********************************************************");
-//		System.out.println("***                Are you sure (yes/no)?              ***");
-//		System.out.println("**********************************************************");
-//		input = scanner.next();
-//		if (!input.equals("yes")) {
-//			scanner.close();
-//			System.out.println("Bye bye! :-)");
-//			System.exit(0);
-//		}
-//		scanner.close();
 		
-		SEPATestClient test = new SEPATestClient(new JSAP("sepatest-secure.jsap"));
+		jsap = new JSAP(args[0]);
+		
+		SEPATestClient test = null;
+		if (jsap.isSecure()) {
+			sm = new SEPASecurityManager();
+			test = new SEPATestClient(jsap,sm);
+		}
+		else test = new SEPATestClient(jsap);
+		
 		test.run();
-		
-		//test = new SEPATestClient(new ApplicationProfile("sepatest-secure.jsap"));
-		//test.run();
-		
-		System.exit(0);
 	}
 }
