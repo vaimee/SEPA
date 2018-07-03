@@ -83,15 +83,15 @@
 				"observation": "arces-monitor:001BC50C700009CD-DASH7-Temperature",
 				"unit": "qudt-unit-1-1:DegreeCelsius",
 				"location": "arces-monitor:Star",
-				"comment": "Temperatura sensori DASH7 sede Pepoli",
-				"label": "Temperatura sensore 001BC50C700009CD"
+				"comment": "Temperature sensor used to show the need of a new air conditioning system in SEHM lab",
+				"label": "Temperature SEHM lab"
 			},
 			"/ffa574972ab9/applink/107/001BC50C700009BB": {
 				"observation": "arces-monitor:001BC50C700009BB-DASH7-Temperature",
 				"unit": "qudt-unit-1-1:DegreeCelsius",
 				"location": "arces-monitor:Star",
-				"comment": "Temperatura sensori DASH7 sede Pepoli",
-				"label": "Temperatura sensore 001BC50C700009BB"
+				"comment": "emperature sensor used to show the need of a new air conditioning system in ST office",
+				"label": "Temperature ST office"
 			},
 			"pepoli/6lowpan/network/NODO1/Temperature": {
 				"observation": "arces-monitor:Pepoli-6lowpan-Nodo1-Temperature",
