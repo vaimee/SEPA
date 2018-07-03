@@ -95,6 +95,9 @@
 		]
 	},
 	"updates": {
+		"DELETE_ALL" : {
+			"sparql" : "delete where {?x ?y ?z}"
+		},
 		"U1": {
 			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {OPTIONAL{?s ?p ?o}}"
 		},
