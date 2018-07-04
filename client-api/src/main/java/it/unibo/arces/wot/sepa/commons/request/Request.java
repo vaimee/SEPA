@@ -136,31 +136,16 @@ public abstract class Request {
 	public boolean isUnsubscribeRequest() {
 		return this.getClass().equals(UnsubscribeRequest.class);
 	}
-
-//	public boolean setBasicAuthentication(String user, String pass) {
-//		authorization = AUTHENTICATION_SCHEMA.BASIC;
-//
-//		try {
-//			byte[] buf = Base64.getEncoder().encode((user + ":" + pass).getBytes("UTF-8"));
-//			basicAuthorizationHeader = "Basic " +new String(buf, "UTF-8");
-//		} catch (UnsupportedEncodingException e) {
-//			return false;
-//		}
-//		return true;
-//	}
-//
-//	public String getAuthorizationHeader() {
-//		switch (authorization) {
-//		case BASIC:
-//			return basicAuthorizationHeader;
-//		default:
-//			return null;
-//		}
-//	}
-//
-//	public boolean isAuthenticationRequired() {
-//		return authorization != AUTHENTICATION_SCHEMA.DISABLED;
-//	}
+	
+	/**
+	 * Default implementation. Two requests are equal if they belong to the same class and their SPARQL strings are equals. SPARQL matching should be based on SPARQL algebra
+	 * and SPARQL semantics. The default implementation provides a syntax based matching. 
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (!obj.getClass().equals(this.getClass())) return false;
+		return sparql.equals(((QueryRequest)obj).sparql);
+	}
 	
 	public HTTPMethod getHttpMethod() {
 		return method;

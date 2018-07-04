@@ -3,7 +3,7 @@ package it.unibo.arces.wot.sepa.engine.processing.subscription;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.processing.subscriptions.ISubscriptionProcUnit;
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.ISPU;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,7 +46,7 @@ public class SPUMangerTest {
         Assert.assertTrue(spuManger.isValidSpuId("Ironman"));
     }
 
-    private class FakeSPU implements ISubscriptionProcUnit{
+    private class FakeSPU implements ISPU{
 
         private String uid;
 
