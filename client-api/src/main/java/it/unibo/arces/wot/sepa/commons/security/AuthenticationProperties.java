@@ -86,6 +86,15 @@ public class AuthenticationProperties {
 		this(jsapFileName, null);
 	}
 
+	public boolean isEnabled() {
+		try {
+			return jsap.get("oauth").getAsJsonObject().get("enable").getAsBoolean();
+		}
+		catch(Exception e) {
+			return false;
+		}	
+	}
+	
 	private void validate() throws SEPAPropertiesException {
 		try {
 			jsap.get("oauth").getAsJsonObject().get("enable").getAsBoolean();
