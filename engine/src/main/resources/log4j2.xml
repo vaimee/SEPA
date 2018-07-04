@@ -4,18 +4,18 @@
 	<!-- 
 Standard Level	intLevel
 OFF					0
-
-*TIMING*				50
-
 FATAL				100
 ERROR				200
 WARN					300
+
+*TIMING*				350
+
 INFO					400
 DEBUG				500
 TRACE				600
 ALL					Integer.MAX_VALUE
 	 -->
-		<CustomLevel name="timing" intLevel="50" />
+		<CustomLevel name="timing" intLevel="350" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">

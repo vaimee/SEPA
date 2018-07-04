@@ -23,13 +23,15 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
@@ -56,17 +58,29 @@ public class QueryProcessor {
 				return new ErrorResponse(500, e.getMessage());
 			}
 
+		// Authorized access to the endpoint
+		String authorizationHeader = null;
+		try {
+			// TODO: to implement also bearer authentication
+			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
+			if (oauth.isEnabled())
+				authorizationHeader = oauth.getBasicAuthorizationHeader();
+		} catch (SEPAPropertiesException | SEPASecurityException e) {
+			logger.warn(e.getMessage());
+		}
+
 		Response ret;
 		QueryRequest request;
 		request = new QueryRequest(req.getToken(), properties.getQueryMethod(), properties.getDefaultProtocolScheme(),
 				properties.getDefaultHost(), properties.getDefaultPort(), properties.getDefaultQueryPath(),
-				req.getSPARQL(), req.getTimeout(), req.getDefaultGraphUri(), req.getNamedGraphUri(),req.getAuthorizationHeader());
-				
+				req.getSPARQL(), req.getTimeout(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
+				authorizationHeader);
+
 		ret = endpoint.query(request);
-		
+
 		if (endpointSemaphore != null)
-				endpointSemaphore.release();
-		
+			endpointSemaphore.release();
+
 		long stop = Timings.getTime();
 		logger.trace("Response: " + ret.toString());
 		Timings.log("QUERY_PROCESSING_TIME", start, stop);

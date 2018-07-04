@@ -1,5 +1,15 @@
 {
 	"host": "localhost",
+	"oauth": {
+		"enable": false,
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token",
+		"client_id": "",
+		"client_secret": "",
+		"jwt": "",
+		"expires": "",
+		"type": ""
+	},
 	"sparql11protocol": {
 		"protocol": "http",
 		"port": 9999,

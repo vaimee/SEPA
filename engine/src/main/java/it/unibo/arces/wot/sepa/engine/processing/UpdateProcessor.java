@@ -23,12 +23,15 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
@@ -55,12 +58,22 @@ public class UpdateProcessor {
 				return new ErrorResponse(500, e.getMessage());
 			}
 
+		// Authorized access to the endpoint
+		String authorizationHeader = null;
+		try {
+			//TODO: to implement also bearer authentication
+			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
+			if (oauth.isEnabled()) authorizationHeader = oauth.getBasicAuthorizationHeader();			
+		} catch (SEPAPropertiesException | SEPASecurityException e) {
+			logger.warn(e.getMessage());
+		}
+				
 		// UPDATE the endpoint
 		Response ret;
 		UpdateRequest request = new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
 				properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
 				properties.getUpdatePath(), req.getSPARQL(), req.getTimeout(), req.getUsingGraphUri(),
-				req.getUsingNamedGraphUri(), req.getAuthorizationHeader());
+				req.getUsingNamedGraphUri(), authorizationHeader);
 		logger.trace(request);
 		ret = endpoint.update(request);
 

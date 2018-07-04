@@ -147,10 +147,6 @@ public class SPARQL11Properties {
 	public SPARQL11Properties(String propertiesFile, byte[] secret) throws SEPAPropertiesException {
 		this(propertiesFile);
 	}
-//
-//	public SPARQL11Properties(File jsapFile, byte[] secret) throws SEPAPropertiesException {
-//		loadProperties(jsapFile);
-//	}
 	
 	private void loadProperties(String jsapFile) throws SEPAPropertiesException {
 		try (final FileReader in = new FileReader(jsapFile)) {
@@ -171,10 +167,16 @@ public class SPARQL11Properties {
 				throw new SEPAPropertiesException(e1);
 			}
 
-			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
+			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed)");
+			
+			this.propertiesFile = defaultsFileName;
 		}
 	}
 
+	public String getFilename() {
+		return propertiesFile;
+	}
+	
 	public String toString() {
 		return jsap.get("sparql11protocol").toString();
 	}
@@ -218,13 +220,6 @@ public class SPARQL11Properties {
 		update.add("method", new JsonPrimitive("POST"));
 		update.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("update", update);
-
-		// JsonObject graphs = new JsonObject();
-		// graphs.add("default-graph-uri", new JsonPrimitive("http://default"));
-		// graphs.add("named-graph-uri", new JsonPrimitive("http://default"));
-		// graphs.add("using-graph-uri", new JsonPrimitive("http://default"));
-		// graphs.add("using-named-graph-uri", new JsonPrimitive("http://default"));
-		// jsap.add("graphs", graphs);
 
 		jsap.add("sparql11protocol", sparql11protocol);
 	}
