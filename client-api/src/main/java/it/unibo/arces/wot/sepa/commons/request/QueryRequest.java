@@ -23,9 +23,8 @@ import java.net.URLDecoder;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 
-// TODO: Auto-generated Javadoc
 /**
- * This class represents a request to perform a SPARQL 1.1 Query
+ * This class represents a SPARQL 1.1 Query request
  * 
  * @see <a href="https://www.w3.org/TR/sparql11-query/">SPARQL 1.1 Query</a>
 * */
@@ -81,9 +80,12 @@ public class QueryRequest extends Request {
 		this(-1,queryMethod,  queryProtocolScheme,  queryHost,  queryPort,queryPath,  string,  timeout,  defaultGraphURI,  namedGraphURI,authorization);
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (!obj.getClass().equals(QueryRequest.class)) return false;
+		return sparql.equals(((QueryRequest)obj).sparql);
+	}
+	@Override
 	public String toString() {
 		if (token != -1) return "QUERY #"+token+" "+sparql;
 		return "QUERY "+sparql;

@@ -49,7 +49,7 @@ import it.unibo.arces.wot.sepa.engine.core.EventHandler;
  */
 
 //public abstract class SPU extends Observable implements Runnable {
-public abstract class SPU implements ISubscriptionProcUnit {
+public abstract class SPU implements ISPU {
 	private final Logger logger;
 
 	// The URI of the subscription (i.e., sepa://spuid/UUID)
@@ -59,7 +59,6 @@ public abstract class SPU implements ISubscriptionProcUnit {
 	// Update queue
 	protected ConcurrentLinkedQueue<UpdateResponse> updateQueue = new ConcurrentLinkedQueue<UpdateResponse>();
 
-	// protected SPARQL11Protocol endpoint = null;
 	protected QueryProcessor queryProcessor;
 
 	protected SubscribeRequest request;

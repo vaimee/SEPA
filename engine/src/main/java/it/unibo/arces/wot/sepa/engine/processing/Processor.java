@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SubscribeProcessor;
@@ -55,6 +56,9 @@ public class Processor extends Thread implements ProcessorMBean {
 	// Concurrent endpoint limit
 	private Semaphore endpointSemaphore = null;
 
+	// Update queue
+	private LinkedBlockingQueue<UpdateRequest> updateQueue = new LinkedBlockingQueue<UpdateRequest>();
+	
 	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties,
 			SchedulerRequestResponseQueue queue) throws IllegalArgumentException, SEPAProtocolException {
 		if (queue == null) {
@@ -82,6 +86,32 @@ public class Processor extends Thread implements ProcessorMBean {
 		ProcessorBeans.setEndpoint(endpointProperties);
 		ProcessorBeans.setQueryTimeout(properties.getQueryTimeout());
 		ProcessorBeans.setUpdateTimeout(properties.getUpdateTimeout());
+		
+		// Main thread for FIFO scheduling of updates 
+		Thread updateScheduler = new Thread() {
+			public void run() {
+				while(true) {
+					UpdateRequest request;
+					try {
+						request = updateQueue.take();
+					} catch (InterruptedException e) {
+						return;
+					}
+					// Process update request
+					request.setTimeout(ProcessorBeans.getUpdateTimeout());
+					Response ret = updateProcessor.process(request);
+
+					// // Notify update result
+					queue.addResponse(ret);
+
+					if (ret.isUpdateResponse()) {
+						subscribeProcessor.process((UpdateResponse) ret);
+					}	
+				}
+			}
+		};
+		updateScheduler.setName("SEPA-Update-Scheduler");
+		updateScheduler.start();
 	}
 
 	@Override
@@ -95,21 +125,14 @@ public class Processor extends Thread implements ProcessorMBean {
 				return;
 			}
 
+			
 			Request request = scheduledRequest.getRequest();
 			if (request.isUpdateRequest()) {
 				logger.debug("Update request #" + request.getToken());
 				logger.trace(request);
 
-				// Process update request
-				request.setTimeout(ProcessorBeans.getUpdateTimeout());
-				Response ret = updateProcessor.process((UpdateRequest) request);
-
-				// // Notify update result
-				queue.addResponse(ret);
-
-				if (ret.isUpdateResponse()) {
-					subscribeProcessor.process((UpdateResponse) ret);
-				}
+				// Put the request into the FIFO queue
+				updateQueue.offer((UpdateRequest) request);
 			} else if (request.isQueryRequest()) {
 				logger.debug("Query request #" + request.getToken());
 				logger.trace(request);

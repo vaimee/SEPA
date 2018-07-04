@@ -11,9 +11,9 @@ import java.util.Iterator;
  * on the internal structure.
  */
 public class SPUManager {
-    private HashMap<String,ISubscriptionProcUnit> spus = new HashMap<>();
+    private HashMap<String,ISPU> spus = new HashMap<>();
 
-    public synchronized void register(ISubscriptionProcUnit spu){
+    public synchronized void register(ISPU spu){
         spus.put(spu.getUUID(),spu);
     }
 
@@ -29,11 +29,11 @@ public class SPUManager {
         return spus.containsKey(id);
     }
 
-    public synchronized Iterator<ISubscriptionProcUnit> filter(UpdateResponse response){
+    public synchronized Iterator<ISPU> filter(UpdateResponse response){
         return spus.values().iterator();
     }
 
-    public synchronized Collection<ISubscriptionProcUnit> getAll(){
+    public synchronized Collection<ISPU> getAll(){
         return spus.values();
     }
 
