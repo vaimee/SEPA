@@ -165,7 +165,11 @@ public class Engine implements EngineMBean {
 					serverCertificate = tmp[1];
 					break;
 				case "-engine":
-					
+					engineJpar = tmp[1];
+					break;
+				case "-endpoint":
+					endpointJpar = tmp[1];
+					break;
 				default:
 					break;
 				}
