@@ -19,7 +19,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.time.Instant;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.Logger;
@@ -43,22 +42,15 @@ import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 
 public class SubscribeProcessor implements SubscribeProcessorMBean {
 	private final Logger logger = LogManager.getLogger();
+
 	private final Subscriber subscriber;
-	private final Unsubcriber unsubscriber;
+	private final Unsubscriber unsubscriber;
 
 	private SPARQL11Properties endpointProperties;
-
-	private SPUManager spuManager =  new SPUManager();
-
-	// Request queue
-	private LinkedBlockingQueue<ISPU> subscribeQueue = new LinkedBlockingQueue<>();
-	private LinkedBlockingQueue<String> unsubscribeQueue = new LinkedBlockingQueue<>();
-
 	private Semaphore endpointSemaphore;
-
-	// SPU Synchronization
-	private SPUSync spuSync = new SPUSync();
-
+	
+	private SPUManager spuManager =  new SPUManager();
+		
 	public SubscribeProcessor(SPARQL11Properties endpointProperties, EngineProperties engineProperties,
 							  Semaphore endpointSemaphore) {
 		this.endpointProperties = endpointProperties;
@@ -67,16 +59,16 @@ public class SubscribeProcessor implements SubscribeProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SubscribeProcessorBeans.setSPUProcessingTimeout(engineProperties.getSPUProcessingTimeout());
 
-		this.subscriber = new Subscriber(subscribeQueue,spuManager);
-		this.unsubscriber = new Unsubcriber(unsubscribeQueue,spuManager);
+		this.subscriber = new Subscriber(spuManager);
+		this.unsubscriber = new Unsubscriber(spuManager);
 	}
 
-	public void start(){
+	public void start() {
 		this.subscriber.start();
 		this.unsubscriber.start();
 	}
 
-	public void stop(){
+	public void stop() {
 		this.subscriber.finish();
 		this.unsubscriber.finish();
 
@@ -92,7 +84,7 @@ public class SubscribeProcessor implements SubscribeProcessorMBean {
 		// TODO: choose different kinds of SPU based on subscribe request
 		SPU spu = null;
 		try {
-			spu = new SPUNaive(req, handler, endpointProperties, endpointSemaphore, spuSync);
+			spu = new SPUNaive(req, handler, endpointProperties, endpointSemaphore, spuManager);
 		} catch (SEPAProtocolException e) {
 			logger.debug("SPU creation failed: " + e.getMessage());
 
@@ -107,7 +99,11 @@ public class SubscribeProcessor implements SubscribeProcessorMBean {
 			logger.debug("SPU initialization failed");
 		} else {
 			logger.debug("Add SPU to activation queue");
-			subscribeQueue.offer(spu);
+			try {
+				subscriber.activate(spu);
+			} catch (InterruptedException e) {
+				return new ErrorResponse(req.getToken(),500,"Failed activating SPU");
+			}
 		}
 
 		return init;
@@ -123,7 +119,11 @@ public class SubscribeProcessor implements SubscribeProcessorMBean {
 		if (!spuManager.isValidSpuId(spuid))
 			return new ErrorResponse(req.getToken(), 404, "SPUID not found: " + spuid);
 
-		unsubscribeQueue.offer(spuid);
+		try {
+			unsubscriber.deactivate(spuid);
+		} catch (InterruptedException e) {
+			return new ErrorResponse(req.getToken(), 500, "Failed to unsubscribe: " + spuid);
+		}
 
 		return new UnsubscribeResponse(req.getToken(), spuid);
 	}
@@ -134,17 +134,10 @@ public class SubscribeProcessor implements SubscribeProcessorMBean {
 
 		logger.debug("Activate SPUs (Total: " + spuManager.size() + ")");
 
-		spuSync.startProcessing(spuManager.getAll());
-
-		// TODO: filter algorithm
-		// Synchronize on spuManger to avoid changes of SPU collection
-		synchronized (spuManager) {
-			for (ISPU spu : spuManager.getAll())
-				spu.process(update);
-		}
+		spuManager.startProcessing(update);
 
 		// Wait all SPUs completing processing (or timeout)
-		spuSync.waitEndOfProcessing();
+		spuManager.waitEndOfProcessing();
 
 		Instant stop = Instant.now();
 		SubscribeProcessorBeans.timings(start, stop);

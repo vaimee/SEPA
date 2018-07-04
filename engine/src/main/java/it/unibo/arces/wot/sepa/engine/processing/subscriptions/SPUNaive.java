@@ -45,7 +45,7 @@ public class SPUNaive extends SPU {
 	private Integer sequence = 1;
 
 	public SPUNaive(SubscribeRequest subscribe, EventHandler handler, SPARQL11Properties endpointProperties,
-			Semaphore endpointSemaphore, SPUSync sync) throws SEPAProtocolException {
+			Semaphore endpointSemaphore, SPUManager sync) throws SEPAProtocolException {
 		super(subscribe, endpointProperties, handler, endpointSemaphore, sync);
 
 		logger = LogManager.getLogger("SPUNaive" + getUUID());

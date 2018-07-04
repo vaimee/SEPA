@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -13,15 +14,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * 
  * @see SPUManager
  */
-public class Unsubcriber extends Thread {
+public class Unsubscriber extends Thread {
     private final Logger logger = LogManager.getLogger();
-    private final BlockingQueue<String> unsubscribeQueue;
+    private final BlockingQueue<String> unsubscribeQueue = new LinkedBlockingQueue<String>();
     private final SPUManager spuManager;
     private final AtomicBoolean end = new AtomicBoolean(false);
 
-    public Unsubcriber(BlockingQueue<String> unsubscribeQueue, SPUManager manager){
+    public Unsubscriber(SPUManager manager){
         super("SEPA-SPU-Unsubscriber");
-        this.unsubscribeQueue = unsubscribeQueue;
+        //this.unsubscribeQueue = unsubscribeQueue;
         spuManager = manager;
     }
 
@@ -41,6 +42,10 @@ public class Unsubcriber extends Thread {
                 logger.debug(e);
             }
         }
+    }
+    
+    public void deactivate(String spuid) throws InterruptedException {
+    		unsubscribeQueue.put(spuid);
     }
 
     public void finish(){

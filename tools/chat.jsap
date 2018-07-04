@@ -1,5 +1,10 @@
 {
 	"host": "localhost",
+	"oauth": {
+		"enable" : false,
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token"
+	},
 	"sparql11protocol": {
 		"protocol": "http",
 		"port": 8000,
@@ -25,10 +30,6 @@
 				"port": 9443,
 				"path": "/secure/subscribe"
 			}
-		},
-		"security": {
-			"register": "http://localhost:8080/oauth/register",
-			"tokenRequest": "http://localhost:8080/oauth/token"
 		}
 	},
 	"extended": {
