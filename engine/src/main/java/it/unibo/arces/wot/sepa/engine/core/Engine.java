@@ -59,12 +59,12 @@ import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerRequestResponseQueue;
  * Event Processing Architecture (SEPA)
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.9.1
+ * @version 0.9.2
  */
 
 public class Engine implements EngineMBean {
 	private static Engine engine;
-	private static String version = "0.9.1";
+	private static String version = "0.9.2";
 	private EngineProperties properties = null;
 
 	// Scheduler request queue
@@ -97,6 +97,8 @@ public class Engine implements EngineMBean {
 	private String jwtAlias = "sepakey";
 	private String jwtPassword = "sepa2017";
 	private String serverCertificate = "sepacert";
+	private String engineJpar = "engine.jpar";
+	private String endpointJpar = "endpoint.jpar";
 
 	// Logging file name
 	private void setLoggingFileName() {
@@ -113,16 +115,23 @@ public class Engine implements EngineMBean {
 
 	private void printUsage() {
 		System.out.println("Usage:");
-		System.out.println("java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [JKS OPTIONS]");
+		System.out.println("java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-engine=engine.jpar] [-endpoint=endpoint.jpar] [JKS OPTIONS]");
+		System.out.println("Options: ");
+		System.out.println("-engine : can be used to specify the JSON configuration parameters for the engine (default: engine.jpar)");
+		System.out.println("-endpoint : can be used to specify the JSON configuration parameters for the endpoint (default: endpoint.jpar)");
+		System.out.println("-help : to print this help");
+		
 		System.out.println("");
 		System.out.println("JMX:");
 		System.out.println("-Dcom.sun.management.config.file=jmx.properties : to enable JMX remote managment");
+		System.out.println("");
 		System.out.println("JVM:");
 		System.out.println("-XX:+UseG1GC");
+		System.out.println("");
 		System.out.println("LOG4J");
 		System.out.println("-Dlog4j.configurationFile=./log4j2.xml");
+		System.out.println("");
 		System.out.println("JKS OPTIONS:");
-		System.out.println("-help : to print this help");
 		System.out.println("-storename=<name> : file name of the JKS     (default: sepa.jks)");
 		System.out.println("-storepwd=<pwd> : password of the JKS        (default: sepa2017)");
 		System.out.println("-alias=<jwt> : alias for the JWT key         (default: sepakey)");
@@ -155,6 +164,8 @@ public class Engine implements EngineMBean {
 				case "-certificate":
 					serverCertificate = tmp[1];
 					break;
+				case "-engine":
+					
 				default:
 					break;
 				}
@@ -199,7 +210,7 @@ public class Engine implements EngineMBean {
 
 		// Initialize SPARQL 1.1 SE processing service properties
 		try {
-			properties = new EngineProperties("engine.jpar");
+			properties = new EngineProperties(engineJpar);
 		} catch (SEPAPropertiesException e) {
 			// System.err.println("Failed to load engine.jpar: "+e.getMessage());
 			// properties = null;
@@ -207,7 +218,7 @@ public class Engine implements EngineMBean {
 
 		SPARQL11Properties endpointProperties = null;
 		try {
-			endpointProperties = new SPARQL11Properties("endpoint.jpar");
+			endpointProperties = new SPARQL11Properties(endpointJpar );
 		} catch (SEPAPropertiesException e2) {
 			// System.err.println("Failed to load endpoint.jpar: "+e2.getMessage());
 			// endpointProperties = null;
