@@ -79,12 +79,7 @@ public class QueryRequest extends Request {
 			String queryPath, String string, int timeout, String defaultGraphURI, String namedGraphURI,String authorization) {
 		this(-1,queryMethod,  queryProtocolScheme,  queryHost,  queryPort,queryPath,  string,  timeout,  defaultGraphURI,  namedGraphURI,authorization);
 	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (!obj.getClass().equals(QueryRequest.class)) return false;
-		return sparql.equals(((QueryRequest)obj).sparql);
-	}
+	
 	@Override
 	public String toString() {
 		if (token != -1) return "QUERY #"+token+" "+sparql;

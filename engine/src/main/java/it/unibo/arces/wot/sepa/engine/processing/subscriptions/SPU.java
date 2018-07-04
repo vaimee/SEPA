@@ -74,10 +74,10 @@ public abstract class SPU implements ISPU {
 	private Response notify;
 
 	// List of processing SPU
-	private SPUSync sync;
+	private SPUManager sync;
 
 	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler,
-			Semaphore endpointSemaphore, SPUSync sync) throws SEPAProtocolException {
+			Semaphore endpointSemaphore, SPUManager sync) throws SEPAProtocolException {
 		if (eventHandler == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe event handler is null"));
 		if (sync == null)
