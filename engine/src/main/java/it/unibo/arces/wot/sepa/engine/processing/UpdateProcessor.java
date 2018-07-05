@@ -19,8 +19,18 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 
+import com.google.gson.JsonObject;
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
+import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import org.apache.jena.update.Update;
+import org.apache.jena.update.UpdateFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -53,13 +63,39 @@ public class UpdateProcessor {
 			} catch (InterruptedException e) {
 				return new ErrorResponse(500,e.getMessage());
 			}
-		
+
+			// Get the constructs needed to determine added and removed data
+
+		long start = System.currentTimeMillis();
+		SPARQLAnalyzer sa = new SPARQLAnalyzer(req.getSPARQL());
+		UpdateConstruct constructs = sa.getConstruct();
+
+
+		BindingsResults added =  new BindingsResults(new JsonObject());
+		BindingsResults removed =  new BindingsResults(new JsonObject());
+
+		String dc = constructs.getDeleteConstruct();
+
+		if (dc.length() > 0) {
+			removed = getTriples(timeout, dc);
+		}
+
+		String ac = constructs.getInsertConstruct();
+		if (ac.length() > 0) {
+			added = getTriples(timeout, ac);
+		}
+
+		long stop = System.currentTimeMillis();
+		logger.debug("* ADDED REMOVED PROCESSING ("+(stop-start)+" ms) *");
+
+		ProcessorBeans.updateTimings(start, stop);
+
 		// UPDATE the endpoint
-		long start = System.currentTimeMillis();		
+		start = System.currentTimeMillis();
 		Timing.logTiming(req, "ENDPOINT_REQUEST", Instant.now());
 		Response ret = endpoint.update(req, timeout);		
 		Timing.logTiming(req, "ENDPOINT_RESPONSE", Instant.now());
-		long stop = System.currentTimeMillis();
+		stop = System.currentTimeMillis();
 		
 		if (endpointSemaphore != null) endpointSemaphore.release();
 		
@@ -67,7 +103,17 @@ public class UpdateProcessor {
 		logger.debug("* UPDATE PROCESSING ("+(stop-start)+" ms) *");
 		
 		ProcessorBeans.updateTimings(start, stop);
-		
+
+		ret = ret.isUpdateResponse() ? new UpdateResponseWithAR((UpdateResponse) ret,added,removed) : ret;
 		return ret;
+	}
+
+	private BindingsResults getTriples(int timeout, String dc) {
+		BindingsResults removed;
+		QueryRequest cons1 = new QueryRequest(dc);
+		logger.debug(cons1.toString());
+		removed = ((QueryResponse) endpoint.query(cons1, timeout)).getBindingsResults();
+		logger.debug(removed);
+		return removed;
 	}
 }
