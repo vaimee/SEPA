@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
+package it.unibo.arces.wot.sepa.engine.processing;
 
 public interface SubscribeProcessorMBean {
 	public long getRequests();

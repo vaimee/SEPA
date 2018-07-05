@@ -66,6 +66,32 @@ public class Notification extends Response {
 	/**
 	 * Instantiates a new notification.
 	 *
+	 * @param spuid
+	 *            the spuid
+	 * @param results
+	 *            the results
+	 */
+	public Notification(String spuid, ARBindingsResults results) {
+		super();
+		
+		JsonObject response = new JsonObject();
+		
+		if (spuid != null)
+			response.add("spuid", new JsonPrimitive(spuid));
+		
+		response.add("sequence", new JsonPrimitive(0));
+		
+		if (results != null) {
+			response.add("addedResults", results.getAddedBindings().toJson());
+			response.add("removedResults", results.getRemovedBindings().toJson());
+		}
+			
+		json.add("notification", response);
+	}
+	
+	/**
+	 * Instantiates a new notification.
+	 *
 	 * @param notify
 	 *            the notify
 	 */

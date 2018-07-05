@@ -661,6 +661,13 @@
 		}
 	},
 	"queries": {
+		"LOG_TRIPLES_NUMBER" :{
+			"sparql" : "SELECT (COUNT(?x) AS ?n) WHERE {?x ?y ?z}",
+			"graphs": {
+				"default-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log",
+				"named-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log"
+			}
+		},
 		"LOG_QUANTITY": {
 			"sparql": "SELECT * WHERE {?log arces-monitor:refersTo ?quantity ; qudt-1-1:numericValue ?value; time:inXSDDateTimeStamp ?timestamp}",
 			"graphs": {

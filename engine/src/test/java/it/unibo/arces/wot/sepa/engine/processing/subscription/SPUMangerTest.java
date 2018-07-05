@@ -21,14 +21,14 @@ public class SPUMangerTest {
     @Test
     public void registerTest(){
         FakeSPU spu = new FakeSPU("Test");
-        spuManger.register(spu);
+        spuManger.register(spu,null);
         Assert.assertEquals("SPU not registered",spuManger.size(),1);
     }
 
     @Test
     public void unRegisterTest(){
         FakeSPU spu = new FakeSPU("123Test");
-        spuManger.register(spu);
+        spuManger.register(spu,null);
         Assert.assertEquals("SPU not registered",spuManger.size(),1);
         spuManger.unRegister("123Test");
         Assert.assertEquals("SPU not succesfully deleted",spuManger.size(),0);
@@ -42,7 +42,7 @@ public class SPUMangerTest {
     @Test
     public void isValidUIDTest(){
         Assert.assertFalse(spuManger.isValidSpuId("Cap"));
-        spuManger.register(new FakeSPU("Ironman"));
+        spuManger.register(new FakeSPU("Ironman"),null);
         Assert.assertTrue(spuManger.isValidSpuId("Ironman"));
     }
 
@@ -60,7 +60,7 @@ public class SPUMangerTest {
         }
 
         @Override
-        public BindingsResults getCurrentResults() {
+        public BindingsResults getLastBindings() {
             return null;
         }
 

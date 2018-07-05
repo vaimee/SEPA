@@ -137,16 +137,6 @@ public abstract class Request {
 		return this.getClass().equals(UnsubscribeRequest.class);
 	}
 	
-	/**
-	 * Default implementation. Two requests are equal if they belong to the same class and their SPARQL strings are equals. SPARQL matching should be based on SPARQL algebra
-	 * and SPARQL semantics. The default implementation provides a syntax based matching. 
-	 */
-	@Override
-	public boolean equals(Object obj) {
-		if (!obj.getClass().equals(this.getClass())) return false;
-		return sparql.equals(((QueryRequest)obj).sparql);
-	}
-	
 	public HTTPMethod getHttpMethod() {
 		return method;
 	}

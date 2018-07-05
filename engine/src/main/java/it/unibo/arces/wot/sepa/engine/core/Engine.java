@@ -59,12 +59,12 @@ import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerRequestResponseQueue;
  * Event Processing Architecture (SEPA)
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.9.2
+ * @version 0.9.5
  */
 
 public class Engine implements EngineMBean {
 	private static Engine engine;
-	private static String version = "0.9.2";
+	private static String version = "0.9.5";
 	private EngineProperties properties = null;
 
 	// Scheduler request queue

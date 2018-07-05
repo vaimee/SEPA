@@ -19,7 +19,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.io.IOException;
-import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Semaphore;
 
@@ -48,13 +47,12 @@ import it.unibo.arces.wot.sepa.engine.core.EventHandler;
  * @version 0.1
  */
 
-//public abstract class SPU extends Observable implements Runnable {
-public abstract class SPU implements ISPU {
+// public abstract class SPU extends Observable implements Runnable {
+abstract class SPU implements ISPU {
 	private final Logger logger;
 
 	// The URI of the subscription (i.e., sepa://spuid/UUID)
 	private String uuid = null;
-	private String prefix = "sepa://spuid/";
 
 	// Update queue
 	protected ConcurrentLinkedQueue<UpdateResponse> updateQueue = new ConcurrentLinkedQueue<UpdateResponse>();
@@ -62,30 +60,32 @@ public abstract class SPU implements ISPU {
 	protected QueryProcessor queryProcessor;
 
 	protected SubscribeRequest request;
+
+	// Handler of notifications
 	protected EventHandler handler;
 
 	// Thread loop
 	private boolean running = true;
 
-	// Query first results
-	protected BindingsResults firstResults = null;
+	// Last bindings results
+	protected BindingsResults lastBindings = null;
 
-	//Notification result
+	// Notification result
 	private Response notify;
 
 	// List of processing SPU
-	private SPUManager sync;
+	private SPUManager manager;
 
 	public SPU(SubscribeRequest subscribe, SPARQL11Properties properties, EventHandler eventHandler,
-			Semaphore endpointSemaphore, SPUManager sync) throws SEPAProtocolException {
+			Semaphore endpointSemaphore, SPUManager manager) throws SEPAProtocolException {
 		if (eventHandler == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe event handler is null"));
-		if (sync == null)
-			throw new SEPAProtocolException(new IllegalArgumentException("SPU sync is null"));
+		if (manager == null)
+			throw new SEPAProtocolException(new IllegalArgumentException("SPU manager is null"));
 
-		this.sync = sync;
+		this.manager = manager;
 
-		uuid = prefix + UUID.randomUUID().toString();
+		uuid = manager.generateSpuid();
 		logger = LogManager.getLogger("SPU" + uuid);
 
 		request = subscribe;
@@ -96,11 +96,15 @@ public abstract class SPU implements ISPU {
 		running = true;
 	}
 
-	public abstract Response processInternal(UpdateResponse update,int timeout);
-	
+	public SubscribeRequest getSubscribe() {
+		return request;
+	}
+
+	public abstract Response processInternal(UpdateResponse update, int timeout);
+
 	@Override
-	public BindingsResults getCurrentResults() {
-		return firstResults;
+	public BindingsResults getLastBindings() {
+		return lastBindings;
 	}
 
 	@Override
@@ -131,7 +135,6 @@ public abstract class SPU implements ISPU {
 		}
 	}
 
-
 	@Override
 	public void run() {
 		while (running) {
@@ -141,24 +144,22 @@ public abstract class SPU implements ISPU {
 				// Processing update
 				logger.debug("* PROCESSING *");
 
-				//Asynchronous processing and waiting for result
-				notify = processInternal(updateResponse,SubscribeProcessorBeans.getSPUProcessingTimeout());
-				
+				// Asynchronous processing and waiting for result
+				notify = processInternal(updateResponse, SubscribeProcessorBeans.getSPUProcessingTimeout());
+
 				// Notify event handler
-				if (handler != null) { 
-					if (notify.isNotification())
-						try {
-							handler.notifyEvent((Notification)notify);
-						} catch (IOException e) {
-							logger.error("Failed to notify "+notify);
-						}
-					else logger.debug("Not a notification: "+notify);
-				}
-				else logger.error("Handler is null");
-				
+				if (notify.isNotification())
+					try {
+						handler.notifyEvent((Notification) notify);
+					} catch (IOException e) {
+						logger.error("Failed to notify " + notify);
+					}
+				else
+					logger.debug("Not a notification: " + notify);
+
 				// Notify SPU manager
 				logger.debug("Notify SPU manager. Running: " + running);
-				sync.endProcessing(this);
+				manager.endProcessing(this);
 			}
 
 			// Wait next request...

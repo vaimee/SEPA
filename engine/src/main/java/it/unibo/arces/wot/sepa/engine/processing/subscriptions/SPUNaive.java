@@ -41,9 +41,6 @@ import org.apache.logging.log4j.LogManager;
 public class SPUNaive extends SPU {
 	private final Logger logger;
 
-	private BindingsResults lastBindings = null;
-	private Integer sequence = 1;
-
 	public SPUNaive(SubscribeRequest subscribe, EventHandler handler, SPARQL11Properties endpointProperties,
 			Semaphore endpointSemaphore, SPUManager sync) throws SEPAProtocolException {
 		super(subscribe, endpointProperties, handler, endpointSemaphore, sync);
@@ -65,11 +62,10 @@ public class SPUNaive extends SPU {
 		}
 
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
-		firstResults = new BindingsResults(lastBindings);
 
-		logger.debug("First results: " + firstResults.toString());
+		logger.debug("First results: " + lastBindings.toString());
 
-		return new SubscribeResponse(request.getToken(), getUUID(), request.getAlias(), getCurrentResults());
+		return new SubscribeResponse(request.getToken(), getUUID(), request.getAlias(), lastBindings);
 	}
 
 	@Override
@@ -126,7 +122,8 @@ public class SPUNaive extends SPU {
 			lastBindings = currentBindings;
 
 			// Send notification (or end processing indication)
-			if (!added.isEmpty() || !removed.isEmpty()) ret = new Notification(getUUID(), new ARBindingsResults(added, removed), sequence++);
+			if (!added.isEmpty() || !removed.isEmpty()) 
+				ret = new Notification(getUUID(), new ARBindingsResults(added, removed));
 		} catch (Exception e) {
 			ret = new ErrorResponse(500, e.getMessage());
 		}

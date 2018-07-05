@@ -2,7 +2,7 @@ package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-public class SPUEndOfProcessing extends Response {
+class SPUEndOfProcessing extends Response {
 	private boolean timeout;
 	
 	public SPUEndOfProcessing(boolean b) {

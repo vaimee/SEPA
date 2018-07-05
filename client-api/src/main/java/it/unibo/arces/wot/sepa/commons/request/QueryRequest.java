@@ -108,4 +108,19 @@ public class QueryRequest extends Request {
 			return null;
 		}
 	}
+	
+	/**
+	 * Default implementation. Two requests are equal if they belong to the same class and their SPARQL strings are equals. SPARQL matching should be based on SPARQL algebra
+	 * and SPARQL semantics. The default implementation provides a syntax based matching. 
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof QueryRequest)) return false;
+		return sparql.equals(((QueryRequest)obj).sparql);
+	}
+	
+	@Override
+	public int hashCode() {
+		return sparql.hashCode();
+	}
 }
