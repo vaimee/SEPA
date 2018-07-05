@@ -20,6 +20,13 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.util.concurrent.Semaphore;
 
+import com.google.gson.JsonObject;
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
+import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import org.apache.jena.update.Update;
+import org.apache.jena.update.UpdateFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -54,7 +61,31 @@ public class UpdateProcessor {
 			} catch (InterruptedException e) {
 				return new ErrorResponse(500, e.getMessage());
 			}
+		// Get the constructs needed to determine added and removed data
 
+		start = System.currentTimeMillis();
+		SPARQLAnalyzer sa = new SPARQLAnalyzer(req.getSPARQL());
+		UpdateConstruct constructs = sa.getConstruct();
+
+
+		BindingsResults added =  new BindingsResults(new JsonObject());
+		BindingsResults removed =  new BindingsResults(new JsonObject());
+
+		String dc = constructs.getDeleteConstruct();
+
+		if (dc.length() > 0) {
+			removed = getTriples(req.getTimeout(), dc);
+		}
+
+		String ac = constructs.getInsertConstruct();
+		if (ac.length() > 0) {
+			added = getTriples(req.getTimeout(), ac);
+		}
+
+		long stop = System.currentTimeMillis();
+		logger.debug("* ADDED REMOVED PROCESSING ("+(stop-start)+" ms) *");
+
+		ProcessorBeans.updateTimings(start, stop);
 		// UPDATE the endpoint
 		Response ret;
 		UpdateRequest request = new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
@@ -67,11 +98,22 @@ public class UpdateProcessor {
 		if (endpointSemaphore != null)
 			endpointSemaphore.release();
 
-		long stop = Timings.getTime();
+		stop = Timings.getTime();
 		logger.trace("Response: " + ret.toString());
 		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
 		ProcessorBeans.updateTimings(start, stop);
 
+		ret = ret.isUpdateResponse() ? new UpdateResponseWithAR((UpdateResponse) ret,added,removed) : ret;
 		return ret;
+	}
+
+	private BindingsResults getTriples(int timeout, String dc) {
+		BindingsResults removed;
+		QueryRequest cons1 = new QueryRequest(dc);
+		cons1.setTimeout(timeout);
+		logger.debug(cons1.toString());
+		removed = ((QueryResponse) endpoint.query(cons1)).getBindingsResults();
+		logger.debug(removed);
+		return removed;
 	}
 }
