@@ -8,7 +8,7 @@ public interface ISPU extends Runnable {
 
     Response init();
 
-    BindingsResults getCurrentResults();
+    BindingsResults getLastBindings();
 
     void terminate();
 

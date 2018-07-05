@@ -21,7 +21,6 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
-import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SubscribeProcessor;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -97,13 +96,15 @@ public class Processor extends Thread implements ProcessorMBean {
 					} catch (InterruptedException e) {
 						return;
 					}
+
 					// Process update request
 					request.setTimeout(ProcessorBeans.getUpdateTimeout());
 					Response ret = updateProcessor.process(request);
 
-					// // Notify update result
+					// Notify update result
 					queue.addResponse(ret);
 
+					// Subscription processing
 					if (ret.isUpdateResponse()) {
 						subscribeProcessor.process((UpdateResponse) ret);
 					}	

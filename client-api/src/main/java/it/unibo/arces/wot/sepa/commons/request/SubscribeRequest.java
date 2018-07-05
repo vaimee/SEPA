@@ -78,4 +78,19 @@ public class SubscribeRequest extends QueryRequest {
 	public String getAlias() {
 		return alias;
 	}
+	
+	/**
+	 * Default implementation. Two requests are equal if they belong to the same class and their SPARQL strings are equals. SPARQL matching should be based on SPARQL algebra
+	 * and SPARQL semantics. The default implementation provides a syntax based matching. 
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof SubscribeRequest)) return false;
+		return sparql.equals(((SubscribeRequest)obj).sparql);
+	}
+	
+	@Override
+	public int hashCode() {
+		return sparql.hashCode();
+	}
 }

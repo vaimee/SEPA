@@ -1,43 +1,45 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-//import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Subscriber extends Thread {
+class Subscriber extends Thread {
     private final Logger logger = LogManager.getLogger();
     private final AtomicBoolean end = new AtomicBoolean(false);
+    
     private final BlockingQueue<ISPU> subscriptionQueue = new LinkedBlockingQueue<ISPU>();
+    private final BlockingQueue<SubscribeRequest> requestQueue = new LinkedBlockingQueue<SubscribeRequest>();
+    
     private final SPUManager spuManager;
 
-    //private LinkedBlockingQueue<ISPU> subscribeQueue = new LinkedBlockingQueue<>();
-    
-    //public Subscriber(BlockingQueue<ISPU> subscriptionQueue, SPUManager manager){
     	public Subscriber(SPUManager manager){
         super("SEPA-SPU-Subscriber");
-        //this.subscriptionQueue = subscriptionQueue;
         spuManager = manager;
     }
 
     @Override
     public void run() {
         while (!end.get()) {
-            ISPU spu = null;
             try {
             		// Wait for a new SPU to be activated
-                spu = subscriptionQueue.take();
+            		ISPU spu = subscriptionQueue.take();
+                SubscribeRequest request = requestQueue.take();
                 
                 // Start the SPU thread
+                logger.debug("Starting SPU: "+spu.getUUID());
                 Thread th = new Thread(spu);
                 th.setName("SPU_" + spu.getUUID());
                 th.start();
-
-                spuManager.register(spu);
+                logger.debug("Started SPU: "+spu.getUUID());
+                
+                spuManager.register(spu,request);
 
                 SubscribeProcessorBeans.setActiveSPUs(spuManager.size());
                 logger.debug(spu.getUUID() + " ACTIVATED (total: " + spuManager.size() + ")");
@@ -47,8 +49,9 @@ public class Subscriber extends Thread {
         }
     }
 
-    public void activate(ISPU spu) throws InterruptedException {
+    public void activate(ISPU spu,SubscribeRequest request) throws InterruptedException {
     		subscriptionQueue.put(spu);
+    		requestQueue.put(request);
     }
     
     public void finish(){

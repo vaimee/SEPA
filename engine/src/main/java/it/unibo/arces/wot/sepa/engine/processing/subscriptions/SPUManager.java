@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
 
@@ -7,6 +8,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,11 +20,42 @@ import org.apache.logging.log4j.Logger;
 public class SPUManager {
 	private final Logger logger = LogManager.getLogger();
 
-	// Registered SPUs
-	private HashMap<String, ISPU> spus = new HashMap<>();
+	// SPUID ==> SPU 
+	private final HashMap<String, ISPU> spus = new HashMap<>();
 
+	// Request ==> SPU
+	private final HashMap<SubscribeRequest, ISPU> request2Spu = new HashMap<>();
+	
+	// SPUID ==> Request
+	private final HashMap<String, SubscribeRequest> spuid2Request = new HashMap<>();
+	
 	// SPUs processing set
-	private HashSet<ISPU> processingSpus = new HashSet<>();
+	private final HashSet<ISPU> processingSpus = new HashSet<>();
+
+	private final Subscriber subscriber;
+	private final Unsubscriber unsubscriber;
+	
+	public SPUManager() {
+		this.subscriber = new Subscriber(this);
+		this.unsubscriber = new Unsubscriber(this);	
+	}
+	
+	public void start() {
+		this.subscriber.start();
+		this.unsubscriber.start();
+	}
+
+	public void stop() {
+		this.subscriber.finish();
+		this.unsubscriber.finish();
+
+		this.subscriber.interrupt();
+		this.unsubscriber.interrupt();
+	}
+	
+	public String generateSpuid() {
+		return "sepa://spuid/" + UUID.randomUUID().toString();
+	}
 
 	public void startProcessing(UpdateResponse update) {
 		synchronized (processingSpus) {
@@ -58,10 +91,6 @@ public class SPUManager {
 		}
 	}
 
-	public boolean isEmpty() {
-		return processingSpus.isEmpty();
-	}
-
 	public void endProcessing(SPU s) {
 		synchronized (processingSpus) {
 			processingSpus.remove(s);
@@ -70,20 +99,28 @@ public class SPUManager {
 		}
 	}
 
-	public synchronized void register(ISPU spu) {
-		synchronized (processingSpus) {
-			spus.put(spu.getUUID(), spu);
-		}
+	public boolean isEmpty() {
+		return processingSpus.isEmpty();
+	}
+
+	public synchronized void register(ISPU spu, SubscribeRequest request) {
+		logger.debug("Register SPU: "+spu.getUUID());
+		
+		spus.put(spu.getUUID(), spu);
+		request2Spu.put(request, spu);
+		spuid2Request.put(spu.getUUID(), request);
 	}
 
 	public synchronized void unRegister(String spuID) {
-		synchronized (processingSpus) {
-			if (!isValidSpuId(spuID)) {
-				throw new IllegalArgumentException("Unregistering a not existing SPUID: " + spuID);
-			}
-			spus.get(spuID).terminate();
-			spus.remove(spuID);
+		if (!isValidSpuId(spuID)) {
+			throw new IllegalArgumentException("Unregistering a not existing SPUID: " + spuID);
 		}
+		
+		spus.get(spuID).terminate();
+		
+		spus.remove(spuID);
+		request2Spu.remove(spuid2Request.get(spuID));
+		spuid2Request.remove(spuID);
 	}
 
 	public synchronized boolean isValidSpuId(String id) {
@@ -100,6 +137,28 @@ public class SPUManager {
 
 	public synchronized int size() {
 		return spus.values().size();
+	}
+
+	public synchronized ISPU getSPU(SubscribeRequest req) {
+		return request2Spu.get(req);
+	}
+
+	public boolean activate(ISPU spu, SubscribeRequest req) {
+		try {
+			subscriber.activate(spu, req);
+		} catch (InterruptedException e) {
+			return false;
+		}
+		return true;
+	}
+
+	public boolean deactivate(String spuid) {
+		try {
+			unsubscriber.deactivate(spuid);
+		} catch (InterruptedException e) {
+			return false;
+		}
+		return true;	
 	}
 
 }

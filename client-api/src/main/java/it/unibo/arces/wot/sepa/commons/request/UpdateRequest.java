@@ -124,4 +124,19 @@ public class UpdateRequest extends Request {
 	public String getAcceptHeader() {
 		return "application/json";
 	}
+	
+	/**
+	 * Default implementation. Two requests are equal if they belong to the same class and their SPARQL strings are equals. SPARQL matching should be based on SPARQL algebra
+	 * and SPARQL semantics. The default implementation provides a syntax based matching. 
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof UpdateRequest)) return false;
+		return sparql.equals(((UpdateRequest)obj).sparql);
+	}
+	
+	@Override
+	public int hashCode() {
+		return sparql.hashCode();
+	}
 }
