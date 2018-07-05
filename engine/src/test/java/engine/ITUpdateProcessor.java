@@ -25,7 +25,8 @@ public class ITUpdateProcessor {
     @Test
     public void testInsertAddRemoved(){
         UpdateRequest updateRequest = new UpdateRequest("INSERT{<test://it/update> <test://it/update/pre> <test://it/update/obj>}Where{}");
-        Response process = updateProcessor.process(updateRequest, 5000);
+        updateRequest.setTimeout(5000);
+        Response process = updateProcessor.process(updateRequest);
 
         assertTrue("Not a UpdateResponse",process instanceof UpdateResponseWithAR);
         UpdateResponseWithAR uAR = (UpdateResponseWithAR) process;
@@ -33,9 +34,9 @@ public class ITUpdateProcessor {
         assertTrue("Added is empty",!uAR.getAdded().isEmpty());
         assertTrue("Removed is not empty",uAR.getRemoved().isEmpty());
 
-        String sub = uAR.getAdded().getBindings().get(0).getBindingValue("subject");
-        String pred = uAR.getAdded().getBindings().get(0).getBindingValue("predicate");
-        String obj = uAR.getAdded().getBindings().get(0).getBindingValue("object");
+        String sub = uAR.getAdded().getBindings().get(0).getValue("subject");
+        String pred = uAR.getAdded().getBindings().get(0).getValue("predicate");
+        String obj = uAR.getAdded().getBindings().get(0).getValue("object");
 
         assertEquals("test://it/update",sub);
         assertEquals("test://it/update/pre",pred);
@@ -45,7 +46,8 @@ public class ITUpdateProcessor {
     @Test
     public void testDeleteAddRemoved(){
         UpdateRequest updateRequest = new UpdateRequest("DELETE{<test://it/update> <test://it/update/pre> <test://it/update/obj>}Where{}");
-        Response process = updateProcessor.process(updateRequest, 5000);
+        Response process = updateProcessor.process(updateRequest);
+        updateRequest.setTimeout(5000);
 
         assertTrue("Not a UpdateResponse",process instanceof UpdateResponseWithAR);
         UpdateResponseWithAR uAR = (UpdateResponseWithAR) process;
@@ -53,9 +55,9 @@ public class ITUpdateProcessor {
         assertTrue("Removed is empty",!uAR.getRemoved().isEmpty());
         assertTrue("Added is not empty",uAR.getAdded().isEmpty());
 
-        String sub = uAR.getRemoved().getBindings().get(0).getBindingValue("subject");
-        String pred = uAR.getRemoved().getBindings().get(0).getBindingValue("predicate");
-        String obj = uAR.getRemoved().getBindings().get(0).getBindingValue("object");
+        String sub = uAR.getRemoved().getBindings().get(0).getValue("subject");
+        String pred = uAR.getRemoved().getBindings().get(0).getValue("predicate");
+        String obj = uAR.getRemoved().getBindings().get(0).getValue("object");
 
         assertEquals("test://it/update",sub);
         assertEquals("test://it/update/pre",pred);
