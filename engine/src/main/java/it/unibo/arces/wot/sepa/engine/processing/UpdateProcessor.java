@@ -24,7 +24,14 @@ import com.google.gson.JsonObject;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import org.apache.jena.graph.*;
+import org.apache.jena.query.Query;
+import org.apache.jena.reasoner.rulesys.impl.BindingStack;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.modify.request.QuadAcc;
+import org.apache.jena.sparql.syntax.ElementTriplesBlock;
 import org.apache.jena.update.Update;
 import org.apache.jena.update.UpdateFactory;
 import org.apache.logging.log4j.LogManager;
@@ -82,6 +89,22 @@ public class UpdateProcessor {
 			added = getTriples(req.getTimeout(), ac);
 		}
 
+		for(Bindings bindings : added.getBindings()){
+			boolean isPresent = isBindingPresent(req.getTimeout(), bindings);
+
+			if(isPresent){
+				added.getBindings().remove(bindings);
+			}
+		}
+
+		for(Bindings bindings : removed.getBindings()){
+			boolean isPresent = isBindingPresent(req.getTimeout(), bindings);
+
+			if(!isPresent){
+				removed.getBindings().remove(bindings);
+			}
+		}
+
 		long stop = System.currentTimeMillis();
 		logger.debug("* ADDED REMOVED PROCESSING ("+(stop-start)+" ms) *");
 
@@ -107,9 +130,54 @@ public class UpdateProcessor {
 		return ret;
 	}
 
+	private boolean isBindingPresent(int timeout, Bindings bindings) {
+		Triple t = bindingToTriple(bindings);
+
+		Query ask = new Query();
+		ask.setQueryAskType();
+
+		ElementTriplesBlock block = new ElementTriplesBlock();
+		block.addTriple(t);
+		ask.setQueryPattern(block);
+
+		String askq = ask.serialize();
+		logger.debug(askq);
+
+		QueryRequest askquery = new QueryRequest(properties.getQueryMethod(),
+                properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
+                properties.getDefaultQueryPath(),askq, timeout, null,
+                null, null);
+
+		System.out.println(askq);
+		BindingsResults isPresentResult = ((QueryResponse) endpoint.query(askquery)).getBindingsResults();
+
+		return isPresentResult.toJson().get("boolean").getAsBoolean();
+	}
+
+	private Triple bindingToTriple(Bindings bindings){
+		String subject = bindings.getValue("subject");
+		String predicate = bindings.getValue("predicate");
+		String object = bindings.getValue("object");
+
+		Node s = bindings.isBNode("subject") ? NodeFactory.createBlankNode(subject) : NodeFactory.createURI(subject);
+		Node p = bindings.isBNode("predicate") ? NodeFactory.createBlankNode(predicate) : NodeFactory.createURI(predicate);
+
+		Node o = null;
+		if(!bindings.isBNode("object")){
+			o = bindings.isURI("object") ? NodeFactory.createURI(object) : NodeFactory.createLiteral(object);
+		}else{
+			o = NodeFactory.createBlankNode(object);
+		}
+
+		return new Triple(s,p,o);
+	}
+
 	private BindingsResults getTriples(int timeout, String dc) {
 		BindingsResults removed;
-		QueryRequest cons1 = new QueryRequest(dc);
+		QueryRequest cons1 = new QueryRequest(properties.getQueryMethod(),
+				properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
+				properties.getDefaultQueryPath(), dc, timeout, null,
+				null, null);
 		cons1.setTimeout(timeout);
 		logger.debug(cons1.toString());
 		removed = ((QueryResponse) endpoint.query(cons1)).getBindingsResults();
