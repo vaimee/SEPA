@@ -33,31 +33,31 @@ public abstract class Response {
 	private int token = -1;
 
 	public boolean isError() {
-		return this.getClass().equals(ErrorResponse.class);
+		return this instanceof ErrorResponse;
 	}
 	public boolean isJWTResponse() {
-		return this.getClass().equals(JWTResponse.class);
+		return this instanceof JWTResponse;
 	}
 	public boolean isNotification() {
-		return this.getClass().equals(Notification.class);
+		return this instanceof Notification;
 	}
 	public boolean isPing() {
-		return this.getClass().equals(Ping.class);
+		return this instanceof Ping;
 	}
 	public boolean isQueryResponse() {
-		return this.getClass().equals(QueryResponse.class);
+		return this instanceof QueryResponse;
 	}
 	public boolean isRegistrationResponse() {
-		return this.getClass().equals(RegistrationResponse.class);
+		return this instanceof RegistrationResponse;
 	}
 	public boolean isSubscribeResponse() {
-		return this.getClass().equals(SubscribeResponse.class);
+		return this instanceof SubscribeResponse;
 	}
 	public boolean isUnsubscribeResponse() {
-		return this.getClass().equals(UnsubscribeResponse.class);
+		return this instanceof UnsubscribeResponse;
 	}
 	public boolean isUpdateResponse() {
-		return this.getClass().equals(UpdateResponse.class);
+		return this instanceof UpdateResponse;
 	}
 	/**
 	 * Instantiates a new response.
@@ -92,13 +92,4 @@ public abstract class Response {
 	public int getToken() {
 		return token;
 	}
-	
-	/**
-	 * Gets the as json object.
-	 *
-	 * @return the as json object
-	 */
-	/*public JsonObject getAsJsonObject(){
-		return json;
-	}*/
 }
