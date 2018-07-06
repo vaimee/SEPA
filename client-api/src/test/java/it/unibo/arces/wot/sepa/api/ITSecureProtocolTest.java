@@ -2,62 +2,65 @@ package it.unibo.arces.wot.sepa.api;
 
 import it.unibo.arces.wot.sepa.api.protocol.websocket.WebSocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
-import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.BeforeClass;
 
-import java.net.URL;
+import java.io.IOException;
 import static org.junit.Assert.*;
 
-public class ITSecureProtocolTest {
+public class ITSecureProtocolTest extends ITProtocolTest {
+	private final static String VALID_ID = "SEPATest";
+	private final static String NOT_VALID_ID = "RegisterMePlease";
 
-    private SPARQL11SEProtocol client;
-    private MockSubscriptionHandler subHandler;
+	private static SEPASecurityManager sm;
+	
+	@BeforeClass
+	public static void init() throws Exception {
+		properties = ConfigurationProvider.GetTestEnvConfiguration();
 
-    private final static String VALID_ID = "SEPATest";
-    private final static String NOT_VALID_ID = "RegisterMePlease";
-    private JSAP properties;
+		sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017",
+				new AuthenticationProperties(properties.getFileName()));
 
-    private SEPASecurityManager sm ;
-    
-    @Before
-    public void setUp() throws Exception {
-        URL config = Thread.currentThread().getContextClassLoader().getResource("dev.jsap");
-        properties = new JSAP(config.getPath());
-        subHandler = new MockSubscriptionHandler();
-        
-        sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
-        
-        ISubscriptionProtocol protocol = null;
+		// Registration
+		Response response = sm.register(NOT_VALID_ID);
+		assertFalse("Failed to register a not valid ID", !response.isError());
+		response = sm.register(VALID_ID);
+		assertFalse("Failed to register a valid ID", response.isError());	
+		
+		for (String id : properties.getQueryIds()) {
+			queries.put(id, getQueryRequest(id, 5000, sm.getAuthorizationHeader()));
+			subscribes.put(id, getSubscribeRequest(id, sm.getAuthorizationHeader()));
+			protocols.put(id, new WebSocketSubscriptionProtocol(properties.getSubscribeHost(id),
+					properties.getSubscribePort(id), properties.getSubscribePath(id),sm));
+		}
 
-		protocol = new WebSocketSubscriptionProtocol(properties.getSubscribeHost(null),
-					properties.getSubscribePort(null), properties.getSubscribePath(null),sm);
+		for (String id : properties.getUpdateIds()) {
+			updates.put(id, getUpdateRequest(id, 5000, sm.getAuthorizationHeader()));
+		}
+	}
 
-		client = new SPARQL11SEProtocol(protocol, subHandler);
-    }
-
-    @Test
-    public void Register() throws SEPASecurityException, SEPAPropertiesException{
-        Response response;
-        response = sm.register(properties.getAuthenticationProperties().getRegisterUrl(),NOT_VALID_ID);
-        assertTrue("Accepted not valid ID",response.isError());
-
-        response = sm.register(properties.getAuthenticationProperties().getRegisterUrl(),VALID_ID);
-        assertTrue("Not accepted valid ID",response.isError());
-    }
-
-    @Test
-    @Ignore
-    public void RequestToken() throws SEPASecurityException, SEPAPropertiesException {
-        Response response;
-        response = sm.requestToken(properties.getAuthenticationProperties().getTokenRequestUrl(),properties.getAuthenticationProperties().getBasicAuthorizationHeader());
-        assertFalse(String.valueOf(response),response.isError());
-
-        assertFalse("SEPA returned an expired token",properties.getAuthenticationProperties().isTokenExpired());
-    }
+	@Before
+	public void beginTest() throws IOException, IllegalArgumentException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
+		client = new SPARQL11Protocol(sm);
+		seClient = new SPARQL11SEProtocol(protocols.get("Q2"), subHandler,sm);
+		
+		// Set authorization header
+		for (UpdateRequest req : updates.values()) req.setAuthorizationHeader(sm.getAuthorizationHeader());
+		for (QueryRequest req : queries.values()) req.setAuthorizationHeader(sm.getAuthorizationHeader());
+		for (SubscribeRequest req : subscribes.values()) req.setAuthorizationHeader(sm.getAuthorizationHeader());
+		
+		final Response ret = client.update(updates.get("DELETE_ALL"));
+		
+		assertFalse(String.valueOf(ret), ret.isError());
+	}
 }

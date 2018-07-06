@@ -177,6 +177,10 @@ public class AuthenticationProperties {
 			throw new SEPASecurityException(e);
 		}
 	}
+	
+	public String getToken() throws SEPASecurityException {
+		return encryption.decrypt(getSecurityEncryptedValue("jwt"));
+	}
 
 	/**
 	 * Gets the token type.
@@ -271,6 +275,23 @@ public class AuthenticationProperties {
 
 		storeProperties(propertiesFile.getAbsolutePath());
 	}
+	
+	/**
+	 * Sets the JWT.
+	 *
+	 * @param jwt
+	 *            the JSON Web Token
+	 * @param expiresIn
+	 *            the number of seconds from now to when the token will expire
+	 * @param type
+	 *            the token type (e.g., bearer)
+	 * @throws SEPAPropertiesException
+	 * @throws SEPASecurityException
+	 *
+	 */
+	public void setJWT(String accessToken, long expiresIn, String tokenType) throws SEPASecurityException, SEPAPropertiesException {
+		setJWT(accessToken,new Date(new Date().getTime() + expiresIn),tokenType);
+	}
 
 	/**
 	 * Store properties.
@@ -291,5 +312,5 @@ public class AuthenticationProperties {
 		} catch (IOException e) {
 			throw new SEPAPropertiesException(e);
 		}
-	}
+	}	
 }

@@ -1,12 +1,12 @@
 {
 	"host": "localhost",
 	"oauth": {
-		"enable" : false,
+		"enable" : true,
 		"register": "https://localhost:8443/oauth/register",
 		"tokenRequest": "https://localhost:8443/oauth/token"
 	},
 	"sparql11protocol": {
-		"protocol": "http",
+		"protocol": "https",
 		"port": 8000,
 		"query": {
 			"path": "/query",
@@ -20,7 +20,7 @@
 		}
 	},
 	"sparql11seprotocol": {
-		"protocol": "ws",
+		"protocol": "wss",
 		"availableProtocols": {
 			"ws": {
 				"port": 9000,
@@ -41,58 +41,6 @@
 	"namespaces": {
 		"sepa": "http://wot.arces.unibo.it/sepa#",
 		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-	},
-	"extended": {
-		"notificationMaxDelay": 2000,
-		"sequence": [
-			{
-				"name": "Update",
-				"type": "UPDATE",
-				"id": "U1",
-				"passed": true
-			},
-			{
-				"name": "Query",
-				"type": "QUERY",
-				"id": "Q1",
-				"results": 1,
-				"passed": true
-			},
-			{
-				"name": "Subscribe",
-				"type": "SUBSCRIBE",
-				"id": "Q1",
-				"results": 1,
-				"passed": true
-			},
-			{
-				"name": "Update",
-				"type": "UPDATE",
-				"id": "U2",
-				"passed": true
-			},
-			{
-				"name": "Notification",
-				"type": "WAIT_NOTIFICATION",
-				"passed": true
-			},
-			{
-				"name": "Unsubscribe",
-				"type": "UNSUBSCRIBE",
-				"passed": true
-			},
-			{
-				"name": "Update",
-				"type": "UPDATE",
-				"id": "U2",
-				"passed": true
-			},
-			{
-				"name": "Notification (not received)",
-				"type": "WAIT_NOTIFICATION",
-				"passed": false
-			}
-		]
 	},
 	"updates": {
 		"DELETE_ALL" : {

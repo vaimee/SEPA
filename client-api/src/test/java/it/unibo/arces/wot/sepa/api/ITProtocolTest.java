@@ -1,7 +1,9 @@
 package it.unibo.arces.wot.sepa.api;
 
 import it.unibo.arces.wot.sepa.api.protocol.websocket.WebSocketSubscriptionProtocol;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
@@ -25,19 +27,21 @@ import static org.junit.Assert.*;
 
 public class ITProtocolTest {
 
-	private static HashMap<String, UpdateRequest> updates = new HashMap<String, UpdateRequest>();
-	private static HashMap<String, QueryRequest> queries = new HashMap<String, QueryRequest>();
-	private static HashMap<String, SubscribeRequest> subscribes = new HashMap<String, SubscribeRequest>();
-	private static HashMap<String, ISubscriptionProtocol> protocols = new HashMap<String, ISubscriptionProtocol>();
+	protected static HashMap<String, UpdateRequest> updates = new HashMap<String, UpdateRequest>();
+	protected static HashMap<String, QueryRequest> queries = new HashMap<String, QueryRequest>();
+	protected static HashMap<String, SubscribeRequest> subscribes = new HashMap<String, SubscribeRequest>();
+	
+	protected static HashMap<String, ISubscriptionProtocol> protocols = new HashMap<String, ISubscriptionProtocol>();
 
-	private static JSAP properties = null;
+	protected static JSAP properties = null;
 
-	private static final MockSubscriptionHandler subHandler = new MockSubscriptionHandler();;
+	protected static final MockSubscriptionHandler subHandler = new MockSubscriptionHandler();;
 
-	private static SPARQL11Protocol client = null;
-
+	protected static SPARQL11Protocol client = null;
+	protected static SPARQL11SEProtocol seClient = null;
+	
 	@BeforeClass
-	public static void start() throws Exception {
+	public static void init() throws Exception {
 		properties = ConfigurationProvider.GetTestEnvConfiguration();
 
 		for (String id : properties.getQueryIds()) {
@@ -53,73 +57,66 @@ public class ITProtocolTest {
 	}
 
 	@AfterClass
-	public static void stop() throws IOException {
+	public static void dispose() throws IOException {
 
 	}
 
 	@Before
-	public void beginTest() throws IOException {
+	public void beginTest() throws IOException, IllegalArgumentException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
 		client = new SPARQL11Protocol();
+		seClient = new SPARQL11SEProtocol(protocols.get("Q2"), subHandler);
+		
 		final Response ret = client.update(updates.get("DELETE_ALL"));
+		
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
 	@After
 	public void endTest() throws IOException {
-		if (client != null) {
-			client.close();
-		}
+		if (client != null) client.close();
+		if (seClient != null) seClient.close();
 	}
 
 	@Test(timeout = 5000)
 	public void Update() throws IOException {
-		client = new SPARQL11Protocol();
 		final Response ret = client.update(updates.get("U1"));
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
 	@Test(timeout = 5000)
 	public void Query() throws IOException {
-		client = new SPARQL11Protocol();
 		final Response ret = client.query(queries.get("Q1"));
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
 	@Test(timeout = 5000)
 	public void UpdateAndQueryOneResult() throws IOException {
-		client = new SPARQL11Protocol();
 		final Response updateRes = client.update(updates.get("U2"));
 		final Response queryRes = client.query(queries.get("Q2"));
 
-		if (updateRes.isError())
-			assertFalse("Update: " + String.valueOf(updateRes), true);
-		else if (queryRes.isError())
-			assertFalse(" Query: " + String.valueOf(queryRes), true);
-		else
-			assertFalse(String.valueOf(queryRes), ((QueryResponse) queryRes).getBindingsResults().size() != 1);
+		if (updateRes.isError()) assertFalse("Update: " + String.valueOf(updateRes), true);
+		if (queryRes.isError()) assertFalse(" Query: " + String.valueOf(queryRes), true);
+		
+		assertFalse(String.valueOf(queryRes), ((QueryResponse) queryRes).getBindingsResults().size() != 1);
 	}
 
 	@Test(timeout = 5000)
 	public void SubscribeAndNotifyOneAddedResult()
 			throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException {
-		client = new SPARQL11SEProtocol(protocols.get("Q2"), subHandler);
 
-		final Response subRes = ((SPARQL11SEProtocol) client).subscribe(subscribes.get("Q2"));
-		final Response updateRes = client.update(updates.get("U2"));
+		final Response subRes = seClient.subscribe(subscribes.get("Q2"));
+		final Response updateRes = seClient.update(updates.get("U2"));
 
 		Response notify = subHandler.getResponse();
 
-		if (subRes.isError())
-			assertFalse(" Subscribe: " + String.valueOf(subRes), true);
-		else if (updateRes.isError())
-			assertFalse("Update: " + String.valueOf(updateRes), true);
-		else if (notify.isError())
-			assertFalse(String.valueOf(notify), true);
-		else if (((Notification)notify).getARBindingsResults().getAddedBindings().size() != 1) assertFalse(String.valueOf(notify), true);
-			
+		if (subRes.isError()) assertFalse(" Subscribe: " + String.valueOf(subRes), true);
+		if (updateRes.isError()) assertFalse("Update: " + String.valueOf(updateRes), true);
+		if (notify.isError()) assertFalse(String.valueOf(notify), true);
+		
+		if (((Notification)notify).getARBindingsResults().getAddedBindings().size() != 1) assertFalse(String.valueOf(notify), true);
 	}
 
-	private static UpdateRequest getUpdateRequest(String id, int timeout, String authorization) {
+	protected static UpdateRequest getUpdateRequest(String id, int timeout, String authorization) {
 		HTTPMethod method = properties.getUpdateMethod(id);
 		String scheme = properties.getUpdateProtocolScheme(id);
 		String host = properties.getUpdateHost(id);
@@ -133,7 +130,7 @@ public class ITProtocolTest {
 				authorization);
 	}
 
-	private static QueryRequest getQueryRequest(String id, int timeout, String authorization) {
+	protected static QueryRequest getQueryRequest(String id, int timeout, String authorization) {
 		HTTPMethod method = properties.getQueryMethod(id);
 		String scheme = properties.getQueryProtocolScheme(id);
 		String host = properties.getQueryHost(id);
@@ -147,7 +144,7 @@ public class ITProtocolTest {
 				authorization);
 	}
 
-	private static SubscribeRequest getSubscribeRequest(String id, String authorization) {
+	protected static SubscribeRequest getSubscribeRequest(String id, String authorization) {
 		String sparql = properties.getSPARQLQuery(id);
 		String graphUri = properties.getDefaultGraphURI(id);
 		String namedGraphUri = properties.getNamedGraphURI(id);

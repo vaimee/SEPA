@@ -55,6 +55,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.RegistrationRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
@@ -64,6 +65,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 /**
+ * <pre>
  * The Class SecurityManager.
  * 
  * * ### Key and Certificate Storage ###
@@ -138,6 +140,7 @@ import it.unibo.arces.wot.sepa.timing.Timings;
  * protocols:
  * 
  * SSLv3 TLSv1 TLSv1.1 TLSv1.2
+ * </pre>
  */
 public class SEPASecurityManager implements HostnameVerifier {
 
@@ -146,11 +149,13 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 	/** The ssl context. */
 	SSLContext sslContext;
-	
+
 	SSLConnectionSocketFactory sslsf;
-	
+
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
+
+	private AuthenticationProperties oauthProperties = null;
 
 	/**
 	 * Instantiates a new Security Manager.
@@ -163,9 +168,10 @@ public class SEPASecurityManager implements HostnameVerifier {
 	 *            the jks password
 	 * @param keyPassword
 	 *            the key password
-	 * @throws SEPASecurityException 
+	 * @throws SEPASecurityException
 	 */
-	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
+	private void _SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
+			AuthenticationProperties oauthProp) throws SEPASecurityException {
 		// Arguments check
 		if (jksName == null || jksPassword == null)
 			throw new IllegalArgumentException("JKS name or password are null");
@@ -178,31 +184,53 @@ public class SEPASecurityManager implements HostnameVerifier {
 		try {
 			keystore = KeyStore.getInstance("JKS");
 			keystore.load(new FileInputStream(jksName), jksPassword.toCharArray());
-			
+
 			KeyManagerFactory kmfactory = KeyManagerFactory.getInstance("SunX509");
 			kmfactory.init(keystore, keyPassword.toCharArray());
-			
+
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
 			tmf.init(keystore);
 
 			sslContext = SSLContext.getInstance("TLSv1");
 			sslContext.init(kmfactory.getKeyManagers(), tmf.getTrustManagers(), null);
-				
+
 			// Trust own CA and all self-signed certificates and allow TLSv1 protocol only
 			sslsf = new SSLConnectionSocketFactory(SSLContexts.custom()
-					.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(), new TrustSelfSignedStrategy()).build(), new String[] { "TLSv1" }, null,
-					this);
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | UnrecoverableKeyException | KeyManagementException e) {
+					.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(), new TrustSelfSignedStrategy())
+					.build(), new String[] { "TLSv1" }, null, this);
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
+				| UnrecoverableKeyException | KeyManagementException e) {
 			throw new SEPASecurityException(e);
 		}
+
+		oauthProperties = oauthProp;
+	}
+
+	public SEPASecurityManager(AuthenticationProperties oauthProp) throws SEPASecurityException {
+		_SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", oauthProp);
+
+		if (oauthProp == null)
+			throw new IllegalArgumentException("Authorization properties are null");
 	}
 
 	public SEPASecurityManager() throws SEPASecurityException {
-		this("sepa.jks","sepa2017","sepa2017");
+		_SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", null);
 	}
-	
+
+	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
+		_SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", null);
+	}
+
+	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
+			AuthenticationProperties oauthProp) throws SEPASecurityException {
+		_SEPASecurityManager(jksName, "sepa2017", "sepa2017", oauthProp);
+
+		if (oauthProp == null)
+			throw new IllegalArgumentException("Authorization properties are null");
+	}
+
 	public Socket getSSLSocket() throws IOException {
-		return sslContext.getSocketFactory().createSocket();	
+		return sslContext.getSocketFactory().createSocket();
 	}
 
 	public SSLContext getSSLContext() {
@@ -224,31 +252,66 @@ public class SEPASecurityManager implements HostnameVerifier {
 		return true;
 	}
 
-	// Registration to the Authorization Server (AS)
+	/** 
+	 * Register the identity and store the credentials into the Authentication properties
+	 * @throws SEPAPropertiesException 
+	 * @throws SEPASecurityException 
+	*/
+	public Response register(String identity) throws SEPASecurityException, SEPAPropertiesException {
+		Response ret = register(oauthProperties.getRegisterUrl(), identity);
+		
+		if (ret.isError()) return ret;
+		
+		RegistrationResponse reg = (RegistrationResponse) ret;
+		oauthProperties.setCredentials(reg.getClientId(), reg.getClientSecret());
+		
+		return ret;
+	}
+
+	// Get the authorization header (by requesting a new token first)
+	public String getAuthorizationHeader() throws SEPAPropertiesException, SEPASecurityException {
+		Response ret = requestToken(oauthProperties.getTokenRequestUrl(),
+				oauthProperties.getBasicAuthorizationHeader());
+
+		if (ret.isError()) {
+			if (((ErrorResponse) ret).getErrorCode() != 400)
+				throw new SEPASecurityException(new IllegalArgumentException("Failed to get a new token"));
+			return oauthProperties.getBearerAuthorizationHeader();
+		}
+
+		JWTResponse token = (JWTResponse) ret;
+		oauthProperties.setJWT(token.getAccessToken(), token.getExpiresIn(), token.getTokenType());
+
+		return oauthProperties.getBearerAuthorizationHeader();
+	}
+
+	/** 
+	 * Request registration of "entity" at the Authorization Server listening at the specified URL 
+	 * */
 	public Response register(String url, String identity) {
 		logger.debug("REGISTER " + identity);
 
 		CloseableHttpResponse response = null;
-		long start = Timings.getTime();	
-		
+		long start = Timings.getTime();
+
 		try {
 			URI uri = new URI(url);
 			ByteArrayEntity body = new ByteArrayEntity(new RegistrationRequest(identity).toString().getBytes("UTF-8"));
 			HttpPost httpRequest = new HttpPost(uri);
 			httpRequest.setHeader("Content-Type", "application/json");
-			httpRequest.setHeader("Accept",  "application/json");
+			httpRequest.setHeader("Accept", "application/json");
 			httpRequest.setEntity(body);
-			
+
 			logger.trace(httpRequest);
-			
+
 			response = getSSLHttpClient().execute(httpRequest);
-			
+
 			logger.debug("Response: " + response);
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
 			EntityUtils.consume(entity);
 			JsonObject json = new JsonParser().parse(jsonResponse).getAsJsonObject();
-			
+
 			if (json.has("error")) {
 				Timings.log("REGISTER_ERROR", start, Timings.getTime());
 				ErrorResponse error = new ErrorResponse(0, json.get("error").getAsJsonObject().get("code").getAsInt(),
@@ -256,20 +319,18 @@ public class SEPASecurityManager implements HostnameVerifier {
 				logger.error(error);
 				return error;
 			}
-			
+
 			String id = json.get("credentials").getAsJsonObject().get("client_id").getAsString();
 			String secret = json.get("credentials").getAsJsonObject().get("client_secret").getAsString();
 			JsonElement signature = json.get("credentials").getAsJsonObject().get("signature");
 			Timings.log("REGISTER", start, Timings.getTime());
 			return new RegistrationResponse(id, secret, signature);
-			
-		}
-		catch(Exception e) {
+
+		} catch (Exception e) {
 			logger.error(e.getMessage());
 			Timings.log("REGISTER_ERROR", start, Timings.getTime());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());	
-		}
-		finally {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+		} finally {
 			try {
 				if (response != null)
 					response.close();
@@ -280,56 +341,77 @@ public class SEPASecurityManager implements HostnameVerifier {
 			}
 		}
 	}
-	
-	// Token request to the Authorization Server (AS)
-	public Response requestToken(String url,String authorization) {
+
+	/**
+	 * It is used to request a new token.
+	 * 
+	 * @param url
+	 *            the url of the Authorization Server
+	 * @param authorization
+	 *            the header to be sent (e.g., "Basic authorization header")
+	 * 
+	 * @return ErrorResponse in case of error. The error codes correspond to an HTTP
+	 *         status codes as follows: SC_UNAUTHORIZED (401) : client not
+	 *         authorized, SC_BAD_REQUEST (400) : the token is not expired,
+	 *         SC_INTERNAL_SERVER_ERROR (500) : error validating the token
+	 * @see ErrorResponse
+	 * @see JWTResponse
+	 */
+
+	public Response requestToken(String url, String authorization) {
 		logger.debug("TOKEN_REQUEST");
 
 		CloseableHttpResponse response = null;
-		long start = Timings.getTime();	
-		
+		long start = Timings.getTime();
+
 		try {
 			URI uri = new URI(url);
-			
+
 			HttpPost httpRequest = new HttpPost(uri);
 			httpRequest.setHeader("Content-Type", "application/json");
-			httpRequest.setHeader("Accept",  "application/json");
+			httpRequest.setHeader("Accept", "application/json");
 			httpRequest.setHeader("Authorization", authorization);
-			
+
 			response = getSSLHttpClient().execute(httpRequest);
-			
+
 			logger.debug("Response: " + response);
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
 			EntityUtils.consume(entity);
+
+			// Parse response
 			JsonObject json = new JsonParser().parse(jsonResponse).getAsJsonObject();
-			
+
 			if (json.has("error")) {
-				Timings.log("TOKEN_REQUEST_ERROR", start, Timings.getTime());
+				Timings.log("TOKEN_REQUEST", start, Timings.getTime());
+
+				//TOKEN IS NOT EXPIRED
+				if (json.get("error").getAsJsonObject().get("code").getAsInt()==400 && oauthProperties != null) {
+					return new JWTResponse(oauthProperties.getToken(),oauthProperties.getTokenType(),oauthProperties.getExpiringSeconds());
+				}
+				
 				ErrorResponse error = new ErrorResponse(0, json.get("error").getAsJsonObject().get("code").getAsInt(),
 						json.get("error").getAsJsonObject().get("body").getAsString());
 				logger.error(error);
 				return error;
 			}
-			
+
 			int seconds = json.get("token").getAsJsonObject().get("expires_in").getAsInt();
 			String jwt = json.get("token").getAsJsonObject().get("access_token").getAsString();
 			String type = json.get("token").getAsJsonObject().get("token_type").getAsString();
-			
-			return new JWTResponse(jwt, type, seconds);	
-		}
-		catch(Exception e) {
+
+			return new JWTResponse(jwt, type, seconds);
+		} catch (Exception e) {
 			logger.error(e.getMessage());
-			Timings.log("TOKEN_REQUEST_ERROR", start, Timings.getTime());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());	
-		}
-		finally {
+			Timings.log("TOKEN_REQUEST", start, Timings.getTime());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+		} finally {
 			try {
 				if (response != null)
 					response.close();
 			} catch (IOException e) {
 				logger.error(e.getMessage());
-				Timings.log("TOKEN_REQUEST_ERROR", start, Timings.getTime());
+				Timings.log("TOKEN_REQUEST", start, Timings.getTime());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 		}

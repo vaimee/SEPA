@@ -1,7 +1,7 @@
 {
 	"host": "localhost",
 	"oauth": {
-		"enable" : true,
+		"enable": true,
 		"register": "https://localhost:8443/oauth/register",
 		"tokenRequest": "https://localhost:8443/oauth/token"
 	},
@@ -42,72 +42,10 @@
 		"sepa": "http://wot.arces.unibo.it/sepa#",
 		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	},
-	"extended": {
-		"notificationMaxDelay": 2000,
-		"sequence": [
-			{
-				"id": "RegisterMePlease!",
-				"name": "Register not allowed",
-				"type": "REGISTER",
-				"passed": false
-			},
-			{
-				"id": "SEPATest",
-				"name": "Register allowed",
-				"type": "REGISTER",
-				"passed": true
-			},
-			{
-				"name": "Update (secure)",
-				"type": "UPDATE",
-				"id": "U1",
-				"passed": true
-			},
-			{
-				"name": "Query (secure)",
-				"type": "QUERY",
-				"id": "Q1",
-				"results": 1,
-				"passed": true
-			},
-			{
-				"name": "Subscribe (secure)",
-				"type": "SUBSCRIBE",
-				"id": "Q1",
-				"results": 1,
-				"passed": true
-			},
-			{
-				"name": "Update (secure)",
-				"type": "UPDATE",
-				"id": "U2",
-				"secure": true,
-				"passed": true
-			},
-			{
-				"name": "Notification",
-				"type": "WAIT_NOTIFICATION",
-				"passed": true
-			},
-			{
-				"name": "Unsubscribe (secure)",
-				"type": "UNSUBSCRIBE",
-				"passed": true
-			},
-			{
-				"name": "Update (secure)",
-				"type": "UPDATE",
-				"id": "U2",
-				"passed": true
-			},
-			{
-				"name": "Notification (not received)",
-				"type": "WAIT_NOTIFICATION",
-				"passed": false
-			}
-		]
-	},
 	"updates": {
+		"DELETE_ALL" : {
+			"sparql" : "delete where {?x ?y ?z}"
+		},
 		"U1": {
 			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {OPTIONAL{?s ?p ?o}}"
 		},
@@ -118,6 +56,9 @@
 	"queries": {
 		"Q1": {
 			"sparql": "select * where {?x ?y \"ვაიმეე\"}"
+		},
+		"Q2": {
+			"sparql": "select * where {?x ?y ?z}"
 		}
 	}
 }

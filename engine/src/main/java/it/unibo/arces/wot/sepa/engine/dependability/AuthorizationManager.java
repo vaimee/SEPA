@@ -208,7 +208,6 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	public AuthorizationManager(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {	
 		SEPABeans.registerMBean("SEPA:type=AuthorizationManager",this);	
 		
-		//sManager = new SSLSecurityManager(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate,false,true,null);
 		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd,keyPwd);
 		init(sManager.getKeyStore(),keyAlias, keyPwd);
 		
@@ -353,8 +352,12 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 	 * {
 	 * 		"code": Error code,
 	 * 		"body": "Error details"
-	 * 
 	 * }
+	 * 
+	 * The error codes correspond to an HTTP status codes as follows:
+	 * --- SC_UNAUTHORIZED (401) : client not authorized
+	 * --- SC_BAD_REQUEST (400) : the token is not expired
+	 * --- SC_INTERNAL_SERVER_ERROR (500) : error validating the token
 	 * */
 	public Response getToken(String encodedCredentials) {
 		logger.debug("Get token");
@@ -556,13 +559,6 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 				
 		return new JWTResponse(accessToken,"bearer",now.getTime()-claimsSet.getExpirationTime().getTime());
 	}
-
-	/*
-	public SSLEngineConfigurator getWssConfigurator() {
-		SSLEngineConfigurator config = new SSLEngineConfigurator(sManager.getWssConfigurator().getSslContext(), false, false, false);
-		return config;
-	}
-*/
 	
 	@Override
 	public long getTokenExpiringPeriod() {

@@ -41,9 +41,6 @@ public abstract class Response {
 	public boolean isNotification() {
 		return this.getClass().equals(Notification.class);
 	}
-	public boolean isPing() {
-		return this.getClass().equals(Ping.class);
-	}
 	public boolean isQueryResponse() {
 		return this.getClass().equals(QueryResponse.class);
 	}

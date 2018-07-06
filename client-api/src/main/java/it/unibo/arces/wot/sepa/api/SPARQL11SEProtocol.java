@@ -50,10 +50,8 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	public SPARQL11SEProtocol(ISubscriptionProtocol protocol,ISubscriptionHandler handler, SEPASecurityManager sm) throws SEPAProtocolException {
 		super(sm);
 		
-		if (protocol == null  || handler == null) {
-			logger.error("One or more arguments are null");
-			throw new IllegalArgumentException("One or more arguments are null");
-		}
+		if (protocol == null) throw new IllegalArgumentException("Protocol is null");
+		if (handler == null) throw new IllegalArgumentException("Handler is null");
 		
 		if (!protocol.isSecure()) throw new SEPAProtocolException(new IllegalArgumentException("Mixing secure and not secure protocols is not allowed"));
 		
