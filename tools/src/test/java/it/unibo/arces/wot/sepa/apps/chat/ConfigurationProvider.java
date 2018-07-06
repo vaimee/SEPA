@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.api;
+package it.unibo.arces.wot.sepa.apps.chat;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -14,7 +14,7 @@ public class ConfigurationProvider {
         if( configuaration != null){
             result = new JSAP(configuaration);
         }else{
-            URL config = Thread.currentThread().getContextClassLoader().getResource("chat.jsap");
+            URL config = Thread.currentThread().getContextClassLoader().getResource("sepatest-secure.jsap");
             result = new JSAP(config.getPath());
         }
         return result;

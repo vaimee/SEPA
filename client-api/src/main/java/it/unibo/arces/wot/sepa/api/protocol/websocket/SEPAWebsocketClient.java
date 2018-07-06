@@ -18,7 +18,7 @@ import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 
 public class SEPAWebsocketClient extends WebSocketClient {
-	protected static final Logger logger = LogManager.getLogger("SEPAWebsocketClient");
+	protected static final Logger logger = LogManager.getLogger();
 
 	private ISubscriptionHandler handler;
 	private Response response = new ErrorResponse(500, "null");

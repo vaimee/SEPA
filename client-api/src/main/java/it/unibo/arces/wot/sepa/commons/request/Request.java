@@ -172,4 +172,8 @@ public abstract class Request {
 	public String getAuthorizationHeader() {
 		return authorizationHeader;
 	}
+	
+	public void setAuthorizationHeader(String header) {
+		authorizationHeader = header;
+	}
 }
