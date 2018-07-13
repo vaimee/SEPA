@@ -10,4 +10,8 @@ public class SEPAProtocolException extends Exception {
 	public SEPAProtocolException(Throwable e){
 		super.initCause(e);
 	}
+	
+	public SEPAProtocolException(String s) {
+		super.initCause(new Exception(s));
+	}
 }

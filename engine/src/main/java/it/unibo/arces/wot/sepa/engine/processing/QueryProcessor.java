@@ -32,10 +32,11 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
-import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
-public class QueryProcessor {
+public class QueryProcessor implements QueryProcessorMBean {
 	private static final Logger logger = LogManager.getLogger();
 
 	private SPARQL11Protocol endpoint;
@@ -46,6 +47,8 @@ public class QueryProcessor {
 		this.endpoint = new SPARQL11Protocol();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
+		
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
 	public synchronized Response process(QueryRequest req) {
@@ -73,7 +76,7 @@ public class QueryProcessor {
 		QueryRequest request;
 		request = new QueryRequest(req.getToken(), properties.getQueryMethod(), properties.getDefaultProtocolScheme(),
 				properties.getDefaultHost(), properties.getDefaultPort(), properties.getDefaultQueryPath(),
-				req.getSPARQL(), req.getTimeout(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
+				req.getSPARQL(), QueryProcessorBeans.getTimeout(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
 				authorizationHeader);
 
 		ret = endpoint.query(request);
@@ -82,10 +85,72 @@ public class QueryProcessor {
 			endpointSemaphore.release();
 
 		long stop = Timings.getTime();
+		
 		logger.trace("Response: " + ret.toString());
 		Timings.log("QUERY_PROCESSING_TIME", start, stop);
-		ProcessorBeans.queryTimings(start, stop);
+		QueryProcessorBeans.timings(start, stop);
 
 		return ret;
+	}
+
+	@Override
+	public void reset() {
+		QueryProcessorBeans.reset();
+	}
+
+	@Override
+	public long getRequests() {
+		return QueryProcessorBeans.getRequests();
+	}
+
+	@Override
+	public float getTimingsCurrent() {
+		return QueryProcessorBeans.getCurrent();
+	}
+
+	@Override
+	public float getTimingsMin() {
+		return QueryProcessorBeans.getMin();
+	}
+
+	@Override
+	public float getTimingsAverage() {
+		return QueryProcessorBeans.getAverage();
+	}
+
+	@Override
+	public float getTimingsMax() {
+		return QueryProcessorBeans.getMax();
+	}
+
+	@Override
+	public int getTimeout() {
+		return QueryProcessorBeans.getTimeout();
+	}
+
+	@Override
+	public void setTimeout(int t) {
+		QueryProcessorBeans.setTimeout(t);
+	}
+
+	@Override
+	public void scale_ms() {
+		QueryProcessorBeans.scale_ms();
+		
+	}
+
+	@Override
+	public void scale_us() {
+		QueryProcessorBeans.scale_us();
+	}
+
+	@Override
+	public void scale_ns() {
+		QueryProcessorBeans.scale_ns();
+	}
+
+	@Override
+	public String getUnitScale() {
+		return QueryProcessorBeans.getUnitScale();
 	}
 }

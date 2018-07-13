@@ -133,10 +133,10 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 		String jwt = null;
 		try {
 			if (!bearer.startsWith("Bearer "))
-				new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "authorization value MUST be of type Bearer");
+				new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "Authorization value MUST be of type Bearer");
 			jwt = bearer.substring(7);
 		} catch (Exception e) {
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "authorization key value is wrong");
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "Authorization key value is wrong");
 		}
 
 		// Token validation

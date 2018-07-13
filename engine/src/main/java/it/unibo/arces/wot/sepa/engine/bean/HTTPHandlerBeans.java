@@ -7,8 +7,6 @@ import org.apache.http.nio.protocol.HttpAsyncExchange;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class HTTPHandlerBeans {
-	private long requests = 0;
-
 	private long timeoutRequests = 0;
 	private long CORSFailedRequests = 0;
 	private long parsingFailedRequests = 0;
@@ -19,13 +17,11 @@ public class HTTPHandlerBeans {
 	private float requestHandlingAverageTime = -1;
 	private long requestHandlingMinTime = -1;
 	private long requestHandlingMaxTime = -1;
-	private float handledRequests = 0;
+	private long handledRequests = 0;
 
 	private HashMap<HttpAsyncExchange,Long> timings = new HashMap<HttpAsyncExchange,Long>();
 	
 	public void reset() {
-		 requests = 0;
-
 		 timeoutRequests = 0;
 		 CORSFailedRequests = 0;
 		 parsingFailedRequests = 0;
@@ -39,19 +35,19 @@ public class HTTPHandlerBeans {
 		 handledRequests = 0;
 	}
 
-	public long start(HttpAsyncExchange handler) {
-		requests++;
+	public synchronized long start(HttpAsyncExchange handler) {
 		long start = Timings.getTime();
 		timings.put(handler, start );
 		return start;
 	}
 	
 	public synchronized long stop(HttpAsyncExchange handler) {
-
 		handledRequests++;
+		
 		if (timings.get(handler) == null) return 0;
 		
 		requestHandlingTime = Timings.getTime() - timings.get(handler);
+		
 		timings.remove(handler);
 
 		if (requestHandlingMinTime == -1)
@@ -71,27 +67,46 @@ public class HTTPHandlerBeans {
 					/ handledRequests;
 		
 		return requestHandlingTime;
-
 	}
 
+	private static long unitScale = 1000000;
+	
+	public static void scale_ms() {
+		unitScale = 1000000;
+	}
+	
+	public static void scale_us() {
+		unitScale = 1000;
+	}
+	
+	public static void scale_ns() {
+		unitScale = 1;
+	}
+	
+	public static String getUnitScale() {
+		if (unitScale == 1) return "ns";
+		else if (unitScale == 1000) return "us";
+		return "ms";
+	}
+	
 	public long getHandlingTime() {
-		return requestHandlingTime;
+		return requestHandlingTime/unitScale;
 	}
 
 	public long getHandlingMinTime() {
-		return requestHandlingMinTime;
+		return requestHandlingMinTime/unitScale;
 	}
 
 	public float getHandlingAvgTime() {
-		return requestHandlingAverageTime;
+		return requestHandlingAverageTime/unitScale;
 	}
 
 	public long getHandlingMaxTime_ms() {
-		return requestHandlingMaxTime;
+		return requestHandlingMaxTime/unitScale;
 	}
 	
 	public long getRequests() {
-		return requests;
+		return handledRequests;
 	}
 
 	public long getErrors_Timeout() {

@@ -38,13 +38,13 @@ public class SPUMangerTest {
     public void unRegisterInvalidID(){
         spuManger.unRegister("pluto");
     }
-
-    @Test
-    public void isValidUIDTest(){
-        Assert.assertFalse(spuManger.isValidSpuId("Cap"));
-        spuManger.register(new FakeSPU("Ironman"),null);
-        Assert.assertTrue(spuManger.isValidSpuId("Ironman"));
-    }
+//
+//    @Test
+//    public void isValidUIDTest(){
+//        Assert.assertFalse(spuManger.isValidSpuId("Cap"));
+//        spuManger.register(new FakeSPU("Ironman"),null);
+//        Assert.assertTrue(spuManger.isValidSpuId("Ironman"));
+//    }
 
     private class FakeSPU implements ISPU{
 

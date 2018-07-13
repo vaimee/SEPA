@@ -18,9 +18,6 @@
 
 package it.unibo.arces.wot.sepa.commons.request;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 
@@ -56,7 +53,7 @@ public class UpdateRequest extends Request {
 		super(sparql);
 	}
 	
-	public UpdateRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String using_graph_uri,String using_named_graph_uri,String authorization) {
+	public UpdateRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,long timeout,String using_graph_uri,String using_named_graph_uri,String authorization) {
 		super(token,sparql);
 		
 		super.method = method;
@@ -104,21 +101,11 @@ public class UpdateRequest extends Request {
 	 */
 	
 	public String getUsingGraphUri() {
-		if (using_graph_uri == null) return null;
-		try {
-			return URLDecoder.decode(using_graph_uri,"UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			return null;
-		}
+		return using_graph_uri;
 	}
 
 	public String getUsingNamedGraphUri() {
-		if (using_named_graph_uri == null) return null;
-		try {
-			return URLDecoder.decode(using_named_graph_uri,"UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			return null;
-		}
+		return using_named_graph_uri;
 	}
 
 	public String getAcceptHeader() {

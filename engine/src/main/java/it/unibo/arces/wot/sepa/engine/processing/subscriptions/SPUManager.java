@@ -123,7 +123,7 @@ public class SPUManager {
 		spuid2Request.remove(spuID);
 	}
 
-	public synchronized boolean isValidSpuId(String id) {
+	private boolean isValidSpuId(String id) {
 		return spus.containsKey(id);
 	}
 

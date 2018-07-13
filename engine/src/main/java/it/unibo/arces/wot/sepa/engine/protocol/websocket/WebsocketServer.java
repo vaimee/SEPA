@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
+import java.net.BindException;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -83,7 +84,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-		logger.debug("@onOpen WebSocket: <" + conn + ">" + " Resource descriptor: " + conn.getResourceDescriptor());
+		logger.debug("@onOpen: " + conn + " Resource descriptor: " + conn.getResourceDescriptor());
 
 		if (!conn.getResourceDescriptor().equals(path)) {
 			logger.warn("Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
@@ -98,8 +99,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-		logger.debug("@onClose WebSocket:<" + conn + "> Reason: <" + reason + "> Code: <" + code + "> Remote: <"
-				+ remote + ">");
+		logger.debug("@onClose: " + conn + " Reason: " + reason + " Code: " + code + " Remote: " + remote);
 
 		if (!conn.getResourceDescriptor().equals(path))
 			return;
@@ -129,9 +129,11 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 		// Parse the request
 		Request req = parseRequest(message, conn);
-		if (req == null)
+		if (req == null) {
+			logger.error("Failed to parse message: "+req);
 			return;
-
+		}
+		
 		// Add active socket
 		if (!activeSockets.containsKey(conn)) {
 			activeSockets.put(conn, new WebsocketEventHandler(conn, jmx, dependabilityMng));
@@ -165,52 +167,61 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	protected Request parseRequest(String request, WebSocket conn)
 			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException {
 		JsonObject req;
+		ErrorResponse error;
 
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
-
-			if (req.has("subscribe")) {
-				String sparql = null;
-				String alias = null;
-				String defaultGraphUri = null;
-				String namedGraphUri = null;
-
-				try {
-					sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
-				} catch (Exception e) {
-					logger.error("SPARQL member not found");
-					return null;
-				}
-
-				try {
-					alias = req.get("subscribe").getAsJsonObject().get("alias").getAsString();
-				} catch (Exception e) {
-				}
-
-				try {
-					defaultGraphUri = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsString();
-				} catch (Exception e) {
-				}
-
-				try {
-					namedGraphUri = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsString();
-				} catch (Exception e) {
-				}
-
-				return new SubscribeRequest(sparql, alias, defaultGraphUri, namedGraphUri, null);
-			} else if (req.has("unsubscribe"))
-				return new UnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
-
-		} catch (Exception e) {
-			logger.debug(e.getLocalizedMessage());
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-			conn.send(response.toString());
+		} catch (JsonParseException e) {
+			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException: " + request);
+			conn.send(error.toString());
 			return null;
 		}
 
-		logger.debug("Bad request: " + request);
-		ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request: " + request);
-		conn.send(response.toString());
+		if (req.has("subscribe")) {
+			String sparql = null;
+			String alias = null;
+			String defaultGraphUri = null;
+			String namedGraphUri = null;
+
+			try {
+				sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
+			} catch (Exception e) {
+				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "sparql member not found: " + request);
+				conn.send(error.toString());
+				return null;
+			}
+
+			try {
+				alias = req.get("subscribe").getAsJsonObject().get("alias").getAsString();
+			} catch (Exception e) {
+			}
+
+			try {
+				defaultGraphUri = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsString();
+			} catch (Exception e) {
+			}
+
+			try {
+				namedGraphUri = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsString();
+			} catch (Exception e) {
+			}
+
+			return new SubscribeRequest(sparql, alias, defaultGraphUri, namedGraphUri, null);
+		} else if (req.has("unsubscribe")) {
+			String spuid;
+			try {
+				spuid = req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString();
+			} catch (Exception e) {
+				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "spuid member not found: " + request);
+				conn.send(error.toString());
+				return null;
+			}
+			
+			return new UnsubscribeRequest(spuid);
+		}
+		
+		error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request: " + request);
+		conn.send(error.toString());
 		return null;
 	}
 
@@ -246,7 +257,12 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
-		logger.error("@onError WebSocket: <" + conn + "> Exception: " + ex);
+		logger.error("@onError: " + conn + " Exception: " + ex);
+
+		if (ex.getClass().equals(BindException.class)) {
+			logger.fatal("Failed to start. Exit");
+			System.exit(-1);
+		}
 
 		if (!conn.getResourceDescriptor().equals(path))
 			return;

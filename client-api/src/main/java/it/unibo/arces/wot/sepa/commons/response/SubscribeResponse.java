@@ -23,7 +23,6 @@ import com.google.gson.JsonPrimitive;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
-// TODO: Auto-generated Javadoc
 /**
  * This class represents the response to a SPARQL 1.1 Subscribe (see SPARQL 1.1
  * Subscription Language)

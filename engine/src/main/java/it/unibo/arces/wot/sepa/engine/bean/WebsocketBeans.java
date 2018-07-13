@@ -1,6 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.bean;
 
-import java.time.Instant;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class WebsocketBeans {
 	private long messages = 0;
@@ -21,10 +21,10 @@ public class WebsocketBeans {
 	private long handledunsubscribes = 0;
 	
 	
-	public long unsubscribeTimings(Instant start) {
+	public long unsubscribeTimings(long start) {
 		handledunsubscribes++;
 				
-		unsubscribeHandlingTime = Instant.now().toEpochMilli() - start.toEpochMilli();
+		unsubscribeHandlingTime = Timings.getTime() - start;
 
 		if (unsubscribeHandlingMinTime == -1)
 			unsubscribeHandlingMinTime = unsubscribeHandlingTime;
@@ -45,10 +45,10 @@ public class WebsocketBeans {
 		return unsubscribeHandlingTime;
 	}
 	
-	public long subscribeTimings(Instant start) {
+	public long subscribeTimings(long start) {
 		handledSubscribes++;
 		
-		subscribeHandlingTime = Instant.now().toEpochMilli() - start.toEpochMilli();
+		subscribeHandlingTime = Timings.getTime() - start;
 
 		if (subscribeHandlingMinTime == -1)
 			subscribeHandlingMinTime = subscribeHandlingTime;

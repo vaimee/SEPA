@@ -1,7 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.bean;
 
-import java.time.Instant;
-
 public class SubscribeProcessorBeans {
 	private static long requests = 0;
 
@@ -13,15 +11,32 @@ public class SubscribeProcessorBeans {
 	private static long activeSPUs = 0;
 	private static long maxActiveSPUs = 0;
 
-	private static int keepalive = 5000;
-
 	private static long subscribeRequests;
-
 	private static long unsubscribeRequests;
 
 	private static int SPUProcessingTimeout;
 
-	public static long getRequests() {
+	private static long unitScale = 1000000;
+	
+	public static void scale_ms() {
+		unitScale = 1000000;
+	}
+	
+	public static void scale_us() {
+		unitScale = 1000;
+	}
+	
+	public static void scale_ns() {
+		unitScale = 1;
+	}
+	
+	public static String getUnitScale() {
+		if (unitScale == 1) return "ns";
+		else if (unitScale == 1000) return "us";
+		return "ms";
+	}
+	
+	public static long getUpdateRequests() {
 		return requests;
 	}
 	
@@ -31,10 +46,6 @@ public class SubscribeProcessorBeans {
 
 	public static long getSPUs_max() {
 		return maxActiveSPUs;
-	}
-	
-	public static float getSPUs_time() {
-		return time;
 	}
 	
 	public static  void setActiveSPUs(long n) {
@@ -50,9 +61,9 @@ public class SubscribeProcessorBeans {
 		unsubscribeRequests++;
 	}
 	
-	public static void timings(Instant start, Instant stop) {
+	public synchronized static void timings(long start, long stop) {
 		requests++;
-		time = stop.toEpochMilli() - start.toEpochMilli();
+		time = stop - start;
 
 		if (minTime == -1)
 			minTime = time;
@@ -81,24 +92,20 @@ public class SubscribeProcessorBeans {
 		unsubscribeRequests = 0;
 	}
 
-	public static void setKeepalive(int keepAlivePeriod) {
-		keepalive  = keepAlivePeriod;	
+	public static float getSPUs_time() {
+		return time/unitScale;
 	}
 	
-	public static int getKeepalive(){
-		return keepalive;
-	}
-
 	public static float getSPUs_time_min() {
-		return minTime;
+		return minTime/unitScale;
 	}
 
 	public static float getSPUs_time_max() {
-		return maxTime;
+		return maxTime/unitScale;
 	}
 
 	public static float getSPUs_time_averaae() {
-		return averageTime;
+		return averageTime/unitScale;
 	}
 
 	public static long getSubscribeRequests() {

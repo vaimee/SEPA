@@ -32,10 +32,11 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
-import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
-public class UpdateProcessor {
+public class UpdateProcessor implements UpdateProcessorMBean {
 	private static final Logger logger = LogManager.getLogger();
 
 	private SPARQL11Protocol endpoint;
@@ -46,6 +47,8 @@ public class UpdateProcessor {
 		endpoint = new SPARQL11Protocol();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
+		
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
 	public synchronized Response process(UpdateRequest req) {
@@ -72,7 +75,7 @@ public class UpdateProcessor {
 		Response ret;
 		UpdateRequest request = new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
 				properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
-				properties.getUpdatePath(), req.getSPARQL(), req.getTimeout(), req.getUsingGraphUri(),
+				properties.getUpdatePath(), req.getSPARQL(), UpdateProcessorBeans.getTimeout(), req.getUsingGraphUri(),
 				req.getUsingNamedGraphUri(), authorizationHeader);
 		logger.trace(request);
 		ret = endpoint.update(request);
@@ -81,10 +84,71 @@ public class UpdateProcessor {
 			endpointSemaphore.release();
 
 		long stop = Timings.getTime();
+		UpdateProcessorBeans.timings(start, stop);
+		
 		logger.trace("Response: " + ret.toString());
 		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
-		ProcessorBeans.updateTimings(start, stop);
-
+		
 		return ret;
+	}
+
+	@Override
+	public void reset() {
+		UpdateProcessorBeans.reset();
+	}
+
+	@Override
+	public long getRequests() {
+		return UpdateProcessorBeans.getRequests();
+	}
+
+	@Override
+	public float getTimingsCurrent() {
+		return UpdateProcessorBeans.getCurrent();
+	}
+
+	@Override
+	public float getTimingsMin() {
+		return UpdateProcessorBeans.getMin();
+	}
+
+	@Override
+	public float getTimingsAverage() {
+		return UpdateProcessorBeans.getAverage();
+	}
+
+	@Override
+	public float getTimingsMax() {
+		return UpdateProcessorBeans.getMax();
+	}
+
+	@Override
+	public long getTimeout() {
+		return UpdateProcessorBeans.getTimeout();
+	}
+
+	@Override
+	public void setTimeout(long t) {
+		UpdateProcessorBeans.setTimeout(t);
+	}
+
+	@Override
+	public void scale_ms() {
+		UpdateProcessorBeans.scale_ms();
+	}
+
+	@Override
+	public void scale_us() {
+		UpdateProcessorBeans.scale_us();
+	}
+
+	@Override
+	public void scale_ns() {
+		UpdateProcessorBeans.scale_ns();
+	}
+
+	@Override
+	public String getUnitScale() {
+		return UpdateProcessorBeans.getUnitScale();
 	}
 }

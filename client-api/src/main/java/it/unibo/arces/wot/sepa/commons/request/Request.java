@@ -49,7 +49,7 @@ public abstract class Request {
 	protected HTTPMethod method = HTTPMethod.POST;
 	protected String id = null;
 
-	protected int timeout = 5000;
+	protected long timeout = 5000;
 	
 	protected String scheme = null;
 	protected String host = null;
@@ -145,7 +145,7 @@ public abstract class Request {
 		return id;
 	}
 	
-	public int getTimeout() {
+	public long getTimeout() {
 		return timeout;
 	}
 	

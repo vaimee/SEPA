@@ -1,7 +1,7 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 public interface SubscribeProcessorMBean {
-	public long getRequests();
+	public long getUpdateRequests();
 	public long getSubscribeRequests();
 	public long getUnsubscribeRequests();
 
@@ -15,9 +15,11 @@ public interface SubscribeProcessorMBean {
 
 	public void reset();
 	
-	public void setKeepalive(int t);	
-	public int getKeepalive();
-	
 	public long getSPUProcessingTimeout();
 	public void setSPUProcessingTimeout(long t);
+	
+	public void scale_ms();
+	public void scale_us();
+	public void scale_ns();
+	public String getUnitScale();
 }

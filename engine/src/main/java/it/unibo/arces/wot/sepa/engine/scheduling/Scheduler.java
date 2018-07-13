@@ -73,12 +73,14 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		
 		this.setName("SEPA-Scheduler");
 	}
-
+	
 	public synchronized void schedule(Request request, ResponseHandler handler) {
 		int token = getToken();
 		if (token == -1) {
+			SchedulerBeans.newRequest(request, false);
 			try {
-				handler.sendResponse(new ErrorResponse(-1, 500, "Request refused: too many pending requests"));
+				logger.error("Request refused: too many pending requests: "+request);
+				if (handler != null) handler.sendResponse(new ErrorResponse(-1, 500, "Request refused: too many pending requests"));
 			} catch (IOException e) {
 				logger.error("Failed to send response on out of tokens");
 			}
@@ -91,6 +93,8 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		queue.addRequest(new ScheduledRequest(token, request, handler));
 		
 		Timings.log(request);
+		
+		SchedulerBeans.newRequest(request, true);
 	}
 
 	/**

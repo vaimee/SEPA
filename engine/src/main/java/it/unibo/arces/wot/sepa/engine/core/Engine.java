@@ -28,6 +28,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.logging.log4j.LogManager;
@@ -40,12 +42,10 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
-import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
-import it.unibo.arces.wot.sepa.engine.processing.Processor;
-
+import it.unibo.arces.wot.sepa.engine.processing.ProcessorThread;
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpGate;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsGate;
@@ -55,7 +55,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerRequestResponseQueue;
 
 /**
- * This class represents the SPARQL Subscription Broker (Core) of the Semantic
+ * This class represents the SPARQL Subscription Broker (Core) of the SPARQL
  * Event Processing Architecture (SEPA)
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
@@ -70,11 +70,14 @@ public class Engine implements EngineMBean {
 	// Scheduler request queue
 	private final SchedulerRequestResponseQueue schedulerQueue = new SchedulerRequestResponseQueue();
 
+	// Broken spuids queue
+	private final BlockingQueue<String> killSpuids = new LinkedBlockingQueue<String>();
+	
 	// Primitives scheduler/dispatcher
 	private Scheduler scheduler = null;
 
 	// Primitives scheduler/dispatcher
-	private Processor processor = null;
+	private ProcessorThread processor = null;
 
 	// SPARQL 1.1 Protocol handler
 	private HttpGate httpGate = null;
@@ -85,7 +88,7 @@ public class Engine implements EngineMBean {
 	private HttpsGate httpsGate = null;
 	private int wsShutdownTimeout = 5000;
 
-	// Outh 2.0 Authorization Server
+	// Oauth 2.0 Authorization Server
 	private AuthorizationManager oauth;
 
 	// Dependability manager
@@ -97,6 +100,8 @@ public class Engine implements EngineMBean {
 	private String jwtAlias = "sepakey";
 	private String jwtPassword = "sepa2017";
 	private String serverCertificate = "sepacert";
+	
+	// Properties files
 	private String engineJpar = "engine.jpar";
 	private String endpointJpar = "endpoint.jpar";
 
@@ -215,18 +220,14 @@ public class Engine implements EngineMBean {
 		// Initialize SPARQL 1.1 SE processing service properties
 		try {
 			properties = new EngineProperties(engineJpar);
-		} catch (SEPAPropertiesException e) {
-			// System.err.println("Failed to load engine.jpar: "+e.getMessage());
-			// properties = null;
-		}
+		} catch (SEPAPropertiesException e) {}
 
+		EngineBeans.setEngineProperties(properties);
+		
 		SPARQL11Properties endpointProperties = null;
 		try {
 			endpointProperties = new SPARQL11Properties(endpointJpar );
-		} catch (SEPAPropertiesException e2) {
-			// System.err.println("Failed to load endpoint.jpar: "+e2.getMessage());
-			// endpointProperties = null;
-		}
+		} catch (SEPAPropertiesException e2) {}
 
 		// OAUTH 2.0 Authorization Manager
 		if (properties.isSecure()) {
@@ -244,11 +245,11 @@ public class Engine implements EngineMBean {
 		scheduler.start();
 
 		// Dependability manager
-		dependabilityMng = new DependabilityManager(scheduler);
+		dependabilityMng = new DependabilityManager(killSpuids);
 
 		// SEPA Processor
 		try {
-			processor = new Processor(endpointProperties, properties, schedulerQueue);
+			processor = new ProcessorThread(endpointProperties, properties, schedulerQueue,killSpuids);
 		} catch (SEPAProtocolException e1) {
 			System.err.println(e1.getMessage());
 			System.exit(1);
@@ -398,72 +399,67 @@ public class Engine implements EngineMBean {
 	}
 
 	@Override
-	public String getURL_Query() {
-		return EngineBeans.getQueryURL();
-	}
-
-	@Override
-	public String getURL_Update() {
-		return EngineBeans.getUpdateURL();
-	}
-
-	@Override
-	public String getURL_SecureQuery() {
-		return EngineBeans.getSecureQueryURL();
-	}
-
-	@Override
-	public String getURL_SecureUpdate() {
-		return EngineBeans.getSecureUpdateURL();
-	}
-
-	@Override
-	public String getURL_Registration() {
-		return EngineBeans.getRegistrationURL();
-	}
-
-	@Override
-	public String getURL_TokenRequest() {
-		return EngineBeans.getTokenRequestURL();
-	}
-
-	@Override
 	public void resetAll() {
 		EngineBeans.resetAll();
 	}
 
 	@Override
-	public String getEndpoint_Host() {
-		return ProcessorBeans.getEndpointHost();
-	}
-
-	@Override
-	public String getEndpoint_Port() {
-		return String.format("%d", ProcessorBeans.getEndpointPort());
-	}
-
-	@Override
-	public String getEndpoint_QueryPath() {
-		return ProcessorBeans.getEndpointQueryPath();
-	}
-
-	@Override
-	public String getEndpoint_UpdatePath() {
-		return ProcessorBeans.getEndpointUpdatePath();
-	}
-
-	@Override
-	public String getEndpoint_UpdateMethod() {
-		return ProcessorBeans.getEndpointUpdateMethod();
-	}
-
-	@Override
-	public String getEndpoint_QueryMethod() {
-		return ProcessorBeans.getEndpointQueryMethod();
-	}
-
-	@Override
 	public String getVersion() {
 		return EngineBeans.getVersion();
+	}
+	
+	@Override
+	public String getQueryPath() {
+		return EngineBeans.getQueryPath();
+	}
+	
+	@Override
+	public String getUpdatePath() {
+		return EngineBeans.getUpdatePath();
+	}
+	
+	@Override
+	public String getSubscribePath() {
+		return EngineBeans.getSubscribePath();
+	}
+
+	@Override
+	public String getSecurePath() {
+		return EngineBeans.getSecurePath();
+	}
+	
+	@Override
+	public String getRegisterPath() {
+		return EngineBeans.getRegisterPath();
+	}
+	
+	@Override
+	public String getTokenRequestPath() {
+		return EngineBeans.getTokenRequestPath();
+	}
+	
+	@Override
+	public int getHttpPort() {
+		return EngineBeans.getHttpPort();
+	}
+	
+	@Override
+	public int getHttpsPort() {
+		return EngineBeans.getHttpsPort();
+	}
+	
+	@Override
+	public int getWsPort() {
+		return EngineBeans.getWsPort();
+	}
+	
+	@Override
+	public int getWssPort() {
+		return EngineBeans.getWssPort();
+	}
+	
+	@Override
+	public boolean getSecure() {
+		return EngineBeans.getSecure();
 	}
 }
