@@ -26,8 +26,6 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLException;
 
@@ -81,7 +79,8 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	protected SEPASecurityManager sm;
 
 	public SPARQL11Protocol(SEPASecurityManager sm) {
-		if (sm == null) throw new IllegalArgumentException("Security manager is null");
+		if (sm == null)
+			throw new IllegalArgumentException("Security manager is null");
 		this.sm = sm;
 		httpClient = sm.getSSLHttpClient();
 	}
@@ -93,7 +92,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	public boolean isSecure() {
 		return sm != null;
 	}
-	
+
 	private Response executeRequest(HttpUriRequest req, Request request) {
 		CloseableHttpResponse httpResponse = null;
 		HttpEntity responseEntity = null;
@@ -108,7 +107,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		try {
 			// Execute HTTP request
-			logger.trace(req.toString() + " (timeout: " + request.getTimeout() + " ms) ");
+			logger.trace(req.toString() + " " + request.toString() + " (timeout: " + request.getTimeout() + " ms) ");
 			long start = Timings.getTime();
 			httpResponse = httpClient.execute(req);
 			long stop = Timings.getTime();
@@ -220,38 +219,37 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	 */
 	public Response update(UpdateRequest req) {
 		switch (req.getHttpMethod()) {
-		case GET:
-			// ***********************
-			// OpenLink VIRTUOSO PATCH (not supported by SPARQL 1.1 Protocol)
-			// ***********************
-			return patchVirtuoso(req);
 		case POST:
 			return post(req);
 		case URL_ENCODED_POST:
 			return post(req);
+		default:
+			return new ErrorResponse(req.getToken(), HttpStatus.SC_BAD_REQUEST,
+					"SPARQL 1.1 Update supports POST method only");
 		}
-
-		return post(req);
 	}
 
+	/**
+	 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
+	 *
+	 * *
+	 * 
+	 * <pre>
+	 *                               HTTP Method   Query String Parameters           Request Content Type                Request Message Body
+	 *----------------------------------------------------------------------------------------------------------------------------------------
+	 * update via URL-encoded POST|   POST         None                              application/x-www-form-urlencoded   URL-encoded, ampersand-separated query parameters.
+	 *                            |                                                                                     update (exactly 1)
+	 *                            |                                                                                     using-graph-uri (0 or more)
+	 *                            |                                                                                     using-named-graph-uri (0 or more)
+	 *----------------------------------------------------------------------------------------------------------------------------------------																													
+	 * update via POST directly   |    POST       using-graph-uri (0 or more)       application/sparql-update           Unencoded SPARQL update request string
+	 *                                            using-named-graph-uri (0 or more)
+	 * </pre>
+	 */
 	private Response post(UpdateRequest req) {
 		StringEntity requestEntity = null;
 		HttpPost post;
-		String graphs = "";
-
-		try {
-			if (req.getUsingGraphUri() != null) {
-				graphs += "using-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(), "UTF-8");
-				if (req.getUsingNamedGraphUri() != null) {
-					graphs += "&using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
-				}
-			} else if (req.getUsingNamedGraphUri() != null) {
-				graphs += "using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
-			}
-		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-		}
+		String graphs = null;
 
 		// Setting URL
 		String scheme = req.getScheme();
@@ -259,120 +257,165 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		int port = req.getPort();
 		String updatePath = req.getPath();
 
+		// Create POST request
 		try {
 			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
+				if (req.getUsingGraphUri() != null) {
+					graphs = "using-graph-uri=" + req.getUsingGraphUri();
+					if (req.getUsingNamedGraphUri() != null) {
+						graphs += "&using-named-graph-uri=" + req.getUsingNamedGraphUri();
+					}
+				} else if (req.getUsingNamedGraphUri() != null) {
+					graphs = "using-named-graph-uri=" + req.getUsingNamedGraphUri();
+				}
+				
 				post = new HttpPost(new URI(scheme, null, host, port, updatePath, graphs, null));
 				post.setHeader("Content-Type", "application/sparql-update");
+
+				// Body
+				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 			} else {
 				post = new HttpPost(new URI(scheme, null, host, port, updatePath, null, null));
 				post.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+				// Graphs 
+				try {
+					if (req.getUsingGraphUri() != null) {
+						graphs = "using-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(), "UTF-8");
+						if (req.getUsingNamedGraphUri() != null) {
+							graphs += "&using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
+						}
+					} else if (req.getUsingNamedGraphUri() != null) {
+						graphs = "using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
+					}
+				} catch (UnsupportedEncodingException e) {
+					logger.error(e.getMessage());
+					return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+				}
+				
+				// Body
+				if (graphs != null) requestEntity = new StringEntity("update=" + URLEncoder.encode(req.getSPARQL(), "UTF-8") + "&" + graphs,
+						Consts.UTF_8);
+				else requestEntity = new StringEntity("update=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"),
+						Consts.UTF_8);
 			}
-		} catch (URISyntaxException e) {
+		} catch (URISyntaxException | UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
 			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 
+		// Accept header
 		post.setHeader("Accept", req.getAcceptHeader());
 
-		requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
+		// Body
 		post.setEntity(requestEntity);
 
-		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(req.getTimeout())
-				.setConnectTimeout(req.getTimeout()).build();
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout((int) req.getTimeout())
+				.setConnectTimeout((int) req.getTimeout()).build();
 		post.setConfig(requestConfig);
 
 		return executeRequest(post, req);
 	}
 
-	private Response patchVirtuoso(UpdateRequest req) {
-		// 1) "INSERT DATA" is not supported. Only INSERT (also if the WHERE is not
-		// present).
-		String fixedSparql = req.getSPARQL();
-		Pattern p = null;
-		try {
-			p = Pattern.compile(
-					"(?<update>.*)(delete)([^{]*)(?<udtriples>.*)(insert)([^{]*)(?<uitriples>.*)|(?<delete>.*)(delete)(?<where>[^{]*)(?<dtriples>.*)|(?<insert>.*)(insert)([^{]*)(?<itriples>.*)",
-					Pattern.CASE_INSENSITIVE);
-
-			Matcher m = p.matcher(req.getSPARQL());
-			if (m.matches()) {
-				if (m.group("update") != null) {
-					fixedSparql = m.group("update") + " DELETE " + m.group("udtriples") + " INSERT "
-							+ m.group("uitriples");
-				} else if (m.group("insert") != null) {
-					fixedSparql = m.group("insert") + " INSERT " + m.group("itriples");
-				} else {
-					if (m.group("where") != null) {
-						if (m.group("where").toLowerCase().contains("where")) {
-							fixedSparql = m.group("delete") + " DELETE " + m.group("where") + m.group("dtriples");
-						}
-						else
-							fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
-					}
-					else fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
-				}
-			}
-		} catch (Exception e) {
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-		}
-
-		// 2) SPARQL 1.1 Update are issued as GET request (like for a SPARQL 1.1 Query)
-		String query;
-		try {
-			// custom "format" parameter
-			query = "query=" + URLEncoder.encode(fixedSparql, "UTF-8") + "&format="
-					+ URLEncoder.encode(req.getAcceptHeader(), "UTF-8");
-		} catch (UnsupportedEncodingException e1) {
-			logger.error(e1.getMessage());
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
-		}
-
-		// 3) Named-graphs specified like a query
-		String graphs = "";
-		try {
-			if (req.getUsingGraphUri() != null) {
-
-				graphs += "default-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(), "UTF-8");
-
-				if (req.getUsingNamedGraphUri() != null) {
-					graphs += "&named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
-				}
-			} else if (req.getUsingNamedGraphUri() != null) {
-				graphs += "named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
-			}
-		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-		}
-
-		if (!graphs.equals(""))
-			query += "&" + graphs;
-
-		logger.debug("Query: " + query);
-
-		// Setting URL
-		String scheme = req.getScheme();
-		String host = req.getHost();
-		int port = req.getPort();
-		String queryPath = req.getPath();
-
-		String url;
-		if (port != -1)
-			url = scheme + "://" + host + ":" + port + queryPath + "?" + query;
-		else
-			url = scheme + "://" + host + queryPath + "?" + query;
-
-		HttpGet get;
-		get = new HttpGet(url);
-
-		get.setHeader("Accept", req.getAcceptHeader());
-
-		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(req.getTimeout())
-				.setConnectTimeout(req.getTimeout()).build();
-		get.setConfig(requestConfig);
-
-		return executeRequest(get, req);
-	}
+	// private Response patchVirtuoso(UpdateRequest req) {
+	// // 1) "INSERT DATA" is not supported. Only INSERT (also if the WHERE is not
+	// // present).
+	// String fixedSparql = req.getSPARQL();
+	// Pattern p = null;
+	// try {
+	// p = Pattern.compile(
+	// "(?<update>.*)(delete)([^{]*)(?<udtriples>.*)(insert)([^{]*)(?<uitriples>.*)|(?<delete>.*)(delete)(?<where>[^{]*)(?<dtriples>.*)|(?<insert>.*)(insert)([^{]*)(?<itriples>.*)",
+	// Pattern.CASE_INSENSITIVE);
+	//
+	// Matcher m = p.matcher(req.getSPARQL());
+	// if (m.matches()) {
+	// if (m.group("update") != null) {
+	// fixedSparql = m.group("update") + " DELETE " + m.group("udtriples") + "
+	// INSERT "
+	// + m.group("uitriples");
+	// } else if (m.group("insert") != null) {
+	// fixedSparql = m.group("insert") + " INSERT " + m.group("itriples");
+	// } else {
+	// if (m.group("where") != null) {
+	// if (m.group("where").toLowerCase().contains("where")) {
+	// fixedSparql = m.group("delete") + " DELETE " + m.group("where") +
+	// m.group("dtriples");
+	// }
+	// else
+	// fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
+	// }
+	// else fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
+	// }
+	// }
+	// } catch (Exception e) {
+	// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
+	// e.getMessage());
+	// }
+	//
+	// // 2) SPARQL 1.1 Update are issued as GET request (like for a SPARQL 1.1
+	// Query)
+	// String query;
+	// try {
+	// // custom "format" parameter
+	// query = "query=" + URLEncoder.encode(fixedSparql, "UTF-8") + "&format="
+	// + URLEncoder.encode(req.getAcceptHeader(), "UTF-8");
+	// } catch (UnsupportedEncodingException e1) {
+	// logger.error(e1.getMessage());
+	// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
+	// e1.getMessage());
+	// }
+	//
+	// // 3) Named-graphs specified like a query
+	// String graphs = "";
+	// try {
+	// if (req.getUsingGraphUri() != null) {
+	//
+	// graphs += "default-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(),
+	// "UTF-8");
+	//
+	// if (req.getUsingNamedGraphUri() != null) {
+	// graphs += "&named-graph-uri=" +
+	// URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
+	// }
+	// } else if (req.getUsingNamedGraphUri() != null) {
+	// graphs += "named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(),
+	// "UTF-8");
+	// }
+	// } catch (UnsupportedEncodingException e) {
+	// logger.error(e.getMessage());
+	// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
+	// e.getMessage());
+	// }
+	//
+	// if (!graphs.equals(""))
+	// query += "&" + graphs;
+	//
+	// logger.debug("Query: " + query);
+	//
+	// // Setting URL
+	// String scheme = req.getScheme();
+	// String host = req.getHost();
+	// int port = req.getPort();
+	// String queryPath = req.getPath();
+	//
+	// String url;
+	// if (port != -1)
+	// url = scheme + "://" + host + ":" + port + queryPath + "?" + query;
+	// else
+	// url = scheme + "://" + host + queryPath + "?" + query;
+	//
+	// HttpGet get;
+	// get = new HttpGet(url);
+	//
+	// get.setHeader("Accept", req.getAcceptHeader());
+	//
+	// RequestConfig requestConfig =
+	// RequestConfig.custom().setSocketTimeout(req.getTimeout())
+	// .setConnectTimeout(req.getTimeout()).build();
+	// get.setConfig(requestConfig);
+	//
+	// return executeRequest(get, req);
+	// }
 
 	/**
 	 * Implements a SPARQL 1.1 query operation
@@ -466,27 +509,26 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		return post(req);
 	}
 
+	/**
+	 * <pre>
+	 *                               HTTP Method   Query String Parameters           Request Content Type                Request Message Body
+	 *----------------------------------------------------------------------------------------------------------------------------------------											
+	 * query via URL-encoded POST |   POST         None                              application/x-www-form-urlencoded   URL-encoded, ampersand-separated query parameters.
+	 *                            |                                                                                     query (exactly 1)
+	 *                            |                                                                                     default-graph-uri (0 or more)
+	 *                            |                                                                                     named-graph-uri (0 or more)
+	 *----------------------------------------------------------------------------------------------------------------------------------------																													
+	 * query via POST directly    |   POST         default-graph-uri (0 or more)
+	 *                            |                named-graph-uri (0 or more)       application/sparql-query            Unencoded SPARQL query string
+	 *
+	 * </pre>
+	 */
 	private Response post(QueryRequest req) {
 		StringEntity requestEntity = null;
 		HttpPost post;
 
 		// Graphs
-		String graphs = "";
-		try {
-			if (req.getDefaultGraphUri() != null) {
-
-				graphs += "default-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
-
-				if (req.getNamedGraphUri() != null) {
-					graphs += "&named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
-				}
-			} else if (req.getNamedGraphUri() != null) {
-				graphs += "named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
-			}
-		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-		}
+		String graphs = null;
 
 		// Setting URL
 		String scheme = req.getScheme();
@@ -496,29 +538,73 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		try {
 			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
+				if (req.getDefaultGraphUri() != null) {
+
+					graphs = "default-graph-uri=" + req.getDefaultGraphUri();
+
+					if (req.getNamedGraphUri() != null) {
+						graphs += "&named-graph-uri=" + req.getNamedGraphUri();
+					}
+				} else if (req.getNamedGraphUri() != null) {
+					graphs = "named-graph-uri=" + req.getNamedGraphUri();
+				}
+				
 				post = new HttpPost(new URI(scheme, null, host, port, queryPath, graphs, null));
 				post.setHeader("Content-Type", "application/sparql-query");
+
+				// Body
+				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 			} else {
 				post = new HttpPost(new URI(scheme, null, host, port, queryPath, null, null));
 				post.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+				try {
+					if (req.getDefaultGraphUri() != null) {
+
+						graphs = "default-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
+
+						if (req.getNamedGraphUri() != null) {
+							graphs += "&named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
+						}
+					} else if (req.getNamedGraphUri() != null) {
+						graphs = "named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
+					}
+				} catch (UnsupportedEncodingException e) {
+					logger.error(e.getMessage());
+					return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+				}
+				
+				// Body
+				if (graphs != null) requestEntity = new StringEntity("query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8") + "&" + graphs,
+						Consts.UTF_8);
+				else requestEntity = new StringEntity("query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"),
+						Consts.UTF_8);
 			}
-		} catch (URISyntaxException e) {
+		} catch (URISyntaxException | UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
 			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 
 		post.setHeader("Accept", req.getAcceptHeader());
 
-		requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 		post.setEntity(requestEntity);
 
-		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(req.getTimeout())
-				.setConnectTimeout(req.getTimeout()).build();
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout((int) req.getTimeout())
+				.setConnectTimeout((int) req.getTimeout()).build();
 		post.setConfig(requestConfig);
 
 		return executeRequest(post, req);
 	}
 
+	/**
+	 * <pre>
+	 *                               HTTP Method   Query String Parameters           Request Content Type                Request Message Body
+	 *----------------------------------------------------------------------------------------------------------------------------------------
+	 * query via GET              |   GET          query (exactly 1)                 None                                None
+	 *                            |                default-graph-uri (0 or more)
+	 *                            |                named-graph-uri (0 or more)
+	 * </pre>
+	 */
 	private Response get(QueryRequest req) {
 		String query;
 		try {
@@ -565,8 +651,8 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		get.setHeader("Accept", req.getAcceptHeader());
 
-		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(req.getTimeout())
-				.setConnectTimeout(req.getTimeout()).build();
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout((int) req.getTimeout())
+				.setConnectTimeout((int) req.getTimeout()).build();
 		get.setConfig(requestConfig);
 
 		return executeRequest(get, req);

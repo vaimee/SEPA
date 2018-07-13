@@ -7,7 +7,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public interface ISubscriptionProtocol {
 
-	void setHandler(ISubscriptionHandler handler) throws SEPAProtocolException;
+	boolean connect(ISubscriptionHandler handler) throws SEPAProtocolException;
 
 	void close();
 

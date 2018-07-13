@@ -15,7 +15,7 @@ public class Timings {
 	}
 	
 	public synchronized static void log(String tag,long start,long stop) {
-		String message = String.format("%d,%s,%d",start,tag,stop-start);
+		String message = String.format("%d,%s,%d",System.currentTimeMillis(),tag,stop-start);
 		logger.log(Level.getLevel("timing"),message);
 	}
 	

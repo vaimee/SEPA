@@ -3,6 +3,7 @@ package it.unibo.arces.wot.sepa.api.protocol.websocket;
 import java.io.IOException;
 import java.net.Socket;
 
+import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
@@ -21,22 +22,25 @@ public class SPARQL11SESecureWebsocket extends SPARQL11SEWebsocket {
 		}
 	}
 
-	@Override
-	protected boolean connect() {
-		if (client == null)
+	public boolean connect(ISubscriptionHandler handler) throws SEPAProtocolException {
+		if (handler == null) {
+			logger.fatal("Notification handler is null. Client cannot be initialized");
+			throw new SEPAProtocolException(new IllegalArgumentException("Notificaton handler is null"));
+		}
+
+		if (client == null) {
+			client = new SEPAWebsocketClient(wsURI, handler);
+			
+			// Enable secure socket
+			client.setSocket(secureSocket);
+						
 			try {
-				client = new SEPAWebsocketClient(wsURI, handler);
-				// Enable secure socket
-				client.setSocket(secureSocket);
-				
-				if (!client.connectBlocking()) {
-					logger.error("Not connected");
-					return false;
-				}
+				return client.connectBlocking();
 			} catch (InterruptedException e) {
-				logger.debug(e);
-				return false;
+				throw new SEPAProtocolException(e);
 			}
-		return true;
-	}	
+		}
+		
+		return client.isOpen();
+	}
 }

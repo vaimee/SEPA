@@ -56,7 +56,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		if (!protocol.isSecure()) throw new SEPAProtocolException(new IllegalArgumentException("Mixing secure and not secure protocols is not allowed"));
 		
 		this.subscriptionProtocol = protocol;
-		this.subscriptionProtocol.setHandler(handler);
+		this.subscriptionProtocol.connect(handler);
 	}
 	
 	public SPARQL11SEProtocol(ISubscriptionProtocol protocol,ISubscriptionHandler handler) throws IllegalArgumentException, SEPAProtocolException {
@@ -68,7 +68,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		if (protocol.isSecure()) throw new SEPAProtocolException(new IllegalArgumentException("Security parameters are missing"));
 		
 		this.subscriptionProtocol = protocol;
-		this.subscriptionProtocol.setHandler(handler);
+		this.subscriptionProtocol.connect(handler);
 	}
 	
 	public boolean isSecure() {

@@ -19,7 +19,6 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
@@ -47,6 +46,7 @@ import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.ISPU;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUNaive;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 class SubscribeProcessor implements SubscribeProcessorMBean, EventHandler {
 	private final Logger logger = LogManager.getLogger();
@@ -56,17 +56,12 @@ class SubscribeProcessor implements SubscribeProcessorMBean, EventHandler {
 
 	private SPUManager spuManager = new SPUManager();
 
-	// REAL spuid => list of FAKE spuids
-	private HashMap<String, ArrayList<String>> spuidPoll = new HashMap<String, ArrayList<String>>();
+	// Maps
+	private HashMap<String, ArrayList<String>> activeSpus = new HashMap<String, ArrayList<String>>();
+	private HashMap<String, String> spuids = new HashMap<String, String>();
 
-	// FAKE spuid ==> handler
 	private HashMap<String, EventHandler> handlers = new HashMap<String, EventHandler>();
-
-	// Handler ==> sequence number
-	private HashMap<EventHandler, Integer> sequenceNumbers = new HashMap<EventHandler, Integer>();
-
-	// FAKE spuid ==> REAL spuid
-	private HashMap<String, String> fakeMap = new HashMap<String, String>();
+	private HashMap<String, Integer> sequenceNumbers = new HashMap<String, Integer>();
 
 	public SubscribeProcessor(SPARQL11Properties endpointProperties, EngineProperties engineProperties,
 			Semaphore endpointSemaphore) {
@@ -92,18 +87,48 @@ class SubscribeProcessor implements SubscribeProcessorMBean, EventHandler {
 
 	@Override
 	public void notifyEvent(Notification notify) throws IOException {
-		for (String spuid : spuidPoll.get(notify.getSpuid())) {
-			EventHandler handler = handlers.get(spuid);
+		synchronized (handlers) {
+			if (!activeSpus.containsKey(notify.getSpuid()))
+				return;
 
-			handler.notifyEvent(new Notification(spuid, notify.getARBindingsResults(), sequenceNumbers.get(handler)));
+			// Notify all subscribed clients
+			ArrayList<String> toBeRemoved = new ArrayList<String>();
+			for (String spuid : activeSpus.get(notify.getSpuid())) {
+				EventHandler handler = handlers.get(spuid);
 
-			sequenceNumbers.put(handler, sequenceNumbers.get(handler) + 1);
+				if (handler != null) {
+					logger.debug("Notify: " + spuid);
+					handler.notifyEvent(
+							new Notification(spuid, notify.getARBindingsResults(), sequenceNumbers.get(spuid)));
+					sequenceNumbers.put(spuid, sequenceNumbers.get(spuid) + 1);
+				} else {
+					logger.debug("Unregister SPU handler: " + spuid);
+
+					spuids.remove(spuid);
+					sequenceNumbers.remove(spuid);
+					handlers.remove(spuid);
+
+					toBeRemoved.add(spuid);
+				}
+			}
+
+			// Remove SPUID
+			for (String spuid : toBeRemoved) {
+				activeSpus.get(notify.getSpuid()).remove(spuid);
+				logger.debug(notify.getSpuid() + " number of clients: " + activeSpus.get(notify.getSpuid()).size());
+				if (activeSpus.get(notify.getSpuid()).isEmpty()) {
+					activeSpus.remove(notify.getSpuid());
+
+					// Deactivate SPU
+					spuManager.deactivate(notify.getSpuid());
+				}
+			}
 		}
 	}
 
-	public void process(UpdateResponse update) {
+	public synchronized void process(UpdateResponse update) {
 		logger.debug("*** PROCESSING SUBSCRIPTIONS BEGIN *** ");
-		Instant start = Instant.now();
+		long start = Timings.getTime();
 
 		// Start subscription processing
 		spuManager.startProcessing(update);
@@ -111,23 +136,25 @@ class SubscribeProcessor implements SubscribeProcessorMBean, EventHandler {
 		// Wait all SPUs completing processing (or timeout)
 		spuManager.waitEndOfProcessing();
 
-		Instant stop = Instant.now();
+		long stop = Timings.getTime();
 
 		SubscribeProcessorBeans.timings(start, stop);
 
 		logger.debug("*** PROCESSING SUBSCRIPTIONS END *** ");
 	}
-	
-	public Response subscribe(SubscribeRequest req, EventHandler handler) {
+
+	public synchronized Response subscribe(SubscribeRequest req, EventHandler handler) {
 		logger.trace(req.toString());
 
 		SubscribeProcessorBeans.subscribeRequest();
 
 		// Is SPU already available or do we need to create a new one?
 		ISPU spu = spuManager.getSPU(req);
-		if (spu == null) spu = createSPU(req);
-		if (spu == null) return new ErrorResponse(req.getToken(), 500, "SPU creation failed: " + req.toString());
-		
+		if (spu == null)
+			spu = createSPU(req);
+		if (spu == null)
+			return new ErrorResponse(req.getToken(), 500, "Failed to create SPU " + req.toString());
+
 		// Generate a fake SPU id
 		String spuid = spuManager.generateSpuid();
 
@@ -136,33 +163,26 @@ class SubscribeProcessor implements SubscribeProcessorMBean, EventHandler {
 
 		return new SubscribeResponse(req.getToken(), spuid, spu.getLastBindings());
 	}
-	
-	public Response unsubscribe(UnsubscribeRequest req) {
+
+	public synchronized Response unsubscribe(UnsubscribeRequest req) {
 		logger.trace(req);
 
 		SubscribeProcessorBeans.unsubscribeRequest();
 
 		String spuid = req.getSubscribeUUID();
-		String masterSpuid = fakeMap.get(spuid);
+		String masterSpuid = spuids.get(spuid);
 
 		logger.debug("Master spuid: " + masterSpuid + " (" + spuid + ")");
-		
-		if (masterSpuid == null) return new ErrorResponse(req.getToken(), 404, "SPUID not found: " + spuid);
-		if (!spuManager.isValidSpuId(masterSpuid)) return new ErrorResponse(req.getToken(), 404, "SPUID not found: " + masterSpuid);
+
+		if (masterSpuid == null)
+			return new ErrorResponse(req.getToken(), 404, "SPUID not found: " + spuid);
 
 		// Unregister handler
 		unregisterHandler(masterSpuid, spuid);
 
-		if (spuidPoll.get(masterSpuid).isEmpty()) {
-			spuidPoll.remove(masterSpuid);
-
-			// Deactivate SPU
-			spuManager.deactivate(masterSpuid);
-		}
-
 		return new UnsubscribeResponse(req.getToken(), spuid);
 	}
-	
+
 	// TODO: choose different kinds of SPU based on subscribe request
 	private ISPU createSPU(SubscribeRequest req) {
 		ISPU spu;
@@ -184,32 +204,51 @@ class SubscribeProcessor implements SubscribeProcessorMBean, EventHandler {
 		logger.debug("Add SPU to activation queue");
 
 		// Request SPU activation
-		if(!spuManager.activate(spu, req)) return null;
+		if (!spuManager.activate(spu, req))
+			return null;
 
 		return spu;
 	}
 
 	private void registerHandler(String masterSpuid, String spuid, EventHandler handler) {
-		logger.debug("Register SPU handler: " + spuid);
-		if (spuidPoll.get(masterSpuid) == null)
-			spuidPoll.put(masterSpuid, new ArrayList<String>());
+		synchronized (handlers) {
+			logger.debug("Register SPU handler: " + spuid);
 
-		spuidPoll.get(masterSpuid).add(spuid);
-		handlers.put(spuid, handler);
-		sequenceNumbers.put(handler, 1);
-		fakeMap.put(spuid, masterSpuid);
+			if (activeSpus.get(masterSpuid) == null)
+				activeSpus.put(masterSpuid, new ArrayList<String>());
+
+			activeSpus.get(masterSpuid).add(spuid);
+
+			handlers.put(spuid, handler);
+
+			sequenceNumbers.put(spuid, 1);
+			spuids.put(spuid, masterSpuid);
+		}
 	}
-	
+
 	private void unregisterHandler(String masterSpuid, String spuid) {
-		fakeMap.remove(spuid);
-		sequenceNumbers.remove(handlers.get(spuid));
-		handlers.remove(spuid);
-		spuidPoll.get(masterSpuid).remove(spuid);
+		synchronized (handlers) {
+			logger.debug("Unregister SPU handler: " + spuid);
+
+			spuids.remove(spuid);
+			sequenceNumbers.remove(spuid);
+			handlers.remove(spuid);
+
+			// SPUids
+			activeSpus.get(masterSpuid).remove(spuid);
+			logger.debug(masterSpuid + " number of clients: " + activeSpus.get(masterSpuid).size());
+			if (activeSpus.get(masterSpuid).isEmpty()) {
+				activeSpus.remove(masterSpuid);
+
+				// Deactivate SPU
+				spuManager.deactivate(masterSpuid);
+			}
+		}
 	}
 
 	@Override
-	public long getRequests() {
-		return SubscribeProcessorBeans.getRequests();
+	public long getUpdateRequests() {
+		return SubscribeProcessorBeans.getUpdateRequests();
 	}
 
 	@Override
@@ -230,16 +269,6 @@ class SubscribeProcessor implements SubscribeProcessorMBean, EventHandler {
 	@Override
 	public void reset() {
 		SubscribeProcessorBeans.reset();
-	}
-
-	@Override
-	public void setKeepalive(int t) {
-		SubscribeProcessorBeans.setKeepalive(t);
-	}
-
-	@Override
-	public int getKeepalive() {
-		return SubscribeProcessorBeans.getKeepalive();
 	}
 
 	@Override
@@ -275,5 +304,25 @@ class SubscribeProcessor implements SubscribeProcessorMBean, EventHandler {
 	@Override
 	public void setSPUProcessingTimeout(long t) {
 		SubscribeProcessorBeans.setActiveSPUs(t);
+	}
+
+	@Override
+	public void scale_ms() {
+		SubscribeProcessorBeans.scale_ms();
+	}
+
+	@Override
+	public void scale_us() {
+		SubscribeProcessorBeans.scale_us();
+	}
+
+	@Override
+	public void scale_ns() {
+		SubscribeProcessorBeans.scale_ns();
+	}
+
+	@Override
+	public String getUnitScale() {
+		return SubscribeProcessorBeans.getUnitScale();
 	}
 }

@@ -17,7 +17,6 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-//import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,13 +33,40 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import org.apache.logging.log4j.LogManager;
 
 /**
- * { "parameters": { "scheduler": { "queueSize": 100 }, "processor": {
- * "updateTimeout": 5000, "queryTimeout": 5000, "maxConcurrentRequests": 5 },
- * "spu": { "timeout": 2000 }, "gates": { "secure": false, "ports": { "http":
- * 8000, "ws": 9000, "https": 8443, "wss": 9443 }, "paths": { "update":
- * "/update", "query": "/query", "subscribe": "/subscribe", "register":
- * "/oauth/register", "tokenRequest": "/oauth/token", "securePath": "/secure" }
- * } } }
+ * <pre>
+{
+	"parameters": {
+		"scheduler": {
+			"queueSize": 100
+		},
+		"processor": {
+			"updateTimeout": 60000,
+			"queryTimeout": 60000,
+			"maxConcurrentRequests": 5
+		},
+		"spu": {
+			"timeout": 5000
+		},
+		"gates": {
+			"secure": false,
+			"paths": {
+				"securePath": "/secure",
+				"update": "/update",
+				"query": "/query",
+				"subscribe": "/subscribe",
+				"register": "/oauth/register",
+				"tokenRequest": "/oauth/token"
+			},
+			"ports": {
+				"http": 8000,
+				"https": 8443,
+				"ws": 9000,
+				"wss": 9443
+			}
+		}
+	}
+}
+ * </pre>
  */
 public class EngineProperties {
 	private static final Logger logger = LogManager.getLogger();
@@ -303,6 +329,14 @@ public class EngineProperties {
 			return properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
 		} catch (Exception e) {
 			return 2000;
+		}
+	}
+
+	public boolean isUpdateReliable() {
+		try {
+			return properties.get("processor").getAsJsonObject().get("reliableUpdate").getAsBoolean();
+		} catch (Exception e) {
+			return true;
 		}
 	}
 

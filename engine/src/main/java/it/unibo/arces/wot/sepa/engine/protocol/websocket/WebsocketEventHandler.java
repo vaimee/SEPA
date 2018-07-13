@@ -1,7 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
 import java.io.IOException;
-import java.time.Instant;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,13 +15,14 @@ import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class WebsocketEventHandler implements EventHandler {
 	private static final Logger logger = LogManager.getLogger();
 	
 	private WebSocket socket;
 	private WebsocketBeans jmx;
-	private Instant start;
+	private long start;
 	
 	// Dependability manager
 	private DependabilityManager dependabilityMng;
@@ -43,23 +43,30 @@ public class WebsocketEventHandler implements EventHandler {
 	}
 	
 	public void startTiming() {
-		start = Instant.now();
+		start = Timings.getTime();
 	}
 	
 	@Override
 	public void sendResponse(Response response) throws IOException {
 		long timing = 0;
+		
+		logger.trace(response);
+		
 		if (response.isSubscribeResponse()) {
 			timing = jmx.subscribeTimings(start);
 			dependabilityMng.onSubscribe(socket, ((SubscribeResponse)response).getSpuid());
+			logger.debug("Response #"+response.getToken()+" ("+timing+" ms)");
 		}
 		else if (response.isUnsubscribeResponse()) {
 			timing = jmx.unsubscribeTimings(start);
 			dependabilityMng.onUnsubscribe(socket, ((UnsubscribeResponse)response).getSpuid());
+			logger.debug("Response #"+response.getToken()+" ("+timing+" ms)");
 		}
-			
-		logger.debug("Response #"+response.getToken()+" ("+timing+" ms)");
-		logger.trace(response);
+		else if (response.isError()) {
+			logger.debug("Response #"+response.getToken());
+			logger.error(response);	
+		}
+		
 		send(response);
 	}
 

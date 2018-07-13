@@ -323,7 +323,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 			String id = json.get("credentials").getAsJsonObject().get("client_id").getAsString();
 			String secret = json.get("credentials").getAsJsonObject().get("client_secret").getAsString();
 			JsonElement signature = json.get("credentials").getAsJsonObject().get("signature");
-			Timings.log("REGISTER", start, Timings.getTime());
+			Timings.log("REGISTER", start,Timings.getTime());
 			return new RegistrationResponse(id, secret, signature);
 
 		} catch (Exception e) {

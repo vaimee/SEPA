@@ -18,9 +18,6 @@
 
 package it.unibo.arces.wot.sepa.commons.request;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 
 /**
@@ -92,21 +89,11 @@ public class QueryRequest extends Request {
 	}
 
 	public String getDefaultGraphUri() {
-		if (default_graph_uri == null) return null;
-		try {
-			return URLDecoder.decode(default_graph_uri,"UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			return null;
-		}
+		return default_graph_uri;
 	}
 
 	public String getNamedGraphUri() {
-		if (named_graph_uri == null) return null;
-		try {
-			return URLDecoder.decode(named_graph_uri,"UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			return null;
-		}
+		return named_graph_uri;
 	}
 	
 	/**
