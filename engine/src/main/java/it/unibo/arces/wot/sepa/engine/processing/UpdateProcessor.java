@@ -34,14 +34,15 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
-public class UpdateProcessor implements UpdateProcessorMBean {
+class UpdateProcessor implements UpdateProcessorMBean {
 	private static final Logger logger = LogManager.getLogger();
 
-	private SPARQL11Protocol endpoint;
-	private Semaphore endpointSemaphore;
-	private SPARQL11Properties properties;
+	private final SPARQL11Protocol endpoint;
+	private final Semaphore endpointSemaphore;
+	private final SPARQL11Properties properties;
 
 	public UpdateProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
 		endpoint = new SPARQL11Protocol();
@@ -51,7 +52,7 @@ public class UpdateProcessor implements UpdateProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized Response process(UpdateRequest req) {
+	public synchronized Response process(InternalUpdateRequest req) {
 		long start = Timings.getTime();
 
 		if (endpointSemaphore != null)
@@ -73,10 +74,10 @@ public class UpdateProcessor implements UpdateProcessorMBean {
 				
 		// UPDATE the endpoint
 		Response ret;
-		UpdateRequest request = new UpdateRequest(req.getToken(), properties.getUpdateMethod(),
+		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(),
 				properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
-				properties.getUpdatePath(), req.getSPARQL(), UpdateProcessorBeans.getTimeout(), req.getUsingGraphUri(),
-				req.getUsingNamedGraphUri(), authorizationHeader);
+				properties.getUpdatePath(), req.getSparql(), req.getDefaultGraphUri(),
+				req.getNamedGraphUri(), authorizationHeader,UpdateProcessorBeans.getTimeout());
 		logger.trace(request);
 		ret = endpoint.update(request);
 

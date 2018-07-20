@@ -55,12 +55,12 @@ public class SEPAChatTest {
 	}
 
 	@Test
-	public void chatTest() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
+	public void chatTest() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, InterruptedException, IOException {
 		deleteAllClients();
 		registerClients();
 		
 		users = new Users();
-		assertFalse("Users failed to join chat",!users.joinChat());
+		users.joinChat();
 		
 		for (String user : users.getUsers()) {
 			ChatClient client = null;

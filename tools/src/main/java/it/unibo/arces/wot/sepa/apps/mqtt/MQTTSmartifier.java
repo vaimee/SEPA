@@ -24,8 +24,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
@@ -176,17 +174,7 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 		}
 	}
 
-	public boolean start() throws SEPASecurityException, IOException, SEPAPropertiesException {
-		// Subscribe to observation-topic mapping
-		Response ret = subscribe();
-
-		if (ret.isError()) {
-			logger.fatal("Failed to subscribe: " + ret);
-			return false;
-		}
-		SubscribeResponse results = (SubscribeResponse) ret;
-		onAddedResults(results.getBindingsResults());
-
+	public void start() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, MqttException {
 		if (getApplicationProfile().getExtendedData().get("simulate").getAsBoolean())
 			simulator();
 		else {
@@ -220,13 +208,9 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 			String clientID = MqttClient.generateClientId();
 			logger.info("Client ID: " + clientID);
 			logger.info("Server URI: " + serverURI);
-			try {
-				mqttClient = new MqttClient(serverURI, clientID);
-			} catch (MqttException e) {
-				logger.error(e.getMessage());
-				return false;
-			}
-
+			
+			mqttClient = new MqttClient(serverURI, clientID);
+			
 			// Connect
 			logger.info("Connecting...");
 			MqttConnectOptions options = new MqttConnectOptions();
@@ -245,18 +229,15 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 			// Subscribe
 			mqttClient.setCallback(this);
 			logger.info("Subscribing...");
-			try {
-				mqttClient.subscribe(topicsFilter);
-			} catch (MqttException e) {
-				logger.error(e.getMessage());
-				return false;
-			}
-
+			
+			mqttClient.subscribe(topicsFilter);
+			
 			for(String topic:topicsFilter) logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topic);
 			// MQTT: end
 		}
-
-		return true;
+		
+		// Subscribe to observation-topic mapping
+		subscribe(5000);
 	}
 
 	public void simulator() {
@@ -385,5 +366,17 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	public void onError(ErrorResponse errorResponse) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void onSubscribe(String spuid, String alias) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onUnsubscribe(String spuid) {
+		// TODO Auto-generated method stub
+		
 	}
 }

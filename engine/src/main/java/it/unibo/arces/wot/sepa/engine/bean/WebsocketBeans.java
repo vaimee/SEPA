@@ -3,25 +3,25 @@ package it.unibo.arces.wot.sepa.engine.bean;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class WebsocketBeans {
-	private long messages = 0;
-	private long notAuthorized = 0;
-	private long errors = 0;
-	private long fragments = 0;
+	private static long messages = 0;
+	private static long notAuthorized = 0;
+	private static long errors = 0;
+	private static long fragments = 0;
 
-	private long subscribeHandlingTime = -1;
-	private float subscribeHandlingAverageTime = -1;
-	private long subscribeHandlingMinTime = -1;
-	private long subscribeHandlingMaxTime = -1;
-	private long handledSubscribes = 0;
+	private static long subscribeHandlingTime = -1;
+	private static float subscribeHandlingAverageTime = -1;
+	private static long subscribeHandlingMinTime = -1;
+	private static long subscribeHandlingMaxTime = -1;
+	private static long handledSubscribes = 0;
 	
-	private long unsubscribeHandlingTime = -1;
-	private float unsubscribeHandlingAverageTime = -1;
-	private long unsubscribeHandlingMinTime = -1;
-	private long unsubscribeHandlingMaxTime = -1;
-	private long handledunsubscribes = 0;
+	private static long unsubscribeHandlingTime = -1;
+	private static float unsubscribeHandlingAverageTime = -1;
+	private static long unsubscribeHandlingMinTime = -1;
+	private static long unsubscribeHandlingMaxTime = -1;
+	private static long handledunsubscribes = 0;
 	
 	
-	public long unsubscribeTimings(long start) {
+	public static long unsubscribeTimings(long start) {
 		handledunsubscribes++;
 				
 		unsubscribeHandlingTime = Timings.getTime() - start;
@@ -69,42 +69,54 @@ public class WebsocketBeans {
 		return subscribeHandlingTime;
 	}
 		
-	public void reset() {
+	public static void reset() {
 		fragments = 0;
 		messages = 0;
 		errors = 0;
 		notAuthorized = 0;
+		
+		subscribeHandlingTime = -1;
+		subscribeHandlingAverageTime = -1;
+		subscribeHandlingMinTime = -1;
+		subscribeHandlingMaxTime = -1;
+		handledSubscribes = 0;
+		
+		unsubscribeHandlingTime = -1;
+		unsubscribeHandlingAverageTime = -1;
+		unsubscribeHandlingMinTime = -1;
+		unsubscribeHandlingMaxTime = -1;
+		handledunsubscribes = 0;
 	}
 
-	public long getMessages(){
+	public static long getMessages(){
 		return messages;
 	}
 	
-	public long getFragmented(){
+	public static long getFragmented(){
 		return fragments;
 	}
 	
-	public long getErrors(){
+	public static long getErrors(){
 		return errors;
 	}
 	
-	public long getNotAuthorized(){
+	public static long getNotAuthorized(){
 		return notAuthorized;
 	}
 
-	public void onError() {
+	public static void onError() {
 		errors++;
 	}
 
-	public void onFragmentedMessage() {
+	public static void onFragmentedMessage() {
 		fragments++;
 	}
 
-	public void onNotAuthorizedRequest() {
+	public static void onNotAuthorizedRequest() {
 		notAuthorized++;
 	}
 	
-	public void onMessage() {
+	public static void onMessage() {
 		messages++;
 	}
 }

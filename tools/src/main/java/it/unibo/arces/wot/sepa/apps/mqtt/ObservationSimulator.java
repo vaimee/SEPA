@@ -19,7 +19,7 @@ public class ObservationSimulator extends Producer implements Runnable {
 	private int value = 15;
 	private long timeout = 2000;
 	
-	public ObservationSimulator(JSAP appProfile,String observation,String update) throws SEPAProtocolException, SEPASecurityException {
+	public ObservationSimulator(JSAP appProfile,String observation,String update) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		super(appProfile, update);
 		
 		this.setUpdateBindingValue("observation", new RDFTermURI(observation));

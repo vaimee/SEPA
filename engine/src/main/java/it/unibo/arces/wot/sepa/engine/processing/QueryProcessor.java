@@ -34,14 +34,15 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class QueryProcessor implements QueryProcessorMBean {
 	private static final Logger logger = LogManager.getLogger();
 
-	private SPARQL11Protocol endpoint;
-	private Semaphore endpointSemaphore;
-	private SPARQL11Properties properties;
+	private final SPARQL11Protocol endpoint;
+	private final Semaphore endpointSemaphore;
+	private final SPARQL11Properties properties;
 
 	public QueryProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
 		this.endpoint = new SPARQL11Protocol();
@@ -51,7 +52,7 @@ public class QueryProcessor implements QueryProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized Response process(QueryRequest req) {
+	public Response process(InternalQueryRequest req) {
 		long start = Timings.getTime();
 
 		if (endpointSemaphore != null)
@@ -74,10 +75,10 @@ public class QueryProcessor implements QueryProcessorMBean {
 
 		Response ret;
 		QueryRequest request;
-		request = new QueryRequest(req.getToken(), properties.getQueryMethod(), properties.getDefaultProtocolScheme(),
+		request = new QueryRequest(properties.getQueryMethod(), properties.getDefaultProtocolScheme(),
 				properties.getDefaultHost(), properties.getDefaultPort(), properties.getDefaultQueryPath(),
-				req.getSPARQL(), QueryProcessorBeans.getTimeout(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
-				authorizationHeader);
+				req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
+				authorizationHeader,QueryProcessorBeans.getTimeout());
 
 		ret = endpoint.query(request);
 

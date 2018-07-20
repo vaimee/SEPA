@@ -1,66 +1,41 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
-import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerRequestResponseQueue;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
-public class UpdateProcessingThread extends Thread {
-	private UpdateProcessor updateProcessor;
-	private SchedulerRequestResponseQueue schedulerQueue;
-	private SubscribeProcessor subscribeProcessor;
-
-	private LinkedBlockingQueue<UpdateRequest> updateQueue = new LinkedBlockingQueue<UpdateRequest>();
+class UpdateProcessingThread extends Thread {
+	private final Processor processor;
 	
-	private final AtomicBoolean end = new AtomicBoolean(false);
-	
-	public UpdateProcessingThread(UpdateProcessor updateProcessor, SubscribeProcessor subscribeProcessor,
-			SchedulerRequestResponseQueue queue) {
-		this.updateProcessor = updateProcessor;
-		this.schedulerQueue = queue;
-		this.subscribeProcessor = subscribeProcessor;
-		
-		setName("SEPA-Update-Scheduler");
+	public UpdateProcessingThread(Processor processor) {
+		this.processor = processor;
+		setName("SEPA-Update-Processor");
 	}
 
 	public void run() {
-		while (!end.get()) {
-			UpdateRequest request;
+		while (processor.isRunning()) {
+			ScheduledRequest request;
 			try {
-				request = updateQueue.take();
+				request = processor.getSchedulerQueue().waitUpdateRequest();
 			} catch (InterruptedException e) {
 				return;
 			}
 
+			// Update request
+			InternalUpdateRequest update = (InternalUpdateRequest)request.getRequest();
+			
+			// Notify update (not reliable)
+			if (!processor.isUpdateReilable()) processor.getSchedulerQueue().addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
+						
 			// Process update request
-			Response ret = updateProcessor.process(request);
+			Response ret = processor.getUpdateProcessor().process(update);
 
 			// Notify update result
-			synchronized(schedulerQueue) {
-				if (schedulerQueue != null) schedulerQueue.addResponse(ret);
-			}
+			if (processor.isUpdateReilable()) processor.getSchedulerQueue().addResponse(request.getToken(),ret);
 
 			// Subscription processing
-			if (ret.isUpdateResponse()) {
-				subscribeProcessor.process((UpdateResponse) ret);
-			}
-		}
-	}
-	
-	public void finish(){
-        end.set(true);
-    }
-	
-	public void process(UpdateRequest req) {
-		updateQueue.add(req);
-	}
-
-	public void setSchedulerQueue(SchedulerRequestResponseQueue queue) {
-		synchronized(schedulerQueue) {
-			schedulerQueue = queue;
+			if (ret.isUpdateResponse()) processor.getSPUManager().process((UpdateResponse) ret);
 		}
 	}
 }

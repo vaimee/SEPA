@@ -2,77 +2,72 @@ package it.unibo.arces.wot.sepa.engine.dependability;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.BlockingQueue;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.java_websocket.WebSocket;
+
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue;
 
 public class DependabilityManager {
 	private static final Logger logger = LogManager.getLogger();
 
-	// Active sockets
-	private HashMap<WebSocket, ArrayList<String>> subscriptions = new HashMap<WebSocket, ArrayList<String>>();
+	// Active subscriptions 
+	private static final HashMap<Integer, ArrayList<String>> subscriptions = new HashMap<Integer, ArrayList<String>>();
 
-	// Broken sockets
-	private ArrayList<WebSocket> brokenSockets = new ArrayList<WebSocket>();
+	// Broken subscriptions
+	private static final ArrayList<Integer> brokenBeforeSubscribe = new ArrayList<Integer>();
 
-	private final BlockingQueue<String> killSpuids;
+	// Scheduler queue
+	private final SchedulerQueue schedulerQueue;
 	
-	public DependabilityManager(BlockingQueue<String> spuids) {
-		this.killSpuids = spuids;
+	public DependabilityManager(SchedulerQueue schedulerQueue) {
+		this.schedulerQueue = schedulerQueue;
 	}
 
-	public void onSubscribe(WebSocket conn, String spuid) {
-		logger.debug("@onSubscribe: "+conn+" SPUID: "+spuid);
-		
-		if (brokenSockets.contains(conn)) {
-			logger.debug("Socket has been closed: "+conn+" SPUID: "+spuid);
-			logger.debug("Request to kill SPU: "+spuid);
-			try {
-				killSpuids.put(spuid);
-			} catch (InterruptedException e) {
-				logger.warn(e.getMessage());
-			}
+	public synchronized void onSubscribe(Integer hash, String spuid) {
+		logger.debug("@onSubscribe: "+hash+" SPUID: "+spuid);
+
+		if (brokenBeforeSubscribe.contains(hash)) {
+			logger.debug("Subscription has already been closed: " + hash + " Schedule to kill SPUID: " + spuid);
+			schedulerQueue.killSpuid(spuid);
 			return;
 		}
 		
-		if (!subscriptions.containsKey(conn))
-			subscriptions.put(conn, new ArrayList<String>());
-		subscriptions.get(conn).add(spuid);
+		if (!subscriptions.containsKey(hash)) subscriptions.put(hash, new ArrayList<String>());
+		
+		subscriptions.get(hash).add(spuid);	
 	}
 
-	public void onUnsubscribe(WebSocket conn, String spuid) {
-		logger.debug("@onUnsubscribe: "+conn+" SPUID: "+spuid);
+	public synchronized void onUnsubscribe(Integer hash, String spuid) {
+		logger.debug("@onUnsubscribe: "+hash+" SPUID: "+spuid);
 		
-		if (subscriptions.containsKey(conn)) {
-			subscriptions.get(conn).remove(spuid);
-			if (subscriptions.get(conn).isEmpty())
-				subscriptions.remove(conn);
-		}
+		subscriptions.get(hash).remove(spuid);
+		if (subscriptions.get(hash).isEmpty()) subscriptions.remove(hash);
 	}
 
-	public void onBrokenSocket(WebSocket conn) {
-		logger.debug("@onBrokenSocket: "+conn);
+	public synchronized void onBrokenSocket(Integer hash) {
+		logger.debug("@onBrokenSocket: "+hash);
 		
-		if (!subscriptions.containsKey(conn)) {
-			brokenSockets.add(conn);
+		if (!subscriptions.containsKey(hash)) {
+			logger.debug("Broken before subscribe: "+hash);
+			brokenBeforeSubscribe.add(hash);
 			return;
 		}
 		
-		logger.debug(String.format("Broken socket with %d active subscriptions", subscriptions.get(conn).size()));
+		logger.debug(String.format("Broken socket with active subscriptions: %d", subscriptions.get(hash).size()));
 
 		// Kill all SPUs
-		for (String spuid : subscriptions.get(conn)) {
-			logger.debug("Request to kill SPU: "+spuid);
-			try {
-				killSpuids.put(spuid);
-			} catch (InterruptedException e) {
-				logger.warn(e.getMessage());
-			}
+		for (String spuid : subscriptions.get(hash)) {
+			logger.debug("Schedule request to kill SPU: "+spuid);
+			schedulerQueue.killSpuid(spuid);
 		}
 		
 		// Remove subscriptions
-		subscriptions.remove(conn);
+		subscriptions.remove(hash);
+	}
+
+	public synchronized void onError(Integer hash, ErrorResponse error) {
+		logger.error("Subscription:"+hash + " error:"+error);
 	}
 }

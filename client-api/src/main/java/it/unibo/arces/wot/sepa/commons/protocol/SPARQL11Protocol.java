@@ -122,48 +122,45 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			// Body
 			responseEntity = httpResponse.getEntity();
 			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
-			if (request.getToken() != -1)
-				logger.debug(String.format("Response code: %d #%d", responseCode, request.getToken()));
-			else
-				logger.debug(String.format("Response code: %d", responseCode));
+			logger.trace(String.format("Response code: %d", responseCode));
 			EntityUtils.consume(responseEntity);
 
 			// http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.html#d5e279
 		} catch (IOException e) {
 			if (e instanceof InterruptedIOException) {
-				return new ErrorResponse(request.getToken(), HttpStatus.SC_SERVICE_UNAVAILABLE, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, e.getMessage());
 			}
 			if (e instanceof UnknownHostException) {
-				return new ErrorResponse(request.getToken(), HttpStatus.SC_NOT_FOUND, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_NOT_FOUND, e.getMessage());
 			}
 			if (e instanceof ConnectTimeoutException) {
-				return new ErrorResponse(request.getToken(), HttpStatus.SC_REQUEST_TIMEOUT, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, e.getMessage());
 			}
 			if (e instanceof SSLException) {
-				return new ErrorResponse(request.getToken(), HttpStatus.SC_UNAUTHORIZED, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, e.getMessage());
 			}
-			return new ErrorResponse(request.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		} finally {
 			try {
 				if (httpResponse != null)
 					httpResponse.close();
 			} catch (IOException e) {
-				return new ErrorResponse(request.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 			}
 
 			responseEntity = null;
 		}
 
 		if (responseCode >= 400)
-			return new ErrorResponse(request.getToken(), responseCode, responseBody);
+			return new ErrorResponse(responseCode, responseBody);
 
 		if (request.getClass().equals(UpdateRequest.class))
-			return new UpdateResponse(request.getToken(), responseBody);
+			return new UpdateResponse(responseBody);
 
 		try {
-			return new QueryResponse(request.getToken(), new JsonParser().parse(responseBody).getAsJsonObject());
+			return new QueryResponse(new JsonParser().parse(responseBody).getAsJsonObject());
 		} catch (Exception e) {
-			return new ErrorResponse(request.getToken(), HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, e.getMessage());
 		}
 	}
 
@@ -224,7 +221,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		case URL_ENCODED_POST:
 			return post(req);
 		default:
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_BAD_REQUEST,
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,
 					"SPARQL 1.1 Update supports POST method only");
 		}
 	}
@@ -260,13 +257,13 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		// Create POST request
 		try {
 			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
-				if (req.getUsingGraphUri() != null) {
-					graphs = "using-graph-uri=" + req.getUsingGraphUri();
-					if (req.getUsingNamedGraphUri() != null) {
-						graphs += "&using-named-graph-uri=" + req.getUsingNamedGraphUri();
+				if (req.getDefaultGraphUri() != null) {
+					graphs = "using-graph-uri=" + req.getDefaultGraphUri();
+					if (req.getNamedGraphUri() != null) {
+						graphs += "&using-named-graph-uri=" + req.getNamedGraphUri();
 					}
-				} else if (req.getUsingNamedGraphUri() != null) {
-					graphs = "using-named-graph-uri=" + req.getUsingNamedGraphUri();
+				} else if (req.getNamedGraphUri() != null) {
+					graphs = "using-named-graph-uri=" + req.getNamedGraphUri();
 				}
 				
 				post = new HttpPost(new URI(scheme, null, host, port, updatePath, graphs, null));
@@ -280,17 +277,17 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 				// Graphs 
 				try {
-					if (req.getUsingGraphUri() != null) {
-						graphs = "using-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(), "UTF-8");
-						if (req.getUsingNamedGraphUri() != null) {
-							graphs += "&using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
+					if (req.getDefaultGraphUri() != null) {
+						graphs = "using-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
+						if (req.getNamedGraphUri() != null) {
+							graphs += "&using-named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
 						}
-					} else if (req.getUsingNamedGraphUri() != null) {
-						graphs = "using-named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
+					} else if (req.getNamedGraphUri() != null) {
+						graphs = "using-named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
 					}
 				} catch (UnsupportedEncodingException e) {
 					logger.error(e.getMessage());
-					return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 				}
 				
 				// Body
@@ -301,7 +298,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			}
 		} catch (URISyntaxException | UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 
 		// Accept header
@@ -571,7 +568,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					}
 				} catch (UnsupportedEncodingException e) {
 					logger.error(e.getMessage());
-					return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 				}
 				
 				// Body
@@ -582,7 +579,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			}
 		} catch (URISyntaxException | UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 
 		post.setHeader("Accept", req.getAcceptHeader());
@@ -611,7 +608,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8");
 		} catch (UnsupportedEncodingException e1) {
 			logger.error(e1.getMessage());
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
 		}
 
 		String graphs = "";
@@ -628,7 +625,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return new ErrorResponse( HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
 		}
 
 		if (!graphs.equals(""))
@@ -659,7 +656,11 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	}
 
 	@Override
-	public void close() throws IOException {
-		httpClient.close();
+	public void close() {
+		try {
+			httpClient.close();
+		} catch (IOException e) {
+			logger.error(e.getMessage());
+		}
 	}
 }

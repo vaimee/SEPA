@@ -20,7 +20,6 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
 
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,8 +30,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 public class Producer extends Client implements IProducer {
@@ -44,7 +43,7 @@ public class Producer extends Client implements IProducer {
 	
 	private SPARQL11Protocol client;
 	
-	public Producer(JSAP appProfile,String updateID) throws SEPAProtocolException, SEPASecurityException  {
+	public Producer(JSAP appProfile,String updateID) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException  {
 		super(appProfile);
 		
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
@@ -59,7 +58,7 @@ public class Producer extends Client implements IProducer {
 		forcedBindings = appProfile.getUpdateBindings(updateID);
 		
 		if (appProfile.getUpdateProtocolScheme(updateID).equals("https")) {
-			SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
+			SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", new AuthenticationProperties(appProfile.getFilename()));
 			client = new SPARQL11Protocol(sm);
 		}
 		else client = new SPARQL11Protocol();
@@ -73,14 +72,15 @@ public class Producer extends Client implements IProducer {
 		String authorizationHeader = null;
 		
 		if (isSecure()) {
-			if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
-			if (appProfile.getAuthenticationProperties()!= null)
-				authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+			authorizationHeader = sm.getAuthorizationHeader();
+//			if(!getToken()) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get or renew token");
+//			if (appProfile.getAuthenticationProperties()!= null)
+//				authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		}
 		
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
-					appProfile.getUpdatePath(SPARQL_ID), prefixes() + replaceBindings(sparqlUpdate, forcedBindings), timeout,
-					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader);
+					appProfile.getUpdatePath(SPARQL_ID), prefixes() + replaceBindings(sparqlUpdate, forcedBindings),
+					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout);
 		 
 		 return client.update(req);		 
 	 }

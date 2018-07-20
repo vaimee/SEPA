@@ -52,4 +52,16 @@ public class ObservationLogger extends Aggregator {
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {}
+
+	@Override
+	public void onSubscribe(String spuid, String alias) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onUnsubscribe(String spuid) {
+		// TODO Auto-generated method stub
+		
+	}
 }

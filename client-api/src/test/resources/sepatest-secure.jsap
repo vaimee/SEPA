@@ -46,19 +46,31 @@
 		"DELETE_ALL" : {
 			"sparql" : "delete where {?x ?y ?z}"
 		},
-		"U1": {
+		"VAIMEE": {
 			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {OPTIONAL{?s ?p ?o}}"
 		},
-		"U2": {
-			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P 123} where {OPTIONAL{?s ?p ?o}}"
+		"RANDOM": {
+			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P ?random} where {OPTIONAL{?s ?p ?o} BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+		},
+		"RANDOM1": {
+			"sparql": "delete {?s ?p ?o} insert {sepa:S1 sepa:P1 ?random} where {OPTIONAL{?s ?p ?o} BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
 		}
 	},
 	"queries": {
-		"Q1": {
+		"VAIMEE": {
 			"sparql": "select * where {?x ?y \"ვაიმეე\"}"
 		},
-		"Q2": {
+		"ALL": {
 			"sparql": "select * where {?x ?y ?z}"
+		},
+		"RANDOM": {
+			"sparql": "select * where {sepa:S sepa:P ?random}"
+		},
+		"RANDOM1": {
+			"sparql": "select * where {sepa:S1 sepa:P1 ?random}"
+		},
+		"COUNT": {
+			"sparql": "select (COUNT(?x) AS ?n) where {?x ?y ?z}"
 		}
 	}
 }

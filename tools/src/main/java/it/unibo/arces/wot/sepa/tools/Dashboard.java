@@ -88,7 +88,6 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
@@ -142,7 +141,7 @@ public class Dashboard {
 	private SortedListModel updateListDM = new SortedListModel();
 	private SortedListModel queryListDM = new SortedListModel();
 
-	private JTabbedPane subscriptions;
+	private HashMap<String, JTabbedPane> subscriptions = new HashMap<String, JTabbedPane>();
 	private HashMap<String, BindingsTableModel> subscriptionResultsDM = new HashMap<String, BindingsTableModel>();
 	private HashMap<String, JLabel> subscriptionResultsLabels = new HashMap<String, JLabel>();
 	private HashMap<String, JTable> subscriptionResultsTables = new HashMap<String, JTable>();
@@ -195,6 +194,8 @@ public class Dashboard {
 
 	private SEPASecurityManager sm;
 
+	private JTabbedPane subscriptionsPanel = new JTabbedPane(JTabbedPane.TOP);
+
 	class DashboardHandler implements ISubscriptionHandler {
 		@Override
 		public void onSemanticEvent(Notification n) {
@@ -228,6 +229,80 @@ public class Dashboard {
 		@Override
 		public void onError(ErrorResponse errorResponse) {
 			logger.error(errorResponse.getErrorMessage());
+		}
+
+		@Override
+		public void onSubscribe(String spuid, String alias) {
+			// Subscription panel
+			JPanel sub = new JPanel();
+
+			// Layout
+			GridBagConstraints layoutFill = new GridBagConstraints();
+			layoutFill.fill = GridBagConstraints.BOTH;
+			sub.setLayout(new BoxLayout(sub, BoxLayout.Y_AXIS));
+			sub.setName(queryList.getSelectedValue());
+
+			// Query label
+			JLabel queryLabel = new JLabel(
+					"<html>" + querySPARQL.getText() + "</html>");
+			queryLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+			// Info label
+			JLabel info = new JLabel("Info");
+			info.setText(spuid);
+			subscriptionResultsLabels.put(spuid, info);
+
+			// Unsubscribe button
+			JButton unsubscribeButton = new JButton(spuid);
+			unsubscribeButton.setEnabled(true);
+			unsubscribeButton.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					try {
+						sepaClient.unsubscribe(spuid,Integer.parseInt(timeout.getText()));
+					} catch (NumberFormatException | SEPASecurityException | SEPAPropertiesException
+							| SEPAProtocolException e1) {
+						logger.error(e1.getMessage());
+					}
+				}
+			});
+
+			// Results table
+			subscriptionResultsDM.put(spuid, new BindingsTableModel());
+
+			JTable bindingsResultsTable = new JTable(subscriptionResultsDM.get(spuid));
+			JScrollPane bindingsResults = new JScrollPane();
+			bindingsResults.setViewportView(bindingsResultsTable);
+
+			bindingsResultsTable.setDefaultRenderer(Object.class, bindingsRender);
+			bindingsResultsTable.setAutoCreateRowSorter(true);
+			bindingsResultsTable.registerKeyboardAction(new CopyAction(),
+					KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
+					JComponent.WHEN_FOCUSED);
+			bindingsResultsTable.setCellSelectionEnabled(true);
+
+			subscriptionResultsTables.put(spuid, bindingsResultsTable);
+
+			// Add all elements
+			sub.add(queryLabel);
+			sub.add(unsubscribeButton);
+			sub.add(bindingsResults);
+			sub.add(info);
+
+			// Add tab
+			subscriptionsPanel.add(sub, layoutFill);
+
+			subscriptionsPanel.setSelectedIndex(subscriptionsPanel.getTabCount() - 1);
+			mainTabs.setSelectedIndex(1);
+			
+		}
+
+		@Override
+		public void onUnsubscribe(String spuid) {
+			subscriptionsPanel.remove(subscriptions.get(spuid));
+			subscriptions.remove(spuid);
+			subscriptionResultsDM.remove(spuid);
+			subscriptionResultsLabels.remove(spuid);
+			subscriptionResultsTables.remove(spuid);	
 		}
 	}
 
@@ -1342,7 +1417,7 @@ public class Dashboard {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					subscribe();
-				} catch (IOException | SEPAPropertiesException e1) {
+				} catch (IOException | SEPAPropertiesException | NumberFormatException | SEPAProtocolException | SEPASecurityException e1) {
 					logger.error(e1.getMessage());
 				}
 			}
@@ -1370,8 +1445,7 @@ public class Dashboard {
 		bindingsResultsTable.setCellSelectionEnabled(true);
 		bindingsRender.setNamespaces(namespacesDM);
 
-		subscriptions = new JTabbedPane(JTabbedPane.TOP);
-		mainTabs.addTab("Active subscriptions", null, subscriptions, null);
+		mainTabs.addTab("Active subscriptions", null, subscriptionsPanel, null);
 
 		JPanel namespaces = new JPanel();
 		mainTabs.addTab("Namespaces", null, namespaces, null);
@@ -1560,7 +1634,7 @@ public class Dashboard {
 		}
 	}
 
-	protected void subscribe() throws IOException, SEPAPropertiesException {
+	protected void subscribe() throws IOException, SEPAPropertiesException, NumberFormatException, SEPAProtocolException, SEPASecurityException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
 			String type = queryForcedBindings.getValueAt(row, 2).toString();
@@ -1574,97 +1648,7 @@ public class Dashboard {
 				bindings.addBinding(variable, new RDFTermLiteral(value, type));
 		}
 
-		try {
-			Instant start = Instant.now();
-			Response ret = sepaClient.subscribe(queryID, querySPARQL.getText(), bindings, handler);
-			Instant stop = Instant.now();
-
-			if (ret.isError())
-				logger.error(ret.toString() + String.format(" (%d ms)", (stop.toEpochMilli() - start.toEpochMilli())));
-			else {
-				String spuid = ((SubscribeResponse) ret).getSpuid();
-				BindingsResults results = ((SubscribeResponse) ret).getBindingsResults();
-
-				logger.info(String.format("Subscribed in %d ms (first results: %d)",
-						(stop.toEpochMilli() - start.toEpochMilli()), results.size()));
-
-				// Subscription panel
-				JPanel sub = new JPanel();
-
-				// Layout
-				GridBagConstraints layoutFill = new GridBagConstraints();
-				layoutFill.fill = GridBagConstraints.BOTH;
-				sub.setLayout(new BoxLayout(sub, BoxLayout.Y_AXIS));
-				sub.setName(queryList.getSelectedValue());
-
-				// Query label
-				JLabel queryLabel = new JLabel(
-						"<html>" + querySPARQL.getText() + " forced bindings: " + bindings.toString() + "</html>");
-				queryLabel.setFont(new Font("Arial", Font.BOLD, 14));
-
-				// Info label
-				JLabel info = new JLabel("Info");
-				info.setText(String.format("Results: %d (%d ms)", results.size(),
-						(stop.toEpochMilli() - start.toEpochMilli())));
-				subscriptionResultsLabels.put(spuid, info);
-
-				// Unsubscribe button
-				JButton unsubscribeButton = new JButton(spuid);
-				unsubscribeButton.setEnabled(true);
-				unsubscribeButton.addActionListener(new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						Response response = null;
-						try {
-							response = sepaClient.unsubscribe(spuid);
-						} catch (SEPASecurityException | IOException | SEPAPropertiesException e1) {
-							logger.error(e1.getMessage());
-							return;
-						}
-
-						if (response.isUnsubscribeResponse()) {
-							subscriptions.remove(sub);
-							subscriptionResultsDM.remove(spuid);
-							subscriptionResultsLabels.remove(spuid);
-							subscriptionResultsTables.remove(spuid);
-						} else
-							subscriptionResultsLabels.get(spuid).setText(response.toString());
-					}
-				});
-
-				// Results table
-				subscriptionResultsDM.put(spuid, new BindingsTableModel());
-
-				JTable bindingsResultsTable = new JTable(subscriptionResultsDM.get(spuid));
-				JScrollPane bindingsResults = new JScrollPane();
-				bindingsResults.setViewportView(bindingsResultsTable);
-
-				bindingsResultsTable.setDefaultRenderer(Object.class, bindingsRender);
-				bindingsResultsTable.setAutoCreateRowSorter(true);
-				bindingsResultsTable.registerKeyboardAction(new CopyAction(),
-						KeyStroke.getKeyStroke(KeyEvent.VK_C, Toolkit.getDefaultToolkit().getMenuShortcutKeyMask()),
-						JComponent.WHEN_FOCUSED);
-				bindingsResultsTable.setCellSelectionEnabled(true);
-
-				subscriptionResultsTables.put(spuid, bindingsResultsTable);
-
-				subscriptionResultsDM.get(spuid).setAddedResults(results, spuid);
-
-				// Add all elements
-				sub.add(queryLabel);
-				sub.add(unsubscribeButton);
-				sub.add(bindingsResults);
-				sub.add(info);
-
-				// Add tab
-				subscriptions.add(sub, layoutFill);
-
-				subscriptions.setSelectedIndex(subscriptions.getTabCount() - 1);
-				mainTabs.setSelectedIndex(1);
-			}
-		} catch (SEPAProtocolException | SEPASecurityException e) {
-			logger.error(e.getMessage());
-		}
-
+		sepaClient.subscribe(queryID, querySPARQL.getText(), bindings, handler,Integer.parseInt(timeout.getText()));
 	}
 
 	protected void query() throws SEPAPropertiesException {

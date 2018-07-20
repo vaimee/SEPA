@@ -63,23 +63,6 @@ public class ErrorResponse extends Response {
 	/**
 	 * Instantiates a new error response.
 	 *
-	 * @param token the token
-	 * @param code the code
-	 * @param message the message
-	 */
-	public ErrorResponse(int token,int code,String message) {
-		super(token);
-
-		JsonObject body = new JsonObject();
-		if (message != null) body.add("body", new JsonPrimitive(message));
-		body.add("code", new JsonPrimitive(code));
-		
-		json.add("error", body);
-	}
-	
-	/**
-	 * Instantiates a new error response.
-	 *
 	 * @param code the code
 	 * @param message the message
 	 */
@@ -92,33 +75,9 @@ public class ErrorResponse extends Response {
 		
 		json.add("error", body);
 	}
-	
-	/**
-	 * Instantiates a new error response.
-	 *
-	 * @param code the code
-	 */
-	public ErrorResponse(int code) {
-		super();
 
-		JsonObject body = new JsonObject();
-		body.add("code", new JsonPrimitive(code));
-		
-		json.add("error", body);
-	}
-	
-	public ErrorResponse(JsonObject notify) {
-		json = notify;
-	}
-	
-	public ErrorResponse(int token,JsonObject notify) {
-		super(token);
-		json = notify;
-	}
-
-	public ErrorResponse(ErrorResponse ret) {
-		super(ret.getToken());
-		json = ret.json;
+	public ErrorResponse(JsonObject jsonMessage) {
+		json = jsonMessage;
 	}
 
 	/**

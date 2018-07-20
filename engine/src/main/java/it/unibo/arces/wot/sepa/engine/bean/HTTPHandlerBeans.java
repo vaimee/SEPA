@@ -19,6 +19,8 @@ public class HTTPHandlerBeans {
 	private long requestHandlingMaxTime = -1;
 	private long handledRequests = 0;
 
+	private int outOfTokens;
+	
 	private HashMap<HttpAsyncExchange,Long> timings = new HashMap<HttpAsyncExchange,Long>();
 	
 	public void reset() {
@@ -33,6 +35,8 @@ public class HTTPHandlerBeans {
 		 requestHandlingMinTime = -1;
 		 requestHandlingMaxTime = -1;
 		 handledRequests = 0;
+		 
+		 outOfTokens = 0;
 	}
 
 	public synchronized long start(HttpAsyncExchange handler) {
@@ -147,5 +151,13 @@ public class HTTPHandlerBeans {
 	
 	public void authorizingFailed() {
 		authorizingFailedRequests++;
+	}
+
+	public void outOfTokens() {
+		outOfTokens++;
+	}
+	
+	public long getErrors_OutOfTokens() {
+		return outOfTokens;
 	}
 }

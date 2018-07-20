@@ -47,7 +47,7 @@ public class JWTResponse extends Response {
 	 *            the expiring
 	 */
 	public JWTResponse(String access_token, String token_type, long expiring) {
-		super(0);
+		super();
 		JsonObject jwt = new JsonObject();
 		
 		if (access_token != null)

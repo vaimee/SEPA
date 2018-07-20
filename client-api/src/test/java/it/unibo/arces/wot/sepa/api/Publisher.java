@@ -36,8 +36,9 @@ public class Publisher extends Thread  {
 			try {
 				client.update(buildUpdateRequest(id,5000));
 			} catch (SEPAPropertiesException | SEPASecurityException e) {
-				running.set(running.get()-1);
+				
 			}
+			running.set(running.get()-1);
 		}
 	}
 	
@@ -59,7 +60,7 @@ public class Publisher extends Thread  {
 		String authorization = null;
 		if (sm != null) authorization = sm.getAuthorizationHeader();
 		
-		return new UpdateRequest(method, scheme, host, port, path, sparql, timeout, graphUri, namedGraphUri,
-				authorization);
+		return new UpdateRequest(method, scheme, host, port, path, sparql, graphUri, namedGraphUri,
+				authorization,timeout);
 	}
 }

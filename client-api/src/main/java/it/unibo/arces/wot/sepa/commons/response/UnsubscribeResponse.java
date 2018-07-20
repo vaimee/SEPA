@@ -38,25 +38,6 @@ public class UnsubscribeResponse extends Response {
 	/**
 	 * Instantiates a new unsubscribe response.
 	 *
-	 * @param token
-	 *            the token
-	 * @param spuid
-	 *            the spuid
-	 */
-	public UnsubscribeResponse(Integer token, String spuid) {
-		super(token);
-
-		JsonObject response = new JsonObject();
-		
-		if (spuid != null)
-			response.add("spuid", new JsonPrimitive(spuid));
-		
-		json.add("unsubscribed", response);
-	}
-
-	/**
-	 * Instantiates a new unsubscribe response.
-	 *
 	 * @param spuid
 	 *            the spuid
 	 */
@@ -71,15 +52,8 @@ public class UnsubscribeResponse extends Response {
 		json.add("unsubscribed", response);
 	}
 
-	/**
-	 * Instantiates a new unsubscribe response.
-	 */
-	public UnsubscribeResponse() {
-		super();
-	}
-
-	public UnsubscribeResponse(JsonObject notify) {
-		json = notify;
+	public UnsubscribeResponse(JsonObject jsonMessage) {
+		json = jsonMessage;
 	}
 
 	/**

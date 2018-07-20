@@ -26,74 +26,26 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
  * @see <a href="https://www.w3.org/TR/sparql11-query/">SPARQL 1.1 Query</a>
 * */
 
-public class QueryRequest extends Request {
-	protected String default_graph_uri = null;
-	protected String named_graph_uri = null;
-	
-	/**
-	 * Instantiates a new query request.
-	 *
-	 * @param token the token of the request
-	 * @param sparql the <a href="https://www.w3.org/TR/sparql11-query/">SPARQL 1.1 Query</a>
-	 */
-	public QueryRequest(Integer token, String sparql) {
-		super(token, sparql);
-	}
-	
+public class QueryRequest extends SPARQL11Request {
 	/**
 	 * Instantiates a new query request.
 	 *
 	 * @param sparql the <a href="https://www.w3.org/TR/sparql11-query/">SPARQL 1.1 Query</a>
 	 */
-	public QueryRequest(String sparql) {
-		super(sparql);
-	}
-
-	public QueryRequest(String sparql,String default_graph_uri,String named_graph_uri) {
-		super(sparql);
-		
-		this.default_graph_uri = default_graph_uri;
-		this.named_graph_uri = named_graph_uri;
-	}
 	
-	public QueryRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String default_graph_uri,String named_graph_uri,String authorization) {
-		super(token,sparql);
+	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,String default_graph_uri,String named_graph_uri,String authorization,long timeout) {
+		super(sparql,authorization,default_graph_uri,named_graph_uri,timeout);
 		
-		super.method = method;
-		super.host = host;
-		super.port = port;
-		super.path = path;
-		super.timeout = timeout;
-		super.scheme = scheme;
-		
-		super.authorizationHeader = authorization;
-		
-		this.default_graph_uri = default_graph_uri;
-		this.named_graph_uri = named_graph_uri;
-	}
-	
-	public QueryRequest(HTTPMethod queryMethod, String queryProtocolScheme, String queryHost, int queryPort,
-			String queryPath, String string, int timeout, String defaultGraphURI, String namedGraphURI,String authorization) {
-		this(-1,queryMethod,  queryProtocolScheme,  queryHost,  queryPort,queryPath,  string,  timeout,  defaultGraphURI,  namedGraphURI,authorization);
-	}
-	
-	@Override
-	public String toString() {
-		if (token != -1) return "QUERY #"+token+" "+sparql;
-		return "QUERY "+sparql;
-		
+		this.method = method;
+		this.host = host;
+		this.port = port;
+		this.path = path;
+		this.timeout = timeout;
+		this.scheme = scheme;
 	}
 
 	public String getAcceptHeader() {
 		return "application/sparql-results+json";
-	}
-
-	public String getDefaultGraphUri() {
-		return default_graph_uri;
-	}
-
-	public String getNamedGraphUri() {
-		return named_graph_uri;
 	}
 	
 	/**
@@ -104,10 +56,5 @@ public class QueryRequest extends Request {
 	public boolean equals(Object obj) {
 		if (!(obj instanceof QueryRequest)) return false;
 		return sparql.equals(((QueryRequest)obj).sparql);
-	}
-	
-	@Override
-	public int hashCode() {
-		return sparql.hashCode();
 	}
 }

@@ -18,13 +18,16 @@ import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
+
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
+
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SecureWebsocketServer extends WebsocketServer implements SecureWebsocketServerMBean {
@@ -54,7 +57,7 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 	}
 
 	@Override
-	protected Request parseRequest(String request, WebSocket conn)
+	protected InternalRequest parseRequest(String request, WebSocket conn)
 			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException {
 		JsonObject req;
 
@@ -66,7 +69,7 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 				Response ret = validateToken(auth);
 				if (ret.isError()) {
 					// Not authorized
-					jmx.onNotAuthorizedRequest();
+					WebsocketBeans.onNotAuthorizedRequest();
 
 					logger.warn("NOT AUTHORIZED");
 					conn.send(ret.toString());
@@ -101,20 +104,20 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 				}
 				catch(Exception e) {}
 				
-				return new SubscribeRequest(sparql,alias,defaultGraphUri,namedGraphUri,auth);
+				return new InternalSubscribeRequest(sparql,alias,defaultGraphUri,namedGraphUri,activeSockets.get(conn));
 			}
 			else if (req.has("unsubscribe")) {
 				Response ret = validateToken(
 						req.get("unsubscribe").getAsJsonObject().get("authorization").getAsString());
 				if (ret.isError()) {
 					// Not authorized
-					jmx.onNotAuthorizedRequest();
+					WebsocketBeans.onNotAuthorizedRequest();
 
 					logger.warn("NOT AUTHORIZED");
 					conn.send(ret.toString());
 					return null;
 				}
-				return new UnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
+				return new InternalUnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
 			}
 		} catch (Exception e) {
 			logger.debug(e.getLocalizedMessage());
@@ -164,7 +167,7 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 
 	@Override
 	public long getNotAuthorized() {
-		return jmx.getNotAuthorized();
+		return WebsocketBeans.getNotAuthorized();
 	}
 
 }
