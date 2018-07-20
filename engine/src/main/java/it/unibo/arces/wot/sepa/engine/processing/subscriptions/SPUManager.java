@@ -1,10 +1,14 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.processing.Processor;
+import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -20,145 +24,144 @@ import org.apache.logging.log4j.Logger;
 public class SPUManager {
 	private final Logger logger = LogManager.getLogger();
 
-	// SPUID ==> SPU 
-	private final HashMap<String, ISPU> spus = new HashMap<>();
+	// SPUID ==> SPU
+	private final HashMap<String, SPU> spus = new HashMap<String, SPU>();
 
 	// Request ==> SPU
-	private final HashMap<SubscribeRequest, ISPU> request2Spu = new HashMap<>();
-	
+	private final HashMap<InternalSubscribeRequest, SPU> request2Spu = new HashMap<InternalSubscribeRequest, SPU>();
+
 	// SPUID ==> Request
-	private final HashMap<String, SubscribeRequest> spuid2Request = new HashMap<>();
-	
+	private final HashMap<String, InternalSubscribeRequest> spuid2Request = new HashMap<String, InternalSubscribeRequest>();
+
 	// SPUs processing set
-	private final HashSet<ISPU> processingSpus = new HashSet<>();
+	private final HashSet<SPU> processingSpus = new HashSet<SPU>();
 
-	private final Subscriber subscriber;
-	private final Unsubscriber unsubscriber;
-	
-	public SPUManager() {
-		this.subscriber = new Subscriber(this);
-		this.unsubscriber = new Unsubscriber(this);	
+	private final Processor processor;
+
+	public SPUManager(Processor processor) {
+		this.processor = processor;
 	}
 	
-	public void start() {
-		this.subscriber.start();
-		this.unsubscriber.start();
+	public QueryProcessor getQueryProcessor() {
+		return processor.getQueryProcessor();
 	}
 
-	public void stop() {
-		this.subscriber.finish();
-		this.unsubscriber.finish();
-
-		this.subscriber.interrupt();
-		this.unsubscriber.interrupt();
-	}
-	
 	public String generateSpuid() {
 		return "sepa://spuid/" + UUID.randomUUID().toString();
 	}
 
-	public void startProcessing(UpdateResponse update) {
-		synchronized (processingSpus) {
-			processingSpus.clear();
+	public synchronized void process(UpdateResponse update) {
+		logger.debug("*** PROCESSING SUBSCRIPTIONS BEGIN *** ");
+		long start = Timings.getTime();
 
-			Iterator<ISPU> spus = filter(update);
+		processingSpus.clear();
 
-			while (spus.hasNext()) {
-				ISPU spu = spus.next();
-				processingSpus.add(spu);
-				spu.process(update);
-			}
+		Iterator<SPU> spus = filter(update);
 
-			logger.debug("Activated SPUs: " + processingSpus.size());
+		while (spus.hasNext()) {
+			SPU spu = spus.next();
+			processingSpus.add(spu);
+			spu.process(update);
 		}
-	}
 
-	public void waitEndOfProcessing() {
-		// Wait all SPUs completing processing (or timeout)
-		synchronized (processingSpus) {
-			while (!processingSpus.isEmpty()) {
-				logger.debug(String.format("Wait (%s) SPUs to complete processing...", processingSpus.size()));
-				try {
-					processingSpus.wait(SubscribeProcessorBeans.getSPUProcessingTimeout());
-				} catch (InterruptedException e) {
-					return;
-				}
-			}
-			// TIMEOUT
-			if (!processingSpus.isEmpty()) {
-				logger.error("Timeout on SPU processing. SPUs still running: " + processingSpus.size());
+		logger.debug("Activated SPUs: " + processingSpus.size());
+
+		while (!processingSpus.isEmpty()) {
+			logger.debug(String.format("Wait (%s) SPUs to complete processing...", processingSpus.size()));
+			try {
+				wait(SubscribeProcessorBeans.getSPUProcessingTimeout());
+			} catch (InterruptedException e) {
+				return;
 			}
 		}
-	}
-
-	public void endProcessing(SPU s) {
-		synchronized (processingSpus) {
-			processingSpus.remove(s);
-			logger.debug("SPUs left: " + processingSpus.size());
-			processingSpus.notify();
+		// TIMEOUT
+		if (!processingSpus.isEmpty()) {
+			logger.error("Timeout on SPU processing. SPUs still running: " + processingSpus.size());
 		}
+
+		long stop = Timings.getTime();
+
+		SubscribeProcessorBeans.timings(start, stop);
+
+		logger.debug("*** PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
-	public boolean isEmpty() {
-		return processingSpus.isEmpty();
+	public synchronized void endProcessing(SPU s) {
+		logger.debug("EOP: " + s.getUUID());
+		processingSpus.remove(s);
+		notify();
 	}
 
-	public synchronized void register(ISPU spu, SubscribeRequest request) {
-		logger.debug("Register SPU: "+spu.getUUID());
-		
-		spus.put(spu.getUUID(), spu);
-		request2Spu.put(request, spu);
-		spuid2Request.put(spu.getUUID(), request);
-	}
-
-	public synchronized void unRegister(String spuID) {
-		if (!isValidSpuId(spuID)) {
-			throw new IllegalArgumentException("Unregistering a not existing SPUID: " + spuID);
-		}
-		
-		spus.get(spuID).terminate();
-		
-		spus.remove(spuID);
-		request2Spu.remove(spuid2Request.get(spuID));
-		spuid2Request.remove(spuID);
-	}
-
-	private boolean isValidSpuId(String id) {
-		return spus.containsKey(id);
-	}
-
-	public synchronized Iterator<ISPU> filter(UpdateResponse response) {
+	private Iterator<SPU> filter(UpdateResponse response) {
 		return spus.values().iterator();
 	}
 
-	public synchronized Collection<ISPU> getAll() {
-		return spus.values();
-	}
+	
+	public synchronized SPU getSPU(InternalSubscribeRequest req) {
+		if (request2Spu.containsKey(req))
+			return request2Spu.get(req);
 
-	public synchronized int size() {
-		return spus.values().size();
-	}
-
-	public synchronized ISPU getSPU(SubscribeRequest req) {
-		return request2Spu.get(req);
-	}
-
-	public boolean activate(ISPU spu, SubscribeRequest req) {
-		try {
-			subscriber.activate(spu, req);
-		} catch (InterruptedException e) {
-			return false;
+		// Create SPU
+		SPU spu= createSPU(req,this);
+		if (spu == null) {
+			logger.error("SPU creation failed: "+req);
+			return spu;
 		}
-		return true;
-	}
 
-	public boolean deactivate(String spuid) {
-		try {
-			unsubscriber.deactivate(spuid);
-		} catch (InterruptedException e) {
-			return false;
+		// Initialize SPU
+		Response init = spu.init();
+		if (init.isError()) {
+			logger.error("SPU initialization failed");
+			return null;
 		}
-		return true;	
+
+		// Activate SPU
+		activate(spu, req);
+
+		return spu;
+	}
+	
+	// TODO: choose different kinds of SPU based on subscribe request
+	private SPU createSPU(InternalSubscribeRequest req,SPUManager manager) {
+		try {
+			return new SPUNaive(req, this);
+		} catch (SEPAProtocolException e) {
+			return null;
+		}
 	}
 
+	public synchronized void activate(SPU spu, InternalSubscribeRequest request) {
+		// Start the SPU thread
+		logger.trace("Starting SPU: " + spu.getUUID());
+		spu.setName("SPU_" + spu.getUUID());
+		spu.start();
+
+		// Register the SPU as ACTIVE
+		logger.trace("Registering SPU: " + spu.getUUID());
+		spus.put(spu.getUUID(), spu);
+		request2Spu.put(request, spu);
+		spuid2Request.put(spu.getUUID(), request);
+
+		SubscribeProcessorBeans.setActiveSPUs(spus.values().size());
+		logger.debug(spu.getUUID() + " ACTIVATED (total: " + spus.values().size() + ")");
+	}
+
+	public synchronized void deactivate(String spuid) {
+		if (!spus.containsKey(spuid)) {
+			logger.warn("Unregistering a not existing SPUID: " + spuid);
+			return;
+		}
+
+		// Stop SPU
+		spus.get(spuid).finish();
+		spus.get(spuid).interrupt();
+		
+		// Remove from active SPUs
+		spus.remove(spuid);		
+		request2Spu.remove(spuid2Request.get(spuid));
+		spuid2Request.remove(spuid);
+
+		SubscribeProcessorBeans.setActiveSPUs(spus.values().size());
+		logger.debug("Active SPUs: " + spus.values().size());
+	}
 }

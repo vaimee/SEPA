@@ -19,7 +19,6 @@ package it.unibo.arces.wot.sepa.commons.response;
 
 import com.google.gson.JsonObject;
 
-// TODO: Auto-generated Javadoc
 /**
  * This class represents the response to a generic request.
 * */
@@ -28,9 +27,6 @@ public abstract class Response {
 	
 	/** The json. */
 	protected JsonObject json;
-	
-	/** The token. */
-	private int token = -1;
 
 	public boolean isError() {
 		return this.getClass().equals(ErrorResponse.class);
@@ -56,15 +52,6 @@ public abstract class Response {
 	public boolean isUpdateResponse() {
 		return this.getClass().equals(UpdateResponse.class);
 	}
-	/**
-	 * Instantiates a new response.
-	 *
-	 * @param token the token
-	 */
-	public Response(Integer token) {
-		this.token = token;
-		json = new JsonObject();
-	}
 	
 	/**
 	 * Instantiates a new response.
@@ -73,29 +60,8 @@ public abstract class Response {
 		json = new JsonObject();
 	}
 	
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return json.toString();
 	}
-	
-	/**
-	 * Gets the token.
-	 *
-	 * @return the token
-	 */
-	public int getToken() {
-		return token;
-	}
-	
-	/**
-	 * Gets the as json object.
-	 *
-	 * @return the as json object
-	 */
-	/*public JsonObject getAsJsonObject(){
-		return json;
-	}*/
 }

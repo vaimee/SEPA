@@ -22,15 +22,16 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.CORSManager;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.timing.Timings;
+import it.unibo.arces.wot.sepa.engine.timing.Timings;
 
 public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SPARQL11HandlerMBean {
 	private static final Logger logger = LogManager.getLogger();
@@ -74,7 +75,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		return true;
 	}
 
-	protected abstract Request parse(HttpAsyncExchange exchange);
+	protected abstract InternalUQRequest parse(HttpAsyncExchange exchange);
 
 	/**
 	 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
@@ -102,7 +103,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	 * </pre>
 	 * 
 	 */
-	protected Request parsePost(HttpAsyncExchange exchange, String type) {
+	protected InternalUQRequest parsePost(HttpAsyncExchange exchange, String type) {
 		String contentTypePost = "application/sparql-query";
 		String defGraph = "default-graph-uri";
 		String namedGraph = "named-graph-uri";
@@ -164,9 +165,9 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		}
 		
 		if (type.equals("query"))
-			return new QueryRequest(sparql, default_graph_uri, named_graph_uri);
+			return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri);
 		else
-			return new UpdateRequest(sparql, default_graph_uri, named_graph_uri);
+			return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri);
 	}
 
 	@Override
@@ -184,7 +185,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			jmx.corsFailed();
 			return;
 		}
-		Request sepaRequest = null;
+		InternalUQRequest sepaRequest = null;
 
 		try {
 			// Parsing SPARQL 1.1 request and attach a token
@@ -198,25 +199,31 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 
 		// Validate
 		if (!validate(httpExchange.getRequest())) {
-			logger.error("Validation failed SPARQL: " + sepaRequest.getSPARQL());
+			logger.error("Validation failed SPARQL: " + sepaRequest.getSparql());
 			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_BAD_REQUEST,
-					"Validation failed SPARQL: " + sepaRequest.getSPARQL());
+					"Validation failed SPARQL: " + sepaRequest.getSparql());
 			jmx.validatingFailed();
 			return;
 		}
 
 		// Authorize
 		if (!authorize(httpExchange.getRequest())) {
-			logger.error("Authorization failed SPARQL: " + sepaRequest.getSPARQL());
+			logger.error("Authorization failed SPARQL: " + sepaRequest.getSparql());
 			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_UNAUTHORIZED,
-					"Authorization failed SPARQL: " + sepaRequest.getSPARQL());
+					"Authorization failed SPARQL: " + sepaRequest.getSparql());
 			jmx.authorizingFailed();
 			return;
 		}
 
 		// Schedule request
 		Timings.log(sepaRequest);
-		scheduler.schedule(sepaRequest, new SPARQL11ResponseHandler(httpExchange, jmx));
+		ScheduledRequest req = scheduler.schedule(sepaRequest,new SPARQL11ResponseHandler(httpExchange, jmx));
+		if (req == null) {
+			logger.error("Out of tokens");
+			HttpUtilities.sendFailureResponse(httpExchange, HttpStatus.SC_NOT_ACCEPTABLE,
+					"Too many pending requests");
+			jmx.outOfTokens();
+		}
 	}
 
 	@Override

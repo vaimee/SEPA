@@ -170,7 +170,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 	 *            the key password
 	 * @throws SEPASecurityException
 	 */
-	private void _SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
+	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
 			AuthenticationProperties oauthProp) throws SEPASecurityException {
 		// Arguments check
 		if (jksName == null || jksPassword == null)
@@ -207,27 +207,30 @@ public class SEPASecurityManager implements HostnameVerifier {
 	}
 
 	public SEPASecurityManager(AuthenticationProperties oauthProp) throws SEPASecurityException {
-		_SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", oauthProp);
-
-		if (oauthProp == null)
-			throw new IllegalArgumentException("Authorization properties are null");
+		this("sepa.jks", "sepa2017", "sepa2017", oauthProp);
 	}
-
-	public SEPASecurityManager() throws SEPASecurityException {
-		_SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", null);
-	}
-
+	
 	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
-		_SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", null);
-	}
+		this(jksName,jksPassword,keyPassword, new AuthenticationProperties());
+	}	
+//		if (oauthProp == null)
+//			throw new IllegalArgumentException("Authorization properties are null");
 
-	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
-			AuthenticationProperties oauthProp) throws SEPASecurityException {
-		_SEPASecurityManager(jksName, "sepa2017", "sepa2017", oauthProp);
+//	public SEPASecurityManager() throws SEPASecurityException {
+//		_SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", null);
+//	}
+//
+//	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
+//		_SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", null);
+//	}
 
-		if (oauthProp == null)
-			throw new IllegalArgumentException("Authorization properties are null");
-	}
+//	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
+//			AuthenticationProperties oauthProp) throws SEPASecurityException {
+//		_SEPASecurityManager(jksName, "sepa2017", "sepa2017", oauthProp);
+//
+//		if (oauthProp == null)
+//			throw new IllegalArgumentException("Authorization properties are null");
+//	}
 
 	public Socket getSSLSocket() throws IOException {
 		return sslContext.getSocketFactory().createSocket();
@@ -288,7 +291,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 	/** 
 	 * Request registration of "entity" at the Authorization Server listening at the specified URL 
 	 * */
-	public Response register(String url, String identity) {
+	private Response register(String url, String identity) {
 		logger.debug("REGISTER " + identity);
 
 		CloseableHttpResponse response = null;
@@ -314,7 +317,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 			if (json.has("error")) {
 				Timings.log("REGISTER_ERROR", start, Timings.getTime());
-				ErrorResponse error = new ErrorResponse(0, json.get("error").getAsJsonObject().get("code").getAsInt(),
+				ErrorResponse error = new ErrorResponse(json.get("error").getAsJsonObject().get("code").getAsInt(),
 						json.get("error").getAsJsonObject().get("body").getAsString());
 				logger.error(error);
 				return error;
@@ -358,7 +361,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 	 * @see JWTResponse
 	 */
 
-	public Response requestToken(String url, String authorization) {
+	private Response requestToken(String url, String authorization) {
 		logger.debug("TOKEN_REQUEST");
 
 		CloseableHttpResponse response = null;
@@ -390,7 +393,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 					return new JWTResponse(oauthProperties.getToken(),oauthProperties.getTokenType(),oauthProperties.getExpiringSeconds());
 				}
 				
-				ErrorResponse error = new ErrorResponse(0, json.get("error").getAsJsonObject().get("code").getAsInt(),
+				ErrorResponse error = new ErrorResponse(json.get("error").getAsJsonObject().get("code").getAsInt(),
 						json.get("error").getAsJsonObject().get("body").getAsString());
 				logger.error(error);
 				return error;

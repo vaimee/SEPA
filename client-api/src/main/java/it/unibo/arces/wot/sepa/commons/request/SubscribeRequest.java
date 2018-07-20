@@ -20,32 +20,25 @@ package it.unibo.arces.wot.sepa.commons.request;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-
-// TODO: Auto-generated Javadoc
 /**
  * This class represents the request of performing a SPARQL 1.1 Subscribe
  */
 
-public class SubscribeRequest extends QueryRequest {
+public class SubscribeRequest extends Request {
 
 	/** The alias. */
 	private String alias = null;
 
+	protected String default_graph_uri = null;
+	protected String named_graph_uri = null;
+	
 	public SubscribeRequest(String sparql, String alias, String defaultGraphURI, String namedGraphURI,
-			String authorization) {
-		this(-1, sparql, alias, defaultGraphURI, namedGraphURI, authorization);
-	}
-
-	public SubscribeRequest(Integer token, String sparql, String alias, String defaultGraphURI, String namedGraphURI,
-			String authorization) {
-		super(token, sparql);
+			String authorization,long timeout) {
+		super(sparql, authorization,timeout);
 		
-		this.alias = alias;
-		
-		default_graph_uri = defaultGraphURI;
-		named_graph_uri = namedGraphURI;
-		authorizationHeader = authorization;
+		this.alias = alias;	
+		this.default_graph_uri = defaultGraphURI;
+		this.named_graph_uri = namedGraphURI;
 	}
 
 	@Override
@@ -58,12 +51,13 @@ public class SubscribeRequest extends QueryRequest {
 			body.add("authorization", new JsonPrimitive(getAuthorizationHeader()));
 		if (getAlias() != null)
 			body.add("alias", new JsonPrimitive(getAlias()));
-		if (getDefaultGraphUri() != null) {
-			body.add("default-graph-uri", new JsonPrimitive(getDefaultGraphUri()));
+		if (default_graph_uri != null) {
+			body.add("default-graph-uri", new JsonPrimitive(default_graph_uri));
 		}
-		if (getNamedGraphUri() != null) {
-			body.add("named-graph-uri", new JsonPrimitive(getNamedGraphUri()));
+		if (named_graph_uri != null) {
+			body.add("named-graph-uri", new JsonPrimitive(named_graph_uri));
 		}
+		body.add("timeout", new JsonPrimitive(getTimeout()));
 		
 		request.add("subscribe", body);
 
@@ -87,10 +81,5 @@ public class SubscribeRequest extends QueryRequest {
 	public boolean equals(Object obj) {
 		if (!(obj instanceof SubscribeRequest)) return false;
 		return sparql.equals(((SubscribeRequest)obj).sparql);
-	}
-	
-	@Override
-	public int hashCode() {
-		return sparql.hashCode();
 	}
 }

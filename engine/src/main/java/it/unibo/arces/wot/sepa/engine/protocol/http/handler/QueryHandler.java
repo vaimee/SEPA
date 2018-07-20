@@ -9,10 +9,9 @@ import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 /**
@@ -31,7 +30,7 @@ public class QueryHandler extends SPARQL11Handler {
 	}
 
 	@Override
-	protected Request parse(HttpAsyncExchange exchange) throws SPARQL11ProtocolException {
+	protected InternalUQRequest parse(HttpAsyncExchange exchange) throws SPARQL11ProtocolException {
 		switch (exchange.getRequest().getRequestLine().getMethod().toUpperCase()) {
 		case "GET":
 			 /* <pre>
@@ -75,7 +74,7 @@ public class QueryHandler extends SPARQL11Handler {
 				String graphUri = params.get("default-graph-uri");
 				String namedGraphUri = params.get("named-graph-uri");
 
-				return new QueryRequest(sparql, graphUri, namedGraphUri);
+				return new InternalQueryRequest(sparql, graphUri, namedGraphUri);
 			} catch (Exception e) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}

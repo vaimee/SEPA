@@ -28,8 +28,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.logging.log4j.LogManager;
@@ -45,14 +43,15 @@ import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
-import it.unibo.arces.wot.sepa.engine.processing.ProcessorThread;
+
+import it.unibo.arces.wot.sepa.engine.processing.Processor;
+
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpGate;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsGate;
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerRequestResponseQueue;
 
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the SPARQL
@@ -68,16 +67,13 @@ public class Engine implements EngineMBean {
 	private EngineProperties properties = null;
 
 	// Scheduler request queue
-	private final SchedulerRequestResponseQueue schedulerQueue = new SchedulerRequestResponseQueue();
-
-	// Broken spuids queue
-	private final BlockingQueue<String> killSpuids = new LinkedBlockingQueue<String>();
+	//private final SchedulerQueue schedulerQueue = new SchedulerQueue();
 	
 	// Primitives scheduler/dispatcher
 	private Scheduler scheduler = null;
 
 	// Primitives scheduler/dispatcher
-	private ProcessorThread processor = null;
+	private Processor processor = null;
 
 	// SPARQL 1.1 Protocol handler
 	private HttpGate httpGate = null;
@@ -241,20 +237,19 @@ public class Engine implements EngineMBean {
 		}
 
 		// SPARQL 1.1 SE request scheduler
-		scheduler = new Scheduler(properties, schedulerQueue);
+		scheduler = new Scheduler(properties);
 		scheduler.start();
 
 		// Dependability manager
-		dependabilityMng = new DependabilityManager(killSpuids);
+		dependabilityMng = new DependabilityManager(scheduler.getSchedulerQueue());
 
 		// SEPA Processor
 		try {
-			processor = new ProcessorThread(endpointProperties, properties, schedulerQueue,killSpuids);
+			processor = new Processor(endpointProperties, properties, scheduler.getSchedulerQueue());
 		} catch (SEPAProtocolException e1) {
 			System.err.println(e1.getMessage());
 			System.exit(1);
 		}
-		processor.setName("SEPA-Processor");
 		processor.start();
 
 		// SPARQL protocol service

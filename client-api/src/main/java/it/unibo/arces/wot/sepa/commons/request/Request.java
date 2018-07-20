@@ -17,52 +17,21 @@
 */
 package it.unibo.arces.wot.sepa.commons.request;
 
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
-
 /**
  * This class represents a generic request (i.e., QUERY, UPDATE, SUBSCRIBE,
  * UNSUBSCRIBE)
  */
 
 public abstract class Request {
-
-	/** The token. */
-	protected int token = -1;
-
+	protected long timeout = 5000;
+	protected String authorizationHeader = null;
+	
 	/** The sparql. */
 	protected String sparql;
 
-//	/**
-//	 * Authorization related members
-//	 * 
-//	 * 1) The 'Basic' HTTP Authentication Scheme,
-//	 * https://tools.ietf.org/html/rfc7617
-//	 */
-//
-//	protected enum AUTHENTICATION_SCHEMA {
-//		DISABLED, BASIC
-//	};
-//
-//	protected AUTHENTICATION_SCHEMA authorization = AUTHENTICATION_SCHEMA.DISABLED;
-//	protected String basicAuthorizationHeader;
-
-	protected HTTPMethod method = HTTPMethod.POST;
-	protected String id = null;
-
-	protected long timeout = 5000;
-	
-	protected String scheme = null;
-	protected String host = null;
-	protected int port = -1;
-	protected String path = null;
-
-	protected String authorizationHeader = null;
-	
 	/**
 	 * Instantiates a new request.
 	 *
-	 * @param token
-	 *            the token
 	 * @param sparql
 	 *            the sparql
 	 * @param auth
@@ -71,47 +40,16 @@ public abstract class Request {
 	 *            The 'Basic' HTTP Authentication Scheme, https://tools.ietf.org/html/rfc7617
 	 */
 
-	public Request(int token, String sparql,String auth) {
-		this.token = token;
-		this.sparql = sparql;
-		this.authorizationHeader = auth;
-	}
-	
-	public Request(int token, String sparql) {
-		this.token = token;
-		this.sparql = sparql;
-	}
-
-	/**
-	 * Instantiates a new request.
-	 *
-	 * @param sparql
-	 *            the sparql
-	 */
-	public Request(String sparql) {
-		this.token = -1;
-		this.sparql = sparql;
-	}
-	
-	public Request(String sparql,String auth) {
-		this.token = -1;
+	public Request(String sparql,String auth,long timeout) {
 		this.sparql = sparql;
 		this.authorizationHeader = auth;
 	}
 
-	public void setToken(int token) {
-		this.token = token;
+	@Override
+	public int hashCode() {
+		return sparql.hashCode();
 	}
-
-	/**
-	 * Gets the token.
-	 *
-	 * @return the token
-	 */
-	public int getToken() {
-		return token;
-	}
-
+	
 	/**
 	 * Gets the sparql.
 	 *
@@ -121,6 +59,10 @@ public abstract class Request {
 		return sparql;
 	}
 
+	public String getAuthorizationHeader() {
+		return authorizationHeader;
+	}
+	
 	public boolean isQueryRequest() {
 		return this.getClass().equals(QueryRequest.class);
 	}
@@ -136,44 +78,12 @@ public abstract class Request {
 	public boolean isUnsubscribeRequest() {
 		return this.getClass().equals(UnsubscribeRequest.class);
 	}
-	
-	public HTTPMethod getHttpMethod() {
-		return method;
-	}
-	
-	public String getID() {
-		return id;
-	}
-	
+
 	public long getTimeout() {
 		return timeout;
 	}
 	
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
-	}
-
-	public String getScheme() {
-		return scheme;
-	}
-
-	public String getHost() {
-		return host;
-	}
-
-	public int getPort() {
-		return port;
-	}
-
-	public String getPath() {
-		return path;
-	}
-
-	public String getAuthorizationHeader() {
-		return authorizationHeader;
-	}
-	
-	public void setAuthorizationHeader(String header) {
-		authorizationHeader = header;
 	}
 }

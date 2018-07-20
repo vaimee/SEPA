@@ -23,26 +23,26 @@ public class Timings {
 		long start = getTime();
 		
 		String tag;
-		if (request.isUpdateRequest()) tag = "REQUEST_UPDATE_";
-		else if (request.isSubscribeRequest()) tag = "REQUEST_SUBSCRIBE_";
-		else if(request.isQueryRequest()) tag = "REQUEST_QUERY_"; 
-		else if(request.isUnsubscribeRequest()) tag = "REQUEST_UNSUBSCRIBE_";
-		else tag = "REQUEST_UNKNOWN_";
+		if (request.isUpdateRequest()) tag = "UPDATE_REQUEST";
+		else if (request.isSubscribeRequest()) tag = "SUBSCRIBE_REQUEST";
+		else if(request.isQueryRequest()) tag = "QUERY_REQUEST"; 
+		else if(request.isUnsubscribeRequest()) tag = "UNSUBSCRIBE_REQUEST";
+		else tag = "UNKNOWN_REQUEST";
 		
-		log(tag+request.getToken(),start,start);
+		log(tag,start,start);
 	}
 	
 	public synchronized static void log(Response response) {
 		long start = getTime();
 		
 		String tag;
-		if (response.isUpdateResponse()) tag = "RESPONSE_UPDATE_";
-		else if (response.isSubscribeResponse()) tag = "RESPONSE_SUBSCRIBE_";
-		else if(response.isQueryResponse()) tag = "RESPONSE_QUERY_"; 
-		else if(response.isUnsubscribeResponse()) tag = "RESPONSE_UNSUBSCRIBE_"; 
-		else if(response.isError()) tag = "RESPONSE_ERROR_";
-		else tag = "RESPONSE_UNKNOWN_";
+		if (response.isUpdateResponse()) tag = "UPDATE_RESPONSE";
+		else if (response.isSubscribeResponse()) tag = "SUBSCRIBE_RESPONSE";
+		else if(response.isQueryResponse()) tag = "QUERY_RESPONSE"; 
+		else if(response.isUnsubscribeResponse()) tag = "UNSUBSCRIBE_RESPONSE"; 
+		else if(response.isError()) tag = "ERROR_RESPONSE";
+		else tag = "UNKNOWN_RESPONSE";
 		
-		log(tag+response.getToken(),start,start);
+		log(tag,start,start);
 	}
 }

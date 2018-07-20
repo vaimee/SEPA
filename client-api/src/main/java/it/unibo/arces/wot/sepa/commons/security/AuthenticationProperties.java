@@ -48,14 +48,18 @@ public class AuthenticationProperties {
 	private static final Logger logger = LogManager.getLogger();
 
 	/** The properties file. */
-	protected File propertiesFile;
+	protected File propertiesFile = null;
 
-	private Encryption encryption;
+	private Encryption encryption = null;
 
-	protected JsonObject jsap;
+	protected JsonObject jsap = null;
 
-	private String registrationURL;
-	private String tokenRequestURL;
+	private String registrationURL = null;
+	private String tokenRequestURL = null;
+	
+	public AuthenticationProperties() {
+		
+	}
 	
 	public AuthenticationProperties(String jsapFileName, byte[] secret) throws SEPAPropertiesException {
 		FileReader in;

@@ -36,7 +36,7 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 		
 		Timings.log(response);
 		jmx.stop(handler);
-		logger.debug("Response sent #"+response.getToken());	
+		logger.trace(response);	
 	}
 
 }

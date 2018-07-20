@@ -369,17 +369,17 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		}
 		catch (IllegalArgumentException e) {
 			logger.error("Not authorized");
-			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		String decodedCredentials = new String(decoded);
 		String[] clientID = decodedCredentials.split(":");
 		if (clientID==null){
 			logger.error("Wrong Basic authorization");
-			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		if (clientID.length != 2) {
 			logger.error("Wrong Basic authorization");
-			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		
 		String id = decodedCredentials.split(":")[0];
@@ -389,12 +389,12 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		//Verify credentials
 		if (!credentials.containsKey(id)) {
 			logger.error("Client id: "+id+" is not registered");
-			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		
 		if (!credentials.get(id).equals(secret)) {
 			logger.error("Wrong secret: "+secret+ " for client id: "+id);
-			return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Client not authorized");
 		}
 		
 		//Check is a token has been release for this client
@@ -405,7 +405,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 			logger.debug("Check token expiration: "+now+" > "+expires+ " ?");
 			if(now.before(expires)) {
 				logger.warn("Token is not expired");
-				return new ErrorResponse(0,HttpStatus.SC_BAD_REQUEST,"Token is not expired");
+				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"Token is not expired");
 			}
 		}
 		
@@ -510,13 +510,13 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 			signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), JWTClaimsSet.parse(jwtClaims.toString()));
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(0,HttpStatus.SC_INTERNAL_SERVER_ERROR,"Error on signing JWT (1)");
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"Error on signing JWT (1)");
 		}
 		try {
 			signedJWT.sign(signer);
 		} catch (JOSEException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(0,HttpStatus.SC_INTERNAL_SERVER_ERROR,"Error on signing JWT (2)");
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"Error on signing JWT (2)");
 		}
 						
 		//Add the token to the released tokens
@@ -537,7 +537,7 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		}
 
 		try {
-			 if(!signedJWT.verify(verifier)) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED);
+			 if(!signedJWT.verify(verifier)) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Signed JWT not verified");
 			 
 		} catch (JOSEException e) {
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,e.getMessage());
@@ -553,9 +553,9 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		
 		//Check token expiration
 		Date now = new Date();
-		if (now.after(claimsSet.getExpirationTime())) return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Token is expired "+claimsSet.getExpirationTime());
+		if (now.after(claimsSet.getExpirationTime())) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Token is expired "+claimsSet.getExpirationTime());
 			
-		if (now.before(claimsSet.getNotBeforeTime())) return new ErrorResponse(0,HttpStatus.SC_UNAUTHORIZED,"Token can not be used before: "+claimsSet.getNotBeforeTime());	
+		if (now.before(claimsSet.getNotBeforeTime())) return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Token can not be used before: "+claimsSet.getNotBeforeTime());	
 				
 		return new JWTResponse(accessToken,"bearer",now.getTime()-claimsSet.getExpirationTime().getTime());
 	}
