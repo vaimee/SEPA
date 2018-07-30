@@ -1,8 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-
 import org.apache.http.HttpStatus;
 
 import org.apache.logging.log4j.LogManager;
@@ -26,8 +23,6 @@ import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SecureWebsocketServer extends WebsocketServer implements SecureWebsocketServerMBean {
@@ -48,12 +43,7 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 
 		this.oauth = oauth;
 
-		try {
-			setWebSocketFactory(new DefaultSSLWebSocketServerFactory(oauth.getSSLContext()));
-		} catch (KeyManagementException | NoSuchAlgorithmException e) {
-			logger.error(e.getMessage());
-			throw new SEPASecurityException(e);
-		}
+		setWebSocketFactory(new DefaultSSLWebSocketServerFactory(oauth.getSSLContext()));
 	}
 
 	@Override
@@ -61,85 +51,94 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException {
 		JsonObject req;
 
-		try {
+		try{
 			req = new JsonParser().parse(request).getAsJsonObject();
-			
-			if (req.has("subscribe")) {
-				String auth = req.get("subscribe").getAsJsonObject().get("authorization").getAsString();
-				Response ret = validateToken(auth);
-				if (ret.isError()) {
-					// Not authorized
-					WebsocketBeans.onNotAuthorizedRequest();
-
-					logger.warn("NOT AUTHORIZED");
-					conn.send(ret.toString());
-					return null;
-				}
-				
-				String sparql = null;
-				String alias = null;
-				String defaultGraphUri = null;
-				String namedGraphUri = null;
-				
-				try {
-					sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
-				}
-				catch(Exception e) {
-					logger.error("SPARQL member not found");
-					return null;
-				}
-				
-				try {
-					alias = req.get("subscribe").getAsJsonObject().get("alias").getAsString();
-				}
-				catch(Exception e) {}
-				
-				try {
-					defaultGraphUri = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsString();
-				}
-				catch(Exception e) {}
-				
-				try {
-					namedGraphUri = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsString();
-				}
-				catch(Exception e) {}
-				
-				return new InternalSubscribeRequest(sparql,alias,defaultGraphUri,namedGraphUri,activeSockets.get(conn));
-			}
-			else if (req.has("unsubscribe")) {
-				Response ret = validateToken(
-						req.get("unsubscribe").getAsJsonObject().get("authorization").getAsString());
-				if (ret.isError()) {
-					// Not authorized
-					WebsocketBeans.onNotAuthorizedRequest();
-
-					logger.warn("NOT AUTHORIZED");
-					conn.send(ret.toString());
-					return null;
-				}
-				return new InternalUnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
-			}
-		} catch (Exception e) {
-			logger.debug(e.getLocalizedMessage());
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-			conn.send(response.toString());
+		}
+		catch(Exception e) {
+			ErrorResponse error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception","Exception: " + request);
+			conn.send(error.toString());
+			logger.error(error);
 			return null;
 		}
 		
-		logger.debug("Unknown request: "+request);
-		ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Unknown request: "+request);
-		conn.send(response.toString());
-		return null;
-	}
+		// CHECK AUTHORIZATION
+		Response ret = validateRequest(req);
+		
+		if (ret.isError()) {
+			// Not authorized
+			WebsocketBeans.onNotAuthorizedRequest();
 
-	private Response validateToken(String bearer) {
-		String jwt = null;
-		try {
-			if (!bearer.startsWith("Bearer "))
-				new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "Authorization value MUST be of type Bearer");
-			jwt = bearer.substring(7);
-		} catch (Exception e) {
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "Authorization key value is wrong");
+			logger.warn("NOT AUTHORIZED");
+			conn.send(ret.toString());
+			return null;
+		}
+		
+		return super.parseRequest(request, conn);
+	}
+/**
+	<pre>
+	Specific to SPARQL 1.1 SE Subscribe request:
+	1. Check if the request contains an "authorization" member. 
+	2. Check if the request contains an "authorization" member that start with "Bearer" 
+	3. Check if the value of the "authorization" member is a JWT object ==> VALIDATE TOKEN
+
+	Token validation:
+	4. Check if the JWT object is signed 
+	5. Check if the signature of the JWT object is valid. This is to be checked with AS public signature verification key 
+	6. Check the contents of the JWT object 
+	7. Check if the value of "iss" is https://wot.arces.unibo.it:8443/oauth/token 
+	8. Check if the value of "aud" contains https://wot.arces.unibo.it:8443/sparql 
+	9. Accept the request as well as "sub" as the originator of the request and process it as usual
+	 
+	Respond with 401 if not
+	 
+	</pre>
+	*/
+	private Response validateRequest(JsonObject request) {
+		String bearer = null;
+		JsonObject subUnsub = null;
+		
+		if (request.has("subscribe")) subUnsub = request.get("subscribe").getAsJsonObject();
+		else if (request.has("unsubscribe")) subUnsub = request.get("unsubscribe").getAsJsonObject();
+		
+		if (subUnsub == null) {
+			ErrorResponse error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_request","Neither subscribe or unsuscribe found");	
+			logger.error(error);
+			return error;	
+		}
+		
+		if (!subUnsub.has("authorization")) {
+			ErrorResponse error = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "unauthorized_client","Authorization member is missing");	
+			logger.error(error);
+			return error;
+		}
+		
+		try{
+			bearer = subUnsub.get("authorization").getAsString();
+		}
+		catch(Exception e) {
+			ErrorResponse error =  new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "unauthorized_client","Authorization member is not a string");	
+			logger.error(error);
+			return error;
+		}
+		
+		if (!bearer.startsWith("Bearer ")) {
+			ErrorResponse error = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "unauthorized_client","Authorization value MUST be of type Bearer");
+			logger.error(error);
+			return error;
+		}
+		
+		String jwt = bearer.substring(7);
+		
+		if (jwt == null) {
+			ErrorResponse error = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"unauthorized_client", "Token is null");
+			logger.error(error);
+			return error;
+		}
+		if (jwt.equals("")) {
+			ErrorResponse error = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"unauthorized_client", "Token is empty");
+			logger.error(error);
+			return error;
 		}
 
 		// Token validation

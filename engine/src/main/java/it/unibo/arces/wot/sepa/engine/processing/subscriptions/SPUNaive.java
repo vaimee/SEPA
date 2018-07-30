@@ -119,7 +119,7 @@ class SPUNaive extends SPU {
 			if (!added.isEmpty() || !removed.isEmpty()) 
 				ret = new Notification(getUUID(), new ARBindingsResults(added, removed));
 		} catch (Exception e) {
-			ret = new ErrorResponse(500, e.getMessage());
+			ret = new ErrorResponse(500, "Exception: ",e.getMessage());
 		}
 		
 		return ret;

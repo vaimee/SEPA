@@ -11,12 +11,16 @@ public class SubscribeProcessorBeans {
 	private static long activeSPUs = 0;
 	private static long maxActiveSPUs = 0;
 
-	private static long subscribeRequests;
-	private static long unsubscribeRequests;
+	private static long subscribeRequests = 0;
+	private static long unsubscribeRequests = 0;
 
-	private static int SPUProcessingTimeout;
+	private static int SPUProcessingTimeout = 30000;
 
 	private static long unitScale = 1000000;
+
+	private static int subscribers = 0;
+
+	private static long subscribers_max = 0;
 	
 	public static void scale_ms() {
 		unitScale = 1000000;
@@ -90,6 +94,9 @@ public class SubscribeProcessorBeans {
 		
 		subscribeRequests = 0;
 		unsubscribeRequests = 0;
+		subscribers = 0;
+		subscribers_max = 0;
+		
 	}
 
 	public static float getSPUs_time() {
@@ -122,5 +129,22 @@ public class SubscribeProcessorBeans {
 	
 	public static void setSPUProcessingTimeout(int t) {
 		SPUProcessingTimeout = t;
+	}
+
+	public static void registerHandler() {
+		subscribers++;
+		if (subscribers > subscribers_max) subscribers_max = subscribers;
+	}
+	
+	public static void unregisterHandler() {
+		subscribers--;
+	}
+	
+	public static int getSubscribers() {
+		return subscribers;
+	}
+
+	public static long getSubscribersMax() {
+		return subscribers_max;
 	}
 }

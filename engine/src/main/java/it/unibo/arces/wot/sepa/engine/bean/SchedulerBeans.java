@@ -17,6 +17,8 @@ public class SchedulerBeans {
 	
 	private static int queueSize;
 
+	private static int timeout;
+	
 	public static long getErrors() {
 		return errors;
 	}
@@ -81,5 +83,13 @@ public class SchedulerBeans {
 	
 	public static int getQueueSize() {
 		return queueSize;	
+	}
+
+	public static int getTimeout() {
+		return timeout;
+	}
+
+	public static void setTimeout(int t) {
+		timeout = t;
 	}
 }

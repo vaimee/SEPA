@@ -1,8 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http;
 
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.ExceptionLogger;
@@ -52,7 +50,7 @@ public class HttpsGate {
 							new SecureUpdateHandler(scheduler, oauth))
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler(oauth))
 					.registerHandler("/echo", new EchoHandler()).create();
-		} catch (KeyManagementException | NoSuchAlgorithmException | IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			throw new SEPASecurityException(e);
 		}
 		

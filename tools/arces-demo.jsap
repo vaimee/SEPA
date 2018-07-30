@@ -539,6 +539,15 @@
 				}
 			}
 		},
+		"UPDATE_OBSERVATION_LABEL": {
+			"sparql": "DELETE {?observation rdfs:label ?oldLabel} INSERT {?observation rdfs:label ?label} WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?oldLabel}",
+			"forcedBindings": {
+				"observation": {
+					"type": "xsd:string",
+					"value": "arces-monitor:ObservationXYZ"
+				}
+			}
+		},
 		"ADD_OBSERVATION": {
 			"sparql": "INSERT {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; arces-monitor:hasMqttTopic ?topic ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit ; qudt-1-1:numericValue 'NaN'} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/monitor#QuantityValue-\",STRUUID())) AS ?quantity)}",
 			"forcedBindings": {

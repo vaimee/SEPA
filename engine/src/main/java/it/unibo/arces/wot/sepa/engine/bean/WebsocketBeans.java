@@ -20,6 +20,11 @@ public class WebsocketBeans {
 	private static long unsubscribeHandlingMaxTime = -1;
 	private static long handledunsubscribes = 0;
 	
+	private static long subscribeResponses = 0;
+	private static long unsubscribeResponses = 0;
+	private static long errorResponses = 0;
+	
+	private static long notifications = 0;
 	
 	public static long unsubscribeTimings(long start) {
 		handledunsubscribes++;
@@ -86,6 +91,11 @@ public class WebsocketBeans {
 		unsubscribeHandlingMinTime = -1;
 		unsubscribeHandlingMaxTime = -1;
 		handledunsubscribes = 0;
+		
+		subscribeResponses=0;
+		unsubscribeResponses = 0;
+		errorResponses = 0;
+		notifications = 0;
 	}
 
 	public static long getMessages(){
@@ -119,4 +129,37 @@ public class WebsocketBeans {
 	public static void onMessage() {
 		messages++;
 	}
+
+	public static void subscribeResponse() {
+		subscribeResponses++;
+	}
+	
+	public static long getSubscribeResponses() {
+		return subscribeResponses;
+	}
+	
+	public static void unsubscribeResponse() {
+		unsubscribeResponses++;
+	}
+	
+	public static long getUnsubscribeResponses() {
+		return unsubscribeResponses;
+	}
+	
+	public static void errorResponse() {
+		errorResponses++;
+	}
+	
+	public static long getErrorResponses() {
+		return errorResponses;
+	}
+	
+	public static void notification() {
+		notifications++;
+	}
+	
+	public static long getNotifications() {
+		return notifications;
+	}
+	
 }

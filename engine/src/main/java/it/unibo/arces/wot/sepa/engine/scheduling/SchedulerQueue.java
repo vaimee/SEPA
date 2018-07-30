@@ -14,18 +14,18 @@ public class SchedulerQueue {
 	private static final Logger logger = LogManager.getLogger();
 	
 	// Tokens
-	private final Vector<Integer> tokens = new Vector<Integer>();
+	private final static Vector<Integer> tokens = new Vector<Integer>();
 
 	// Requests
-	private final LinkedBlockingQueue<ScheduledRequest> updates = new LinkedBlockingQueue<ScheduledRequest>();
-	private final LinkedBlockingQueue<ScheduledRequest> queries = new LinkedBlockingQueue<ScheduledRequest>();
-	private final LinkedBlockingQueue<ScheduledRequest> subscribesUnsubscribes = new LinkedBlockingQueue<ScheduledRequest>();
+	private final static LinkedBlockingQueue<ScheduledRequest> updates = new LinkedBlockingQueue<ScheduledRequest>();
+	private final static LinkedBlockingQueue<ScheduledRequest> queries = new LinkedBlockingQueue<ScheduledRequest>();
+	private final static LinkedBlockingQueue<ScheduledRequest> subscribesUnsubscribes = new LinkedBlockingQueue<ScheduledRequest>();
 	
 	// Broken subscriptions
-	private final LinkedBlockingQueue<String> toBeKilled = new LinkedBlockingQueue<String>();
+	private final static LinkedBlockingQueue<String> toBeKilled = new LinkedBlockingQueue<String>();
 	
 	// Responses
-	private final LinkedBlockingQueue<ScheduledResponse> responses = new LinkedBlockingQueue<ScheduledResponse>();
+	private final static LinkedBlockingQueue<ScheduledResponse> responses = new LinkedBlockingQueue<ScheduledResponse>();
 
 	public SchedulerQueue(long size) {
 		// Initialize token jar
@@ -74,11 +74,12 @@ public class SchedulerQueue {
 		}
 	}
 	
-	public synchronized ScheduledRequest addRequest(InternalRequest req,ResponseHandler handler) {
+	public ScheduledRequest addRequest(InternalRequest req,ResponseHandler handler) {
 		int token = getToken();
 		if (token == -1)  return null;
 		
 		ScheduledRequest request = new ScheduledRequest(token,req,handler);
+		
 		if (req.isUpdateRequest()) updates.add(request);
 		else if (req.isQueryRequest()) queries.add(request);
 		else if (req.isSubscribeRequest()) subscribesUnsubscribes.add(request);
@@ -98,18 +99,17 @@ public class SchedulerQueue {
 	public ScheduledRequest waitSubscribeUnsubscribeRequest() throws InterruptedException {
 		return subscribesUnsubscribes.take();
 	}
-
-	public synchronized void addResponse(int token,Response res) {
-		responses.offer(new ScheduledResponse(token,res));
-	}
-
+	
 	public ScheduledResponse waitResponse() throws InterruptedException {
-		ScheduledResponse ret = responses.take();
-		releaseToken(ret.getToken());
-		return ret;
+		return responses.take();
 	}
 
-	public synchronized void killSpuid(String spuid) {
+	public void addResponse(int token,Response res) {
+		releaseToken(token);
+		responses.offer(new ScheduledResponse(token,res));
+	}	
+
+	public void killSpuid(String spuid) {
 		toBeKilled.offer(spuid);
 	}
 

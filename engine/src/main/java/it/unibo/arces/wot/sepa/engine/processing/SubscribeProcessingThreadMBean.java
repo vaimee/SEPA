@@ -7,7 +7,9 @@ public interface SubscribeProcessingThreadMBean {
 
 	public long getSPUs_current();
 	public long getSPUs_max();
-
+	public long getSubscribers();
+	public long getSubscribers_max();
+	
 	public float getSPUs_time();
 	public float getSPUs_time_min();
 	public float getSPUs_time_max();	

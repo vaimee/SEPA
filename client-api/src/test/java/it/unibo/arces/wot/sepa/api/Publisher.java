@@ -2,19 +2,25 @@ package it.unibo.arces.wot.sepa.api;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class Publisher extends Thread  {
-	private JSAP properties;
-	private SEPASecurityManager sm;
-	private SPARQL11Protocol client = null;
-	private String id;
+	protected final Logger logger = LogManager.getLogger();
+	
+	private final JSAP properties;
+	private final SEPASecurityManager sm;
+	private final SPARQL11Protocol client;
+	private final String id;
 	
 	private AtomicLong running;
 	
@@ -33,34 +39,32 @@ public class Publisher extends Thread  {
 	
 	public void run() {
 		while(running.get() > 0) {
-			try {
-				client.update(buildUpdateRequest(id,5000));
-			} catch (SEPAPropertiesException | SEPASecurityException e) {
-				
+			Response ret = client.update(buildUpdateRequest(id,5000));
+			if (ret.isError()) {
+				ErrorResponse error = (ErrorResponse) ret;
+				logger.error(error);
+				if (error.isTokenExpiredError()) {
+					client.update(buildUpdateRequest(id,5000));
+				}
 			}
 			running.set(running.get()-1);
 		}
 	}
 	
-	public void interrupt() {
-		super.interrupt();
+	public void finish() {
 		running.set(0);
 	}
 	
-	protected UpdateRequest buildUpdateRequest(String id, int timeout) throws SEPAPropertiesException, SEPASecurityException {
-		HTTPMethod method = properties.getUpdateMethod(id);
-		String scheme = properties.getUpdateProtocolScheme(id);
-		String host = properties.getUpdateHost(id);
-		int port = properties.getUpdatePort(id);
-		String path = properties.getUpdatePath(id);
-		String sparql = properties.getSPARQLUpdate(id);
-		String graphUri = properties.getUsingGraphURI(id);
-		String namedGraphUri = properties.getUsingNamedGraphURI(id);
-
-		String authorization = null;
-		if (sm != null) authorization = sm.getAuthorizationHeader();
+	protected UpdateRequest buildUpdateRequest(String id, int timeout) {	
+		String authorization = null;		
+		if (sm != null)
+			try {
+				authorization = sm.getAuthorizationHeader();
+			} catch (SEPASecurityException | SEPAPropertiesException e) {
+				logger.error(e.getMessage());
+			}
 		
-		return new UpdateRequest(method, scheme, host, port, path, sparql, graphUri, namedGraphUri,
+		return new UpdateRequest(properties.getUpdateMethod(id), properties.getUpdateProtocolScheme(id), properties.getUpdateHost(id), properties.getUpdatePort(id), properties.getUpdatePath(id), properties.getSPARQLUpdate(id), properties.getUsingGraphURI(id), properties.getUsingNamedGraphURI(id),
 				authorization,timeout);
 	}
 }

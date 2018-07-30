@@ -37,12 +37,8 @@ public class HttpUtilities {
 		if(!exchange.isCompleted()) exchange.submitResponse(new BasicAsyncResponseProducer(exchange.getResponse()));	
 	}
 
-	public static void sendFailureResponse(HttpAsyncExchange exchange, int httpResponseCode,
-			String responseBody) {
-		
-		ErrorResponse error = new ErrorResponse(httpResponseCode,responseBody);
-		
-		sendResponse(exchange,httpResponseCode, error.toString());
+	public static void sendFailureResponse(HttpAsyncExchange exchange, ErrorResponse error) {	
+		sendResponse(exchange,error.getStatusCode(), error.toString());
 	}
 
 	public static JsonObject buildEchoResponse(HttpRequest request) {

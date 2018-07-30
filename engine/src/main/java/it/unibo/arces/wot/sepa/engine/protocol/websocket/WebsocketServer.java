@@ -83,11 +83,11 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-		logger.trace("@onOpen: " + conn + " Resource descriptor: " + conn.getResourceDescriptor());
+		logger.debug("@onOpen: " + conn + " Resource descriptor: " + conn.getResourceDescriptor());
 
 		if (!conn.getResourceDescriptor().equals(path)) {
 			logger.warn("Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST,
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND,"wrong_path",
 					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 			conn.send(response.toString());
 			return;
@@ -120,7 +120,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 		if (!conn.getResourceDescriptor().equals(path)) {
 			logger.warn("Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST,
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND,"wrong_path",
 					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 			conn.send(response.toString());
 			return;
@@ -145,7 +145,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		ScheduledRequest request = scheduler.schedule(req, activeSockets.get(conn));
 		if (request == null) {
 			logger.error("Out of tokens");
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_ACCEPTABLE,
+			ErrorResponse response = new ErrorResponse(429,"too_many_requests",
 					"Too many pending requests");
 			conn.send(response.toString());
 		}
@@ -177,8 +177,9 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
 		} catch (JsonParseException e) {
-			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException: " + request);
+			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException","JsonParseException: " + request);
 			conn.send(error.toString());
+			logger.error(error);
 			return null;
 		}
 
@@ -191,8 +192,9 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			try {
 				sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
 			} catch (Exception e) {
-				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "sparql member not found: " + request);
+				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception","sparql member not found: " + request);
 				conn.send(error.toString());
+				logger.error(error);
 				return null;
 			}
 
@@ -217,7 +219,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			try {
 				spuid = req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString();
 			} catch (Exception e) {
-				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "spuid member not found: " + request);
+				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception","spuid member not found: " + request);
 				conn.send(error.toString());
 				return null;
 			}
@@ -225,7 +227,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			return new InternalUnsubscribeRequest(spuid);
 		}
 
-		error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request: " + request);
+		error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unsupported","Bad request: " + request);
 		conn.send(error.toString());
 		return null;
 	}
@@ -302,5 +304,25 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	@Override
 	public long getErrors() {
 		return WebsocketBeans.getErrors();
+	}
+
+	@Override
+	public long getErrorResponses() {
+		return WebsocketBeans.getErrorResponses();
+	}
+
+	@Override
+	public long getSubscribeResponse() {
+		return WebsocketBeans.getSubscribeResponses();
+	}
+
+	@Override
+	public long getUnsubscribeResponse() {
+		return WebsocketBeans.getUnsubscribeResponses();
+	}
+	
+	@Override
+	public long getNotifications() {
+		return WebsocketBeans.getNotifications();
 	}
 }

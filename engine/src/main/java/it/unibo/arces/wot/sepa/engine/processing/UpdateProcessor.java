@@ -57,9 +57,10 @@ class UpdateProcessor implements UpdateProcessorMBean {
 
 		if (endpointSemaphore != null)
 			try {
+				//TODO: timeout
 				endpointSemaphore.acquire();
 			} catch (InterruptedException e) {
-				return new ErrorResponse(500, e.getMessage());
+				return new ErrorResponse(500, "InterruptedException",e.getMessage());
 			}
 
 		// Authorized access to the endpoint

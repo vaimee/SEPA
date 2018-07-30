@@ -11,4 +11,8 @@ public class SEPAPropertiesException extends Exception {
 		super.initCause(e);
 	}
 
+	public SEPAPropertiesException(String string) {
+		super.initCause(new Exception(string));
+	}
+
 }

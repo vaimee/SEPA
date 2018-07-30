@@ -216,7 +216,10 @@ public class Engine implements EngineMBean {
 		// Initialize SPARQL 1.1 SE processing service properties
 		try {
 			properties = new EngineProperties(engineJpar);
-		} catch (SEPAPropertiesException e) {}
+		} catch (SEPAPropertiesException e) {
+			System.err.println(e.getLocalizedMessage());
+			System.exit(1);
+		}
 
 		EngineBeans.setEngineProperties(properties);
 		

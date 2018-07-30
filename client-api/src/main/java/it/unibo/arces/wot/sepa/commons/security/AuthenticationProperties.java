@@ -1,7 +1,6 @@
 package it.unibo.arces.wot.sepa.commons.security;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,15 +16,10 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 
 /**
- * The Class SPARQL11Properties includes all the properties needed to connect to
- * a SPARQL 1.1 Protocol Service: the URLs used by queries and updates (scheme,
- * host, port and path), the HTTP method used by the primitives (GET, POST or
- * URL_ENCODED_POST) and the format of the results (JSON, XML, HTML, CSV). The
- * update result format is implementation specific. While for the query the
- * "formats" is the required return format, for the update it specifies the
- * format implemented by the SPARQL 1.1 Protocol service.
+The set of properties used for client authentication
  * 
  * 
  * <pre>
@@ -48,18 +42,14 @@ public class AuthenticationProperties {
 	private static final Logger logger = LogManager.getLogger();
 
 	/** The properties file. */
-	protected File propertiesFile = null;
+	protected final File propertiesFile;
 
-	private Encryption encryption = null;
+	private final Encryption encryption;
 
-	protected JsonObject jsap = null;
+	protected final JsonObject jsap;
 
-	private String registrationURL = null;
-	private String tokenRequestURL = null;
-	
-	public AuthenticationProperties() {
-		
-	}
+	private final String registrationURL;
+	private final String tokenRequestURL;
 	
 	public AuthenticationProperties(String jsapFileName, byte[] secret) throws SEPAPropertiesException {
 		FileReader in;
@@ -68,22 +58,21 @@ public class AuthenticationProperties {
 
 		try {
 			in = new FileReader(propertiesFile);
-		} catch (FileNotFoundException e) {
-			throw new SEPAPropertiesException(e);
-		}
-
-		try {
 			jsap = new JsonParser().parse(in).getAsJsonObject();
+			
+			if (secret != null)
+				encryption = new Encryption(secret);
+			else
+				encryption = new Encryption();
+			
+			jsap.get("oauth").getAsJsonObject().get("enable").getAsBoolean();
+			
+			registrationURL = jsap.get("oauth").getAsJsonObject().get("register").getAsString();
+			tokenRequestURL = jsap.get("oauth").getAsJsonObject().get("tokenRequest").getAsString();
+			
 		} catch (Exception e) {
 			throw new SEPAPropertiesException(e);
 		}
-
-		if (secret != null)
-			encryption = new Encryption(secret);
-		else
-			encryption = new Encryption();
-
-		validate();
 	}
 
 	public AuthenticationProperties(String jsapFileName) throws SEPAPropertiesException, SEPASecurityException {
@@ -98,42 +87,20 @@ public class AuthenticationProperties {
 			return false;
 		}	
 	}
-	
-	private void validate() throws SEPAPropertiesException {
-		try {
-			jsap.get("oauth").getAsJsonObject().get("enable").getAsBoolean();
-		}
-		catch(Exception e) {
-			throw new SEPAPropertiesException(new IllegalArgumentException("enable member not found"));
-		}
-		try {
-			registrationURL = jsap.get("oauth").getAsJsonObject().get("register").getAsString();
-		}
-		catch(Exception e) {
-			throw new SEPAPropertiesException(new IllegalArgumentException("register member not found"));
-		}
-		try {
-			tokenRequestURL = jsap.get("oauth").getAsJsonObject().get("tokenRequest").getAsString();
-		}
-		catch(Exception e) {
-			throw new SEPAPropertiesException(new IllegalArgumentException("tokenRequest member not found"));
-		}
-		
-	}
 
 	public String getRegisterUrl() {
 		return registrationURL;
 	}
 
-	public String getTokenRequestUrl() throws SEPAPropertiesException {
+	public String getTokenRequestUrl()  {
 		return tokenRequestURL;
 	}
 
-	private String getSecurityEncryptedValue(String value) throws SEPASecurityException {
+	private String getSecurityEncryptedValue(String value) {
 		try {
 			return jsap.get("oauth").getAsJsonObject().get(value).getAsString();
 		} catch (Exception e) {
-			throw new SEPASecurityException(e);
+			return null;
 		}
 	}
 
@@ -144,12 +111,8 @@ public class AuthenticationProperties {
 	 * @throws SEPASecurityException
 	 * @throws NumberFormatException
 	 */
-	public boolean isTokenExpired() {
-		try {
-			return (new Date().getTime() >= Long.decode(encryption.decrypt(getSecurityEncryptedValue("expires"))));
-		} catch (Exception e) {
-			return true;
-		}
+	public synchronized boolean isTokenExpired() {
+		return getExpiringTime() == 0;
 	}
 
 	/**
@@ -159,10 +122,15 @@ public class AuthenticationProperties {
 	 * @throws SEPASecurityException
 	 * @throws NumberFormatException
 	 */
-	public long getExpiringSeconds() {
+	public synchronized long getExpiringTime() {
 		try {
-			return ((Long.decode(encryption.decrypt(getSecurityEncryptedValue("expires"))) - new Date().getTime())
-					/ 1000);
+			long expires = Long.decode(encryption.decrypt(getSecurityEncryptedValue("expires")));
+			long now = new Date().getTime();
+			
+			logger.debug("@getExpiringTime Diff:"+(expires-now)+" Now: "+now+" Expires: "+expires);
+			
+			if (expires-now < 0) return 0;
+			return expires-now;
 		} catch (Exception e) {
 			return 0;
 		}
@@ -174,16 +142,21 @@ public class AuthenticationProperties {
 	 * @return the access token
 	 * @throws SEPASecurityException
 	 */
-	public String getBearerAuthorizationHeader() throws SEPASecurityException {
+	public synchronized String getBearerAuthorizationHeader() {
 		try {
 			return "Bearer " + encryption.decrypt(getSecurityEncryptedValue("jwt"));
 		} catch (Exception e) {
-			throw new SEPASecurityException(e);
 		}
+		
+		return null;
 	}
 	
-	public String getToken() throws SEPASecurityException {
-		return encryption.decrypt(getSecurityEncryptedValue("jwt"));
+	public synchronized String getToken() {
+		try {
+			return encryption.decrypt(getSecurityEncryptedValue("jwt"));
+		} catch (SEPASecurityException e) {
+			return null;
+		}
 	}
 
 	/**
@@ -192,11 +165,11 @@ public class AuthenticationProperties {
 	 * @return the token type
 	 * @throws SEPASecurityException
 	 */
-	public String getTokenType() throws SEPASecurityException {
+	public synchronized String getTokenType() {
 		try {
 			return encryption.decrypt(getSecurityEncryptedValue("type"));
 		} catch (Exception e) {
-			throw new SEPASecurityException(e);
+			return null;
 		}
 	}
 
@@ -206,17 +179,16 @@ public class AuthenticationProperties {
 	 * @return the basic authorization
 	 * @throws SEPASecurityException
 	 */
-	public String getBasicAuthorizationHeader() throws SEPASecurityException {
+	public synchronized String getBasicAuthorizationHeader() {
 		try {
 			return "Basic " + new String(Base64.getEncoder().encode(
-					(encryption.decrypt(jsap.get("oauth").getAsJsonObject().get("client_id").getAsString())
+					(encryption.decrypt(getSecurityEncryptedValue("client_id"))
 							+ ":"
-							+ encryption.decrypt(
-									jsap.get("oauth").getAsJsonObject().get("client_secret").getAsString()))
+							+ encryption.decrypt(getSecurityEncryptedValue("client_secret")))
 											.getBytes("UTF-8")),
 					"UTF-8");
 		} catch (Exception e) {
-			throw new SEPASecurityException(e);
+			return null;	
 		}
 	}
 
@@ -230,8 +202,8 @@ public class AuthenticationProperties {
 	 * @throws SEPASecurityException
 	 * @throws SEPAPropertiesException
 	 */
-	public void setCredentials(String id, String secret) throws SEPASecurityException, SEPAPropertiesException {
-		logger.debug("Set credentials Id: " + id + " Secret:" + secret);
+	public synchronized void setCredentials(String id, String secret) throws SEPAPropertiesException, SEPASecurityException {
+		logger.debug("@setCredentials Id: " + id + " Secret:" + secret);
 
 		// Save on file the encrypted version
 		if (!jsap.has("oauth")) {
@@ -261,40 +233,27 @@ public class AuthenticationProperties {
 	 * @throws SEPASecurityException
 	 *
 	 */
-	public void setJWT(String jwt, Date expires, String type) throws SEPASecurityException, SEPAPropertiesException {
-
+	public void setJWT(JWTResponse jwt) throws SEPASecurityException, SEPAPropertiesException {
+		logger.debug("@setJWT: "+jwt);
+		
+		long expires = new Date().getTime() + 1000 * jwt.getExpiresIn();
+		
 		// Save on file the encrypted version
 		if (!jsap.has("oauth")) {
 			JsonObject credentials = new JsonObject();
-			credentials.add("jwt", new JsonPrimitive(encryption.encrypt(jwt)));
-			credentials.add("expires", new JsonPrimitive(encryption.encrypt(String.format("%d", expires.getTime()))));
-			credentials.add("type", new JsonPrimitive(encryption.encrypt(type)));
+			credentials.add("jwt", new JsonPrimitive(encryption.encrypt(jwt.getAccessToken())));
+			credentials.add("expires", new JsonPrimitive(encryption.encrypt(String.format("%d", expires))));
+			credentials.add("type", new JsonPrimitive(encryption.encrypt(jwt.getTokenType())));
 			jsap.add("oauth", credentials);
 		} else {
-			jsap.get("oauth").getAsJsonObject().add("jwt", new JsonPrimitive(encryption.encrypt(jwt)));
+			jsap.get("oauth").getAsJsonObject().add("jwt", new JsonPrimitive(encryption.encrypt(jwt.getAccessToken())));
 			jsap.get("oauth").getAsJsonObject().add("expires",
-					new JsonPrimitive(encryption.encrypt(String.format("%d", expires.getTime()))));
-			jsap.get("oauth").getAsJsonObject().add("type", new JsonPrimitive(encryption.encrypt(type)));
+					new JsonPrimitive(encryption.encrypt(String.format("%d", expires))));
+			jsap.get("oauth").getAsJsonObject().add("type", new JsonPrimitive(encryption.encrypt(jwt.getTokenType())));
 		}
 
 		storeProperties(propertiesFile.getAbsolutePath());
-	}
-	
-	/**
-	 * Sets the JWT.
-	 *
-	 * @param jwt
-	 *            the JSON Web Token
-	 * @param expiresIn
-	 *            the number of seconds from now to when the token will expire
-	 * @param type
-	 *            the token type (e.g., bearer)
-	 * @throws SEPAPropertiesException
-	 * @throws SEPASecurityException
-	 *
-	 */
-	public void setJWT(String accessToken, long expiresIn, String tokenType) throws SEPASecurityException, SEPAPropertiesException {
-		setJWT(accessToken,new Date(new Date().getTime() + expiresIn),tokenType);
+		
 	}
 
 	/**
@@ -316,5 +275,5 @@ public class AuthenticationProperties {
 		} catch (IOException e) {
 			throw new SEPAPropertiesException(e);
 		}
-	}	
+	}
 }

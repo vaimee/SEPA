@@ -11,6 +11,7 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SubscribeProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPU;
@@ -24,10 +25,10 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 	private final Processor processor;
 
 	// Maps
-	private final HashMap<String, ArrayList<String>> activeSpus = new HashMap<String, ArrayList<String>>();
-	private final HashMap<String, String> spuids = new HashMap<String, String>();
-	private final HashMap<String, EventHandler> handlers = new HashMap<String, EventHandler>();
-	private final HashMap<String, Integer> sequenceNumbers = new HashMap<String, Integer>();
+	private static final HashMap<String, ArrayList<String>> activeSpus = new HashMap<String, ArrayList<String>>();
+	private static final HashMap<String, String> spuids = new HashMap<String, String>();
+	private static final HashMap<String, EventHandler> handlers = new HashMap<String, EventHandler>();
+	private static final HashMap<String, Integer> sequenceNumbers = new HashMap<String, Integer>();
 
 	// Broken SPUs disposer
 	private final Thread killer;
@@ -42,7 +43,9 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 				while (processor.isRunning()) {
 					try {
 						String spuid = processor.getSchedulerQueue().waitSpuid2Kill();
-						unregisterHandler(spuids.get(spuid), spuid);
+						synchronized (activeSpus) {
+							unregisterHandler(spuids.get(spuid), spuid);
+						}
 					} catch (InterruptedException e) {
 						return;
 					}
@@ -50,6 +53,8 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 			}
 		};
 		killer.setName("SEPA-SPU-Killer");
+		
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
 	@Override
@@ -63,7 +68,7 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 			try {
 				// Wait request...
 				ScheduledRequest request = processor.getSchedulerQueue().waitSubscribeUnsubscribeRequest();
-				logger.debug(request);
+				logger.debug(">> "+request);
 
 				// Process request
 				Response response = null;
@@ -72,6 +77,8 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 				else if (request.isUnsubscribeRequest())
 					response = unsubscribe(((InternalUnsubscribeRequest) request.getRequest()).getSpuid());
 
+				logger.debug("<< "+response);
+				
 				// Send back response
 				processor.getSchedulerQueue().addResponse(request.getToken(), response);
 
@@ -82,7 +89,9 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 		}
 	}
 
-	private synchronized Response subscribe(InternalSubscribeRequest req) {
+	private Response subscribe(InternalSubscribeRequest req) {
+		SubscribeProcessorBeans.subscribeRequest();
+		
 		EventHandler eventHandler = req.getEventHandler();
 		String sparql = req.getSparql();
 		String alias = req.getAlias();
@@ -94,7 +103,7 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 		// Get an SPU from the SPU manager (already available or a new one)
 		SPU spu = processor.getSPUManager().getSPU(wrappedRequest);
 		if (spu == null)
-			return new ErrorResponse(500, "Failed to create SPU");
+			return new ErrorResponse(500, "internal_server_error", "Failed to create SPU");
 
 		// Generate a fake SPU id
 		String spuid = processor.getSPUManager().generateSpuid();
@@ -105,33 +114,39 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 		return new SubscribeResponse(spuid, req.getAlias(), spu.getLastBindings());
 	}
 
-	private synchronized Response unsubscribe(String spuid) {
-		String masterSpuid = spuids.get(spuid);
+	private Response unsubscribe(String spuid) {
+		SubscribeProcessorBeans.unsubscribeRequest();
+		
+		synchronized (activeSpus) {	
+			String masterSpuid = spuids.get(spuid);
+			logger.debug("Master spuid: " + masterSpuid + " (" + spuid + ")");
 
-		logger.debug("Master spuid: " + masterSpuid + " (" + spuid + ")");
+			if (masterSpuid == null)
+				return new ErrorResponse(404, "spuid_not_found", "SPUID not found: " + spuid);
 
-		if (masterSpuid == null)
-			return new ErrorResponse(404, "SPUID not found: " + spuid);
-
-		// Unregister handler
-		unregisterHandler(masterSpuid, spuid);
+			// Unregister handler
+			unregisterHandler(masterSpuid, spuid);
+		}
 
 		return new UnsubscribeResponse(spuid);
 	}
 
-	public synchronized void killSpu(String spuid) {
-		unregisterHandler(spuids.get(spuid), spuid);
+	public void killSpu(String spuid) {
+		synchronized (activeSpus) {
+			unregisterHandler(spuids.get(spuid), spuid);
+		}
 	}
 
 	@Override
 	public void notifyEvent(Notification notify) {
-		synchronized (handlers) {
-			logger.debug("@notifyEvent: " + notify);
+		// synchronized (handlers) {
+		logger.debug("@notifyEvent: " + notify);
 
-			String spuid = notify.getSpuid();
+		String spuid = notify.getSpuid();
 
-			ArrayList<String> toBeKilled = new ArrayList<String>();
-			
+		ArrayList<String> toBeKilled = new ArrayList<String>();
+
+		synchronized (activeSpus) {
 			if (activeSpus.containsKey(spuid)) {
 				for (String client : activeSpus.get(spuid)) {
 					try {
@@ -141,65 +156,49 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 						handlers.get(client).notifyEvent(event);
 						sequenceNumbers.put(client, sequenceNumbers.get(client) + 1);
 					} catch (Exception e) {
-						logger.error("@notifyEvent Client:"+client+" Notification: "+notify+" Exception:"+e.getMessage());
-						
+						logger.error("@notifyEvent Client:" + client + " Notification: " + notify + " Exception:"
+								+ e.getMessage());
+
 						// Handler is gone: unregister it
 						toBeKilled.add(client);
 					}
 				}
-				
+
 				for (String client : toBeKilled)
 					unregisterHandler(spuid, client);
 			}
-
-//			if (activeSpus.get(spuid) == null) {
-//				// Deactivate SPU
-//				processor.getSPUManager().deactivate(spuid);
-//				return;
-//			}
-//
-//			ArrayList<String> toBeKilled = new ArrayList<String>();
-//			for (String client : activeSpus.get(spuid)) {
-//				if (handlers.get(client) != null) {
-//					// Dispatching events
-//					Notification event = new Notification(client, notify.getARBindingsResults(),
-//							sequenceNumbers.get(client));
-//					handlers.get(client).notifyEvent(event);
-//					sequenceNumbers.put(client, sequenceNumbers.get(client) + 1);
-//				} else {
-//					toBeKilled.add(client);
-//				}
-//			}
-//			for (String client : toBeKilled)
-//				unregisterHandler(spuid, client);
 		}
 	}
 
-	private synchronized void registerHandler(String masterSpuid, String spuid, EventHandler handler) {
-		synchronized (handlers) {
-			logger.debug("Register SPU handler: " + spuid);
+	private void registerHandler(String masterSpuid, String spuid, EventHandler handler) {
+		logger.debug("Register SPU handler: " + spuid);
 
+		SubscribeProcessorBeans.registerHandler();
+		
+		synchronized (activeSpus) {
 			if (activeSpus.get(masterSpuid) == null)
 				activeSpus.put(masterSpuid, new ArrayList<String>());
-
 			activeSpus.get(masterSpuid).add(spuid);
-
+			
 			handlers.put(spuid, handler);
-
 			sequenceNumbers.put(spuid, 1);
 			spuids.put(spuid, masterSpuid);
 		}
 	}
 
 	private void unregisterHandler(String masterSpuid, String spuid) {
-		synchronized (handlers) {
-			logger.debug("Unregister SPU handler: " + spuid);
+		logger.debug("Unregister SPU handler: " + spuid);
 
+		SubscribeProcessorBeans.unregisterHandler();
+		
+		// SPUids
+		synchronized (activeSpus) {
 			spuids.remove(spuid);
 			sequenceNumbers.remove(spuid);
 			handlers.remove(spuid);
+			
+			if (!activeSpus.containsKey(masterSpuid)) return;
 
-			// SPUids
 			activeSpus.get(masterSpuid).remove(spuid);
 			logger.debug(masterSpuid + " number of clients: " + activeSpus.get(masterSpuid).size());
 			if (activeSpus.get(masterSpuid).isEmpty()) {
@@ -289,5 +288,15 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 	@Override
 	public String getUnitScale() {
 		return SubscribeProcessorBeans.getUnitScale();
+	}
+
+	@Override
+	public long getSubscribers() {
+		return SubscribeProcessorBeans.getSubscribers(); 
+	}
+
+	@Override
+	public long getSubscribers_max() {
+		return SubscribeProcessorBeans.getSubscribersMax(); 
 	}
 }

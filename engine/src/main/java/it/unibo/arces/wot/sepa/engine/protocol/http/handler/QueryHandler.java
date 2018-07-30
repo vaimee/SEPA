@@ -3,12 +3,15 @@ package it.unibo.arces.wot.sepa.engine.protocol.http.handler;
 import java.net.URLDecoder;
 import java.util.Map;
 
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
@@ -85,5 +88,10 @@ public class QueryHandler extends SPARQL11Handler {
 		logger.error("UNSUPPORTED METHOD: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());
 		throw new SPARQL11ProtocolException(HttpStatus.SC_NOT_FOUND,
 				"Unsupported method: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());
+	}
+
+	@Override
+	protected Response authorize(HttpRequest request) {
+		return new JWTResponse("Unsecure request is always authorized","authorized",0);
 	}
 }

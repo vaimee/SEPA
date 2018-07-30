@@ -11,6 +11,7 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
+import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
@@ -43,12 +44,15 @@ public class WebsocketEventHandler implements EventHandler ,ResponseHandler {
 		logger.trace(response);
 		
 		if (response.isSubscribeResponse()) {
+			WebsocketBeans.subscribeResponse();
 			dependabilityMng.onSubscribe(socket.hashCode(), ((SubscribeResponse)response).getSpuid());
 		}
 		else if (response.isUnsubscribeResponse()) {
+			WebsocketBeans.unsubscribeResponse();
 			dependabilityMng.onUnsubscribe(socket.hashCode(), ((UnsubscribeResponse)response).getSpuid());
 		}
 		else if (response.isError()) {
+			WebsocketBeans.errorResponse();
 			logger.error(response);
 			dependabilityMng.onError(socket.hashCode(), (ErrorResponse)response);
 		}
@@ -58,6 +62,8 @@ public class WebsocketEventHandler implements EventHandler ,ResponseHandler {
 
 	@Override
 	public void notifyEvent(Notification notify) throws SEPAProtocolException {
+		WebsocketBeans.notification();
+		
 		send(notify);
 	}
 }
