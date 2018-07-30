@@ -59,6 +59,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
+		SchedulerBeans.setTimeout(properties.getSchedulerTimeout());
 		
 		setName("SEPA-Scheduler");
 	}
@@ -79,7 +80,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			return null;
 		}
 		
-		logger.debug(scheduled);
+		logger.info(">> "+scheduled);
 		
 		// Register response handler
 		responders.put(scheduled.getToken(), handler);
@@ -97,8 +98,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			try {
 				// Wait for response
 				ScheduledResponse response = queue.waitResponse();
-				
-				logger.debug(response);
+				logger.info("<< "+response);
 				
 				// The token
 				int token = response.getToken();
@@ -158,5 +158,15 @@ public class Scheduler extends Thread implements SchedulerMBean {
 
 	public SchedulerQueue getSchedulerQueue() {
 		return queue;
+	}
+
+	@Override
+	public int getTimeout() {
+		return SchedulerBeans.getTimeout();
+	}
+
+	@Override
+	public void setTimeout(int timeout) {
+		SchedulerBeans.setTimeout(timeout);
 	}
 }

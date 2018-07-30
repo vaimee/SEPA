@@ -143,7 +143,7 @@ public class SPUManager {
 		spuid2Request.put(spu.getUUID(), request);
 
 		SubscribeProcessorBeans.setActiveSPUs(spus.values().size());
-		logger.debug(spu.getUUID() + " ACTIVATED (total: " + spus.values().size() + ")");
+		logger.debug("ACTIVATE SPU: "+spu.getUUID() + " total (" + spus.values().size() + ")");
 	}
 
 	public synchronized void deactivate(String spuid) {

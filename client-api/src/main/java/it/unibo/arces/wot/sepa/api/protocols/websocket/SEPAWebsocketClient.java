@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.api.protocols;
+package it.unibo.arces.wot.sepa.api.protocols.websocket;
 
 import java.net.Socket;
 import java.net.URI;
@@ -15,18 +15,13 @@ import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 
-class SEPAWebsocketClient extends WebSocketClient {
+public class SEPAWebsocketClient extends WebSocketClient {
 	protected final Logger logger = LogManager.getLogger();
 
-	private ISubscriptionHandler handler;
-
+	private final ISubscriptionHandler handler;
+	
 	public SEPAWebsocketClient(URI wsUrl, ISubscriptionHandler handler, Socket secure) {
 		super(wsUrl);
-
-		if (handler == null) {
-			logger.fatal("Notification handler is null. Client cannot be initialized");
-			throw new IllegalArgumentException("Notificaton handler is null");
-		}
 
 		this.handler = handler;
 
@@ -36,32 +31,30 @@ class SEPAWebsocketClient extends WebSocketClient {
 	public SEPAWebsocketClient(URI wsUrl, ISubscriptionHandler handler) {
 		super(wsUrl);
 
-		if (handler == null) {
-			logger.fatal("Notification handler is null. Client cannot be initialized");
-			throw new IllegalArgumentException("Notificaton handler is null");
-		}
-
 		this.handler = handler;
 	}
 
 	@Override
 	public void onOpen(ServerHandshake handshakedata) {
-		logger.debug("@onOpen STATE: " + getReadyState());
+		logger.debug("@onOpen: "+handshakedata.getHttpStatusMessage());
 	}
 
 	@Override
 	public void onClose(int code, String reason, boolean remote) {
-		logger.debug(
-				"@onClose code:" + code + " reason:" + reason + " remote:" + remote + " state:" + getReadyState());
-		if (handler != null)
+		logger.debug("@onClose code:" + code + " reason:" + reason + " remote:" + remote);
+		
+		try {
 			handler.onBrokenConnection();
+		} catch (Exception e) {
+			logger.error("Handler is null " + e.getMessage());
+		}
 	}
 
 	@Override
 	public void onError(Exception ex) {
-		ErrorResponse error = new ErrorResponse(500, "onError: " + ex.getMessage());
+		ErrorResponse error = new ErrorResponse(500, "Exception", ex.getMessage());
 
-		logger.debug("@onError: " + error + " STATE: " + getReadyState());
+		logger.debug("@onError: " + error);
 
 		try {
 			handler.onError(error);
@@ -72,7 +65,7 @@ class SEPAWebsocketClient extends WebSocketClient {
 
 	@Override
 	public void onMessage(String message) {
-		logger.debug("@onMessage " + message);
+		logger.debug("@onMessage: " + message);
 
 		// Parse message
 		JsonObject jsonMessage = null;
@@ -104,7 +97,7 @@ class SEPAWebsocketClient extends WebSocketClient {
 			}
 		} else if (jsonMessage.has("error")) {
 			try{
-				handler.onError(new ErrorResponse(jsonMessage));
+				handler.onError(new ErrorResponse(jsonMessage.get("status_code").getAsInt(),jsonMessage.get("error").getAsString(),jsonMessage.get("error_description").getAsString()));
 			}
 			catch(Exception e) {
 				logger.error("Handler is null "+e.getMessage());

@@ -31,7 +31,6 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 /**
  * This class implements the SPARQL 1.1 Secure event protocol with SPARQL 1.1
@@ -45,31 +44,17 @@ import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	private static final Logger logger = LogManager.getLogger();
 
-	private SubscriptionProtocol subscriptionProtocol;
-	
-	public SPARQL11SEProtocol(SubscriptionProtocol protocol, SEPASecurityManager sm) throws SEPAProtocolException {
-		super(sm);
-		
-		if (protocol == null) throw new IllegalArgumentException("Protocol is null");
-		if (!protocol.isSecure()) throw new SEPAProtocolException(new IllegalArgumentException("Mixing secure and not secure protocols is not allowed"));
-		
-		this.subscriptionProtocol = protocol;
-	}
+	private final SubscriptionProtocol subscriptionProtocol;
 	
 	public SPARQL11SEProtocol(SubscriptionProtocol protocol) throws SEPAProtocolException {
-		if (protocol == null  ) {
-			logger.error("One or more arguments are null");
-			throw new IllegalArgumentException("One or more arguments are null");
-		}
-		
-		if (protocol.isSecure()) throw new SEPAProtocolException(new IllegalArgumentException("Security parameters are missing"));
+		super(protocol.getSecurityManager());
 		
 		this.subscriptionProtocol = protocol;
 	}
 	
-	public boolean isSecure() {
-		return subscriptionProtocol.isSecure();
-	}
+//	public boolean isSecure() {
+//		return super.isSecure() && subscriptionProtocol.isSecure();
+//	}
 
 	/**
 	 * Subscribe with a SPARQL 1.1 Subscription language. All the notification will
@@ -81,7 +66,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * @throws SEPAProtocolException 
 	 */
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
-		logger.debug(request.toString());
+		logger.info("SUBSCRIBE: "+request.toString());
 		
 		subscriptionProtocol.subscribe(request);
 	}

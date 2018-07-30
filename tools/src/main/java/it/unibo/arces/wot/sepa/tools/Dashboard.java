@@ -228,7 +228,7 @@ public class Dashboard {
 
 		@Override
 		public void onError(ErrorResponse errorResponse) {
-			logger.error(errorResponse.getErrorMessage());
+			logger.error(errorResponse);
 		}
 
 		@Override
@@ -1672,7 +1672,7 @@ public class Dashboard {
 			Instant stop = Instant.now();
 			if (ret.isError()) {
 				logger.error(ret.toString() + String.format(" (%d ms)", (stop.toEpochMilli() - start.toEpochMilli())));
-				queryInfo.setText("Error: " + ((ErrorResponse) ret).getErrorCode());
+				queryInfo.setText("Error: " + ((ErrorResponse) ret).getStatusCode());
 			} else {
 				QueryResponse results = (QueryResponse) ret;
 				logger.info(String.format("Results: %d (%d ms)", results.getBindingsResults().size(),
@@ -1708,7 +1708,7 @@ public class Dashboard {
 			Instant stop = Instant.now();
 			if (ret.isError()) {
 				logger.error(ret.toString() + String.format(" (%d ms)", (stop.toEpochMilli() - start.toEpochMilli())));
-				updateInfo.setText("Error: " + ((ErrorResponse) ret).getErrorCode());
+				updateInfo.setText("Error: " + ((ErrorResponse) ret).getStatusCode());
 			} else {
 				logger.info(String.format("Update OK (%d ms)", (stop.toEpochMilli() - start.toEpochMilli())));
 				updateInfo.setText(String.format("Update OK (%d ms)", (stop.toEpochMilli() - start.toEpochMilli())));

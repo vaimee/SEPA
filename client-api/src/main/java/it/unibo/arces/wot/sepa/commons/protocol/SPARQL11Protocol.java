@@ -56,6 +56,8 @@ import it.unibo.arces.wot.sepa.timing.Timings;
 
 import org.apache.logging.log4j.Logger;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import org.apache.logging.log4j.LogManager;
@@ -76,7 +78,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	protected CloseableHttpClient httpClient = HttpClients.createDefault();
 
 	/** The security manager */
-	protected SEPASecurityManager sm;
+	protected final SEPASecurityManager sm;
 
 	public SPARQL11Protocol(SEPASecurityManager sm) {
 		if (sm == null)
@@ -86,12 +88,13 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	}
 
 	public SPARQL11Protocol() {
+		this.sm = null;
 		httpClient = HttpClients.createDefault();
 	}
 
-	public boolean isSecure() {
-		return sm != null;
-	}
+//	public boolean isSecure() {
+//		return sm != null;
+//	}
 
 	private Response executeRequest(HttpUriRequest req, Request request) {
 		CloseableHttpResponse httpResponse = null;
@@ -128,291 +131,53 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			// http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.html#d5e279
 		} catch (IOException e) {
 			if (e instanceof InterruptedIOException) {
-				return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "InterruptedIOException",e.getMessage());
 			}
 			if (e instanceof UnknownHostException) {
-				return new ErrorResponse(HttpStatus.SC_NOT_FOUND, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_NOT_FOUND, "UnknownHostException",e.getMessage());
 			}
 			if (e instanceof ConnectTimeoutException) {
-				return new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT,"ConnectTimeoutException", e.getMessage());
 			}
 			if (e instanceof SSLException) {
-				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "SSLException",e.getMessage());
 			}
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException",e.getMessage());
 		} finally {
 			try {
 				if (httpResponse != null)
 					httpResponse.close();
 			} catch (IOException e) {
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"IOException",e.getMessage());
 			}
 
 			responseEntity = null;
 		}
 
-		if (responseCode >= 400)
-			return new ErrorResponse(responseCode, responseBody);
+		JsonObject ret = null;
+		if (responseCode >= 400) {
+			// Parse the JSON error response body
+			try{
+				ret = new JsonParser().parse(responseBody).getAsJsonObject();
+			}
+			catch(Exception e) {
+				return new ErrorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY,"JsonParseException","Not a valid JSON: "+responseBody);
+			}
+			return new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),ret.get("error_description").getAsString());
+		}
 
 		if (request.getClass().equals(UpdateRequest.class))
 			return new UpdateResponse(responseBody);
 
-		try {
-			return new QueryResponse(new JsonParser().parse(responseBody).getAsJsonObject());
-		} catch (Exception e) {
-			return new ErrorResponse(HttpStatus.SC_UNSUPPORTED_MEDIA_TYPE, e.getMessage());
+		
+		try{
+			ret = new JsonParser().parse(responseBody).getAsJsonObject();
 		}
-	}
-
-	/**
-	 * Implements a SPARQL 1.1 update operation
-	 * (https://www.w3.org/TR/sparql11-protocol/)
-	 * 
-	 * <pre>
-	 * update via URL-encoded POST 
-	 * - Method: <b>POST</b>
-	 * - Query Parameters: None
-	 * - Content Type: <b>application/x-www-form-urlencoded</b>
-	 * - Body: URL-encoded, ampersand-separated query parameters. 
-	 * 	<b>update</b> (exactly 1). 
-	 * 	<b>using-graph-uri</b> (0 or more). 
-	 * 	<b>using-named-graph-uri</b> (0 or more)
-	 * 
-	 * update via POST directly
-	 * - Method: <b>POST</b>
-	 * - Query Parameters: 
-	 * 	<b>using-graph-uri</b> (0 or more); 
-	 * 	<b>using-named-graph-uri</b> (0 or more)
-	 * - Content Type: <b>application/sparql-update</b>
-	 * - Body: Unencoded SPARQL update request string
-	 * </pre>
-	 * 
-	 * 2.2.3 Specifying an RDF Dataset
-	 * 
-	 * <pre>
-	 * SPARQL Update requests are executed against a Graph Store, a mutable
-	 * container of RDF graphs managed by a SPARQL service. The WHERE clause of a
-	 * SPARQL update DELETE/INSERT operation [UPDATE] matches against data in an RDF
-	 * Dataset, which is a subset of the Graph Store. The RDF Dataset for an update
-	 * operation may be specified either in the operation string itself using the
-	 * USING, USING NAMED, and/or WITH keywords, or it may be specified via the
-	 * using-graph-uri and using-named-graph-uri parameters.
-	 * 
-	 * It is an error to supply the using-graph-uri or using-named-graph-uri
-	 * parameters when using this protocol to convey a SPARQL 1.1 Update request
-	 * that contains an operation that uses the USING, USING NAMED, or WITH clause.
-	 * 
-	 * A SPARQL Update processor should treat each occurrence of the
-	 * using-graph-uri=g parameter in an update protocol operation as if a USING <g>
-	 * clause were included for every operation in the SPARQL 1.1 Update request.
-	 * Similarly, a SPARQL Update processor should treat each occurrence of the
-	 * using-named-graph-uri=g parameter in an update protocol operation as if a
-	 * USING NAMED <g> clause were included for every operation in the SPARQL 1.1
-	 * Update request.
-	 * 
-	 * UPDATE 2.2 update operation The response to an update request indicates
-	 * success or failure of the request via HTTP response status code.
-	 * </pre>
-	 */
-	public Response update(UpdateRequest req) {
-		switch (req.getHttpMethod()) {
-		case POST:
-			return post(req);
-		case URL_ENCODED_POST:
-			return post(req);
-		default:
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,
-					"SPARQL 1.1 Update supports POST method only");
+		catch(JsonParseException e) {
+			return new ErrorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY, "JsonParseException",e.getMessage());
 		}
+		return new QueryResponse(ret);
 	}
-
-	/**
-	 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
-	 *
-	 * *
-	 * 
-	 * <pre>
-	 *                               HTTP Method   Query String Parameters           Request Content Type                Request Message Body
-	 *----------------------------------------------------------------------------------------------------------------------------------------
-	 * update via URL-encoded POST|   POST         None                              application/x-www-form-urlencoded   URL-encoded, ampersand-separated query parameters.
-	 *                            |                                                                                     update (exactly 1)
-	 *                            |                                                                                     using-graph-uri (0 or more)
-	 *                            |                                                                                     using-named-graph-uri (0 or more)
-	 *----------------------------------------------------------------------------------------------------------------------------------------																													
-	 * update via POST directly   |    POST       using-graph-uri (0 or more)       application/sparql-update           Unencoded SPARQL update request string
-	 *                                            using-named-graph-uri (0 or more)
-	 * </pre>
-	 */
-	private Response post(UpdateRequest req) {
-		StringEntity requestEntity = null;
-		HttpPost post;
-		String graphs = null;
-
-		// Setting URL
-		String scheme = req.getScheme();
-		String host = req.getHost();
-		int port = req.getPort();
-		String updatePath = req.getPath();
-
-		// Create POST request
-		try {
-			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
-				if (req.getDefaultGraphUri() != null) {
-					graphs = "using-graph-uri=" + req.getDefaultGraphUri();
-					if (req.getNamedGraphUri() != null) {
-						graphs += "&using-named-graph-uri=" + req.getNamedGraphUri();
-					}
-				} else if (req.getNamedGraphUri() != null) {
-					graphs = "using-named-graph-uri=" + req.getNamedGraphUri();
-				}
-				
-				post = new HttpPost(new URI(scheme, null, host, port, updatePath, graphs, null));
-				post.setHeader("Content-Type", "application/sparql-update");
-
-				// Body
-				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
-			} else {
-				post = new HttpPost(new URI(scheme, null, host, port, updatePath, null, null));
-				post.setHeader("Content-Type", "application/x-www-form-urlencoded");
-
-				// Graphs 
-				try {
-					if (req.getDefaultGraphUri() != null) {
-						graphs = "using-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
-						if (req.getNamedGraphUri() != null) {
-							graphs += "&using-named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
-						}
-					} else if (req.getNamedGraphUri() != null) {
-						graphs = "using-named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
-					}
-				} catch (UnsupportedEncodingException e) {
-					logger.error(e.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-				}
-				
-				// Body
-				if (graphs != null) requestEntity = new StringEntity("update=" + URLEncoder.encode(req.getSPARQL(), "UTF-8") + "&" + graphs,
-						Consts.UTF_8);
-				else requestEntity = new StringEntity("update=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"),
-						Consts.UTF_8);
-			}
-		} catch (URISyntaxException | UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
-		}
-
-		// Accept header
-		post.setHeader("Accept", req.getAcceptHeader());
-
-		// Body
-		post.setEntity(requestEntity);
-
-		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout((int) req.getTimeout())
-				.setConnectTimeout((int) req.getTimeout()).build();
-		post.setConfig(requestConfig);
-
-		return executeRequest(post, req);
-	}
-
-	// private Response patchVirtuoso(UpdateRequest req) {
-	// // 1) "INSERT DATA" is not supported. Only INSERT (also if the WHERE is not
-	// // present).
-	// String fixedSparql = req.getSPARQL();
-	// Pattern p = null;
-	// try {
-	// p = Pattern.compile(
-	// "(?<update>.*)(delete)([^{]*)(?<udtriples>.*)(insert)([^{]*)(?<uitriples>.*)|(?<delete>.*)(delete)(?<where>[^{]*)(?<dtriples>.*)|(?<insert>.*)(insert)([^{]*)(?<itriples>.*)",
-	// Pattern.CASE_INSENSITIVE);
-	//
-	// Matcher m = p.matcher(req.getSPARQL());
-	// if (m.matches()) {
-	// if (m.group("update") != null) {
-	// fixedSparql = m.group("update") + " DELETE " + m.group("udtriples") + "
-	// INSERT "
-	// + m.group("uitriples");
-	// } else if (m.group("insert") != null) {
-	// fixedSparql = m.group("insert") + " INSERT " + m.group("itriples");
-	// } else {
-	// if (m.group("where") != null) {
-	// if (m.group("where").toLowerCase().contains("where")) {
-	// fixedSparql = m.group("delete") + " DELETE " + m.group("where") +
-	// m.group("dtriples");
-	// }
-	// else
-	// fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
-	// }
-	// else fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
-	// }
-	// }
-	// } catch (Exception e) {
-	// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
-	// e.getMessage());
-	// }
-	//
-	// // 2) SPARQL 1.1 Update are issued as GET request (like for a SPARQL 1.1
-	// Query)
-	// String query;
-	// try {
-	// // custom "format" parameter
-	// query = "query=" + URLEncoder.encode(fixedSparql, "UTF-8") + "&format="
-	// + URLEncoder.encode(req.getAcceptHeader(), "UTF-8");
-	// } catch (UnsupportedEncodingException e1) {
-	// logger.error(e1.getMessage());
-	// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
-	// e1.getMessage());
-	// }
-	//
-	// // 3) Named-graphs specified like a query
-	// String graphs = "";
-	// try {
-	// if (req.getUsingGraphUri() != null) {
-	//
-	// graphs += "default-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(),
-	// "UTF-8");
-	//
-	// if (req.getUsingNamedGraphUri() != null) {
-	// graphs += "&named-graph-uri=" +
-	// URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
-	// }
-	// } else if (req.getUsingNamedGraphUri() != null) {
-	// graphs += "named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(),
-	// "UTF-8");
-	// }
-	// } catch (UnsupportedEncodingException e) {
-	// logger.error(e.getMessage());
-	// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
-	// e.getMessage());
-	// }
-	//
-	// if (!graphs.equals(""))
-	// query += "&" + graphs;
-	//
-	// logger.debug("Query: " + query);
-	//
-	// // Setting URL
-	// String scheme = req.getScheme();
-	// String host = req.getHost();
-	// int port = req.getPort();
-	// String queryPath = req.getPath();
-	//
-	// String url;
-	// if (port != -1)
-	// url = scheme + "://" + host + ":" + port + queryPath + "?" + query;
-	// else
-	// url = scheme + "://" + host + queryPath + "?" + query;
-	//
-	// HttpGet get;
-	// get = new HttpGet(url);
-	//
-	// get.setHeader("Accept", req.getAcceptHeader());
-	//
-	// RequestConfig requestConfig =
-	// RequestConfig.custom().setSocketTimeout(req.getTimeout())
-	// .setConnectTimeout(req.getTimeout()).build();
-	// get.setConfig(requestConfig);
-	//
-	// return executeRequest(get, req);
-	// }
 
 	/**
 	 * Implements a SPARQL 1.1 query operation
@@ -507,6 +272,159 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	}
 
 	/**
+	 * Implements a SPARQL 1.1 update operation
+	 * (https://www.w3.org/TR/sparql11-protocol/)
+	 * 
+	 * <pre>
+	 * update via URL-encoded POST 
+	 * - Method: <b>POST</b>
+	 * - Query Parameters: None
+	 * - Content Type: <b>application/x-www-form-urlencoded</b>
+	 * - Body: URL-encoded, ampersand-separated query parameters. 
+	 * 	<b>update</b> (exactly 1). 
+	 * 	<b>using-graph-uri</b> (0 or more). 
+	 * 	<b>using-named-graph-uri</b> (0 or more)
+	 * 
+	 * update via POST directly
+	 * - Method: <b>POST</b>
+	 * - Query Parameters: 
+	 * 	<b>using-graph-uri</b> (0 or more); 
+	 * 	<b>using-named-graph-uri</b> (0 or more)
+	 * - Content Type: <b>application/sparql-update</b>
+	 * - Body: Unencoded SPARQL update request string
+	 * </pre>
+	 * 
+	 * 2.2.3 Specifying an RDF Dataset
+	 * 
+	 * <pre>
+	 * SPARQL Update requests are executed against a Graph Store, a mutable
+	 * container of RDF graphs managed by a SPARQL service. The WHERE clause of a
+	 * SPARQL update DELETE/INSERT operation [UPDATE] matches against data in an RDF
+	 * Dataset, which is a subset of the Graph Store. The RDF Dataset for an update
+	 * operation may be specified either in the operation string itself using the
+	 * USING, USING NAMED, and/or WITH keywords, or it may be specified via the
+	 * using-graph-uri and using-named-graph-uri parameters.
+	 * 
+	 * It is an error to supply the using-graph-uri or using-named-graph-uri
+	 * parameters when using this protocol to convey a SPARQL 1.1 Update request
+	 * that contains an operation that uses the USING, USING NAMED, or WITH clause.
+	 * 
+	 * A SPARQL Update processor should treat each occurrence of the
+	 * using-graph-uri=g parameter in an update protocol operation as if a USING <g>
+	 * clause were included for every operation in the SPARQL 1.1 Update request.
+	 * Similarly, a SPARQL Update processor should treat each occurrence of the
+	 * using-named-graph-uri=g parameter in an update protocol operation as if a
+	 * USING NAMED <g> clause were included for every operation in the SPARQL 1.1
+	 * Update request.
+	 * 
+	 * UPDATE 2.2 update operation The response to an update request indicates
+	 * success or failure of the request via HTTP response status code.
+	 * </pre>
+	 */
+	public Response update(UpdateRequest req) {
+		switch (req.getHttpMethod()) {
+		case POST:
+			return post(req);
+		case URL_ENCODED_POST:
+			return post(req);
+		default:
+			return new ErrorResponse(HttpStatus.SC_METHOD_NOT_ALLOWED,"unsupported_method",
+					"SPARQL 1.1 Update supports POST method only");
+		}
+	}
+
+	/**
+	 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
+	 *
+	 * *
+	 * 
+	 * <pre>
+	 *                               HTTP Method   Query String Parameters           Request Content Type                Request Message Body
+	 *----------------------------------------------------------------------------------------------------------------------------------------
+	 * update via URL-encoded POST|   POST         None                              application/x-www-form-urlencoded   URL-encoded, ampersand-separated query parameters.
+	 *                            |                                                                                     update (exactly 1)
+	 *                            |                                                                                     using-graph-uri (0 or more)
+	 *                            |                                                                                     using-named-graph-uri (0 or more)
+	 *----------------------------------------------------------------------------------------------------------------------------------------																													
+	 * update via POST directly   |    POST       using-graph-uri (0 or more)       application/sparql-update           Unencoded SPARQL update request string
+	 *                                            using-named-graph-uri (0 or more)
+	 * </pre>
+	 */
+	private Response post(UpdateRequest req) {
+		StringEntity requestEntity = null;
+		HttpPost post;
+		String graphs = null;
+
+		// Setting URL
+		String scheme = req.getScheme();
+		String host = req.getHost();
+		int port = req.getPort();
+		String updatePath = req.getPath();
+
+		// Create POST request
+		try {
+			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
+				if (req.getDefaultGraphUri() != null) {
+					graphs = "using-graph-uri=" + req.getDefaultGraphUri();
+					if (req.getNamedGraphUri() != null) {
+						graphs += "&using-named-graph-uri=" + req.getNamedGraphUri();
+					}
+				} else if (req.getNamedGraphUri() != null) {
+					graphs = "using-named-graph-uri=" + req.getNamedGraphUri();
+				}
+				
+				post = new HttpPost(new URI(scheme, null, host, port, updatePath, graphs, null));
+				post.setHeader("Content-Type", "application/sparql-update");
+
+				// Body
+				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
+			} else {
+				post = new HttpPost(new URI(scheme, null, host, port, updatePath, null, null));
+				post.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+				// Graphs 
+				try {
+					if (req.getDefaultGraphUri() != null) {
+						graphs = "using-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
+						if (req.getNamedGraphUri() != null) {
+							graphs += "&using-named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
+						}
+					} else if (req.getNamedGraphUri() != null) {
+						graphs = "using-named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
+					}
+				} catch (UnsupportedEncodingException e) {
+					logger.error(e.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"UnsupportedEncodingException", e.getMessage());
+				}
+				
+				// Body
+				if (graphs != null) requestEntity = new StringEntity("update=" + URLEncoder.encode(req.getSPARQL(), "UTF-8") + "&" + graphs,
+						Consts.UTF_8);
+				else requestEntity = new StringEntity("update=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"),
+						Consts.UTF_8);
+			}
+		} catch (URISyntaxException e) {
+			logger.error(e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "URISyntaxException",e.getMessage());
+		} catch (UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",e.getMessage());
+		}
+
+		// Accept header
+		post.setHeader("Accept", req.getAcceptHeader());
+
+		// Body
+		post.setEntity(requestEntity);
+
+		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout((int) req.getTimeout())
+				.setConnectTimeout((int) req.getTimeout()).build();
+		post.setConfig(requestConfig);
+
+		return executeRequest(post, req);
+	}
+
+	/**
 	 * <pre>
 	 *                               HTTP Method   Query String Parameters           Request Content Type                Request Message Body
 	 *----------------------------------------------------------------------------------------------------------------------------------------											
@@ -568,7 +486,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					}
 				} catch (UnsupportedEncodingException e) {
 					logger.error(e.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"UnsupportedEncodingException", e.getMessage());
 				}
 				
 				// Body
@@ -577,9 +495,12 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				else requestEntity = new StringEntity("query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8"),
 						Consts.UTF_8);
 			}
-		} catch (URISyntaxException | UnsupportedEncodingException e) {
+		} catch (URISyntaxException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "URISyntaxException",e.getMessage());
+		} catch (UnsupportedEncodingException e) {
+			logger.error(e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",e.getMessage());
 		}
 
 		post.setHeader("Accept", req.getAcceptHeader());
@@ -608,7 +529,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			query = "query=" + URLEncoder.encode(req.getSPARQL(), "UTF-8");
 		} catch (UnsupportedEncodingException e1) {
 			logger.error(e1.getMessage());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e1.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",e1.getMessage());
 		}
 
 		String graphs = "";
@@ -625,7 +546,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse( HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+			return new ErrorResponse( HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",e.getMessage());
 		}
 
 		if (!graphs.equals(""))
@@ -664,3 +585,103 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		}
 	}
 }
+
+// private Response patchVirtuoso(UpdateRequest req) {
+// // 1) "INSERT DATA" is not supported. Only INSERT (also if the WHERE is not
+// // present).
+// String fixedSparql = req.getSPARQL();
+// Pattern p = null;
+// try {
+// p = Pattern.compile(
+// "(?<update>.*)(delete)([^{]*)(?<udtriples>.*)(insert)([^{]*)(?<uitriples>.*)|(?<delete>.*)(delete)(?<where>[^{]*)(?<dtriples>.*)|(?<insert>.*)(insert)([^{]*)(?<itriples>.*)",
+// Pattern.CASE_INSENSITIVE);
+//
+// Matcher m = p.matcher(req.getSPARQL());
+// if (m.matches()) {
+// if (m.group("update") != null) {
+// fixedSparql = m.group("update") + " DELETE " + m.group("udtriples") + "
+// INSERT "
+// + m.group("uitriples");
+// } else if (m.group("insert") != null) {
+// fixedSparql = m.group("insert") + " INSERT " + m.group("itriples");
+// } else {
+// if (m.group("where") != null) {
+// if (m.group("where").toLowerCase().contains("where")) {
+// fixedSparql = m.group("delete") + " DELETE " + m.group("where") +
+// m.group("dtriples");
+// }
+// else
+// fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
+// }
+// else fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
+// }
+// }
+// } catch (Exception e) {
+// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
+// e.getMessage());
+// }
+//
+// // 2) SPARQL 1.1 Update are issued as GET request (like for a SPARQL 1.1
+// Query)
+// String query;
+// try {
+// // custom "format" parameter
+// query = "query=" + URLEncoder.encode(fixedSparql, "UTF-8") + "&format="
+// + URLEncoder.encode(req.getAcceptHeader(), "UTF-8");
+// } catch (UnsupportedEncodingException e1) {
+// logger.error(e1.getMessage());
+// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
+// e1.getMessage());
+// }
+//
+// // 3) Named-graphs specified like a query
+// String graphs = "";
+// try {
+// if (req.getUsingGraphUri() != null) {
+//
+// graphs += "default-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(),
+// "UTF-8");
+//
+// if (req.getUsingNamedGraphUri() != null) {
+// graphs += "&named-graph-uri=" +
+// URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
+// }
+// } else if (req.getUsingNamedGraphUri() != null) {
+// graphs += "named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(),
+// "UTF-8");
+// }
+// } catch (UnsupportedEncodingException e) {
+// logger.error(e.getMessage());
+// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
+// e.getMessage());
+// }
+//
+// if (!graphs.equals(""))
+// query += "&" + graphs;
+//
+// logger.debug("Query: " + query);
+//
+// // Setting URL
+// String scheme = req.getScheme();
+// String host = req.getHost();
+// int port = req.getPort();
+// String queryPath = req.getPath();
+//
+// String url;
+// if (port != -1)
+// url = scheme + "://" + host + ":" + port + queryPath + "?" + query;
+// else
+// url = scheme + "://" + host + queryPath + "?" + query;
+//
+// HttpGet get;
+// get = new HttpGet(url);
+//
+// get.setHeader("Accept", req.getAcceptHeader());
+//
+// RequestConfig requestConfig =
+// RequestConfig.custom().setSocketTimeout(req.getTimeout())
+// .setConnectTimeout(req.getTimeout()).build();
+// get.setConfig(requestConfig);
+//
+// return executeRequest(get, req);
+// }

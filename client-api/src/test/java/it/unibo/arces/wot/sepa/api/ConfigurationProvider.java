@@ -14,7 +14,7 @@ public class ConfigurationProvider {
         if( configuaration != null){
             result = new JSAP(configuaration);
         }else{
-            URL config = Thread.currentThread().getContextClassLoader().getResource("sepatest.jsap");
+            URL config = Thread.currentThread().getContextClassLoader().getResource("sepatest-secure.jsap");
             result = new JSAP(config.getPath());
         }
         return result;

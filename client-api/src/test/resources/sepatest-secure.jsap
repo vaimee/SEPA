@@ -47,13 +47,13 @@
 			"sparql" : "delete where {?x ?y ?z}"
 		},
 		"VAIMEE": {
-			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {OPTIONAL{?s ?p ?o}}"
+			"sparql": "delete {sepa:SV sepa:PV ?o}  where {sepa:SV sepa:PV ?o} ; insert data {sepa:SV sepa:PV \"ვაიმეე\"}"
 		},
 		"RANDOM": {
-			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P ?random} where {OPTIONAL{?s ?p ?o} BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+			"sparql": "delete {sepa:S sepa:P ?o} where {sepa:S sepa:P ?o} ; insert {sepa:S sepa:P ?random} where {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
 		},
 		"RANDOM1": {
-			"sparql": "delete {?s ?p ?o} insert {sepa:S1 sepa:P1 ?random} where {OPTIONAL{?s ?p ?o} BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+			"sparql": "delete {sepa:S1 sepa:P1 ?o}  where {sepa:S1 sepa:P1 ?o} ; insert {sepa:S1 sepa:P1 ?random} where {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
 		}
 	},
 	"queries": {

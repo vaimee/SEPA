@@ -24,8 +24,8 @@ import java.util.Hashtable;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
+import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
-import it.unibo.arces.wot.sepa.api.protocols.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -100,7 +100,12 @@ public class GenericClient extends Client {
 		String clientURL = subscriptions.get(subID);
 
 		String auth = null;
-		if (subscribedClients.get(clientURL).isSecure())  auth = sm.getAuthorizationHeader();
+		try {
+//			auth = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+			auth = sm.getAuthorizationHeader();
+		} catch (Exception e) {
+		}
+		//if (subscribedClients.get(clientURL).isSecure())  auth = sm.getAuthorizationHeader();
 
 		subscribedClients.get(clientURL).unsubscribe(new UnsubscribeRequest(subID, auth,timeout));
 
@@ -206,7 +211,7 @@ public class GenericClient extends Client {
 				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
 						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), sm,handler);
 
-				client = new SPARQL11SEProtocol(protocol, sm);
+				client = new SPARQL11SEProtocol(protocol);
 			} else
 				client = subscribedClients.get(url);
 

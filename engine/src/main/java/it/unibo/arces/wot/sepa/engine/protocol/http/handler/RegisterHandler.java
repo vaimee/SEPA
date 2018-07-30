@@ -47,7 +47,7 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	@Override
 	public void handle(HttpRequest data, HttpAsyncExchange exchange, HttpContext context)
 			throws HttpException, IOException {
-		logger.debug(">> REGISTRATION");
+		logger.info(">> REGISTRATION");
 
 		String name = null;
 
@@ -59,41 +59,39 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			Header[] headers = exchange.getRequest().getHeaders("Content-Type");
 			if (headers.length == 0) {
 				logger.error("Content-Type is missing");
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Content-Type is missing");
+				HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "content_type_error","Content-Type is missing"));
 				return;
 			}
 			if (headers.length > 1) {
 				logger.error("Too many Content-Type headers");
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Too many Content-Type headers");
+				HttpUtilities.sendFailureResponse(exchange,new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "content_type_error", "Too many Content-Type headers"));
 				return;
 			}
 			if (!headers[0].getValue().equals("application/json")) {
 				logger.error("Content-Type must be: application/json");
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST,
-						"Content-Type must be: application/json");
+				HttpUtilities.sendFailureResponse(exchange,new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "content_type_error","Content-Type must be: application/json"));
 				return;
 			}
 
 			headers = exchange.getRequest().getHeaders("Accept");
 			if (headers.length == 0) {
 				logger.error("Accept is missing");
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Accept is missing");
+				HttpUtilities.sendFailureResponse(exchange,new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "accept_error","Accept is missing"));
 				return;
 			}
 			if (headers.length > 1) {
 				logger.error("Too many Accept headers");
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, "Too many Accept headers");
+				HttpUtilities.sendFailureResponse(exchange,new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "accept_error","Too many Accept headers"));
 				return;
 			}
 			if (!headers[0].getValue().equals("application/json")) {
 				logger.error("Accept must be: application/json");
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST,
-						"Accept must be: application/json");
+				HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "accept_error","Accept must be: application/json"));
 				return;
 			}
 		} catch (NullPointerException e) {
 			logger.error(e.getMessage());
-			HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getMessage());
+			HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "NullPointerException",e.getMessage()));
 			return;
 		}
 
@@ -107,8 +105,8 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			HttpEntity entity = ((HttpEntityEnclosingRequest) exchange.getRequest()).getEntity();
 			try {
 				jsonString = EntityUtils.toString(entity, Charset.forName("UTF-8"));
-			} catch (ParseException | IOException e) {
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getLocalizedMessage());
+			} catch (ParseException  e) {
+				HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ParseException",e.getMessage()));
 				return;
 			}
 			JsonObject json = new JsonParser().parse(jsonString).getAsJsonObject();
@@ -119,14 +117,14 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			// Client credentials
 			if (!json.get("register").getAsJsonObject().get("grant_types").getAsJsonArray().contains(new JsonPrimitive("client_credentials"))) {
 				logger.error("\"grant_types\" must contain \"client_credentials\"");
-				HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST,
-						"\"grant_types\" must contain \"client_credentials\"");
+				HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant",
+						"\"grant_types\" must contain \"client_credentials\""));
 				return;
 			}
 
 		} catch (NullPointerException e) {
 			logger.error(e.getMessage());
-			HttpUtilities.sendFailureResponse(exchange, HttpStatus.SC_BAD_REQUEST, e.getMessage());
+			HttpUtilities.sendFailureResponse(exchange,new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "NullPointerException",e.getMessage()));
 			return;
 		}
 
@@ -139,7 +137,7 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			ErrorResponse error = (ErrorResponse) cred;
 			logger.error(error.toString());
 
-			HttpUtilities.sendFailureResponse(exchange, error.getErrorCode(), error.getErrorMessage());
+			HttpUtilities.sendFailureResponse(exchange, error);
 			return;
 		}
 

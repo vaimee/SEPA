@@ -43,10 +43,10 @@ public class JWTResponse extends Response {
 	 *            the access token
 	 * @param token_type
 	 *            the token type
-	 * @param expiring
+	 * @param expiresIn
 	 *            the expiring
 	 */
-	public JWTResponse(String access_token, String token_type, long expiring) {
+	public JWTResponse(String access_token, String token_type, long expiresIn) {
 		super();
 		JsonObject jwt = new JsonObject();
 		
@@ -54,12 +54,14 @@ public class JWTResponse extends Response {
 			jwt.add("access_token", new JsonPrimitive(access_token));
 		if (token_type != null)
 			jwt.add("token_type", new JsonPrimitive(token_type));
-		if (expiring > 0)
-			jwt.add("expires_in", new JsonPrimitive(expiring));
+		if (expiresIn > 0)
+			jwt.add("expires_in", new JsonPrimitive(expiresIn));
+		else
+			jwt.add("expires_in", new JsonPrimitive(0));
 		
 		json.add("token", jwt);
 	}
-
+	
 	/**
 	 * Gets the access token.
 	 *
