@@ -81,10 +81,9 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	protected final SEPASecurityManager sm;
 
 	public SPARQL11Protocol(SEPASecurityManager sm) {
-		if (sm == null)
-			throw new IllegalArgumentException("Security manager is null");
 		this.sm = sm;
-		httpClient = sm.getSSLHttpClient();
+		if (sm == null) httpClient = HttpClients.createDefault();
+		else httpClient = sm.getSSLHttpClient();
 	}
 
 	public SPARQL11Protocol() {

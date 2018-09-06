@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.paho.client.mqttv3.MqttException;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -19,6 +20,17 @@ import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class MQTTMapper extends Producer {
 	private static final Logger logger = LogManager.getLogger();
+	
+	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, MqttException {
+		if (args.length != 1) {
+			logger.error("Please provide the jsap file as argument");
+			System.exit(-1);
+		}
+		
+		MQTTMapper client = new MQTTMapper(args[0]);
+		client.init();
+		client.close();
+	}
 	
 	public MQTTMapper(String jsap) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, IOException {
 		super(new JSAP(jsap), "ADD_OBSERVATION");

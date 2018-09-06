@@ -6,16 +6,12 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.BeforeClass;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
-import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 public class SEPAChatTest {
 	private static final Logger logger = LogManager.getLogger();
@@ -32,10 +28,9 @@ public class SEPAChatTest {
 
 	private static CLIENT_TYPE type = CLIENT_TYPE.BASIC;
 
-	@BeforeClass
 	public static void init() {
 		try {
-			JSAP app = ConfigurationProvider.GetTestEnvConfiguration();
+			JSAP app = new JSAP("chat.jsap");
 
 			BASE = app.getExtendedData().get("base").getAsInt();
 			N_CLIENTS = app.getExtendedData().get("clients").getAsInt();
@@ -54,7 +49,6 @@ public class SEPAChatTest {
 		}
 	}
 
-	@Test
 	public void chatTest() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, InterruptedException, IOException {
 		deleteAllClients();
 		registerClients();
@@ -83,23 +77,19 @@ public class SEPAChatTest {
 		for (Thread th : clients)
 			th.join(60000);
 		
-		assertTrue("Chat tested",true);
 	}
 
-	@Test
+	
 	public void deleteAllClients() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
 		DeleteAll client = new DeleteAll();
 		client.clean();
 		try {
 			client.close();
 		} catch (IOException e) {
-			assertFalse(e.getMessage(), true);
 		}
-
-		assertTrue("Delete all clients SUCCESS", true);
 	}
 
-	@Test
+	
 	public void registerClients() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
 		// Register chat BOTS
 		UserRegistration registration = new UserRegistration();
@@ -109,9 +99,6 @@ public class SEPAChatTest {
 		try {
 			registration.close();
 		} catch (IOException e) {
-			assertFalse(e.getMessage(), true);
 		}
-		
-		assertTrue("Clients registration SUCCESS", true);
 	}
 }
