@@ -31,7 +31,6 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 /**
  * This class implements the SPARQL 1.1 Secure event protocol with SPARQL 1.1
@@ -45,37 +44,17 @@ import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	private static final Logger logger = LogManager.getLogger();
 
-	private ISubscriptionProtocol subscriptionProtocol;
+	private final SubscriptionProtocol subscriptionProtocol;
 	
-	public SPARQL11SEProtocol(ISubscriptionProtocol protocol,ISubscriptionHandler handler, SEPASecurityManager sm) throws SEPAProtocolException {
-		super(sm);
-		
-		if (protocol == null  || handler == null) {
-			logger.error("One or more arguments are null");
-			throw new IllegalArgumentException("One or more arguments are null");
-		}
-		
-		if (!protocol.isSecure()) throw new SEPAProtocolException(new IllegalArgumentException("Mixing secure and not secure protocols is not allowed"));
+	public SPARQL11SEProtocol(SubscriptionProtocol protocol) throws SEPAProtocolException {
+		super(protocol.getSecurityManager());
 		
 		this.subscriptionProtocol = protocol;
-		this.subscriptionProtocol.setHandler(handler);
 	}
 	
-	public SPARQL11SEProtocol(ISubscriptionProtocol protocol,ISubscriptionHandler handler) throws IllegalArgumentException, SEPAProtocolException {
-		if (protocol == null  || handler == null) {
-			logger.error("One or more arguments are null");
-			throw new IllegalArgumentException("One or more arguments are null");
-		}
-		
-		if (protocol.isSecure()) throw new SEPAProtocolException(new IllegalArgumentException("Security parameters are missing"));
-		
-		this.subscriptionProtocol = protocol;
-		this.subscriptionProtocol.setHandler(handler);
-	}
-	
-	public boolean isSecure() {
-		return subscriptionProtocol.isSecure();
-	}
+//	public boolean isSecure() {
+//		return super.isSecure() && subscriptionProtocol.isSecure();
+//	}
 
 	/**
 	 * Subscribe with a SPARQL 1.1 Subscription language. All the notification will
@@ -84,11 +63,12 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * @param request
 	 * @return A valid {@link Response} if the subscription is successful <br>
 	 *         an {@link ErrorResponse} otherwise
+	 * @throws SEPAProtocolException 
 	 */
-	public Response subscribe(SubscribeRequest request) {
-		logger.debug(request.toString());
+	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
+		logger.info("SUBSCRIBE: "+request.toString());
 		
-		return subscriptionProtocol.subscribe(request);
+		subscriptionProtocol.subscribe(request);
 	}
 
 	/**
@@ -100,20 +80,22 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * @param request
 	 * @return A valid {@link Response} if the unsubscription is successful <br>
 	 *         an {@link ErrorResponse} otherwise
+	 * @throws SEPAProtocolException 
 	 */
-	public Response unsubscribe(UnsubscribeRequest request) {
+	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException {
 		logger.debug(request.toString());
 		
-		return subscriptionProtocol.unsubscribe(request);
+		subscriptionProtocol.unsubscribe(request);
 	}
 
 	/**
 	 * Free the http connection manager and the WebSocket client.
+	 * @throws SEPAProtocolException 
 	 *
 	 * @throws IOException
 	 */
 	@Override
-	public void close() throws IOException {
+	public void close() {
 		super.close();
 		subscriptionProtocol.close();
 	}

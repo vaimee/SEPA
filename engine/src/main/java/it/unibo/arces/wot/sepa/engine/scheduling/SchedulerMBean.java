@@ -16,4 +16,8 @@ public interface SchedulerMBean {
 	public void reset();
 	
 	public int getQueueSize();
+	
+	public int getTimeout();
+	
+	public void setTimeout(int timeout);
 }

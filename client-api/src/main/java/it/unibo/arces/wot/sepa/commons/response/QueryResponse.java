@@ -27,21 +27,6 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  */
 
 public class QueryResponse extends Response {
-
-	/**
-	 * Instantiates a new query response.
-	 *
-	 * @param token
-	 *            the token
-	 * @param body
-	 *            the body
-	 */
-	public QueryResponse(Integer token, JsonObject bindingResultsJSON) {
-		super(token);
-		json = bindingResultsJSON;
-		
-	}
-
 	/**
 	 * Instantiates a new query response.
 	 *
@@ -51,11 +36,6 @@ public class QueryResponse extends Response {
 	public QueryResponse(JsonObject bindingResultsJSON) {
 		super();
 		json = bindingResultsJSON;
-	}
-
-	public QueryResponse(QueryResponse ret) {
-		super(ret.getToken());
-		json = ret.json;
 	}
 
 	/**

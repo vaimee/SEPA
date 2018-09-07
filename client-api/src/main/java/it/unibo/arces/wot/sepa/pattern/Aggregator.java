@@ -20,7 +20,6 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
 
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +29,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
@@ -90,19 +88,20 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		String authorizationHeader = null;
 
 		if (isSecure()) {
-			if (!getToken())
-				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "Failed to get or renew token");
-			
-			if (appProfile.getAuthenticationProperties() != null)
-				authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+			authorizationHeader = sm.getAuthorizationHeader();
+//			if (!getToken())
+//				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "Failed to get or renew token");
+//			
+//			if (appProfile.getAuthenticationProperties() != null)
+//				authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		}
 
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
 				appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
 				appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
-				prefixes() + replaceBindings(sparqlUpdate, updateForcedBindings), timeout,
+				prefixes() + replaceBindings(sparqlUpdate, updateForcedBindings),
 				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
-				authorizationHeader);
+				authorizationHeader,timeout);
 
 		return client.update(req);
 	}

@@ -2,6 +2,10 @@ package it.unibo.arces.wot.sepa.apps.mqtt;
 
 import java.io.IOException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.paho.client.mqttv3.MqttException;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -15,10 +19,32 @@ import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class ObservationLogger extends Aggregator {
-
-	public ObservationLogger()
+	private static final Logger logger = LogManager.getLogger();
+	
+	public static void main(String[] args)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, MqttException {
+		if (args.length != 1) {
+			logger.error("Please provide the jsap file as argument");
+			System.exit(-1);
+		}
+		
+		// Logger
+		ObservationLogger analytics = new ObservationLogger(args[0]);
+		analytics.subscribe(5000);
+		
+		logger.info("Press any key to exit...");
+		try {
+			System.in.read();
+		} catch (IOException e) {
+			logger.warn(e.getMessage());
+		}
+		
+		analytics.close();
+	}
+	
+	public ObservationLogger(String jsap)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("swamp-demo.jsap"), "OBSERVATIONS", "LOG_QUANTITY");
+		super(new JSAP(jsap), "OBSERVATIONS", "LOG_QUANTITY");
 	}
 
 	@Override
@@ -52,4 +78,16 @@ public class ObservationLogger extends Aggregator {
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {}
+
+	@Override
+	public void onSubscribe(String spuid, String alias) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onUnsubscribe(String spuid) {
+		// TODO Auto-generated method stub
+		
+	}
 }

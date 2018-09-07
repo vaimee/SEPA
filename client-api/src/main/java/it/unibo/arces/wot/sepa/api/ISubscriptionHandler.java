@@ -18,7 +18,6 @@
 
 package it.unibo.arces.wot.sepa.api;
 
-import it.unibo.arces.wot.sepa.api.protocol.websocket.SEPAWebsocketClient;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 
@@ -49,4 +48,14 @@ public interface ISubscriptionHandler {
 	 * @see ErrorResponse
 	 */
 	void onError(ErrorResponse errorResponse);
+	
+	/**
+	 * This method is called when the first notification has been received
+	 */
+	void onSubscribe(String spuid,String alias);
+	
+	/**
+	 * This method is called as response to an unsubscribe request
+	 */
+	void onUnsubscribe(String spuid);
 }

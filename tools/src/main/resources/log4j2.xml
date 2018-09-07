@@ -12,7 +12,7 @@ DEBUG				500
 TRACE				600
 ALL					Integer.MAX_VALUE
 	 -->
-		<CustomLevel name="timing" intLevel="50" />
+		<CustomLevel name="timing" intLevel="450" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
@@ -23,8 +23,8 @@ ALL					Integer.MAX_VALUE
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="error">
-			<AppenderRef ref="Console" level="error"/>
+		<Root level="info">
+			<AppenderRef ref="Console" level="info"/>
 			<!-- <AppenderRef ref="Console" level="timing"/>  -->
 		</Root>
 	</Loggers>

@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
+import java.net.BindException;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -21,15 +22,17 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.timing.Timings;
+import it.unibo.arces.wot.sepa.engine.timing.Timings;
 
 public class WebsocketServer extends WebSocketServer implements WebsocketServerMBean {
 	private static final Logger logger = LogManager.getLogger();
@@ -45,16 +48,13 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	private String path;
 
 	// Fragmentation support
-	private HashMap<WebSocket, String> fragmentedMessages = new HashMap<WebSocket, String>();
-
-	// JMX
-	protected WebsocketBeans jmx = new WebsocketBeans();
+	private final HashMap<WebSocket, String> fragmentedMessages = new HashMap<WebSocket, String>();
 
 	// Active sockets
-	private HashMap<WebSocket, WebsocketEventHandler> activeSockets = new HashMap<WebSocket, WebsocketEventHandler>();
+	protected final HashMap<WebSocket, WebsocketEventHandler> activeSockets = new HashMap<WebSocket, WebsocketEventHandler>();
 
 	// Dependability manager
-	private DependabilityManager dependabilityMng;
+	private final DependabilityManager dependabilityMng;
 
 	public WebsocketServer(int port, String path, Scheduler scheduler, DependabilityManager dependabilityMng)
 			throws SEPAProtocolException {
@@ -83,11 +83,11 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-		logger.debug("@onOpen WebSocket: <" + conn + ">" + " Resource descriptor: " + conn.getResourceDescriptor());
+		logger.debug("@onOpen: " + conn + " Resource descriptor: " + conn.getResourceDescriptor());
 
 		if (!conn.getResourceDescriptor().equals(path)) {
 			logger.warn("Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST,
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND,"wrong_path",
 					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 			conn.send(response.toString());
 			return;
@@ -98,16 +98,15 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-		logger.debug("@onClose WebSocket:<" + conn + "> Reason: <" + reason + "> Code: <" + code + "> Remote: <"
-				+ remote + ">");
+		logger.debug("@onClose: " + conn + " Reason: " + reason + " Code: " + code + " Remote: " + remote);
 
 		if (!conn.getResourceDescriptor().equals(path))
 			return;
 
 		fragmentedMessages.remove(conn);
 
-		// Unsubscribe all SPUs
-		dependabilityMng.onBrokenSocket(conn);
+		// KILL ALL SPUs
+		dependabilityMng.onBrokenSocket(conn.hashCode());
 
 		// Remove active socket
 		activeSockets.remove(conn);
@@ -115,33 +114,41 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
-		jmx.onMessage();
+		WebsocketBeans.onMessage();
 
-		logger.debug("Message from: " + conn.getRemoteSocketAddress() + " [" + message + "]");
+		logger.trace("Message from: " + conn.getRemoteSocketAddress() + " [" + message + "]");
 
 		if (!conn.getResourceDescriptor().equals(path)) {
 			logger.warn("Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST,
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND,"wrong_path",
 					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 			conn.send(response.toString());
 			return;
 		}
 
-		// Parse the request
-		Request req = parseRequest(message, conn);
-		if (req == null)
-			return;
-
 		// Add active socket
 		if (!activeSockets.containsKey(conn)) {
-			activeSockets.put(conn, new WebsocketEventHandler(conn, jmx, dependabilityMng));
+			activeSockets.put(conn, new WebsocketEventHandler(conn, dependabilityMng));
 		}
-		activeSockets.get(conn).startTiming();
+
+		// Parse the request
+		InternalRequest req = parseRequest(message, conn);
+		if (req == null) {
+			logger.error("Failed to parse message: " + req);
+			activeSockets.remove(conn);
+			return;
+		}
 
 		Timings.log(req);
 
 		// Schedule the request
-		scheduler.schedule(req, activeSockets.get(conn));
+		ScheduledRequest request = scheduler.schedule(req, activeSockets.get(conn));
+		if (request == null) {
+			logger.error("Out of tokens");
+			ErrorResponse response = new ErrorResponse(429,"too_many_requests",
+					"Too many pending requests");
+			conn.send(response.toString());
+		}
 	}
 
 	/**
@@ -162,55 +169,66 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	}}
 	 * </pre>
 	 */
-	protected Request parseRequest(String request, WebSocket conn)
+	protected InternalRequest parseRequest(String request, WebSocket conn)
 			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException {
 		JsonObject req;
+		ErrorResponse error;
 
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
-
-			if (req.has("subscribe")) {
-				String sparql = null;
-				String alias = null;
-				String defaultGraphUri = null;
-				String namedGraphUri = null;
-
-				try {
-					sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
-				} catch (Exception e) {
-					logger.error("SPARQL member not found");
-					return null;
-				}
-
-				try {
-					alias = req.get("subscribe").getAsJsonObject().get("alias").getAsString();
-				} catch (Exception e) {
-				}
-
-				try {
-					defaultGraphUri = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsString();
-				} catch (Exception e) {
-				}
-
-				try {
-					namedGraphUri = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsString();
-				} catch (Exception e) {
-				}
-
-				return new SubscribeRequest(sparql, alias, defaultGraphUri, namedGraphUri, null);
-			} else if (req.has("unsubscribe"))
-				return new UnsubscribeRequest(req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString());
-
-		} catch (Exception e) {
-			logger.debug(e.getLocalizedMessage());
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-			conn.send(response.toString());
+		} catch (JsonParseException e) {
+			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException","JsonParseException: " + request);
+			conn.send(error.toString());
+			logger.error(error);
 			return null;
 		}
 
-		logger.debug("Bad request: " + request);
-		ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Bad request: " + request);
-		conn.send(response.toString());
+		if (req.has("subscribe")) {
+			String sparql = null;
+			String alias = null;
+			String defaultGraphUri = null;
+			String namedGraphUri = null;
+
+			try {
+				sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
+			} catch (Exception e) {
+				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception","sparql member not found: " + request);
+				conn.send(error.toString());
+				logger.error(error);
+				return null;
+			}
+
+			try {
+				alias = req.get("subscribe").getAsJsonObject().get("alias").getAsString();
+			} catch (Exception e) {
+			}
+
+			try {
+				defaultGraphUri = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsString();
+			} catch (Exception e) {
+			}
+
+			try {
+				namedGraphUri = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsString();
+			} catch (Exception e) {
+			}
+
+			return new InternalSubscribeRequest(sparql, alias, defaultGraphUri, namedGraphUri,activeSockets.get(conn));
+		} else if (req.has("unsubscribe")) {
+			String spuid;
+			try {
+				spuid = req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString();
+			} catch (Exception e) {
+				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception","spuid member not found: " + request);
+				conn.send(error.toString());
+				return null;
+			}
+
+			return new InternalUnsubscribeRequest(spuid);
+		}
+
+		error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unsupported","Bad request: " + request);
+		conn.send(error.toString());
 		return null;
 	}
 
@@ -237,7 +255,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		logger.debug("Fragmented message: " + fragmentedMessages.get(conn));
 
 		if (fragment.isFin()) {
-			jmx.onFragmentedMessage();
+			WebsocketBeans.onFragmentedMessage();
 
 			onMessage(conn, fragmentedMessages.get(conn));
 			fragmentedMessages.put(conn, null);
@@ -246,12 +264,17 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
-		logger.error("@onError WebSocket: <" + conn + "> Exception: " + ex);
+		logger.error("@onError: " + conn + " Exception: " + ex);
+
+		if (ex.getClass().equals(BindException.class)) {
+			logger.fatal("Failed to start. Exit");
+			System.exit(-1);
+		}
 
 		if (!conn.getResourceDescriptor().equals(path))
 			return;
 
-		jmx.onError();
+		WebsocketBeans.onError();
 	}
 
 	@Override
@@ -265,21 +288,41 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void reset() {
-		jmx.reset();
+		WebsocketBeans.reset();
 	}
 
 	@Override
 	public long getMessages() {
-		return jmx.getMessages();
+		return WebsocketBeans.getMessages();
 	}
 
 	@Override
 	public long getFragmented() {
-		return jmx.getFragmented();
+		return WebsocketBeans.getFragmented();
 	}
 
 	@Override
 	public long getErrors() {
-		return jmx.getErrors();
+		return WebsocketBeans.getErrors();
+	}
+
+	@Override
+	public long getErrorResponses() {
+		return WebsocketBeans.getErrorResponses();
+	}
+
+	@Override
+	public long getSubscribeResponse() {
+		return WebsocketBeans.getSubscribeResponses();
+	}
+
+	@Override
+	public long getUnsubscribeResponse() {
+		return WebsocketBeans.getUnsubscribeResponses();
+	}
+	
+	@Override
+	public long getNotifications() {
+		return WebsocketBeans.getNotifications();
 	}
 }

@@ -18,21 +18,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 
@@ -74,8 +68,6 @@ public abstract class Client implements java.io.Closeable {
 		logger.trace("SEPA parameters: " + appProfile.printParameters());
 
 		addNamespaces(appProfile);
-		
-		if (appProfile.isSecure()) throw new IllegalArgumentException("Wrong construct. Security is enabled but security manager is null.");
 	
 		isSecure = appProfile.isSecure();
 		
@@ -96,7 +88,6 @@ public abstract class Client implements java.io.Closeable {
 		if (sm == null & appProfile.isSecure()) throw new IllegalArgumentException("Security is enabled but security manager is null");
 		
 		this.sm = sm;
-		isSecure = appProfile.isSecure();
 	}
 	
 	protected final String replaceBindings(String sparql, Bindings bindings) {
@@ -249,27 +240,27 @@ public abstract class Client implements java.io.Closeable {
 				|| (0xF900 <= c && c <= 0xFDCF) || (0xFDF0 <= c && c <= 0xFFFD) || (0x10000 <= c && c <= 0xEFFFF));
 	}
 
-	protected boolean getToken() throws SEPASecurityException, IOException, SEPAPropertiesException {
-		try {
-			if (!appProfile.getAuthenticationProperties().isTokenExpired())
-				return true;
-		} catch (Exception e) {
-			logger.error("Authentication properties not found");
-			throw new SEPASecurityException(new NullPointerException("Authentication properties not found"));
-		}
-
-		Response ret = sm.requestToken(appProfile.getAuthenticationProperties().getTokenRequestUrl(),
-				appProfile.getAuthenticationProperties().getBasicAuthorizationHeader());
-
-		if (ret.isJWTResponse()) {
-			JWTResponse token = (JWTResponse) ret;
-			Date expires = new Date();
-			expires.setTime(expires.getTime() + (1000 * token.getExpiresIn()));
-			appProfile.getAuthenticationProperties().setJWT(token.getAccessToken(), expires, token.getTokenType());
-			return true;
-		}
-
-		logger.error(ret);
-		return false;
-	}
+//	protected boolean getToken() throws SEPASecurityException, IOException, SEPAPropertiesException {
+//		try {
+//			if (!appProfile.getAuthenticationProperties().isTokenExpired())
+//				return true;
+//		} catch (Exception e) {
+//			logger.error("Authentication properties not found");
+//			throw new SEPASecurityException(new NullPointerException("Authentication properties not found"));
+//		}
+//
+//		Response ret = sm.requestToken(appProfile.getAuthenticationProperties().getTokenRequestUrl(),
+//				appProfile.getAuthenticationProperties().getBasicAuthorizationHeader());
+//
+//		if (ret.isJWTResponse()) {
+//			JWTResponse token = (JWTResponse) ret;
+//			Date expires = new Date();
+//			expires.setTime(expires.getTime() + (1000 * token.getExpiresIn()));
+//			appProfile.getAuthenticationProperties().setJWT(token.getAccessToken(), expires, token.getTokenType());
+//			return true;
+//		}
+//
+//		logger.error(ret);
+//		return false;
+//	}
 }

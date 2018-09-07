@@ -18,80 +18,27 @@
 
 package it.unibo.arces.wot.sepa.commons.request;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
-import it.unibo.arces.wot.sepa.commons.request.Request;
 
-// TODO: Auto-generated Javadoc
 /**
  * This class represents the request to perform a SPARQL 1.1 Update
 * */
 
-public class UpdateRequest extends Request {
+public class UpdateRequest extends SPARQL11Request {
 	 /* It is an error to supply the using-graph-uri or using-named-graph-uri
 	 * parameters when using this protocol to convey a SPARQL 1.1 Update request
 	 * that contains an operation that uses the USING, USING NAMED, or WITH clause.
 	 */
-	private String using_graph_uri = null;
-	private String using_named_graph_uri = null;
 	
-	/**
-	 * Instantiates a new update request.
-	 *
-	 * @param token the token
-	 * @param sparql the sparql
-	 */
-	public UpdateRequest(Integer token, String sparql) {
-		super(token, sparql);
-	}
-
-	/**
-	 * Instantiates a new update request.
-	 *
-	 * @param sparql the sparql
-	 */
-	public UpdateRequest(String sparql) {
-		super(sparql);
-	}
-	
-	public UpdateRequest(Integer token,HTTPMethod method,String scheme,String host, int port, String path,String sparql,int timeout,String using_graph_uri,String using_named_graph_uri,String authorization) {
-		super(token,sparql);
+	public UpdateRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,String default_graph_uri,String named_graph_uri,String authorization,long timeout) {
+		super(sparql,authorization,default_graph_uri,named_graph_uri,timeout);
 		
-		super.method = method;
-		super.host = host;
-		super.port = port;
-		super.path = path;
-		super.timeout = timeout;
-		super.scheme = scheme;
-		
-		super.authorizationHeader = authorization;
-		
-		this.using_graph_uri = using_graph_uri;
-		this.using_named_graph_uri = using_named_graph_uri;
-		
-		
-	}
-	
-	public UpdateRequest(String sparql,String using_graph_uri,String using_named_graph_uri) {
-		super(sparql);
-		
-		this.using_graph_uri = using_graph_uri;
-		this.using_named_graph_uri = using_named_graph_uri;
-	}
-
-	public UpdateRequest(HTTPMethod updateMethod, String updateProtocolScheme, String updateHost, int updatePort,
-			String updatePath, String sparql, int timeout, String usingGraphURI, String usingNamedGraphURI,String authorization) {
-		this(-1,updateMethod,  updateProtocolScheme,  updateHost,  updatePort,updatePath,  sparql,  timeout,  usingGraphURI,  usingNamedGraphURI,authorization);
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
-	public String toString() {
-		if (token != -1) return "UPDATE #"+token+" "+sparql;
-		return sparql;
+		this.method = method;
+		this.host = host;
+		this.port = port;
+		this.path = path;
+		this.timeout = timeout;
+		this.scheme = scheme;
 	}
 
 	/* SPARQL Update requests are executed against a Graph Store, a mutable
@@ -102,26 +49,18 @@ public class UpdateRequest extends Request {
 	 * USING, USING NAMED, and/or WITH keywords, or it may be specified via the
 	 * using-graph-uri and using-named-graph-uri parameters.
 	 */
-	
-	public String getUsingGraphUri() {
-		if (using_graph_uri == null) return null;
-		try {
-			return URLDecoder.decode(using_graph_uri,"UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			return null;
-		}
-	}
-
-	public String getUsingNamedGraphUri() {
-		if (using_named_graph_uri == null) return null;
-		try {
-			return URLDecoder.decode(using_named_graph_uri,"UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			return null;
-		}
-	}
 
 	public String getAcceptHeader() {
 		return "application/json";
+	}
+	
+	/**
+	 * Default implementation. Two requests are equal if they belong to the same class and their SPARQL strings are equals. SPARQL matching should be based on SPARQL algebra
+	 * and SPARQL semantics. The default implementation provides a syntax based matching. 
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof UpdateRequest)) return false;
+		return sparql.equals(((UpdateRequest)obj).sparql);
 	}
 }

@@ -1,8 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.ExceptionLogger;
@@ -52,16 +50,6 @@ public class HttpGate {
 		if(server.getEndpoint().getException()!=null) {
 			throw new SEPAProtocolException(server.getEndpoint().getException());	
 		}
-		
-		String address = server.getEndpoint().getAddress().toString();
-		
-		try {
-			address = Inet4Address.getLocalHost().getHostAddress();
-		} catch (UnknownHostException e1) {
-			throw new SEPAProtocolException(e1);
-		}
-		EngineBeans.setQueryURL("http://" + address + ":" + properties.getHttpPort()+properties.getQueryPath());
-		EngineBeans.setUpdateURL("http://" + address + ":" + properties.getHttpPort()+properties.getUpdatePath());
 
 		System.out.println("SPARQL 1.1 Query     | " + EngineBeans.getQueryURL());
 		System.out.println("SPARQL 1.1 Update    | " + EngineBeans.getUpdateURL());

@@ -22,7 +22,6 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.request.Request;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class UnsubscribeRequest.
  */
@@ -36,26 +35,8 @@ public class UnsubscribeRequest extends Request {
 	 * @param subId
 	 *            the sub id
 	 */
-	public UnsubscribeRequest(Integer token, String subId,String authorization) {
-		super(token, subId);
-	
-		super.authorizationHeader = authorization;
-	}
-
-	/**
-	 * Instantiates a new unsubscribe request.
-	 *
-	 * @param subID
-	 *            the sub ID
-	 */
-	public UnsubscribeRequest(String subID,String authorization) {
-		super(subID);
-		
-		super.authorizationHeader = authorization;
-	}
-
-	public UnsubscribeRequest(String subID) {
-		super(subID);
+	public UnsubscribeRequest(String subId,String authorization,long timeout) {
+		super(subId, authorization,timeout);
 	}
 	
 	/**
@@ -75,6 +56,9 @@ public class UnsubscribeRequest extends Request {
 		body.add("spuid", new JsonPrimitive(getSubscribeUUID()));
 		if (getAuthorizationHeader() != null)
 			body.add("authorization", new JsonPrimitive(getAuthorizationHeader()));
+		
+		body.add("timeout", new JsonPrimitive(getTimeout()));
+		
 		request.add("unsubscribe", body);
 
 		return request.toString();

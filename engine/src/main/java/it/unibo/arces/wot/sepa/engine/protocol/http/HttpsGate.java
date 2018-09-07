@@ -1,10 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.protocol.http;
 
 import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.ExceptionLogger;
@@ -54,7 +50,7 @@ public class HttpsGate {
 							new SecureUpdateHandler(scheduler, oauth))
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler(oauth))
 					.registerHandler("/echo", new EchoHandler()).create();
-		} catch (KeyManagementException | NoSuchAlgorithmException | IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			throw new SEPASecurityException(e);
 		}
 		
@@ -64,31 +60,10 @@ public class HttpsGate {
 			throw new SEPAProtocolException(e);
 		}
 
-		if (server.getEndpoint().getException() != null) {
-			throw new SEPAProtocolException(server.getEndpoint().getException());
-		}
-
-		String address = server.getEndpoint().getAddress().toString();
-		try {
-			address = Inet4Address.getLocalHost().getHostAddress();
-		} catch (UnknownHostException e1) {
-			throw new SEPAProtocolException(e1);
-		}
-
-		EngineBeans.setSecureQueryURL("https://" + address + ":" + properties.getHttpsPort()
-				+ properties.getSecurePath() + properties.getQueryPath());
-		EngineBeans.setSecureUpdateURL("https://" + address + ":" + properties.getHttpsPort()
-				+ properties.getSecurePath() + properties.getUpdatePath());
-		EngineBeans.setRegistrationURL(
-				"https://" + address + ":" + properties.getHttpsPort() + properties.getRegisterPath());
-		EngineBeans.setTokenRequestURL(
-				"https://" + address + ":" + properties.getHttpsPort() + properties.getTokenRequestPath());
-
 		System.out.println("SPARQL 1.1 SE Query  | " + EngineBeans.getSecureQueryURL());
 		System.out.println("SPARQL 1.1 SE Update | " + EngineBeans.getSecureUpdateURL());
 		System.out.println("Client registration  | " + EngineBeans.getRegistrationURL());
 		System.out.println("Token request        | " + EngineBeans.getTokenRequestURL());
-
 	}
 	
 	public void shutdown() {

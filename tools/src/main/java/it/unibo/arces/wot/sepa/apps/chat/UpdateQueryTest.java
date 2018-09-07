@@ -179,7 +179,7 @@ public class UpdateQueryTest extends GenericClient  {
 		Response ret;
 		try {
 			ret = this.query(SENT, bindings,5000);
-		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException e) {
 			logger.error(e.getMessage());
 			return list;
 		}
@@ -207,7 +207,7 @@ public class UpdateQueryTest extends GenericClient  {
 		Response ret;
 		try {
 			ret = this.query(RECEIVED, bindings,5000);
-		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException e) {
 			logger.error(e.getMessage());
 			return list;
 		}
@@ -231,7 +231,7 @@ public class UpdateQueryTest extends GenericClient  {
 		Response ret;
 		try {
 			ret = this.query(USERS, null,5000);
-		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException e) {
 			logger.error(e.getMessage());
 			return list;
 		}
