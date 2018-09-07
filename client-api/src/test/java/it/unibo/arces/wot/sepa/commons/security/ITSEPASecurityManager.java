@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.commons.security;
 
+import it.unibo.arces.wot.sepa.api.ConfigurationProvider;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -20,7 +21,7 @@ public class ITSEPASecurityManager {
 	
 	@BeforeClass
 	public static void init() throws SEPAPropertiesException, SEPASecurityException {
-		JSAP app = ConfigurationProvider.GetTestEnvConfiguration();	
+		JSAP app = ConfigurationProvider.GetTestEnvConfiguration();
 		if (app.isSecure()) sm = new SEPASecurityManager(app.getAuthenticationProperties());
 	}
 
