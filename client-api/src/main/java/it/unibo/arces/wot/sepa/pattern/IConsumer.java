@@ -22,14 +22,14 @@ import java.io.IOException;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public interface IConsumer extends ISubscriptionHandler {	
-	Response subscribe() throws SEPASecurityException, IOException, SEPAPropertiesException ;
-	Response unsubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException;
+	void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException ;
+	void unsubscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException;
 	
 	void onResults(ARBindingsResults results);
 	void onAddedResults(BindingsResults results);

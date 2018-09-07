@@ -1,10 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.bean;
 
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
 
 public class SchedulerBeans {
 
@@ -21,6 +17,8 @@ public class SchedulerBeans {
 	
 	private static int queueSize;
 
+	private static int timeout;
+	
 	public static long getErrors() {
 		return errors;
 	}
@@ -63,16 +61,16 @@ public class SchedulerBeans {
 
 	}
 
-	public static void newRequest(Request req,boolean scheduled) {	
+	public static void newRequest(InternalRequest req,boolean scheduled) {	
 		if (scheduled)
 			scheduledRequests++;
 		else
 			outOfTokenRequests++;
 		
-		if (req.getClass().equals(UpdateRequest.class)) totalUpdateRequests++;
-		else if (req.getClass().equals(QueryRequest.class)) totalQueryRequests++;
-		else if (req.getClass().equals(SubscribeRequest.class)) totalSubscribeRequests++;
-		else if (req.getClass().equals(UnsubscribeRequest.class)) totalUnsubscribeRequests++;
+		if (req.isUpdateRequest()) totalUpdateRequests++;
+		else if (req.isQueryRequest()) totalQueryRequests++;
+		else if (req.isSubscribeRequest()) totalSubscribeRequests++;
+		else if (req.isUnsubscribeRequest()) totalUnsubscribeRequests++;
 	}
 
 	public static long getScheduledRequests() {
@@ -85,5 +83,13 @@ public class SchedulerBeans {
 	
 	public static int getQueueSize() {
 		return queueSize;	
+	}
+
+	public static int getTimeout() {
+		return timeout;
+	}
+
+	public static void setTimeout(int t) {
+		timeout = t;
 	}
 }

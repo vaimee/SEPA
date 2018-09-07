@@ -24,8 +24,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
@@ -45,8 +43,30 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	// Topics mapping
 	private HashMap<String, String> topic2observation = new HashMap<String, String>();
 
-	public MQTTSmartifier() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("swamp-demo.jsap"), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
+	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, MqttException {
+		if (args.length != 1) {
+			logger.error("Please provide the jsap file as argument");
+			System.exit(-1);
+		}
+		
+		MQTTSmartifier smartifier = new MQTTSmartifier(args[0]);
+		smartifier.start();
+
+		logger.info("Press any key to exit...");
+		try {
+			System.in.read();
+		} catch (IOException e) {
+			logger.warn(e.getMessage());
+		}
+
+		logger.info("Stop MQTT smartifier");
+		
+		smartifier.stop();
+		smartifier.close();
+	}
+
+	public MQTTSmartifier(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(new JSAP(jsap), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
 	}
 
 	@Override
@@ -56,15 +76,18 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 		}
 	}
 
-	private void updateObservationValue(String observation, String value) throws SEPASecurityException, IOException, SEPAPropertiesException {
+	private void updateObservationValue(String observation, String value)
+			throws SEPASecurityException, IOException, SEPAPropertiesException {
 		if (value != null) {
-			if (value.equals("NaN")) return;
-			
-			RDFTermLiteral literal = new RDFTermLiteral(value,appProfile.getUpdateBindings("UPDATE_OBSERVATION_VALUE").getDatatype("value"));
-			
-			setUpdateBindingValue("observation",new RDFTermURI(observation));
-			setUpdateBindingValue("value",literal);
-			
+			if (value.equals("NaN"))
+				return;
+
+			RDFTermLiteral literal = new RDFTermLiteral(value,
+					appProfile.getUpdateBindings("UPDATE_OBSERVATION_VALUE").getDatatype("value"));
+
+			setUpdateBindingValue("observation", new RDFTermURI(observation));
+			setUpdateBindingValue("value", literal);
+
 			update();
 		}
 	}
@@ -112,17 +135,18 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	public void messageArrived(String topic, MqttMessage value) throws Exception {
 		byte[] payload = value.getPayload();
 		String converted = "";
-		for (int i =0; i < payload.length; i++) {
-			if (payload[i] == 0) break;
-			converted += String.format("%c",payload[i]);
+		for (int i = 0; i < payload.length; i++) {
+			if (payload[i] == 0)
+				break;
+			converted += String.format("%c", payload[i]);
 		}
-		
-		mqttMessage(topic,converted);	
+
+		mqttMessage(topic, converted);
 	}
 
 	private void mqttMessage(String topic, String value) throws Exception {
 		// String topicValue = value.toString();
-		logger.debug(topic + " " + value);
+		logger.info(topic + " " + value);
 
 		if (topic2observation.containsKey(topic)) {
 			updateObservationValue(topic2observation.get(topic), value);
@@ -176,17 +200,8 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 		}
 	}
 
-	public boolean start() throws SEPASecurityException, IOException, SEPAPropertiesException {
-		// Subscribe to observation-topic mapping
-		Response ret = subscribe();
-
-		if (ret.isError()) {
-			logger.fatal("Failed to subscribe: " + ret);
-			return false;
-		}
-		SubscribeResponse results = (SubscribeResponse) ret;
-		onAddedResults(results.getBindingsResults());
-
+	public void start()
+			throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, MqttException {
 		if (getApplicationProfile().getExtendedData().get("simulate").getAsBoolean())
 			simulator();
 		else {
@@ -220,22 +235,28 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 			String clientID = MqttClient.generateClientId();
 			logger.info("Client ID: " + clientID);
 			logger.info("Server URI: " + serverURI);
-			try {
-				mqttClient = new MqttClient(serverURI, clientID);
-			} catch (MqttException e) {
-				logger.error(e.getMessage());
-				return false;
-			}
 
-			// Connect
-			logger.info("Connecting...");
+			mqttClient = new MqttClient(serverURI, clientID);
+
+			// Options
 			MqttConnectOptions options = new MqttConnectOptions();
 			if (sslEnabled) {
 				logger.info("Set SSL security");
-				
+
 				SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
 				options.setSocketFactory(sm.getSSLContext().getSocketFactory());
 			}
+			
+			if (mqtt.has("username")) {
+				options.setUserName(mqtt.get("username").getAsString());
+			}
+			
+			if (mqtt.has("password")) {
+				options.setPassword(mqtt.get("password").getAsString().toCharArray());
+			}
+			
+			// Connect
+			logger.info("Connecting...");
 			try {
 				mqttClient.connect(options);
 			} catch (MqttException e) {
@@ -245,38 +266,36 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 			// Subscribe
 			mqttClient.setCallback(this);
 			logger.info("Subscribing...");
-			try {
-				mqttClient.subscribe(topicsFilter);
-			} catch (MqttException e) {
-				logger.error(e.getMessage());
-				return false;
-			}
 
-			for(String topic:topicsFilter) logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topic);
+			mqttClient.subscribe(topicsFilter);
+
+			for (String topic : topicsFilter)
+				logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topic);
 			// MQTT: end
 		}
 
-		return true;
+		// Subscribe to observation-topic mapping
+		subscribe(5000);
 	}
 
 	public void simulator() {
 		new Thread() {
 			public void run() {
 				JsonObject topics = getApplicationProfile().getExtendedData().get("simulation").getAsJsonObject();
-				
-				while(true) {
-					for(Entry<String, JsonElement> observation : topics.entrySet()) {
+
+				while (true) {
+					for (Entry<String, JsonElement> observation : topics.entrySet()) {
 						String topic = observation.getKey();
 						int min = observation.getValue().getAsJsonArray().get(0).getAsInt();
 						int max = observation.getValue().getAsJsonArray().get(1).getAsInt();
-						String value = String.format("%.2f", min + (Math.random() * (max-min)));
-						
+						String value = String.format("%.2f", min + (Math.random() * (max - min)));
+
 						try {
 							mqttMessage(topic, value);
 						} catch (Exception e) {
 							logger.error(e.getMessage());
 						}
-						
+
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {
@@ -286,65 +305,68 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 				}
 			}
 		}.start();
-		
-//		new Thread() {
-//			public void run() {
-//				// 6LowPan
-//				// e.g. pepoli:6lowpan:network = | ID: NODO1 | Temperature: 24.60 | Humidity:
-//				// 35.40 | Pressure: 1016.46
-//				String pattern6LowPan = " | ID: %s | Temperature: %.2f | Humidity: %.2f | Pressure: %.2f";
-//				String[] nodes6LowPan = { "NODO1", "NODO2", "NODO3" };
-//				String topicLowPan = "pepoli:6lowpan:network";
-//
-//				// LoRa
-//				// e.g. {"moistureValue":3247, "nodeId":"device3",
-//				// "timestamp":"2017-11-15T10:00:02.123028089Z"}
-//				String patternLoRa = "{\"moistureValue\":%.2f, \"nodeId\":\"%s\", \"timestamp\":\"2017-11-15T10:00:02.123028089Z\"}";
-//				String[] nodesLoRa = { "device1", "device2" };
-//				String topicLoRa = "ground/lora/moisture";
-//
-//				while (true) {
-//
-//					for (String node : nodes6LowPan) {
-//						for (int j = 0; j < 100; j++) {
-//							String value = String.format(pattern6LowPan, node, (float) j, (float)(100 - j),
-//									(float)(10 * j));
-//							try {
-//								mqttMessage(topicLowPan, value);
-//							} catch (Exception e) {
-//								logger.error(e.getMessage());
-//							}
-//						}
-//					}
-//
-//					for (String device : nodesLoRa) {
-//						for (int j = 0; j < 100; j++) {
-//							String value = String.format(patternLoRa, (float) j, device);
-//							try {
-//								mqttMessage(topicLoRa, value);
-//							} catch (Exception e) {
-//								logger.error(e.getMessage());
-//							}
-//						}
-//					}
-//
-//					for (int i = 0; i < 35; i = i + 5) {
-//						for (String topic : topic2observation.keySet()) {
-//							if (topic.startsWith(topicLowPan.replace(":", "/")))
-//								continue;
-//							if (topic.startsWith(topicLoRa.replace(":", "/")))
-//								continue;
-//
-//							try {
-//								mqttMessage(topic, String.format("%d", 10 + i));
-//							} catch (Exception e) {
-//								logger.error(e.getMessage());
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}.start();
+
+		// new Thread() {
+		// public void run() {
+		// // 6LowPan
+		// // e.g. pepoli:6lowpan:network = | ID: NODO1 | Temperature: 24.60 | Humidity:
+		// // 35.40 | Pressure: 1016.46
+		// String pattern6LowPan = " | ID: %s | Temperature: %.2f | Humidity: %.2f |
+		// Pressure: %.2f";
+		// String[] nodes6LowPan = { "NODO1", "NODO2", "NODO3" };
+		// String topicLowPan = "pepoli:6lowpan:network";
+		//
+		// // LoRa
+		// // e.g. {"moistureValue":3247, "nodeId":"device3",
+		// // "timestamp":"2017-11-15T10:00:02.123028089Z"}
+		// String patternLoRa = "{\"moistureValue\":%.2f, \"nodeId\":\"%s\",
+		// \"timestamp\":\"2017-11-15T10:00:02.123028089Z\"}";
+		// String[] nodesLoRa = { "device1", "device2" };
+		// String topicLoRa = "ground/lora/moisture";
+		//
+		// while (true) {
+		//
+		// for (String node : nodes6LowPan) {
+		// for (int j = 0; j < 100; j++) {
+		// String value = String.format(pattern6LowPan, node, (float) j, (float)(100 -
+		// j),
+		// (float)(10 * j));
+		// try {
+		// mqttMessage(topicLowPan, value);
+		// } catch (Exception e) {
+		// logger.error(e.getMessage());
+		// }
+		// }
+		// }
+		//
+		// for (String device : nodesLoRa) {
+		// for (int j = 0; j < 100; j++) {
+		// String value = String.format(patternLoRa, (float) j, device);
+		// try {
+		// mqttMessage(topicLoRa, value);
+		// } catch (Exception e) {
+		// logger.error(e.getMessage());
+		// }
+		// }
+		// }
+		//
+		// for (int i = 0; i < 35; i = i + 5) {
+		// for (String topic : topic2observation.keySet()) {
+		// if (topic.startsWith(topicLowPan.replace(":", "/")))
+		// continue;
+		// if (topic.startsWith(topicLoRa.replace(":", "/")))
+		// continue;
+		//
+		// try {
+		// mqttMessage(topic, String.format("%d", 10 + i));
+		// } catch (Exception e) {
+		// logger.error(e.getMessage());
+		// }
+		// }
+		// }
+		// }
+		// }
+		// }.start();
 	}
 
 	public void stop() {
@@ -383,6 +405,18 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onSubscribe(String spuid, String alias) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void onUnsubscribe(String spuid) {
 		// TODO Auto-generated method stub
 
 	}

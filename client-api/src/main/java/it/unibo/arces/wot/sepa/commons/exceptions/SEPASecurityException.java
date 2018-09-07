@@ -9,4 +9,8 @@ public class SEPASecurityException extends Exception {
 	public SEPASecurityException(Throwable e){
 		super.initCause(e);
 	}
+
+	public SEPASecurityException(String string) {
+		super.initCause(new Exception(string));
+	}
 }

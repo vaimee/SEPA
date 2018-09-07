@@ -22,7 +22,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class RegistrationRequest.
  */

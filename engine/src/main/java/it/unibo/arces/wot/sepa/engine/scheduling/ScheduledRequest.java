@@ -1,23 +1,32 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
-import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 
 public class ScheduledRequest {
-	private Request request = null;
+	private InternalRequest request = null;
 	private ResponseHandler handler = null;
+	private int token;
 	
-	public ScheduledRequest(int token,Request request,ResponseHandler handler) {
+	public ScheduledRequest(int token,InternalRequest request,ResponseHandler handler) {
 		this.request = request;
-		this.request.setToken(token);
 		this.handler = handler;
+		this.token = token;
 	}
 	
-	public Request getRequest() {
+	@Override
+	public String toString() {
+		return "REQUEST #"+token+" : "+request.toString();
+	}
+	
+	public int getToken() {
+		return token;
+	}
+	
+	public InternalRequest getRequest() {
 		return request;
 	}
 	
-	public ResponseHandler getHandler() {
+	public ResponseHandler getResponseHandler() {
 		return handler;
 	}
 	

@@ -33,7 +33,12 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	private String serverURI = null;
 
 	public static void main(String[] args) throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		MQTTAdapter adapter = new MQTTAdapter();
+		if (args.length != 1) {
+			logger.error("Please provide the jsap file as argument");
+			System.exit(-1);
+		}
+		
+		MQTTAdapter adapter = new MQTTAdapter(args[0]);
 		adapter.start();
 		
 		System.out.println("Press any key to exit...");
@@ -43,8 +48,8 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		adapter.close();
 	}
 	
-	public MQTTAdapter() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("swamp-demo.jsap"), "MQTT_MESSAGE");
+	public MQTTAdapter(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(new JSAP(jsap), "MQTT_MESSAGE");
 	}
 
 	@Override
@@ -97,9 +102,9 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	}
 
 	public boolean start() throws SEPASecurityException {
-		/*
+		/* SWAMP: mosquitto_sub -h eu.thethings.network -p 1883 -u swamp -P ttn-account-v2.ES-s-MdMIHv8Z8HI5BR0FHzRjLD0WEmySE7cYM-Kepg -d -t 'swamp/devices/moisture1/up'
 		 * test.mosquitto.org 1883
-		 * giove.arces.unibo.it 52877
+		 * ARCES: giove.arces.unibo.it 52877
 		 * 
 		 * */
 		// MQTT
@@ -125,6 +130,16 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		} else {
 			serverURI = "tcp://" + url + ":" + String.format("%d", port);
 		}
+		
+		String userName = null;
+		if (mqtt.has("username")) {
+			userName = mqtt.get("username").getAsString();
+		}
+		
+		String password = null;
+		if (mqtt.has("password")) {
+			password = mqtt.get("password").getAsString();
+		}
 
 		// Create client
 		logger.info("Creating MQTT client...");
@@ -138,8 +153,8 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 			return false;
 		}
 
-		// Connect
-		logger.info("Connecting...");
+		// Options
+		logger.info("Setting options");
 		MqttConnectOptions options = new MqttConnectOptions();
 		if (sslEnabled) {
 			logger.info("Set SSL security");
@@ -147,6 +162,17 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 			SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
 			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
 		}
+		if (userName != null) {
+			logger.info("Set username: "+userName);
+			options.setUserName(userName);
+		}
+		if (password != null) {
+			logger.info("Set password: "+password);
+			options.setPassword(password.toCharArray());
+		}
+		
+		// Connect
+		logger.info("Connecting...");
 		try {
 			mqttClient.connect(options);
 		} catch (MqttException e) {
@@ -163,7 +189,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 			return false;
 		}
 
-		String printTopics = "Topic filter ";
+		String printTopics = " Topics: ";
 		for (String s : topicsFilter) {
 			printTopics += s + " ";
 		}

@@ -1,70 +1,69 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
-import java.io.IOException;
-import java.time.Instant;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.java_websocket.WebSocket;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-//import it.unibo.arces.wot.sepa.commons.response.Ping;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
+import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 
-public class WebsocketEventHandler implements EventHandler {
+public class WebsocketEventHandler implements EventHandler ,ResponseHandler {
 	private static final Logger logger = LogManager.getLogger();
 	
-	private WebSocket socket;
-	private WebsocketBeans jmx;
-	private Instant start;
+	private final WebSocket socket;
 	
 	// Dependability manager
-	private DependabilityManager dependabilityMng;
+	private final DependabilityManager dependabilityMng;
 	
-	public WebsocketEventHandler(WebSocket s,WebsocketBeans jmx,DependabilityManager dependabilityMng){
-		socket = s;
-		this.jmx = jmx;
+	public WebsocketEventHandler(WebSocket s,DependabilityManager dependabilityMng){
+		this.socket = s;
 		this.dependabilityMng = dependabilityMng;
 	}
 	
-	private void send(Response ret) throws IOException {
+	private void send(Response ret) throws SEPAProtocolException {
 		try{
 			socket.send(ret.toString());
 		}
 		catch(WebsocketNotConnectedException e){
-			throw new IOException(e.getMessage());
+			logger.error("Socket: "+socket.hashCode()+" failed to send response: "+ret+" Exception:"+e.getMessage());
+			throw new SEPAProtocolException(e.getMessage());
 		}	
 	}
 	
-	public void startTiming() {
-		start = Instant.now();
-	}
-	
 	@Override
-	public void sendResponse(Response response) throws IOException {
-		long timing = 0;
+	public void sendResponse(Response response) throws SEPAProtocolException {		
+		logger.trace(response);
+		
 		if (response.isSubscribeResponse()) {
-			timing = jmx.subscribeTimings(start);
-			dependabilityMng.onSubscribe(socket, ((SubscribeResponse)response).getSpuid());
+			WebsocketBeans.subscribeResponse();
+			dependabilityMng.onSubscribe(socket.hashCode(), ((SubscribeResponse)response).getSpuid());
 		}
 		else if (response.isUnsubscribeResponse()) {
-			timing = jmx.unsubscribeTimings(start);
-			dependabilityMng.onUnsubscribe(socket, ((UnsubscribeResponse)response).getSpuid());
+			WebsocketBeans.unsubscribeResponse();
+			dependabilityMng.onUnsubscribe(socket.hashCode(), ((UnsubscribeResponse)response).getSpuid());
 		}
-			
-		logger.debug("Response #"+response.getToken()+" ("+timing+" ms)");
-		logger.trace(response);
+		else if (response.isError()) {
+			WebsocketBeans.errorResponse();
+			logger.error(response);
+			dependabilityMng.onError(socket.hashCode(), (ErrorResponse)response);
+		}
+		
 		send(response);
 	}
 
 	@Override
-	public void notifyEvent(Notification notify) throws IOException {
+	public void notifyEvent(Notification notify) throws SEPAProtocolException {
+		WebsocketBeans.notification();
+		
 		send(notify);
 	}
 }

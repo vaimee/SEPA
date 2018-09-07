@@ -29,14 +29,14 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 	public void sendResponse(Response response) {
 		if (response.isError()) {
 			ErrorResponse err = (ErrorResponse) response;
-			HttpUtilities.sendResponse(handler,err.getErrorCode(),response.toString());
+			HttpUtilities.sendFailureResponse(handler,err);
 		}
 		else
 			HttpUtilities.sendResponse(handler, HttpStatus.SC_OK, response.toString());
 		
 		Timings.log(response);
 		jmx.stop(handler);
-		logger.debug("Response sent #"+response.getToken());	
+		logger.trace(response);	
 	}
 
 }

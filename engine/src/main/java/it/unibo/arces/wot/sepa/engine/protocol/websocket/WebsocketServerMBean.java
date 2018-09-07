@@ -8,4 +8,12 @@ public interface WebsocketServerMBean {
 	public long getFragmented();
 	
 	public long getErrors();
+	
+	public long getErrorResponses();
+	
+	public long getSubscribeResponse();
+	
+	public long getUnsubscribeResponse();
+
+	public long getNotifications();
 }

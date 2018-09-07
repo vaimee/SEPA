@@ -5,58 +5,64 @@ import java.util.HashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.java_websocket.WebSocket;
 
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue;
 
 public class DependabilityManager {
-	private static final Logger logger = LogManager.getLogger("DependabilityManager");
+	private static final Logger logger = LogManager.getLogger();
 
-	// Active sockets
-	private HashMap<WebSocket, ArrayList<String>> subscriptions = new HashMap<WebSocket, ArrayList<String>>();
+	// Active subscriptions
+	private static final HashMap<Integer, ArrayList<String>> subscriptions = new HashMap<Integer, ArrayList<String>>();
 
-	// To send unsubscribe requests for broken sockets
-	private Scheduler scheduler;
+	// Scheduler queue
+	private final SchedulerQueue schedulerQueue;
 
-	public DependabilityManager(Scheduler scheduler) {
-		this.scheduler = scheduler;
+	public DependabilityManager(SchedulerQueue schedulerQueue) {
+		this.schedulerQueue = schedulerQueue;
 	}
 
-	public void onSubscribe(WebSocket conn, String spuid) {
-		if (!subscriptions.containsKey(conn))
-			subscriptions.put(conn, new ArrayList<String>());
-		subscriptions.get(conn).add(spuid);
-	}
+	public synchronized void onSubscribe(Integer hash, String spuid) {
+		logger.debug("@onSubscribe: " + hash + " SPUID: " + spuid);
 
-	public void onUnsubscribe(WebSocket conn, String spuid) {
-		if (subscriptions.containsKey(conn)) {
-			subscriptions.get(conn).remove(spuid);
-			if (subscriptions.get(conn).isEmpty())
-				subscriptions.remove(conn);
-		}
-	}
-
-	public void onBrokenSocket(WebSocket conn) {
-		if (!subscriptions.containsKey(conn)) return;
+		if (!subscriptions.containsKey(hash))
+			subscriptions.put(hash, new ArrayList<String>());
+		subscriptions.get(hash).add(spuid);
 		
-		logger.info(String.format("Broken socket with %d active subscriptions", subscriptions.get(conn).size()));
+		logger.debug("Active subscriptions: "+subscriptions.size());
+	}
 
-		// Kill all the SPUs
-		for (String spuid : subscriptions.get(conn)) {
-			scheduler.schedule(new UnsubscribeRequest(spuid), null);
-		}
+	public synchronized void onUnsubscribe(Integer hash, String spuid) {
+		logger.debug("@onUnsubscribe: " + hash + " SPUID: " + spuid);
+
+		subscriptions.get(hash).remove(spuid);
+		if (subscriptions.get(hash).isEmpty())
+			subscriptions.remove(hash);
 		
+		logger.debug("Active subscriptions: "+subscriptions.size());
+	}
+
+	public synchronized void onBrokenSocket(Integer hash) {
+		logger.debug("@onBrokenSocket: " + hash);
+
+		if (!subscriptions.containsKey(hash)) return;
+
+		logger.debug(String.format("Broken socket with active subscriptions: %d", subscriptions.get(hash).size()));
+
+		// Kill all SPUs
+		for (String spuid : subscriptions.get(hash)) {
+			logger.debug("Schedule request to kill SPU: " + spuid);
+			schedulerQueue.killSpuid(spuid);
+		}
+
 		// Remove subscriptions
-		subscriptions.remove(conn);
+		subscriptions.remove(hash);
+		
+		logger.debug("Active subscriptions: "+subscriptions.size());
+
 	}
 
-	/*
-	 * @Override public void sendResponse(Response response) throws IOException { if
-	 * (response.isUnsubscribeResponse()) { UnsubscribeResponse ret =
-	 * (UnsubscribeResponse) response; String spuid = ret.getSpuid();
-	 * synchronized(unsubscribeList) { unsubscribeList.remove(spuid);
-	 * logger.info(String.format("Pending unsubscribe requests: %d",
-	 * unsubscribeList.size())); } } }
-	 */
+	public void onError(Integer hash, ErrorResponse error) {
+		logger.error("Subscription:" + hash + " error:" + error);
+	}
 }

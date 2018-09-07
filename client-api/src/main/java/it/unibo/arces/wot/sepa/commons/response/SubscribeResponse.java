@@ -23,7 +23,6 @@ import com.google.gson.JsonPrimitive;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
-// TODO: Auto-generated Javadoc
 /**
  * This class represents the response to a SPARQL 1.1 Subscribe (see SPARQL 1.1
  * Subscription Language)
@@ -35,38 +34,9 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public class SubscribeResponse extends Response {
 
-	public SubscribeResponse(JsonObject response){
-		json = response;
-	}
-
 	public BindingsResults getBindingsResults() {
 		return new BindingsResults(json.get("notification").getAsJsonObject().get("addedResults").getAsJsonObject());
 	}
-	
-	/**
-	 * Instantiates a new subscribe response.
-	 *
-	 * @param token
-	 *            the token
-	 * @param spuid
-	 *            the spuid
-	 */
-	public SubscribeResponse(Integer token, String spuid,BindingsResults firstResults) {
-		super(token);
-
-		JsonObject response = new JsonObject();
-		
-		if (spuid != null)
-			response.add("spuid", new JsonPrimitive(spuid));
-		
-		response.add("sequence", new JsonPrimitive(0));
-		
-		response.add("addedResults", new BindingsResults(firstResults).toJson());
-		if (firstResults != null) response.add("removedResults", new BindingsResults(firstResults.getVariables(),null).toJson());
-		else response.add("removedResults", new JsonObject());
-			
-		json.add("notification", response);
-	}
 
 	/**
 	 * Instantiates a new subscribe response.
@@ -78,13 +48,14 @@ public class SubscribeResponse extends Response {
 	 * @param alias
 	 *            the alias
 	 */
-	public SubscribeResponse(Integer token, String spuid, String alias,BindingsResults firstResults) {
-		super(token);
+	public SubscribeResponse(String spuid, String alias,BindingsResults firstResults) {
+		super();
 
 		JsonObject response = new JsonObject();
 		
-		if (spuid != null)
-			response.add("spuid", new JsonPrimitive(spuid));
+		if (spuid == null) throw new IllegalArgumentException("SPUID is null");
+		response.add("spuid", new JsonPrimitive(spuid));
+		
 		if (alias != null)
 			response.add("alias", new JsonPrimitive(alias));
 		
@@ -97,59 +68,8 @@ public class SubscribeResponse extends Response {
 		json.add("notification", response);
 	}
 
-	/**
-	 * Instantiates a new subscribe response.
-	 *
-	 * @param spuid
-	 *            the spuid
-	 */
-	public SubscribeResponse(String spuid) {
-		super();
-
-		JsonObject response = new JsonObject();
-		
-		if (spuid != null)
-			response.add("spuid", new JsonPrimitive(spuid));
-		
-		response.add("sequence", new JsonPrimitive(0));
-		
-		response.add("addedResults", new JsonObject());
-		response.add("removedResults", new JsonObject());
-		
-		json.add("notification", response);
-	}
-
-	/**
-	 * Instantiates a new subscribe response.
-	 */
-	public SubscribeResponse() {
-		super();
-	}
-
-	/**
-	 * Instantiates a new subscribe response.
-	 *
-	 * @param spuid
-	 *            the spuid
-	 * @param alias
-	 *            the alias
-	 */
-	public SubscribeResponse(String spuid, String alias) {
-		super();
-
-		JsonObject response = new JsonObject();
-		
-		if (spuid != null)
-			response.add("spuid", new JsonPrimitive(spuid));
-		if (alias != null)
-			response.add("alias", new JsonPrimitive(alias));
-		
-		response.add("sequence", new JsonPrimitive(0));
-		
-		response.add("addedResults", new JsonObject());
-		response.add("removedResults", new JsonObject());
-				
-		json.add("notification", response);
+	public SubscribeResponse(JsonObject jsonMessage) {
+		json = jsonMessage;
 	}
 
 	/**

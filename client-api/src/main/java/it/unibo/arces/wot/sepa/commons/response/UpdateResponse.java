@@ -23,39 +23,11 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-// TODO: Auto-generated Javadoc
 /**
  * This class represents the response of a SPARQL 1.1 Update
  */
 
 public class UpdateResponse extends Response {
-
-	/**
-	 * Instantiates a new update response.
-	 *
-	 * @param token
-	 *            the token
-	 * @param body
-	 *            the body
-	 */
-	public UpdateResponse(Integer token, String body) {
-		super(token);
-
-		try {
-			JsonObject jbody = new JsonParser().parse(body).getAsJsonObject();
-			
-			json.add("updateResponse", new JsonObject());
-			json.get("updateResponse").getAsJsonObject().add("body", jbody);
-			json.get("updateResponse").getAsJsonObject().add("isJsonBody", new JsonPrimitive(true));
-			
-		}
-		catch(Exception e) {
-			json.add("updateResponse", new JsonObject());
-			json.get("updateResponse").getAsJsonObject().add("body", new JsonPrimitive(body));
-			json.get("updateResponse").getAsJsonObject().add("isJsonBody", new JsonPrimitive(false));
-		}
-	}
-
 	/**
 	 * Instantiates a new update response.
 	 *
@@ -78,10 +50,5 @@ public class UpdateResponse extends Response {
 			json.get("response").getAsJsonObject().add("body", new JsonPrimitive(body));
 			json.get("response").getAsJsonObject().add("isJson", new JsonPrimitive(false));
 		}
-	}
-
-	public UpdateResponse(UpdateResponse ret) {
-		super(ret.getToken());
-		json = ret.json;
 	}
 }
