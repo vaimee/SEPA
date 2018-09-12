@@ -13,7 +13,7 @@ import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
-public class SPARQL11ResponseHandler implements ResponseHandler {
+public class SPARQL11ResponseHandler extends ResponseHandler {
 	protected final Logger logger = LogManager.getLogger();
 	
 	private HttpAsyncExchange handler;
@@ -38,5 +38,4 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 		jmx.stop(handler);
 		logger.trace(response);	
 	}
-
 }

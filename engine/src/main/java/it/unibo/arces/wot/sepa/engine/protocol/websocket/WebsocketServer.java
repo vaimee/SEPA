@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -26,7 +27,6 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
-import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
@@ -53,18 +53,20 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	// Active sockets
 	protected final HashMap<WebSocket, WebsocketEventHandler> activeSockets = new HashMap<WebSocket, WebsocketEventHandler>();
 
+	// Sockets UUIDs
+	protected final HashMap<WebSocket, UUID> uuids = new HashMap<WebSocket, UUID>();
+	
 	// Dependability manager
-	private final DependabilityManager dependabilityMng;
+	//private final DependabilityManager dependabilityMng;
 
-	public WebsocketServer(int port, String path, Scheduler scheduler, DependabilityManager dependabilityMng)
+	public WebsocketServer(int port, String path, Scheduler scheduler)
 			throws SEPAProtocolException {
 		super(new InetSocketAddress(port));
 
-		if (path == null || scheduler == null || dependabilityMng == null)
+		if (path == null || scheduler == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("One or more arguments are null"));
 
 		this.scheduler = scheduler;
-		this.dependabilityMng = dependabilityMng;
 		this.path = path;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
@@ -87,13 +89,23 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 		if (!conn.getResourceDescriptor().equals(path)) {
 			logger.warn("Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND,"wrong_path",
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "wrong_path",
 					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 			conn.send(response.toString());
 			return;
 		}
 
 		fragmentedMessages.put(conn, null);
+
+		// Add active socket
+		if (!activeSockets.containsKey(conn)) {
+			WebsocketEventHandler handler = new WebsocketEventHandler(conn);
+			
+			uuids.put(conn, handler.getUUID());
+			activeSockets.put(conn,handler);
+			
+			logger.debug("Handler UUID: "+handler.getUUID()+" Total handlers: "+activeSockets.size());
+		}
 	}
 
 	@Override
@@ -106,7 +118,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		fragmentedMessages.remove(conn);
 
 		// KILL ALL SPUs
-		dependabilityMng.onBrokenSocket(conn.hashCode());
+		scheduler.onBrokenSubscription(uuids.get(conn));
 
 		// Remove active socket
 		activeSockets.remove(conn);
@@ -120,15 +132,10 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 		if (!conn.getResourceDescriptor().equals(path)) {
 			logger.warn("Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND,"wrong_path",
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "wrong_path",
 					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 			conn.send(response.toString());
 			return;
-		}
-
-		// Add active socket
-		if (!activeSockets.containsKey(conn)) {
-			activeSockets.put(conn, new WebsocketEventHandler(conn, dependabilityMng));
 		}
 
 		// Parse the request
@@ -145,8 +152,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		ScheduledRequest request = scheduler.schedule(req, activeSockets.get(conn));
 		if (request == null) {
 			logger.error("Out of tokens");
-			ErrorResponse response = new ErrorResponse(429,"too_many_requests",
-					"Too many pending requests");
+			ErrorResponse response = new ErrorResponse(429, "too_many_requests", "Too many pending requests");
 			conn.send(response.toString());
 		}
 	}
@@ -177,7 +183,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
 		} catch (JsonParseException e) {
-			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException","JsonParseException: " + request);
+			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException",
+					"JsonParseException: " + request);
 			conn.send(error.toString());
 			logger.error(error);
 			return null;
@@ -192,7 +199,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			try {
 				sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
 			} catch (Exception e) {
-				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception","sparql member not found: " + request);
+				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception",
+						"sparql member not found: " + request);
 				conn.send(error.toString());
 				logger.error(error);
 				return null;
@@ -213,13 +221,13 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			} catch (Exception e) {
 			}
 
-			return new InternalSubscribeRequest(sparql, alias, defaultGraphUri, namedGraphUri,activeSockets.get(conn));
+			return new InternalSubscribeRequest(sparql, alias, defaultGraphUri, namedGraphUri, activeSockets.get(conn));
 		} else if (req.has("unsubscribe")) {
 			String spuid;
 			try {
 				spuid = req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString();
 			} catch (Exception e) {
-				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception","spuid member not found: " + request);
+				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception", "spuid member not found: " + request);
 				conn.send(error.toString());
 				return null;
 			}
@@ -227,7 +235,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			return new InternalUnsubscribeRequest(spuid);
 		}
 
-		error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unsupported","Bad request: " + request);
+		error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unsupported", "Bad request: " + request);
 		conn.send(error.toString());
 		return null;
 	}
@@ -320,7 +328,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	public long getUnsubscribeResponse() {
 		return WebsocketBeans.getUnsubscribeResponses();
 	}
-	
+
 	@Override
 	public long getNotifications() {
 		return WebsocketBeans.getNotifications();

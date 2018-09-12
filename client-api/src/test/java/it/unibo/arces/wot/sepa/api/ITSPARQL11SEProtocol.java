@@ -236,7 +236,7 @@ public class ITSPARQL11SEProtocol {
 
 		for (Subscriber sub : subscribers) {
 			sub.subscribe();
-			Thread.sleep(500);
+			//Thread.sleep(500);
 		}
 
 		sync.waitSubscribes(subscribers.size());

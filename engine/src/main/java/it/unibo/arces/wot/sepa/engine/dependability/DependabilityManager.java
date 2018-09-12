@@ -2,6 +2,7 @@ package it.unibo.arces.wot.sepa.engine.dependability;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,7 +14,7 @@ public class DependabilityManager {
 	private static final Logger logger = LogManager.getLogger();
 
 	// Active subscriptions
-	private static final HashMap<Integer, ArrayList<String>> subscriptions = new HashMap<Integer, ArrayList<String>>();
+	private static final HashMap<UUID, ArrayList<String>> subscriptions = new HashMap<UUID, ArrayList<String>>();
 
 	// Scheduler queue
 	private final SchedulerQueue schedulerQueue;
@@ -22,47 +23,48 @@ public class DependabilityManager {
 		this.schedulerQueue = schedulerQueue;
 	}
 
-	public synchronized void onSubscribe(Integer hash, String spuid) {
-		logger.debug("@onSubscribe: " + hash + " SPUID: " + spuid);
+	public synchronized void onSubscribe(UUID uuid, String spuid) {
+		if (uuid == null || spuid == null) {
+			logger.error("Some values are null. UUID: "+uuid+" SPUID: "+spuid);
+			return;
+		}
+		
+		if (!subscriptions.containsKey(uuid))
+			subscriptions.put(uuid, new ArrayList<String>());
+		subscriptions.get(uuid).add(spuid);
+		
+		logger.debug("@onSubscribe Subscriptions: " + subscriptions.size()+" Handlers (" + uuid + "): " + subscriptions.get(uuid).size());
+	}
 
-		if (!subscriptions.containsKey(hash))
-			subscriptions.put(hash, new ArrayList<String>());
-		subscriptions.get(hash).add(spuid);
+	public synchronized void onUnsubscribe(UUID uuid, String spuid) {
+		logger.debug("@onUnsubscribe: " + uuid + " SPUID: " + spuid);
+
+		subscriptions.get(uuid).remove(spuid);
+		if (subscriptions.get(uuid).isEmpty())
+			subscriptions.remove(uuid);
 		
 		logger.debug("Active subscriptions: "+subscriptions.size());
 	}
 
-	public synchronized void onUnsubscribe(Integer hash, String spuid) {
-		logger.debug("@onUnsubscribe: " + hash + " SPUID: " + spuid);
+	public synchronized void onBrokenSubscription(UUID uuid) {
+		if (!subscriptions.containsKey(uuid)) {
+			logger.warn("Broken socket not registered: "+uuid);
+			return;
+		}
 
-		subscriptions.get(hash).remove(spuid);
-		if (subscriptions.get(hash).isEmpty())
-			subscriptions.remove(hash);
-		
-		logger.debug("Active subscriptions: "+subscriptions.size());
-	}
-
-	public synchronized void onBrokenSocket(Integer hash) {
-		logger.debug("@onBrokenSocket: " + hash);
-
-		if (!subscriptions.containsKey(hash)) return;
-
-		logger.debug(String.format("Broken socket with active subscriptions: %d", subscriptions.get(hash).size()));
+		logger.debug(String.format("@onBrokenSocket: " + uuid +" with active subscriptions: %d", subscriptions.get(uuid).size())+" (sockets opened: "+subscriptions.size()+")");
 
 		// Kill all SPUs
-		for (String spuid : subscriptions.get(hash)) {
-			logger.debug("Schedule request to kill SPU: " + spuid);
+		for (String spuid : subscriptions.get(uuid)) {
+			logger.trace("Schedule request to kill SPU: " + spuid);
 			schedulerQueue.killSpuid(spuid);
 		}
 
 		// Remove subscriptions
-		subscriptions.remove(hash);
-		
-		logger.debug("Active subscriptions: "+subscriptions.size());
-
+		subscriptions.remove(uuid);
 	}
 
-	public void onError(Integer hash, ErrorResponse error) {
-		logger.error("Subscription:" + hash + " error:" + error);
+	public void onError(UUID uuid, ErrorResponse error) {
+		logger.error("Subscription:" + uuid + " error:" + error);
 	}
 }

@@ -6,27 +6,19 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
-import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 
-public class WebsocketEventHandler implements EventHandler ,ResponseHandler {
+public class WebsocketEventHandler extends ResponseHandler implements EventHandler {
 	private static final Logger logger = LogManager.getLogger();
 	
 	private final WebSocket socket;
 	
-	// Dependability manager
-	private final DependabilityManager dependabilityMng;
-	
-	public WebsocketEventHandler(WebSocket s,DependabilityManager dependabilityMng){
+	public WebsocketEventHandler(WebSocket s){
 		this.socket = s;
-		this.dependabilityMng = dependabilityMng;
 	}
 	
 	private void send(Response ret) throws SEPAProtocolException {
@@ -42,20 +34,7 @@ public class WebsocketEventHandler implements EventHandler ,ResponseHandler {
 	@Override
 	public void sendResponse(Response response) throws SEPAProtocolException {		
 		logger.trace(response);
-		
-		if (response.isSubscribeResponse()) {
-			WebsocketBeans.subscribeResponse();
-			dependabilityMng.onSubscribe(socket.hashCode(), ((SubscribeResponse)response).getSpuid());
-		}
-		else if (response.isUnsubscribeResponse()) {
-			WebsocketBeans.unsubscribeResponse();
-			dependabilityMng.onUnsubscribe(socket.hashCode(), ((UnsubscribeResponse)response).getSpuid());
-		}
-		else if (response.isError()) {
-			WebsocketBeans.errorResponse();
-			logger.error(response);
-			dependabilityMng.onError(socket.hashCode(), (ErrorResponse)response);
-		}
+
 		
 		send(response);
 	}

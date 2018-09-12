@@ -44,7 +44,7 @@ public class SubscribeProcessorBeans {
 		return requests;
 	}
 	
-	public static long getSPUs_current() {
+	public synchronized static long getSPUs_current() {
 		return activeSPUs;
 	}
 
@@ -52,7 +52,7 @@ public class SubscribeProcessorBeans {
 		return maxActiveSPUs;
 	}
 	
-	public static  void setActiveSPUs(long n) {
+	public synchronized static  void setActiveSPUs(long n) {
 		activeSPUs = n;
 		if (activeSPUs > maxActiveSPUs) maxActiveSPUs = activeSPUs;
 	}
@@ -131,16 +131,16 @@ public class SubscribeProcessorBeans {
 		SPUProcessingTimeout = t;
 	}
 
-	public static void registerHandler() {
+	public synchronized static void addSubscriber() {
 		subscribers++;
 		if (subscribers > subscribers_max) subscribers_max = subscribers;
 	}
 	
-	public static void unregisterHandler() {
+	public synchronized static void removeSubscriber() {
 		subscribers--;
 	}
 	
-	public static int getSubscribers() {
+	public synchronized static int getSubscribers() {
 		return subscribers;
 	}
 
