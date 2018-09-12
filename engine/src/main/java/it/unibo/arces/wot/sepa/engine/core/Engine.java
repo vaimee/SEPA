@@ -42,7 +42,6 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
-import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
@@ -86,9 +85,6 @@ public class Engine implements EngineMBean {
 
 	// Oauth 2.0 Authorization Server
 	private AuthorizationManager oauth;
-
-	// Dependability manager
-	private DependabilityManager dependabilityMng;
 
 	// JKS Credentials
 	private String storeName = "sepa.jks";
@@ -243,9 +239,6 @@ public class Engine implements EngineMBean {
 		scheduler = new Scheduler(properties);
 		scheduler.start();
 
-		// Dependability manager
-		dependabilityMng = new DependabilityManager(scheduler.getSchedulerQueue());
-
 		// SEPA Processor
 		try {
 			processor = new Processor(endpointProperties, properties, scheduler.getSchedulerQueue());
@@ -316,8 +309,7 @@ public class Engine implements EngineMBean {
 		System.out.println("----------------------");
 
 		if (!properties.isSecure()) {
-			wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler,
-					dependabilityMng);
+			wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler);
 			wsServer.start();
 			synchronized (wsServer) {
 				try {
@@ -328,7 +320,7 @@ public class Engine implements EngineMBean {
 			}
 		} else {
 			wssServer = new SecureWebsocketServer(properties.getWssPort(),
-					properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth, dependabilityMng);
+					properties.getSecurePath() + properties.getSubscribePath(), scheduler, oauth);
 
 			wssServer.start();
 			synchronized (wssServer) {

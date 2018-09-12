@@ -1,9 +1,9 @@
 package it.unibo.arces.wot.sepa.commons.security;
 
-import it.unibo.arces.wot.sepa.api.ConfigurationProvider;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import it.unibo.arces.wot.sepa.api.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -15,18 +15,21 @@ import static org.junit.Assert.*;
 
 public class ITSEPASecurityManager {
 	private static SEPASecurityManager sm = null;
-
+	private static JSAP app = null;
+	
 	private String testId = "SEPATest";
 	private String notAllowedId = "IamNotAllowedToRegister";
 	
 	@BeforeClass
 	public static void init() throws SEPAPropertiesException, SEPASecurityException {
-		JSAP app = ConfigurationProvider.GetTestEnvConfiguration();
+		app = ConfigurationProvider.GetTestEnvConfiguration();
 		if (app.isSecure()) sm = new SEPASecurityManager(app.getAuthenticationProperties());
 	}
 
 	@Test(timeout = 2000)
 	public void Register() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException  {
+		if (sm == null && !app.isSecure()) return;
+		
 		Response ret = sm.register(testId);
 		assertFalse(String.valueOf(ret),ret.isError());
 		
@@ -36,6 +39,8 @@ public class ITSEPASecurityManager {
 	
 	@Test(timeout = 15000)
 	public void GetAuthorizationHeader() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
+		if (sm == null && !app.isSecure()) return;
+		
 		Response ret = sm.register(testId);
 		assertFalse(String.valueOf(ret),ret.isError());
 		

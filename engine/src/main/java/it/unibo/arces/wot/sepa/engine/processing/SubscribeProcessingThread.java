@@ -27,7 +27,7 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 	// Maps
 	private static final HashMap<String, ArrayList<String>> activeSpus = new HashMap<String, ArrayList<String>>();
 	private static final HashMap<String, String> spuids = new HashMap<String, String>();
-	private static final HashMap<String, EventHandler> handlers = new HashMap<String, EventHandler>();
+	private static final HashMap<String, EventHandler> subscribers = new HashMap<String, EventHandler>();
 	private static final HashMap<String, Integer> sequenceNumbers = new HashMap<String, Integer>();
 
 	// Broken SPUs disposer
@@ -43,9 +43,10 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 				while (processor.isRunning()) {
 					try {
 						String spuid = processor.getSchedulerQueue().waitSpuid2Kill();
-						synchronized (activeSpus) {
-							unregisterHandler(spuids.get(spuid), spuid);
-						}
+//						synchronized (activeSpus) {
+//							unregisterHandler(spuids.get(spuid), spuid);
+//						}
+						unsubscribe(spuid);
 					} catch (InterruptedException e) {
 						return;
 					}
@@ -68,7 +69,7 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 			try {
 				// Wait request...
 				ScheduledRequest request = processor.getSchedulerQueue().waitSubscribeUnsubscribeRequest();
-				logger.debug(">> "+request);
+				logger.trace(">> "+request);
 
 				// Process request
 				Response response = null;
@@ -77,7 +78,7 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 				else if (request.isUnsubscribeRequest())
 					response = unsubscribe(((InternalUnsubscribeRequest) request.getRequest()).getSpuid());
 
-				logger.debug("<< "+response);
+				logger.trace("<< "+response);
 				
 				// Send back response
 				processor.getSchedulerQueue().addResponse(request.getToken(), response);
@@ -89,7 +90,7 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 		}
 	}
 
-	private Response subscribe(InternalSubscribeRequest req) {
+	private synchronized Response subscribe(InternalSubscribeRequest req) {
 		SubscribeProcessorBeans.subscribeRequest();
 		
 		EventHandler eventHandler = req.getEventHandler();
@@ -114,100 +115,106 @@ class SubscribeProcessingThread extends Thread implements SubscribeProcessingThr
 		return new SubscribeResponse(spuid, req.getAlias(), spu.getLastBindings());
 	}
 
-	private Response unsubscribe(String spuid) {
+	private synchronized Response unsubscribe(String spuid) {
 		SubscribeProcessorBeans.unsubscribeRequest();
 		
-		synchronized (activeSpus) {	
+		//synchronized (activeSpus) {	
 			String masterSpuid = spuids.get(spuid);
-			logger.debug("Master spuid: " + masterSpuid + " (" + spuid + ")");
+			logger.trace("@unsubscribe spuid: " + spuid);
 
-			if (masterSpuid == null)
+			if (masterSpuid == null) {
+				logger.error("SPUID not found: " + spuid);
 				return new ErrorResponse(404, "spuid_not_found", "SPUID not found: " + spuid);
+			}
 
 			// Unregister handler
 			unregisterHandler(masterSpuid, spuid);
-		}
+		//}
 
 		return new UnsubscribeResponse(spuid);
 	}
 
-	public void killSpu(String spuid) {
-		synchronized (activeSpus) {
-			unregisterHandler(spuids.get(spuid), spuid);
-		}
-	}
+//	public void killSpu(String spuid) {
+//		synchronized (activeSpus) {
+//			unregisterHandler(spuids.get(spuid), spuid);
+//		}
+//	}
 
 	@Override
-	public void notifyEvent(Notification notify) {
+	public synchronized void notifyEvent(Notification notify) {
 		// synchronized (handlers) {
 		logger.debug("@notifyEvent: " + notify);
 
 		String spuid = notify.getSpuid();
 
-		ArrayList<String> toBeKilled = new ArrayList<String>();
+//		ArrayList<String> toBeKilled = new ArrayList<String>();
 
-		synchronized (activeSpus) {
+		//synchronized (activeSpus) {
 			if (activeSpus.containsKey(spuid)) {
 				for (String client : activeSpus.get(spuid)) {
 					try {
 						// Dispatching events
 						Notification event = new Notification(client, notify.getARBindingsResults(),
 								sequenceNumbers.get(client));
-						handlers.get(client).notifyEvent(event);
+						subscribers.get(client).notifyEvent(event);
 						sequenceNumbers.put(client, sequenceNumbers.get(client) + 1);
 					} catch (Exception e) {
-						logger.error("@notifyEvent Client:" + client + " Notification: " + notify + " Exception:"
-								+ e.getMessage());
+						logger.error(e.getMessage());
 
-						// Handler is gone: unregister it
-						toBeKilled.add(client);
+//						// Handler is gone: unregister it
+//						toBeKilled.add(client);
 					}
 				}
 
-				for (String client : toBeKilled)
-					unregisterHandler(spuid, client);
+//				for (String client : toBeKilled)
+//					unregisterHandler(spuid, client);
 			}
-		}
+		//}
 	}
 
-	private void registerHandler(String masterSpuid, String spuid, EventHandler handler) {
-		logger.debug("Register SPU handler: " + spuid);
-
-		SubscribeProcessorBeans.registerHandler();
+	private synchronized void registerHandler(String masterSpuid, String spuid, EventHandler handler) {
+		logger.debug("SPU: "+masterSpuid + " register handler: " + spuid);
 		
-		synchronized (activeSpus) {
+		//synchronized (activeSpus) {
+			// Register subscriber
+			subscribers.put(spuid, handler);
+			sequenceNumbers.put(spuid, 1);
+			spuids.put(spuid, masterSpuid);
+			
+			SubscribeProcessorBeans.addSubscriber();
+			
+			// Link SPUID to active SPU
 			if (activeSpus.get(masterSpuid) == null)
 				activeSpus.put(masterSpuid, new ArrayList<String>());
 			activeSpus.get(masterSpuid).add(spuid);
-			
-			handlers.put(spuid, handler);
-			sequenceNumbers.put(spuid, 1);
-			spuids.put(spuid, masterSpuid);
-		}
+		//}
 	}
 
-	private void unregisterHandler(String masterSpuid, String spuid) {
-		logger.debug("Unregister SPU handler: " + spuid);
-
-		SubscribeProcessorBeans.unregisterHandler();
+	private synchronized void unregisterHandler(String masterSpuid, String spuid) {
+		logger.debug("Unregister handler: " + spuid + " SPUID: "+masterSpuid);
 		
 		// SPUids
-		synchronized (activeSpus) {
+		//synchronized (activeSpus) {
+			// Unregister subscriber
 			spuids.remove(spuid);
 			sequenceNumbers.remove(spuid);
-			handlers.remove(spuid);
+			subscribers.remove(spuid);
 			
+			SubscribeProcessorBeans.removeSubscriber();
+			
+			// Subscriber not yet activated ==> return
 			if (!activeSpus.containsKey(masterSpuid)) return;
 
 			activeSpus.get(masterSpuid).remove(spuid);
-			logger.debug(masterSpuid + " number of clients: " + activeSpus.get(masterSpuid).size());
+			
 			if (activeSpus.get(masterSpuid).isEmpty()) {
 				activeSpus.remove(masterSpuid);
 
 				// Deactivate SPU
+				logger.debug("Deactivate SPU: "+masterSpuid);
 				processor.getSPUManager().deactivate(masterSpuid);
 			}
-		}
+		//}
 	}
 
 	@Override

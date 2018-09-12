@@ -580,7 +580,7 @@ Respond with 401 if not
 @param accessToken the JWT token to be validate according to points 4-9
 	 */
 	public synchronized Response validateToken(String accessToken) {
-		logger.debug("Validate token");
+		logger.trace("Validate token");
 		
 		//Parse and verify the token
 		SignedJWT signedJWT = null;

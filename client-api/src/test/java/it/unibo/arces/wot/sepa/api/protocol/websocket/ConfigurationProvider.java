@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.api;
+package it.unibo.arces.wot.sepa.api.protocol.websocket;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;

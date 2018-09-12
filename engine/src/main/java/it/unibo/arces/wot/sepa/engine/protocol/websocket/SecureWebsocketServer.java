@@ -20,7 +20,6 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
-import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
@@ -34,9 +33,9 @@ public class SecureWebsocketServer extends WebsocketServer implements SecureWebs
 		return "SPARQL 1.1 Subscribe | wss://%s:%d%s";
 	}
 
-	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth, DependabilityManager dependabilityMng)
+	public SecureWebsocketServer(int port, String path, Scheduler scheduler, AuthorizationManager oauth)
 			throws SEPAProtocolException, SEPASecurityException {
-		super(port, path, scheduler, dependabilityMng);
+		super(port, path, scheduler);
 
 		if (oauth == null)
 			throw new IllegalArgumentException("Authorization manager is null");
