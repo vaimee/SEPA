@@ -27,7 +27,7 @@ jobs:
     - wget http://localhost:8890/sparql
     - mvn package
     - cd engine/target
-    - mv endpoints/virtuoso.jpar endpoint.jpar
+    - mv endpoints/endpoint-virtuoso.jpar endpoint.jpar
     - java -jar engine-0-SNAPSHOT.jar > log.txt &
     - sleep 30
     - cd ../..
