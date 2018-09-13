@@ -1,8 +1,10 @@
-package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
+package it.unibo.arces.wot.sepa.engine.processing.subscription;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.ISubscriptionProcUnit;
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SpuManager;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
