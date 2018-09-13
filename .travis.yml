@@ -13,26 +13,30 @@ jobs:
     - sleep 30
     - wget http://localhost:9999/blazegraph/namespace/kb/sparql
     - mvn package
-    - cd engine/target
+    - cd engine/src/test/resources
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
-    - java -jar engine-0-SNAPSHOT.jar > log.txt &
+    - java -jar engine-0-SNAPSHOT.jar -engine=engine.jpar > log.txt &
     - sleep 30
-    - cd ../..
+    - cd ../../../..
     script:
+    - cd client-api/src/test/resources
     - mvn verify -D testConfiguration=sepatest.jsap
+    - cd ../../../..
   - stage: integrationSecure
     before_script:
     - docker run --name blazegraph -d -p 9999:9999 nawer/blazegraph:2.1.1
     - sleep 30
     - wget http://localhost:9999/blazegraph/namespace/kb/sparql
     - mvn package
-    - cd engine/target
+    - cd engine/src/test/resources
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
-    - java -jar engine-0-SNAPSHOT.jar -secure > log.txt &
+    - java -jar engine-0-SNAPSHOT.jar -engine=engine-secure.jpar > log.txt &
     - sleep 30
-    - cd ../..
+    - cd ../../../..
     script:
+    - cd client-api/src/test/resources
     - mvn verify -D testConfiguration=sepatest-secure.jsap
+    - cd ../../../..
   - stage: deploy
     env:
      - secure: UBX6IAsuQFTWSlR5n/75KLa1bPFBFNg2K50d59mgrTPSfPt9zWyW04qCrirR8MGCO6SRBs1PZTR4odCwn3gMRNU388IVBauNiBw3nFkHUWeW61GXFIbZcUCwmzZasfhFlqtq9BAb+jhcsgM1EQQtz9Y6ZxgyA0O3bCEv2oJsCbdR74qGR1rfpLhGy8jUMzMWGEZ/MWyRM/HyQYXiUiQBcAdqwZVImc7k9+sZmo5gSchI0bhl/DZlzE/PvVGMh+asypYsSpOIF7HijLNVPy7pzXRWmnA4aTX2s93YSZaaB+Ux1VUPClGfzk+ZaopdzqC7L00+cBBd7r6vEUftbAoL/nIvti0TvL2onhtIGPeA5pozroUxAOgH4/ImndVm/ZZoawp2psix4wMC8yVg94hxBfZN/HU96Rh6ckHY4u5faLE7yEBmTEu9G4nz3pZnY8bj+sJBwXq9J1UB0FjTCnivZTAFQWMIcG1UBNhrnvrh/mBhnLr4sXnK5x1Y9ufzJlcVIWmnWUcEjWRRc26r9AVAxrPMRx0t2bY+Hqr/ggM2+zlKMIf/nYI5JtDbseXdldIJeGT4bVMq2q9I0TF9Kg4oSznyn5dO/IfN1wb2M67ZJPpHpQL1wX0HsLgj/5z09wBo7DLO4A24c5+iP32SuRORGmzJxeAsAnw+OKK7Y3IHgHU=
