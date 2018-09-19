@@ -32,6 +32,8 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 
+import java.util.UUID;
+
 import org.apache.logging.log4j.LogManager;
 
 class SPUNaive extends SPU {
@@ -40,8 +42,10 @@ class SPUNaive extends SPU {
 	public SPUNaive(InternalSubscribeRequest subscribe, SPUManager manager) throws SEPAProtocolException {
 		super(subscribe, manager);
 
-		logger = LogManager.getLogger("SPUNaive" + getUUID());
-		logger.debug("SPU: " + this.getUUID() + " request: " + subscribe);
+		this.spuid = "sepa://spu/naive/" + UUID.randomUUID();
+		
+		logger = LogManager.getLogger("SPUNaive" + getSPUID());
+		logger.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
 	}
 
 	@Override
@@ -60,7 +64,7 @@ class SPUNaive extends SPU {
 
 		logger.debug("First results: " + lastBindings.toString());
 
-		return new SubscribeResponse(getUUID(), subscribe.getAlias(), lastBindings);
+		return new SubscribeResponse(getSPUID(), subscribe.getAlias(), lastBindings);
 	}
 
 	@Override
@@ -117,7 +121,7 @@ class SPUNaive extends SPU {
 
 			// Send notification (or end processing indication)
 			if (!added.isEmpty() || !removed.isEmpty()) 
-				ret = new Notification(getUUID(), new ARBindingsResults(added, removed));
+				ret = new Notification(getSPUID(), new ARBindingsResults(added, removed));
 		} catch (Exception e) {
 			ret = new ErrorResponse(500, "Exception: ",e.getMessage());
 		}

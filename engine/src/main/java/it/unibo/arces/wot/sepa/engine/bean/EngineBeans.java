@@ -78,7 +78,7 @@ public class EngineBeans {
 		QueryProcessorBeans.reset();
 		UpdateProcessorBeans.reset();
 		SchedulerBeans.reset();
-		SubscribeProcessorBeans.reset();
+		SPUManagerBeans.reset();
 	}
 
 	public static String getHost() {

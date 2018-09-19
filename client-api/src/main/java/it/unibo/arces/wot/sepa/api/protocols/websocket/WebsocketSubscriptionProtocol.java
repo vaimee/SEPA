@@ -2,7 +2,6 @@ package it.unibo.arces.wot.sepa.api.protocols.websocket;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.channels.NotYetConnectedException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -66,7 +65,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol {
 
 	@Override
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
-		logger.debug("@subscribe: "+request);
+		logger.trace("@subscribe: "+request);
 		if (!client.isOpen()) {
 			logger.debug("connectBlocking...");
 			try {
@@ -77,10 +76,10 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol {
 		}
 		
 		try {
-			logger.debug("Send");
+			logger.trace("Send");
 			client.send(request.toString());
-		} catch (NotYetConnectedException e) {
-			logger.error(e.getMessage());
+		} catch (Exception  e) {
+			logger.error("Websocket send exception: "+e.getMessage());
 			throw new SEPAProtocolException(e);
 		}
 	}
@@ -89,9 +88,10 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol {
 	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException {
 		logger.debug("@unsubscribe: "+request);
 		try {
+			logger.trace("Send");
 			client.send(request.toString());
-		} catch (NotYetConnectedException e) {
-			logger.error(e.getMessage());
+		} catch (Exception e) {
+			logger.error("Websocket send exception: "+e.getMessage());
 			throw new SEPAProtocolException(e);
 		}
 	}

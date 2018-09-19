@@ -11,7 +11,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import it.unibo.arces.wot.sepa.api.ConfigurationProvider;
+import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -22,25 +22,25 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
-import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import static org.junit.Assert.*;
 
 public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	protected final Logger logger = LogManager.getLogger();
 
-	private static JSAP app = null;
 	private WebsocketSubscriptionProtocol client = null;
 	private static SEPASecurityManager sm = null;
 	private static AtomicLong subscribes = new AtomicLong(0);
 	private String spuid = null;
 
+	private static ConfigurationProvider provider;
+	
 	@BeforeClass
-	public static void init() throws SEPAPropertiesException, SEPASecurityException {
-		app = ConfigurationProvider.GetTestEnvConfiguration();
+	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
+		provider = new ConfigurationProvider();
 
-		if (app.isSecure()) {
-			sm = new SEPASecurityManager(app.getAuthenticationProperties());
+		if (provider.getJsap().isSecure()) {
+			sm = new SEPASecurityManager(provider.getJsap().getAuthenticationProperties());
 			sm.register("SEPATest");
 		}
 	}
@@ -48,12 +48,12 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	@Before
 	public void before()
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, URISyntaxException {
-		if (app.isSecure()) {
-			client = new WebsocketSubscriptionProtocol(app.getDefaultHost(), app.getSubscribePort(),
-					app.getSubscribePath(), sm, this);
+		if (provider.getJsap().isSecure()) {
+			client = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
+					provider.getJsap().getSubscribePath(), sm, this);
 		} else
-			client = new WebsocketSubscriptionProtocol(app.getDefaultHost(), app.getSubscribePort(),
-					app.getSubscribePath(), this);
+			client = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
+					provider.getJsap().getSubscribePath(), this);
 
 		subscribes.set(0);
 	}
@@ -65,13 +65,7 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 	@Test(timeout = 5000)
 	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
-		SubscribeRequest request;
-		if (app.isSecure()) {
-			request = new SubscribeRequest(app.getSPARQLQuery("RANDOM"), "RANDOM", app.getDefaultGraphURI("RANDOM"),
-					app.getNamedGraphURI("RANDOM"), sm.getAuthorizationHeader(), 5000);
-		} else
-			request = new SubscribeRequest(app.getSPARQLQuery("RANDOM"), "RANDOM", app.getDefaultGraphURI("RANDOM"),
-					app.getNamedGraphURI("RANDOM"), null, 5000);
+		SubscribeRequest request = provider.buildSubscribeRequest("RANDOM", 5000, sm);
 
 		logger.debug(request);
 
@@ -94,15 +88,9 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 	@Test(timeout = 5000)
 	public void SubscribexN() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
-		int n = 500;
+		int n = 50;
 
-		SubscribeRequest request;
-		if (app.isSecure()) {
-			request = new SubscribeRequest(app.getSPARQLQuery("RANDOM"), "RANDOM", app.getDefaultGraphURI("RANDOM"),
-					app.getNamedGraphURI("RANDOM"), sm.getAuthorizationHeader(), 500);
-		} else
-			request = new SubscribeRequest(app.getSPARQLQuery("RANDOM"), "RANDOM", app.getDefaultGraphURI("RANDOM"),
-					app.getNamedGraphURI("RANDOM"), null, 500);
+		SubscribeRequest request = provider.buildSubscribeRequest("RANDOM", 5000, sm);
 
 		for (int i = 0; i < n; i++) {
 			logger.debug(request);
@@ -126,18 +114,18 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 	@Test(timeout = 10000)
 	public void SubscribeMxN() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
-		int n = 50;
-		int m = 20;
+		int n = 10;
+		int m = 5;
 
 		ArrayList<WebsocketSubscriptionProtocol> clients = new ArrayList<WebsocketSubscriptionProtocol>();
 
 		for (int i = 0; i < m; i++) {
-			if (app.isSecure()) {
-				clients.add(new WebsocketSubscriptionProtocol(app.getDefaultHost(), app.getSubscribePort(),
-						app.getSubscribePath(), sm, this));
+			if (provider.getJsap().isSecure()) {
+				clients.add(new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
+						provider.getJsap().getSubscribePath(), sm, this));
 			} else
-				clients.add(new WebsocketSubscriptionProtocol(app.getDefaultHost(), app.getSubscribePort(),
-						app.getSubscribePath(), this));
+				clients.add(new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
+						provider.getJsap().getSubscribePath(), this));
 		}
 
 		for (int i = 0; i < m; i++) {
@@ -170,17 +158,8 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 		public void run() {
 			for (int j = 0; j < n; j++) {
-				SubscribeRequest request = null;
-				if (app.isSecure()) {
-					try {
-						request = new SubscribeRequest(app.getSPARQLQuery("RANDOM"), "RANDOM", app.getDefaultGraphURI("RANDOM"),
-								app.getNamedGraphURI("RANDOM"), sm.getAuthorizationHeader(), 500);
-					} catch (SEPASecurityException | SEPAPropertiesException e) {
-						logger.error(e.getMessage());
-					}
-				} else
-					request = new SubscribeRequest(app.getSPARQLQuery("RANDOM"), "RANDOM", app.getDefaultGraphURI("RANDOM"),
-							app.getNamedGraphURI("RANDOM"), null, 500);
+				SubscribeRequest request = provider.buildSubscribeRequest("RANDOM", 500, sm);
+				
 				logger.debug(request);
 				try {
 					client.subscribe(request);
@@ -193,13 +172,7 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 	@Test(timeout = 5000)
 	public void SubscribeAndUnsubscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
-		SubscribeRequest request;
-		if (app.isSecure()) {
-			request = new SubscribeRequest(app.getSPARQLQuery("RANDOM"), "RANDOM", app.getDefaultGraphURI("RANDOM"),
-					app.getNamedGraphURI("RANDOM"), sm.getAuthorizationHeader(), 5000);
-		} else
-			request = new SubscribeRequest(app.getSPARQLQuery("RANDOM"), "RANDOM", app.getDefaultGraphURI("RANDOM"),
-					app.getNamedGraphURI("RANDOM"), null, 5000);
+		SubscribeRequest request = provider.buildSubscribeRequest("RANDOM", 500, sm);
 
 		spuid = null;
 		client.subscribe(request);
@@ -216,12 +189,7 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 		assertFalse("Failed to subscribe", subscribes.get() != 1);
 
-		UnsubscribeRequest unsub;
-		if (app.isSecure()) {
-			unsub = new UnsubscribeRequest(spuid, sm.getAuthorizationHeader(), 5000);
-		} else {
-			unsub = new UnsubscribeRequest(spuid, null, 5000);
-		}
+		UnsubscribeRequest unsub = provider.buildUnsubscribeRequest(spuid, 500, sm);
 
 		client.unsubscribe(unsub);
 

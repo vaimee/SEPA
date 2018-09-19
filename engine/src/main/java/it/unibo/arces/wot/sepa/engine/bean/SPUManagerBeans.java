@@ -1,6 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.bean;
 
-public class SubscribeProcessorBeans {
+public class SPUManagerBeans {
 	private static long requests = 0;
 
 	private static float minTime = -1;

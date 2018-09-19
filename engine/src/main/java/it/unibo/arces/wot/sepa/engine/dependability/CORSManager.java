@@ -26,10 +26,10 @@ import org.apache.logging.log4j.Logger;
 /**
  * The Class CORSManager.
  */
-public class CORSManager {
+class CORSManager {
 	
 	/** The logger. */
-	protected static Logger logger = LogManager.getLogger("CORSManager");
+	protected static Logger logger = LogManager.getLogger();
 	
 	/**
 	 * Process a CORS (Cross-Origin Resource Sharing) pre-flight request. <br>

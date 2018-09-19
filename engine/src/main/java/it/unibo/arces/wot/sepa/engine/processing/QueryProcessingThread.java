@@ -16,7 +16,7 @@ class QueryProcessingThread extends Thread{
 		while(processor.isRunning()) {
 			ScheduledRequest request;
 			try {
-				request = processor.getSchedulerQueue().waitQueryRequest();
+				request = processor.getScheduler().waitQueryRequest();
 			} catch (InterruptedException e) {
 				return;
 			}
@@ -24,7 +24,7 @@ class QueryProcessingThread extends Thread{
 			InternalQueryRequest query = (InternalQueryRequest) request.getRequest();
 			Response ret = processor.getQueryProcessor().process(query);
 			
-			processor.getSchedulerQueue().addResponse(request.getToken(),ret);
+			processor.getScheduler().addResponse(request.getToken(),ret);
 		}
 	}	
 }

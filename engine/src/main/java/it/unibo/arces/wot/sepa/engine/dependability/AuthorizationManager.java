@@ -38,14 +38,9 @@ import java.util.UUID;
 
 import javax.net.ssl.SSLContext;
 
-//import org.apache.http.Header;
-//import org.apache.http.HttpRequest;
-
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-//import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -63,7 +58,6 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
-import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
@@ -76,48 +70,35 @@ import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.engine.bean.AuthorizationManagerBeans;
-import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 
-public class AuthorizationManager implements AuthorizationManagerMBean {
-	private static final Logger logger = LogManager.getLogger("AuthorizationManager");
+class AuthorizationManager {
+	private static final Logger logger = LogManager.getLogger();
 	
 	//TODO: CLIENTS DB to be made persistent
 	//IDENTITY ==> ID
-	private HashMap<String,String> clients = new HashMap<String,String>();
+	private static final HashMap<String,String> clients = new HashMap<String,String>();
 	
 	//TODO: CREDENTIALS DB to be made persistent
 	//ID ==> Secret
-	private HashMap<String,String> credentials = new HashMap<String,String>();
+	private static final HashMap<String,String> credentials = new HashMap<String,String>();
 	
 	//TODO: TOKENS DB to be made persistent
 	//ID ==> JWTClaimsSet
-	private HashMap<String,JWTClaimsSet> clientClaims = new HashMap<String,JWTClaimsSet>();
+	private static final HashMap<String,JWTClaimsSet> clientClaims = new HashMap<String,JWTClaimsSet>();
 	
 	//*************************
 	//JWT signing and verifying
 	//*************************
-	private JWSSigner signer;
-	private RSASSAVerifier verifier;
-	private JsonElement jwkPublicKey;
-	private ConfigurableJWTProcessor<SEPASecurityContext> jwtProcessor;
-	private SEPASecurityContext context = new SEPASecurityContext();
-	private SEPASecurityManager sManager;
+	private static JWSSigner signer;
+	private static RSASSAVerifier verifier;
+	private static JsonElement jwkPublicKey;
+	private static ConfigurableJWTProcessor<SEPASecurityContext> jwtProcessor;
+	private static SEPASecurityManager sManager;
 	
-	/**
-	Security context. Provides additional information necessary for processing a JOSE object.
-	Example context information:
-
-	Identifier of the message producer (e.g. OpenID Connect issuer) to retrieve its public key to verify the JWS signature.
-	Indicator whether the message was received over a secure channel (e.g. TLS/SSL) which is essential for processing unsecured (plain) JOSE objects.
-	*/
-	private class SEPASecurityContext implements SecurityContext {
-		
-	}
-	
-	private void securityCheck(String identity) {
+	private static void securityCheck(String identity) {
 		logger.debug("*** Security check ***");
 		//Add identity
-		addAuthorizedIdentity(identity);
+		AuthorizationManagerBeans.getAuthorizedIdentities().put(identity, true);
 		
 		//Register
 		logger.debug("Register: "+identity);
@@ -149,32 +130,11 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		logger.debug("**********************");
 		System.out.println("");	
 		
-		//Add identity
-		removeAuthorizedIdentity(identity);
+		//Remove identity
+		AuthorizationManagerBeans.getAuthorizedIdentities().remove(identity);
 	}
-
-//	/**
-//	 * Gets the RSA Key from the keystore.
-//	 *
-//	 * @param keyAlias
-//	 *            the key alias
-//	 * @param keyPwd
-//	 *            the key password
-//	 * @return the RSAKey
-//	 * @throws JOSEException 
-//	 * @throws KeyStoreException 
-//	 *
-//	 * @see RSAKey
-//	 */
-//	private RSAKey getJWK(String keyAlias, String keyPwd) throws KeyStoreException, JOSEException {
-//		RSAKey jwk = null;
-//
-//		jwk = RSAKey.load(sManager.getKeyStore(), keyAlias, keyPwd.toCharArray());
-//
-//		return jwk;
-//	}
 	
-	private boolean init(KeyStore keyStore,String keyAlias,String keyPwd) throws KeyStoreException, JOSEException{		
+	private static void initStore(KeyStore keyStore,String keyAlias,String keyPwd) throws KeyStoreException, JOSEException{		
 		// Load the key from the key store
 		RSAKey jwk = RSAKey.load(keyStore, keyAlias, keyPwd.toCharArray());
 						
@@ -202,15 +162,11 @@ public class AuthorizationManager implements AuthorizationManagerMBean {
 		JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
 		JWSKeySelector<SEPASecurityContext> keySelector = new JWSVerificationKeySelector<SEPASecurityContext>(expectedJWSAlg, keySource);
 		jwtProcessor.setJWSKeySelector(keySelector);
-		
-		return true;
 	}
 	
-	public AuthorizationManager(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {	
-		SEPABeans.registerMBean("SEPA:type=AuthorizationManager",this);	
-		
+	public static void init(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {	
 		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd,keyPwd);
-		init(sManager.getKeyStore(),keyAlias, keyPwd);
+		initStore(sManager.getKeyStore(),keyAlias, keyPwd);
 		
 		securityCheck(UUID.randomUUID().toString());
 	}
@@ -241,28 +197,8 @@ Respond with 401 if not
  
 </pre>
 	 */
-//	private synchronized Response authorizeRequest(HttpRequest request) {
-//		// Extract Bearer authorization
-//		Header[] bearer = request.getHeaders("Authorization");
-//
-//		if (bearer.length != 1) {
-//			logger.error("Authorization header is missing or multiple");
-//			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_request","Authorization header must be a single one");
-//		}
-//		if (!bearer[0].getValue().startsWith("Bearer ")) {
-//			logger.error("Authorization must be \"Bearer JWT\"");
-//			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_request","Authorization header must be \"Bearer JWT\"");
-//		}
-//
-//		// ******************
-//		// JWT validation
-//		// ******************
-//		String jwt = bearer[0].getValue().split(" ")[1];
-//
-//		return validateToken(jwt);
-//	}
 	
-	private boolean authorizeIdentity(String id) {
+	private static boolean authorizeIdentity(String id) {
 		logger.debug("Authorize identity:"+id);
 		
 		//TODO: WARNING! TO BE REMOVED IN PRODUCTION. ONLY FOR TESTING.
@@ -312,7 +248,7 @@ Respond with 401 if not
 	 * 
 	 * @param identity the client identity to be registered
 	 * */
-	public synchronized Response register(String identity) {
+	public static synchronized Response register(String identity) {
 		logger.info("REGISTER: "+identity);
 		
 		//Check if entity is authorized to request credentials
@@ -379,7 +315,7 @@ According to RFC6749, the error member can assume the following values: invalid_
  </pre>
 */
 	
-	public synchronized Response getToken(String encodedCredentials) {
+	public static synchronized Response getToken(String encodedCredentials) {
 		logger.debug("Get token");
 		
 		//Decode credentials
@@ -579,7 +515,7 @@ Respond with 401 if not
 
 @param accessToken the JWT token to be validate according to points 4-9
 	 */
-	public synchronized Response validateToken(String accessToken) {
+	public static synchronized Response validateToken(String accessToken) {
 		logger.trace("Validate token");
 		
 		//Parse and verify the token
@@ -604,7 +540,7 @@ Respond with 401 if not
 		// Process the token (validate)
 		JWTClaimsSet claimsSet = null;
 		try {
-			claimsSet = jwtProcessor.process(accessToken, context);
+			claimsSet = jwtProcessor.process(accessToken, new SEPASecurityContext());
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","ParseException: "+e.getMessage());
@@ -625,74 +561,8 @@ Respond with 401 if not
 				
 		return new JWTResponse(accessToken,"bearer",claimsSet.getExpirationTime().getTime()-new Date().getTime());
 	}
-	
-	@Override
-	public long getTokenExpiringPeriod() {
-		return AuthorizationManagerBeans.getTokenExpiringPeriod();
-	}
-	
 
-	@Override
-	public void setTokenExpiringPeriod(long period) {
-		AuthorizationManagerBeans.setTokenExpiringPeriod(period);
-	}
-
-	@Override
-	public void addAuthorizedIdentity(String id) {
-		AuthorizationManagerBeans.getAuthorizedIdentities().put(id, true);
-	}
-
-	@Override
-	public void removeAuthorizedIdentity(String id) {
-		AuthorizationManagerBeans.getAuthorizedIdentities().remove(id);
-	}
-
-	@Override
-	public HashMap<String, Boolean> getAuthorizedIdentities() {
-		return AuthorizationManagerBeans.getAuthorizedIdentities();
-	}
-
-	@Override
-	public String getIssuer() {
-		return AuthorizationManagerBeans.getIssuer();
-	}
-
-	@Override
-	public void setIssuer(String issuer) {
-		AuthorizationManagerBeans.setIssuer(issuer);
-	}
-
-	@Override
-	public String getHttpsAudience() {
-		return AuthorizationManagerBeans.getHttpsAudience();
-	}
-
-	@Override
-	public void setHttpsAudience(String audience) {
-		AuthorizationManagerBeans.setHttpsAudience(audience);
-	}
-
-	@Override
-	public String getWssAudience() {
-		return AuthorizationManagerBeans.getWssAudience();
-	}
-
-	@Override
-	public void setWssAudience(String audience) {
-		AuthorizationManagerBeans.setWssAudience(audience);
-	}
-
-	@Override
-	public String getSubject() {
-		return AuthorizationManagerBeans.getSubject();
-	}
-
-	@Override
-	public void setSubject(String sub) {
-		AuthorizationManagerBeans.setSubject(sub);
-	}
-
-	public SSLContext getSSLContext() throws SEPASecurityException {
+	public static SSLContext getSSLContext() throws SEPASecurityException {
 		return sManager.getSSLContext();
 	}	
 }

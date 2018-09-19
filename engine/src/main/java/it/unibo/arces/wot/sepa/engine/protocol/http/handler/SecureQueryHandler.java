@@ -6,17 +6,13 @@ import org.apache.http.HttpStatus;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
+import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SecureQueryHandler extends QueryHandler implements SecureQueryHandlerMBean {
 
-	private AuthorizationManager am;
-
-	public SecureQueryHandler(Scheduler scheduler, AuthorizationManager am) throws IllegalArgumentException {
+	public SecureQueryHandler(Scheduler scheduler) throws IllegalArgumentException {
 		super(scheduler);
-
-		this.am = am;
 	}
 
 	/**
@@ -61,7 +57,7 @@ Respond with 401 if not
 		// ******************
 		String jwt = bearer[0].getValue().split(" ")[1];
 
-		return am.validateToken(jwt);
+		return Dependability.validateToken(jwt);
 	}
 
 	@Override

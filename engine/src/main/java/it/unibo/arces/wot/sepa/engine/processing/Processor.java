@@ -23,13 +23,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
-import it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class Processor implements ProcessorMBean {
 	// Processor threads
@@ -45,23 +48,24 @@ public class Processor implements ProcessorMBean {
 	private final SPUManager spuManager;
 
 	// Concurrent endpoint limit
-	private Semaphore endpointSemaphore = null;
+	private final Semaphore endpointSemaphore;
 	
 	// Scheduler queue
-	private final SchedulerQueue queue;
+	private final Scheduler scheduler;
 	
 	// Running flag
 	private final AtomicBoolean running = new AtomicBoolean(true);
 	
 	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties,
-			SchedulerQueue queue) throws IllegalArgumentException, SEPAProtocolException {		
+			Scheduler scheduler) throws IllegalArgumentException, SEPAProtocolException {		
 		
 		// Number of maximum concurrent requests (supported by the endpoint)
 		int max = properties.getMaxConcurrentRequests();
 		// TODO: extending at run-time the semaphore max
 		if (max > 0) endpointSemaphore = new Semaphore(max, true);
-
-		this.queue = queue;
+		else endpointSemaphore = null;
+		
+		this.scheduler = scheduler;
 		
 		// Processors
 		queryProcessor = new QueryProcessor(endpointProperties,endpointSemaphore);
@@ -94,12 +98,8 @@ public class Processor implements ProcessorMBean {
 		return running.get();
 	}
 	
-	public SchedulerQueue getSchedulerQueue() {
-		return queue;
-	}
-	
-	public SPUManager getSPUManager() {
-		return spuManager;
+	public Scheduler getScheduler() {
+		return scheduler;
 	}
 	
 	public QueryProcessor getQueryProcessor() {
@@ -122,6 +122,10 @@ public class Processor implements ProcessorMBean {
 		queryProcessingThread.interrupt();
 		subscribeProcessingThread.interrupt();
 		updateProcessingThread.interrupt();
+	}
+	
+	public Response subscribe(InternalSubscribeRequest request) {
+		return spuManager.subscribe(request);
 	}
 	
 	public boolean isUpdateReilable() {
@@ -161,5 +165,17 @@ public class Processor implements ProcessorMBean {
 	@Override
 	public int getMaxConcurrentRequests() {
 		return ProcessorBeans.getMaxConcurrentRequests();
+	}
+
+	public void killSubscription(String sid, String gid) {
+		spuManager.killSubscription(sid, gid);
+	}
+
+	public Response unsubscribe(String sid, String gid) {
+		return spuManager.unsubscribe(sid, gid);
+	}
+
+	public void process(UpdateResponse update) {
+		spuManager.process(update);
 	}
 }

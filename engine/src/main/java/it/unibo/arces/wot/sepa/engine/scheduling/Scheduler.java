@@ -19,22 +19,17 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
 import java.util.HashMap;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
-import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
-import it.unibo.arces.wot.sepa.engine.dependability.DependabilityManager;
 import it.unibo.arces.wot.sepa.engine.timing.Timings;
 
 /**
@@ -47,13 +42,10 @@ public class Scheduler extends Thread implements SchedulerMBean {
 	private final AtomicBoolean running = new AtomicBoolean(true);
 
 	// Responders
-	private HashMap<Integer, ResponseHandler> responders = new HashMap<Integer, ResponseHandler>();
-	private HashMap<Integer, UUID> handlers = new HashMap<Integer, UUID>();
+	private final HashMap<Integer, ResponseHandler> responders = new HashMap<Integer, ResponseHandler>();
 
 	// Synchronized queues
 	private final SchedulerQueue queue;
-
-	private final DependabilityManager dependability;
 
 	public Scheduler(EngineProperties properties) {
 		if (properties == null) {
@@ -63,9 +55,6 @@ public class Scheduler extends Thread implements SchedulerMBean {
 
 		queue = new SchedulerQueue(properties.getSchedulingQueueSize());
 
-		// Dependability manager
-		dependability = new DependabilityManager(queue);
-
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
@@ -73,38 +62,39 @@ public class Scheduler extends Thread implements SchedulerMBean {
 
 		setName("SEPA-Scheduler");
 	}
-
-	public synchronized ScheduledRequest schedule(InternalRequest request, ResponseHandler handler) {
-		synchronized (responders) {
-			if (request == null || handler == null) {
-				logger.error("Request handler or request are null");
-				return null;
-			}
-
-			// Add request to the scheduler queue (null means no more tokens)
-			ScheduledRequest scheduled = queue.addRequest(request, handler);
-
-			// No more tokens
-			if (scheduled == null) {
-				SchedulerBeans.newRequest(request, false);
-				logger.error("Request refused: too many pending requests: " + request);
-				return null;
-			}
-
-			logger.info(">> " + scheduled);
-
-			Timings.log(request);
-
-			SchedulerBeans.newRequest(request, true);
-
-			// Register response handlers
-			responders.put(scheduled.getToken(), handler);
-			handlers.put(scheduled.getToken(), handler.getUUID());
-			
-			return scheduled;
+	
+	public ScheduledRequest schedule(InternalRequest request, ResponseHandler handler) {
+		if (request == null || handler == null) {
+			logger.error("Request handler or request are null");
+			return null;
 		}
+
+		// Add request to the scheduler queue (null means no more tokens)
+		ScheduledRequest scheduled = queue.addRequest(request, handler);
+
+		// No more tokens
+		if (scheduled == null) {
+			SchedulerBeans.newRequest(request, false);
+			logger.error("Request refused: too many pending requests: " + request);
+			return null;
+		}
+
+		logger.info(">> " + scheduled);
+
+		Timings.log(request);
+
+		SchedulerBeans.newRequest(request, true);
+
+		// Register response handlers
+		responders.put(scheduled.getToken(), handler);
+
+		return scheduled;
 	}
 
+	public void finish() {
+		running.set(false);
+	}
+	
 	@Override
 	public void run() {
 		while (running.get()) {
@@ -116,51 +106,29 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				// The token
 				int token = response.getToken();
 
-				synchronized (responders) {
-					// Send response back
-					ResponseHandler handler = responders.get(token);
-					if (handler == null) {
-						logger.warn("Response handler is null (token #" + token + ")");
-					} else {
-						try {
-							handler.sendResponse(response.getResponse());
-						} catch (SEPAProtocolException e) {
-							logger.error("Failed to send response: " + e.getMessage());
-						}
+				// Send response back
+				ResponseHandler handler = responders.get(token);
+				if (handler == null) {
+					logger.error("Response handler is null (token #" + token + ")");
+					
+				} else {
+					try {
+						handler.sendResponse(response.getResponse());
+					} catch (SEPAProtocolException e) {
+						logger.error("Failed to send response: " + e.getMessage());
 					}
-
-					// Dependability
-					if (response.getResponse().isSubscribeResponse()) {
-						WebsocketBeans.subscribeResponse();
-						dependability.onSubscribe(handlers.get(token),
-								((SubscribeResponse) response.getResponse()).getSpuid());
-					} else if (response.getResponse().isUnsubscribeResponse()) {
-						WebsocketBeans.unsubscribeResponse();
-						dependability.onUnsubscribe(handlers.get(token),
-								((UnsubscribeResponse) response.getResponse()).getSpuid());
-					} else if (response.getResponse().isError()) {
-						WebsocketBeans.errorResponse();
-						logger.error(response);
-						dependability.onError(handlers.get(token), (ErrorResponse) response.getResponse());
-					}
-
-					// Remove handlers
-					responders.remove(token);
-					handlers.remove(token);
 				}
+
+				// Remove handlers
+				responders.remove(token);
+				
 			} catch (InterruptedException e) {
 				running.set(false);
 			}
 		}
 	}
 
-	public void onBrokenSubscription(UUID uuid) {
-		dependability.onBrokenSubscription(uuid);
-	}
-
-	public void finish() {
-		running.set(false);
-	}
+	
 
 	public String getStatistics() {
 		return SchedulerBeans.getStatistics();
@@ -197,10 +165,6 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		return SchedulerBeans.getQueueSize();
 	}
 
-	public SchedulerQueue getSchedulerQueue() {
-		return queue;
-	}
-
 	@Override
 	public int getTimeout() {
 		return SchedulerBeans.getTimeout();
@@ -209,5 +173,21 @@ public class Scheduler extends Thread implements SchedulerMBean {
 	@Override
 	public void setTimeout(int timeout) {
 		SchedulerBeans.setTimeout(timeout);
+	}
+
+	public ScheduledRequest waitQueryRequest() throws InterruptedException {
+		return queue.waitQueryRequest();
+	}
+
+	public void addResponse(int token, Response ret) {
+		queue.addResponse(token, ret);
+	}
+
+	public ScheduledRequest waitSubscribeUnsubscribeRequest() throws InterruptedException {
+		return queue.waitSubscribeUnsubscribeRequest();
+	}
+
+	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
+		return queue.waitUpdateRequest();
 	}
 }

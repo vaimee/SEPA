@@ -10,7 +10,7 @@ interface ISPU {
 
     BindingsResults getLastBindings();
 
-    String getUUID();
+    String getSPUID();
 
     void process(UpdateResponse res);
 }

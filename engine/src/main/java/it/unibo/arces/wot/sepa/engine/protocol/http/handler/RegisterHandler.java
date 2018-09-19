@@ -26,16 +26,14 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
+import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 
 public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	private static final Logger logger = LogManager.getLogger();
 
-	private AuthorizationManager am;
+	public RegisterHandler() {
 
-	public RegisterHandler(AuthorizationManager am) {
-		this.am = am;
 	}
 
 	@Override
@@ -131,7 +129,7 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		// *****************************************
 		// Register client and retrieve credentials
 		// *****************************************
-		Response cred = am.register(name);
+		Response cred = Dependability.register(name);
 
 		if (cred.getClass().equals(ErrorResponse.class)) {
 			ErrorResponse error = (ErrorResponse) cred;

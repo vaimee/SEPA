@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -42,10 +43,10 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  */
 
 public abstract class SPU extends Thread implements ISPU {
-	private final Logger logger;
+	protected final Logger logger = LogManager.getLogger();
 
-	// The URI of the subscription (i.e., sepa://spuid/UUID)
-	private String uuid = null;
+	// SPU identifier
+	protected String spuid;
 
 	// Update queue
 	private final LinkedBlockingQueue<UpdateResponse> updateQueue = new LinkedBlockingQueue<UpdateResponse>();
@@ -62,14 +63,12 @@ public abstract class SPU extends Thread implements ISPU {
 	private Response notify;
 
 	// List of processing SPU
-	protected SPUManager manager;
+	protected final SPUManager manager;
 
 	public SPU(InternalSubscribeRequest subscribe, SPUManager manager) {
 		this.manager = manager;
 		this.subscribe = subscribe;
-		
-		uuid = manager.generateSpuid();
-		logger = LogManager.getLogger("SPU" + uuid);
+		this.spuid = "sepa://spu/" + UUID.randomUUID();
 	}
 
 	public InternalSubscribeRequest getSubscribe() {
@@ -89,14 +88,17 @@ public abstract class SPU extends Thread implements ISPU {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (!obj.getClass().equals(SPU.class))
-			return false;
-		return ((SPU) obj).getUUID().equals(getUUID());
+		return ((SPU) obj).subscribe.equals(subscribe);
 	}
 
 	@Override
-	public String getUUID() {
-		return uuid;
+	public String getSPUID() {
+		return spuid;
+	}
+	
+	@Override
+	public int hashCode() {
+		return subscribe.hashCode();
 	}
 
 	@Override
@@ -137,7 +139,7 @@ public abstract class SPU extends Thread implements ISPU {
 
 			// Notify SPU manager
 			logger.debug("Notify SPU manager. Running: " + running);
-			manager.endProcessing(this);
+			manager.endOfProcessing(this);
 
 		}
 	}

@@ -16,18 +16,14 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
+import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 
 public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	protected static final Logger logger = LogManager.getLogger();
 
-	private AuthorizationManager am;
+	public JWTRequestHandler() throws IllegalArgumentException {
 
-	public JWTRequestHandler(AuthorizationManager am) throws IllegalArgumentException {
-		if (am == null)
-			throw new IllegalArgumentException();
-		this.am = am;
 	}
 
 	@Override
@@ -100,7 +96,7 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		// *************
 		// Get token
 		// *************
-		Response token = am.getToken(basic.split(" ")[1]);
+		Response token = Dependability.getToken(basic.split(" ")[1]);
 
 		if (token.getClass().equals(ErrorResponse.class)) {
 			ErrorResponse error = (ErrorResponse) token;

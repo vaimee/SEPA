@@ -3,7 +3,7 @@ package it.unibo.arces.wot.sepa.commons.security;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import it.unibo.arces.wot.sepa.api.ConfigurationProvider;
+import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -21,8 +21,8 @@ public class ITSEPASecurityManager {
 	private String notAllowedId = "IamNotAllowedToRegister";
 	
 	@BeforeClass
-	public static void init() throws SEPAPropertiesException, SEPASecurityException {
-		app = ConfigurationProvider.GetTestEnvConfiguration();
+	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
+		app = new ConfigurationProvider().getJsap();
 		if (app.isSecure()) sm = new SEPASecurityManager(app.getAuthenticationProperties());
 	}
 
