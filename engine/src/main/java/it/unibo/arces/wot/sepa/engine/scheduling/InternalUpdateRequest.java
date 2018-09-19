@@ -8,6 +8,6 @@ public class InternalUpdateRequest extends InternalUQRequest {
 
 	@Override
 	public String toString() {
-		return "*UPDATE* "+sparql + " DEFAULT GRAPH URI: <"+defaultGraphUri + "> NAMED GRAPH URI: <" + namedGraphUri+">";
+		return "*UPDATE* "+sparql + " [[DEFAULT GRAPH URI: <"+defaultGraphUri + "> NAMED GRAPH URI: <" + namedGraphUri+">]]";
 	}
 }

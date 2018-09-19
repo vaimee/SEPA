@@ -227,10 +227,10 @@ public class ITSPARQL11SEProtocol {
 				sync.getEvents() != subscribers.size());
 	}
 
-	@Test(timeout = 60000)
+	@Test(timeout = 5000)
 	public void Subscribe3xN()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
-		int n = 30;
+		int n = 10;
 
 		for (int i = 0; i < n; i++) {
 			subscribers.add(new Subscriber("ALL", sm, sync));
@@ -319,7 +319,7 @@ public class ITSPARQL11SEProtocol {
 
 	@Test(timeout = 60000)
 	public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
-		int n = 10;
+		int n = 5;
 
 		for (int i = 0; i < n; i++) {
 			publishers.add(new Publisher("RANDOM", sm, n));
@@ -374,7 +374,7 @@ public class ITSPARQL11SEProtocol {
 	@Test(timeout = 60000)
 	public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
-		int n = 15;
+		int n = 5;
 
 		for (int i = 0; i < n; i++) {
 			subscribers.add(new Subscriber("ALL", sm, sync));

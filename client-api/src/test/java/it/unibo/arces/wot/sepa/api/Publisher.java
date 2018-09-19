@@ -9,6 +9,7 @@ import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
+import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
@@ -42,12 +43,14 @@ public class Publisher extends Thread  {
 	
 	public void run() {
 		while(running.get() > 0) {
-			Response ret = client.update(provider.buildUpdateRequest(id,5000,sm));
+			UpdateRequest req = provider.buildUpdateRequest(id,5000,sm);
+			Response ret = client.update(req);
 			if (ret.isError()) {
 				ErrorResponse error = (ErrorResponse) ret;
 				logger.error(error);
 				if (error.isTokenExpiredError()) {
-					client.update(provider.buildUpdateRequest(id,5000,sm));
+					req = provider.buildUpdateRequest(id,5000,sm);
+					client.update(req);
 				}
 				else
 					assertFalse(error.toString(),true);
