@@ -15,7 +15,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationManager;
+import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.EchoHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.RegisterHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.SecureQueryHandler;
@@ -34,21 +34,18 @@ public class HttpsGate {
 
 	protected IOReactorConfig config = IOReactorConfig.custom().setTcpNoDelay(true).setSoReuseAddress(true).build();
 
-	protected AuthorizationManager oauth;
-
-	public HttpsGate(EngineProperties properties, Scheduler scheduler, AuthorizationManager oauth) throws SEPASecurityException, SEPAProtocolException {
-		this.oauth = oauth;
+	public HttpsGate(EngineProperties properties, Scheduler scheduler) throws SEPASecurityException, SEPAProtocolException {
 
 		try {
 			server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
-					.setIOReactorConfig(config).setSslContext(oauth.getSSLContext())
+					.setIOReactorConfig(config).setSslContext(Dependability.getSSLContext())
 					.setExceptionLogger(ExceptionLogger.STD_ERR)
-					.registerHandler(properties.getRegisterPath(), new RegisterHandler(oauth))
+					.registerHandler(properties.getRegisterPath(), new RegisterHandler())
 					.registerHandler(properties.getSecurePath() + properties.getQueryPath(),
-							new SecureQueryHandler(scheduler, oauth))
+							new SecureQueryHandler(scheduler))
 					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),
-							new SecureUpdateHandler(scheduler, oauth))
-					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler(oauth))
+							new SecureUpdateHandler(scheduler))
+					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
 					.registerHandler("/echo", new EchoHandler()).create();
 		} catch (IllegalArgumentException e) {
 			throw new SEPASecurityException(e);

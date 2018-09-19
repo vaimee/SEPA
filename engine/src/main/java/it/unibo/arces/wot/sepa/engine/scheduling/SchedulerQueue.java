@@ -10,7 +10,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 
-public class SchedulerQueue {
+class SchedulerQueue {
 	private static final Logger logger = LogManager.getLogger();
 	
 	// Tokens

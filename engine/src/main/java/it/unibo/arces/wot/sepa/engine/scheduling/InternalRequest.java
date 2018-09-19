@@ -1,7 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
 public abstract class InternalRequest {
-
 	public boolean isQueryRequest() {
 		return this.getClass().equals(InternalQueryRequest.class);
 	}

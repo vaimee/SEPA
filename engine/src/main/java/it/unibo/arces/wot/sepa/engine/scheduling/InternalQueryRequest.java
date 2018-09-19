@@ -10,10 +10,4 @@ public class InternalQueryRequest extends InternalUQRequest {
 	public String toString() {
 		return "*QUERY* "+sparql + " DEFAULT GRAPH URI: <"+defaultGraphUri + "> NAMED GRAPH URI: <" + namedGraphUri+">";
 	}
-	
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof InternalQueryRequest)) return false;
-		return sparql.equals(((InternalQueryRequest)obj).sparql);
-	}
 }

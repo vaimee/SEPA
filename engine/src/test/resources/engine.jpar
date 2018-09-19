@@ -1,7 +1,8 @@
 {
 	"parameters": {
 		"scheduler": {
-			"queueSize": 100
+			"queueSize": 100,
+			"timeout" : 5000
 		},
 		"processor": {
 			"updateTimeout": 60000,

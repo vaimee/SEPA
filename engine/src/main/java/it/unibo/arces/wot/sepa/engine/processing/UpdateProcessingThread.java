@@ -17,7 +17,7 @@ class UpdateProcessingThread extends Thread {
 		while (processor.isRunning()) {
 			ScheduledRequest request;
 			try {
-				request = processor.getSchedulerQueue().waitUpdateRequest();
+				request = processor.getScheduler().waitUpdateRequest();
 			} catch (InterruptedException e) {
 				return;
 			}
@@ -26,16 +26,16 @@ class UpdateProcessingThread extends Thread {
 			InternalUpdateRequest update = (InternalUpdateRequest)request.getRequest();
 			
 			// Notify update (not reliable)
-			if (!processor.isUpdateReilable()) processor.getSchedulerQueue().addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
+			if (!processor.isUpdateReilable()) processor.getScheduler().addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
 						
 			// Process update request
 			Response ret = processor.getUpdateProcessor().process(update);
 
 			// Notify update result
-			if (processor.isUpdateReilable()) processor.getSchedulerQueue().addResponse(request.getToken(),ret);
+			if (processor.isUpdateReilable()) processor.getScheduler().addResponse(request.getToken(),ret);
 
 			// Subscription processing
-			if (ret.isUpdateResponse()) processor.getSPUManager().process((UpdateResponse) ret);
+			if (ret.isUpdateResponse()) processor.process((UpdateResponse) ret);
 		}
 	}
 }

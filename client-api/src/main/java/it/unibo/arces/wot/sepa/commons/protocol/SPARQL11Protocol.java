@@ -160,7 +160,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				ret = new JsonParser().parse(responseBody).getAsJsonObject();
 			}
 			catch(Exception e) {
-				return new ErrorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY,"JsonParseException","Not a valid JSON: "+responseBody);
+				return new ErrorResponse(responseCode,"JsonParsingException",e.getMessage()+" Response body: "+responseBody);
 			}
 			return new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),ret.get("error_description").getAsString());
 		}
@@ -173,7 +173,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			ret = new JsonParser().parse(responseBody).getAsJsonObject();
 		}
 		catch(JsonParseException e) {
-			return new ErrorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY, "JsonParseException",e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY,"JsonParsingException", e.getMessage() +" Response body: "+responseBody);
 		}
 		return new QueryResponse(ret);
 	}

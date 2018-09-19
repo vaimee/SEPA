@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import it.unibo.arces.wot.sepa.api.ConfigurationProvider;
+import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.SEPAWebsocketClient;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -29,7 +29,7 @@ public class ITSEPAWebsocketClient implements ISubscriptionHandler {
 	
 	@BeforeClass
 	public static void init() throws Exception {
-		properties = ConfigurationProvider.GetTestEnvConfiguration();
+		properties = new ConfigurationProvider().getJsap();
 		if(properties.isSecure()) {
 			int port = properties.getSubscribePort();
 			if (port == -1)

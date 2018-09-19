@@ -20,7 +20,7 @@ package it.unibo.arces.wot.sepa.engine.dependability;
 
 import java.util.HashMap;
 
-public interface AuthorizationManagerMBean {
+public interface DependabilityMonitorMBean {
 	void addAuthorizedIdentity(String id);
 
 	void removeAuthorizedIdentity(String id);
@@ -46,4 +46,8 @@ public interface AuthorizationManagerMBean {
 	String getSubject();
 
 	void setSubject(String sub);
+	
+	long getNumberOfGates();
+	
+	boolean getSecure();
 }

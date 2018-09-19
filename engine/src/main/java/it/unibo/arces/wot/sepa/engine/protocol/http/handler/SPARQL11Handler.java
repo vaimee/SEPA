@@ -26,7 +26,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
-import it.unibo.arces.wot.sepa.engine.dependability.CORSManager;
+import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
@@ -61,13 +61,13 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	protected abstract Response authorize(HttpRequest request);
 
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
-		if (!CORSManager.processCORSRequest(exchange)) {
+		if (!Dependability.processCORSRequest(exchange)) {
 			logger.error("CORS origin not allowed");
 			HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error","CORS origin not allowed"));
 			return false;
 		}
 
-		if (CORSManager.isPreFlightRequest(exchange)) {
+		if (Dependability.isPreFlightRequest(exchange)) {
 			logger.error("Preflight request");
 			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
 			return false;

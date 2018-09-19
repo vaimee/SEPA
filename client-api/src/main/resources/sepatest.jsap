@@ -1,0 +1,76 @@
+{
+	"host": "localhost",
+	"oauth": {
+		"enable" : false,
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token"
+	},
+	"sparql11protocol": {
+		"protocol": "http",
+		"port": 8000,
+		"query": {
+			"path": "/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/update",
+			"method": "POST",
+			"format": "JSON"
+		}
+	},
+	"sparql11seprotocol": {
+		"protocol": "ws",
+		"availableProtocols": {
+			"ws": {
+				"port": 9000,
+				"path": "/subscribe"
+			},
+			"wss": {
+				"port": 9443,
+				"path": "/secure/subscribe"
+			}
+		}
+	},
+	"graphs": {
+		"default-graph-uri": "http://sepatest",
+		"named-graph-uri": "http://sepatest",
+		"using-graph-uri": "http://sepatest",
+		"using-named-graph-uri": "http://sepatest"
+	},
+	"namespaces": {
+		"sepa": "http://wot.arces.unibo.it/sepa#",
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	},
+	"updates": {
+		"DELETE_ALL" : {
+			"sparql" : "delete where {?x ?y ?z}"
+		},
+		"VAIMEE": {
+			"sparql": "delete {sepa:SV sepa:PV ?o}  where {sepa:SV sepa:PV ?o} ; insert data {sepa:SV sepa:PV \"ვაიმეე\"}"
+		},
+		"RANDOM": {
+			"sparql": "delete {sepa:S sepa:P ?o} where {sepa:S sepa:P ?o} ; insert {sepa:S sepa:P ?random} where {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+		},
+		"RANDOM1": {
+			"sparql": "delete {sepa:S1 sepa:P1 ?o}  where {sepa:S1 sepa:P1 ?o} ; insert {sepa:S1 sepa:P1 ?random} where {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+		}
+	},
+	"queries": {
+		"VAIMEE": {
+			"sparql": "select * where {?x ?y \"ვაიმეე\"}"
+		},
+		"ALL": {
+			"sparql": "select * where {?x ?y ?z}"
+		},
+		"RANDOM": {
+			"sparql": "select * where {sepa:S sepa:P ?random}"
+		},
+		"RANDOM1": {
+			"sparql": "select * where {sepa:S1 sepa:P1 ?random}"
+		},
+		"COUNT": {
+			"sparql": "select (COUNT(?x) AS ?n) where {?x ?y ?z}"
+		}
+	}
+}

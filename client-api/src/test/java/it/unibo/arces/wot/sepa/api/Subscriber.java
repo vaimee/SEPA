@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
@@ -12,17 +13,13 @@ import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProt
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
-import it.unibo.arces.wot.sepa.pattern.JSAP;
 
-public class Subscriber implements ISubscriptionHandler {
+public class Subscriber extends Thread implements ISubscriptionHandler {
 	protected final Logger logger = LogManager.getLogger();
 
-	private final JSAP properties;
 	private final SEPASecurityManager sm;
 	private final SPARQL11SEProtocol client;
 	private final String id;
@@ -32,37 +29,51 @@ public class Subscriber implements ISubscriptionHandler {
 	private AtomicBoolean subscribing = new AtomicBoolean(false);
 	private AtomicBoolean unsubscribing = new AtomicBoolean(false);
 	
+	private static ConfigurationProvider provider;
 	
-	public Subscriber(String id, JSAP properties, SEPASecurityManager sm, Sync sync) throws SEPAProtocolException, SEPASecurityException {
-		this.properties = properties;
+	public Subscriber(String id,SEPASecurityManager sm, Sync sync) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		provider = new ConfigurationProvider();
+		
 		this.sm = sm;
 		this.id = id;
 		this.sync = sync;
 
 		SubscriptionProtocol protocol;
 		if (sm != null) {
-			protocol = new WebsocketSubscriptionProtocol(properties.getDefaultHost(), properties.getSubscribePort(),
-					properties.getSubscribePath(), sm, this);
+			protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
+					provider.getJsap().getSubscribePath(), sm, this);
 		} else {
-			protocol = new WebsocketSubscriptionProtocol(properties.getDefaultHost(), properties.getSubscribePort(),
-					properties.getSubscribePath(), this);
+			protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
+					provider.getJsap().getSubscribePath(), this);
 		}
 
 		client = new SPARQL11SEProtocol(protocol);
 	}
+	
+	public void run() {
+		try {
+			subscribe();
+			synchronized(this) {
+				wait();
+			}		
+		} catch (SEPAProtocolException | InterruptedException e) {
+		
+		}
+	}
 
 	public void close() {
 		client.close();
+		interrupt();
 	}
 
-	public void subscribe() throws SEPAProtocolException, InterruptedException {
+	private void subscribe() throws SEPAProtocolException, InterruptedException {
 		subscribing.set(true);
-		client.subscribe(buildSubscribeRequest(id, 5000));
+		client.subscribe(provider.buildSubscribeRequest(id, 5000,sm));
 	}
 
 	public void unsubscribe(String spuid) throws SEPAProtocolException, InterruptedException {
 		unsubscribing.set(true);
-		client.unsubscribe(buildUnsubscribeRequest(spuid, 5000));
+		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 5000,sm));
 	}
 
 	@Override
@@ -83,13 +94,13 @@ public class Subscriber implements ISubscriptionHandler {
 		if (errorResponse.isTokenExpiredError()) { 
 			if (subscribing.get())
 				try {
-					client.subscribe(buildSubscribeRequest(id, 5000));
+					client.subscribe(provider.buildSubscribeRequest(id, 5000,sm));
 				} catch (SEPAProtocolException e) {
 					logger.error(e.getMessage());
 				}
 			else if (unsubscribing.get())
 				try {
-					client.unsubscribe(buildUnsubscribeRequest(spuid, 5000));
+					client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 5000,sm));
 				} catch (SEPAProtocolException e) {
 					logger.error(e.getMessage());
 				}	  
@@ -110,30 +121,5 @@ public class Subscriber implements ISubscriptionHandler {
 
 		unsubscribing.set(false);
 		sync.unsubscribe();
-	}
-
-	private SubscribeRequest buildSubscribeRequest(String id, long timeout) {
-		String authorization = null;		
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-		
-		return new SubscribeRequest(properties.getSPARQLQuery(id), id, properties.getDefaultGraphURI(id),
-				properties.getNamedGraphURI(id), authorization, timeout);
-	}
-
-	private UnsubscribeRequest buildUnsubscribeRequest(String spuid, long timeout) {
-		String authorization = null;		
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-		
-		return new UnsubscribeRequest(spuid, authorization, timeout);
 	}
 }

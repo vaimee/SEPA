@@ -171,119 +171,136 @@ public class EngineProperties {
 			properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("scheduler-queueSize is missing"));
+			logger.error("scheduler-queueSize is missing");
+			throw new SEPAPropertiesException("scheduler-queueSize is missing");
 		}
 		
 		try {
 			properties.get("scheduler").getAsJsonObject().get("timeout").getAsInt();	
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("scheduler-timeout is missing"));
+			logger.error("scheduler-timeout is missing");
+			throw new SEPAPropertiesException("scheduler-timeout is missing");
 		}
 		
 		try {
 			properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("processor-updateTimeout is missing"));
+			logger.error("processor-updateTimeout is missing");
+			throw new SEPAPropertiesException("processor-updateTimeout is missing");
 		}	
 		
 		try {
 			properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("processor-queryTimeout is missing"));
+			logger.error("processor-queryTimeout is missing");
+			throw new SEPAPropertiesException("processor-queryTimeout is missing");
 		}	
 			
 		try {
 			properties.get("processor").getAsJsonObject().get("maxConcurrentRequests").getAsInt();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("processor-maxConcurrentRequests is missing"));
+			logger.error("processor-maxConcurrentRequests is missing");
+			throw new SEPAPropertiesException("processor-maxConcurrentRequests is missing");
 		}	
 			
 		try {
 			properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("spu-timeout is missing"));
+			logger.error("spu-timeout is missing");
+			throw new SEPAPropertiesException("spu-timeout is missing");
 		}
 			
 		try {
 			properties.get("gates").getAsJsonObject().get("secure").getAsBoolean();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-secure is missing"));
+			logger.error("gates-secure is missing");
+			throw new SEPAPropertiesException("gates-secure is missing");
 		}
 			
 		try {
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("http").getAsInt();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-ports-http is missing"));
+			logger.error("gates-ports-http is missing");
+			throw new SEPAPropertiesException("gates-ports-http is missing");
 		}
 		
 		try {
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("https").getAsInt();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-ports-https is missing"));
+			logger.error("gates-ports-https is missing");
+			throw new SEPAPropertiesException("gates-ports-https is missing");
 		}
 		
 		try {
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("ws").getAsInt();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-ports-ws is missing"));
+			logger.error("gates-ports-ws is missing");
+			throw new SEPAPropertiesException("gates-ports-ws is missing");
 		}
 		
 		try {
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("wss").getAsInt();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-ports-wss is missing"));
+			logger.error("gates-ports-wss is missing");
+			throw new SEPAPropertiesException("gates-ports-wss is missing");
 		}	
 			
 		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("securePath").getAsString();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-paths-securePath is missing"));
+			logger.error("gates-paths-securePath is missing");
+			throw new SEPAPropertiesException("gates-paths-securePath is missing");
 		}
 		
 		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("update").getAsString();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-paths-update is missing"));
+			logger.error("gates-paths-update is missing");
+			throw new SEPAPropertiesException("gates-paths-update is missing");
 		}
 		
 		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("query").getAsString();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-paths-query is missing"));
+			logger.error("gates-paths-query is missing");
+			throw new SEPAPropertiesException("gates-paths-query is missing");
 		}
 		
 		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("subscribe").getAsString();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-paths-subscribe is missing"));
+			logger.error("gates-paths-subscribe is missing");
+			throw new SEPAPropertiesException("gates-paths-subscribe is missing");
 		}
 		
 		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("register").getAsString();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-paths-register is missing"));
+			logger.error("gates-paths-register is missing");
+			throw new SEPAPropertiesException("gates-paths-register is missing");
 		}
 			
 		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("tokenRequest").getAsString();
 		}
 		catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("gates-paths-tokenRequest is missing"));
+			logger.error("gates-paths-tokenRequest is missing");
+			throw new SEPAPropertiesException("gates-paths-tokenRequest is missing");
 		}
 	}
 

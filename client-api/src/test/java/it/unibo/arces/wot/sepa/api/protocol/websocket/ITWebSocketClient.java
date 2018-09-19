@@ -11,7 +11,7 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import it.unibo.arces.wot.sepa.api.ConfigurationProvider;
+import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
@@ -53,7 +53,7 @@ public class ITWebSocketClient {
 	
 	@BeforeClass
 	public static void init() throws Exception {
-		properties = ConfigurationProvider.GetTestEnvConfiguration();
+		properties = new ConfigurationProvider().getJsap();
 		if(properties.isSecure()) {
 			int port = properties.getSubscribePort();
 			if (port == -1)

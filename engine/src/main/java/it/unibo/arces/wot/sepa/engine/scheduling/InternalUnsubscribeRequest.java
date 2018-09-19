@@ -1,24 +1,30 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
 public class InternalUnsubscribeRequest extends InternalRequest {
-	protected String spuid;
+	protected String sid;
+	protected String gid;
 	
-	public InternalUnsubscribeRequest(String spuid) {
-		this.spuid = spuid;
+	public InternalUnsubscribeRequest(String gid,String sid) {
+		this.sid = sid;
+		this.gid = gid;
 	}
 	
 	@Override
 	public String toString() {
-		return "*UNSUBSCRIBE* "+spuid;
+		return "*UNSUBSCRIBE* "+sid;
 	}
 	
-	public String getSpuid() {
-		return spuid;
+	public String getSID() {
+		return sid;
+	}
+	
+	public String getGID() {
+		return gid;
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof InternalUnsubscribeRequest)) return false;
-		return spuid.equals(((InternalUnsubscribeRequest)obj).spuid);
+		return sid.equals(((InternalUnsubscribeRequest)obj).sid);
 	}
 }
