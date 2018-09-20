@@ -1,1 +1,75 @@
-{"host":"localhost","oauth":{"enable":true,"register":"https://localhost:8443/oauth/register","tokenRequest":"https://localhost:8443/oauth/token","client_id":"0IWFPpcBdkiZDqsvd2g/hjES9a3bvWhES7ieo/oH1nJx/lBURPHmu/uw9rSqs52M","client_secret":"kMEeuqq/tj8yILnL4u0rNIJAPcdkLTfx6yIt4wOoV1F3dWmZkG8NJUJKzyyMoiat","jwt":"xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oyeoFFePUX8MQIuqd3TIcjOhoPgYWd0E+L/EN5wItL5/n78pX/8mVZcpxdyNNqr3bVvrCi0I84mIAefwQ0GyPxFhUHu9PtVNQnXchZuFgppX/YDtOesZSxfIoffUpHFPBY3u4FRIYwpSZX96Knnp0J22RQm+0l8yobik3z6jftw0jbF5+/YC6PnfZT3Wzb6PRJPuVkDzpo+BTC9eKx87GEj8VjtfXjbYRTeZNumD+59wL5kV/OrntNqNQD+IzAYoIZk4rlRbNouNnvT0laEhV012tSD1uAfNUxAlZjSbSMTp5bPNp7PoutMr5q6zPYfAC1PTKnVdkD1CDNqZnhB838WDeISfVzXsf7dsZ0+SkNPtx2kMUYCOYsxNJxyzza3lmaCuvxfnDT3g5F41/p/zX1tXYy6emVfdOWSkJNm1z0FJB/ZIUES0WAA5UEM3kejND++vvIQr38ar72HdFzRvP2V29CsaE5PMRRRZIE5ru9Zwgdb5lfMdwDi4sZkQdNRGHiOfRCT9D92mFVps6s6kv7HKojx05R9WKMDG8bEmSgMYSYQlQzLm93Ardw/hpDoB1/DfNRxbc/GVNZEVOoRVMye8/vICZtxvVeKmu4QawWKSBtrXelWUT8AHTG6v/c88pZjtJWDzy6YIIXLDQ2eJPu30mt3gLfS2ukIV4Tl5Oqu3T1IIghmNgek8vwWNeuG/JGeKrfUp6X6mMH9hdmj5+naOIr8V5rUKCjXnlWLAsrGdOvV8vuYYbx2IFQScZQJD/sTKj3gs6yeYpOwQ2iEs9asA=","expires":"9SN2d0sZEIN16Kts7LxUuQ==","type":"XPrHEX2xHy+5IuXHPHigMw=="},"sparql11protocol":{"protocol":"https","port":8443,"query":{"path":"/secure/query","method":"POST","format":"JSON"},"update":{"path":"/secure/update","method":"POST","format":"JSON"}},"sparql11seprotocol":{"protocol":"wss","availableProtocols":{"ws":{"port":9000,"path":"/subscribe"},"wss":{"port":9443,"path":"/secure/subscribe"}}},"namespaces":{"sepa":"http://wot.arces.unibo.it/sepa#","rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"},"updates":{"DELETE_ALL":{"sparql":"DELETE {GRAPH<http://sepatest/> {?x ?y ?z} } WHERE {GRAPH<http://sepatest/> {?x ?y ?z} }"},"VAIMEE":{"sparql":"DELETE {GRAPH<http://sepatest/> {sepa:SV sepa:PV ?o}} WHERE {GRAPH<http://sepatest/> {sepa:SV sepa:PV ?o}} ; INSERT DATA {GRAPH <http://sepatest/> {sepa:SV sepa:PV \"ვაიმეე\"}}"},"RANDOM":{"sparql":"DELETE {GRAPH<http://sepatest/> {sepa:S sepa:P ?o}} WHERE {GRAPH<http://sepatest/> {sepa:S sepa:P ?o}} ; INSERT {GRAPH<http://sepatest/> {sepa:S sepa:P ?random}} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"},"RANDOM1":{"sparql":"DELETE {GRAPH<http://sepatest/> {sepa:S1 sepa:P1 ?o}} WHERE {graph<http://sepatest/> {sepa:S1 sepa:P1 ?o}} ; INSERT {GRAPH<http://sepatest/> {sepa:S1 sepa:P1 ?random}} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"}},"queries":{"VAIMEE":{"sparql":"SELECT * WHERE {GRAPH <http://sepatest/> {?x ?y \"ვაიმეე\"}}"},"ALL":{"sparql":"SELECT * WHERE {GRAPH <http://sepatest/> {?x ?y ?z}}"},"RANDOM":{"sparql":"SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S sepa:P ?random}}"},"RANDOM1":{"sparql":"SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S1 sepa:P1 ?random}}"},"COUNT":{"sparql":"SELECT (COUNT(?x) AS ?n) WHERE {GRAPH <http://sepatest/> {?x ?y ?z}}"}}}
+{
+  "host": "localhost",
+  "oauth": {
+    "enable": true,
+    "register": "https://localhost:8443/oauth/register",
+    "tokenRequest": "https://localhost:8443/oauth/token",
+    "client_id": "0IWFPpcBdkiZDqsvd2g/hjES9a3bvWhES7ieo/oH1nJx/lBURPHmu/uw9rSqs52M",
+    "client_secret": "kMEeuqq/tj8yILnL4u0rNIJAPcdkLTfx6yIt4wOoV1F3dWmZkG8NJUJKzyyMoiat",
+    "jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oyeoFFePUX8MQIuqd3TIcjOhoPgYWd0E+L/EN5wItL5/n78pX/8mVZcpxdyNNqr3bVvrCi0I84mIAefwQ0GyPxFhUHu9PtVNQnXchZuFgppX/YDtOesZSxfIoffUpHFPBY3u4FRIYwpSZX96Knnp0J22RQm+0l8yobik3z6jftw0jbF5+/YC6PnfZT3Wzb6PRJPuVkDzpo+BTC9eKx87GEj8VjtfXjbYRTeZNumD+59wL5kV/OrntNqNQD+IzAYoIZk4rlRbNouNnvT0laEhV012tSD1uAfNUxAlZjSbSMTp5bPNp7PoutMr5q6zPYfAC1PTKnVdkD1CDNqZnhB838WDeISfVzXsf7dsZ0+SkNPtx2kMUYCOYsxNJxyzza3lmaCuvxfnDT3g5F41/p/zX1tXYy6emVfdOWSkJNm1z0FJB/ZIUES0WAA5UEM3kejND++vvIQr38ar72HdFzRvP2V29CsaE5PMRRRZIE5ru9Zwgdb5lfMdwDi4sZkQdNRGHiOfRCT9D92mFVps6s6kv7HKojx05R9WKMDG8bEmSgMYSYQlQzLm93Ardw/hpDoB1/DfNRxbc/GVNZEVOoRVMye8/vICZtxvVeKmu4QawWKSBtrXelWUT8AHTG6v/c88pZjtJWDzy6YIIXLDQ2eJPu30mt3gLfS2ukIV4Tl5Oqu3T1IIghmNgek8vwWNeuG/JGeKrfUp6X6mMH9hdmj5+naOIr8V5rUKCjXnlWLAsrGdOvV8vuYYbx2IFQScZQJD/sTKj3gs6yeYpOwQ2iEs9asA=",
+    "expires": "9SN2d0sZEIN16Kts7LxUuQ==",
+    "type": "XPrHEX2xHy+5IuXHPHigMw=="
+  },
+  "sparql11protocol": {
+    "protocol": "https",
+    "port": 8443,
+    "query": {
+      "path": "/secure/query",
+      "method": "POST",
+      "format": "JSON"
+    },
+    "update": {
+      "path": "/secure/update",
+      "method": "POST",
+      "format": "JSON"
+    }
+  },
+  "sparql11seprotocol": {
+    "protocol": "wss",
+    "availableProtocols": {
+      "ws": {
+        "port": 9000,
+        "path": "/subscribe"
+      },
+      "wss": {
+        "port": 9443,
+        "path": "/secure/subscribe"
+      }
+    }
+  },
+  "namespaces": {
+    "sepa": "http://wot.arces.unibo.it/sepa#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  },
+  "updates": {
+    "DELETE_ALL": {
+      "sparql": "DELETE {GRAPH<http://sepatest/> {?x ?y ?z} } WHERE {GRAPH<http://sepatest/> {?x ?y ?z} }"
+    },
+    "VAIMEE": {
+      "sparql": "DELETE {GRAPH<http://sepatest/> {sepa:SV sepa:PV ?o}} WHERE {GRAPH<http://sepatest/> {sepa:SV sepa:PV ?o}} ; INSERT DATA {GRAPH <http://sepatest/> {sepa:SV sepa:PV \"ვაიმეე\"}}"
+    },
+    "RANDOM": {
+      "sparql": "DELETE {GRAPH<http://sepatest/> {sepa:S sepa:P ?o}} WHERE {GRAPH<http://sepatest/> {sepa:S sepa:P ?o}} ; INSERT {GRAPH<http://sepatest/> {sepa:S sepa:P ?random}} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+    },
+    "RANDOM1": {
+      "sparql": "DELETE {GRAPH<http://sepatest/> {sepa:S1 sepa:P1 ?o}} WHERE {graph<http://sepatest/> {sepa:S1 sepa:P1 ?o}} ; INSERT {GRAPH<http://sepatest/> {sepa:S1 sepa:P1 ?random}} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+    }
+  },
+  "queries": {
+    "VAIMEE": {
+      "sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {?x ?y \"ვაიმეე\"}}"
+    },
+    "ALL": {
+      "sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {?x ?y ?z}}"
+    },
+    "RANDOM": {
+      "sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S sepa:P ?random}}"
+    },
+    "RANDOM1": {
+      "sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S1 sepa:P1 ?random}}"
+    },
+    "COUNT": {
+      "sparql": "SELECT (COUNT(?x) AS ?n) WHERE {GRAPH <http://sepatest/> {?x ?y ?z}}"
+    }
+  }
+}
