@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -49,7 +50,9 @@ public class ITSPARQL11SEProtocol {
 		properties = provider.getJsap();
 
 		if (properties.isSecure()) {
-			sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017",
+			ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
+			File keyFile = new File(classLoader.getResource("sepa.jks").getFile());
+			sm = new SEPASecurityManager(keyFile.getPath(), "sepa2017", "sepa2017",
 					new AuthenticationProperties(properties.getFileName()));
 
 			// Registration
@@ -227,7 +230,7 @@ public class ITSPARQL11SEProtocol {
 				sync.getEvents() != subscribers.size());
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 100000)
 	public void Subscribe3xN()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
 		int n = 10;
