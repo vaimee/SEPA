@@ -19,9 +19,7 @@ jobs:
     - sleep 30
     - cd ../..
     script:
-    - cd client-api/target
-    - mvn verify -D testConfiguration=sepatest.jsap
-    - cd ../..
+    - mvn verify
   - stage: integrationSecure
     before_script:
     - docker run --name blazegraph -d -p 9999:9999 nawer/blazegraph:2.1.1
@@ -34,7 +32,7 @@ jobs:
     - sleep 30
     - cd ../..
     script:
-    - mvn verify
+    - mvn verify -Dsecure=true
   - stage: integration-virtuoso
     before_script:
     - docker run --name my-virtuoso -p 8890:8890 -p 1111:1111 -e DBA_PASSWORD=myDbaPassword -e SPARQL_UPDATE=true -e DEFAULT_GRAPH=http://www.example.com/my-graph -d tenforce/virtuoso
