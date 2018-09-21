@@ -230,7 +230,7 @@ public class ITSPARQL11SEProtocol {
 	@Test(timeout = 5000)
 	public void Subscribe3xN()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
-		int n = 10;
+		int n = 20;
 
 		for (int i = 0; i < n; i++) {
 			subscribers.add(new Subscriber("ALL", sm, sync));
@@ -331,50 +331,10 @@ public class ITSPARQL11SEProtocol {
 		for (Publisher pub : publishers) pub.join();
 	}
 
-	/* To be used for long lasting test (30 min)*/
-	//@Test(timeout = 1800000)
-	public void StressTest() throws IOException, IllegalArgumentException, SEPAProtocolException,
-			InterruptedException, SEPAPropertiesException, SEPASecurityException {
-		int n = 50;
-
-		for (int i = 0; i < n; i++) {
-			subscribers.add(new Subscriber("ALL", sm, sync));
-			subscribers.add(new Subscriber("RANDOM", sm, sync));
-			subscribers.add(new Subscriber("RANDOM1", sm, sync));
-		}
-
-
-		for (Subscriber sub : subscribers) sub.start();
-
-		sync.waitSubscribes(subscribers.size());
-		sync.waitEvents(subscribers.size());
-		
-		assertFalse("Events:" + sync.getEvents() + "(" + subscribers.size() + ")", sync.getEvents() != subscribers.size());
-		
-		int events = 4 * n * n * n;
-		
-		while (true) {
-			publishers.clear();
-			sync.reset();
-			
-			for (int i = 0; i < n; i++) {
-				publishers.add(new Publisher("RANDOM", sm, n));
-				publishers.add(new Publisher("RANDOM1", sm, n));
-			}
-			
-			for (Publisher pub : publishers) pub.start();
-			for (Publisher pub : publishers) pub.join();
-			
-			sync.waitEvents(events);
-
-			assertFalse("Events:" + sync.getEvents() + "(" + events + ")", sync.getEvents() != events);
-		}
-	}
-
-	@Test(timeout = 60000)
+	@Test(timeout = 30000)
 	public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
-		int n = 5;
+		int n = 10;
 
 		for (int i = 0; i < n; i++) {
 			subscribers.add(new Subscriber("ALL", sm, sync));
