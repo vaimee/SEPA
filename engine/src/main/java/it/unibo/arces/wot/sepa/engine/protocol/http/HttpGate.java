@@ -6,7 +6,6 @@ import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.ExceptionLogger;
-
 import org.apache.http.impl.nio.bootstrap.HttpServer;
 import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
@@ -20,6 +19,7 @@ import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.QueryHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.UpdateHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.http.handler.EchoHandler;
+import it.unibo.arces.wot.sepa.engine.protocol.http.handler.LinkedDataNotificationServlet;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class HttpGate {
@@ -41,7 +41,24 @@ public class HttpGate {
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
 				.registerHandler(properties.getQueryPath(), new QueryHandler(scheduler))
 				.registerHandler(properties.getUpdatePath(), new UpdateHandler(scheduler))
-				.registerHandler("/echo", new EchoHandler()).create();
+				.registerHandler("/echo", new EchoHandler())
+				.registerHandler("/ldnServlet/*", new LinkedDataNotificationServlet(scheduler))
+				.registerHandler("/ldnServlet", new LinkedDataNotificationServlet(scheduler)).create(); //aggiunta
+		
+		
+		
+		
+		
+		//qui mappo la servlet che dovrò scrivere..gli passo uno scheduler
+		//la mia servlet dovrà implementare implements HttpAsyncRequestHandler<HttpRequest>
+		//devo invocare i metodi dello scheduler (vedi serverSecondario per sapere quali metodi)
+		//devo creare un mio handler con un parametro: httpExchange
+		//invio lo spuid
+		//devo controllare che sia una get(vedi QueryHandler per vedere come fare)
+		//la stringa che dovrò creare sarà così composta:
+		//http://localhost/nomeCheVoglio/richiestaPresaDallUtente
+		//uso postman per fare query: metto come http: localhost:8000/stringaConCuiHoMappatoLaServlet
+		//il file engine.jar contiene l'elenco delle porte
 		
 		try {
 			server.start();

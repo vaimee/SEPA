@@ -26,7 +26,7 @@ import it.unibo.arces.wot.sepa.engine.security.CORSManager;
 public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SPARQL11HandlerMBean {
 	private static final Logger logger = LogManager.getLogger("SPARQL11Handler");
 
-	private Scheduler scheduler;
+	Scheduler scheduler;
 
 	protected HTTPHandlerBeans jmx = new HTTPHandlerBeans();
 

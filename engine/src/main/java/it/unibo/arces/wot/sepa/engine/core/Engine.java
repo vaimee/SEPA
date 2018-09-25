@@ -42,11 +42,15 @@ import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpGate;
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsGate;
+import it.unibo.arces.wot.sepa.engine.protocol.tcp.ServerPrincipaleQuery;
+import it.unibo.arces.wot.sepa.engine.protocol.tcp.ServerPrincipaleSubscribe;
 import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 import it.unibo.arces.wot.sepa.engine.security.AuthorizationManager;
+import net.minidev.json.parser.JSONParser;
+
 
 /**
  * This class represents the SPARQL Subscription Engine (Core) of the Semantic
@@ -70,7 +74,7 @@ public class Engine implements EngineMBean {
 
 	// SPARQL 1.1 Protocol handler
 	private HttpGate httpGate = null;
-
+	
 	// SPARQL 1.1 SE Protocol handler
 	private WebsocketServer wsServer;
 	private SecureWebsocketServer wssServer;
@@ -236,6 +240,7 @@ public class Engine implements EngineMBean {
 			}
 		}
 		
+		
 		wssServer.start();
 		synchronized(wssServer) {
 			try {
@@ -244,6 +249,15 @@ public class Engine implements EngineMBean {
 				throw new SEPAProtocolException(e);
 			}
 		}
+		
+		ServerPrincipaleQuery queryServer = new ServerPrincipaleQuery(scheduler); //da spostare sopra
+		ServerPrincipaleSubscribe subscribeServer = new ServerPrincipaleSubscribe(scheduler);
+		
+		
+		queryServer.start();
+		subscribeServer.start();
+		
+		
 		System.out.println("----------------------");
 
 		// Welcome message
