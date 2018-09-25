@@ -1,10 +1,24 @@
 package it.unibo.arces.wot.sepa.api.protocols.websocket;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javax.websocket.CloseReason;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
+import org.glassfish.tyrus.client.SslEngineConfigurator;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
@@ -12,94 +26,244 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
-public class WebsocketSubscriptionProtocol extends SubscriptionProtocol {
+public class WebsocketSubscriptionProtocol extends Endpoint implements SubscriptionProtocol {
 	protected final Logger logger = LogManager.getLogger();
 
-	private final SEPAWebsocketClient client;
+	protected final String host;
+	protected int port = -1;
+	protected final String path;
 
-	public WebsocketSubscriptionProtocol(String host, int port, String path, SEPASecurityManager sm,
-			ISubscriptionHandler handler) throws SEPAProtocolException, SEPASecurityException {
-		super(handler,sm);
+	protected ISubscriptionHandler handler = null;
+	protected SEPASecurityManager sm = null;
 
-		try {
-			client = new SEPAWebsocketClient(new URI("wss://" + host + ":" + port + path), handler, sm.getSSLSocket());
-		} catch (URISyntaxException e) {
-			throw new SEPAProtocolException(e);
-		}			
+	protected final ClientManager client;
+	protected Session session;
+	protected String subscribeRequest;
+
+	public WebsocketSubscriptionProtocol(String host, int port, String path) {
+		this.host = host;
+		this.port = port;
+		this.path = path;
+
+		client = ClientManager.createClient();
 	}
 
-	public WebsocketSubscriptionProtocol(String host, String path, SEPASecurityManager sm, ISubscriptionHandler handler)
-			throws SEPAProtocolException, SEPASecurityException {
-		super(handler,sm);
+	public WebsocketSubscriptionProtocol(String host, String path) {
+		this.host = host;
+		this.path = path;
 
-		try {
-			client = new SEPAWebsocketClient(new URI("wss://" + host + path), handler, sm.getSSLSocket());
-		} catch (URISyntaxException e) {
-			throw new SEPAProtocolException(e);
-		}	
-	}
-
-	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler)
-			throws SEPAProtocolException {
-		super(handler,null);
-
-		try {
-			client = new SEPAWebsocketClient(new URI("ws://" + host + ":" + port + path), handler);
-		} catch (URISyntaxException  e) {
-			throw new SEPAProtocolException(e);
-		}	
-	}
-
-	public WebsocketSubscriptionProtocol(String host, String path, ISubscriptionHandler handler)
-			throws SEPAProtocolException {
-		super(handler,null);
-		
-		try {
-			client = new SEPAWebsocketClient(new URI("ws://" + host + path), handler);
-		} catch (URISyntaxException  e) {
-			throw new SEPAProtocolException(e);
-		}	
+		client = ClientManager.createClient();
 	}
 
 	@Override
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
-		logger.trace("@subscribe: "+request);
-		if (!client.isOpen()) {
-			logger.debug("connectBlocking...");
+		logger.trace("@subscribe: " + request);
+
+		// Check is socket is open
+		if (session != null)
+			if (session.isOpen()) {
+				try {
+					session.getBasicRemote().sendText(request.toString());
+					return;
+				} catch (IOException e) {
+					throw new SEPAProtocolException(e);
+				}
+			}
+
+		// Connect
+		URI url = null;
+		String scheme = "ws://";
+		if (sm != null)
+			scheme = "wss://";
+		if (port == -1)
 			try {
-				if(client.connectBlocking()) logger.debug("Connected");;
-			} catch (InterruptedException e1) {
-				throw new SEPAProtocolException(e1);
+				url = new URI(scheme + host + path);
+			} catch (URISyntaxException e) {
+				logger.error(e.getMessage());
+				throw new SEPAProtocolException(e);
+			}
+		else
+			try {
+				url = new URI(scheme + host + ":" + port + path);
+			} catch (URISyntaxException e) {
+				logger.error(e.getMessage());
+				throw new SEPAProtocolException(e);
+			}
+
+		// Attempt up to X times to connect
+		int retries = 5;
+		while (true) {
+			try {
+				subscribeRequest = request.toString();
+
+				logger.info("Connect to: " + url);
+
+				client.connectToServer(this, url);
+
+				return;
+				
+			} catch (DeploymentException | IOException e) {
+				logger.error(e.getMessage()+" Retries: "+retries);
+				retries--;
+				if (retries == 0) throw new SEPAProtocolException(e);
+				
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e1) {
+					throw new SEPAProtocolException(e1);
+				}
 			}
 		}
-		
-		try {
-			logger.trace("Send");
-			client.send(request.toString());
-		} catch (Exception  e) {
-			logger.error("Websocket send exception: "+e.getMessage());
-			throw new SEPAProtocolException(e);
-		}
+
 	}
 
 	@Override
 	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException {
-		logger.debug("@unsubscribe: "+request);
+		logger.debug("@unsubscribe: " + request);
+
+		if (session != null)
+			try {
+				session.getBasicRemote().sendText(request.toString());
+			} catch (IOException e) {
+				logger.error(e.getMessage());
+				throw new SEPAProtocolException(e);
+			}
+	}
+
+	@Override
+	public void close() throws IOException {
+		logger.trace("Close");
+		if (session != null)
+			session.close();
+	}
+
+	@Override
+	public void setHandler(ISubscriptionHandler handler) {
+		if (handler == null)
+			throw new IllegalArgumentException("Handler is null");
+
+		this.handler = handler;
+	}
+
+	@Override
+	public void enableSecurity(SEPASecurityManager sm) throws SEPASecurityException {
+		if (sm == null)
+			throw new IllegalArgumentException("Security manager is null");
+
+		this.sm = sm;
+
+		SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext());
+		config.setHostVerificationEnabled(false);
+		client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, config);
+	}
+
+	@Override
+	public void onOpen(Session session, EndpointConfig config) {
+		logger.info("onOpen session: " + session.getId());
+
+		this.session = session;
+
+		session.addMessageHandler(String.class, new MessageHandler.Whole<String>() {
+			@Override
+			public void onMessage(String message) {
+				logger.trace("@onMessage: " + message);
+
+				// Parse message
+				JsonObject jsonMessage = null;
+				try {
+					jsonMessage = new JsonParser().parse(message).getAsJsonObject();
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+					return;
+				}
+
+				if (jsonMessage.has("notification")) {
+
+					JsonObject notification = jsonMessage.get("notification").getAsJsonObject();
+
+					// Subscribe
+					if (notification.get("sequence").getAsInt() == 0) {
+						String spuid = notification.get("spuid").getAsString();
+						String alias = null;
+						if (notification.has("alias"))
+							alias = notification.get("alias").getAsString();
+						try {
+							logger.trace("onSubscribe: " + spuid + " alias: " + alias);
+							handler.onSubscribe(spuid, alias);
+						} catch (Exception e) {
+							logger.error("Handler is null " + e.getMessage());
+							return;
+						}
+					}
+
+					// Event
+					try {
+						Notification notify = new Notification(jsonMessage);
+						logger.trace("onSemanticEvent: " + notify);
+						handler.onSemanticEvent(notify);
+					} catch (Exception e) {
+						logger.error("Handler is null " + e.getMessage());
+					}
+				} else if (jsonMessage.has("error")) {
+					ErrorResponse error = new ErrorResponse(jsonMessage.get("status_code").getAsInt(),
+							jsonMessage.get("error").getAsString(), jsonMessage.get("error_description").getAsString());
+					logger.error(error);
+					try {
+						handler.onError(error);
+					} catch (Exception e) {
+						logger.error("Handler is null " + e.getMessage());
+					}
+				} else if (jsonMessage.has("unsubscribed")) {
+					logger.debug("unsubscribed");
+					try {
+						handler.onUnsubscribe(
+								jsonMessage.get("unsubscribed").getAsJsonObject().get("spuid").getAsString());
+					} catch (Exception e) {
+						logger.error("Handler is null " + e.getMessage());
+					}
+				} else
+					logger.error("Unknown message: " + message);
+			}
+		});
+
 		try {
-			logger.trace("Send");
-			client.send(request.toString());
+			session.getBasicRemote().sendText(subscribeRequest);
+		} catch (IOException e) {
+			logger.error("onOpen send subscribe request: " + e.getMessage());
+		}
+
+	}
+
+	@Override
+	public void onClose(Session session, CloseReason closeReason) {
+		logger.warn("onClose session: " + session + " reason: " + closeReason);
+
+		try {
+			handler.onBrokenConnection();
 		} catch (Exception e) {
-			logger.error("Websocket send exception: "+e.getMessage());
-			throw new SEPAProtocolException(e);
+			logger.error("Handler is null " + e.getMessage());
 		}
 	}
 
 	@Override
-	public void close() {
-		logger.debug("Close");
-		client.close();
+	public void onError(Session session, Throwable thr) {
+		ErrorResponse error = new ErrorResponse(500, "Exception", thr.getMessage());
+		logger.error("@onError: " + error);
+
+		try {
+			handler.onError(error);
+		} catch (Exception e) {
+			logger.error("Handler is null " + e.getMessage());
+		}
+		try {
+			handler.onError(error);
+		} catch (Exception e) {
+			logger.error("Handler is null " + e.getMessage());
+		}
 	}
 
 }

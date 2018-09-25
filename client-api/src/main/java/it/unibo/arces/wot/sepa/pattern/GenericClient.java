@@ -196,8 +196,8 @@ public class GenericClient extends Client {
 
 			if (!subscribedClients.containsKey(url)) {
 				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
-						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID),handler);
-
+						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID));
+				protocol.setHandler(handler);
 				client = new SPARQL11SEProtocol(protocol);
 			} else
 				client = subscribedClients.get(url);
@@ -209,8 +209,9 @@ public class GenericClient extends Client {
 
 			if (!subscribedClients.containsKey(url)) {
 				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
-						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), sm,handler);
-
+						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID));
+				protocol.setHandler(handler);
+				protocol.enableSecurity(sm);
 				client = new SPARQL11SEProtocol(protocol);
 			} else
 				client = subscribedClients.get(url);

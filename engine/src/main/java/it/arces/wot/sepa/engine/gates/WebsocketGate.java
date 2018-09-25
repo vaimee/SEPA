@@ -23,6 +23,7 @@ public class WebsocketGate extends Gate {
 	public void send(String ret) throws SEPAProtocolException {
 		try{
 			socket.send(ret);
+			logger.debug("Sent: "+ret);
 		}
 		catch(Exception e){
 			logger.warn("Socket: "+socket.hashCode()+" failed to send response: "+ret+" Exception:"+e.getMessage());

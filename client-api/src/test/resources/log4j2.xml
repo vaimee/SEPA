@@ -19,14 +19,14 @@ ALL					Integer.MAX_VALUE
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
+			<PatternLayout pattern="%d{ISO8601} [%-5level] [%-25t] (%F:%L) %msg%n%throwable" />
 		</Console>
 		<File name="Log" fileName="logs/${sys:logFilename}.csv">
 			<PatternLayout pattern="%m\n"/>
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="debug">
+		<Root level="error">
 			<AppenderRef ref="Console" level="debug"/>
 		</Root>
 	</Loggers>

@@ -56,7 +56,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 
 	@Override
 	public void notifyEvent(Notification notify) throws SEPAProtocolException {
-		logger.trace("@notifyEvent: " + notify);
+		logger.debug("@notifyEvent: " + notify);
 		send(notify.toString());
 	}
 

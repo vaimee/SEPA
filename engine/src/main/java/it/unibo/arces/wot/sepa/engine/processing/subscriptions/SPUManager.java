@@ -194,7 +194,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 				requests.remove(sub.getSPU().getSubscribe());
 				handlers.remove(spuid);
 
-				logger.debug("@unsubscribe active SPUs: " + spus.size());
+				logger.info("@unsubscribe active SPUs: " + spus.size());
 				SPUManagerBeans.setActiveSPUs(spus.size());
 			}
 		}

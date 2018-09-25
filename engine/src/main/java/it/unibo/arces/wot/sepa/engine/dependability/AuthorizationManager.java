@@ -253,7 +253,7 @@ Respond with 401 if not
 		
 		//Check if entity is authorized to request credentials
 		if (!authorizeIdentity(identity)) {
-			logger.error("Not authorized identity "+identity);
+			logger.warn("Not authorized identity "+identity);
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"not_authorized_identity","Client "+identity+" is not authorized");
 		}
 		

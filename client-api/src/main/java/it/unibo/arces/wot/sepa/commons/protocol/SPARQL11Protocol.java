@@ -32,6 +32,7 @@ import javax.net.ssl.SSLException;
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -91,10 +92,6 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		httpClient = HttpClients.createDefault();
 	}
 
-//	public boolean isSecure() {
-//		return sm != null;
-//	}
-
 	private Response executeRequest(HttpUriRequest req, Request request) {
 		CloseableHttpResponse httpResponse = null;
 		HttpEntity responseEntity = null;
@@ -110,9 +107,29 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		try {
 			// Execute HTTP request
 			logger.trace(req.toString() + " " + request.toString() + " (timeout: " + request.getTimeout() + " ms) ");
+			
 			long start = Timings.getTime();
-			httpResponse = httpClient.execute(req);
+			
+//			int retries = 5;
+//			while (true) {
+				try {
+					httpResponse = httpClient.execute(req);
+//					break;
+				} catch (IOException e) {
+					logger.error("HTTP EXECUTE: " + e.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute",e.getMessage());
+//					if (retries == 0) return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute",e.getMessage());
+				}
+//				retries--;
+//				try {
+//					Thread.sleep(100);
+//				} catch (InterruptedException e) {
+//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException",e.getMessage());
+//				}
+//			}
+			
 			long stop = Timings.getTime();
+			
 			if (request.getClass().equals(UpdateRequest.class))
 				Timings.log("ENDPOINT_UPDATE_TIME", start, stop);
 			else
@@ -129,6 +146,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 			// http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.html#d5e279
 		} catch (IOException e) {
+			logger.error(e.getMessage());
 			if (e instanceof InterruptedIOException) {
 				return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "InterruptedIOException",e.getMessage());
 			}
@@ -141,12 +159,17 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			if (e instanceof SSLException) {
 				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "SSLException",e.getMessage());
 			}
+			if (e instanceof ClientProtocolException) {
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "ClientProtocolException",e.getMessage());
+			}
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException",e.getMessage());
-		} finally {
+		}
+		finally {
 			try {
 				if (httpResponse != null)
 					httpResponse.close();
 			} catch (IOException e) {
+				logger.error(e.getMessage());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"IOException",e.getMessage());
 			}
 
@@ -160,6 +183,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				ret = new JsonParser().parse(responseBody).getAsJsonObject();
 			}
 			catch(Exception e) {
+				logger.error(e.getMessage());
 				return new ErrorResponse(responseCode,"JsonParsingException",e.getMessage()+" Response body: "+responseBody);
 			}
 			return new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),ret.get("error_description").getAsString());
@@ -173,6 +197,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			ret = new JsonParser().parse(responseBody).getAsJsonObject();
 		}
 		catch(JsonParseException e) {
+			logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY,"JsonParsingException", e.getMessage() +" Response body: "+responseBody);
 		}
 		return new QueryResponse(ret);
@@ -576,11 +601,12 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	}
 
 	@Override
-	public void close() {
+	public void close() throws IOException {
 		try {
 			httpClient.close();
 		} catch (IOException e) {
 			logger.error(e.getMessage());
+			throw e;
 		}
 	}
 }

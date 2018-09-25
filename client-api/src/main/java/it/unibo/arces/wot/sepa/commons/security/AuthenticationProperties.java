@@ -127,7 +127,7 @@ public class AuthenticationProperties {
 			long expires = Long.decode(encryption.decrypt(getSecurityEncryptedValue("expires")));
 			long now = new Date().getTime();
 			
-			logger.debug("@getExpiringTime Diff:"+(expires-now)+" Now: "+now+" Expires: "+expires);
+			logger.trace("@getExpiringTime Diff:"+(expires-now)+" Now: "+now+" Expires: "+expires);
 			
 			if (expires-now < 0) return 0;
 			return expires-now;

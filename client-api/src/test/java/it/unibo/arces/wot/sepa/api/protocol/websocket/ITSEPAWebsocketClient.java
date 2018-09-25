@@ -9,11 +9,11 @@ import java.net.URISyntaxException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.BeforeClass;
-import org.junit.Test;
+//import org.junit.Test;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
-import it.unibo.arces.wot.sepa.api.protocols.websocket.SEPAWebsocketClient;
+import it.unibo.arces.wot.sepa.api.protocols.websocket.JavaWebsocketClient;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
@@ -25,7 +25,7 @@ public class ITSEPAWebsocketClient implements ISubscriptionHandler {
 	protected static JSAP properties = null;
 	protected static String url = null;
 	
-	SEPAWebsocketClient client = null;
+	JavaWebsocketClient client = null;
 	
 	@BeforeClass
 	public static void init() throws Exception {
@@ -46,16 +46,16 @@ public class ITSEPAWebsocketClient implements ISubscriptionHandler {
 		}
 	}
 
-	@Test(timeout = 10000)
+	//@Test(timeout = 10000)
 	public void Connect() throws InterruptedException, URISyntaxException, IOException, SEPASecurityException {
 		for (int i = 0; i < 100; i++) {
 			if(properties.isSecure()) {
 				SEPASecurityManager sm = new SEPASecurityManager();
-				client = new SEPAWebsocketClient(new URI(url), this,
+				client = new JavaWebsocketClient(new URI(url), this,
 						sm.getSSLSocket());
 			}
 			else {
-				client = new SEPAWebsocketClient(new URI(url), this);
+				client = new JavaWebsocketClient(new URI(url), this);
 			}
 			
 			assertFalse("Failed to connect", !client.connectBlocking());

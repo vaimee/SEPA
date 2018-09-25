@@ -74,15 +74,14 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 			fragmentedMessages.put(conn, null);
 
-			logger.debug("@onOpen websocket: " + conn + " GID: " + gate.getGID() + " Total sockets: "
-					+ gates.size());
+			logger.debug("@onOpen (sockets: " + gates.size()+") GID: " + gate.getGID() + " socket: "+conn);
 		}
 	}
 
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		synchronized (gates) {
-			logger.trace("@onClose socket: " + conn + " reason: " + reason + " remote: "+remote);
+			logger.debug("@onClose socket: " + conn + " reason: " + reason + " remote: "+remote);
 
 			fragmentedMessages.remove(conn);
 
@@ -117,6 +116,9 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		synchronized (gates) {
 			try {
 				if (gates.get(conn) !=  null) gates.get(conn).onMessage(message);
+				else {
+					logger.error("Gate NOT FOUND: "+conn);
+				}
 			} catch (SEPAProtocolException e) {
 				logger.error(e);
 			}
