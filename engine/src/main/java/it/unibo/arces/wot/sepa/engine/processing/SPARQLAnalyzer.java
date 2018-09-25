@@ -1,6 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import org.apache.jena.atlas.lib.Sink;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
@@ -10,7 +9,6 @@ import org.apache.jena.sparql.algebra.op.OpBGP;
 import org.apache.jena.sparql.core.BasicPattern;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.core.TriplePath;
-import org.apache.jena.sparql.lang.UpdateParserFactory;
 import org.apache.jena.sparql.lang.arq.ParseException;
 import org.apache.jena.sparql.modify.request.*;
 import org.apache.jena.sparql.syntax.*;
@@ -21,11 +19,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class SPARQLAnalyzer {

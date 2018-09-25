@@ -31,6 +31,7 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 /**
  * This class implements the SPARQL 1.1 Secure event protocol with SPARQL 1.1
@@ -47,7 +48,13 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	private final SubscriptionProtocol subscriptionProtocol;
 	
 	public SPARQL11SEProtocol(SubscriptionProtocol protocol) throws SEPAProtocolException {
-		super(protocol.getSecurityManager());
+		super(null);
+		
+		this.subscriptionProtocol = protocol;
+	}
+	
+	public SPARQL11SEProtocol(SubscriptionProtocol protocol,SEPASecurityManager sm) throws SEPAProtocolException {
+		super(sm);
 		
 		this.subscriptionProtocol = protocol;
 	}
@@ -95,7 +102,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * @throws IOException
 	 */
 	@Override
-	public void close() {
+	public void close() throws IOException {
 		super.close();
 		subscriptionProtocol.close();
 	}

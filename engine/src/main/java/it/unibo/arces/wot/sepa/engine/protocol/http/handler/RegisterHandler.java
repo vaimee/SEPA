@@ -133,7 +133,7 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 
 		if (cred.getClass().equals(ErrorResponse.class)) {
 			ErrorResponse error = (ErrorResponse) cred;
-			logger.error(error.toString());
+			logger.warn(error.toString());
 
 			HttpUtilities.sendFailureResponse(exchange, error);
 			return;

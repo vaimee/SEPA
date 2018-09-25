@@ -1,11 +1,11 @@
-package it.unibo.arces.wot.sepa.api;
+package it.unibo.arces.wot.sepa;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
@@ -25,62 +25,66 @@ public class Subscriber extends Thread implements ISubscriptionHandler {
 	private final String id;
 	private final Sync sync;
 	private String spuid;
-	
+
 	private AtomicBoolean subscribing = new AtomicBoolean(false);
 	private AtomicBoolean unsubscribing = new AtomicBoolean(false);
-	
+
 	private static ConfigurationProvider provider;
-	
-	public Subscriber(String id,SEPASecurityManager sm, Sync sync) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+
+	public Subscriber(String id, SEPASecurityManager sm, Sync sync)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		provider = new ConfigurationProvider();
-		
+
 		this.sm = sm;
 		this.id = id;
 		this.sync = sync;
 
 		SubscriptionProtocol protocol;
 		if (sm != null) {
-			protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
-					provider.getJsap().getSubscribePath(), sm, this);
+			protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(),
+					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath());
+			protocol.enableSecurity(sm);
 		} else {
-			protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
-					provider.getJsap().getSubscribePath(), this);
+			protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(),
+					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath());
 		}
+		protocol.setHandler(this);
 
 		client = new SPARQL11SEProtocol(protocol);
 	}
-	
+
 	public void run() {
-		try {
-			subscribe();
-			synchronized(this) {
+		synchronized (this) {
+			try {
+				subscribe();
 				wait();
-			}		
-		} catch (SEPAProtocolException | InterruptedException e) {
-		
+			} catch (SEPAProtocolException | InterruptedException e) {
+				return;
+			}
 		}
 	}
 
-	public void close() {
+	public void close() throws IOException {
 		client.close();
 		interrupt();
 	}
 
 	private void subscribe() throws SEPAProtocolException, InterruptedException {
 		subscribing.set(true);
-		client.subscribe(provider.buildSubscribeRequest(id, 5000,sm));
+		client.subscribe(provider.buildSubscribeRequest(id, 5000, sm));
 	}
 
 	public void unsubscribe(String spuid) throws SEPAProtocolException, InterruptedException {
 		unsubscribing.set(true);
-		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 5000,sm));
+		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 5000, sm));
 	}
 
 	@Override
 	public void onSemanticEvent(Notification notify) {
 		logger.debug("@onSemanticEvent: " + notify);
 
-		sync.event();
+		if (sync != null)
+			sync.event();
 	}
 
 	@Override
@@ -91,19 +95,31 @@ public class Subscriber extends Thread implements ISubscriptionHandler {
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		logger.error("@onError: " + errorResponse);
-		if (errorResponse.isTokenExpiredError()) { 
+		if (errorResponse.isTokenExpiredError()) {
 			if (subscribing.get())
 				try {
-					client.subscribe(provider.buildSubscribeRequest(id, 5000,sm));
+					logger.warn("Token is expired. Renew token and subscribe again");
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						return;
+					}
+					client.subscribe(provider.buildSubscribeRequest(id, 5000, sm));
 				} catch (SEPAProtocolException e) {
 					logger.error(e.getMessage());
 				}
-			else if (unsubscribing.get())
+			while (unsubscribing.get())
 				try {
-					client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 5000,sm));
+					logger.warn("Token is expired. Renew token and unsubscribe again");
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						return;
+					}
+					client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 5000, sm));
 				} catch (SEPAProtocolException e) {
 					logger.error(e.getMessage());
-				}	  
+				}
 		}
 	}
 
@@ -112,7 +128,8 @@ public class Subscriber extends Thread implements ISubscriptionHandler {
 		logger.debug("@onSubscribe: " + spuid + " alias: " + alias);
 
 		subscribing.set(false);
-		sync.subscribe(spuid, alias);
+		if (sync != null)
+			sync.subscribe(spuid, alias);
 	}
 
 	@Override
@@ -120,6 +137,7 @@ public class Subscriber extends Thread implements ISubscriptionHandler {
 		logger.debug("@onUnsubscribe: " + spuid);
 
 		unsubscribing.set(false);
-		sync.unsubscribe();
+		if (sync != null)
+			sync.unsubscribe();
 	}
 }

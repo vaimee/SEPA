@@ -62,31 +62,36 @@ public class Scheduler extends Thread implements SchedulerMBean {
 
 		setName("SEPA-Scheduler");
 	}
-	
+
 	public ScheduledRequest schedule(InternalRequest request, ResponseHandler handler) {
 		if (request == null || handler == null) {
 			logger.error("Request handler or request are null");
 			return null;
 		}
 
-		// Add request to the scheduler queue (null means no more tokens)
-		ScheduledRequest scheduled = queue.addRequest(request, handler);
+		ScheduledRequest scheduled = null;		
+		synchronized (responders) {
+			// Add request to the scheduler queue (null means no more tokens)
+			scheduled = queue.addRequest(request, handler);
 
-		// No more tokens
-		if (scheduled == null) {
-			SchedulerBeans.newRequest(request, false);
-			logger.error("Request refused: too many pending requests: " + request);
-			return null;
+			// No more tokens
+			if (scheduled == null) {
+				SchedulerBeans.newRequest(request, false);
+				logger.error("Request refused: too many pending requests: " + request);
+				return null;
+			}
+
+			logger.info(">> " + scheduled);
+
+			Timings.log(request);
+
+			SchedulerBeans.newRequest(request, true);
+
+			// Register response handlers
+
+			logger.trace("Register handler: " + handler + " token: " + scheduled.getToken());
+			responders.put(scheduled.getToken(), handler);
 		}
-
-		logger.info(">> " + scheduled);
-
-		Timings.log(request);
-
-		SchedulerBeans.newRequest(request, true);
-
-		// Register response handlers
-		responders.put(scheduled.getToken(), handler);
 
 		return scheduled;
 	}
@@ -94,7 +99,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 	public void finish() {
 		running.set(false);
 	}
-	
+
 	@Override
 	public void run() {
 		while (running.get()) {
@@ -107,28 +112,29 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				int token = response.getToken();
 
 				// Send response back
-				ResponseHandler handler = responders.get(token);
-				if (handler == null) {
-					logger.error("Response handler is null (token #" + token + ")");
-					
-				} else {
-					try {
-						handler.sendResponse(response.getResponse());
-					} catch (SEPAProtocolException e) {
-						logger.error("Failed to send response: " + e.getMessage());
+				synchronized (responders) {
+					ResponseHandler handler = responders.get(token);
+					if (handler == null) {
+						logger.error("Response handler is null (token #" + token + ")");
+
+					} else {
+						logger.trace("Handler: " + handler + " response: " + response);
+						try {
+							handler.sendResponse(response.getResponse());
+						} catch (SEPAProtocolException e) {
+							logger.error("Failed to send response: " + e.getMessage());
+						}
 					}
+
+					// Remove handlers
+					responders.remove(token);
 				}
 
-				// Remove handlers
-				responders.remove(token);
-				
 			} catch (InterruptedException e) {
 				running.set(false);
 			}
 		}
 	}
-
-	
 
 	public String getStatistics() {
 		return SchedulerBeans.getStatistics();

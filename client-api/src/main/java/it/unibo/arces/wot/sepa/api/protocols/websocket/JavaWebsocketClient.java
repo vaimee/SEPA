@@ -15,20 +15,19 @@ import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 
-public class SEPAWebsocketClient extends WebSocketClient {
+public class JavaWebsocketClient extends WebSocketClient {
 	protected final Logger logger = LogManager.getLogger();
 
 	private final ISubscriptionHandler handler;
-	
-	public SEPAWebsocketClient(URI wsUrl, ISubscriptionHandler handler, Socket secure) {
+
+	public JavaWebsocketClient(URI wsUrl, ISubscriptionHandler handler, Socket secure) {
 		super(wsUrl);
 
 		this.handler = handler;
-
 		setSocket(secure);
 	}
 
-	public SEPAWebsocketClient(URI wsUrl, ISubscriptionHandler handler) {
+	public JavaWebsocketClient(URI wsUrl, ISubscriptionHandler handler) {
 		super(wsUrl);
 
 		this.handler = handler;
@@ -36,13 +35,13 @@ public class SEPAWebsocketClient extends WebSocketClient {
 
 	@Override
 	public void onOpen(ServerHandshake handshakedata) {
-		logger.debug("@onOpen: "+handshakedata.getHttpStatusMessage());
+		logger.debug("@onOpen: " + handshakedata.getHttpStatusMessage());
 	}
 
 	@Override
 	public void onClose(int code, String reason, boolean remote) {
 		logger.debug("@onClose code:" + code + " reason:" + reason + " remote:" + remote);
-		
+
 		try {
 			handler.onBrokenConnection();
 		} catch (Exception e) {
@@ -71,13 +70,15 @@ public class SEPAWebsocketClient extends WebSocketClient {
 		JsonObject jsonMessage = null;
 		try {
 			jsonMessage = new JsonParser().parse(message).getAsJsonObject();
-		} catch (IllegalStateException e) {
+		} catch (Exception e) {
 			logger.error(e.getMessage());
 			return;
 		}
 
 		if (jsonMessage.has("notification")) {
 			JsonObject notification = jsonMessage.get("notification").getAsJsonObject();
+
+			// Subscribe
 			if (notification.get("sequence").getAsInt() == 0) {
 				String spuid = notification.get("spuid").getAsString();
 				String alias = null;
@@ -90,24 +91,25 @@ public class SEPAWebsocketClient extends WebSocketClient {
 					return;
 				}
 			}
+
+			// Event
 			try {
 				handler.onSemanticEvent(new Notification(jsonMessage));
 			} catch (Exception e) {
 				logger.error("Handler is null " + e.getMessage());
 			}
 		} else if (jsonMessage.has("error")) {
-			try{
-				handler.onError(new ErrorResponse(jsonMessage.get("status_code").getAsInt(),jsonMessage.get("error").getAsString(),jsonMessage.get("error_description").getAsString()));
-			}
-			catch(Exception e) {
-				logger.error("Handler is null "+e.getMessage());
+			try {
+				handler.onError(new ErrorResponse(jsonMessage.get("status_code").getAsInt(),
+						jsonMessage.get("error").getAsString(), jsonMessage.get("error_description").getAsString()));
+			} catch (Exception e) {
+				logger.error("Handler is null " + e.getMessage());
 			}
 		} else if (jsonMessage.has("unsubscribed")) {
 			try {
 				handler.onUnsubscribe(jsonMessage.get("unsubscribed").getAsJsonObject().get("spuid").getAsString());
-			}
-			catch(Exception e) {
-				logger.error("Handler is null "+e.getMessage());
+			} catch (Exception e) {
+				logger.error("Handler is null " + e.getMessage());
 			}
 		} else
 			logger.error("Unknown message: " + message);

@@ -1,7 +1,7 @@
 package it.unibo.arces.wot.sepa.api.protocol.websocket;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.logging.log4j.LogManager;
@@ -17,8 +17,6 @@ import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProt
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
@@ -29,7 +27,9 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	protected final Logger logger = LogManager.getLogger();
 
 	private WebsocketSubscriptionProtocol client = null;
+	
 	private static SEPASecurityManager sm = null;
+	
 	private static AtomicLong subscribes = new AtomicLong(0);
 	private String spuid = null;
 
@@ -50,11 +50,14 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, URISyntaxException {
 		if (provider.getJsap().isSecure()) {
 			client = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
-					provider.getJsap().getSubscribePath(), sm, this);
+					provider.getJsap().getSubscribePath());
+			client.enableSecurity(sm);
 		} else
 			client = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
-					provider.getJsap().getSubscribePath(), this);
+					provider.getJsap().getSubscribePath());
 
+		client.setHandler(this);
+		
 		subscribes.set(0);
 	}
 
@@ -63,13 +66,9 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 	}
 
-	@Test(timeout = 5000)
-	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
-		SubscribeRequest request = provider.buildSubscribeRequest("RANDOM", 5000, sm);
-
-		logger.debug(request);
-
-		client.subscribe(request);
+	@Test (timeout = 5000)
+	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
+		client.subscribe(provider.buildSubscribeRequest("RANDOM", 5000, sm));
 
 		while (subscribes.get() != 1) {
 			synchronized (subscribes) {
@@ -86,21 +85,23 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 		assertFalse("Failed to subscribe", subscribes.get() != 1);
 	}
 
-	@Test(timeout = 5000)
-	public void SubscribexN() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
-		int n = 50;
-
-		SubscribeRequest request = provider.buildSubscribeRequest("RANDOM", 5000, sm);
+	@Test (timeout = 5000)
+	public void MultipleSubscribes() throws IOException {
+		int n = 95;
 
 		for (int i = 0; i < n; i++) {
-			logger.debug(request);
-			client.subscribe(request);
+			try {
+				client.subscribe(provider.buildSubscribeRequest("RANDOM", 5000, sm));
+			} catch (SEPAProtocolException e) {
+				logger.error(e.getMessage());
+			}
 		}
 
 		while (subscribes.get() < n) {
 			synchronized (subscribes) {
 				try {
-					subscribes.wait();
+					subscribes.wait(5000);
+					logger.warn("Subscribes: "+subscribes.get());
 				} catch (InterruptedException e) {
 
 				}
@@ -112,24 +113,13 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 		client.close();
 	}
 
-	@Test(timeout = 10000)
-	public void SubscribeMxN() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
+	@Test (timeout = 5000)
+	public void MultipleClientsAndMultipleSubscribes() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		int n = 10;
 		int m = 5;
 
-		ArrayList<WebsocketSubscriptionProtocol> clients = new ArrayList<WebsocketSubscriptionProtocol>();
-
 		for (int i = 0; i < m; i++) {
-			if (provider.getJsap().isSecure()) {
-				clients.add(new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
-						provider.getJsap().getSubscribePath(), sm, this));
-			} else
-				clients.add(new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
-						provider.getJsap().getSubscribePath(), this));
-		}
-
-		for (int i = 0; i < m; i++) {
-			new Subscriber(clients.get(i),n).start();
+			new Subscriber(n,this).start();
 		}
 
 		while (subscribes.get() < n * m) {
@@ -148,21 +138,23 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	}
 
 	class Subscriber extends Thread {
-		private WebsocketSubscriptionProtocol client;
-		private int n;
+		private final WebsocketSubscriptionProtocol client;
+		private final int n;
 
-		public Subscriber(WebsocketSubscriptionProtocol client, int n) {
-			this.client = client;
+		public Subscriber(int n,ISubscriptionHandler handler) throws SEPASecurityException {
+			client = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(), provider.getJsap().getSubscribePort(),
+					provider.getJsap().getSubscribePath());
+			
+			if (provider.getJsap().isSecure()) client.enableSecurity(sm);
+			client.setHandler(handler);
+			
 			this.n = n;
 		}
 
 		public void run() {
 			for (int j = 0; j < n; j++) {
-				SubscribeRequest request = provider.buildSubscribeRequest("RANDOM", 500, sm);
-				
-				logger.debug(request);
 				try {
-					client.subscribe(request);
+					client.subscribe(provider.buildSubscribeRequest("RANDOM", 500, sm));
 				} catch (SEPAProtocolException e) {
 					logger.error(e.getMessage());
 				}
@@ -170,12 +162,11 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 		}
 	}
 
-	@Test(timeout = 5000)
-	public void SubscribeAndUnsubscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
-		SubscribeRequest request = provider.buildSubscribeRequest("RANDOM", 500, sm);
-
+	@Test (timeout = 5000)
+	public void SubscribeAndUnsubscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		spuid = null;
-		client.subscribe(request);
+		
+		client.subscribe(provider.buildSubscribeRequest("RANDOM", 500, sm));
 
 		while (subscribes.get() != 1) {
 			synchronized (subscribes) {
@@ -189,9 +180,7 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 		assertFalse("Failed to subscribe", subscribes.get() != 1);
 
-		UnsubscribeRequest unsub = provider.buildUnsubscribeRequest(spuid, 500, sm);
-
-		client.unsubscribe(unsub);
+		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 500, sm));
 
 		while (subscribes.get() != 0) {
 			synchronized (subscribes) {

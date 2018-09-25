@@ -36,7 +36,7 @@ public interface ISubscriptionHandler {
 
 	/**
 	 * This method is called after the connection with SEPA is lost.
-	 * Notice that it is also called even after {@link SEPAWebsocketClient#close()}
+	 * Notice that it is also called even after {@link JavaWebsocketClient#close()}
 	 * is used.
 	 */
 	void onBrokenConnection();

@@ -74,9 +74,11 @@ public abstract class Consumer extends Client implements IConsumer {
 		SubscriptionProtocol protocol = null;
 
 		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
-				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID),sm,this);
+				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID));
+		protocol.setHandler(this);
+		protocol.enableSecurity(sm);
 
-		client = new SPARQL11SEProtocol(protocol);
+		client = new SPARQL11SEProtocol(protocol,sm);
 		
 		subID = subscribeID;
 	}
@@ -107,9 +109,10 @@ public abstract class Consumer extends Client implements IConsumer {
 		SubscriptionProtocol protocol = null;
 
 		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
-				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID),this);
+				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID));
+		protocol.setHandler(this);
 
-		client = new SPARQL11SEProtocol(protocol);
+		client = new SPARQL11SEProtocol(protocol,null);
 		
 		subID = subscribeID;
 	}

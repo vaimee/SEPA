@@ -1,13 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import org.apache.jena.sparql.lang.arq.ParseException;
-import org.apache.jena.update.Update;
-import org.apache.jena.update.UpdateFactory;
 import org.junit.Test;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 import static org.junit.Assert.*;
 

@@ -1,6 +1,9 @@
 package it.unibo.arces.wot.sepa.api;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
+import it.unibo.arces.wot.sepa.Publisher;
+import it.unibo.arces.wot.sepa.Subscriber;
+import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -99,7 +102,7 @@ public class ITSPARQL11SEProtocol {
 		}
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 1000)
 	public void RegisterNotAllowed() throws SEPASecurityException, SEPAPropertiesException {
 		if (sm != null) {
 			Response response = sm.register(NOT_VALID_ID);
@@ -107,7 +110,7 @@ public class ITSPARQL11SEProtocol {
 		}
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 1000)
 	public void Register() throws SEPASecurityException, SEPAPropertiesException {
 		if (sm != null) {
 			Response response = sm.register(VALID_ID);
@@ -115,7 +118,7 @@ public class ITSPARQL11SEProtocol {
 		}
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 1000)
 	public void DeleteAll() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		// Delete all triples
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000,sm));
@@ -150,7 +153,7 @@ public class ITSPARQL11SEProtocol {
 		}
 	}
 
-	@Test(timeout = 25000)
+	@Test(timeout = 30000)
 	public void RequestToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
 		if (sm != null) {
 			for (int i = 0; i < 2000; i++) {
@@ -161,7 +164,7 @@ public class ITSPARQL11SEProtocol {
 		}
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 1000)
 	public void Update() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", 5000,sm));
 		if (ret.isError()) {
@@ -173,7 +176,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 1000)
 	public void Query() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.query(provider.buildQueryRequest("ALL", 5000,sm));
 		if (ret.isError()) {
@@ -185,7 +188,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 1000)
 	public void UpdateAndQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", 5000,sm));
@@ -210,7 +213,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse(String.valueOf(ret), ((QueryResponse) ret).getBindingsResults().size() != 1);
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 1000)
 	public void Subscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
 		subscribers.add(new Subscriber("ALL", sm, sync));
@@ -227,10 +230,10 @@ public class ITSPARQL11SEProtocol {
 				sync.getEvents() != subscribers.size());
 	}
 
-	@Test(timeout = 5000)
+	@Test (timeout = 30000)
 	public void Subscribe3xN()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
-		int n = 20;
+		int n = 30;
 
 		for (int i = 0; i < n; i++) {
 			subscribers.add(new Subscriber("ALL", sm, sync));
@@ -249,7 +252,7 @@ public class ITSPARQL11SEProtocol {
 				sync.getEvents() != subscribers.size());
 	}
 
-	@Test(timeout = 5000)
+	@Test (timeout = 1000)
 	public void Unsubscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
 		subscribers.add(new Subscriber("ALL", sm, sync));
@@ -271,7 +274,7 @@ public class ITSPARQL11SEProtocol {
 				sync.getUnsubscribes() != subscribers.size());
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 1000)
 	public void Notify() throws IOException, IllegalArgumentException, SEPAProtocolException, SEPAPropertiesException,
 			SEPASecurityException, InterruptedException {
 
@@ -290,7 +293,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse("Events:" + sync.getEvents() + "(1)", sync.getEvents() != 1);
 	}
 
-	@Test(timeout = 60000)
+	@Test(timeout = 5000)
 	public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
 
@@ -317,7 +320,7 @@ public class ITSPARQL11SEProtocol {
 				sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
 	}
 
-	@Test(timeout = 60000)
+	@Test (timeout = 10000)
 	public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
 		int n = 5;
 
@@ -331,10 +334,10 @@ public class ITSPARQL11SEProtocol {
 		for (Publisher pub : publishers) pub.join();
 	}
 
-	@Test(timeout = 30000)
+	@Test(timeout = 60000)
 	public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
-		int n = 10;
+		int n = 5;
 
 		for (int i = 0; i < n; i++) {
 			subscribers.add(new Subscriber("ALL", sm, sync));
@@ -354,7 +357,7 @@ public class ITSPARQL11SEProtocol {
 		for (Publisher pub : publishers) pub.start();
 
 		sync.waitEvents(events);
-
+		
 		assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
 				sync.getSubscribes() != subscribers.size());
 		assertFalse("Events:" + sync.getEvents() + "(" + events + ")", sync.getEvents() != events);
