@@ -41,7 +41,7 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 		provider = new ConfigurationProvider();
 
 		if (provider.getJsap().isSecure()) {
-			ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
+			ClassLoader classLoader = ITWebSocketSubscriptionProtocol.class.getClassLoader();
 			File keyFile = new File(classLoader.getResource("sepa.jks").getFile());
 			sm = new SEPASecurityManager(keyFile.getPath(), "sepa2017", "sepa2017",
 					provider.getJsap().getAuthenticationProperties());
