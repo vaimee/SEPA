@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.commons.security;
 
+import it.unibo.arces.wot.sepa.api.ITSPARQL11SEProtocol;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -10,6 +11,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
+
+import java.io.File;
 
 import static org.junit.Assert.*;
 
@@ -23,7 +26,12 @@ public class ITSEPASecurityManager {
 	@BeforeClass
 	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		app = new ConfigurationProvider().getJsap();
-		if (app.isSecure()) sm = new SEPASecurityManager(app.getAuthenticationProperties());
+		if (app.isSecure()){
+			ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
+			File keyFile = new File(classLoader.getResource("sepa.jks").getFile());
+			sm = new SEPASecurityManager(keyFile.getPath(), "sepa2017", "sepa2017",
+					app.getAuthenticationProperties());
+		}
 	}
 
 	@Test(timeout = 2000)

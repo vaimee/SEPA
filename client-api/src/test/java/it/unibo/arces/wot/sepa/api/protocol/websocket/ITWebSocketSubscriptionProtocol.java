@@ -1,9 +1,12 @@
 package it.unibo.arces.wot.sepa.api.protocol.websocket;
 
 import java.io.IOException;
+import java.io.File;
 import java.net.URISyntaxException;
 import java.util.concurrent.atomic.AtomicLong;
 
+import it.unibo.arces.wot.sepa.api.ITSPARQL11SEProtocol;
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
@@ -17,6 +20,8 @@ import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProt
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
@@ -40,7 +45,10 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 		provider = new ConfigurationProvider();
 
 		if (provider.getJsap().isSecure()) {
-			sm = new SEPASecurityManager(provider.getJsap().getAuthenticationProperties());
+			ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
+			File keyFile = new File(classLoader.getResource("sepa.jks").getFile());
+			sm = new SEPASecurityManager(keyFile.getPath(), "sepa2017", "sepa2017",
+					provider.getJsap().getAuthenticationProperties());
 			sm.register("SEPATest");
 		}
 	}
