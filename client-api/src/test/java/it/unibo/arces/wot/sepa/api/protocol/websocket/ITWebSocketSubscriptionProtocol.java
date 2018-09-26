@@ -5,8 +5,6 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import it.unibo.arces.wot.sepa.api.ITSPARQL11SEProtocol;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
@@ -20,8 +18,6 @@ import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProt
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
