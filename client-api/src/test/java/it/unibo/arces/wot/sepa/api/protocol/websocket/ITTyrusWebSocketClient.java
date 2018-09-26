@@ -3,7 +3,6 @@ package it.unibo.arces.wot.sepa.api.protocol.websocket;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
 
 import javax.websocket.DeploymentException;
 
@@ -19,7 +18,6 @@ import org.junit.Test;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
-import it.unibo.arces.wot.sepa.TyrusWebsocketClient;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
@@ -35,8 +33,6 @@ public class ITTyrusWebSocketClient {
 	protected final Sync sync = new Sync();
 	
 	protected static SEPASecurityManager sm = null;
-
-	protected HashSet<Thread> threadPool = new HashSet<Thread>();
 
 	@BeforeClass
 	public static void init() {
@@ -68,9 +64,10 @@ public class ITTyrusWebSocketClient {
 		}
 	}
 
-	@Test//(timeout = 60000)
+	@Test (timeout = 5000)
 	public void Connect() throws URISyntaxException, SEPASecurityException, DeploymentException, IOException {
-		int n = 1000;
+		int n = 100;
+		
 		sync.reset();
 
 		for (int i = 0; i < n; i++) {
@@ -81,7 +78,6 @@ public class ITTyrusWebSocketClient {
 				client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, config);	
 			}
 			client.connectToServer(new TyrusWebsocketClient(sync), new URI(url));
-
 		}
 
 		sync.waitEvents(n);

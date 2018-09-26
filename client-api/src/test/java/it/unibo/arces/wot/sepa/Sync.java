@@ -13,23 +13,23 @@ public class Sync {
 		spuid = null;
 	}
 
-	public long getSubscribes() {
+	public synchronized long getSubscribes() {
 		return subscribes;
 	}
 
-	public long getEvents() {
+	public synchronized long getEvents() {
 		return events;
 	}
 
-	public long getUnsubscribes() {
+	public synchronized long getUnsubscribes() {
 		return unsubscribes;
 	}
 
-	public void resetSpuid() {
+	public synchronized void resetSpuid() {
 		spuid = null;
 	}
 
-	public String getSpuid() {
+	public synchronized String getSpuid() {
 		return spuid;
 	}
 
@@ -73,8 +73,8 @@ public class Sync {
 		notify();
 	}
 
-	public synchronized void subscribe(String s, String alias) {
-		spuid = s;
+	public synchronized void subscribe(String id, String alias) {
+		spuid = id;
 		subscribes++;
 		notify();
 	}

@@ -26,6 +26,7 @@ public class ITSEPASecurityManager {
 	@BeforeClass
 	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		app = new ConfigurationProvider().getJsap();
+		
 		if (app.isSecure()){
 			ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
 			File keyFile = new File(classLoader.getResource("sepa.jks").getFile());
