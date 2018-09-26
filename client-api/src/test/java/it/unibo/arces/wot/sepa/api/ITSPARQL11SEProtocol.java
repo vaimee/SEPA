@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -233,7 +234,6 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@Test (timeout = 30000)
-	@Test(timeout = 100000)
 	public void Subscribe3xN()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
 		int n = 10;
