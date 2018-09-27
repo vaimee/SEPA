@@ -19,11 +19,15 @@ jobs:
     - mvn package
     - cd engine/target
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
+    - echo launching engine with this configuration
+    - cat engine.jpar
     - java -jar engine-0-SNAPSHOT.jar -engine=engine.jpar > log.txt &
     - sleep 30
     - cd ../..
     script:
     - mvn verify
+    after_failure:
+    - "cat engine/target/log.txt"
   - stage: integrationSecure
     before_script:
     - docker run --name blazegraph -d -p 9999:9999 nawer/blazegraph:2.1.1
