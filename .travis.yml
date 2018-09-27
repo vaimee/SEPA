@@ -4,6 +4,10 @@ cache:
   - "$HOME/.m2"
 services:
 - docker
+notifications:
+  email:
+    - relu.cri@gmail.com
+    - luca.roffia@unibo.it
 jobs:
   include:
   - stage: test
