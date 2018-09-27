@@ -38,7 +38,7 @@ class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 
 		SubscriptionProtocol protocol;
 		if (provider.getJsap().isSecure()) {
-			sm = new SEPASecurityManager();
+			sm = provider.buildSecurityManager();
 			protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(),
 					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath());
 			protocol.enableSecurity(sm);
