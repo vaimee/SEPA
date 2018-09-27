@@ -37,7 +37,7 @@ jobs:
     - cd engine/target
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
     - java -jar engine-0-SNAPSHOT.jar -engine=engine-secure.jpar > log.txt &
-    - cat engine.jpar
+    - cat engine-secure.jpar
     - sleep 30
     - cd ../..
     script:
