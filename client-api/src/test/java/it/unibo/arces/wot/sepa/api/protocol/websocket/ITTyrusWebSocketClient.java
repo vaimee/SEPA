@@ -36,8 +36,10 @@ public class ITTyrusWebSocketClient {
 
 	@BeforeClass
 	public static void init() {
+		 ConfigurationProvider provider = null;
 		try {
-			properties = new ConfigurationProvider().getJsap();
+			provider = new ConfigurationProvider();
+			properties = provider.getJsap();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
 			assertFalse("Configuration not found", false);
 		}
@@ -50,7 +52,7 @@ public class ITTyrusWebSocketClient {
 						+ properties.getSubscribePath();
 
 			try {
-				sm = new SEPASecurityManager();
+				sm = provider.buildSecurityManager();
 			} catch (SEPASecurityException e) {
 				assertFalse("Security exception " + e.getMessage(), false);
 			}

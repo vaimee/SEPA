@@ -61,6 +61,7 @@ public class ConfigurationProvider {
 		if (sm != null)
 			try {
 				authorization = sm.getAuthorizationHeader();
+				logger.debug("Authorized");
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
@@ -110,6 +111,16 @@ public class ConfigurationProvider {
 			}
 		
 		return new UnsubscribeRequest(spuid, authorization, timeout);
+	}
+
+	public SEPASecurityManager buildSecurityManager() throws SEPASecurityException {
+		String path = getClass().getClassLoader().getResource("sepa.jks").getPath();
+		File f = new File(path);
+		if (!f.exists()) {
+			logger.error("File not found: " + path);
+			throw new SEPASecurityException("File not found: "+path);
+		}
+		return new SEPASecurityManager(f.getPath(), "sepa2017", "sepa2017",appProfile.getAuthenticationProperties());
 	}
 	
 	public JSAP getJsap() {
