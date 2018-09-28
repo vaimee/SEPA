@@ -66,7 +66,7 @@ public class ITTyrusWebSocketClient {
 		}
 	}
 
-	@Test (timeout = 5000)
+	@Test (timeout = 10000)
 	public void Connect() throws URISyntaxException, SEPASecurityException, DeploymentException, IOException {
 		int n = 100;
 		
