@@ -85,7 +85,7 @@ public class Engine implements EngineMBean {
 	private String endpointJpar = "endpoint.jpar";
 
 	// Logging file name
-	private void setLoggingFileName() {
+	static {
 		// Logging
 		TimeZone tz = TimeZone.getTimeZone("UTC");
 		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
@@ -190,8 +190,7 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 
-		// Set logging file name with the current timestamp YYYYMMDD_HH_MM_SS
-		setLoggingFileName();
+
 
 		// Command arguments
 		parsingArgument(args);
