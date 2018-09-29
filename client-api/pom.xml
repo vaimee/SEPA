@@ -50,10 +50,12 @@
 			<version>4.4.6</version>
 		</dependency>
 
+		<!-- <dependency> <groupId>org.glassfish.tyrus.bundles</groupId> <artifactId>tyrus-standalone-client</artifactId> 
+			<version>1.12</version> </dependency> -->
 		<dependency>
-			<groupId>it.unibo.arces.wot</groupId>
-			<artifactId>commons</artifactId>
-			<version>${revision}</version>
+			<groupId>org.glassfish.tyrus.bundles</groupId>
+			<artifactId>tyrus-standalone-client</artifactId>
+			<version>1.12</version>
 		</dependency>
 
 	</dependencies>

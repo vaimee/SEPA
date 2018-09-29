@@ -19,218 +19,163 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.util.concurrent.Semaphore;
-
-import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SubscribeProcessor;
-import org.apache.logging.log4j.Logger;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.core.EventHandler;
-import it.unibo.arces.wot.sepa.engine.core.SchedulerRequestResponseQueue;
-import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
+import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
-import org.apache.logging.log4j.LogManager;
-
-public class Processor extends Thread implements ProcessorMBean {
-	private final Logger logger = LogManager.getLogger("Processor");
-
-	// Processors
-	private final UpdateProcessor updateProcessor;
-	private final QueryProcessor queryProcessor;
-	private final SubscribeProcessor subscribeProcessor;
+public class Processor implements ProcessorMBean {
+	// Processor threads
+	private final UpdateProcessingThread updateProcessingThread;
+	private final SubscribeProcessingThread subscribeProcessingThread;
+	private final QueryProcessingThread queryProcessingThread;
 	
-	// Scheduler queue
-	private SchedulerRequestResponseQueue queue;
-
+	// SPARQL Processors
+	private final QueryProcessor queryProcessor;
+	private final UpdateProcessor updateProcessor;
+	
+	// SPU manager
+	private final SPUManager spuManager;
 
 	// Concurrent endpoint limit
-	private Semaphore endpointSemaphore = null;
-
+	private final Semaphore endpointSemaphore;
+	
+	// Scheduler queue
+	private final Scheduler scheduler;
+	
+	// Running flag
+	private final AtomicBoolean running = new AtomicBoolean(true);
+	
 	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties,
-			SchedulerRequestResponseQueue queue) throws IllegalArgumentException, SEPAProtocolException {
-		if (queue == null) {
-			logger.error("Queue is null");
-			throw new IllegalArgumentException("Queue is null");
-		}
-		this.queue = queue;
-
+			Scheduler scheduler) throws IllegalArgumentException, SEPAProtocolException {		
+		
 		// Number of maximum concurrent requests (supported by the endpoint)
 		int max = properties.getMaxConcurrentRequests();
-		if (max > 0)
-			endpointSemaphore = new Semaphore(max, true);
+		// TODO: extending at run-time the semaphore max
+		if (max > 0) endpointSemaphore = new Semaphore(max, true);
+		else endpointSemaphore = null;
+		
+		this.scheduler = scheduler;
+		
+		// Processors
+		queryProcessor = new QueryProcessor(endpointProperties,endpointSemaphore);
+		updateProcessor = new UpdateProcessor(endpointProperties,endpointSemaphore);
+		
+		// SPU Manager
+		spuManager = new SPUManager(this);
+		
+		// Subscribe/Unsubscribe processing
+		subscribeProcessingThread = new SubscribeProcessingThread(this);
 
 		// Update processor
-		updateProcessor = new UpdateProcessor(endpointProperties, endpointSemaphore);
-
-		// Query processor
-		queryProcessor = new QueryProcessor(endpointProperties, endpointSemaphore);
-
-		// SPU manager
-		subscribeProcessor = new SubscribeProcessor(endpointProperties, properties, endpointSemaphore);
-		// subscribeProcessor.addObserver(this);
-
+		updateProcessingThread = new UpdateProcessingThread(this);
+		
+		// Query processing
+		queryProcessingThread = new QueryProcessingThread(this);
+		
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
-		ProcessorBeans.setEndpoint(endpointProperties);
-		ProcessorBeans.setQueryTimeout(properties.getQueryTimeout());
-		ProcessorBeans.setUpdateTimeout(properties.getUpdateTimeout());
+		
+		ProcessorBeans.setEndpoint(endpointProperties, max);
+		
+		QueryProcessorBeans.setTimeout(properties.getQueryTimeout());
+		
+		UpdateProcessorBeans.setTimeout(properties.getUpdateTimeout());
+		UpdateProcessorBeans.setReilable(properties.isUpdateReliable());
+	}
+	
+	public boolean isRunning() {
+		return running.get();
+	}
+	
+	public Scheduler getScheduler() {
+		return scheduler;
+	}
+	
+	public QueryProcessor getQueryProcessor() {
+		return queryProcessor;
+	}
+	
+	public UpdateProcessor getUpdateProcessor() {
+		return updateProcessor;
 	}
 
-	@Override
-	public void run() {
-		while (true) {
-			// WAIT NEW REQUEST
-			ScheduledRequest scheduledRequest;
-			try {
-				scheduledRequest = queue.waitRequest();
-			} catch (InterruptedException e1) {
-				return;
-			}
-
-			Request request = scheduledRequest.getRequest();
-			if (request.isUpdateRequest()) {
-				logger.info("Update request #" + request.getToken());
-				logger.debug(request);
-
-				// Process update request
-				Response ret = updateProcessor.process((UpdateRequest) request, ProcessorBeans.getUpdateTimeout());
-
-				// // Notify update result
-				queue.addResponse(ret);
-
-				if (ret.isUpdateResponse()) {
-					subscribeProcessor.process((UpdateResponse) ret);
-				}
-			} else if (request.isQueryRequest()) {
-				logger.info("Query request #" + request.getToken());
-				logger.debug(request);
-
-				Thread queryProcessing = new Thread() {
-					public void run() {
-						Response ret = queryProcessor.process((QueryRequest) request, ProcessorBeans.getQueryTimeout());
-						queue.addResponse(ret);
-					}
-				};
-				queryProcessing.setName("SEPA Query Processing Thread-" + request.getToken());
-				queryProcessing.start();
-			} else if (request.isSubscribeRequest()) {
-				logger.info("Subscribe request #" + request.getToken());
-				logger.debug(request);
-
-				Response ret = subscribeProcessor.subscribe((SubscribeRequest) request,
-						(EventHandler) scheduledRequest.getHandler());
-
-				queue.addResponse(ret);
-			} else if (request.isUnsubscribeRequest()) {
-				logger.info("Unsubscribe request #" + request.getToken());
-				logger.debug(request);
-
-				Response ret = subscribeProcessor.unsubscribe((UnsubscribeRequest) request);
-
-				queue.addResponse(ret);
-			}
-		}
+	public void start() {
+		running.set(true);
+		queryProcessingThread.start();
+		subscribeProcessingThread.start();
+		updateProcessingThread.start();
 	}
 
-	@Override
-	public synchronized void start() {
-		super.start();
-		subscribeProcessor.start();
-	}
-
-	@Override
 	public void interrupt() {
-		super.interrupt();
-		subscribeProcessor.stop();
+		running.set(false);
+		queryProcessingThread.interrupt();
+		subscribeProcessingThread.interrupt();
+		updateProcessingThread.interrupt();
+	}
+	
+	public Response subscribe(InternalSubscribeRequest request) {
+		return spuManager.subscribe(request);
+	}
+	
+	public boolean isUpdateReilable() {
+		return UpdateProcessorBeans.getReilable();
 	}
 
 	@Override
-	public void reset() {
-		ProcessorBeans.reset();
+	public String getEndpointHost() {
+		return ProcessorBeans.getEndpointHost();
 	}
 
 	@Override
-	public float getTimings_UpdateTime_ms() {
-		return ProcessorBeans.getUpdateTime_ms();
+	public int getEndpointPort() {
+		return ProcessorBeans.getEndpointPort();
 	}
 
 	@Override
-	public float getTimings_QueryTime_ms() {
-		return ProcessorBeans.getQueryTime_ms();
+	public String getEndpointQueryPath() {
+		return ProcessorBeans.getEndpointQueryPath();
 	}
 
 	@Override
-	public long getProcessedRequests() {
-		return ProcessorBeans.getProcessedRequests();
+	public String getEndpointUpdatePath() {
+		return ProcessorBeans.getEndpointUpdatePath();
 	}
 
 	@Override
-	public long getProcessedQueryRequests() {
-		return ProcessorBeans.getProcessedQueryRequests();
+	public String getEndpointUpdateMethod() {
+		return ProcessorBeans.getEndpointUpdateMethod();
 	}
 
 	@Override
-	public long getProcessedUpdateRequests() {
-		return ProcessorBeans.getProcessedUpdateRequests();
+	public String getEndpointQueryMethod() {
+		return ProcessorBeans.getEndpointQueryMethod();
 	}
 
 	@Override
-	public float getTimings_UpdateTime_Min_ms() {
-		return ProcessorBeans.getTimings_UpdateTime_Min_ms();
+	public int getMaxConcurrentRequests() {
+		return ProcessorBeans.getMaxConcurrentRequests();
 	}
 
-	@Override
-	public float getTimings_UpdateTime_Average_ms() {
-		return ProcessorBeans.getTimings_UpdateTime_Average_ms();
+	public void killSubscription(String sid, String gid) {
+		spuManager.killSubscription(sid, gid);
 	}
 
-	@Override
-	public float getTimings_UpdateTime_Max_ms() {
-		return ProcessorBeans.getTimings_UpdateTime_Max_ms();
+	public Response unsubscribe(String sid, String gid) {
+		return spuManager.unsubscribe(sid, gid);
 	}
 
-	@Override
-	public float getTimings_QueryTime_Min_ms() {
-		return ProcessorBeans.getTimings_QueryTime_Min_ms();
-	}
-
-	@Override
-	public float getTimings_QueryTime_Average_ms() {
-		return ProcessorBeans.getTimings_QueryTime_Average_ms();
-	}
-
-	@Override
-	public float getTimings_QueryTime_Max_ms() {
-		return ProcessorBeans.getTimings_QueryTime_Max_ms();
-	}
-
-	@Override
-	public int getUpdateTimeout() {
-		return ProcessorBeans.getUpdateTimeout();
-	}
-
-	@Override
-	public int getQueryTimeout() {
-		return ProcessorBeans.getQueryTimeout();
-	}
-
-	@Override
-	public void setUpdateTimeout(int t) {
-		ProcessorBeans.setUpdateTimeout(t);
-	}
-
-	@Override
-	public void setQueryTimeout(int t) {
-		ProcessorBeans.setQueryTimeout(t);
+	public void process(UpdateResponse update) {
+		spuManager.process(update);
 	}
 }

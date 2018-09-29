@@ -4,6 +4,10 @@ cache:
   - "$HOME/.m2"
 services:
 - docker
+notifications:
+  email:
+    - relu.cri@gmail.com
+    - luca.roffia@unibo.it
 jobs:
   include:
   - stage: test
@@ -15,7 +19,40 @@ jobs:
     - mvn package
     - cd engine/target
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
-    - java -jar engine-0-SNAPSHOT.jar > log.txt &
+    - echo launching engine with this configuration
+    - cat engine.jpar
+    - java -jar engine-0-SNAPSHOT.jar -engine=engine.jpar > log.txt &
+    - sleep 30
+    - cd ../..
+    script:
+    - mvn verify
+    after_failure:
+    - "cat engine/target/log.txt"
+  - stage: integrationSecure
+    before_script:
+    - docker run --name blazegraph -d -p 9999:9999 nawer/blazegraph:2.1.1
+    - sleep 30
+    - wget http://localhost:9999/blazegraph/namespace/kb/sparql
+    - mvn package
+    - cd engine/target
+    - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
+    - java -jar engine-0-SNAPSHOT.jar -engine=engine-secure.jpar > log.txt &
+    - cat engine-secure.jpar
+    - sleep 30
+    - cd ../..
+    script:
+    - mvn verify -Dsecure=true
+    after_failure:
+    - "cat engine/target/log.txt"
+  - stage: integration-virtuoso
+    before_script:
+    - docker run --name my-virtuoso -p 8890:8890 -p 1111:1111 -e DBA_PASSWORD=myDbaPassword -e SPARQL_UPDATE=true -e DEFAULT_GRAPH=http://www.example.com/my-graph -d tenforce/virtuoso
+    - sleep 30
+    - wget http://localhost:8890/sparql
+    - mvn package
+    - cd engine/target
+    - mv endpoints/endpoint-virtuoso.jpar endpoint.jpar
+    - java -jar engine-0-SNAPSHOT.jar -engine=engine.jpar > log.txt &
     - sleep 30
     - cd ../..
     script:

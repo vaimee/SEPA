@@ -18,56 +18,139 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.time.Instant;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.dependability.Timing;
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
-public class UpdateProcessor {
-	private static final Logger logger = LogManager.getLogger("UpdateProcessor");
+class UpdateProcessor implements UpdateProcessorMBean {
+	private static final Logger logger = LogManager.getLogger();
 
-	private SPARQL11Protocol endpoint;
-	private Semaphore endpointSemaphore;
-	
-	public UpdateProcessor(SPARQL11Properties properties,Semaphore endpointSemaphore) throws SEPAProtocolException  {				
-		endpoint = new SPARQL11Protocol(properties);
+	private final SPARQL11Protocol endpoint;
+	private final Semaphore endpointSemaphore;
+	private final SPARQL11Properties properties;
+
+	public UpdateProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
+		endpoint = new SPARQL11Protocol();
 		this.endpointSemaphore = endpointSemaphore;
+		this.properties = properties;
+		
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized Response process(UpdateRequest req, int timeout) {
-		
-		
+	public synchronized Response process(InternalUpdateRequest req) {
+		long start = Timings.getTime();
+
 		if (endpointSemaphore != null)
 			try {
+				//TODO: timeout
 				endpointSemaphore.acquire();
 			} catch (InterruptedException e) {
-				return new ErrorResponse(500,e.getMessage());
+				return new ErrorResponse(500, "InterruptedException",e.getMessage());
 			}
-		
+
+		// Authorized access to the endpoint
+		String authorizationHeader = null;
+		try {
+			//TODO: to implement also bearer authentication
+			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
+			if (oauth.isEnabled()) authorizationHeader = oauth.getBasicAuthorizationHeader();			
+		} catch (SEPAPropertiesException | SEPASecurityException e) {
+			logger.warn(e.getMessage());
+		}
+				
 		// UPDATE the endpoint
-		long start = System.currentTimeMillis();		
-		Timing.logTiming(req, "ENDPOINT_REQUEST", Instant.now());
-		Response ret = endpoint.update(req, timeout);		
-		Timing.logTiming(req, "ENDPOINT_RESPONSE", Instant.now());
-		long stop = System.currentTimeMillis();
+		Response ret;
+		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(),
+				properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
+				properties.getUpdatePath(), req.getSparql(), req.getDefaultGraphUri(),
+				req.getNamedGraphUri(), authorizationHeader,UpdateProcessorBeans.getTimeout());
+		logger.trace(request);
+		ret = endpoint.update(request);
+
+		if (endpointSemaphore != null)
+			endpointSemaphore.release();
+
+		long stop = Timings.getTime();
+		UpdateProcessorBeans.timings(start, stop);
 		
-		if (endpointSemaphore != null) endpointSemaphore.release();
-		
-		logger.debug("Response: "+ret.toString());
-		logger.debug("* UPDATE PROCESSING ("+(stop-start)+" ms) *");
-		
-		ProcessorBeans.updateTimings(start, stop);
+		logger.trace("Response: " + ret.toString());
+		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
 		
 		return ret;
+	}
+
+	@Override
+	public void reset() {
+		UpdateProcessorBeans.reset();
+	}
+
+	@Override
+	public long getRequests() {
+		return UpdateProcessorBeans.getRequests();
+	}
+
+	@Override
+	public float getTimingsCurrent() {
+		return UpdateProcessorBeans.getCurrent();
+	}
+
+	@Override
+	public float getTimingsMin() {
+		return UpdateProcessorBeans.getMin();
+	}
+
+	@Override
+	public float getTimingsAverage() {
+		return UpdateProcessorBeans.getAverage();
+	}
+
+	@Override
+	public float getTimingsMax() {
+		return UpdateProcessorBeans.getMax();
+	}
+
+	@Override
+	public long getTimeout() {
+		return UpdateProcessorBeans.getTimeout();
+	}
+
+	@Override
+	public void setTimeout(long t) {
+		UpdateProcessorBeans.setTimeout(t);
+	}
+
+	@Override
+	public void scale_ms() {
+		UpdateProcessorBeans.scale_ms();
+	}
+
+	@Override
+	public void scale_us() {
+		UpdateProcessorBeans.scale_us();
+	}
+
+	@Override
+	public void scale_ns() {
+		UpdateProcessorBeans.scale_ns();
+	}
+
+	@Override
+	public String getUnitScale() {
+		return UpdateProcessorBeans.getUnitScale();
 	}
 }

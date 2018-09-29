@@ -1,0 +1,108 @@
+{
+	"host": "localhost",
+	"sparql11protocol": {
+		"protocol": "http",
+		"port": 8000,
+		"query": {
+			"path": "/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/update",
+			"method": "POST",
+			"format": "JSON"
+		}
+	},
+	"sparql11seprotocol": {
+		"protocol": "ws",
+		"availableProtocols": {
+			"ws": {
+				"port": 9000,
+				"path": "/subscribe"
+			},
+			"wss": {
+				"port": 9443,
+				"path": "/subscribe"
+			}
+		}
+	},
+	"graphs": {
+		"default-graph-uri": "http://sepatest",
+		"named-graph-uri": "http://sepatest",
+		"using-graph-uri": "http://sepatest",
+		"using-named-graph-uri": "http://sepatest"
+	},
+	"namespaces": {
+		"sepa": "http://wot.arces.unibo.it/sepa#",
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	},
+	"extended": {
+		"notificationMaxDelay": 2000,
+		"sequence": [
+			{
+				"name": "Update",
+				"type": "UPDATE",
+				"id": "U1",
+				"passed": true
+			},
+			{
+				"name": "Query",
+				"type": "QUERY",
+				"id": "Q1",
+				"results": 1,
+				"passed": true
+			},
+			{
+				"name": "Subscribe",
+				"type": "SUBSCRIBE",
+				"id": "Q1",
+				"results": 1,
+				"passed": true
+			},
+			{
+				"name": "Update",
+				"type": "UPDATE",
+				"id": "U2",
+				"passed": true
+			},
+			{
+				"name": "Notification",
+				"type": "WAIT_NOTIFICATION",
+				"passed": true
+			},
+			{
+				"name": "Unsubscribe",
+				"type": "UNSUBSCRIBE",
+				"passed": true
+			},
+			{
+				"name": "Update",
+				"type": "UPDATE",
+				"id": "U2",
+				"passed": true
+			},
+			{
+				"name": "Notification (not received)",
+				"type": "WAIT_NOTIFICATION",
+				"passed": false
+			}
+		]
+	},
+	"updates": {
+		"U1": {
+			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {OPTIONAL{?s ?p ?o}}"
+		},
+		"U2": {
+			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P 123} where {OPTIONAL{?s ?p ?o}}"
+		}
+	},
+	"queries": {
+		"Q1": {
+			"sparql": "select * where {?x ?y \"ვაიმეე\"}"
+		},
+		"Q2": {
+			"sparql": "select * where {?x ?y ?z}"
+		}
+	}
+}

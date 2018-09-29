@@ -26,10 +26,10 @@ import org.apache.logging.log4j.Logger;
 /**
  * The Class CORSManager.
  */
-public class CORSManager {
+class CORSManager {
 	
 	/** The logger. */
-	protected static Logger logger = LogManager.getLogger("CORSManager");
+	protected static Logger logger = LogManager.getLogger();
 	
 	/**
 	 * Process a CORS (Cross-Origin Resource Sharing) pre-flight request. <br>
@@ -109,7 +109,7 @@ public class CORSManager {
 			if (!fieldNames.equals("")) exchange.getResponse().addHeader("Access-Control-Allow-Headers", fieldNames);		   
 			
 			for (Header head : exchange.getResponse().getAllHeaders())
-				logger.debug("Header: ",head.getName());
+				logger.debug(head);
 			return true;
 		}
 		else {

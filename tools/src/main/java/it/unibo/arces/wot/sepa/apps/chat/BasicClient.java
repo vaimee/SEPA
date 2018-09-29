@@ -1,5 +1,7 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -16,9 +18,9 @@ public class BasicClient extends ChatClient {
 	private int notifications = 0;
 	private int expectedNotifications = 0;
 	
-	public BasicClient(String userURI, Users users, int messages,Timings timings)
+	public BasicClient(String userURI, Users users, int messages)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(userURI,timings);
+		super(userURI);
 		this.user = userURI;
 		this.users = users;
 		this.messages = messages;
@@ -30,14 +32,21 @@ public class BasicClient extends ChatClient {
 
 	@Override
 	public void run() {
-		while (!joinChat()) {
+		do {
+			logger.info("Joining the chat...");
 			try {
-				logger.info("Joining the chat...");
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				return;
+				joinChat();
+			} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPAProtocolException e) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e1) {
+					return;
+				}
+				continue;
 			}
-		}
+			break;
+		} while(true);
+		
 		logger.info("Chat joined!");
 
 		for (int i = 0; i < messages; i++) {

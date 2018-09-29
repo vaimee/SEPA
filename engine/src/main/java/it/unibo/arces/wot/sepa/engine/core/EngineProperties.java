@@ -17,7 +17,6 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-//import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -34,16 +33,43 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import org.apache.logging.log4j.LogManager;
 
 /**
- * { "parameters": { "scheduler": { "queueSize": 100 }, "processor": {
- * "updateTimeout": 5000, "queryTimeout": 5000, "maxConcurrentRequests": 5 },
- * "spu": { "timeout": 2000 }, "gates": { "secure": false, "ports": { "http":
- * 8000, "ws": 9000, "https": 8443, "wss": 9443 }, "paths": { "update":
- * "/update", "query": "/query", "subscribe": "/subscribe", "register":
- * "/oauth/register", "tokenRequest": "/oauth/token", "securePath": "/secure" }
- * } } }
+ * <pre>
+{
+	"parameters": {
+		"scheduler": {
+			"queueSize": 100
+		},
+		"processor": {
+			"updateTimeout": 60000,
+			"queryTimeout": 60000,
+			"maxConcurrentRequests": 5
+		},
+		"spu": {
+			"timeout": 5000
+		},
+		"gates": {
+			"secure": false,
+			"paths": {
+				"securePath": "/secure",
+				"update": "/update",
+				"query": "/query",
+				"subscribe": "/subscribe",
+				"register": "/oauth/register",
+				"tokenRequest": "/oauth/token"
+			},
+			"ports": {
+				"http": 8000,
+				"https": 8443,
+				"ws": 9000,
+				"wss": 9443
+			}
+		}
+	}
+}
+ * </pre>
  */
 public class EngineProperties {
-	private static final Logger logger = LogManager.getLogger("EngineProperties");
+	private static final Logger logger = LogManager.getLogger();
 
 	private String defaultsFileName = "engine.jpar";
 
@@ -143,28 +169,138 @@ public class EngineProperties {
 	protected void validate() throws SEPAPropertiesException {
 		try {
 			properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
-
+		}
+		catch (Exception e) {
+			logger.error("scheduler-queueSize is missing");
+			throw new SEPAPropertiesException("scheduler-queueSize is missing");
+		}
+		
+		try {
+			properties.get("scheduler").getAsJsonObject().get("timeout").getAsInt();	
+		}
+		catch (Exception e) {
+			logger.error("scheduler-timeout is missing");
+			throw new SEPAPropertiesException("scheduler-timeout is missing");
+		}
+		
+		try {
 			properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
+		}
+		catch (Exception e) {
+			logger.error("processor-updateTimeout is missing");
+			throw new SEPAPropertiesException("processor-updateTimeout is missing");
+		}	
+		
+		try {
 			properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
+		}
+		catch (Exception e) {
+			logger.error("processor-queryTimeout is missing");
+			throw new SEPAPropertiesException("processor-queryTimeout is missing");
+		}	
+			
+		try {
 			properties.get("processor").getAsJsonObject().get("maxConcurrentRequests").getAsInt();
-
+		}
+		catch (Exception e) {
+			logger.error("processor-maxConcurrentRequests is missing");
+			throw new SEPAPropertiesException("processor-maxConcurrentRequests is missing");
+		}	
+			
+		try {
 			properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
-
+		}
+		catch (Exception e) {
+			logger.error("spu-timeout is missing");
+			throw new SEPAPropertiesException("spu-timeout is missing");
+		}
+			
+		try {
 			properties.get("gates").getAsJsonObject().get("secure").getAsBoolean();
-
+		}
+		catch (Exception e) {
+			logger.error("gates-secure is missing");
+			throw new SEPAPropertiesException("gates-secure is missing");
+		}
+			
+		try {
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("http").getAsInt();
+		}
+		catch (Exception e) {
+			logger.error("gates-ports-http is missing");
+			throw new SEPAPropertiesException("gates-ports-http is missing");
+		}
+		
+		try {
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("https").getAsInt();
+		}
+		catch (Exception e) {
+			logger.error("gates-ports-https is missing");
+			throw new SEPAPropertiesException("gates-ports-https is missing");
+		}
+		
+		try {
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("ws").getAsInt();
+		}
+		catch (Exception e) {
+			logger.error("gates-ports-ws is missing");
+			throw new SEPAPropertiesException("gates-ports-ws is missing");
+		}
+		
+		try {
 			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("wss").getAsInt();
-
+		}
+		catch (Exception e) {
+			logger.error("gates-ports-wss is missing");
+			throw new SEPAPropertiesException("gates-ports-wss is missing");
+		}	
+			
+		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("securePath").getAsString();
+		}
+		catch (Exception e) {
+			logger.error("gates-paths-securePath is missing");
+			throw new SEPAPropertiesException("gates-paths-securePath is missing");
+		}
+		
+		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("update").getAsString();
+		}
+		catch (Exception e) {
+			logger.error("gates-paths-update is missing");
+			throw new SEPAPropertiesException("gates-paths-update is missing");
+		}
+		
+		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("query").getAsString();
+		}
+		catch (Exception e) {
+			logger.error("gates-paths-query is missing");
+			throw new SEPAPropertiesException("gates-paths-query is missing");
+		}
+		
+		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("subscribe").getAsString();
+		}
+		catch (Exception e) {
+			logger.error("gates-paths-subscribe is missing");
+			throw new SEPAPropertiesException("gates-paths-subscribe is missing");
+		}
+		
+		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("register").getAsString();
+		}
+		catch (Exception e) {
+			logger.error("gates-paths-register is missing");
+			throw new SEPAPropertiesException("gates-paths-register is missing");
+		}
+			
+		try {
 			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("tokenRequest").getAsString();
-		} catch (Exception e) {
-			throw new SEPAPropertiesException(new Exception("Failed to validate jpar: " + e.getMessage()));
+		}
+		catch (Exception e) {
+			logger.error("gates-paths-tokenRequest is missing");
+			throw new SEPAPropertiesException("gates-paths-tokenRequest is missing");
 		}
 	}
 
@@ -303,6 +439,22 @@ public class EngineProperties {
 			return properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
 		} catch (Exception e) {
 			return 2000;
+		}
+	}
+
+	public boolean isUpdateReliable() {
+		try {
+			return properties.get("processor").getAsJsonObject().get("reliableUpdate").getAsBoolean();
+		} catch (Exception e) {
+			return true;
+		}
+	}
+
+	public int getSchedulerTimeout() {
+		try {
+			return properties.get("scheduler").getAsJsonObject().get("timeout").getAsInt();
+		} catch (Exception e) {
+			return 60000;
 		}
 	}
 

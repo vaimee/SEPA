@@ -1,0 +1,128 @@
+{
+	"host": "localhost",
+	"oauth": {
+		"enable": true,
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token",
+		"client_id": "mzSHL2SAGTXRp51RyEk0hRFSv6AR5oKigsKC3DwnIynX0WukUtEqLzWXc3Sl5/Xm",
+		"client_secret": "iGmr/pjQZwDBrQVpr85vRZvctdkHMI+2O3Y6+WaCQ2nZHIFWxXDnO7zi+ERzlDHi",
+		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfvZ8mpdZeckpOfsYdzUvDccK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYmf04Bp3dhMHflPzxQGiDGsAuxUVGk6vpjI2Ul0ZpjebHGKBkk1w7+7kq8PPWzx5JJ+/M2BYm0FB1wJSDxOc2Jl49RWWhiACu+NmsWR4F8GotoIj4Ny+hZvM0UsSGt4iixXMF72oqV14eJdnf/VnW83vuEnWxCMKLgR6jMa3QW+/p8DJ7dchxaQ2bqhMAlkzrF3ysqfi875lcdLEfxTcyY0nuve7GDICNVT3yDRTZJdkSEuKYx8bAG7VpjAWo2fiIulDo/5i5YAK/uWKbQ8eYeVQYqVwYeYVUeegm4spqq6cLHwZYTIHo4n9P9rpN9u844Nq4KdMsQ2xGO4t0UgWGx5ciqRY5gS3+hF0DW3N2gaN5kfb+lt2XSkcAn1lb6uRFXYBszul5bT8hyDE+NKolX7X16+pOu8CZsdH6t9CXhJSCDSjliTw0Zl0430tX1qzbKakrfcvU99mw6T6T2cSWbZUgocVi80noBggXVgZxwDtyWGFc5eMoKGgx6TavrgAmIQwgP6ZkqULvnYYu5PW8iDuExfaeur/uf3M/L+l+ecwyEkprfYjGBY1LvGNnNZ9ANQel6HyIrssndjLF37Z9dIg/gDTgMujK8meJw9xigTyrqE/MUCal6SK2YgjDtPuOFu3wP2h1k1lcrHd7biUSU2",
+		"expires": "AZj3wOp7cD2iFgMUVGVfmA==",
+		"type": "XPrHEX2xHy+5IuXHPHigMw=="
+	},
+	"sparql11protocol": {
+		"protocol": "https",
+		"port": 8443,
+		"query": {
+			"path": "/secure/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/secure/update",
+			"method": "POST",
+			"format": "JSON"
+		}
+	},
+	"sparql11seprotocol": {
+		"protocol": "wss",
+		"availableProtocols": {
+			"ws": {
+				"port": 9000,
+				"path": "/subscribe"
+			},
+			"wss": {
+				"port": 9443,
+				"path": "/secure/subscribe"
+			}
+		}
+	},
+	"graphs": {
+		"default-graph-uri": "http://sepatest",
+		"named-graph-uri": "http://sepatest",
+		"using-graph-uri": "http://sepatest",
+		"using-named-graph-uri": "http://sepatest"
+	},
+	"namespaces": {
+		"sepa": "http://wot.arces.unibo.it/sepa#",
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	},
+	"extended": {
+		"notificationMaxDelay": 2000,
+		"sequence": [
+			{
+				"id": "RegisterMePlease!",
+				"name": "Register not allowed",
+				"type": "REGISTER",
+				"passed": false
+			},
+			{
+				"id": "SEPATest",
+				"name": "Register allowed",
+				"type": "REGISTER",
+				"passed": true
+			},
+			{
+				"name": "Update (secure)",
+				"type": "UPDATE",
+				"id": "U1",
+				"passed": true
+			},
+			{
+				"name": "Query (secure)",
+				"type": "QUERY",
+				"id": "Q1",
+				"results": 1,
+				"passed": true
+			},
+			{
+				"name": "Subscribe (secure)",
+				"type": "SUBSCRIBE",
+				"id": "Q1",
+				"results": 1,
+				"passed": true
+			},
+			{
+				"name": "Update (secure)",
+				"type": "UPDATE",
+				"id": "U2",
+				"secure": true,
+				"passed": true
+			},
+			{
+				"name": "Notification",
+				"type": "WAIT_NOTIFICATION",
+				"passed": true
+			},
+			{
+				"name": "Unsubscribe (secure)",
+				"type": "UNSUBSCRIBE",
+				"passed": true
+			},
+			{
+				"name": "Update (secure)",
+				"type": "UPDATE",
+				"id": "U2",
+				"passed": true
+			},
+			{
+				"name": "Notification (not received)",
+				"type": "WAIT_NOTIFICATION",
+				"passed": false
+			}
+		]
+	},
+	"updates": {
+		"U1": {
+			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P \"ვაიმეე\"} where {OPTIONAL{?s ?p ?o}}"
+		},
+		"U2": {
+			"sparql": "delete {?s ?p ?o} insert {sepa:S sepa:P 123} where {OPTIONAL{?s ?p ?o}}"
+		}
+	},
+	"queries": {
+		"Q1": {
+			"sparql": "select * where {?x ?y \"ვაიმეე\"}"
+		}
+	}
+}

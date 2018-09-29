@@ -2,6 +2,12 @@
 engine/*.jpar
 engine/sepa.jks
 
+# timing created by engine
+engine/logs
+
+# timing created by maven tests
+logs
+
 # Created by https://www.gitignore.io/api/java,maven,eclipse,intellij
 
 ### Eclipse ###

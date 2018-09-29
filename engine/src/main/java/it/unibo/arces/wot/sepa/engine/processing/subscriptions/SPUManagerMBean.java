@@ -1,13 +1,15 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 public interface SPUManagerMBean {
-	public long getRequests();
+	public long getUpdateRequests();
 	public long getSubscribeRequests();
 	public long getUnsubscribeRequests();
 
 	public long getSPUs_current();
 	public long getSPUs_max();
-
+	public long getSubscribers();
+	public long getSubscribers_max();
+	
 	public float getSPUs_time();
 	public float getSPUs_time_min();
 	public float getSPUs_time_max();	
@@ -15,9 +17,11 @@ public interface SPUManagerMBean {
 
 	public void reset();
 	
-	public void setKeepalive(int t);	
-	public int getKeepalive();
-	
 	public long getSPUProcessingTimeout();
 	public void setSPUProcessingTimeout(long t);
+	
+	public void scale_ms();
+	public void scale_us();
+	public void scale_ns();
+	public String getUnitScale();
 }

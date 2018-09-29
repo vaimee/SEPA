@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -19,8 +20,8 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
-import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
 import it.unibo.arces.wot.sepa.pattern.GenericClient;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class UpdateQueryTest extends GenericClient  {
 	private static final Logger logger = LogManager.getLogger();
@@ -38,17 +39,17 @@ public class UpdateQueryTest extends GenericClient  {
 	private int clients;
 
 	public UpdateQueryTest(ISubscriptionHandler handler) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new ApplicationProfile("chat.jsap"), handler);
+		super(new JSAP("chat.jsap"));
 
-		SEND = appProfile.update("SEND");
-		SET_RECEIVED = appProfile.update("SET_RECEIVED");
-		REMOVE = appProfile.update("REMOVE");
-		DELETE_ALL = appProfile.update("DELETE_ALL");
-		REGISTER_USER = appProfile.update("REGISTER_USER");
+		SEND = appProfile.getSPARQLUpdate("SEND");
+		SET_RECEIVED = appProfile.getSPARQLUpdate("SET_RECEIVED");
+		REMOVE = appProfile.getSPARQLUpdate("REMOVE");
+		DELETE_ALL = appProfile.getSPARQLUpdate("DELETE_ALL");
+		REGISTER_USER = appProfile.getSPARQLUpdate("REGISTER_USER");
 
-		SENT = appProfile.subscribe("SENT");
-		RECEIVED = appProfile.subscribe("RECEIVED");
-		USERS = appProfile.subscribe("USERS");
+		SENT = appProfile.getSPARQLQuery("SENT");
+		RECEIVED = appProfile.getSPARQLQuery("RECEIVED");
+		USERS = appProfile.getSPARQLQuery("USERS");
 
 		clients = appProfile.getExtendedData().get("clients").getAsInt();
 		
@@ -62,11 +63,12 @@ public class UpdateQueryTest extends GenericClient  {
 		ctx.reconfigure();
 	}
 	
-	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException {
 		BasicHandler handler = new BasicHandler();
 		UpdateQueryTest test = new UpdateQueryTest(handler);
 		
 		test.run();
+		test.close();
 	}
 
 	public void run() {
@@ -107,7 +109,11 @@ public class UpdateQueryTest extends GenericClient  {
 		bindings.addBinding("text", new RDFTermLiteral(text));
 
 		long start = new Date().toInstant().toEpochMilli();
-		update(SEND, bindings);
+		try {
+			update(SEND, bindings,5000);
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+			logger.error(e.getMessage());
+		}
 		long stop = new Date().toInstant().toEpochMilli();
 		
 		logger.info("SEND "+(stop-start));
@@ -118,7 +124,11 @@ public class UpdateQueryTest extends GenericClient  {
 		bindings.addBinding("message", new RDFTermURI(message));
 
 		long start = new Date().toInstant().toEpochMilli();
-		update(SET_RECEIVED, bindings);
+		try {
+			update(SET_RECEIVED, bindings,5000);
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+			logger.error(e.getMessage());
+		}
 		long stop = new Date().toInstant().toEpochMilli();
 		
 		logger.info("SET_RECEIVED "+(stop-start));
@@ -129,21 +139,34 @@ public class UpdateQueryTest extends GenericClient  {
 		bindings.addBinding("message", new RDFTermURI(message));
 		
 		long start = new Date().toInstant().toEpochMilli();
-		update(REMOVE, bindings);
+		try {
+			update(REMOVE, bindings,5000);
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+			logger.error(e.getMessage());
+		}
 		long stop = new Date().toInstant().toEpochMilli();
 		
 		logger.info("REMOVE "+(stop-start));
 	}
 
 	public void deleteAll() {
-		update(DELETE_ALL, null);
+		try {
+			update(DELETE_ALL, null,5000);
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+			logger.error(e.getMessage());
+		}
 	}
 
 	public boolean registerUser(String userName) {
 		Bindings bindings = new Bindings();
 		bindings.addBinding("userName", new RDFTermLiteral(userName));
 
-		return this.update(REGISTER_USER, bindings).isUpdateResponse();
+		try {
+			return this.update(REGISTER_USER, bindings,5000).isUpdateResponse();
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+			logger.error(e.getMessage());
+		}
+		return false;
 	}
 
 	public List<String> sent(String receiver) {
@@ -151,10 +174,15 @@ public class UpdateQueryTest extends GenericClient  {
 		bindings.addBinding("receiver", new RDFTermURI(receiver));
 		
 		ArrayList<String> list = new ArrayList<String>();
-
-				
+			
 		long start = new Date().toInstant().toEpochMilli();
-		Response ret = this.query(SENT, bindings);
+		Response ret;
+		try {
+			ret = this.query(SENT, bindings,5000);
+		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException e) {
+			logger.error(e.getMessage());
+			return list;
+		}
 		long stop = new Date().toInstant().toEpochMilli();
 		
 		logger.info("SENT "+(stop-start));
@@ -163,7 +191,7 @@ public class UpdateQueryTest extends GenericClient  {
 		
 		QueryResponse results = (QueryResponse) ret;
 		for (Bindings result : results.getBindingsResults().getBindings()) {
-			list.add(result.getBindingValue("message"));
+			list.add(result.getValue("message"));
 		}
 		
 		return list;
@@ -176,7 +204,13 @@ public class UpdateQueryTest extends GenericClient  {
 		ArrayList<String> list = new ArrayList<String>();
 
 		long start = new Date().toInstant().toEpochMilli();
-		Response ret = this.query(RECEIVED, bindings);
+		Response ret;
+		try {
+			ret = this.query(RECEIVED, bindings,5000);
+		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException e) {
+			logger.error(e.getMessage());
+			return list;
+		}
 		long stop = new Date().toInstant().toEpochMilli();
 		
 		logger.info("RECEIVED "+(stop-start));
@@ -185,21 +219,28 @@ public class UpdateQueryTest extends GenericClient  {
 		
 		QueryResponse results = (QueryResponse) ret;
 		for (Bindings result : results.getBindingsResults().getBindings()) {
-			list.add(result.getBindingValue("message"));
+			list.add(result.getValue("message"));
 		}
 		
 		return list;
 	}
 
 	public List<String> users() {
-		Response ret = this.query(USERS, null);
 		ArrayList<String> list = new ArrayList<String>();
+		
+		Response ret;
+		try {
+			ret = this.query(USERS, null,5000);
+		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException e) {
+			logger.error(e.getMessage());
+			return list;
+		}
 		
 		if (ret.isError()) return list;
 		
 		QueryResponse results = (QueryResponse) ret;
 		for (Bindings bindings : results.getBindingsResults().getBindings()) {
-			list.add(bindings.getBindingValue("user"));
+			list.add(bindings.getValue("user"));
 		}
 		
 		return list;
