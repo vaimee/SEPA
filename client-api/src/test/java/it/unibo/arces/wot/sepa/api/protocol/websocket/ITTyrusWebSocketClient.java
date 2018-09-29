@@ -3,6 +3,10 @@ package it.unibo.arces.wot.sepa.api.protocol.websocket;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 import javax.websocket.DeploymentException;
 
@@ -26,6 +30,10 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 import static org.junit.Assert.assertFalse;
 
 public class ITTyrusWebSocketClient {
+	static {
+		ConfigurationProvider.configureLogger();
+	}
+
 	protected final Logger logger = LogManager.getLogger();
 	protected static JSAP properties = null;
 	
