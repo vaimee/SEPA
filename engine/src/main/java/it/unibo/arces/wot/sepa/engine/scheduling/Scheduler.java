@@ -18,142 +18,121 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
-import java.io.IOException;
-import java.time.Instant;
 import java.util.HashMap;
-import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import it.unibo.arces.wot.sepa.commons.request.Request;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
-
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
-import it.unibo.arces.wot.sepa.engine.core.SchedulerRequestResponseQueue;
-import it.unibo.arces.wot.sepa.engine.dependability.Timing;
+import it.unibo.arces.wot.sepa.engine.timing.Timings;
 
 /**
  * This class represents the scheduler of the SPARQL Event Processing Engine
  */
 
 public class Scheduler extends Thread implements SchedulerMBean {
-	private static final Logger logger = LogManager.getLogger("Scheduler");
+	private static final Logger logger = LogManager.getLogger();
 
-	// Request tokens
-	private Vector<Integer> tokens = new Vector<Integer>();
+	private final AtomicBoolean running = new AtomicBoolean(true);
 
 	// Responders
-	private HashMap<Integer, ResponseHandler> responders = new HashMap<Integer, ResponseHandler>();
+	private final HashMap<Integer, ResponseHandler> responders = new HashMap<Integer, ResponseHandler>();
 
-	// Synchronized queue
-	private SchedulerRequestResponseQueue queue;
-	
-	public Scheduler(EngineProperties properties,SchedulerRequestResponseQueue queue) {
+	// Synchronized queues
+	private final SchedulerQueue queue;
+
+	public Scheduler(EngineProperties properties) {
 		if (properties == null) {
 			logger.error("Properties are null");
 			throw new IllegalArgumentException("Properties are null");
 		}
-		if (queue == null) {
-			logger.error("Queue is null");
-			throw new IllegalArgumentException("Queue is null");
-		}
-		this.queue = queue;
-		
-		// Initialize token jar
-		for (int i = 0; i < properties.getSchedulingQueueSize(); i++)
-			tokens.addElement(i);
+
+		queue = new SchedulerQueue(properties.getSchedulingQueueSize());
 
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
-		
-		this.setName("SEPA Response Scheduler");
+		SchedulerBeans.setTimeout(properties.getSchedulerTimeout());
+
+		setName("SEPA-Scheduler");
 	}
 
-	public synchronized void schedule(Request request, ResponseHandler handler) {
-		int token = getToken();
-		if (token == -1) {
-			try {
-				handler.sendResponse(new ErrorResponse(-1, 500, "Request refused: too many pending requests"));
-			} catch (IOException e) {
-				logger.error("Failed to send response on out of tokens");
+	public ScheduledRequest schedule(InternalRequest request, ResponseHandler handler) {
+		if (request == null || handler == null) {
+			logger.error("Request handler or request are null");
+			return null;
+		}
+
+		ScheduledRequest scheduled = null;		
+		synchronized (responders) {
+			// Add request to the scheduler queue (null means no more tokens)
+			scheduled = queue.addRequest(request, handler);
+
+			// No more tokens
+			if (scheduled == null) {
+				SchedulerBeans.newRequest(request, false);
+				logger.error("Request refused: too many pending requests: " + request);
+				return null;
 			}
-			return;
+
+			logger.info(">> " + scheduled);
+
+			Timings.log(request);
+
+			SchedulerBeans.newRequest(request, true);
+
+			// Register response handlers
+
+			logger.trace("Register handler: " + handler + " token: " + scheduled.getToken());
+			responders.put(scheduled.getToken(), handler);
 		}
 
-		// Responder
-		responders.put(token, handler);
-
-		queue.addRequest(new ScheduledRequest(token, request, handler));
-		
-		Timing.logTiming(request, "SCHEDULED", Instant.now());
+		return scheduled;
 	}
 
-	/**
-	 * Returns a new token if more tokens are available or -1 otherwise
-	 * 
-	 * @return an int representing the token
-	 */
-	private synchronized int getToken() {
-		if (tokens.size() == 0) {
-			logger.error("No tokens available");
-			return -1;
-		}
-
-		Integer token = tokens.get(0);
-		tokens.removeElementAt(0);
-
-		logger.debug("Get token #" + token + " (Available: " + tokens.size() + ")");
-
-		SchedulerBeans.tokenLeft(tokens.size());
-
-		return token;
-	}
-
-	/**
-	 * Release an used token
-	 * 
-	 * @return true if success, false if the token to be released has not been
-	 *         acquired
-	 */
-	private synchronized void releaseToken(Integer token) {
-		if (token == -1)
-			return;
-
-		if (tokens.contains(token)) {
-			logger.warn("Request to release a unused token: " + token + " (Available tokens: " + tokens.size() + ")");
-		} else {
-			tokens.insertElementAt(token, tokens.size());
-			logger.debug("Release token #" + token + " (Available: " + tokens.size() + ")");
-
-			SchedulerBeans.tokenLeft(tokens.size());
-		}
+	public void finish() {
+		running.set(false);
 	}
 
 	@Override
 	public void run() {
-		while(true) {
-			Response response;
+		while (running.get()) {
 			try {
-				response = queue.waitResponse();
-			} catch (InterruptedException e) {
-				return;
-			}
-			try {
-				if (responders.get(response.getToken()) != null) responders.get(response.getToken()).sendResponse(response);
-			} catch (IOException e) {
-				logger.error("Failed to send response: " + e.getMessage());
-			}
-			responders.remove(response.getToken());
+				// Wait for response
+				ScheduledResponse response = queue.waitResponse();
+				logger.info("<< " + response);
 
-			// RELEASE TOKEN
-			releaseToken(response.getToken());
+				// The token
+				int token = response.getToken();
+
+				// Send response back
+				synchronized (responders) {
+					ResponseHandler handler = responders.get(token);
+					if (handler == null) {
+						logger.error("Response handler is null (token #" + token + ")");
+
+					} else {
+						logger.trace("Handler: " + handler + " response: " + response);
+						try {
+							handler.sendResponse(response.getResponse());
+						} catch (SEPAProtocolException e) {
+							logger.error("Failed to send response: " + e.getMessage());
+						}
+					}
+
+					// Remove handlers
+					responders.remove(token);
+				}
+
+			} catch (InterruptedException e) {
+				running.set(false);
+			}
 		}
 	}
 
@@ -190,5 +169,31 @@ public class Scheduler extends Thread implements SchedulerMBean {
 	@Override
 	public int getQueueSize() {
 		return SchedulerBeans.getQueueSize();
+	}
+
+	@Override
+	public int getTimeout() {
+		return SchedulerBeans.getTimeout();
+	}
+
+	@Override
+	public void setTimeout(int timeout) {
+		SchedulerBeans.setTimeout(timeout);
+	}
+
+	public ScheduledRequest waitQueryRequest() throws InterruptedException {
+		return queue.waitQueryRequest();
+	}
+
+	public void addResponse(int token, Response ret) {
+		queue.addResponse(token, ret);
+	}
+
+	public ScheduledRequest waitSubscribeUnsubscribeRequest() throws InterruptedException {
+		return queue.waitSubscribeUnsubscribeRequest();
+	}
+
+	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
+		return queue.waitUpdateRequest();
 	}
 }

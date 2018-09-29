@@ -1,0 +1,33 @@
+{
+	"host": "localhost",
+	"oauth": {
+		"enable": false,
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token",
+		"client_id": "",
+		"client_secret": "",
+		"jwt": "",
+		"expires": "",
+		"type": ""
+	},
+	"sparql11protocol": {
+		"protocol": "http",
+		"port": 5280,
+		"query": {
+			"path": "/dotone/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/dotone/update",
+			"method": "POST",
+			"format": "JSON"
+		}
+	},
+	"graphs": {
+		"default-graph-uri": "http://www.dotone.eu/",
+		"named-graph-uri": "http://www.dotone.eu/",
+		"using-graph-uri": "http://www.dotone.eu/",
+		"using-named-graph-uri": "http://www.dotone.eu/"
+	}
+}

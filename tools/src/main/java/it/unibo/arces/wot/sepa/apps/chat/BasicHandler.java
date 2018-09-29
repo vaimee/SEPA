@@ -12,18 +12,29 @@ public class BasicHandler implements ISubscriptionHandler {
 	
 	@Override
 	public void onSemanticEvent(Notification notify) {
-		logger.info("Notify: "+notify);
+		logger.info("onSemanticEvent: "+notify);
 	}
 
 	@Override
-	public void onBrokenSocket() {
-		logger.info("Broken socket");
+	public void onBrokenConnection() {
+		logger.info("onBrokenConnection");
 		
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		logger.info("Error: "+errorResponse);
+		logger.info("onError: "+errorResponse);
+	}
+
+	@Override
+	public void onSubscribe(String spuid, String alias) {
+		logger.info("onSubscribe: "+spuid + " Alias: "+alias);
+		
+	}
+
+	@Override
+	public void onUnsubscribe(String spuid) {
+		logger.info("onUnsubscribe: "+spuid);
 	}
 
 }

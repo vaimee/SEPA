@@ -18,55 +18,141 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.time.Instant;
 import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
+import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
-import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.dependability.Timing;
+public class QueryProcessor implements QueryProcessorMBean {
+	private static final Logger logger = LogManager.getLogger();
 
-public class QueryProcessor {
-	private static final Logger logger = LogManager.getLogger("QueryProcessor");
+	private final SPARQL11Protocol endpoint;
+	private final Semaphore endpointSemaphore;
+	private final SPARQL11Properties properties;
 
-	private SPARQL11Protocol endpoint;	
-	private Semaphore endpointSemaphore;
-	
-	public QueryProcessor(SPARQL11Properties properties,Semaphore endpointSemaphore) throws SEPAProtocolException  {	
-		endpoint = new SPARQL11Protocol(properties);
+	public QueryProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
+		this.endpoint = new SPARQL11Protocol();
 		this.endpointSemaphore = endpointSemaphore;
+		this.properties = properties;
+		
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized Response process(QueryRequest req, int timeout) {		
+	public Response process(InternalQueryRequest req) {
+		long start = Timings.getTime();
+
 		if (endpointSemaphore != null)
 			try {
+				//TODO: timeout
 				endpointSemaphore.acquire();
 			} catch (InterruptedException e) {
-				return new ErrorResponse(500,e.getMessage());
+				return new ErrorResponse(500, "InterruptedException",e.getMessage());
 			}
-		
-		//QUERY the endpoint
-		long start = System.currentTimeMillis();
-		Timing.logTiming(req, "ENDPOINT_REQUEST", Instant.now());
-		Response ret = endpoint.query(req, timeout);
-		Timing.logTiming(req, "ENDPOINT_RESPONSE", Instant.now());
-		long stop = System.currentTimeMillis();
-		
-		if (endpointSemaphore != null) endpointSemaphore.release();
 
-		logger.debug("Response: "+ret.toString());
-		logger.debug("* QUERY PROCESSING ("+(stop-start)+" ms) *");
+		// Authorized access to the endpoint
+		String authorizationHeader = null;
+		try {
+			// TODO: to implement also bearer authentication
+			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
+			if (oauth.isEnabled())
+				authorizationHeader = oauth.getBasicAuthorizationHeader();
+		} catch (SEPAPropertiesException | SEPASecurityException e) {
+			logger.warn(e.getMessage());
+		}
+
+		Response ret;
+		QueryRequest request;
+		request = new QueryRequest(properties.getQueryMethod(), properties.getDefaultProtocolScheme(),
+				properties.getDefaultHost(), properties.getDefaultPort(), properties.getDefaultQueryPath(),
+				req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
+				authorizationHeader,QueryProcessorBeans.getTimeout());
+
+		ret = endpoint.query(request);
+
+		if (endpointSemaphore != null)
+			endpointSemaphore.release();
+
+		long stop = Timings.getTime();
 		
-		ProcessorBeans.queryTimings(start, stop);
-		
+		logger.trace("Response: " + ret.toString());
+		Timings.log("QUERY_PROCESSING_TIME", start, stop);
+		QueryProcessorBeans.timings(start, stop);
+
 		return ret;
+	}
+
+	@Override
+	public void reset() {
+		QueryProcessorBeans.reset();
+	}
+
+	@Override
+	public long getRequests() {
+		return QueryProcessorBeans.getRequests();
+	}
+
+	@Override
+	public float getTimingsCurrent() {
+		return QueryProcessorBeans.getCurrent();
+	}
+
+	@Override
+	public float getTimingsMin() {
+		return QueryProcessorBeans.getMin();
+	}
+
+	@Override
+	public float getTimingsAverage() {
+		return QueryProcessorBeans.getAverage();
+	}
+
+	@Override
+	public float getTimingsMax() {
+		return QueryProcessorBeans.getMax();
+	}
+
+	@Override
+	public int getTimeout() {
+		return QueryProcessorBeans.getTimeout();
+	}
+
+	@Override
+	public void setTimeout(int t) {
+		QueryProcessorBeans.setTimeout(t);
+	}
+
+	@Override
+	public void scale_ms() {
+		QueryProcessorBeans.scale_ms();
+		
+	}
+
+	@Override
+	public void scale_us() {
+		QueryProcessorBeans.scale_us();
+	}
+
+	@Override
+	public void scale_ns() {
+		QueryProcessorBeans.scale_ns();
+	}
+
+	@Override
+	public String getUnitScale() {
+		return QueryProcessorBeans.getUnitScale();
 	}
 }

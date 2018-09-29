@@ -15,14 +15,10 @@ import org.apache.http.nio.protocol.HttpAsyncRequestConsumer;
 import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 import org.apache.http.protocol.HttpContext;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.engine.protocol.http.HttpUtilities;
 
 
 public class EchoHandler implements HttpAsyncRequestHandler<HttpRequest> {
-	protected static final Logger logger = LogManager.getLogger("EchoHandler");
 	
 	public void handleInternal(HttpRequest request, HttpResponse response, HttpContext context)
 			throws HttpException, IOException {

@@ -21,8 +21,6 @@ package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
@@ -32,33 +30,30 @@ import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.core.EventHandler;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 
-import java.util.concurrent.Semaphore;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 
-public class SPUNaive extends SPU {
+class SPUNaive extends SPU {
 	private final Logger logger;
 
-	private BindingsResults lastBindings = null;
-	private Integer sequence = 1;
+	public SPUNaive(InternalSubscribeRequest subscribe, SPUManager manager) throws SEPAProtocolException {
+		super(subscribe, manager);
 
-	public SPUNaive(SubscribeRequest subscribe, EventHandler handler, SPARQL11Properties endpointProperties,
-			Semaphore endpointSemaphore, SPUSync sync) throws SEPAProtocolException {
-		super(subscribe, endpointProperties, handler, endpointSemaphore, sync);
-
-		logger = LogManager.getLogger("SPUNaive" + getUUID());
-		logger.debug("SPU: " + this.getUUID() + " request: " + subscribe);
+		this.spuid = "sepa://spu/naive/" + UUID.randomUUID();
+		
+		logger = LogManager.getLogger("SPUNaive" + getSPUID());
+		logger.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
 	}
 
 	@Override
 	public Response init() {
-		logger.debug("Process SPARQL query " + request);
+		logger.debug("PROCESS " + subscribe);
 
 		// Process the SPARQL query
-		Response ret = queryProcessor.process(request, ProcessorBeans.getQueryTimeout());
+		Response ret = manager.getQueryProcessor().process(subscribe);
 
 		if (ret.getClass().equals(ErrorResponse.class)) {
 			logger.error("Not initialized");
@@ -66,21 +61,20 @@ public class SPUNaive extends SPU {
 		}
 
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
-		firstResults = new BindingsResults(lastBindings);
 
-		logger.debug("First results: " + firstResults.toString());
+		logger.debug("First results: " + lastBindings.toString());
 
-		return new SubscribeResponse(request.getToken(), getUUID(), request.getAlias(), getFirstResults());
+		return new SubscribeResponse(getSPUID(), subscribe.getAlias(), lastBindings);
 	}
 
 	@Override
-	public Response processInternal(UpdateResponse update, int timeout) {
-		logger.debug("* PROCESSING *" + request);
+	public Response processInternal(UpdateResponse update) {
+		logger.debug("* PROCESSING *" + subscribe);
 		Response ret;
 		
 		try {
 			// Query the SPARQL processing service
-			ret = queryProcessor.process(request, timeout);
+			ret = manager.getQueryProcessor().process(subscribe);
 
 			if (ret.getClass().equals(ErrorResponse.class)) {
 				logger.error(ret);
@@ -126,9 +120,10 @@ public class SPUNaive extends SPU {
 			lastBindings = currentBindings;
 
 			// Send notification (or end processing indication)
-			if (!added.isEmpty() || !removed.isEmpty()) ret = new Notification(getUUID(), new ARBindingsResults(added, removed), sequence++);
+			if (!added.isEmpty() || !removed.isEmpty()) 
+				ret = new Notification(getSPUID(), new ARBindingsResults(added, removed));
 		} catch (Exception e) {
-			ret = new ErrorResponse(500, e.getMessage());
+			ret = new ErrorResponse(500, "Exception: ",e.getMessage());
 		}
 		
 		return ret;

@@ -1,5 +1,7 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
+import java.io.IOException;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -11,23 +13,21 @@ public abstract class ChatClient implements Runnable {
 	private Remover remover;
 	protected String userURI;
 	
-	public ChatClient(String userURI,Timings timings) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+	public ChatClient(String userURI) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		this.userURI = userURI;
-		sender = new Sender(userURI,timings);
-		receiver = new Receiver(userURI,timings,this);
-		remover = new Remover(userURI,timings,this);
+		sender = new Sender(userURI);
+		receiver = new Receiver(userURI,this);
+		remover = new Remover(userURI,this);
 	}
 	
-	public boolean joinChat() {
-		if (!remover.joinChat()) return false;
-		if (!receiver.joinChat()) return false;
-		return true;
+	public void joinChat() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {
+		remover.joinChat();
+		receiver.joinChat();
 	}
 
-	public boolean leaveChat() {
-		if (!remover.leaveChat()) return false;
-		if (!receiver.leaveChat()) return false;
-		return true;
+	public void leaveChat() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {
+		remover.leaveChat();
+		receiver.leaveChat();
 	}
 
 	public boolean sendMessage(String receiverURI,String message) {

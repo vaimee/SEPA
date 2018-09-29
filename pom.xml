@@ -7,13 +7,9 @@
   <packaging>pom</packaging>
   <description>The project aims at developing a SPARQL Event Processing Architecture using JAVA technologies, including APIs and tools</description>
     <modules>
-        <module>commons</module>
         <module>client-api</module>
-        <module>client-pac-pattern</module>
         <module>tools</module>
         <module>engine</module>
-        <!--<module>client-wot-framework</module>-->
-        <!--<module>WebThings</module>-->
   </modules>
   <name>SEPA Project</name>
   <url>https://github.com/arces-wot/sepa.git</url>

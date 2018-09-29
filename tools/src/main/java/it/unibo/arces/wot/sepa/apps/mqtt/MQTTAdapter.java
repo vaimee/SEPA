@@ -2,12 +2,6 @@ package it.unibo.arces.wot.sepa.apps.mqtt;
 
 import java.io.IOException;
 
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -25,10 +19,10 @@ import com.google.gson.JsonObject;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SSLSecurityManager;
-import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
-import it.unibo.arces.wot.sepa.pattern.ApplicationProfile;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class MQTTAdapter extends Producer implements MqttCallback {
@@ -39,17 +33,23 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	private String serverURI = null;
 
 	public static void main(String[] args) throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		MQTTAdapter adapter = new MQTTAdapter();
+		if (args.length != 1) {
+			logger.error("Please provide the jsap file as argument");
+			System.exit(-1);
+		}
+		
+		MQTTAdapter adapter = new MQTTAdapter(args[0]);
 		adapter.start();
 		
 		System.out.println("Press any key to exit...");
 		System.in.read();
 		
 		adapter.stop();
+		adapter.close();
 	}
 	
-	public MQTTAdapter() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new ApplicationProfile("mqtt.jsap"), "MQTT_MESSAGE");
+	public MQTTAdapter(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(new JSAP(jsap), "MQTT_MESSAGE");
 	}
 
 	@Override
@@ -95,17 +95,16 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	public void messageArrived(String topic, MqttMessage value) throws Exception {
 		logger.info(topic + " " + value.toString());
 
-		Bindings bindings = new Bindings();
-		bindings.addBinding("topic", new RDFTermLiteral(topic));
-		bindings.addBinding("value", new RDFTermLiteral(value.toString()));
-		bindings.addBinding("broker", new RDFTermLiteral(serverURI));
-		update(bindings);
+		setUpdateBindingValue("topic",new RDFTermLiteral(topic));
+		setUpdateBindingValue("value",new RDFTermLiteral(value.toString()));
+		setUpdateBindingValue("broker",new RDFTermURI(serverURI));
+		update();
 	}
 
-	public boolean start() {
-		/*
+	public boolean start() throws SEPASecurityException {
+		/* SWAMP: mosquitto_sub -h eu.thethings.network -p 1883 -u swamp -P ttn-account-v2.ES-s-MdMIHv8Z8HI5BR0FHzRjLD0WEmySE7cYM-Kepg -d -t 'swamp/devices/moisture1/up'
 		 * test.mosquitto.org 1883
-		 * giove.arces.unibo.it 52877
+		 * ARCES: giove.arces.unibo.it 52877
 		 * 
 		 * */
 		// MQTT
@@ -131,6 +130,16 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		} else {
 			serverURI = "tcp://" + url + ":" + String.format("%d", port);
 		}
+		
+		String userName = null;
+		if (mqtt.has("username")) {
+			userName = mqtt.get("username").getAsString();
+		}
+		
+		String password = null;
+		if (mqtt.has("password")) {
+			password = mqtt.get("password").getAsString();
+		}
 
 		// Create client
 		logger.info("Creating MQTT client...");
@@ -144,26 +153,26 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 			return false;
 		}
 
-		// Connect
-		logger.info("Connecting...");
+		// Options
+		logger.info("Setting options");
 		MqttConnectOptions options = new MqttConnectOptions();
 		if (sslEnabled) {
-			SSLSecurityManager sm;
-			try {
-				sm = new SSLSecurityManager("TLSv1","sepa.jks", "sepa2017", "sepa2017");
-			} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
-					| CertificateException | IOException e) {
-				logger.error(e.getMessage());
-				return false;
-			}
 			logger.info("Set SSL security");
-			try {
-				options.setSocketFactory(sm.getSSLContext().getSocketFactory());
-			} catch (KeyManagementException | NoSuchAlgorithmException e) {
-				logger.error(e.getMessage());
-				return false;
-			}
+			
+			SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
+			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
 		}
+		if (userName != null) {
+			logger.info("Set username: "+userName);
+			options.setUserName(userName);
+		}
+		if (password != null) {
+			logger.info("Set password: "+password);
+			options.setPassword(password.toCharArray());
+		}
+		
+		// Connect
+		logger.info("Connecting...");
 		try {
 			mqttClient.connect(options);
 		} catch (MqttException e) {
@@ -180,7 +189,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 			return false;
 		}
 
-		String printTopics = "Topic filter ";
+		String printTopics = " Topics: ";
 		for (String s : topicsFilter) {
 			printTopics += s + " ";
 		}

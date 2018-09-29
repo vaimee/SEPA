@@ -36,10 +36,10 @@ public interface ISubscriptionHandler {
 
 	/**
 	 * This method is called after the connection with SEPA is lost.
-	 * Notice that it is also called even after {@link SEPAWebsocketClient#close()}
+	 * Notice that it is also called even after {@link JavaWebsocketClient#close()}
 	 * is used.
 	 */
-	void onBrokenSocket();
+	void onBrokenConnection();
 	
 	/**
 	 * This method is called if an error occurred
@@ -48,4 +48,14 @@ public interface ISubscriptionHandler {
 	 * @see ErrorResponse
 	 */
 	void onError(ErrorResponse errorResponse);
+	
+	/**
+	 * This method is called when the first notification has been received
+	 */
+	void onSubscribe(String spuid,String alias);
+	
+	/**
+	 * This method is called as response to an unsubscribe request
+	 */
+	void onUnsubscribe(String spuid);
 }
