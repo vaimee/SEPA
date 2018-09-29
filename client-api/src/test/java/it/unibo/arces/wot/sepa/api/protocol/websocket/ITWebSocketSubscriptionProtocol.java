@@ -1,8 +1,13 @@
 package it.unibo.arces.wot.sepa.api.protocol.websocket;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.TimeZone;
 
+import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
@@ -19,6 +24,10 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 
 public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
+    static {
+        ConfigurationProvider.configureLogger();
+    }
+
 	protected final Logger logger = LogManager.getLogger();
 	
 	private static Sync sync = new Sync();

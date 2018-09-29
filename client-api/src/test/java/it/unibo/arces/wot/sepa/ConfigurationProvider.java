@@ -10,17 +10,44 @@ import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Set;
+import java.util.TimeZone;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class ConfigurationProvider {
+	static {
+		configureLogger();
+	}
+
 	protected final Logger logger = LogManager.getLogger();
 
 	private final JSAP appProfile;
 	private String prefixes = "";
-	
+
+	public static void configureLogger() {
+		// Logging
+		TimeZone tz = TimeZone.getTimeZone("UTC");
+		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
+		df.setTimeZone(tz);
+		String nowAsISO = df.format(new Date());
+		System.setProperty("logFilename", nowAsISO);
+
+		//Create file
+		final File logfolder = new File("logs/");
+		if(!logfolder.exists()){
+			logfolder.mkdir();
+		}
+
+		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
+				.getContext(false);
+		ctx.reconfigure();
+	}
+
 	public ConfigurationProvider() throws SEPAPropertiesException, SEPASecurityException {
 		String jsapFileName = "sepatest.jsap";
 
