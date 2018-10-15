@@ -36,8 +36,10 @@ public class ITTyrusWebSocketClient {
 
 	@BeforeClass
 	public static void init() {
+		 ConfigurationProvider provider = null;
 		try {
-			properties = new ConfigurationProvider().getJsap();
+			provider = new ConfigurationProvider();
+			properties = provider.getJsap();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
 			assertFalse("Configuration not found", false);
 		}
@@ -50,7 +52,7 @@ public class ITTyrusWebSocketClient {
 						+ properties.getSubscribePath();
 
 			try {
-				sm = new SEPASecurityManager("sepa.jks","sepa2017","sepa2017",null);
+				sm = provider.buildSecurityManager();
 			} catch (SEPASecurityException e) {
 				assertFalse("Security exception " + e.getMessage(), false);
 			}
@@ -64,7 +66,7 @@ public class ITTyrusWebSocketClient {
 		}
 	}
 
-	@Test (timeout = 5000)
+	@Test (timeout = 10000)
 	public void Connect() throws URISyntaxException, SEPASecurityException, DeploymentException, IOException {
 		int n = 100;
 		
