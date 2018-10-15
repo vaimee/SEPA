@@ -12,15 +12,15 @@
 	},
 	"sparql11protocol": {
 		"protocol": "http",
-		"port": 8890,
+		"port": 9999,
 		"query": {
-			"path": "/sparql",
-			"method": "URL_ENCODED_POST",
+			"path": "/blazegraph/namespace/kb/sparql",
+			"method": "GET",
 			"format": "JSON"
 		},
 		"update": {
-			"path": "/sparql",
-			"method": "POST",
+			"path": "/blazegraph/namespace/kb/sparql",
+			"method": "URL_ENCODED_POST",
 			"format": "JSON"
 		}
 	},

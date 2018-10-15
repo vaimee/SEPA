@@ -50,7 +50,7 @@ public class ITTyrusWebSocketClient {
 						+ properties.getSubscribePath();
 
 			try {
-				sm = new SEPASecurityManager();
+				sm = new SEPASecurityManager("sepa.jks","sepa2017","sepa2017",null);
 			} catch (SEPASecurityException e) {
 				assertFalse("Security exception " + e.getMessage(), false);
 			}

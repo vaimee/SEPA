@@ -47,18 +47,7 @@ public abstract class Client implements java.io.Closeable {
 		return appProfile;
 	}
 
-	protected final void addNamespaces(JSAP appProfile) {
-		Set<String> appPrefixes = appProfile.getPrefixes();
-		for (String prefix : appPrefixes) {
-			prefixes += "PREFIX " + prefix + ":<" + appProfile.getNamespaceURI(prefix) + "> ";
-		}
-	}
-
-	protected final String prefixes() {
-		return prefixes;
-	}
-
-	public Client(JSAP appProfile) throws SEPAProtocolException {
+	public Client(JSAP appProfile,SEPASecurityManager sm) throws SEPAProtocolException {
 		if (appProfile == null) {
 			logger.fatal("Application profile is null. Client cannot be initialized");
 			throw new SEPAProtocolException(new IllegalArgumentException("Application profile is null"));
@@ -66,10 +55,17 @@ public abstract class Client implements java.io.Closeable {
 		this.appProfile = appProfile;
 
 		logger.trace("SEPA parameters: " + appProfile.printParameters());
-
-		addNamespaces(appProfile);
-	
+		
+		// Security manager
 		isSecure = appProfile.isSecure();
+		if (isSecure && sm == null) throw new IllegalArgumentException("Security is enabled but SEPA security manager is null");
+		this.sm = sm;
+		
+		// Prefixes and namespaces
+		Set<String> appPrefixes = appProfile.getPrefixes();
+		for (String prefix : appPrefixes) {
+			prefixes += "PREFIX " + prefix + ":<" + appProfile.getNamespaceURI(prefix) + "> ";
+		}
 		
 		numbersOrBoolean.add("xsd:integer");
 		numbersOrBoolean.add("xsd:decimal");
@@ -79,18 +75,14 @@ public abstract class Client implements java.io.Closeable {
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#integer");
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#decimal");
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#double");
-		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#boolean");
-	}
-
-	public Client(JSAP appProfile,SEPASecurityManager sm) throws SEPAProtocolException {
-		this(appProfile);
-		
-		if (sm == null & appProfile.isSecure()) throw new IllegalArgumentException("Security is enabled but security manager is null");
-		
-		this.sm = sm;
+		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#boolean");	
 	}
 	
-	protected final String replaceBindings(String sparql, Bindings bindings) {
+	protected final String addPrefixesAndReplaceBindings(String sparql, Bindings bindings) {
+		return prefixes + replaceBindings(sparql,bindings);
+	}
+	
+	private final String replaceBindings(String sparql, Bindings bindings) {
 		if (bindings == null || sparql == null)
 			return sparql;
 
@@ -167,7 +159,7 @@ public abstract class Client implements java.io.Closeable {
 					else
 						value += "^^" + datatype;
 				}
-			} else {
+			} else if (bindings.isURI(var)){
 				// See https://www.w3.org/TR/rdf-sparql-query/#QSynIRI
 				// https://docs.oracle.com/javase/7/docs/api/java/net/URI.html
 
@@ -198,6 +190,9 @@ public abstract class Client implements java.io.Closeable {
 					if (uri.getSchemeSpecificPart().startsWith("/"))
 						value = "<" + value + ">";
 				}
+			} else {
+				// A blank node
+				logger.trace("Blank node: "+value);
 			}
 			// Matching variables
 			/*
@@ -239,28 +234,4 @@ public abstract class Client implements java.io.Closeable {
 				|| (0x2070 <= c && c <= 0x218F) || (0x2C00 <= c && c <= 0x2FEF) || (0x3001 <= c && c <= 0xD7FF)
 				|| (0xF900 <= c && c <= 0xFDCF) || (0xFDF0 <= c && c <= 0xFFFD) || (0x10000 <= c && c <= 0xEFFFF));
 	}
-
-//	protected boolean getToken() throws SEPASecurityException, IOException, SEPAPropertiesException {
-//		try {
-//			if (!appProfile.getAuthenticationProperties().isTokenExpired())
-//				return true;
-//		} catch (Exception e) {
-//			logger.error("Authentication properties not found");
-//			throw new SEPASecurityException(new NullPointerException("Authentication properties not found"));
-//		}
-//
-//		Response ret = sm.requestToken(appProfile.getAuthenticationProperties().getTokenRequestUrl(),
-//				appProfile.getAuthenticationProperties().getBasicAuthorizationHeader());
-//
-//		if (ret.isJWTResponse()) {
-//			JWTResponse token = (JWTResponse) ret;
-//			Date expires = new Date();
-//			expires.setTime(expires.getTime() + (1000 * token.getExpiresIn()));
-//			appProfile.getAuthenticationProperties().setJWT(token.getAccessToken(), expires, token.getTokenType());
-//			return true;
-//		}
-//
-//		logger.error(ret);
-//		return false;
-//	}
 }

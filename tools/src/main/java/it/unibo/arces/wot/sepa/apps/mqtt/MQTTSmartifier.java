@@ -43,13 +43,20 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 	// Topics mapping
 	private HashMap<String, String> topic2observation = new HashMap<String, String>();
 
+	private static SEPASecurityManager sm = null;
+	private boolean sslEnabled = false;
+	private MqttConnectOptions options;
+	
 	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, MqttException {
 		if (args.length != 1) {
 			logger.error("Please provide the jsap file as argument");
 			System.exit(-1);
 		}
 		
-		MQTTSmartifier smartifier = new MQTTSmartifier(args[0]);
+		JSAP app = new JSAP(args[0]);	
+		if (app.isSecure()) sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017",app.getAuthenticationProperties());
+				
+		MQTTSmartifier smartifier = new MQTTSmartifier(app,sm);
 		smartifier.start();
 
 		logger.info("Press any key to exit...");
@@ -65,8 +72,8 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 		smartifier.close();
 	}
 
-	public MQTTSmartifier(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP(jsap), "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE");
+	public MQTTSmartifier(JSAP jsap,SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(jsap, "OBSERVATIONS_TOPICS", "UPDATE_OBSERVATION_VALUE",sm);
 	}
 
 	@Override
@@ -105,7 +112,7 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 
 			logger.warn("Connecting...");
 			try {
-				mqttClient.connect();
+				mqttClient.connect(options);
 			} catch (MqttException e) {
 				logger.fatal("Failed to connect: " + e.getMessage());
 				continue;
@@ -141,22 +148,20 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 			converted += String.format("%c", payload[i]);
 		}
 
-		mqttMessage(topic, converted);
+		logger.info("Message received: "+topic + " " + converted);
+		
+		if (!topic2observation.containsKey(topic)) {
+			logger.warn("Topic NOT FOUND: "+topic);
+		}
+		else mqttMessage(topic, converted);
 	}
 
 	private void mqttMessage(String topic, String value) throws Exception {
-		// String topicValue = value.toString();
-		logger.info(topic + " " + value);
-
-		if (topic2observation.containsKey(topic)) {
-			updateObservationValue(topic2observation.get(topic), value);
-		}
-
 		// Check if value can be parsed with regex
 		// e.g. pepoli:6lowpan:network = | ID: NODO1 | Temperature: 24.60 | Humidity:
 		// 35.40 | Pressure: 1016.46
 
-		else if (appProfile.getExtendedData().get("regexTopics").getAsJsonObject().get(topic) != null) {
+		if (appProfile.getExtendedData().get("regexTopics").getAsJsonObject().get(topic) != null) {
 			JsonArray arr = appProfile.getExtendedData().get("regexTopics").getAsJsonObject().get(topic)
 					.getAsJsonArray();
 			for (JsonElement regex : arr) {
@@ -195,8 +200,12 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 			String newTopic = topic + "/" + topicSuffix;
 
 			updateObservationValue(topic2observation.get(newTopic), newValue);
-		} else {
-			logger.warn("TOPIC NOT FOUND: " + topic + " = " + value);
+		} 
+		
+		// NO PARSING of the value (leave the value as it is)
+		
+		else {
+			updateObservationValue(topic2observation.get(topic), value);
 		}
 	}
 
@@ -219,7 +228,6 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 				i++;
 			}
 
-			boolean sslEnabled = false;
 			if (mqtt.get("ssl") != null)
 				sslEnabled = mqtt.get("ssl").getAsBoolean();
 
@@ -239,11 +247,11 @@ public class MQTTSmartifier extends Aggregator implements MqttCallback {
 			mqttClient = new MqttClient(serverURI, clientID);
 
 			// Options
-			MqttConnectOptions options = new MqttConnectOptions();
+			options = new MqttConnectOptions();
 			if (sslEnabled) {
 				logger.info("Set SSL security");
 
-				SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
+				SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017",null);
 				options.setSocketFactory(sm.getSSLContext().getSocketFactory());
 			}
 			

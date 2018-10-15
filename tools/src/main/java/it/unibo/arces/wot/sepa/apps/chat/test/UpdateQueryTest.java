@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.apps.chat;
+package it.unibo.arces.wot.sepa.apps.chat.test;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -38,8 +38,8 @@ public class UpdateQueryTest extends GenericClient  {
 
 	private int clients;
 
-	public UpdateQueryTest(ISubscriptionHandler handler) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("chat.jsap"));
+	public UpdateQueryTest(String jsapFile,ISubscriptionHandler handler) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(new JSAP(jsapFile));
 
 		SEND = appProfile.getSPARQLUpdate("SEND");
 		SET_RECEIVED = appProfile.getSPARQLUpdate("SET_RECEIVED");
@@ -65,7 +65,7 @@ public class UpdateQueryTest extends GenericClient  {
 	
 	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException {
 		BasicHandler handler = new BasicHandler();
-		UpdateQueryTest test = new UpdateQueryTest(handler);
+		UpdateQueryTest test = new UpdateQueryTest(args[0],handler);
 		
 		test.run();
 		test.close();

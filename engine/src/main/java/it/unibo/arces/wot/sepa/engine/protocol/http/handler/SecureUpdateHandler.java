@@ -43,12 +43,12 @@ Respond with 401 if not
 
 		if (bearer.length != 1) {
 			logger.error("Authorization header is missing or multiple");
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_request",
-					"Authorization header must be a single one");
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_request",
+					"Authorization header is missing or multiple");
 		}
 		if (!bearer[0].getValue().startsWith("Bearer ")) {
 			logger.error("Authorization must be \"Bearer JWT\"");
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_request",
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_request",
 					"Authorization header must be \"Bearer JWT\"");
 		}
 

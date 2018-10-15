@@ -8,14 +8,15 @@ import com.google.gson.JsonElement;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
 public class ObservationRemover extends Producer {
 
-	public ObservationRemover(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP(jsap), "REMOVE_OBSERVATION");
+	public ObservationRemover(JSAP jsap,SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(jsap, "REMOVE_OBSERVATION",sm);
 	}
 	
 	public void remove(String observation) throws SEPASecurityException, IOException, SEPAPropertiesException {

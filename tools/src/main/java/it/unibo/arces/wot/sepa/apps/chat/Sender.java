@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
@@ -19,9 +20,9 @@ public class Sender extends Producer {
 	
 	private String sender;
 	
-	public Sender(String senderURI)
+	public Sender(JSAP jsap, String senderURI,SEPASecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP("chat.jsap"), "SEND");
+		super(jsap, "SEND",sm);
 		
 		this.setUpdateBindingValue("sender", new RDFTermURI(senderURI));
 		this.sender = senderURI;
