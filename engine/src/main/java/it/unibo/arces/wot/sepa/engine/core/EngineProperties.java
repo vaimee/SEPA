@@ -124,6 +124,7 @@ public class EngineProperties {
 		// Scheduler properties
 		JsonObject scheduler = new JsonObject();
 		scheduler.add("queueSize", new JsonPrimitive(100));
+		scheduler.add("timeout", new JsonPrimitive(5000));
 		parameters.add("scheduler", scheduler);
 
 		// Processor properties
