@@ -31,7 +31,7 @@ class Publisher extends Thread implements Closeable {
 		this.id = id;
 		
 		if (provider.getJsap().isSecure()) {
-			sm = new SEPASecurityManager("sepa.jks","sepa2017","sepa2017",provider.getJsap().getAuthenticationProperties());
+			sm = provider.buildSecurityManager();
 			client = new SPARQL11Protocol(sm);
 		}
 		else {
