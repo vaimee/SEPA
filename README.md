@@ -1,7 +1,8 @@
 # SEPA - SPARQL Event Processing Architecture
 [![Build Status](https://travis-ci.org/arces-wot/SEPA.svg?branch=master)](https://travis-ci.org/arces-wot/SEPA)
-[ ![client api](https://img.shields.io/badge/client%20api-latest-blue.svg) ](https://bintray.com/arces-wot/sepa-java-libs/client-api)
-![Github All Releases](https://img.shields.io/github/downloads/arces-wot/SEPA/total.svg?colorB=orange)
+[ ![client api](https://img.shields.io/badge/client%20api-latest-cyan.svg) ](https://bintray.com/arces-wot/sepa-java-libs/client-api)
+![Github All Releases](https://img.shields.io/github/downloads/arces-wot/SEPA/total.svg?colorB=blue)
+[_![Dev Branch](https://img.shields.io/badge/unstable-dev-violet.svg)_](https://github.com/arces-wot/SEPA/tree/dev)
 [_![Gitter](https://img.shields.io/badge/chat-on%20gitter-red.svg)_](https://gitter.im/sepa_dev/Lobby#)
 
 
