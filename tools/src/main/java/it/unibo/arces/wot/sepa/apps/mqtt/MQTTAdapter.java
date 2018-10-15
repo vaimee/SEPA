@@ -32,13 +32,19 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	private String[] topicsFilter = null;
 	private String serverURI = null;
 
+	private static SEPASecurityManager sm = null;
+	
 	public static void main(String[] args) throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		if (args.length != 1) {
 			logger.error("Please provide the jsap file as argument");
 			System.exit(-1);
 		}
 		
-		MQTTAdapter adapter = new MQTTAdapter(args[0]);
+		JSAP app = new JSAP(args[0]);
+		
+		if (app.isSecure()) sm = new SEPASecurityManager("sepa.jks","sepa2017","sepa2017",app.getAuthenticationProperties());
+		
+		MQTTAdapter adapter = new MQTTAdapter(app,sm);
 		adapter.start();
 		
 		System.out.println("Press any key to exit...");
@@ -48,8 +54,8 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		adapter.close();
 	}
 	
-	public MQTTAdapter(String jsap) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP(jsap), "MQTT_MESSAGE");
+	public MQTTAdapter(JSAP jsap,SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(jsap,"MQTT_MESSAGE",sm);
 	}
 
 	@Override
@@ -159,7 +165,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		if (sslEnabled) {
 			logger.info("Set SSL security");
 			
-			SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017");
+			SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017",null);
 			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
 		}
 		if (userName != null) {

@@ -159,13 +159,6 @@ public class SEPASecurityManager implements HostnameVerifier {
 	private final KeyStore keystore;
 
 	/**
-	 * The SSL context.
-	 * 
-	 * @see SSLContext
-	 */
-	// private final SSLContext sslContext;
-
-	/**
 	 * The SSLConnectionSocketFactory context.
 	 * 
 	 * @see SSLConnectionSocketFactory
@@ -226,17 +219,17 @@ public class SEPASecurityManager implements HostnameVerifier {
 		oauthProperties = oauthProp;
 	}
 
-	public SEPASecurityManager(AuthenticationProperties oauthProp) throws SEPASecurityException {
-		this("sepa.jks", "sepa2017", "sepa2017", oauthProp);
-	}
-
-	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
-		this(jksName, jksPassword, keyPassword, null);
-	}
-
-	public SEPASecurityManager() throws SEPASecurityException {
-		this("sepa.jks", "sepa2017", "sepa2017", null);
-	}
+//	public SEPASecurityManager(AuthenticationProperties oauthProp) throws SEPASecurityException {
+//		this("sepa.jks", "sepa2017", "sepa2017", oauthProp);
+//	}
+//
+//	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
+//		this(jksName, jksPassword, keyPassword, null);
+//	}
+//
+//	public SEPASecurityManager() throws SEPASecurityException {
+//		this("sepa.jks", "sepa2017", "sepa2017", null);
+//	}
 
 	public Socket getSSLSocket() throws SEPASecurityException {
 		SSLContext sslContext;
@@ -329,10 +322,13 @@ public class SEPASecurityManager implements HostnameVerifier {
 	 * @see AuthenticationProperties
 	 */
 	public synchronized String getAuthorizationHeader() throws SEPASecurityException, SEPAPropertiesException {
-		if (oauthProperties == null)
+		if (oauthProperties == null) {
+			logger.warn("OAuth properties are null");
 			return null;
+		}
 
 		if (isTokenExpired()) {
+			logger.trace("Token expired. Request a new token");
 			requestToken();
 		}
 
@@ -397,23 +393,12 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 			logger.trace(httpRequest);
 
-//			int retries = 5;
-//			while (true) {
-				try {
-					response = getSSLHttpClient().execute(httpRequest);
-//					break;
-				} catch (IOException e) {
-					logger.error("HTTP EXECUTE: " + e.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute",e.getMessage());
-//					if (retries == 0) return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute",e.getMessage());
-				}
-//				retries--;
-//				try {
-//					Thread.sleep(100);
-//				} catch (InterruptedException e) {
-//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException",e.getMessage());
-//				}
-//			}
+			try {
+				response = getSSLHttpClient().execute(httpRequest);
+			} catch (IOException e) {
+				logger.error("HTTP EXECUTE: " + e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
+			}
 
 			logger.debug("Response: " + response);
 			HttpEntity entity = response.getEntity();
@@ -485,23 +470,26 @@ public class SEPASecurityManager implements HostnameVerifier {
 			httpRequest.setHeader("Accept", "application/json");
 			httpRequest.setHeader("Authorization", authorization);
 
-//			int retries = 5;
-//			while (true) {
-				try {
-					response = getSSLHttpClient().execute(httpRequest);
-//					break;
-				} catch (IOException e) {
-					logger.error("HTTP EXECUTE: " + e.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute",e.getMessage());
-//					if (retries == 0) return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute",e.getMessage());
-				}
-//				retries--;
-//				try {
-//					Thread.sleep(100);
-//				} catch (InterruptedException e) {
-//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException",e.getMessage());
-//				}
-//			}
+			// int retries = 5;
+			// while (true) {
+			try {
+				response = getSSLHttpClient().execute(httpRequest);
+				// break;
+			} catch (IOException e) {
+				logger.error("HTTP EXECUTE: " + e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
+				// if (retries == 0) return new
+				// ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+				// "HttpExecute",e.getMessage());
+			}
+			// retries--;
+			// try {
+			// Thread.sleep(100);
+			// } catch (InterruptedException e) {
+			// return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,
+			// "InterruptedException",e.getMessage());
+			// }
+			// }
 
 			logger.debug("Response: " + response);
 			HttpEntity entity = response.getEntity();

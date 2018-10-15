@@ -1,0 +1,42 @@
+{
+	"queries": {
+		"SENT": {
+			"sparql": "SELECT ?message ?sender ?name ?text ?time WHERE {?message rdf:type schema:Message ; schema:text ?text ; schema:sender ?sender ; schema:toRecipient ?receiver ; schema:dateSent ?time . ?sender rdf:type schema:Person ; schema:name ?name . ?receiver rdf:type schema:Person} ORDER BY ?time",
+			"forcedBindings": {
+				"receiver": {
+					"type": "uri",
+					"value": "chat:IAmAReceiver"
+				}
+			}
+		},
+		"RECEIVED": {
+			"sparql": "SELECT ?message ?time WHERE {?message schema:sender ?sender ; schema:dateReceived ?time ; rdf:type schema:Message}",
+			"forcedBindings": {
+				"sender": {
+					"type": "uri",
+					"value": "chat:IAmASender"
+				}
+			}
+		},
+		"LOG_SENT": {
+			"sparql": "SELECT ?message ?sender ?receiver ?text ?dateSent WHERE {?message schema:text ?text ; schema:sender ?sender ; schema:toRecipient ?receiver; schema:dateSent ?dateSent}",
+			"graphs": {
+				"default-graph-uri": "http://wot.arces.unibo.it/chat/log/",
+				"named-graph-uri": "http://wot.arces.unibo.it/chat/log/"
+			}
+		},
+		"LOG_RECEIVED": {
+			"sparql": "SELECT ?message ?dateReceived WHERE {?message schema:dateReceived ?dateReceived}",
+			"graphs": {
+				"default-graph-uri": "http://wot.arces.unibo.it/chat/log/",
+				"named-graph-uri": "http://wot.arces.unibo.it/chat/log/"
+			}
+		},
+		"USERS": {
+			"sparql": "SELECT ?user ?userName WHERE {?user rdf:type schema:Person ; schema:name ?userName}"
+		},
+		"QUERY_ALL": {
+			"sparql": "SELECT * WHERE {?s ?p ?o}"
+		}
+	}
+}

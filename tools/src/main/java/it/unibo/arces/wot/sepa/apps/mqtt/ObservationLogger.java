@@ -10,6 +10,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -21,6 +22,8 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 public class ObservationLogger extends Aggregator {
 	private static final Logger logger = LogManager.getLogger();
 	
+	private static SEPASecurityManager sm = null;
+	
 	public static void main(String[] args)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, MqttException {
 		if (args.length != 1) {
@@ -28,8 +31,11 @@ public class ObservationLogger extends Aggregator {
 			System.exit(-1);
 		}
 		
+		JSAP app = new JSAP(args[0]);
+		if (app.isSecure()) sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017",app.getAuthenticationProperties());
+		
 		// Logger
-		ObservationLogger analytics = new ObservationLogger(args[0]);
+		ObservationLogger analytics = new ObservationLogger(app,sm);
 		analytics.subscribe(5000);
 		
 		logger.info("Press any key to exit...");
@@ -42,9 +48,9 @@ public class ObservationLogger extends Aggregator {
 		analytics.close();
 	}
 	
-	public ObservationLogger(String jsap)
+	public ObservationLogger(JSAP jsap,SEPASecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP(jsap), "OBSERVATIONS", "LOG_QUANTITY");
+		super(jsap, "OBSERVATIONS", "LOG_QUANTITY",sm);
 	}
 
 	@Override

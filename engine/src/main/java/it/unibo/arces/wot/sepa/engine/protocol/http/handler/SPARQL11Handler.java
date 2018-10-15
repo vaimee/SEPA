@@ -209,7 +209,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		// Authorize
 		Response oauth = authorize(httpExchange.getRequest());
 		if (oauth.isError()) {
-			logger.error("<< NOT AUTHORIZED: " + httpExchange.getRequest().getLastHeader("Authorization").toString());
+			logger.error("<< NOT AUTHORIZED: " + httpExchange.getRequest());
 			HttpUtilities.sendFailureResponse(httpExchange, (ErrorResponse) oauth);
 			jmx.authorizingFailed();
 			return;

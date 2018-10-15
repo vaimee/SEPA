@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
@@ -19,8 +20,10 @@ public class ObservationSimulator extends Producer implements Runnable {
 	private int value = 15;
 	private long timeout = 2000;
 	
-	public ObservationSimulator(JSAP appProfile,String observation,String update) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(appProfile, update);
+	private static SEPASecurityManager sm = null;
+	
+	public ObservationSimulator(JSAP appProfile,String observation,String update,SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(appProfile, update,sm);
 		
 		this.setUpdateBindingValue("observation", new RDFTermURI(observation));
 	}
@@ -54,8 +57,11 @@ public class ObservationSimulator extends Producer implements Runnable {
 			logger.error("Usage: java -jar ObservationSimulator.jar <file.jsap> <observation URI>");
 			System.exit(1);
 		}
+		
+		JSAP app = new JSAP(args[0]);
+		if (app.isSecure()) sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017",app.getAuthenticationProperties());
 
-		ObservationSimulator sim = new ObservationSimulator(new JSAP(args[0]),args[1],"UPDATE_OBSERVATION_VALUE");
+		ObservationSimulator sim = new ObservationSimulator(app,args[1],"UPDATE_OBSERVATION_VALUE",sm);
 		
 		Thread th = new Thread(sim);
 		th.start();

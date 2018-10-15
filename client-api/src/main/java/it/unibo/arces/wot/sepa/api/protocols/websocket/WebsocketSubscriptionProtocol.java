@@ -163,7 +163,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 
 	@Override
 	public void onOpen(Session session, EndpointConfig config) {
-		logger.info("onOpen session: " + session.getId());
+		logger.info("@onOpen session: " + session.getId());
 
 		this.session = session;
 
@@ -192,7 +192,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 						if (notification.has("alias"))
 							alias = notification.get("alias").getAsString();
 						try {
-							logger.trace("onSubscribe: " + spuid + " alias: " + alias);
+							logger.trace("Subscribed: " + spuid + " alias: " + alias);
 							handler.onSubscribe(spuid, alias);
 						} catch (Exception e) {
 							logger.error("Handler is null " + e.getMessage());
@@ -203,7 +203,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 					// Event
 					try {
 						Notification notify = new Notification(jsonMessage);
-						logger.trace("onSemanticEvent: " + notify);
+						logger.trace("Notification: " + notify);
 						handler.onSemanticEvent(notify);
 					} catch (Exception e) {
 						logger.error("Handler is null " + e.getMessage());

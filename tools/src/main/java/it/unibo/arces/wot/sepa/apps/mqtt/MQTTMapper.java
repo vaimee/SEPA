@@ -13,6 +13,7 @@ import com.google.gson.JsonObject;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
@@ -21,19 +22,25 @@ import it.unibo.arces.wot.sepa.pattern.Producer;
 public class MQTTMapper extends Producer {
 	private static final Logger logger = LogManager.getLogger();
 	
+	private static SEPASecurityManager sm = null;
+	
 	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, MqttException {
 		if (args.length != 1) {
 			logger.error("Please provide the jsap file as argument");
 			System.exit(-1);
 		}
 		
-		MQTTMapper client = new MQTTMapper(args[0]);
+		JSAP app = new JSAP(args[0]);
+		
+		if (app.isSecure()) sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017",app.getAuthenticationProperties());
+		
+		MQTTMapper client = new MQTTMapper(app,sm);
 		client.init();
 		client.close();
 	}
 	
-	public MQTTMapper(String jsap) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, IOException {
-		super(new JSAP(jsap), "ADD_OBSERVATION");
+	public MQTTMapper(JSAP jsap,SEPASecurityManager sm) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, IOException {
+		super(jsap, "ADD_OBSERVATION",sm);
 	}
 	
 	public void init() throws SEPASecurityException, IOException, SEPAPropertiesException {

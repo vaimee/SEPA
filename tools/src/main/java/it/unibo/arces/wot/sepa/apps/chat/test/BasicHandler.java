@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.apps.chat;
+package it.unibo.arces.wot.sepa.apps.chat.test;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

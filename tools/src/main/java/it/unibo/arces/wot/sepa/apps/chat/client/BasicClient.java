@@ -1,13 +1,16 @@
-package it.unibo.arces.wot.sepa.apps.chat;
+package it.unibo.arces.wot.sepa.apps.chat.client;
 
 import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.apps.chat.Users;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class BasicClient extends ChatClient {
 	private static final Logger logger = LogManager.getLogger();
@@ -18,9 +21,9 @@ public class BasicClient extends ChatClient {
 	private int notifications = 0;
 	private int expectedNotifications = 0;
 	
-	public BasicClient(String userURI, Users users, int messages)
+	public BasicClient(JSAP jsap,String userURI, Users users, int messages,SEPASecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(userURI);
+		super(jsap,userURI,sm);
 		this.user = userURI;
 		this.users = users;
 		this.messages = messages;
@@ -36,7 +39,7 @@ public class BasicClient extends ChatClient {
 			logger.info("Joining the chat...");
 			try {
 				joinChat();
-			} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPAProtocolException e) {
+			} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPAProtocolException | InterruptedException e) {
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e1) {
