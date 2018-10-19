@@ -325,6 +325,12 @@
 			"graphs": {
 				"default-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log",
 				"named-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log"
+			},
+			"forcedBindings": {
+				"quantity": {
+					"type": "uri",
+					"value": "arces-monitor:QuantityValue-878D364E-BD7D-11E8-9BD5-A77C67284400"
+				}
 			}
 		},
 		"PLACES": {
