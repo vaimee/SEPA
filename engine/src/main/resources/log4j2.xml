@@ -1,33 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
 	<CustomLevels>
-	<!-- 
-Standard Level	intLevel
-OFF					0
-FATAL				100
-ERROR				200
-WARN					300
-
-*TIMING*				350
-
-INFO					400
-DEBUG				500
-TRACE				600
-ALL					Integer.MAX_VALUE
-	 -->
+		<!-- Standard Level intLevel OFF 0 FATAL 100 ERROR 200 WARN 300 INFO 400 
+			DEBUG 500 TRACE 600 ALL Integer.MAX_VALUE -->
 		<CustomLevel name="timing" intLevel="550" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout pattern="%d{ISO8601} [%-6level] [%-30t] (%F:%L) %msg%n%throwable" />
+			<PatternLayout
+				pattern="%d{ISO8601} [%-6level] [%-30t] (%F:%L) %msg%n%throwable" />
 		</Console>
-		<File name="Log" fileName="logs/${sys:logFilename}.csv">
-			<PatternLayout pattern="%m\n"/>
+		<File name="MyFile" fileName="logs/sepa_${sys:logFilename}.csv">
+			<PatternLayout
+				pattern="%d{yyyy-mm-dd,HH:mm:ss.SSS},%t,%-5level,%logger{36},%F:%L,%msg%n" />
 		</File>
 	</Appenders>
 	<Loggers>
 		<Root level="trace">
-			<AppenderRef ref="Console" level="trace"/>
+			<AppenderRef ref="Console" level="trace" />
+			<AppenderRef ref="MyFile" level="trace" />
 		</Root>
 	</Loggers>
 </Configuration>

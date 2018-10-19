@@ -55,33 +55,37 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 	public synchronized void process(UpdateResponse update) {
 		logger.debug("*** PROCESSING SUBSCRIPTIONS BEGIN *** ");
+		
 		long start = Timings.getTime();
 
-		processingPool.clear();
+		synchronized (processingPool) {
+			processingPool.clear();
 
-		Iterator<SPU> spus = filter(update);
+			Iterator<SPU> spus = filter(update);
 
-		while (spus.hasNext()) {
-			SPU spu = spus.next();
-			processingPool.add(spu);
-			spu.process(update);
-		}
+			while (spus.hasNext()) {
+				SPU spu = spus.next();
+				processingPool.add(spu);
+				spu.process(update);
+			}
 
-		logger.debug("@process SPU processing pool size: " + processingPool.size());
+			logger.debug("@process SPU processing pool size: " + processingPool.size());
 
-		while (!processingPool.isEmpty()) {
-			logger.debug(String.format("@process  wait (%s) SPUs to complete processing...", processingPool.size()));
-			try {
-				wait(SPUManagerBeans.getSPUProcessingTimeout());
-			} catch (InterruptedException e) {
-				return;
+			while (!processingPool.isEmpty()) {
+				logger.debug(
+						String.format("@process  wait (%s) SPUs to complete processing...", processingPool.size()));
+				try {
+					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout());
+				} catch (InterruptedException e) {
+					return;
+				}
+			}
+			// TIMEOUT
+			if (!processingPool.isEmpty()) {
+				logger.error("@process timeout on SPU processing. SPUs still running: " + processingPool.size());
 			}
 		}
-		// TIMEOUT
-		if (!processingPool.isEmpty()) {
-			logger.error("@process timeout on SPU processing. SPUs still running: " + processingPool.size());
-		}
-
+		
 		long stop = Timings.getTime();
 
 		SPUManagerBeans.timings(start, stop);
@@ -89,10 +93,13 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		logger.debug("*** PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
-	public synchronized void endOfProcessing(SPU s) {
+	public void endOfProcessing(SPU s) {
 		logger.debug("@process  EOP: " + s.getSPUID());
-		processingPool.remove(s);
-		notify();
+		
+		synchronized (processingPool) {
+			processingPool.remove(s);
+			processingPool.notify();
+		}
 	}
 
 	public synchronized Response subscribe(InternalSubscribeRequest req) {
@@ -145,7 +152,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			handlers.get(spu.getSPUID()).add(sub);
 		}
 		subscribers.put(sub.getSID(), sub);
-		
+
 		SPUManagerBeans.addSubscriber();
 
 		Dependability.onSubscribe(sub.getGID(), sub.getSID());
@@ -179,7 +186,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		subscribers.remove(sid);
 
 		SPUManagerBeans.removeSubscriber();
-		
+
 		// No more handlers: remove SPU
 		synchronized (handlers) {
 			if (handlers.get(spuid).isEmpty()) {
