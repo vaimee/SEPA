@@ -80,6 +80,7 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.GenericClient;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SubscriptionProtocol;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -121,7 +122,7 @@ public class Dashboard {
 
 	static Dashboard window;
 
-	private static final String versionLabel = "SEPA Dashboard Ver 0.9.5";
+	private static final String versionLabel = "SEPA Dashboard Ver 0.9.6";
 
 	private GenericClient sepaClient;
 	private DashboardHandler handler = new DashboardHandler();
@@ -141,7 +142,7 @@ public class Dashboard {
 	private SortedListModel updateListDM = new SortedListModel();
 	private SortedListModel queryListDM = new SortedListModel();
 
-	private HashMap<String, JTabbedPane> subscriptions = new HashMap<String, JTabbedPane>();
+	private HashMap<String, JPanel> subscriptions = new HashMap<String, JPanel>();
 	private HashMap<String, BindingsTableModel> subscriptionResultsDM = new HashMap<String, BindingsTableModel>();
 	private HashMap<String, JLabel> subscriptionResultsLabels = new HashMap<String, JLabel>();
 	private HashMap<String, JTable> subscriptionResultsTables = new HashMap<String, JTable>();
@@ -212,7 +213,11 @@ public class Dashboard {
 				if (notify.getRemovedBindings() != null)
 					removed = notify.getRemovedBindings().size();
 
-				subscriptionResultsDM.get(spuid).setResults(notify, spuid);
+				try {
+					subscriptionResultsDM.get(spuid).setResults(notify, spuid);
+				} catch (SEPABindingsException e) {
+					logger.error(e.getMessage());
+				}
 
 				subscriptionResultsLabels.get(spuid)
 						.setText("Bindings results (" + subscriptionResultsDM.get(spuid).getRowCount() + ") Added("
@@ -293,6 +298,8 @@ public class Dashboard {
 
 			subscriptionsPanel.setSelectedIndex(subscriptionsPanel.getTabCount() - 1);
 			mainTabs.setSelectedIndex(1);
+			
+			subscriptions.put(spuid, sub);
 			
 		}
 
@@ -504,7 +511,7 @@ public class Dashboard {
 			super.fireTableDataChanged();
 		}
 
-		public void setResults(ARBindingsResults res, String spuid) {
+		public void setResults(ARBindingsResults res, String spuid) throws SEPABindingsException {
 			if (res == null)
 				return;
 
@@ -599,7 +606,7 @@ public class Dashboard {
 			super.removeTableModelListener(l);
 		}
 
-		public void setAddedResults(BindingsResults bindingsResults, String spuid) {
+		public void setAddedResults(BindingsResults bindingsResults, String spuid) throws SEPABindingsException {
 			if (bindingsResults == null)
 				return;
 
@@ -1149,7 +1156,11 @@ public class Dashboard {
 		updateList = new JList<String>();
 		updateList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				selectUpdateID(updateList.getSelectedValue());
+				try {
+					selectUpdateID(updateList.getSelectedValue());
+				} catch (SEPABindingsException e1) {
+					logger.error(e1.getMessage());
+				}
 			}
 		});
 		updateList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -1236,7 +1247,11 @@ public class Dashboard {
 		queryList = new JList<String>();
 		queryList.addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent e) {
-				selectQueryID(queryList.getSelectedValue());
+				try {
+					selectQueryID(queryList.getSelectedValue());
+				} catch (SEPABindingsException e1) {
+					logger.error(e1.getMessage());
+				}
 			}
 		});
 		queryList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -1332,7 +1347,7 @@ public class Dashboard {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					update();
-				} catch (SEPAPropertiesException e1) {
+				} catch (SEPAPropertiesException | SEPABindingsException e1) {
 					logger.error(e1.getMessage());
 				}
 			}
@@ -1386,7 +1401,7 @@ public class Dashboard {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					query();
-				} catch (SEPAPropertiesException e1) {
+				} catch (SEPAPropertiesException | SEPABindingsException e1) {
 					logger.error(e1.getMessage());
 				}
 			}
@@ -1417,7 +1432,7 @@ public class Dashboard {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					subscribe();
-				} catch (IOException | SEPAPropertiesException | NumberFormatException | SEPAProtocolException | SEPASecurityException e1) {
+				} catch (IOException | SEPAPropertiesException | NumberFormatException | SEPAProtocolException | SEPASecurityException | SEPABindingsException e1) {
 					logger.error(e1.getMessage());
 				}
 			}
@@ -1634,7 +1649,7 @@ public class Dashboard {
 		}
 	}
 
-	protected void subscribe() throws IOException, SEPAPropertiesException, NumberFormatException, SEPAProtocolException, SEPASecurityException {
+	protected void subscribe() throws IOException, SEPAPropertiesException, NumberFormatException, SEPAProtocolException, SEPASecurityException, SEPABindingsException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
 			String type = queryForcedBindings.getValueAt(row, 2).toString();
@@ -1651,7 +1666,7 @@ public class Dashboard {
 		sepaClient.subscribe(queryID, querySPARQL.getText(), bindings, handler,Integer.parseInt(timeout.getText()));
 	}
 
-	protected void query() throws SEPAPropertiesException {
+	protected void query() throws SEPAPropertiesException, SEPABindingsException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
 			String type = queryForcedBindings.getValueAt(row, 2).toString();
@@ -1687,7 +1702,7 @@ public class Dashboard {
 		}
 	}
 
-	protected void update() throws SEPAPropertiesException {
+	protected void update() throws SEPAPropertiesException, SEPABindingsException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < updateForcedBindings.getRowCount(); row++) {
 			String type = updateForcedBindings.getValueAt(row, 2).toString();
@@ -1718,7 +1733,7 @@ public class Dashboard {
 		}
 	}
 
-	protected void selectUpdateID(String id) {
+	protected void selectUpdateID(String id) throws SEPABindingsException {
 		if (id == null)
 			return;
 		updateID = id;
@@ -1754,7 +1769,7 @@ public class Dashboard {
 		enableUpdateButton();
 	}
 
-	private void selectQueryID(String id) {
+	private void selectQueryID(String id) throws SEPABindingsException {
 		if (id == null)
 			return;
 
