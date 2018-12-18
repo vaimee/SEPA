@@ -10,6 +10,7 @@ import it.unibo.arces.wot.sepa.apps.chat.Users;
 import it.unibo.arces.wot.sepa.apps.chat.client.BasicClient;
 import it.unibo.arces.wot.sepa.apps.chat.client.ChatClient;
 import it.unibo.arces.wot.sepa.apps.chat.client.PingPongClient;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -62,13 +63,13 @@ public class SEPAChatTest {
 	}
 
 	public static void main(String[] args) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
-			InterruptedException, IOException {
+			InterruptedException, IOException, SEPABindingsException {
 		SEPAChatTest test = new SEPAChatTest(args[0]);
 		test.start();
 	}
 
 	public void start() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
-			InterruptedException, IOException {
+			InterruptedException, IOException, SEPABindingsException {
 		
 		users.joinChat();
 		

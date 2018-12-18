@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.apps.chat.client.ChatClient;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -23,13 +24,13 @@ public class Remover extends Aggregator {
 
 	private boolean joined = false;
 	
-	public Remover(JSAP jsap,String senderURI,ChatClient client,SEPASecurityManager sm) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
+	public Remover(JSAP jsap,String senderURI,ChatClient client,SEPASecurityManager sm) throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException, SEPABindingsException {
 		super(jsap, "RECEIVED", "REMOVE",sm);
 		
 		this.setSubscribeBindingValue("sender", new RDFTermURI(senderURI));
 	}
 
-	public void joinChat() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
+	public void joinChat() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("joinChat");
 		while (!joined) {
 			subscribe(5000);
@@ -60,11 +61,12 @@ public class Remover extends Aggregator {
 		for (Bindings bindings : results.getBindings()) {
 			logger.info("RECEIVED From: "+bindings.getValue("message"));
 			
-			// Variables: ?message 
-			this.setUpdateBindingValue("message", bindings.getRDFTerm("message"));
 			try {
+				// Variables: ?message 
+				this.setUpdateBindingValue("message", bindings.getRDFTerm("message"));
+				
 				update();
-			} catch (SEPASecurityException | IOException | SEPAPropertiesException e) {
+			} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
 				logger.error(e.getMessage());
 			}
 		}
@@ -84,7 +86,7 @@ public class Remover extends Aggregator {
 		
 		try {
 			joinChat();
-		} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPAProtocolException | InterruptedException e2) {
+		} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPAProtocolException | InterruptedException | SEPABindingsException e2) {
 		}
 	}
 
