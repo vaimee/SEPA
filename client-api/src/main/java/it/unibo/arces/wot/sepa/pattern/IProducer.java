@@ -20,10 +20,11 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public interface IProducer {
-	 public Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException;
+	 public Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException;
 }
