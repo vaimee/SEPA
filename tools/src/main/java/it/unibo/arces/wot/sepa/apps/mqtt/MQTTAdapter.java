@@ -1,10 +1,10 @@
 package it.unibo.arces.wot.sepa.apps.mqtt;
 
 import java.io.IOException;
+import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -16,12 +16,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
-import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
@@ -29,38 +29,120 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 	private static final Logger logger = LogManager.getLogger();
 
 	private MqttClient mqttClient;
-	private String[] topicsFilter = null;
-	private String serverURI = null;
+	private String serverURI;
+	private String[] topicsFilter = { "#" };
 
-	private static SEPASecurityManager sm = null;
+	private boolean sslEnabled = false;
+	private MqttConnectOptions options;
 	
-	public static void main(String[] args) throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		if (args.length != 1) {
-			logger.error("Please provide the jsap file as argument");
-			System.exit(-1);
-		}
-		
-		JSAP app = new JSAP(args[0]);
-		
-		if (app.isSecure()) sm = new SEPASecurityManager("sepa.jks","sepa2017","sepa2017",app.getAuthenticationProperties());
-		
-		MQTTAdapter adapter = new MQTTAdapter(app,sm);
-		adapter.start();
-		
-		System.out.println("Press any key to exit...");
-		System.in.read();
-		
-		adapter.stop();
-		adapter.close();
+	public void simulator(JsonObject topics) {
+		new Thread() {
+			public void run() {
+				while (true) {
+					for (Entry<String, JsonElement> observation : topics.entrySet()) {
+						String topic = observation.getKey();
+						int min = observation.getValue().getAsJsonArray().get(0).getAsInt();
+						int max = observation.getValue().getAsJsonArray().get(1).getAsInt();
+						String value = String.format("%.2f", min + (Math.random() * (max - min)));						
+						
+						logger.info("[Simulate MQTT message] Topic: "+topic+ " Value: "+value);
+						
+						try {
+							setUpdateBindingValue("topic",new RDFTermLiteral(topic));
+							setUpdateBindingValue("value",new RDFTermLiteral(value));
+							setUpdateBindingValue("broker",new RDFTermLiteral("simulator"));
+							
+							update();
+						} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+							logger.error(e.getMessage());
+						}
+						
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							return;
+						}
+					}
+				}
+			}
+		}.start();
 	}
 	
-	public MQTTAdapter(JSAP jsap,SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(jsap,"MQTT_MESSAGE",sm);
+	public MQTTAdapter(JSAP appProfile, SEPASecurityManager sm,JsonObject mqtt,boolean sim)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, MqttException {
+		super(appProfile, "MQTT_MESSAGE", sm);
+		
+		if (sim) {
+			simulator(mqtt);
+			return;
+		}
+		
+		//JsonObject mqtt = appProfile.getExtendedData().get("mqtt").getAsJsonObject();
+		
+		String url = mqtt.get("url").getAsString();
+		int port = mqtt.get("port").getAsInt();
+		JsonArray topics = mqtt.get("topics").getAsJsonArray();
+
+		topicsFilter = new String[topics.size()];
+		int i = 0;
+		for (JsonElement topic : topics) {
+			topicsFilter[i] = topic.getAsString();
+			i++;
+		}
+
+		if (mqtt.get("ssl") != null)
+			sslEnabled = mqtt.get("ssl").getAsBoolean();
+
+		if (sslEnabled) {
+			serverURI = "ssl://" + url + ":" + String.format("%d", port);
+		} else {
+			serverURI = "tcp://" + url + ":" + String.format("%d", port);
+		}
+
+		// Create client
+		logger.info("Creating MQTT client...");
+		String clientID = MqttClient.generateClientId();
+		logger.info("Client ID: " + clientID);
+		logger.info("Server URI: " + serverURI);
+
+		mqttClient = new MqttClient(serverURI, clientID);
+
+		// Options
+		options = new MqttConnectOptions();
+		if (sslEnabled) {
+			logger.info("Set SSL security");
+			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
+		}
+
+		if (mqtt.has("username")) {
+			options.setUserName(mqtt.get("username").getAsString());
+		}
+
+		if (mqtt.has("password")) {
+			options.setPassword(mqtt.get("password").getAsString().toCharArray());
+		}
+
+		// Connect
+		logger.info("Connecting...");
+		try {
+			mqttClient.connect(options);
+		} catch (MqttException e) {
+			logger.error(e.getMessage());
+		}
+
+		// Subscribe
+		mqttClient.setCallback(this);
+		logger.info("Subscribing...");
+
+		mqttClient.subscribe(topicsFilter);
+
+		for (String topic : topicsFilter)
+			logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topic);
 	}
 
 	@Override
-	public void connectionLost(Throwable arg0) {
-		logger.error("Connection lost: " + arg0.getMessage());
+	public void connectionLost(Throwable cause) {
+		logger.error("Connection lost: " + cause.getMessage());
 
 		while (true) {
 			try {
@@ -71,7 +153,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 
 			logger.warn("Connecting...");
 			try {
-				mqttClient.connect();
+				mqttClient.connect(options);
 			} catch (MqttException e) {
 				logger.fatal("Failed to connect: " + e.getMessage());
 				continue;
@@ -89,122 +171,41 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		}
 
 		logger.info("Connected and subscribed!");
-
 	}
 
 	@Override
-	public void deliveryComplete(IMqttDeliveryToken arg0) {
-
-	}
-
-	@Override
-	public void messageArrived(String topic, MqttMessage value) throws Exception {
-		logger.info(topic + " " + value.toString());
-
-		setUpdateBindingValue("topic",new RDFTermLiteral(topic));
-		setUpdateBindingValue("value",new RDFTermLiteral(value.toString()));
-		setUpdateBindingValue("broker",new RDFTermURI(serverURI));
-		update();
-	}
-
-	public boolean start() throws SEPASecurityException {
-		/* SWAMP: mosquitto_sub -h eu.thethings.network -p 1883 -u swamp -P ttn-account-v2.ES-s-MdMIHv8Z8HI5BR0FHzRjLD0WEmySE7cYM-Kepg -d -t 'swamp/devices/moisture1/up'
-		 * test.mosquitto.org 1883
-		 * ARCES: giove.arces.unibo.it 52877
-		 * 
-		 * */
-		// MQTT
-		JsonObject mqtt = getApplicationProfile().getExtendedData().get("mqtt").getAsJsonObject();
-
-		String url = mqtt.get("url").getAsString();
-		int port = mqtt.get("port").getAsInt();
-		JsonArray topics = mqtt.get("topics").getAsJsonArray();
-
-		topicsFilter = new String[topics.size()];
-		int i = 0;
-		for (JsonElement topic : topics) {
-			topicsFilter[i] = topic.getAsString();
-			i++;
+	public void messageArrived(String topic, MqttMessage message)  {
+		byte[] payload = message.getPayload();
+		String converted = "";
+		for (int i = 0; i < payload.length; i++) {
+			if (payload[i] == 0)
+				break;
+			converted += String.format("%c", payload[i]);
 		}
 
-		boolean sslEnabled = false;
-		if (mqtt.get("ssl") != null)
-			sslEnabled = mqtt.get("ssl").getAsBoolean();
-
-		if (sslEnabled) {
-			serverURI = "ssl://" + url + ":" + String.format("%d", port);
-		} else {
-			serverURI = "tcp://" + url + ":" + String.format("%d", port);
-		}
+		logger.info(serverURI+" message received: " + topic + " " + converted);
 		
-		String userName = null;
-		if (mqtt.has("username")) {
-			userName = mqtt.get("username").getAsString();
-		}
-		
-		String password = null;
-		if (mqtt.has("password")) {
-			password = mqtt.get("password").getAsString();
-		}
-
-		// Create client
-		logger.info("Creating MQTT client...");
-		String clientID = MqttClient.generateClientId();
-		logger.info("Client ID: " + clientID);
-		logger.info("Server URI: " + serverURI);
 		try {
-			mqttClient = new MqttClient(serverURI, clientID);
-		} catch (MqttException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
-
-		// Options
-		logger.info("Setting options");
-		MqttConnectOptions options = new MqttConnectOptions();
-		if (sslEnabled) {
-			logger.info("Set SSL security");
+			setUpdateBindingValue("topic",new RDFTermLiteral(topic));
+			setUpdateBindingValue("value",new RDFTermLiteral(converted));
+			setUpdateBindingValue("broker",new RDFTermLiteral(serverURI));
 			
-			SEPASecurityManager sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017",null);
-			options.setSocketFactory(sm.getSSLContext().getSocketFactory());
-		}
-		if (userName != null) {
-			logger.info("Set username: "+userName);
-			options.setUserName(userName);
-		}
-		if (password != null) {
-			logger.info("Set password: "+password);
-			options.setPassword(password.toCharArray());
-		}
-		
-		// Connect
-		logger.info("Connecting...");
-		try {
-			mqttClient.connect(options);
-		} catch (MqttException e) {
+			update();
+		} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 		}
-
-		// Subscribe
-		mqttClient.setCallback(this);
-		logger.info("Subscribing...");
-		try {
-			mqttClient.subscribe(topicsFilter);
-		} catch (MqttException e) {
-			logger.error(e.getMessage());
-			return false;
-		}
-
-		String printTopics = " Topics: ";
-		for (String s : topicsFilter) {
-			printTopics += s + " ";
-		}
-		logger.info("MQTT client " + clientID + " subscribed to " + serverURI + printTopics);
-		
-		return true;
 	}
 
-	public void stop() {
+	@Override
+	public void deliveryComplete(IMqttDeliveryToken token) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void close() throws IOException {
+		super.close();
+		
 		try {
 			if (topicsFilter != null)
 				mqttClient.unsubscribe(topicsFilter);
@@ -217,6 +218,6 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		} catch (MqttException e) {
 			logger.error("Failed to disconnect " + e.getMessage());
 		}
-
 	}
+	
 }

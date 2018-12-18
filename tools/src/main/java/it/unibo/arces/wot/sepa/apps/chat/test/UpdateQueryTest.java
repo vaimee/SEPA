@@ -12,6 +12,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -111,7 +112,7 @@ public class UpdateQueryTest extends GenericClient  {
 		long start = new Date().toInstant().toEpochMilli();
 		try {
 			update(SEND, bindings,5000);
-		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 		}
 		long stop = new Date().toInstant().toEpochMilli();
@@ -126,7 +127,7 @@ public class UpdateQueryTest extends GenericClient  {
 		long start = new Date().toInstant().toEpochMilli();
 		try {
 			update(SET_RECEIVED, bindings,5000);
-		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 		}
 		long stop = new Date().toInstant().toEpochMilli();
@@ -141,7 +142,7 @@ public class UpdateQueryTest extends GenericClient  {
 		long start = new Date().toInstant().toEpochMilli();
 		try {
 			update(REMOVE, bindings,5000);
-		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 		}
 		long stop = new Date().toInstant().toEpochMilli();
@@ -152,7 +153,7 @@ public class UpdateQueryTest extends GenericClient  {
 	public void deleteAll() {
 		try {
 			update(DELETE_ALL, null,5000);
-		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 		}
 	}
@@ -163,7 +164,7 @@ public class UpdateQueryTest extends GenericClient  {
 
 		try {
 			return this.update(REGISTER_USER, bindings,5000).isUpdateResponse();
-		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 		}
 		return false;
@@ -179,7 +180,7 @@ public class UpdateQueryTest extends GenericClient  {
 		Response ret;
 		try {
 			ret = this.query(SENT, bindings,5000);
-		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 			return list;
 		}
@@ -207,7 +208,7 @@ public class UpdateQueryTest extends GenericClient  {
 		Response ret;
 		try {
 			ret = this.query(RECEIVED, bindings,5000);
-		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 			return list;
 		}
@@ -231,7 +232,7 @@ public class UpdateQueryTest extends GenericClient  {
 		Response ret;
 		try {
 			ret = this.query(USERS, null,5000);
-		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException e) {
+		} catch (SEPAProtocolException | SEPASecurityException  | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 			return list;
 		}

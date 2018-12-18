@@ -1,6 +1,7 @@
 package it.unibo.arces.wot.sepa.apps.chat.client;
 
 import it.unibo.arces.wot.sepa.apps.chat.Users;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -11,7 +12,7 @@ public class PingPongClient extends BasicClient {
 	private int index = 0;
 	
 	public PingPongClient(JSAP jsap,String userURI, Users users,SEPASecurityManager sm)
-			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		super(jsap, userURI, users,1,sm);
 	}
 	
