@@ -1,7 +1,7 @@
 {
-	"host": "mml.arces.unibo.it",
+	"host": "localhost",
 	"oauth": {
-		"enable" : false,
+		"enable": false,
 		"register": "https://localhost:8443/oauth/register",
 		"tokenRequest": "https://localhost:8443/oauth/token"
 	},
@@ -39,6 +39,7 @@
 		"using-named-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt"
 	},
 	"namespaces": {
+		"schema": "http://schema.org/",
 		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 		"rdfs": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 		"sosa": "http://www.w3.org/ns/sosa/",
@@ -51,11 +52,20 @@
 		"gn": "http://www.geonames.org/ontology#"
 	},
 	"extended": {
-		"simulate": false,
-		"simulation" : {
-			"italy/site1/soilmoisture" : [35,75],
-			"italy/site1/pressure" : [900,1100],
-			"italy/site1/temperature" : [15,40]
+		"simulate": true,
+		"simulation": {
+			"5CCF7F1B599E/temperature": [
+				15,
+				35
+			],
+			"5CCF7F15676D/temperature": [
+				10,
+				20
+			],
+			"5CCF7F1B599E/humidity": [
+				35,
+				90
+			]
 		},
 		"mqtt": {
 			"url": "giove.arces.unibo.it",
@@ -78,69 +88,37 @@
 				"value": "moistureValue"
 			}
 		},
+		"places": {
+			"arces-monitor:Mars": {
+				"name": "Mars",
+				"lat": 44.489942,
+				"lon": 11.356873
+			},
+			"arces-monitor:Star": {
+				"name": "Star",
+				"lat": 44.492443,
+				"lon": 11.330382
+			},
+			"arces-monitor:Ares": {
+				"name": "Ares",
+				"lat": 44.488132,
+				"lon": 11.328875
+			}
+		},
+		"links": {
+			"arces-monitor:Mars": {
+				"childs": [
+					"arces-monitor:Mars_Office"
+				]
+			}
+		},
 		"semantic-mappings": {
-			"/ffa574972ab9/applink/107/001BC50C700009CD": {
-				"observation": "arces-monitor:001BC50C700009CD-DASH7-Temperature",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Star",
-				"comment": "Temperature sensor used to show the need of a new air conditioning system in SEHM lab",
-				"label": "SEHM lab temperature (ARCES, Pepoli)"
-			},
-			"/ffa574972ab9/applink/107/001BC50C700009BB": {
-				"observation": "arces-monitor:001BC50C700009BB-DASH7-Temperature",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Star",
-				"comment": "Temperature sensor used to show the need of a new air conditioning system in ST office",
-				"label": "ST office temperature (ARCES, Pepoli)"
-			},
-			"arces/servers/ares/ercole/cpu/core-1/temperature": {
-				"observation": "arces-monitor:ServerErcoleCore1",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Ares",
-				"comment": "Temperature Server ERCOLE Core 1 of 20 (ARCES, Risorgimento)",
-				"label": "Server ERCOLE Core 1 of 20 temperature (ARCES, Risorgimento)"
-			},
-			"arces/servers/mars/giove/cpu/core-1/temperature": {
-				"observation": "arces-monitor:ServerGiove1",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Mars",
-				"comment": "Temperatura Server GIOVE Core 1",
-				"label": "Server GIOVE Core 1 of 6 temperature (ARCES, Toffano)"
-			},
-			"arces/servers/mars/giove/hd/sda/temperature": {
-				"observation": "arces-monitor:ServerGioveHDDSda",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Mars",
-				"comment": "Temperature Server GIOVE HDD SDA",
-				"label": "Server GIOVE HDD 1 of 7 temperature (ARCES, Toffano)"
-			},
-			"arces/servers/mars/marsamba/hd/sda/temperature": {
-				"observation": "arces-monitor:ServerSambaHDDSda",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Mars",
-				"comment": "Temperatura Server SAMBA HDD SDA",
-				"label": "Server SAMBA HDD 1 of 2 temperature (ARCES, Toffano)"
-			},
-			"arces/servers/ares/ercole/hd/sda/temperature": {
-				"observation": "arces-monitor:ServerErcoleHDDSda",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Ares",
-				"comment": "Temperatura Server ERCOLE HDD SDA",
-				"label": "Server ERCOLE HDD 1 of 2 temperature (ARCES, Risorgimento)"
-			},
 			"5CCF7F15676D/temperature": {
 				"observation": "arces-monitor:5CCF7F15676D-temperature",
 				"unit": "qudt-unit-1-1:DegreeCelsius",
 				"location": "arces-monitor:Mars",
 				"comment": "Temperatura zona rack sala server Toffano",
 				"label": "Server rack zone temperature (ARCES, Toffano)"
-			},
-			"5CCF7F15676D/humidity": {
-				"observation": "arces-monitor:5CCF7F15676D-humidity",
-				"unit": "qudt-unit-1-1:Percent",
-				"location": "arces-monitor:Mars",
-				"comment": "Umidità zona rack sala server Toffano",
-				"label": "Server rack zone humidity (ARCES, Toffano)"
 			},
 			"5CCF7F1B599E/temperature": {
 				"observation": "arces-monitor:5CCF7F1B599E-temperature",
@@ -155,33 +133,21 @@
 				"location": "arces-monitor:Mars",
 				"comment": "Umidità zona finestra sala server Toffano",
 				"label": "External humidity (ARCES, Toffano)"
-			},
-			"5CCF7F151DC9/temperature": {
-				"observation": "arces-monitor:5CCF7F151DC9-temperature",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Mars",
-				"comment": "Temperatura esterna sala server Toffano",
-				"label": "Near window temperature (ARCES, Toffano)"
-			},
-			"5CCF7F1B58AC/temperature": {
-				"observation": "arces-monitor:5CCF7F1B58AC-temperature",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Star",
-				"comment": "Temperatura zona rack sala server Pepoli",
-				"label": "Server rack zone temperature (ARCES, Pepoli)"
-			},
-			"5CCF7F1B58AC/humidity": {
-				"observation": "arces-monitor:5CCF7F1B58AC-humidity",
-				"unit": "qudt-unit-1-1:Percent",
-				"location": "arces-monitor:Star",
-				"comment": "Umidità zona rack sala server Pepoli",
-				"label": "Server rack zone humidity (ARCES, Pepoli)"
 			}
 		}
 	},
 	"updates": {
+		"DELETE_ALL": {
+			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt> DELETE {?s ?p ?o} WHERE {?s ?p ?o}"
+		},
+		"DELETE_ALL_LOGS": {
+			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt/log> DELETE {?s ?p ?o} WHERE {?s ?p ?o}"
+		},
+		"DELETE_ALL_MESSAGES": {
+			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt/message> DELETE {?s ?p ?o} WHERE {?s ?p ?o}"
+		},
 		"REMOVE_PLACE": {
-			"sparql": "DELETE WHERE {?place ?s ?p}",
+			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt> DELETE {?place rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?lon} WHERE {?place rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?lon}",
 			"forcedBindings": {
 				"place": {
 					"type": "uri",
@@ -190,7 +156,7 @@
 			}
 		},
 		"ADD_PLACE": {
-			"sparql": "INSERT DATA {?place rdf:type gn:Feature; gn:name ?name ; wgs84_pos:lat ?lat ; wgs84_pos:long ?long}",
+			"sparql": "INSERT DATA {GRAPH <http://wot.arces.unibo.it/monitor/mqtt> {?place rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates _:coordinate . _:coordinate schema:latitude ?lat ; schema:longitude ?lon}}",
 			"forcedBindings": {
 				"place": {
 					"type": "uri",
@@ -205,15 +171,41 @@
 					"value": "44.489664",
 					"datatype": "xsd:decimal"
 				},
-				"long": {
+				"lon": {
 					"type": "literal",
 					"value": "11.357023",
 					"datatype": "xsd:decimal"
 				}
 			}
 		},
+		"LINK_PLACES": {
+			"sparql": "INSERT DATA { GRAPH <http://wot.arces.unibo.it/monitor/mqtt> {?root schema:containsPlace ?child . ?child schema:containedInPlace ?root }}",
+			"forcedBindings": {
+				"root": {
+					"type": "uri",
+					"value": "arces-monitor:rootPlace"
+				},
+				"child": {
+					"type": "uri",
+					"value": "arces-monitor:childPlace"
+				}
+			}
+		},
+		"DELETE_LINK_PLACES": {
+			"sparql": "DELETE DATA { GRAPH <http://wot.arces.unibo.it/monitor/mqtt> {?root schema:containsPlace ?child . ?child schema:containedInPlace ?root }}",
+			"forcedBindings": {
+				"root": {
+					"type": "uri",
+					"value": "arces-monitor:rootPlace"
+				},
+				"child": {
+					"type": "uri",
+					"value": "arces-monitor:childPlace"
+				}
+			}
+		},
 		"MQTT_MESSAGE": {
-			"sparql": "DELETE {?oldMessage rdf:type mqtt:Message ; mqtt:hasValue ?oldValue ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker ; mqtt:timestamp ?oldTimestamp} INSERT {?message rdf:type mqtt:Message ; mqtt:hasValue ?value ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker ; mqtt:timestamp ?timestamp} WHERE {OPTIONAL{?oldMessage rdf:type mqtt:Message ; mqtt:hasValue ?oldValue ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker ; mqtt:timestamp ?oldTimestamp} . BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/mqtt#Message-\",STRUUID())) AS ?message) . BIND(now() AS ?timestamp)}",
+			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt/message> DELETE {?oldMessage rdf:type mqtt:Message ; mqtt:hasValue ?oldValue ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker ; mqtt:timestamp ?oldTimestamp} INSERT {_:message rdf:type mqtt:Message ; mqtt:hasValue ?value ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker ; mqtt:timestamp ?timestamp} WHERE {OPTIONAL{?oldMessage rdf:type mqtt:Message ; mqtt:hasValue ?oldValue ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker ; mqtt:timestamp ?oldTimestamp} . BIND(now() AS ?timestamp)}",
 			"forcedBindings": {
 				"value": {
 					"type": "literal",
@@ -224,52 +216,36 @@
 					"value": "mqttTopicXYZ"
 				},
 				"broker": {
-					"type": "uri",
+					"type": "literal",
 					"value": "tcp://giove.arces.unibo.it:52887"
 				}
 			}
 		},
 		"LOG_QUANTITY": {
-			"sparql": "INSERT {?log arces-monitor:refersTo ?quantity ; qudt-1-1:numericValue ?value ; qudt-1-1:unit ?unit ; time:inXSDDateTimeStamp ?timestamp} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/monitor#Log-\",STRUUID())) AS ?log) . BIND(now() AS ?timestamp)}",
-			"graphs": {
-				"using-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log",
-				"using-named-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log"
-			},
+			"sparql": "INSERT {GRAPH <http://wot.arces.unibo.it/monitor/mqtt/log> {_:log arces-monitor:refersTo ?observation ; qudt-1-1:numericValue ?value ; time:inXSDDateTimeStamp ?timestamp}} WHERE {BIND(now() AS ?timestamp)}",
 			"forcedBindings": {
-				"quantity": {
+				"observation": {
 					"type": "uri",
 					"value": "arces-monitor:QuantityValueXYZ"
 				},
-				"unit": {
-					"type": "uri",
-					"value": "qudt-unit-1-1:DegreeCelsius"
-				},
 				"value": {
 					"type": "literal",
-					"value": "1234"
+					"value": "1234",
+					"datatype": "xsd:decimal"
 				}
 			}
 		},
 		"REMOVE_OBSERVATION": {
-			"sparql": "DELETE WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasFeatureOfInterest ?location ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit . ?quantity qudt-1-1:numericValue ?value}",
+			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt> DELETE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; arces-monitor:hasMqttTopic ?topic ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit ; qudt-1-1:numericValue ?value} WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; arces-monitor:hasMqttTopic ?topic ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit ; qudt-1-1:numericValue ?value}",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",
-					"value": "arces-monitor:ObservationXYZ"
-				}
-			}
-		},
-		"UPDATE_OBSERVATION_LABEL": {
-			"sparql": "DELETE {?observation rdfs:label ?oldLabel} INSERT {?observation rdfs:label ?label} WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?oldLabel}",
-			"forcedBindings": {
-				"observation": {
-					"type": "xsd:string",
 					"value": "arces-monitor:ObservationXYZ"
 				}
 			}
 		},
 		"ADD_OBSERVATION": {
-			"sparql": "INSERT {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; arces-monitor:hasMqttTopic ?topic ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit ; qudt-1-1:numericValue 'NaN'} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/monitor#QuantityValue-\",STRUUID())) AS ?quantity)}",
+			"sparql": "INSERT DATA {GRAPH <http://wot.arces.unibo.it/monitor/mqtt> {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; arces-monitor:hasMqttTopic ?topic ; sosa:hasResult _:quantity . _:quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit ; qudt-1-1:numericValue 'NaN'}}",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",
@@ -298,7 +274,7 @@
 			}
 		},
 		"UPDATE_OBSERVATION_VALUE": {
-			"sparql": "DELETE {?quantity qudt-1-1:numericValue ?oldValue} INSERT {?quantity qudt-1-1:numericValue ?value} WHERE {?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL {?quantity qudt-1-1:numericValue ?oldValue}}",
+			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt> DELETE {?quantity qudt-1-1:numericValue ?oldValue} INSERT {?quantity qudt-1-1:numericValue ?value} WHERE {?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL {?quantity qudt-1-1:numericValue ?oldValue}}",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",
@@ -313,34 +289,48 @@
 		}
 	},
 	"queries": {
-		"LOG_TRIPLES_NUMBER" :{
-			"sparql" : "SELECT (COUNT(?x) AS ?n) WHERE {?x ?y ?z}",
-			"graphs": {
-				"default-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log",
-				"named-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log"
-			}
-		},
 		"LOG_QUANTITY": {
 			"sparql": "SELECT * WHERE {?log arces-monitor:refersTo ?quantity ; qudt-1-1:numericValue ?value; time:inXSDDateTimeStamp ?timestamp}",
 			"graphs": {
 				"default-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log",
 				"named-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/log"
-			},
-			"forcedBindings": {
-				"quantity": {
-					"type": "uri",
-					"value": "arces-monitor:QuantityValue-878D364E-BD7D-11E8-9BD5-A77C67284400"
-				}
 			}
 		},
 		"PLACES": {
-			"sparql": "SELECT * WHERE {?place rdf:type gn:Feature; gn:name ?name ; wgs84_pos:lat ?lat ; wgs84_pos:long ?long}"
+			"sparql": "SELECT * WHERE {?place rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?long}"
+		},
+		"NO_CHILD": {
+			"sparql": "SELECT * where {?root rdf:type schema:Place ; schema:name ?name . FILTER NOT EXISTS{?child schema:containedInPlace ?root}}"
+		},
+		"MAP_PLACES": {
+			"sparql": "SELECT * WHERE {?root rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?long.  FILTER NOT EXISTS{?root schema:containedInPlace ?place}}"
+		},
+		"CREATE_TREE": {
+			"sparql": "SELECT * where { ?observation rdf:type sosa:Observation. ?child rdf:type schema:Place . ?root schema:containsPlace ?child }",
+			"forcedBindings": {
+				"root": {
+					"type": "uri",
+					"value": "arces-monitor:Mars"
+				}
+			}
+		},
+		"CONTAINED_PLACES": {
+			"sparql": "SELECT * where { ?root schema:containsPlace ?child }",
+			"forcedBindings": {
+				"root": {
+					"type": "uri",
+					"value": "arces-monitor:Mars"
+				}
+			}
+		},
+		"ROOT_PLACES": {
+			"sparql": "SELECT * where { ?root rdf:type schema:Place .  FILTER NOT EXISTS{?root schema:containedInPlace ?place} }"
 		},
 		"OBSERVATIONS_TOPICS": {
 			"sparql": "SELECT * WHERE {?observation rdf:type sosa:Observation ; arces-monitor:hasMqttTopic ?topic}"
 		},
 		"OBSERVATIONS": {
-			"sparql": "SELECT * WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasFeatureOfInterest ?location ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit . OPTIONAL {?quantity qudt-1-1:numericValue ?value}}"
+			"sparql": "SELECT * WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity ; sosa:hasFeatureOfInterest ?location . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit . OPTIONAL {?quantity qudt-1-1:numericValue ?value}}"
 		},
 		"OBSERVATIONS_BY_LOCATION": {
 			"sparql": "SELECT * WHERE { ?observation sosa:hasFeatureOfInterest ?location ; rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit ;  qudt-1-1:numericValue ?value}",
@@ -385,7 +375,11 @@
 			}
 		},
 		"MQTT_MESSAGES": {
-			"sparql": "SELECT * WHERE {?message rdf:type mqtt:Message ; mqtt:hasValue ?value ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker}"
+			"sparql": "SELECT ?topic ?value ?broker WHERE {?message rdf:type mqtt:Message ; mqtt:hasValue ?value ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker}",
+			"graphs": {
+				"default-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/message",
+				"named-graph-uri": "http://wot.arces.unibo.it/monitor/mqtt/message"
+			}
 		}
 	}
 }

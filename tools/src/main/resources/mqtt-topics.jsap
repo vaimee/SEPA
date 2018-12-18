@@ -11,7 +11,7 @@
 			"observation": "arces-monitor:001BC50C700009BB-DASH7-Temperature",
 			"unit": "qudt-unit-1-1:DegreeCelsius",
 			"location": "arces-monitor:Star",
-			"comment": "emperature sensor used to show the need of a new air conditioning system in ST office",
+			"comment": "Temperature sensor used to show the need of a new air conditioning system in ST office",
 			"label": "Temperature ST office"
 		},
 		"5CCF7F15676D/temperature": {
