@@ -26,6 +26,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
@@ -78,11 +79,11 @@ public abstract class Client implements java.io.Closeable {
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#boolean");	
 	}
 	
-	protected final String addPrefixesAndReplaceBindings(String sparql, Bindings bindings) {
+	protected final String addPrefixesAndReplaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 		return prefixes + replaceBindings(sparql,bindings);
 	}
 	
-	private final String replaceBindings(String sparql, Bindings bindings) {
+	private final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 		if (bindings == null || sparql == null)
 			return sparql;
 

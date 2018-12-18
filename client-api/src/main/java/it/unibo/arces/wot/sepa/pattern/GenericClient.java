@@ -27,6 +27,7 @@ import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -35,15 +36,60 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 public class GenericClient extends Client {
 
-	private Hashtable<String, SPARQL11SEProtocol> subscribedClients = new Hashtable<String, SPARQL11SEProtocol>();
-	private Hashtable<String, String> subscriptions = new Hashtable<String, String>();
+	class Handler implements ISubscriptionHandler {
+		private ISubscriptionHandler _handler;
+		private String _url;
+		private SPARQL11SEProtocol _client;
+		
+		public Handler(String url,SPARQL11SEProtocol client, ISubscriptionHandler handler) {
+			_url = url;
+			_client = client;
+			_handler = handler;
+		}
+		
+		@Override
+		public void onSemanticEvent(Notification notify) {
+			if (_handler != null) _handler.onSemanticEvent(notify);
+		}
 
+		@Override
+		public void onBrokenConnection() {
+			if (_handler != null) _handler.onBrokenConnection();
+		}
+
+		@Override
+		public void onError(ErrorResponse errorResponse) {
+			if (_handler != null) _handler.onError(errorResponse);
+		}
+
+		@Override
+		public void onSubscribe(String spuid, String alias) {
+			activeUrls.put(_url, _client);
+			subscriptions.put(spuid, _client);
+			if (_handler != null) _handler.onSubscribe(spuid,alias);
+		}
+
+		@Override
+		public void onUnsubscribe(String spuid) {
+			if (_handler != null) _handler.onUnsubscribe(spuid);
+			subscriptions.remove(spuid);
+		}
+		
+	}
+	// URL ==> client
+	private Hashtable<String, SPARQL11SEProtocol> activeUrls = new Hashtable<String, SPARQL11SEProtocol>();
+	
+	// SPUID ==> URL
+	private Hashtable<String, SPARQL11SEProtocol> subscriptions = new Hashtable<String, SPARQL11SEProtocol>();
+	
 	public GenericClient(JSAP appProfile) throws SEPAProtocolException {
 		super(appProfile,null);
 	}
@@ -53,22 +99,22 @@ public class GenericClient extends Client {
 	}
 
 	public Response update(String ID, String sparql, Bindings forced, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		return _update(ID, sparql, forced, timeout);
 	}
 
 	public Response update(String ID, Bindings forced, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		return _update(ID, null, forced, timeout);
 	}
 
 	public Response query(String ID, String sparql, Bindings forced, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		return _query(ID, sparql, forced, timeout);
 	}
 
 	public Response query(String ID, Bindings forced, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		try {
 			return _query(ID, null, forced, timeout);
 		} catch (IOException e) {
@@ -76,8 +122,8 @@ public class GenericClient extends Client {
 		}
 	}
 
-	public void subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler,long timeout)
-			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+	public void subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler, long timeout)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		try {
 			_subscribe(ID, sparql, forced, handler,timeout);
 		} catch (IOException | URISyntaxException e) {
@@ -85,8 +131,8 @@ public class GenericClient extends Client {
 		}
 	}
 
-	public void subscribe(String ID, Bindings forced, ISubscriptionHandler handler,long timeout)
-			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+	public void subscribe(String ID, Bindings forced, ISubscriptionHandler handler, long timeout)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		try {
 			_subscribe(ID, null, forced, handler,timeout);
 		} catch (IOException | URISyntaxException e) {
@@ -97,19 +143,17 @@ public class GenericClient extends Client {
 	public void unsubscribe(String subID,long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		if (!subscriptions.containsKey(subID)) return;
 
-		String clientURL = subscriptions.get(subID);
-
 		String auth = null;
 		try {
 			auth = sm.getAuthorizationHeader();
 		} catch (Exception e) {
 		}
 
-		subscribedClients.get(clientURL).unsubscribe(new UnsubscribeRequest(subID, auth,timeout));
+		subscriptions.get(subID).unsubscribe(new UnsubscribeRequest(subID, auth,timeout));
 	}
 
 	private Response _update(String ID, String sparql, Bindings forced, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		SPARQL11Protocol client;
 
 		String auth = null;
@@ -121,9 +165,6 @@ public class GenericClient extends Client {
 			}
 		} else
 			client = new SPARQL11Protocol();
-
-		
-		
 
 		if (sparql == null)
 			sparql = appProfile.getSPARQLUpdate(ID);
@@ -137,7 +178,7 @@ public class GenericClient extends Client {
 	}
 
 	private Response _query(String ID, String sparql, Bindings forced, int timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException {
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		SPARQL11Protocol client;
 
 		String auth = null;
@@ -162,7 +203,7 @@ public class GenericClient extends Client {
 	}
 
 	private void _subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler,long timeout)
-			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, URISyntaxException {
+			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, URISyntaxException, SEPABindingsException {
 
 		// Create client
 		String url = null;
@@ -175,27 +216,30 @@ public class GenericClient extends Client {
 			url = "ws_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
 					+ appProfile.getSubscribePath(ID);
 
-			if (!subscribedClients.containsKey(url)) {
+			if (!activeUrls.containsKey(url)) {
 				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
 						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID));
-				protocol.setHandler(handler);
 				client = new SPARQL11SEProtocol(protocol);
+				
+				protocol.setHandler(new Handler(url,client,handler));
+				
 			} else
-				client = subscribedClients.get(url);
+				client = activeUrls.get(url);
 
 			break;
 		case WSS:
 			url = "wss_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
 					+ appProfile.getSubscribePath(ID);
 
-			if (!subscribedClients.containsKey(url)) {
+			if (!activeUrls.containsKey(url)) {
 				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
 						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID));
-				protocol.setHandler(handler);
 				protocol.enableSecurity(sm);
 				client = new SPARQL11SEProtocol(protocol);
+				
+				protocol.setHandler(new Handler(url,client,handler));
 			} else
-				client = subscribedClients.get(url);
+				client = activeUrls.get(url);
 
 			try {
 				auth = sm.getAuthorizationHeader();
@@ -218,7 +262,7 @@ public class GenericClient extends Client {
 
 	@Override
 	public void close() throws IOException {
-		for (SPARQL11SEProtocol client : subscribedClients.values())
+		for (SPARQL11SEProtocol client : activeUrls.values())
 			client.close();
 	}
 

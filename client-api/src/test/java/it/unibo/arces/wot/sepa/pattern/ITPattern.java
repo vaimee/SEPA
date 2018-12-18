@@ -6,6 +6,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -44,18 +45,18 @@ public class ITPattern {
 	}
 
 	//@Test (timeout = 5000)
-	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {
+	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
 	}
 	
 	//@Test (timeout = 5000)
-	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {
+	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
 		consumerAll.waitNotification();
 	}
 	
 	//@Test (timeout = 5000)
-	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {
+	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
 		consumerAll.waitNotification();
 		randomProducer.update();
@@ -63,7 +64,7 @@ public class ITPattern {
 	}
 	
 	//@Test (timeout = 5000)
-	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {		
+	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {		
 		consumerRandom1.subscribe();
 		consumerRandom1.waitNotification();
 		

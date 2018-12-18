@@ -30,6 +30,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -83,11 +84,11 @@ public abstract class Consumer extends Client implements IConsumer {
 		client = new SPARQL11SEProtocol(protocol,sm);
 	}
 
-	public final void setSubscribeBindingValue(String variable, RDFTerm value) throws IllegalArgumentException {
+	public final void setSubscribeBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
 		forcedBindings.setBindingValue(variable, value);
 	}
 
-	public final void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {
+	public final void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		String authorizationHeader = null;
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();

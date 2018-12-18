@@ -25,6 +25,7 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -60,11 +61,11 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		updateForcedBindings = appProfile.getUpdateBindings(updateID);
 	}
 
-	public final Response update() throws SEPASecurityException, IOException, SEPAPropertiesException {
+	public final Response update() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		return update(0);
 	}
 
-	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException {
+	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		String authorizationHeader = null;
 
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
@@ -79,7 +80,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		return client.update(req);
 	}
 
-	public final void setUpdateBindingValue(String variable, RDFTerm value) throws IllegalArgumentException {
+	public final void setUpdateBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
 		updateForcedBindings.setBindingValue(variable, value);
 	}
 }

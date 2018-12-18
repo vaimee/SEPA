@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.pattern;
 import java.io.IOException;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -28,7 +29,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public interface IConsumer extends ISubscriptionHandler {	
-	void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException ;
+	void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException ;
 	void unsubscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException;
 	
 	void onResults(ARBindingsResults results);
