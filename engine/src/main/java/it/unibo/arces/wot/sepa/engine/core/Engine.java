@@ -53,7 +53,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class Engine implements EngineMBean {
 	// private final static Engine engine;
-	private final static String version = "0.9.5";
+	private final static String version = "0.9.6";
 	private EngineProperties properties = null;
 
 	// Scheduler request queue
@@ -275,7 +275,7 @@ public class Engine implements EngineMBean {
 			// SPARQL 1.1 SE protocol gates
 			System.out.println("----------------------");
 			System.out.println("");
-			System.out.println("SPARQL 1.1 SE Protocol (https://mml.arces.unibo.it/TR/sparql11-se-protocol/)");
+			System.out.println("SPARQL 1.1 SE Protocol (http://mml.arces.unibo.it/TR/sparql11-se-protocol/)");
 			System.out.println("----------------------");
 
 			if (!properties.isSecure()) {
