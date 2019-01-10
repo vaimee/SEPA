@@ -178,6 +178,14 @@ public class ErrorResponse extends Response {
 	}
 
 	/**
+	 * When error is refered to a subscription it may optionally has the corrisponding
+	 * alias. This method sets this alias
+	 * @param alias
+	 */
+	public void setAlias(String alias){
+		json.add("alias",new JsonPrimitive(alias));
+	}
+	/**
 	 * Gets the HTTP status code.
 	 *
 	 * @return the HTTP status code
