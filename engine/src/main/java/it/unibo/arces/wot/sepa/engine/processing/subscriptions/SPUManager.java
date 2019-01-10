@@ -117,6 +117,9 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			Response init = spu.init();
 			if (init.isError()) {
 				logger.error("@subscribe SPU initialization failed: " + init);
+				if(alias != null) {
+					((ErrorResponse) init).setAlias(alias);
+				}
 				return init;
 			}
 
