@@ -224,7 +224,7 @@
 			}
 		},
 		"UPDATE_OBSERVATION_VALUE": {
-			"sparql": "DELETE {?quantity qudt-1-1:numericValue ?oldValue} INSERT {?quantity qudt-1-1:numericValue ?value} WHERE {?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL {?quantity qudt-1-1:numericValue ?oldValue}}",
+			"sparql": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX sosa: <http://www.w3.org/ns/sosa/> PREFIX qudt-1-1: <http://qudt.org/1.1/schema/qudt#> PREFIX qudt-unit-1-1: <http://qudt.org/1.1/vocab/unit#> PREFIX arces-monitor: <http://wot.arces.unibo.it/monitor#> PREFIX mqtt: <http://wot.arces.unibo.it/mqtt#> PREFIX time: <http://www.w3.org/2006/time#> PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#> PREFIX gn: <http://www.geonames.org/ontology#> WITH <http://wot.arces.unibo.it/monitor/mqtt> DELETE { ?quantity qudt-1-1:numericValue ?oldValue. ?observation sosa:resultTime ?oldTime } INSERT { ?quantity qudt-1-1:numericValue ?value. ?observation sosa:resultTime ?now } WHERE { ?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL { ?observation sosa:resultTime ?oldTime. ?quantity qudt-1-1:numericValue ?oldValue } BIND(now() AS ?now) }",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",
