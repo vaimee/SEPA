@@ -19,16 +19,16 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
-public class ObservationUpdater extends Aggregator {
+public class MqttObservationUpdater extends Aggregator {
 	private final Logger logger = LogManager.getLogger();
 
-	private final TopicMapper mapper;
+	private final MqttTopicMapper mapper;
 
-	public ObservationUpdater(JSAP jsap, SEPASecurityManager sm)
+	public MqttObservationUpdater(JSAP jsap, SEPASecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, SEPABindingsException {
 		super(jsap, "MQTT_MESSAGES", "UPDATE_OBSERVATION_VALUE", sm);
 		
-		mapper = new TopicMapper(jsap, sm);
+		mapper = new MqttTopicMapper(jsap, sm);
 		mapper.subscribe(5000);	
 	}
 
