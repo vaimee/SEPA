@@ -19,11 +19,11 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.pattern.Consumer;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
-public class TopicMapper extends Consumer {
+public class MqttTopicMapper extends Consumer {
 	// Topics mapping
 	private HashMap<String, String> topic2observation = new HashMap<String, String>();
 		
-	public TopicMapper(JSAP appProfile, SEPASecurityManager sm)
+	public MqttTopicMapper(JSAP appProfile, SEPASecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile, "OBSERVATIONS_TOPICS", sm);
 	}

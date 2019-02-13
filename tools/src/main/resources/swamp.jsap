@@ -1,7 +1,7 @@
 {
 	"host": "mml.arces.unibo.it",
 	"oauth": {
-		"enable" : false,
+		"enable": false,
 		"register": "https://localhost:8443/oauth/register",
 		"tokenRequest": "https://localhost:8443/oauth/token"
 	},
@@ -33,9 +33,10 @@
 		}
 	},
 	"graphs": {
-
+		
 	},
 	"namespaces": {
+		"schema": "http://schema.org/",
 		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 		"rdfs": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 		"sosa": "http://www.w3.org/ns/sosa/",
@@ -48,21 +49,29 @@
 		"gn": "http://www.geonames.org/ontology#"
 	},
 	"extended": {
-		"simulate": false,
-		"simulation" : {
-			"italy/site1/soilmoisture" : [35,75],
-			"italy/site1/pressure" : [900,1100],
-			"italy/site1/temperature" : [15,40]
-		},
-		"mqtt": {
-			"url": "eu.thethings.network",
-			"port": 1883,
-			"topics": [
-				"swamp/devices/moisture1/up/Moisture_Signal_to_Supply_Perc","swamp/devices/moisture1/up/Moisture_Supply_Voltage","swamp/devices/moisture1/up/Node_Supply_Voltage"
-			],
-			"ssl": false,
-			"username" : "swamp",
-			"password" : "ttn-account-v2.ES-s-MdMIHv8Z8HI5BR0FHzRjLD0WEmySE7cYM-Kepg"
+		"adapters": {
+			"mqtt": [
+				{
+					"url": "giove.arces.unibo.it",
+					"port": 52877,
+					"topics": [
+						"#"
+					],
+					"ssl": false
+				},
+				{
+					"url": "eu.thethings.network",
+					"port": 1883,
+					"topics": [
+						"swamp/devices/moisture1/up/Moisture_Signal_to_Supply_Perc",
+						"swamp/devices/moisture1/up/Moisture_Supply_Voltage",
+						"swamp/devices/moisture1/up/Node_Supply_Voltage"
+					],
+					"ssl": false,
+					"username": "swamp",
+					"password": "ttn-account-v2.ES-s-MdMIHv8Z8HI5BR0FHzRjLD0WEmySE7cYM-Kepg"
+				}
+			]
 		},
 		"regexTopics": {
 			"pepoli:6lowpan:network": [
@@ -219,7 +228,7 @@
 			}
 		},
 		"UPDATE_OBSERVATION_VALUE": {
-			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt> DELETE { ?quantity qudt-1-1:numericValue ?oldValue. ?observation sosa:resultTime ?oldTime } INSERT { ?quantity qudt-1-1:numericValue ?value. ?observation sosa:resultTime ?now } WHERE { ?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL { ?observation sosa:resultTime ?oldTime. ?quantity qudt-1-1:numericValue ?oldValue } BIND(now() AS ?now) }",
+			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt> DELETE { ?quantity qudt-1-1:numericValue ?oldValue . ?observation sosa:resultTime ?oldTime } INSERT { ?quantity qudt-1-1:numericValue ?value . ?observation sosa:resultTime ?now } WHERE { ?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL { ?observation sosa:resultTime ?oldTime . ?quantity qudt-1-1:numericValue ?oldValue } BIND(now() AS ?now) }",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",

@@ -25,7 +25,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
-public class MQTTAdapter extends Producer implements MqttCallback {
+public class MqttAdapter extends Producer implements MqttCallback {
 	private static final Logger logger = LogManager.getLogger();
 
 	private MqttClient mqttClient;
@@ -68,7 +68,7 @@ public class MQTTAdapter extends Producer implements MqttCallback {
 		}.start();
 	}
 	
-	public MQTTAdapter(JSAP appProfile, SEPASecurityManager sm,JsonObject mqtt,boolean sim)
+	public MqttAdapter(JSAP appProfile, SEPASecurityManager sm,JsonObject mqtt,boolean sim)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, MqttException {
 		super(appProfile, "MQTT_MESSAGE", sm);
 		

@@ -52,7 +52,7 @@
 		"gn": "http://www.geonames.org/ontology#"
 	},
 	"extended": {
-		"simulate": true,
+		"simulate": false,
 		"simulation": {
 			"5CCF7F1B599E/temperature": [
 				15,
@@ -88,52 +88,8 @@
 				"value": "moistureValue"
 			}
 		},
-		"places": {
-			"arces-monitor:Mars": {
-				"name": "Mars",
-				"lat": 44.489942,
-				"lon": 11.356873
-			},
-			"arces-monitor:Star": {
-				"name": "Star",
-				"lat": 44.492443,
-				"lon": 11.330382
-			},
-			"arces-monitor:Ares": {
-				"name": "Ares",
-				"lat": 44.488132,
-				"lon": 11.328875
-			}
-		},
-		"links": {
-			"arces-monitor:Mars": {
-				"childs": [
-					"arces-monitor:Mars_Office"
-				]
-			}
-		},
 		"semantic-mappings": {
-			"5CCF7F15676D/temperature": {
-				"observation": "arces-monitor:5CCF7F15676D-temperature",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Mars",
-				"comment": "Temperatura zona rack sala server Toffano",
-				"label": "Server rack zone temperature (ARCES, Toffano)"
-			},
-			"5CCF7F1B599E/temperature": {
-				"observation": "arces-monitor:5CCF7F1B599E-temperature",
-				"unit": "qudt-unit-1-1:DegreeCelsius",
-				"location": "arces-monitor:Mars",
-				"comment": "Temperatura zona finestra sala server Toffano",
-				"label": "External temperature (ARCES, Toffano)"
-			},
-			"5CCF7F1B599E/humidity": {
-				"observation": "arces-monitor:5CCF7F1B599E-humidity",
-				"unit": "qudt-unit-1-1:Percent",
-				"location": "arces-monitor:Mars",
-				"comment": "Umidità zona finestra sala server Toffano",
-				"label": "External humidity (ARCES, Toffano)"
-			}
+			
 		}
 	},
 	"updates": {
@@ -274,7 +230,7 @@
 			}
 		},
 		"UPDATE_OBSERVATION_VALUE": {
-			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt> DELETE {?quantity qudt-1-1:numericValue ?oldValue} INSERT {?quantity qudt-1-1:numericValue ?value} WHERE {?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL {?quantity qudt-1-1:numericValue ?oldValue}}",
+			"sparql": "WITH <http://wot.arces.unibo.it/monitor/mqtt> DELETE { ?quantity qudt-1-1:numericValue ?oldValue. ?observation sosa:resultTime ?oldTime } INSERT { ?quantity qudt-1-1:numericValue ?value. ?observation sosa:resultTime ?now } WHERE { ?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL { ?observation sosa:resultTime ?oldTime. ?quantity qudt-1-1:numericValue ?oldValue } BIND(now() AS ?now) }",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",
