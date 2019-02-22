@@ -1,4 +1,10 @@
-# SEPA - SPARQL Event Processing Architecture
+<div align="center">
+  <a href="https://github.com/webpack/webpack">
+    <img width="300px" src="./logo.png">
+  </a>
+</div>
+
+# SPARQL Event Processing Architecture
 [![Build Status](https://travis-ci.org/arces-wot/SEPA.svg?branch=master)](https://travis-ci.org/arces-wot/SEPA)
 [ ![client api](https://img.shields.io/badge/client%20api-latest-cyan.svg) ](https://bintray.com/arces-wot/sepa-java-libs/client-api)
 ![Github All Releases](https://img.shields.io/github/downloads/arces-wot/SEPA/total.svg?colorB=blue)
