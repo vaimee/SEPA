@@ -2,17 +2,25 @@
   <a href="https://github.com/webpack/webpack">
     <img width="300px" src="./logo.png">
   </a>
+  <br>
+  <a href="https://travis-ci.org/arces-wot/SEPA">
+    <img  src="https://travis-ci.org/arces-wot/SEPA.svg?branch=master">
+  </a>
+  <a href="https://bintray.com/arces-wot/sepa-java-libs/client-api">
+    <img  src="https://img.shields.io/badge/client%20api-latest-cyan.svg">
+  </a>
+  <a href="https://github.com/arces-wot/SEPA/releases">
+    <img  src="https://img.shields.io/github/downloads/arces-wot/SEPA/total.svg?colorB=blue">
+  </a>
+  <a href="https://github.com/arces-wot/SEPA/tree/dev">
+    <img  src="https://img.shields.io/badge/unstable-dev-violet.svg">
+  </a>
+  <a href="https://gitter.im/sepa_dev/Lobby#">
+    <img  src="https://img.shields.io/badge/chat-on%20gitter-red.svg">
+  </a>
 </div>
 
 # SPARQL Event Processing Architecture
-[![Build Status](https://travis-ci.org/arces-wot/SEPA.svg?branch=master)](https://travis-ci.org/arces-wot/SEPA)
-[ ![client api](https://img.shields.io/badge/client%20api-latest-cyan.svg) ](https://bintray.com/arces-wot/sepa-java-libs/client-api)
-![Github All Releases](https://img.shields.io/github/downloads/arces-wot/SEPA/total.svg?colorB=blue)
-[_![Dev Branch](https://img.shields.io/badge/unstable-dev-violet.svg)_](https://github.com/arces-wot/SEPA/tree/dev)
-[_![Gitter](https://img.shields.io/badge/chat-on%20gitter-red.svg)_](https://gitter.im/sepa_dev/Lobby#)
-
-
-
 SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification.
 
 ## Installation
