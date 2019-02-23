@@ -3,6 +3,7 @@
     <img width="300px" src="./logo.png">
   </a>
   <br>
+  <br>
   <a href="https://travis-ci.org/arces-wot/SEPA">
     <img  src="https://travis-ci.org/arces-wot/SEPA.svg?branch=master">
   </a>
