@@ -138,7 +138,7 @@ public abstract class Client implements java.io.Closeable {
 				String datatype = bindings.getDatatype(var);
 				String lang = bindings.getLanguage(var);
 				
-				// Not a number of boolean
+				// Not a number or boolean
 				if (!numbersOrBoolean.contains(datatype)) {
 					value = "'" + value + "'";
 					

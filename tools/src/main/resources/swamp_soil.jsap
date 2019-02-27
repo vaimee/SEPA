@@ -49,6 +49,28 @@
 		"gn": "http://www.geonames.org/ontology#"
 	},
 	"extended": {
+		"adapters-pool": {
+			"mml": {
+				"url": "giove.arces.unibo.it",
+				"port": 52877,
+				"topics": [
+					"#"
+				],
+				"ssl": false
+			},
+			"ttn": {
+				"url": "eu.thethings.network",
+				"port": 1883,
+				"topics": [
+					"swamp/devices/moisture1/up/Moisture_Signal_to_Supply_Perc",
+					"swamp/devices/moisture1/up/Moisture_Supply_Voltage",
+					"swamp/devices/moisture1/up/Battery_Level"
+				],
+				"ssl": false,
+				"username": "swamp",
+				"password": "ttn-account-v2.ES-s-MdMIHv8Z8HI5BR0FHzRjLD0WEmySE7cYM-Kepg"
+			}
+		},
 		"adapters": {
 			"mqtt": [
 				{
@@ -806,22 +828,22 @@
 		}
 	},
 	"queries": {
-		"LOG_QUANTITY" : {
-			"sparql" : "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/monitor/mqtt/log/2019> {?result sosa:isResultOf ?observation ; qudt-1-1:numericValue ?value; time:inXSDDateTimeStamp ?timestamp} FILTER (xsd:dateTime(?timestamp) > ?from && xsd:dateTime(?timestamp) < ?to)} ORDER BY ?timestamp",
-			"forcedBindings" : {
-				"from" : {
-					"datatype" : "xsd:dateTime",
-					"type" : "literal",
-					"value" : "2018-01-01T00:00:00"
+		"LOG_QUANTITY": {
+			"sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/monitor/mqtt/log/2019> {?result sosa:isResultOf ?observation ; qudt-1-1:numericValue ?value; time:inXSDDateTimeStamp ?timestamp} FILTER (xsd:dateTime(?timestamp) > ?from && xsd:dateTime(?timestamp) < ?to)} ORDER BY ?timestamp",
+			"forcedBindings": {
+				"from": {
+					"datatype": "xsd:dateTime",
+					"type": "literal",
+					"value": "2018-01-01T00:00:00"
 				},
-				"to" : {
-					"datatype" : "xsd:dateTime",
-					"type" : "literal",
-					"value" : "2018-01-01T00:00:00"
+				"to": {
+					"datatype": "xsd:dateTime",
+					"type": "literal",
+					"value": "2018-01-01T00:00:00"
 				},
-				"observation" : {
-					"type" : "uri",
-					"value" : "arces-monitor:ObservationXYZ"
+				"observation": {
+					"type": "uri",
+					"value": "arces-monitor:ObservationXYZ"
 				}
 			}
 		},
@@ -895,7 +917,7 @@
 			"sparql": "SELECT DISTINCT * WHERE {?message rdf:type mqtt:Message ; mqtt:hasTopic ?topic ; mqtt:hasBroker ?broker}"
 		},
 		"MQTT_TOPIC_VALUE": {
-			"sparql": "SELECT * WHERE {?message rdf:type mqtt:Message ; mqtt:hasTopic ?topic; mqtt:hasValue ?value}",
+			"sparql": "SELECT * WHERE {?message rdf:type mqtt:Message ; mqtt:hasTopic ?topic; mqtt:hasValue ?value ; mqtt:timestamp ?timestamp}",
 			"forcedBindings": {
 				"topic": {
 					"type": "literal",
