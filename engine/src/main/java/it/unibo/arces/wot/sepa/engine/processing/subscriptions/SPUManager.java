@@ -6,7 +6,6 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
@@ -14,11 +13,12 @@ import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,6 +32,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 	// SPUs processing pool
 	private final HashSet<SPU> processingPool = new HashSet<SPU>();
+	private Collection<SPU> activeSpus;
 
 	// SPUID ==> SPU
 	private final HashMap<String, SPU> spus = new HashMap<String, SPU>();
@@ -53,20 +54,39 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized void process(UpdateResponse update) {
-		logger.debug("*** PROCESSING SUBSCRIPTIONS BEGIN *** ");
-		
+	// TODO: choose different kinds of SPU based on subscribe request
+	protected SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
+		try {
+			return new SPUNaive(req, this);
+		} catch (SEPAProtocolException e) {
+			return null;
+		}
+	}
+
+	// TODO: filtering SPUs to be activated
+	protected Collection<SPU> filter(InternalUpdateRequest update) {
+		return spus.values();
+	}
+
+	public synchronized void preUpdateProcessing(InternalUpdateRequest update) {
+		logger.debug("*** PRE PROCESSING SUBSCRIPTIONS BEGIN *** ");
+
 		long start = Timings.getTime();
 
+		activeSpus = filter(update);
+
+		long stop = Timings.getTime();
+		
+		SPUManagerBeans.filteringTimings(start, stop);
+		
+		start = Timings.getTime();
+		
 		synchronized (processingPool) {
 			processingPool.clear();
 
-			Iterator<SPU> spus = filter(update);
-
-			while (spus.hasNext()) {
-				SPU spu = spus.next();
+			for (SPU spu : activeSpus) {
 				processingPool.add(spu);
-				spu.process(update);
+				spu.preProcessing(update);
 			}
 
 			logger.debug("@process SPU processing pool size: " + processingPool.size());
@@ -85,17 +105,55 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 				logger.error("@process timeout on SPU processing. SPUs still running: " + processingPool.size());
 			}
 		}
-		
+
+		stop = Timings.getTime();
+
+		SPUManagerBeans.timings(start, stop);
+
+		logger.debug("*** PRE PROCESSING SUBSCRIPTIONS END *** ");
+
+	}
+
+	public synchronized void postUpdateProcessing(Response ret) {
+		logger.debug("*** POST PROCESSING SUBSCRIPTIONS BEGIN *** ");
+
+		long start = Timings.getTime();
+
+		synchronized (processingPool) {
+			processingPool.clear();
+
+			for (SPU spu : activeSpus) {
+				processingPool.add(spu);
+				spu.postProcessing(ret);
+			}
+
+			logger.debug("@process SPU processing pool size: " + processingPool.size());
+
+			while (!processingPool.isEmpty()) {
+				logger.debug(
+						String.format("@process  wait (%s) SPUs to complete processing...", processingPool.size()));
+				try {
+					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout());
+				} catch (InterruptedException e) {
+					return;
+				}
+			}
+			// TIMEOUT
+			if (!processingPool.isEmpty()) {
+				logger.error("@process timeout on SPU processing. SPUs still running: " + processingPool.size());
+			}
+		}
+
 		long stop = Timings.getTime();
 
 		SPUManagerBeans.timings(start, stop);
 
-		logger.debug("*** PROCESSING SUBSCRIPTIONS END *** ");
+		logger.debug("*** POST PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
 	public void endOfProcessing(SPU s) {
 		logger.debug("@process  EOP: " + s.getSPUID());
-		
+
 		synchronized (processingPool) {
 			processingPool.remove(s);
 			processingPool.notify();
@@ -239,19 +297,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		return processor.getQueryProcessor();
 	}
 
-	// TODO: choose different kinds of SPU based on subscribe request
-	private SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
-		try {
-			return new SPUNaive(req, this);
-		} catch (SEPAProtocolException e) {
-			return null;
-		}
-	}
-
-	private Iterator<SPU> filter(UpdateResponse response) {
-		return spus.values().iterator();
-	}
-
 	@Override
 	public long getUpdateRequests() {
 		return SPUManagerBeans.getUpdateRequests();
@@ -289,7 +334,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 	@Override
 	public float getSPUs_time_average() {
-		return SPUManagerBeans.getSPUs_time_averaae();
+		return SPUManagerBeans.getSPUs_time_average();
 	}
 
 	@Override
@@ -340,5 +385,25 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	@Override
 	public long getSubscribers_max() {
 		return SPUManagerBeans.getSubscribersMax();
+	}
+	
+	@Override
+	public float getFiltering_time() {
+		return SPUManagerBeans.getFiltering_time();
+	}
+
+	@Override
+	public float getFiltering_time_min() {
+		return SPUManagerBeans.getFiltering_time_min();
+	}
+
+	@Override
+	public float getFiltering_time_max() {
+		return SPUManagerBeans.getFiltering_time_max();
+	}
+
+	@Override
+	public float getFiltering_time_average() {
+		return SPUManagerBeans.getFiltering_time_average();
 	}
 }

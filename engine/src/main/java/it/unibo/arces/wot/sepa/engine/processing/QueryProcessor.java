@@ -38,14 +38,15 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class QueryProcessor implements QueryProcessorMBean {
-	private static final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 
-	private final SPARQL11Protocol endpoint;
-	private final Semaphore endpointSemaphore;
-	private final SPARQL11Properties properties;
+	protected final SPARQL11Protocol endpoint;
+	protected final Semaphore endpointSemaphore;
+	protected final SPARQL11Properties properties;
 
 	public QueryProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
-		this.endpoint = new SPARQL11Protocol();
+		//this.endpoint = new SPARQL11Protocol();
+		this.endpoint = new JenaSparql11Service();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 		
