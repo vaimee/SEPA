@@ -36,6 +36,9 @@ public class MqttIoTAgent {
 		System.out.println("   java MqttIoTAgent.jar <jsap>");
 		System.out.println("Options:");
 		System.out.println("   -nolog: do not log observations");
+		System.out.println("   -observations: insert observations");
+		System.out.println("   -places: insert places");
+		System.out.println("   -clear: clear observations and places");
 	}
 
 	private static boolean doLog(String[] args) {
@@ -43,6 +46,27 @@ public class MqttIoTAgent {
 			if (args[i].equals("-nolog"))
 				return false;
 		return true;
+	}
+
+	private static boolean insertObservations(String[] args) {
+		for (int i = 0; i < args.length; i++)
+			if (args[i].equals("-observations"))
+				return true;
+		return false;
+	}
+
+	private static boolean insertPlaces(String[] args) {
+		for (int i = 0; i < args.length; i++)
+			if (args[i].equals("-places"))
+				return true;
+		return false;
+	}
+
+	private static boolean clear(String[] args) {
+		for (int i = 0; i < args.length; i++)
+			if (args[i].equals("-clear"))
+				return true;
+		return false;
 	}
 
 	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException,
@@ -58,11 +82,12 @@ public class MqttIoTAgent {
 		if (app.isSecure())
 			sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", app.getAuthenticationProperties());
 
-		// if (doClear(args)) {
-		// // Clear all
-		// client = new Producer(app, "DELETE_ALL", sm);
-		// client.update();
-		// client.close();
+		if (clear(args)) {
+			// Clear all
+			client = new Producer(app, "DELETE_ALL", sm);
+			client.update();
+			client.close();
+		}
 		//
 		// client = new Producer(app, "DELETE_ALL_MESSAGES", sm);
 		// client.update();
@@ -73,76 +98,80 @@ public class MqttIoTAgent {
 		// client.close();
 		// }
 
-		logger.info("Parse places");
-		if (app.getExtendedData().has("places")) {
-			JsonObject places = app.getExtendedData().get("places").getAsJsonObject();
+		if (insertPlaces(args)) {
+			logger.info("Parse places");
+			if (app.getExtendedData().has("places")) {
+				JsonObject places = app.getExtendedData().get("places").getAsJsonObject();
 
-			client = new Producer(app, "ADD_PLACE", sm);
+				client = new Producer(app, "ADD_PLACE", sm);
 
-			logger.info("Add places");
-			for (Entry<String, JsonElement> mapping : places.entrySet()) {
-				String place = mapping.getKey();
+				logger.info("Add places");
+				for (Entry<String, JsonElement> mapping : places.entrySet()) {
+					String place = mapping.getKey();
 
-				String name = mapping.getValue().getAsJsonObject().get("name").getAsString();
-				float lat = mapping.getValue().getAsJsonObject().get("lat").getAsFloat();
-				float lon = mapping.getValue().getAsJsonObject().get("lon").getAsFloat();
+					String name = mapping.getValue().getAsJsonObject().get("name").getAsString();
+					float lat = mapping.getValue().getAsJsonObject().get("lat").getAsFloat();
+					float lon = mapping.getValue().getAsJsonObject().get("lon").getAsFloat();
 
-				client.setUpdateBindingValue("place", new RDFTermURI(place));
-				client.setUpdateBindingValue("name", new RDFTermLiteral(name));
-				client.setUpdateBindingValue("lat", new RDFTermLiteral(String.format("%f", lat)));
-				client.setUpdateBindingValue("lon", new RDFTermLiteral(String.format("%f", lon)));
-				Response ret = client.update();
-				if (ret.isError())
-					logger.error(ret);
+					client.setUpdateBindingValue("place", new RDFTermURI(place));
+					client.setUpdateBindingValue("name", new RDFTermLiteral(name));
+					client.setUpdateBindingValue("lat", new RDFTermLiteral(String.format("%f", lat)));
+					client.setUpdateBindingValue("lon", new RDFTermLiteral(String.format("%f", lon)));
+					Response ret = client.update();
+					if (ret.isError())
+						logger.error(ret);
 
-				if (mapping.getValue().getAsJsonObject().has("childs")) {
-					Producer childs = new Producer(app, "LINK_PLACES", sm);
-					JsonArray children = mapping.getValue().getAsJsonObject().get("childs").getAsJsonArray();
-					for (JsonElement child : children) {
-						String contained = child.getAsString();
+					if (mapping.getValue().getAsJsonObject().has("childs")) {
+						Producer childs = new Producer(app, "LINK_PLACES", sm);
+						JsonArray children = mapping.getValue().getAsJsonObject().get("childs").getAsJsonArray();
+						for (JsonElement child : children) {
+							String contained = child.getAsString();
 
-						childs.setUpdateBindingValue("child", new RDFTermURI(contained));
-						childs.setUpdateBindingValue("root", new RDFTermURI(place));
-						ret = childs.update();
-						if (ret.isError())
-							logger.error(ret);
+							childs.setUpdateBindingValue("child", new RDFTermURI(contained));
+							childs.setUpdateBindingValue("root", new RDFTermURI(place));
+							ret = childs.update();
+							if (ret.isError())
+								logger.error(ret);
+						}
+						childs.close();
 					}
-					childs.close();
 				}
-			}
 
-			client.close();
+				client.close();
+			}
 		}
 
-		logger.info("Parse semantic mappings");
-		if (app.getExtendedData().has("semantic-mappings")) {
-			JsonObject mappings = app.getExtendedData().get("semantic-mappings").getAsJsonObject();
+		if (insertObservations(args)) {
+			logger.info("Parse semantic mappings");
+			if (app.getExtendedData().has("semantic-mappings")) {
+				JsonObject mappings = app.getExtendedData().get("semantic-mappings").getAsJsonObject();
 
-			client = new Producer(app, "ADD_OBSERVATION", sm);
+				client = new Producer(app, "ADD_OBSERVATION", sm);
 
-			logger.info("Add observations");
-			for (Entry<String, JsonElement> mapping : mappings.entrySet()) {
-				String topic = mapping.getKey();
+				logger.info("Add observations");
+				for (Entry<String, JsonElement> mapping : mappings.entrySet()) {
+					String topic = mapping.getKey();
 
-				String observation = mapping.getValue().getAsJsonObject().get("observation").getAsString();
-				String unit = mapping.getValue().getAsJsonObject().get("unit").getAsString();
-				String location = mapping.getValue().getAsJsonObject().get("location").getAsString();
-				String comment = mapping.getValue().getAsJsonObject().get("comment").getAsString();
-				String label = mapping.getValue().getAsJsonObject().get("label").getAsString();
+					String observation = mapping.getValue().getAsJsonObject().get("observation").getAsString();
+					String unit = mapping.getValue().getAsJsonObject().get("unit").getAsString();
+					String location = mapping.getValue().getAsJsonObject().get("location").getAsString();
+					String comment = mapping.getValue().getAsJsonObject().get("comment").getAsString();
+					String label = mapping.getValue().getAsJsonObject().get("label").getAsString();
 
-				client.setUpdateBindingValue("observation", new RDFTermURI(observation));
-				client.setUpdateBindingValue("comment", new RDFTermLiteral(comment));
-				client.setUpdateBindingValue("label", new RDFTermLiteral(label));
-				client.setUpdateBindingValue("location", new RDFTermURI(location));
-				client.setUpdateBindingValue("unit", new RDFTermURI(unit));
-				client.setUpdateBindingValue("topic", new RDFTermLiteral(topic));
+					client.setUpdateBindingValue("observation", new RDFTermURI(observation));
+					client.setUpdateBindingValue("comment", new RDFTermLiteral(comment));
+					client.setUpdateBindingValue("label", new RDFTermLiteral(label));
+					client.setUpdateBindingValue("location", new RDFTermURI(location));
+					client.setUpdateBindingValue("unit", new RDFTermURI(unit));
+					client.setUpdateBindingValue("topic", new RDFTermLiteral(topic));
 
-				Response ret = client.update();
-				if (ret.isError())
-					logger.error(ret);
+					Response ret = client.update();
+					if (ret.isError())
+						logger.error(ret);
+				}
+
+				client.close();
 			}
-
-			client.close();
 		}
 
 		if (doLog(args)) {
@@ -160,14 +189,14 @@ public class MqttIoTAgent {
 			for (JsonElement arg : app.getExtendedData().get("adapters").getAsJsonObject().get("mqtt")
 					.getAsJsonArray()) {
 				adapters.add(new MqttAdapter(app, sm, arg.getAsJsonObject(), false));
-				logger.info("Adapter: "+arg.getAsJsonObject());
+				logger.info("Adapter: " + arg.getAsJsonObject());
 			}
 		}
 		if (app.getExtendedData().get("adapters").getAsJsonObject().has("simulator")) {
 			for (JsonElement arg : app.getExtendedData().get("adapters").getAsJsonObject().get("simulator")
 					.getAsJsonArray()) {
 				adapters.add(new MqttAdapter(app, sm, arg.getAsJsonObject(), true));
-				logger.info("Simulator: "+arg.getAsJsonObject());
+				logger.info("Simulator: " + arg.getAsJsonObject());
 			}
 		}
 
