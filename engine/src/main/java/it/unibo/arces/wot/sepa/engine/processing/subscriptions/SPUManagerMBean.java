@@ -15,6 +15,11 @@ public interface SPUManagerMBean {
 	public float getSPUs_time_max();	
 	public float getSPUs_time_average();
 
+	public float getFiltering_time();
+	public float getFiltering_time_min();
+	public float getFiltering_time_max();	
+	public float getFiltering_time_average();
+	
 	public void reset();
 	
 	public long getSPUProcessingTimeout();

@@ -34,13 +34,11 @@ import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityMonitor;
+import it.unibo.arces.wot.sepa.engine.gates.http.HttpGate;
+import it.unibo.arces.wot.sepa.engine.gates.http.HttpsGate;
+import it.unibo.arces.wot.sepa.engine.gates.websocket.SecureWebsocketServer;
+import it.unibo.arces.wot.sepa.engine.gates.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
-
-import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
-import it.unibo.arces.wot.sepa.engine.protocol.http.HttpGate;
-import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsGate;
-import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer;
-
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 /**
@@ -48,7 +46,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  * Event Processing Architecture (SEPA)
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.9.5
+ * @version 0.9.6
  */
 
 public class Engine implements EngineMBean {

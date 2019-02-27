@@ -23,6 +23,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,7 +31,6 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
@@ -49,7 +49,8 @@ public abstract class SPU extends Thread implements ISPU {
 	protected String spuid;
 
 	// Update queue
-	private final LinkedBlockingQueue<UpdateResponse> updateQueue = new LinkedBlockingQueue<UpdateResponse>();
+	private final LinkedBlockingQueue<InternalUpdateRequest> updateRequestQueue = new LinkedBlockingQueue<InternalUpdateRequest>();
+	private final LinkedBlockingQueue<Response> updateResponseQueue = new LinkedBlockingQueue<Response>();
 
 	protected final InternalSubscribeRequest subscribe;
 
@@ -75,67 +76,96 @@ public abstract class SPU extends Thread implements ISPU {
 		return subscribe;
 	}
 
-	public abstract Response processInternal(UpdateResponse update);
+	public abstract Response postUpdateInternalProcessing();
+
+	public abstract void preUpdateInternalProcessing(InternalUpdateRequest update);
 
 	@Override
 	public BindingsResults getLastBindings() {
 		return lastBindings;
 	}
 
-	public void finish() {
+	public final void finish() {
 		running.set(false);
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public final boolean equals(Object obj) {
 		return ((SPU) obj).subscribe.equals(subscribe);
 	}
 
 	@Override
-	public String getSPUID() {
+	public final String getSPUID() {
 		return spuid;
 	}
-	
+
 	@Override
-	public int hashCode() {
+	public final int hashCode() {
 		return subscribe.hashCode();
 	}
 
 	@Override
-	public void process(UpdateResponse res) {
+	public final void postProcessing(Response res) {
 		try {
-			updateQueue.put(res);
+			updateResponseQueue.put(res);
 		} catch (InterruptedException e) {
 
 		}
 	}
-	
+
+	@Override
+	public final void preProcessing(InternalUpdateRequest res) {
+		try {
+			updateRequestQueue.put(res);
+		} catch (InterruptedException e) {
+
+		}
+	}
+
 	@Override
 	public void run() {
 		while (running.get()) {
 			// Poll the request from the queue
-			UpdateResponse updateResponse;
+			InternalUpdateRequest request;
+			Response response;
+
 			try {
-				updateResponse = updateQueue.take();
+				request = updateRequestQueue.take();
 			} catch (InterruptedException e1) {
 				return;
 			}
 
 			// Processing update
-			logger.debug("* PROCESSING *");
+			logger.debug("* PRE PROCESSING *");
 
-			// Asynchronous processing and waiting for result
-			notify = processInternal(updateResponse);
+			// PRE processing
+			preUpdateInternalProcessing(request);
 
-			// Notify event handler
-			if (notify.isNotification())
-				try {
-					subscribe.getEventHandler().notifyEvent((Notification) notify);
-				} catch (SEPAProtocolException e) {
-					logger.error(e.getMessage());
-				}
-			else
-				logger.debug("Not a notification: " + notify);
+			// Notify SPU manager
+			logger.debug("Notify SPU manager. Running: " + running);
+			manager.endOfProcessing(this);
+
+			// Wait
+			try {
+				response = updateResponseQueue.take();
+			} catch (InterruptedException e1) {
+				return;
+			}
+
+			if (!response.isError()) {
+				// POST processing and waiting for result
+				notify = postUpdateInternalProcessing();
+
+				// Notify event handler
+				if (notify.isNotification())
+					try {
+						subscribe.getEventHandler().notifyEvent((Notification) notify);
+					} catch (SEPAProtocolException e) {
+						logger.error(e.getMessage());
+					}
+				else
+					logger.debug("Not a notification: " + notify);
+			}
 
 			// Notify SPU manager
 			logger.debug("Notify SPU manager. Running: " + running);

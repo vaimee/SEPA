@@ -26,11 +26,11 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
 import java.util.UUID;
 
@@ -68,7 +68,12 @@ class SPUNaive extends SPU {
 	}
 
 	@Override
-	public Response processInternal(UpdateResponse update) {
+	public void preUpdateInternalProcessing(InternalUpdateRequest req) {
+		
+	}
+	
+	@Override
+	public Response postUpdateInternalProcessing() {
 		logger.debug("* PROCESSING *" + subscribe);
 		Response ret;
 		

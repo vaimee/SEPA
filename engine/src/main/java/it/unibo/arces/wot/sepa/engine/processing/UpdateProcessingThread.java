@@ -28,14 +28,20 @@ class UpdateProcessingThread extends Thread {
 			// Notify update (not reliable)
 			if (!processor.isUpdateReilable()) processor.getScheduler().addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
 						
-			// Process update request
-			Response ret = processor.getUpdateProcessor().process(update);
+			// PRE-processing update request
+			InternalUpdateRequest preRequest = processor.getUpdateProcessor().preProcess(update);
+			
+			// PRE-processing subscriptions (pre update)
+			processor.preUpdateProcessing(preRequest);
+			
+			// Processing update
+			Response ret = processor.getUpdateProcessor().process(preRequest);
 
 			// Notify update result
 			if (processor.isUpdateReilable()) processor.getScheduler().addResponse(request.getToken(),ret);
 
-			// Subscription processing
-			if (ret.isUpdateResponse()) processor.process((UpdateResponse) ret);
+			// Subscription processing (post update)
+			processor.postUpdateProcessing(ret);
 		}
 	}
 }

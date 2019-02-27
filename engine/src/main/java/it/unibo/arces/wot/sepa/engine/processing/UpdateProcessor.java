@@ -51,6 +51,10 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
+	
+	public synchronized InternalUpdateRequest preProcess(InternalUpdateRequest update) {
+		return update;
+	}
 
 	public synchronized Response process(InternalUpdateRequest req) {
 		long start = Timings.getTime();
