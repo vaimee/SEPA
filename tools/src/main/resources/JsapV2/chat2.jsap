@@ -1,9 +1,0 @@
-{
-	"host": "localhost",
-	"oauth": null,
-	"protocols" : "chat.jpro",
-	"extended": ["chat.jext"],
-	"context" : ["chat.jctx"],
-	"updates": ["chat.jupd"],
-	"queries" : ["chat.jqry"]
-}

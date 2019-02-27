@@ -1,8 +1,0 @@
-{
-	"extended": {
-		"type": "basic",
-		"base": 0,
-		"clients": 2,
-		"messages": 1
-	}
-}

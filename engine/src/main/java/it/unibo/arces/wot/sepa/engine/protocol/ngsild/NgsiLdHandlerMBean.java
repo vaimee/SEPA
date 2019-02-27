@@ -1,6 +1,6 @@
-package it.unibo.arces.wot.sepa.engine.protocol.http.handler;
+package it.unibo.arces.wot.sepa.engine.protocol.ngsild;
 
-public interface SPARQL11HandlerMBean {
+public interface NgsiLdHandlerMBean {
 
 	public void reset();
 
