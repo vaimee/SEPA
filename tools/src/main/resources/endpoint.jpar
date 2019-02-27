@@ -1,0 +1,1 @@
+{"host":"localhost","sparql11protocol":{"protocol":"http","port":9999,"query":{"path":"/blazegraph/namespace/kb/sparql","method":"POST","format":"JSON"},"update":{"path":"/blazegraph/namespace/kb/sparql","method":"POST","format":"JSON"}},"sparql11seprotocol":{"protocol":"ws","availableProtocols":{"ws":{"port":9443,"path":"/subscribe"},"wss":{}}}}

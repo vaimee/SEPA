@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
-	<CustomLevels>
 	<!-- 
+	<CustomLevels>
+	
 Standard Level	intLevel
 OFF					0
 FATAL				100
@@ -11,20 +12,20 @@ INFO					400
 DEBUG				500
 TRACE				600
 ALL					Integer.MAX_VALUE
-	 -->
-		<CustomLevel name="timing" intLevel="450" />
+		<CustomLevel name="timing" intLevel=650 />
 	</CustomLevels>
+	-->
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
 		</Console>
-		<File name="Log" fileName="logs/${sys:logFilename}.csv">
+		<!-- <File name="Log" fileName="logs/${sys:logFilename}.csv">
 			<PatternLayout pattern="%m\n"/>
-		</File>
+		</File> -->
 	</Appenders>
 	<Loggers>
-		<Root level="debug">
-			<AppenderRef ref="Console" level="trace"/>
+		<Root level="info">
+			<AppenderRef ref="Console" level="info"/>
 			<!-- <AppenderRef ref="Console" level="timing"/>  -->
 		</Root>
 	</Loggers>
