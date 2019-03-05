@@ -19,6 +19,14 @@
   <a href="https://gitter.im/sepa_dev/Lobby#">
     <img  src="https://img.shields.io/badge/chat-on%20gitter-red.svg">
   </a>
+  <br>
+   <a href="https://www.gnu.org/licenses/gpl-3.0">
+    <img  src="https://img.shields.io/badge/License-GPLv3-blue.svg">
+  </a>
+  <a href="hhttps://www.gnu.org/licenses/lgpl-3.0">
+    <img  src="https://img.shields.io/badge/License-LGPL%20v3-blue.svg">
+  </a>
+  
 </div>
 
 # SPARQL Event Processing Architecture
