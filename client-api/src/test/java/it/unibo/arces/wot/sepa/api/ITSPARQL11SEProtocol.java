@@ -7,6 +7,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
@@ -80,6 +82,12 @@ public class ITSPARQL11SEProtocol {
 		publishers.clear();
 
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000,sm));
+		while(ret.isError() && ((ErrorResponse)ret).getStatusCode() == 400 &&
+				properties.isSecure()){
+			sm.forceRefreshToken();
+			final String authorizationHeader = sm.getAuthorizationHeader();
+			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000,sm));
+		}
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
@@ -135,6 +143,23 @@ public class ITSPARQL11SEProtocol {
 				assertFalse("Failed to get authorization header", authorization == null);
 				Thread.sleep(100);
 			}
+		}
+	}
+
+	@Test(timeout = 15000)
+	public void UseExpiredToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
+		if (properties.isSecure()) {
+			String authorization = sm.getAuthorizationHeader();
+
+			assertFalse("Failed to get authorization header", authorization == null);
+
+			final long expiringTime = provider.getJsap().getAuthenticationProperties().getExpiringTime();
+
+			Thread.sleep(expiringTime+100);
+
+			final Response tokenTest = client.query(provider.buildQueryRequest("ALL", 5000, authorization));
+
+			assertTrue("Response should be error since the token is expired",tokenTest.isError());
 		}
 	}
 

@@ -339,6 +339,10 @@ public class SEPASecurityManager implements HostnameVerifier {
 		return oauthProperties.getBearerAuthorizationHeader();
 	}
 
+	public synchronized void forceRefreshToken() throws SEPAPropertiesException, SEPASecurityException {
+		requestToken();
+	}
+
 	/**
 	 * It is used to request a new token using the "Basic" credentials stored in the
 	 * AuthenticationProperties. When retrieved, the token is stored within the
