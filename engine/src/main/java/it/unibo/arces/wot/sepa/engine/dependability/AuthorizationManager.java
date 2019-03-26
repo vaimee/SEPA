@@ -261,24 +261,15 @@ Respond with 401 if not
 		String client_id = null;
 		String client_secret = null;
 		
-		//Check if identity has been already registered
-		if (clients.containsKey(identity)) {
-			logger.warn("Giving credentials to a registered identity "+identity);
-			client_id = clients.get(identity);
-			client_secret = credentials.get(client_id);
-		}
-		else {
-			//Create credentials
-			client_id = UUID.randomUUID().toString();
-			client_secret = UUID.randomUUID().toString();
+		//Create credentials
+		client_id = UUID.randomUUID().toString();
+		client_secret = UUID.randomUUID().toString();
 		
-			//Store credentials
-			while(credentials.containsKey(client_id)) client_id = UUID.randomUUID().toString();
-			credentials.put(client_id,client_secret);
-		
-			//Register client
-			clients.put(identity, client_id);
-		}
+		//Store credentials
+		while(credentials.containsKey(client_id)) client_id = UUID.randomUUID().toString();
+		credentials.put(client_id,client_secret);
+
+
 		return new RegistrationResponse(client_id,client_secret,jwkPublicKey);
 	}
 	

@@ -2,6 +2,7 @@ package it.unibo.arces.wot.sepa.api;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
+import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -46,7 +47,7 @@ public class ITSPARQL11SEProtocol {
 
 	private final static Sync sync = new Sync();
 	
-	private static SPARQL11Protocol client;
+	private static SPARQL11Protocol  client;
 	private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
 	private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
 	
@@ -153,10 +154,9 @@ public class ITSPARQL11SEProtocol {
 
 			assertFalse("Failed to get authorization header", authorization == null);
 
-			final long expiringTime = provider.getJsap().getAuthenticationProperties().getExpiringTime();
-
-			Thread.sleep(expiringTime+100);
-
+			final long expiringTime = 5000;
+			final Date date = new Date();
+			Thread.sleep(expiringTime+1000);
 			final Response tokenTest = client.query(provider.buildQueryRequest("ALL", 5000, authorization));
 
 			assertTrue("Response should be error since the token is expired",tokenTest.isError());

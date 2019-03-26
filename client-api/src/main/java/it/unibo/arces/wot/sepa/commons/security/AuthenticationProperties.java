@@ -245,8 +245,6 @@ public class AuthenticationProperties {
 					new JsonPrimitive(encryption.encrypt(String.format("%d", expires))));
 			jsap.get("oauth").getAsJsonObject().add("type", new JsonPrimitive(encryption.encrypt(jwt.getTokenType())));
 		}
-
-		storeProperties(propertiesFile.getAbsolutePath());
 		
 	}
 
