@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.engine.core;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
 
@@ -46,7 +47,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the SPARQL
  * Event Processing Architecture (SEPA)
- * 
+ *
  * @author Luca Roffia (luca.roffia@unibo.it)
  * @version 0.9.7
  */
@@ -84,6 +85,9 @@ public class Engine implements EngineMBean {
 	private String engineJpar = "engine.jpar";
 	private String endpointJpar = "endpoint.jpar";
 
+	// Secure option
+	private Optional<Boolean> secure = Optional.empty();
+
 	// Logging file name
 	static {
 		// Logging
@@ -100,8 +104,9 @@ public class Engine implements EngineMBean {
 	private void printUsage() {
 		System.out.println("Usage:");
 		System.out.println(
-				"java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-engine=engine.jpar] [-endpoint=endpoint.jpar] [JKS OPTIONS]");
+				"java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-secure=true] [-engine=engine.jpar] [-endpoint=endpoint.jpar] [JKS OPTIONS]");
 		System.out.println("Options: ");
+		System.out.println("-secure : overwrite the current secure option of engine.jpar");
 		System.out.println(
 				"-engine : can be used to specify the JSON configuration parameters for the engine (default: engine.jpar)");
 		System.out.println(
@@ -157,6 +162,9 @@ public class Engine implements EngineMBean {
 				case "-endpoint":
 					endpointJpar = tmp[1];
 					break;
+				case "-secure":
+				    secure = Optional.of(Boolean.parseBoolean(tmp[1]));
+				    break;
 				default:
 					break;
 				}
@@ -199,10 +207,12 @@ public class Engine implements EngineMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		EngineBeans.setVersion(version);
 		new DependabilityMonitor();
-		
+
 		try {
 			// Initialize SPARQL 1.1 SE processing service properties
-			properties = new EngineProperties(engineJpar);
+
+			properties = secure.isPresent() ? new EngineProperties(engineJpar,secure.get())
+                    : new EngineProperties(engineJpar);
 
 			EngineBeans.setEngineProperties(properties);
 
@@ -212,15 +222,15 @@ public class Engine implements EngineMBean {
 			// OAUTH 2.0 Authorization Manager
 			if (properties.isSecure()) {
 				Dependability.enableSecurity(storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
-			} 
-			
+			}
+
 			// SPARQL 1.1 SE request scheduler
 			scheduler = new Scheduler(properties);
-			
+
 			// SEPA Processor
 			processor = new Processor(endpointProperties, properties, scheduler);
 			Dependability.setProcessor(processor);
-			
+
 			// SPARQL protocol service
 			int port = endpointProperties.getDefaultPort();
 			String portS = "";
@@ -283,12 +293,12 @@ public class Engine implements EngineMBean {
 				wsServer = new SecureWebsocketServer(properties.getWssPort(),
 						properties.getSecurePath() + properties.getSubscribePath(), scheduler);
 			}
-			
+
 			// Start all
 			scheduler.start();
 			processor.start();
 			wsServer.start();
-			
+
 			synchronized (wsServer) {
 				wsServer.wait(5000);
 			}
@@ -326,12 +336,12 @@ public class Engine implements EngineMBean {
 			System.out.println("Stopping HTTP gate...");
 			httpGate.shutdown();
 		}
-		
+
 		if (httpsGate != null) {
 			System.out.println("Stopping HTTPS gate...");
 			httpsGate.shutdown();
 		}
-		
+
 		if (wsServer != null) {
 			System.out.println("Stopping WebSocket gate...");
 			wsServer.stop(wsShutdownTimeout);

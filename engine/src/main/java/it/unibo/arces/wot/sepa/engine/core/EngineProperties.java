@@ -114,6 +114,11 @@ public class EngineProperties {
 		}
 	}
 
+	public EngineProperties(String propertiesFile,boolean secure) throws SEPAPropertiesException{
+		this(propertiesFile);
+		this.properties.get("gates").getAsJsonObject().addProperty("secure",secure);
+	}
+
 	public String toString() {
 		return properties.toString();
 	}
