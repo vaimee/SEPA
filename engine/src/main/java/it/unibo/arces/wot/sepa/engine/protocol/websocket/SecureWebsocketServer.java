@@ -1,5 +1,11 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
+import it.arces.wot.sepa.engine.gates.SecureWebsocketGate;
+import it.arces.wot.sepa.engine.gates.WebsocketGate;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import org.apache.http.HttpStatus;
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -22,27 +28,27 @@ public class SecureWebsocketServer extends WebsocketServer {
 		setWebSocketFactory(new DefaultSSLWebSocketServerFactory(Dependability.getSSLContext()));
 	}
 
-//	@Override
-//	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-//		logger.trace("@onOpen: " + conn + " Resource descriptor: " + conn.getResourceDescriptor());
-//
-//		if (!conn.getResourceDescriptor().equals(path)) {
-//			logger.warn("@onOpen Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-//			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "wrong_path",
-//					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-//			conn.send(response.toString());
-//			return;
-//		}
-//
-//		// Add new gate
-//		synchronized (gates) {
-//			WebsocketGate handler = new SecureWebsocketGate(conn, scheduler);
-//			gates.put(conn, handler);
-//
-//			fragmentedMessages.put(conn, null);
-//
-//			logger.debug("@onOpen socket: " + conn.hashCode() + " UUID: " + handler.getGID() + " Total sockets: "
-//					+ gates.size());
-//		}
-//	}
+	@Override
+	public void onOpen(WebSocket conn, ClientHandshake handshake) {
+		logger.trace("@onOpen: " + conn + " Resource descriptor: " + conn.getResourceDescriptor());
+
+		if (!conn.getResourceDescriptor().equals(path)) {
+			logger.warn("@onOpen Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
+			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "wrong_path",
+					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
+			conn.send(response.toString());
+			return;
+		}
+
+		// Add new gate
+		synchronized (gates) {
+			WebsocketGate handler = new SecureWebsocketGate(conn, scheduler);
+			gates.put(conn, handler);
+
+			fragmentedMessages.put(conn, null);
+
+			logger.debug("@onOpen socket: " + conn.hashCode() + " UUID: " + handler.getGID() + " Total sockets: "
+					+ gates.size());
+		}
+	}
 }

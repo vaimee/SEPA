@@ -2,6 +2,7 @@ package it.arces.wot.sepa.engine.gates;
 
 import java.util.UUID;
 
+import it.unibo.arces.wot.sepa.engine.scheduling.*;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,11 +19,6 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public abstract class Gate implements ResponseHandler, EventHandler {
 	private static final Logger logger = LogManager.getLogger();
@@ -111,15 +107,13 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			IllegalStateException, ClassCastException, SEPAProtocolException {
 		JsonObject req;
 		ErrorResponse error;
-
+		//TODO: Aggiungere new InternalDiscardRequest(request,(ErrorResponse) ret);
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
 		} catch (JsonParseException e) {
 			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException",
 					"JsonParseException: " + request);
-			sendResponse(error);
-			logger.error(error);
-			return null;
+			return new InternalDiscardRequest(request,error);
 		}
 
 		if (req.has("subscribe")) {
@@ -133,9 +127,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			} catch (Exception e) {
 				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception",
 						"sparql member not found: " + request);
-				sendResponse(error);
-				logger.error(error);
-				return null;
+				return new InternalDiscardRequest(request,error);
 			}
 
 			try {
@@ -160,16 +152,14 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 				spuid = req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString();
 			} catch (Exception e) {
 				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception", "spuid member not found: " + request);
-				sendResponse(error);
-				return null;
+				return new InternalDiscardRequest(request,error);
 			}
 
 			return new InternalUnsubscribeRequest(gid,spuid);
 		}
 
 		error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unsupported", "Bad request: " + request);
-		sendResponse(error);
-		return null;
+		return new InternalDiscardRequest(request,error);
 	}
 
 }
