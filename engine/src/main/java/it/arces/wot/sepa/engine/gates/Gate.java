@@ -69,10 +69,9 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	public final void onMessage(String message) throws SEPAProtocolException {
 		// Parse the request
 		InternalRequest req = parseRequest(message);
-		if (req == null) {
-			logger.error("@onMessage " + getGID() + " failed to parse message: " + req);
-			ErrorResponse response = new ErrorResponse(400, "parsing_error", "Malformed request: " + req);
-			sendResponse(response);
+		if (req instanceof InternalDiscardRequest) {
+			logger.error("@onMessage " + getGID() + " failed to parse message: " + message);
+			sendResponse(((InternalDiscardRequest) req).getError());
 			return;
 		}
 

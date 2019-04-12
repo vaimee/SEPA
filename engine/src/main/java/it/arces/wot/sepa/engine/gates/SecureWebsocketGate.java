@@ -44,8 +44,9 @@ public abstract class SecureGate extends Gate{
 		if (ret.isError()) {
 			// Not authorized
 			logger.warn("NOT AUTHORIZED");
-			send(ret.toString());
-			return null;
+			final ErrorResponse errorResponse = (ErrorResponse) ret;
+			setAliasIfPresent(errorResponse,req);
+			return new InternalDiscardRequest(request, errorResponse);
 		}
 		
 		return super.parseRequest(request);
@@ -118,5 +119,11 @@ public abstract class SecureGate extends Gate{
 
 		// Token validation
 		return Dependability.validateToken(jwt);
+	}
+
+	private static void setAliasIfPresent(ErrorResponse error,JsonObject request){
+		JsonObject subUnsub = request.getAsJsonObject("subscribe");
+		subUnsub = subUnsub == null ? request.getAsJsonObject("unsubscribe") : subUnsub;
+		if(subUnsub.has("alias")) error.setAlias(subUnsub.get("alias").getAsString());
 	}
 }
