@@ -1,5 +1,6 @@
 package it.arces.wot.sepa.engine.gates;
 
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalDiscardRequest;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,12 +16,13 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+import org.java_websocket.WebSocket;
 
-public abstract class SecureGate extends Gate{
+public class SecureWebsocketGate extends WebsocketGate{
 	private static final Logger logger = LogManager.getLogger();
-	
-	public SecureGate(Scheduler scheduler) {
-		super(scheduler);
+
+	public SecureWebsocketGate(WebSocket s, Scheduler scheduler) {
+		super(s,scheduler);
 	}
 
 	@Override
@@ -33,12 +35,11 @@ public abstract class SecureGate extends Gate{
 		}
 		catch(Exception e) {
 			ErrorResponse error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception","Exception: " + request);
-			send(error.toString());
 			logger.error(error);
-			return null;
+			return new InternalDiscardRequest(request,error);
 		}
 		
-		// CHECK AUTHORIZATION
+
 		Response ret = validateRequest(req);
 		
 		if (ret.isError()) {
@@ -82,30 +83,26 @@ public abstract class SecureGate extends Gate{
 			logger.error(error);
 			return error;	
 		}
-		
+
+		return checkAuthorization(subUnsub);
+	}
+
+	private Response checkAuthorization(JsonObject subUnsub) {
+		String bearer;
 		if (!subUnsub.has("authorization")) {
-			ErrorResponse error = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "unauthorized_client","Authorization member is missing");	
+			ErrorResponse error = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "unauthorized_client","Authorization member is missing");
 			logger.error(error);
 			return error;
 		}
-		
-		try{
-			bearer = subUnsub.get("authorization").getAsString();
-		}
-		catch(Exception e) {
-			ErrorResponse error =  new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "unauthorized_client","Authorization member is not a string");	
-			logger.error(error);
-			return error;
-		}
-		
+		bearer = subUnsub.get("authorization").getAsString();
 		if (!bearer.startsWith("Bearer ")) {
 			ErrorResponse error = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "unauthorized_client","Authorization value MUST be of type Bearer");
 			logger.error(error);
 			return error;
 		}
-		
+
 		String jwt = bearer.substring(7);
-		
+
 		if (jwt == null) {
 			ErrorResponse error = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"unauthorized_client", "Token is null");
 			logger.error(error);
@@ -117,7 +114,6 @@ public abstract class SecureGate extends Gate{
 			return error;
 		}
 
-		// Token validation
 		return Dependability.validateToken(jwt);
 	}
 
