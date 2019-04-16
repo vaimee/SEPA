@@ -216,8 +216,6 @@ public class AuthenticationProperties {
 			jsap.get("oauth").getAsJsonObject().add("client_secret",
 					new JsonPrimitive(encryption.encrypt(secret)));
 		}
-
-		storeProperties(propertiesFile.getAbsolutePath());
 	}
 
 	/**
@@ -225,10 +223,6 @@ public class AuthenticationProperties {
 	 *
 	 * @param jwt
 	 *            the JSON Web Token
-	 * @param expires
-	 *            the date when the token will expire
-	 * @param type
-	 *            the token type (e.g., bearer)
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
 	 *
@@ -251,10 +245,19 @@ public class AuthenticationProperties {
 					new JsonPrimitive(encryption.encrypt(String.format("%d", expires))));
 			jsap.get("oauth").getAsJsonObject().add("type", new JsonPrimitive(encryption.encrypt(jwt.getTokenType())));
 		}
-
-		storeProperties(propertiesFile.getAbsolutePath());
 		
 	}
+
+    /**
+     * Store properties in the current jsap files.
+     * it can be used to persist client_id and client_secret.
+     * @throws SEPAPropertiesException
+     * @throws IOException
+     *             Signals that an I/O exception has occurred.
+     */
+    public void storeProperties() throws SEPAPropertiesException {
+        storeProperties(this.propertiesFile.getPath());
+    }
 
 	/**
 	 * Store properties.

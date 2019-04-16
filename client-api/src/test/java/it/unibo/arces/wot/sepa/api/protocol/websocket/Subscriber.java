@@ -41,6 +41,13 @@ class Subscriber extends Thread implements Closeable {
 	}
 
 	public void run() {
+		if(provider.getJsap().isSecure()){
+			try {
+				sm.register("SEPATest");
+			} catch (SEPASecurityException | SEPAPropertiesException  e) {
+				logger.error(e);
+			}
+		}
 		for (int j = 0; j < n; j++) {
 			try {
 				client.subscribe(provider.buildSubscribeRequest("RANDOM", 500, sm));

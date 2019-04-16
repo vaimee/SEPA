@@ -2,11 +2,14 @@ package it.unibo.arces.wot.sepa.api;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
+import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
@@ -14,6 +17,7 @@ import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
+import org.apache.logging.log4j.LogManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -22,11 +26,18 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.TimeZone;
 
 import static org.junit.Assert.*;
 
 public class ITSPARQL11SEProtocol {
+	static {
+		ConfigurationProvider.configureLogger();
+	}
 	private static JSAP properties = null;
 	private static ConfigurationProvider provider;
 	
@@ -36,7 +47,7 @@ public class ITSPARQL11SEProtocol {
 
 	private final static Sync sync = new Sync();
 	
-	private static SPARQL11Protocol client;
+	private static SPARQL11Protocol  client;
 	private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
 	private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
 	
@@ -72,6 +83,12 @@ public class ITSPARQL11SEProtocol {
 		publishers.clear();
 
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000,sm));
+		while(ret.isError() && ((ErrorResponse)ret).getStatusCode() == 400 &&
+				properties.isSecure()){
+			sm.forceRefreshToken();
+			final String authorizationHeader = sm.getAuthorizationHeader();
+			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000,sm));
+		}
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
@@ -127,6 +144,22 @@ public class ITSPARQL11SEProtocol {
 				assertFalse("Failed to get authorization header", authorization == null);
 				Thread.sleep(100);
 			}
+		}
+	}
+
+	@Test(timeout = 15000)
+	public void UseExpiredToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
+		if (properties.isSecure()) {
+			String authorization = sm.getAuthorizationHeader();
+
+			assertFalse("Failed to get authorization header", authorization == null);
+
+			final long expiringTime = 5000;
+			final Date date = new Date();
+			Thread.sleep(expiringTime+1000);
+			final Response tokenTest = client.query(provider.buildQueryRequest("ALL", 5000, authorization));
+
+			assertTrue("Response should be error since the token is expired",tokenTest.isError());
 		}
 	}
 
