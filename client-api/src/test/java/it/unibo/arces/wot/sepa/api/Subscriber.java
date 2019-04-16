@@ -31,6 +31,7 @@ class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 
 	public Subscriber(String id, Sync sync)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		this.setName("Subcriber-"+id+"-"+this.getId());
 		provider = new ConfigurationProvider();
 		
 		this.id = id;
@@ -53,6 +54,13 @@ class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 	}
 
 	public void run() {
+		if(provider.getJsap().isSecure()){
+			try {
+				sm.register("SEPATest");
+			} catch (SEPASecurityException | SEPAPropertiesException  e) {
+				logger.error(e);
+			}
+		}
 		synchronized (this) {
 			try {
 				subscribe();
