@@ -1,7 +1,6 @@
 package it.unibo.arces.wot.sepa.commons.security;
 
 import it.unibo.arces.wot.sepa.api.ITSPARQL11SEProtocol;
-import org.apache.logging.log4j.LogManager;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -14,17 +13,10 @@ import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 import static org.junit.Assert.*;
 
 public class ITSEPASecurityManager {
-	static {
-		ConfigurationProvider.configureLogger();
-	}
 	private static SEPASecurityManager sm = null;
 	private static JSAP app = null;
 	

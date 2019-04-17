@@ -45,7 +45,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	private final SPARQL11Properties properties;
 
 	public UpdateProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
-		endpoint = new SPARQL11Protocol();
+		this.endpoint = new SPARQL11Protocol();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 		

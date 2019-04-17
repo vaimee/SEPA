@@ -22,7 +22,6 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class RDFTermBNode.
  */
@@ -36,7 +35,7 @@ public class RDFTermBNode extends RDFTerm {
 	 */
 	public RDFTermBNode(String value) {
 		super(value);
-
+		
 		json.add("type", new JsonPrimitive("bnode"));
 	}
 }

@@ -42,6 +42,8 @@ public enum NgsiLdError {
 	
 	private final int code;
 	private final String uri;
+	private String title ="";
+	private String detail ="";
 	
 	NgsiLdError(int code,String uri) {
 		this.code = code;
@@ -55,14 +57,35 @@ public enum NgsiLdError {
 	public int getErrorCode() {
 		return code;
 	}
+	
+	@Override
+	public String toString() {
+		return getJsonResponse().toString();
+	}
 
-	public static JsonObject buildResponse(NgsiLdError type, String title, String detail) {
+	public JsonObject getJsonResponse() {
 		JsonObject error = new JsonObject();
 		
-		error.add("type", new JsonPrimitive(type.getType()));
+		error.add("type", new JsonPrimitive(uri));
 		error.add("title", new JsonPrimitive(title));
 		error.add("detail", new JsonPrimitive(detail));
 		
 		return error;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public String getDetail() {
+		return detail;
+	}
+
+	public void setDetail(String detail) {
+		this.detail = detail;
 	}
 }

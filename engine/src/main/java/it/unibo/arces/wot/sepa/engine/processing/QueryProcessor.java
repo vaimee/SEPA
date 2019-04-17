@@ -45,8 +45,8 @@ public class QueryProcessor implements QueryProcessorMBean {
 	protected final SPARQL11Properties properties;
 
 	public QueryProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
-		//this.endpoint = new SPARQL11Protocol();
-		this.endpoint = new JenaSparql11Service();
+		this.endpoint = new SPARQL11Protocol();
+		//this.endpoint = new JenaSparql11Service();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 		
@@ -72,7 +72,7 @@ public class QueryProcessor implements QueryProcessorMBean {
 			if (oauth.isEnabled())
 				authorizationHeader = oauth.getBasicAuthorizationHeader();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn(e.getMessage());
+			logger.warn("Authorization: "+e.getMessage());
 		}
 
 		Response ret;

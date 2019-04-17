@@ -30,6 +30,9 @@ import it.unibo.arces.wot.sepa.engine.bean.NgisLdHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
+import it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.EntityById;
+import it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.EntityList;
+import it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.ResourceHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class NgsiLdHandler implements HttpAsyncRequestHandler<HttpRequest>, NgsiLdHandlerMBean {
@@ -44,8 +47,10 @@ public class NgsiLdHandler implements HttpAsyncRequestHandler<HttpRequest>, Ngsi
 		if (scheduler == null)
 			throw new IllegalArgumentException("One or more arguments are null");
 
+		// Add all resource handlers here
 		handlers.add(new EntityList(scheduler, jmx));
-
+		handlers.add(new EntityById(scheduler, jmx));
+		
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
@@ -59,9 +64,6 @@ public class NgsiLdHandler implements HttpAsyncRequestHandler<HttpRequest>, Ngsi
 		logger.debug("Request URI: "+requestURI+" Resource URI: "+resourceURI+" Method: "+method);
 		
 		JsonObject body = null;
-		HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
-		if (entity != null)
-			body = new JsonParser().parse(EntityUtils.toString(entity, Charset.forName("UTF-8"))).getAsJsonObject();
 
 		// Link header
 		String link = null;
@@ -73,12 +75,16 @@ public class NgsiLdHandler implements HttpAsyncRequestHandler<HttpRequest>, Ngsi
 		boolean cLength = request.containsHeader("Content-Length");
 
 		if (method.equals("POST") || method.equals("PATCH")) {
+			HttpEntity entity = ((HttpEntityEnclosingRequest) request).getEntity();
+			if (entity != null)
+				body = new JsonParser().parse(EntityUtils.toString(entity, Charset.forName("UTF-8"))).getAsJsonObject();
+			
 			if (cType == null) {
-				response.setStatusCode(NgsiLdError.InvalidRequest.getErrorCode());
-				NStringEntity responseBody = new NStringEntity(
-						NgsiLdError.buildResponse(NgsiLdError.InvalidRequest, "Content-Type is missing",
-								"Content-Type header is missing").toString(),
-						ContentType.create("application/json", "UTF-8"));
+				NgsiLdError error = NgsiLdError.InvalidRequest;
+				error.setTitle("Content-Type header is missing");
+				error.setDetail(request.toString());
+				response.setStatusCode(error.getErrorCode());
+				NStringEntity responseBody = new NStringEntity(error.toString(),ContentType.create("application/json", "UTF-8"));
 				response.setEntity(responseBody);
 				jmx.validatingFailed();
 				return;
@@ -92,12 +98,11 @@ public class NgsiLdHandler implements HttpAsyncRequestHandler<HttpRequest>, Ngsi
 
 			if (!cType.equals("application/json") && !cType.equals("application/ld+json")) {
 				if (!method.equals("PATCH") || !cType.equals("application/merge-patch+json")) {
-					response.setStatusCode(NgsiLdError.InvalidRequest.getErrorCode());
-					NStringEntity responseBody = new NStringEntity(NgsiLdError.buildResponse(NgsiLdError.InvalidRequest,
-							"Invalid Content-Type",
-							"Content-Type is " + cType
-									+ ". Allowed values are application/json, application/ld+json or application/merge-patch+json (PATCH only)").toString(),
-							ContentType.create("application/json", "UTF-8"));
+					NgsiLdError error = NgsiLdError.InvalidRequest;
+					error.setTitle("Content-Type header is missing");
+					error.setDetail("Content-Type is " + cType + ". Allowed values are application/json, application/ld+json or application/merge-patch+json (PATCH only)");
+					response.setStatusCode(error.getErrorCode());
+					NStringEntity responseBody = new NStringEntity(error.toString(), ContentType.create("application/json", "UTF-8"));
 					response.setEntity(responseBody);
 					jmx.validatingFailed();
 					return;
@@ -107,11 +112,11 @@ public class NgsiLdHandler implements HttpAsyncRequestHandler<HttpRequest>, Ngsi
 			try {
 				Integer.parseInt(request.getFirstHeader("Content-Length").getValue());
 			} catch (NumberFormatException e) {
-				response.setStatusCode(NgsiLdError.InvalidRequest.getErrorCode());
-				NStringEntity responseBody = new NStringEntity(
-						NgsiLdError.buildResponse(NgsiLdError.InvalidRequest, "Missing Content-Length",
-								"Content-Length header shall include the length of the input payload").toString(),
-						ContentType.create("application/json", "UTF-8"));
+				NgsiLdError error = NgsiLdError.InvalidRequest;
+				error.setTitle("Missing Content-Length");
+				error.setDetail("Content-Length header shall include the length of the input payload");
+				response.setStatusCode(error.getErrorCode());
+				NStringEntity responseBody = new NStringEntity(error.toString(),ContentType.create("application/json", "UTF-8"));
 				response.setEntity(responseBody);
 				jmx.validatingFailed();
 				return;
@@ -123,12 +128,11 @@ public class NgsiLdHandler implements HttpAsyncRequestHandler<HttpRequest>, Ngsi
 
 		if (method.equals("GET")) {
 			if (!cType.equals("application/json") && !cType.equals("application/ld+json") && !cType.equals("*/*")) {
-				response.setStatusCode(NgsiLdError.InvalidRequest.getErrorCode());
-				NStringEntity responseBody = new NStringEntity(NgsiLdError.buildResponse(NgsiLdError.InvalidRequest,
-						"Invalid Content-Type",
-						"Content-Type is " + cType
-								+ ". Allowed values are application/json, application/ld+json or application/merge-patch+json (PATCH only)").toString(),
-						ContentType.create("application/json", "UTF-8"));
+				NgsiLdError error = NgsiLdError.InvalidRequest;
+				error.setTitle("Invalid Content-Type");
+				error.setDetail("Content-Type is " + cType + ". Allowed values are application/json, application/ld+json or application/merge-patch+json (PATCH only)");
+				response.setStatusCode(error.getErrorCode());
+				NStringEntity responseBody = new NStringEntity(error.toString(),ContentType.create("application/json", "UTF-8"));
 				response.setEntity(responseBody);
 				jmx.validatingFailed();
 				return;
@@ -151,11 +155,13 @@ public class NgsiLdHandler implements HttpAsyncRequestHandler<HttpRequest>, Ngsi
 			}
 		}
 
+		NgsiLdError error = NgsiLdError.OperationNotSupported;
+		error.setTitle("Request cannot be handled");
+		error.setDetail("ResourceURI:" + resourceURI + " Method:" + method + " Body:" + body);
+		response.setStatusCode(error.getErrorCode());
+		
 		response.setStatusCode(NgsiLdError.OperationNotSupported.getErrorCode());
-		NStringEntity responseBody = new NStringEntity(
-				NgsiLdError.buildResponse(NgsiLdError.OperationNotSupported, "Matching handler not found",
-						"ResourceURI:" + resourceURI + " Method:" + method + " Body:" + body).toString(),
-				ContentType.create("application/json", "UTF-8"));
+		NStringEntity responseBody = new NStringEntity(error.toString(),ContentType.create("application/json", "UTF-8"));
 		response.setEntity(responseBody);
 	}
 
