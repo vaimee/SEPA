@@ -1,4 +1,4 @@
-package it.arces.wot.sepa.engine.gates;
+package it.unibo.arces.wot.sepa.engine.gates;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
