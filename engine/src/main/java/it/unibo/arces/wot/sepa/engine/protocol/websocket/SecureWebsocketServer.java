@@ -1,7 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
-import it.arces.wot.sepa.engine.gates.SecureWebsocketGate;
-import it.arces.wot.sepa.engine.gates.WebsocketGate;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import org.apache.http.HttpStatus;
 import org.java_websocket.WebSocket;
@@ -11,6 +9,8 @@ import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
+import it.unibo.arces.wot.sepa.engine.gates.SecureWebsocketGate;
+import it.unibo.arces.wot.sepa.engine.gates.WebsocketGate;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SecureWebsocketServer extends WebsocketServer {

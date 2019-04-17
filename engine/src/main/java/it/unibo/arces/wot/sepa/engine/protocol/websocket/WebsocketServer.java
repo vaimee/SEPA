@@ -16,12 +16,12 @@ import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
-import it.arces.wot.sepa.engine.gates.WebsocketGate;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
+import it.unibo.arces.wot.sepa.engine.gates.WebsocketGate;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class WebsocketServer extends WebSocketServer implements WebsocketServerMBean {

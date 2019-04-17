@@ -1,4 +1,4 @@
-package it.arces.wot.sepa.engine.gates;
+package it.unibo.arces.wot.sepa.engine.gates;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalDiscardRequest;
 import org.apache.http.HttpStatus;
