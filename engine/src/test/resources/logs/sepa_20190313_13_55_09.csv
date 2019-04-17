@@ -1,0 +1,128 @@
+2019-55-13,14:55:14.427,I/O-dispatch-2,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler,NgsiLdHandler.java:64,Request URI: /ngsi-ld/v1/entities Resource URI: /entities Method: POST
+2019-55-13,14:55:14.432,I/O-dispatch-2,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.ResourceHandler,ResourceHandler.java:42,Pattern: \/entities$|\/entities\/$|\/entities(\?)(?<query>.+) ResourceURI: /entities
+2019-55-13,14:55:14.439,I/O-dispatch-2,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485314439,0,QUERY_REQUEST
+2019-55-13,14:55:14.440,I/O-dispatch-2,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:50,Get token #0 (Available: 99)
+2019-55-13,14:55:14.441,I/O-dispatch-2,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:84,>> REQUEST #0 : *QUERY* ASK {<urn:jsonld> ?p ?o} DEFAULT GRAPH URI: <null> NAMED GRAPH URI: <null>
+2019-55-13,14:55:14.441,I/O-dispatch-2,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485314441,0,QUERY_REQUEST
+2019-55-13,14:55:14.442,I/O-dispatch-2,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:92,Register handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e token: 0
+2019-55-13,14:55:14.444,SEPA-Query-Processing,WARN ,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:75,Authorization: null
+2019-55-13,14:55:14.450,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:111,POST http://localhost:9999/blazegraph/namespace/kb/sparql HTTP/1.1 ASK {<urn:jsonld> ?p ?o} (timeout: 60000 ms) 
+2019-55-13,14:55:14.540,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485314540,89423611,ENDPOINT_QUERY_TIME
+2019-55-13,14:55:14.542,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:135,Response code: 200
+2019-55-13,14:55:14.543,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:92,Response: {"head":{},"boolean":false}
+2019-55-13,14:55:14.543,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485314543,102036947,QUERY_PROCESSING_TIME
+2019-55-13,14:55:14.544,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:71,Release token #0 (Available: 100)
+2019-55-13,14:55:14.546,SEPA-Scheduler,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:109,<< RESPONSE #0 : {"head":{},"boolean":false}
+2019-55-13,14:55:14.546,SEPA-Scheduler,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:121,Handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e response: RESPONSE #0 : {"head":{},"boolean":false}
+2019-56-13,14:56:13.828,I/O-dispatch-4,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler,NgsiLdHandler.java:64,Request URI: /ngsi-ld/v1/entities Resource URI: /entities Method: POST
+2019-56-13,14:56:13.829,I/O-dispatch-4,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.ResourceHandler,ResourceHandler.java:42,Pattern: \/entities$|\/entities\/$|\/entities(\?)(?<query>.+) ResourceURI: /entities
+2019-56-13,14:56:13.831,I/O-dispatch-4,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485373830,0,QUERY_REQUEST
+2019-56-13,14:56:13.831,I/O-dispatch-4,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:50,Get token #1 (Available: 99)
+2019-56-13,14:56:13.831,I/O-dispatch-4,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:84,>> REQUEST #1 : *QUERY* ASK {<urn:jsonld> ?p ?o} DEFAULT GRAPH URI: <null> NAMED GRAPH URI: <null>
+2019-56-13,14:56:13.832,SEPA-Query-Processing,WARN ,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:75,Authorization: null
+2019-56-13,14:56:13.832,I/O-dispatch-4,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485373832,0,QUERY_REQUEST
+2019-56-13,14:56:13.832,I/O-dispatch-4,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:92,Register handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e token: 1
+2019-56-13,14:56:13.833,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:111,POST http://localhost:9999/blazegraph/namespace/kb/sparql HTTP/1.1 ASK {<urn:jsonld> ?p ?o} (timeout: 60000 ms) 
+2019-56-13,14:56:13.865,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485373865,32015068,ENDPOINT_QUERY_TIME
+2019-56-13,14:56:13.866,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:135,Response code: 200
+2019-56-13,14:56:13.867,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:92,Response: {"head":{},"boolean":false}
+2019-56-13,14:56:13.868,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485373867,35451987,QUERY_PROCESSING_TIME
+2019-56-13,14:56:13.868,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:71,Release token #1 (Available: 100)
+2019-56-13,14:56:13.869,SEPA-Scheduler,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:109,<< RESPONSE #1 : {"head":{},"boolean":false}
+2019-56-13,14:56:13.869,SEPA-Scheduler,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:121,Handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e response: RESPONSE #1 : {"head":{},"boolean":false}
+2019-56-13,14:56:32.768,I/O-dispatch-6,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler,NgsiLdHandler.java:64,Request URI: /ngsi-ld/v1/entities Resource URI: /entities Method: POST
+2019-56-13,14:56:32.770,I/O-dispatch-6,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.ResourceHandler,ResourceHandler.java:42,Pattern: \/entities$|\/entities\/$|\/entities(\?)(?<query>.+) ResourceURI: /entities
+2019-56-13,14:56:32.771,I/O-dispatch-6,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485392771,0,QUERY_REQUEST
+2019-56-13,14:56:32.772,I/O-dispatch-6,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:50,Get token #2 (Available: 99)
+2019-56-13,14:56:32.772,I/O-dispatch-6,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:84,>> REQUEST #2 : *QUERY* ASK {<urn:jsonld> ?p ?o} DEFAULT GRAPH URI: <null> NAMED GRAPH URI: <null>
+2019-56-13,14:56:32.773,SEPA-Query-Processing,WARN ,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:75,Authorization: null
+2019-56-13,14:56:32.773,I/O-dispatch-6,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485392773,0,QUERY_REQUEST
+2019-56-13,14:56:32.774,I/O-dispatch-6,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:92,Register handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e token: 2
+2019-56-13,14:56:32.774,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:111,POST http://localhost:9999/blazegraph/namespace/kb/sparql HTTP/1.1 ASK {<urn:jsonld> ?p ?o} (timeout: 60000 ms) 
+2019-56-13,14:56:32.802,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485392802,27178914,ENDPOINT_QUERY_TIME
+2019-56-13,14:56:32.803,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:135,Response code: 200
+2019-56-13,14:56:32.803,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:92,Response: {"head":{},"boolean":false}
+2019-56-13,14:56:32.804,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485392803,30370471,QUERY_PROCESSING_TIME
+2019-56-13,14:56:32.804,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:71,Release token #2 (Available: 100)
+2019-56-13,14:56:32.804,SEPA-Scheduler,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:109,<< RESPONSE #2 : {"head":{},"boolean":false}
+2019-56-13,14:56:32.804,SEPA-Scheduler,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:121,Handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e response: RESPONSE #2 : {"head":{},"boolean":false}
+2019-57-13,14:57:36.064,I/O-dispatch-8,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler,NgsiLdHandler.java:64,Request URI: /ngsi-ld/v1/entities Resource URI: /entities Method: POST
+2019-57-13,14:57:36.065,I/O-dispatch-8,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.ResourceHandler,ResourceHandler.java:42,Pattern: \/entities$|\/entities\/$|\/entities(\?)(?<query>.+) ResourceURI: /entities
+2019-57-13,14:57:36.066,I/O-dispatch-8,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485456066,0,QUERY_REQUEST
+2019-57-13,14:57:36.067,I/O-dispatch-8,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:50,Get token #3 (Available: 99)
+2019-57-13,14:57:36.067,I/O-dispatch-8,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:84,>> REQUEST #3 : *QUERY* ASK {<urn:jsonld> ?p ?o} DEFAULT GRAPH URI: <null> NAMED GRAPH URI: <null>
+2019-57-13,14:57:36.068,SEPA-Query-Processing,WARN ,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:75,Authorization: null
+2019-57-13,14:57:36.068,I/O-dispatch-8,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485456067,0,QUERY_REQUEST
+2019-57-13,14:57:36.068,I/O-dispatch-8,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:92,Register handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e token: 3
+2019-57-13,14:57:36.068,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:111,POST http://localhost:9999/blazegraph/namespace/kb/sparql HTTP/1.1 ASK {<urn:jsonld> ?p ?o} (timeout: 60000 ms) 
+2019-57-13,14:57:36.100,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485456100,31937857,ENDPOINT_QUERY_TIME
+2019-57-13,14:57:36.101,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:135,Response code: 200
+2019-57-13,14:57:36.101,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:92,Response: {"head":{},"boolean":false}
+2019-57-13,14:57:36.102,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485456102,34221606,QUERY_PROCESSING_TIME
+2019-57-13,14:57:36.102,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:71,Release token #3 (Available: 100)
+2019-57-13,14:57:36.102,SEPA-Scheduler,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:109,<< RESPONSE #3 : {"head":{},"boolean":false}
+2019-57-13,14:57:36.103,SEPA-Scheduler,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:121,Handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e response: RESPONSE #3 : {"head":{},"boolean":false}
+2019-58-13,14:58:19.090,I/O-dispatch-2,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler,NgsiLdHandler.java:64,Request URI: /ngsi-ld/v1/entities Resource URI: /entities Method: POST
+2019-58-13,14:58:19.090,I/O-dispatch-2,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.ResourceHandler,ResourceHandler.java:42,Pattern: \/entities$|\/entities\/$|\/entities(\?)(?<query>.+) ResourceURI: /entities
+2019-58-13,14:58:19.091,I/O-dispatch-2,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485499091,0,QUERY_REQUEST
+2019-58-13,14:58:19.092,I/O-dispatch-2,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:50,Get token #4 (Available: 99)
+2019-58-13,14:58:19.092,I/O-dispatch-2,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:84,>> REQUEST #4 : *QUERY* ASK {<urn:jsonld> ?p ?o} DEFAULT GRAPH URI: <null> NAMED GRAPH URI: <null>
+2019-58-13,14:58:19.093,I/O-dispatch-2,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485499093,0,QUERY_REQUEST
+2019-58-13,14:58:19.093,SEPA-Query-Processing,WARN ,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:75,Authorization: null
+2019-58-13,14:58:19.093,I/O-dispatch-2,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:92,Register handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e token: 4
+2019-58-13,14:58:19.094,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:111,POST http://localhost:9999/blazegraph/namespace/kb/sparql HTTP/1.1 ASK {<urn:jsonld> ?p ?o} (timeout: 60000 ms) 
+2019-58-13,14:58:19.121,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485499121,26813674,ENDPOINT_QUERY_TIME
+2019-58-13,14:58:19.122,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:135,Response code: 200
+2019-58-13,14:58:19.122,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:92,Response: {"head":{},"boolean":false}
+2019-58-13,14:58:19.123,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485499123,29978388,QUERY_PROCESSING_TIME
+2019-58-13,14:58:19.123,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:71,Release token #4 (Available: 100)
+2019-58-13,14:58:19.123,SEPA-Scheduler,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:109,<< RESPONSE #4 : {"head":{},"boolean":false}
+2019-58-13,14:58:19.124,SEPA-Scheduler,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:121,Handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e response: RESPONSE #4 : {"head":{},"boolean":false}
+2019-58-13,14:58:58.061,I/O-dispatch-4,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler,NgsiLdHandler.java:64,Request URI: /ngsi-ld/v1/entities Resource URI: /entities Method: POST
+2019-58-13,14:58:58.062,I/O-dispatch-4,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.ResourceHandler,ResourceHandler.java:42,Pattern: \/entities$|\/entities\/$|\/entities(\?)(?<query>.+) ResourceURI: /entities
+2019-58-13,14:58:58.062,I/O-dispatch-4,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485538062,0,QUERY_REQUEST
+2019-58-13,14:58:58.063,I/O-dispatch-4,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:50,Get token #5 (Available: 99)
+2019-58-13,14:58:58.063,I/O-dispatch-4,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:84,>> REQUEST #5 : *QUERY* ASK {<urn:jsonld> ?p ?o} DEFAULT GRAPH URI: <null> NAMED GRAPH URI: <null>
+2019-58-13,14:58:58.064,SEPA-Query-Processing,WARN ,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:75,Authorization: null
+2019-58-13,14:58:58.064,I/O-dispatch-4,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485538064,0,QUERY_REQUEST
+2019-58-13,14:58:58.064,I/O-dispatch-4,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:92,Register handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e token: 5
+2019-58-13,14:58:58.065,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:111,POST http://localhost:9999/blazegraph/namespace/kb/sparql HTTP/1.1 ASK {<urn:jsonld> ?p ?o} (timeout: 60000 ms) 
+2019-58-13,14:58:58.093,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485538093,28032643,ENDPOINT_QUERY_TIME
+2019-58-13,14:58:58.094,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:135,Response code: 200
+2019-58-13,14:58:58.095,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:92,Response: {"head":{},"boolean":false}
+2019-58-13,14:58:58.095,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485538095,31425527,QUERY_PROCESSING_TIME
+2019-58-13,14:58:58.096,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:71,Release token #5 (Available: 100)
+2019-58-13,14:58:58.096,SEPA-Scheduler,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:109,<< RESPONSE #5 : {"head":{},"boolean":false}
+2019-58-13,14:58:58.097,SEPA-Scheduler,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:121,Handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e response: RESPONSE #5 : {"head":{},"boolean":false}
+2019-05-13,15:05:02.407,I/O-dispatch-6,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler,NgsiLdHandler.java:64,Request URI: /ngsi-ld/v1/entities Resource URI: /entities Method: POST
+2019-05-13,15:05:02.408,I/O-dispatch-6,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.ResourceHandler,ResourceHandler.java:42,Pattern: \/entities$|\/entities\/$|\/entities(\?)(?<query>.+) ResourceURI: /entities
+2019-05-13,15:05:02.409,I/O-dispatch-6,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485902409,0,QUERY_REQUEST
+2019-05-13,15:05:02.410,I/O-dispatch-6,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:50,Get token #6 (Available: 99)
+2019-05-13,15:05:02.410,I/O-dispatch-6,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:84,>> REQUEST #6 : *QUERY* ASK {<urn:jsonld> ?p ?o} DEFAULT GRAPH URI: <null> NAMED GRAPH URI: <null>
+2019-05-13,15:05:02.411,SEPA-Query-Processing,WARN ,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:75,Authorization: null
+2019-05-13,15:05:02.411,I/O-dispatch-6,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552485902411,0,QUERY_REQUEST
+2019-05-13,15:05:02.411,I/O-dispatch-6,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:92,Register handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e token: 6
+2019-05-13,15:05:02.411,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:111,POST http://localhost:9999/blazegraph/namespace/kb/sparql HTTP/1.1 ASK {<urn:jsonld> ?p ?o} (timeout: 60000 ms) 
+2019-05-13,15:05:02.440,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485902440,27957520,ENDPOINT_QUERY_TIME
+2019-05-13,15:05:02.441,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:135,Response code: 200
+2019-05-13,15:05:02.441,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:92,Response: {"head":{},"boolean":false}
+2019-05-13,15:05:02.442,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552485902442,30797867,QUERY_PROCESSING_TIME
+2019-05-13,15:05:02.443,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:71,Release token #6 (Available: 100)
+2019-05-13,15:05:02.443,SEPA-Scheduler,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:109,<< RESPONSE #6 : {"head":{},"boolean":false}
+2019-05-13,15:05:02.444,SEPA-Scheduler,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:121,Handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e response: RESPONSE #6 : {"head":{},"boolean":false}
+2019-12-13,15:12:31.383,I/O-dispatch-8,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler,NgsiLdHandler.java:64,Request URI: /ngsi-ld/v1/entities Resource URI: /entities Method: POST
+2019-12-13,15:12:31.385,I/O-dispatch-8,DEBUG,it.unibo.arces.wot.sepa.engine.protocol.ngsild.handlers.ResourceHandler,ResourceHandler.java:42,Pattern: \/entities$|\/entities\/$|\/entities(\?)(?<query>.+) ResourceURI: /entities
+2019-12-13,15:12:31.386,I/O-dispatch-8,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552486351385,0,QUERY_REQUEST
+2019-12-13,15:12:31.386,I/O-dispatch-8,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:50,Get token #7 (Available: 99)
+2019-12-13,15:12:31.386,I/O-dispatch-8,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:84,>> REQUEST #7 : *QUERY* ASK {<urn:jsonld> ?p ?o} DEFAULT GRAPH URI: <null> NAMED GRAPH URI: <null>
+2019-12-13,15:12:31.387,SEPA-Query-Processing,WARN ,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:75,Authorization: null
+2019-12-13,15:12:31.387,I/O-dispatch-8,timing,it.unibo.arces.wot.sepa.engine.timing.Timings,Timings.java:19,1552486351387,0,QUERY_REQUEST
+2019-12-13,15:12:31.387,I/O-dispatch-8,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:92,Register handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e token: 7
+2019-12-13,15:12:31.388,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:111,POST http://localhost:9999/blazegraph/namespace/kb/sparql HTTP/1.1 ASK {<urn:jsonld> ?p ?o} (timeout: 60000 ms) 
+2019-12-13,15:12:31.418,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552486351418,29887496,ENDPOINT_QUERY_TIME
+2019-12-13,15:12:31.419,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol,SPARQL11Protocol.java:135,Response code: 200
+2019-12-13,15:12:31.419,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.processing.QueryProcessor,QueryProcessor.java:92,Response: {"head":{},"boolean":false}
+2019-12-13,15:12:31.420,SEPA-Query-Processing,timing,it.unibo.arces.wot.sepa.timing.Timings,Timings.java:19,1552486351419,32720019,QUERY_PROCESSING_TIME
+2019-12-13,15:12:31.420,SEPA-Query-Processing,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.SchedulerQueue,SchedulerQueue.java:71,Release token #7 (Available: 100)
+2019-12-13,15:12:31.420,SEPA-Scheduler,INFO ,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:109,<< RESPONSE #7 : {"head":{},"boolean":false}
+2019-12-13,15:12:31.421,SEPA-Scheduler,TRACE,it.unibo.arces.wot.sepa.engine.scheduling.Scheduler,Scheduler.java:121,Handler: it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdRdfMapper@31df980e response: RESPONSE #7 : {"head":{},"boolean":false}

@@ -88,15 +88,6 @@ public class MqttIoTAgent {
 			client.update();
 			client.close();
 		}
-		//
-		// client = new Producer(app, "DELETE_ALL_MESSAGES", sm);
-		// client.update();
-		// client.close();
-		//
-		// client = new Producer(app, "DELETE_ALL_LOGS", sm);
-		// client.update();
-		// client.close();
-		// }
 
 		if (insertPlaces(args)) {
 			logger.info("Parse places");
@@ -173,8 +164,12 @@ public class MqttIoTAgent {
 				client.close();
 			}
 		}
+		
+		// Setup and exit
+		if (insertObservations(args) || insertPlaces(args) || clear(args)) System.exit(1);
 
 		if (doLog(args)) {
+			logger.info("Historical data logging enabled");
 			logger.info("Create observation logger");
 			logObservation = new ObservationLogger(app, sm);
 			logObservation.subscribe(5000);
