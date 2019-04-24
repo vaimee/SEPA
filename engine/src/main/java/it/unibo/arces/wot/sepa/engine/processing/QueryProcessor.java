@@ -66,13 +66,14 @@ public class QueryProcessor implements QueryProcessorMBean {
 
 		// Authorized access to the endpoint
 		String authorizationHeader = null;
+		AuthenticationProperties oauth = null;
 		try {
 			// TODO: to implement also bearer authentication
-			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
+			oauth = new AuthenticationProperties(properties.getFilename());
 			if (oauth.isEnabled())
 				authorizationHeader = oauth.getBasicAuthorizationHeader();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn("Authorization: "+e.getMessage());
+			logger.warn("Endpoint authorization: "+e.getMessage());
 		}
 
 		Response ret;

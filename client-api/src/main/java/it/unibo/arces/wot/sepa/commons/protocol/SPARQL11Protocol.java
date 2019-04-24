@@ -76,7 +76,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	protected static String mBeanName = "arces.unibo.SEPA.server:type=SPARQL11Protocol";
 
 	/** The http client. */
-	protected CloseableHttpClient httpClient = HttpClients.createDefault();
+	protected final CloseableHttpClient httpClient;
 
 	/** The security manager */
 	protected final SEPASecurityManager sm;

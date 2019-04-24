@@ -74,7 +74,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
 			if (oauth.isEnabled()) authorizationHeader = oauth.getBasicAuthorizationHeader();			
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn(e.getMessage());
+			logger.warn("Authorization header "+e.getMessage());
 		}
 				
 		// UPDATE the endpoint
