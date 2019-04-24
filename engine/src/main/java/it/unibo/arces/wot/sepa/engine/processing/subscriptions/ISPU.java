@@ -5,13 +5,12 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
 interface ISPU {
-
+	String getSPUID();
+	
     Response init();
 
     BindingsResults getLastBindings();
 
-    String getSPUID();
-
-    void postProcessing(Response res);
-    void preProcessing(InternalUpdateRequest req);
+    void postUpdateProcessing(Response res);
+    void preUpdateProcessing(InternalUpdateRequest req);
 }

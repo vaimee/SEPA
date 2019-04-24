@@ -17,13 +17,10 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -82,18 +79,21 @@ public class Engine implements EngineMBean {
 	private String engineJpar = "engine.jpar";
 	private String endpointJpar = "endpoint.jpar";
 
+	// Logging
+	private static final Logger logger = LogManager.getLogger();
 	// Logging file name
-	private void setLoggingFileName() {
-		// Logging
-		TimeZone tz = TimeZone.getTimeZone("UTC");
-		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
-		df.setTimeZone(tz);
-		String nowAsISO = df.format(new Date());
-		System.setProperty("logFilename", nowAsISO);
-		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
-				.getContext(false);
-		ctx.reconfigure();
-	}
+	// Can be configured within the log4j2.xml configuration file 
+//	private void setLoggingFileName() {
+//		// Logging
+//		TimeZone tz = TimeZone.getTimeZone("UTC");
+//		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
+//		df.setTimeZone(tz);
+//		String nowAsISO = df.format(new Date());
+//		System.setProperty("logFilename", nowAsISO);
+//		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
+//				.getContext(false);
+//		ctx.reconfigure();
+//	}
 
 	private void printUsage() {
 		System.out.println("Usage:");
@@ -114,7 +114,7 @@ public class Engine implements EngineMBean {
 		System.out.println("-XX:+UseG1GC");
 		System.out.println("");
 		System.out.println("LOG4J");
-		System.out.println("-Dlog4j.configurationFile=./log4j2.xml");
+		System.out.println("-Dlog4j.configurationFile=path/to/log4j2.xml");
 		System.out.println("");
 		System.out.println("JKS OPTIONS:");
 		System.out.println("-storename=<name> : file name of the JKS     (default: sepa.jks)");
@@ -189,7 +189,7 @@ public class Engine implements EngineMBean {
 				.println("##########################################################################################");
 
 		// Set logging file name with the current timestamp YYYYMMDD_HH_MM_SS
-		setLoggingFileName();
+		//setLoggingFileName();
 
 		// Command arguments
 		parsingArgument(args);
@@ -197,6 +197,8 @@ public class Engine implements EngineMBean {
 		// Beans
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		EngineBeans.setVersion(version);
+		
+		// Dependability monitor
 		new DependabilityMonitor();
 		
 		try {
@@ -205,8 +207,7 @@ public class Engine implements EngineMBean {
 
 			EngineBeans.setEngineProperties(properties);
 
-			SPARQL11Properties endpointProperties = null;
-			endpointProperties = new SPARQL11Properties(endpointJpar);
+			SPARQL11Properties endpointProperties = new SPARQL11Properties(endpointJpar);
 
 			// OAUTH 2.0 Authorization Manager
 			if (properties.isSecure()) {
@@ -305,6 +306,8 @@ public class Engine implements EngineMBean {
 			System.out.println(
 					"*****************************************************************************************");
 
+			System.out.println("Log level: " +logger.getLevel().toString());
+			
 		} catch (SEPAPropertiesException | SEPASecurityException
 				| IllegalArgumentException | SEPAProtocolException | InterruptedException e) {
 			System.err.println(e.getMessage());

@@ -50,6 +50,7 @@ public class AuthenticationProperties {
 
 	private final String registrationURL;
 	private final String tokenRequestURL;
+	private final boolean enabled;
 	
 	public AuthenticationProperties(String jsapFileName, byte[] secret) throws SEPAPropertiesException {
 		FileReader in;
@@ -65,13 +66,21 @@ public class AuthenticationProperties {
 			else
 				encryption = new Encryption();
 			
-			jsap.get("oauth").getAsJsonObject().get("enable").getAsBoolean();
+			if(jsap.has("oauth")) {
+				enabled = jsap.get("oauth").getAsJsonObject().get("enable").getAsBoolean();
+				
+				registrationURL = jsap.get("oauth").getAsJsonObject().get("register").getAsString();
+				tokenRequestURL = jsap.get("oauth").getAsJsonObject().get("tokenRequest").getAsString();
+			}
+			else {
+				enabled = false;
+				registrationURL = null;
+				tokenRequestURL = null;
+			}
 			
-			registrationURL = jsap.get("oauth").getAsJsonObject().get("register").getAsString();
-			tokenRequestURL = jsap.get("oauth").getAsJsonObject().get("tokenRequest").getAsString();
 			
 		} catch (Exception e) {
-			throw new SEPAPropertiesException(e);
+			throw new SEPAPropertiesException(e.getMessage());
 		}
 	}
 
@@ -80,12 +89,7 @@ public class AuthenticationProperties {
 	}
 
 	public boolean isEnabled() {
-		try {
-			return jsap.get("oauth").getAsJsonObject().get("enable").getAsBoolean();
-		}
-		catch(Exception e) {
-			return false;
-		}	
+		return enabled;
 	}
 
 	public String getRegisterUrl() {

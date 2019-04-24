@@ -43,6 +43,11 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  */
 
 public abstract class SPU extends Thread implements ISPU {
+	
+	// To be implemented by a specific SPU
+	public abstract Response postUpdateInternalProcessing();
+	public abstract void preUpdateInternalProcessing(InternalUpdateRequest update);
+	
 	protected final Logger logger = LogManager.getLogger();
 
 	// SPU identifier
@@ -76,10 +81,6 @@ public abstract class SPU extends Thread implements ISPU {
 		return subscribe;
 	}
 
-	public abstract Response postUpdateInternalProcessing();
-
-	public abstract void preUpdateInternalProcessing(InternalUpdateRequest update);
-
 	@Override
 	public BindingsResults getLastBindings() {
 		return lastBindings;
@@ -105,20 +106,20 @@ public abstract class SPU extends Thread implements ISPU {
 	}
 
 	@Override
-	public final void postProcessing(Response res) {
+	public final void postUpdateProcessing(Response res) {
 		try {
 			updateResponseQueue.put(res);
 		} catch (InterruptedException e) {
-
+			logger.error(e.getMessage());
 		}
 	}
 
 	@Override
-	public final void preProcessing(InternalUpdateRequest res) {
+	public final void preUpdateProcessing(InternalUpdateRequest res) {
 		try {
 			updateRequestQueue.put(res);
 		} catch (InterruptedException e) {
-
+			logger.error(e.getMessage());
 		}
 	}
 
@@ -130,30 +131,37 @@ public abstract class SPU extends Thread implements ISPU {
 			Response response;
 
 			try {
+				logger.debug("Wait update request...");
 				request = updateRequestQueue.take();
 			} catch (InterruptedException e1) {
-				return;
+				// Notify SPU manager
+				logger.debug("Notify SPU manager of EOP. Running: " + running);
+				manager.endOfProcessing(this);
+				continue;
 			}
 
 			// Processing update
 			logger.debug("* PRE PROCESSING *");
-
-			// PRE processing
 			preUpdateInternalProcessing(request);
 
 			// Notify SPU manager
-			logger.debug("Notify SPU manager. Running: " + running);
+			logger.debug("Notify SPU manager of EOP. Running: " + running);
 			manager.endOfProcessing(this);
 
 			// Wait
 			try {
+				logger.debug("Wait update response...");
 				response = updateResponseQueue.take();
 			} catch (InterruptedException e1) {
-				return;
+				// Notify SPU manager
+				logger.debug("Notify SPU manager of EOP. Running: " + running);
+				manager.endOfProcessing(this);
+				continue;
 			}
 
 			if (!response.isError()) {
 				// POST processing and waiting for result
+				logger.debug("* POST PROCESSING *");
 				notify = postUpdateInternalProcessing();
 
 				// Notify event handler
@@ -168,9 +176,8 @@ public abstract class SPU extends Thread implements ISPU {
 			}
 
 			// Notify SPU manager
-			logger.debug("Notify SPU manager. Running: " + running);
+			logger.debug("Notify SPU manager of EOP. Running: " + running);
 			manager.endOfProcessing(this);
-
 		}
 	}
 }
