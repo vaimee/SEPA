@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
@@ -19,6 +20,7 @@ import it.unibo.arces.wot.sepa.timing.Timings;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,6 +35,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	// SPUs processing pool
 	private final HashSet<SPU> processingPool = new HashSet<SPU>();
 	private Collection<SPU> activeSpus;
+	private Semaphore processingMutex = new Semaphore(1, true);
 
 	// SPUID ==> SPU
 	private final HashMap<String, SPU> spus = new HashMap<String, SPU>();
@@ -40,7 +43,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	// SID ==> Subscriber
 	private final HashMap<String, Subscriber> subscribers = new HashMap<String, Subscriber>();
 
-	// SPU ==> Subscribers
+	// SPUID ==> Subscribers
 	private final HashMap<String, HashSet<Subscriber>> handlers = new HashMap<String, HashSet<Subscriber>>();
 
 	// Request ==> SPU
@@ -68,46 +71,57 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		return spus.values();
 	}
 
-	public synchronized void preUpdateProcessing(InternalUpdateRequest update) {
+	public synchronized void preUpdateProcessing(InternalUpdateRequest update) throws SEPAProcessingException {
+		try {
+			processingMutex.acquire();
+		} catch (InterruptedException e) {
+			throw new SEPAProcessingException(e);
+		}
+
 		logger.debug("*** PRE PROCESSING SUBSCRIPTIONS BEGIN *** ");
 
 		long start = Timings.getTime();
 
-		activeSpus = filter(update);
-
+		// Get active SPUs (e.g., LUTT filtering)
+		synchronized (spus) {
+			activeSpus = filter(update);
+		}
 		long stop = Timings.getTime();
 
 		SPUManagerBeans.filteringTimings(start, stop);
 
 		start = Timings.getTime();
 
-		synchronized (processingPool) {
-			processingPool.clear();
+		// Copy active SPU pool
+		processingPool.clear();
 
+		synchronized (activeSpus) {
 			for (SPU spu : activeSpus) {
 				processingPool.add(spu);
 				spu.preUpdateProcessing(update);
 			}
+		}
 
-			logger.debug("@preUpdateProcessing SPU processing pool size: " + processingPool.size());
+		logger.debug("@preUpdateProcessing SPU processing pool size: " + processingPool.size());
 
-			if (!processingPool.isEmpty()) {
-				logger.debug(
-						String.format("@preUpdateProcessing wait (%d ms) for %d SPUs to complete processing...", SPUManagerBeans.getSPUProcessingTimeout(),processingPool.size()));
-				try {
-					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout());
-				} catch (InterruptedException e) {
-					return;
-				}
+		// Wait all SPUs to complete processing
+		if (!processingPool.isEmpty()) {
+			logger.debug(String.format("@preUpdateProcessing wait (%d ms) for %d SPUs to complete processing...",
+					SPUManagerBeans.getSPUProcessingTimeout(), processingPool.size()));
+			try {
+				wait(SPUManagerBeans.getSPUProcessingTimeout());
+			} catch (InterruptedException e) {
+				processingMutex.release();
+				throw new SEPAProcessingException(e);
 			}
+		}
 
-			// TIMEOUT
-			if (!processingPool.isEmpty()) {
-				logger.error("@preUpdateProcessing timeout on SPU processing. SPUs still running: "
-						+ processingPool.size());
-				for (SPU spu : processingPool) {
-					logger.error("@preUpdateProcessing zombie spuid: " + spu.getSPUID());
-				}
+		// Pre processing not completed
+		if (!processingPool.isEmpty()) {
+			logger.error(
+					"@preUpdateProcessing timeout on SPU processing. SPUs still running: " + processingPool.size());
+			for (SPU spu : processingPool) {
+				logger.error("@preUpdateProcessing zombie spuid: " + spu.getSPUID());
 			}
 		}
 
@@ -116,41 +130,41 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		SPUManagerBeans.timings(start, stop);
 
 		logger.debug("*** PRE PROCESSING SUBSCRIPTIONS END *** ");
-
 	}
 
-	public synchronized void postUpdateProcessing(Response ret) {
+	public synchronized void postUpdateProcessing(Response ret) throws SEPAProcessingException {
 		logger.debug("*** POST PROCESSING SUBSCRIPTIONS BEGIN *** ");
 
 		long start = Timings.getTime();
 
-		synchronized (processingPool) {
-			processingPool.clear();
+		processingPool.clear();
 
+		synchronized (activeSpus) {
 			for (SPU spu : activeSpus) {
 				processingPool.add(spu);
 				spu.postUpdateProcessing(ret);
 			}
+		}
 
-			logger.debug("@postUpdateProcessing SPU processing pool size: " + processingPool.size());
+		logger.debug("@postUpdateProcessing SPU processing pool size: " + processingPool.size());
 
-			if (!processingPool.isEmpty()) {
-				logger.debug(
-						String.format("@postUpdateProcessing wait (%d ms) for %d SPUs to complete processing...", SPUManagerBeans.getSPUProcessingTimeout(),processingPool.size()));
-				try {
-					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout());
-				} catch (InterruptedException e) {
-					return;
-				}
+		if (!processingPool.isEmpty()) {
+			logger.debug(String.format("@postUpdateProcessing wait (%d ms) for %d SPUs to complete processing...",
+					SPUManagerBeans.getSPUProcessingTimeout(), processingPool.size()));
+			try {
+				wait(SPUManagerBeans.getSPUProcessingTimeout());
+			} catch (InterruptedException e) {
+				processingMutex.release();
+				throw new SEPAProcessingException(e);
 			}
+		}
 
-			// TIMEOUT
-			if (!processingPool.isEmpty()) {
-				logger.error("@postUpdateProcessing timeout on SPU processing. SPUs still running: "
-						+ processingPool.size());
-				for (SPU spu : processingPool) {
-					logger.error("@postUpdateProcessing zombie spuid: " + spu.getSPUID());
-				}
+		// TIMEOUT
+		if (!processingPool.isEmpty()) {
+			logger.error(
+					"@postUpdateProcessing timeout on SPU processing. SPUs still running: " + processingPool.size());
+			for (SPU spu : processingPool) {
+				logger.error("@postUpdateProcessing zombie spuid: " + spu.getSPUID());
 			}
 		}
 
@@ -159,18 +173,32 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		SPUManagerBeans.timings(start, stop);
 
 		logger.debug("*** POST PROCESSING SUBSCRIPTIONS END *** ");
+
+		processingMutex.release();
 	}
 
-	public void endOfProcessing(SPU s) {
+	public synchronized void endOfProcessing(SPU s) {
 		logger.debug("@endOfProcessing  SPUID: " + s.getSPUID());
 
-		synchronized (processingPool) {
-			processingPool.remove(s);
-			processingPool.notify();
-		}
+		processingPool.remove(s);
+		if (processingPool.isEmpty())
+			notify();
 	}
 
-	public synchronized Response subscribe(InternalSubscribeRequest req) {
+	public void exceptionOnProcessing(SPU s) {
+		logger.error("@exceptionOnProcessing  SPUID: " + s.getSPUID());
+
+		activeSpus.remove(s);
+		endOfProcessing(s);
+	}
+
+	public Response subscribe(InternalSubscribeRequest req) throws SEPAProcessingException {
+		try {
+			processingMutex.acquire();
+		} catch (InterruptedException e) {
+			throw new SEPAProcessingException(e);
+		}
+
 		SPUManagerBeans.subscribeRequest();
 
 		// Set the SPU Manager as event handler
@@ -202,44 +230,49 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			requests.put(req, spu);
 
 			// Create new entry for handler
-			synchronized (handlers) {
+			synchronized (spus) {
 				handlers.put(spu.getSPUID(), new HashSet<Subscriber>());
+				spus.put(spu.getSPUID(), spu);
 			}
-			spus.put(spu.getSPUID(), spu);
 
 			// Start the SPU thread
 			spu.setName(spu.getSPUID());
 			spu.start();
 
-			synchronized (handlers) {
-				SPUManagerBeans.setActiveSPUs(handlers.size());
-			}
+			SPUManagerBeans.setActiveSPUs(handlers.size());
+
 			logger.debug("@subscribe SPU activated: " + spu.getSPUID() + " total (" + handlers.size() + ")");
 		}
 
 		// New subscriber
 		Subscriber sub = new Subscriber(spu, req.getEventHandler());
-		synchronized (handlers) {
-			handlers.get(spu.getSPUID()).add(sub);
-		}
+		handlers.get(spu.getSPUID()).add(sub);
 		subscribers.put(sub.getSID(), sub);
 
 		SPUManagerBeans.addSubscriber();
 
 		Dependability.onSubscribe(sub.getGID(), sub.getSID());
 
+		processingMutex.release();
+
 		return new SubscribeResponse(sub.getSID(), req.getAlias(), sub.getSPU().getLastBindings());
 	}
 
-	public synchronized Response unsubscribe(String sid, String gid) {
+	public Response unsubscribe(String sid, String gid) throws SEPAProcessingException {
 		return internalUnsubscribe(sid, gid, true);
 	}
 
-	public synchronized void killSubscription(String sid, String gid) {
+	public void killSubscription(String sid, String gid) throws SEPAProcessingException {
 		internalUnsubscribe(sid, gid, false);
 	}
 
-	private Response internalUnsubscribe(String sid, String gid, boolean dep) {
+	private Response internalUnsubscribe(String sid, String gid, boolean dep) throws SEPAProcessingException {
+		try {
+			processingMutex.acquire();
+		} catch (InterruptedException e) {
+			throw new SEPAProcessingException(e);
+		}
+
 		if (!subscribers.containsKey(sid)) {
 			logger.warn("@internalUnsubscribe SID not found: " + sid);
 			return new ErrorResponse(500, "sid_not_found", "Unregistering a not existing subscriber: " + sid);
@@ -251,34 +284,35 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		logger.trace("@internalUnsubscribe SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
 				+ subscribers.size());
-		synchronized (handlers) {
-			handlers.get(spuid).remove(sub);
-		}
+
+		handlers.get(spuid).remove(sub);
 		subscribers.remove(sid);
 
 		SPUManagerBeans.removeSubscriber();
 
 		// No more handlers: remove SPU
-		synchronized (handlers) {
-			if (handlers.get(spuid).isEmpty()) {
-				logger.debug("@internalUnsubscribe no more subscribers. Kill SPU: " + sub.getSPU().getSPUID());
+		if (handlers.get(spuid).isEmpty()) {
+			logger.debug("@internalUnsubscribe no more subscribers. Kill SPU: " + sub.getSPU().getSPUID());
 
-				// If it is the last handler: kill SPU
-				spus.get(spuid).finish();
-				spus.get(spuid).interrupt();
+			// If it is the last handler: kill SPU
+			spus.get(spuid).finish();
+			spus.get(spuid).interrupt();
 
-				// Clear
+			// Clear
+			synchronized (spus) {
 				spus.remove(spuid);
 				requests.remove(sub.getSPU().getSubscribe());
 				handlers.remove(spuid);
-
-				logger.info("@internalUnsubscribe active SPUs: " + spus.size());
-				SPUManagerBeans.setActiveSPUs(spus.size());
 			}
+
+			logger.info("@internalUnsubscribe active SPUs: " + spus.size());
+			SPUManagerBeans.setActiveSPUs(spus.size());
 		}
 
 		if (dep)
 			Dependability.onUnsubscribe(gid, sid);
+
+		processingMutex.release();
 
 		return new UnsubscribeResponse(sid);
 	}
@@ -289,9 +323,8 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		String spuid = notify.getSpuid();
 
-		if (spus.containsKey(spuid)) {
-
-			synchronized (handlers) {
+		synchronized (spus) {
+			if (spus.containsKey(spuid)) {
 				for (Subscriber client : handlers.get(spuid)) {
 					try {
 						// Dispatching events
