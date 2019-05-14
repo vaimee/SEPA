@@ -16,6 +16,7 @@ import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
@@ -86,7 +87,12 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			fragmentedMessages.remove(conn);
 
 			// Close gate
-			if (gates.get(conn) != null) gates.get(conn).close();
+			if (gates.get(conn) != null)
+				try {
+					gates.get(conn).close();
+				} catch (SEPAProcessingException e) {
+					logger.warn(e.getMessage());
+				}
 
 			// Remove from active gates
 			gates.remove(conn);

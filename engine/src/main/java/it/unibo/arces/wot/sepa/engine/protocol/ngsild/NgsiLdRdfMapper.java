@@ -1,8 +1,16 @@
 package it.unibo.arces.wot.sepa.engine.protocol.ngsild;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +18,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -22,14 +31,18 @@ import org.apache.jena.sparql.core.DatasetGraph;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.github.jsonldjava.core.Context;
+import com.github.jsonldjava.core.DocumentLoader;
 import com.github.jsonldjava.core.JsonLdApi;
+import com.github.jsonldjava.core.JsonLdError;
 import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.core.RDFDataset;
 import com.github.jsonldjava.core.RDFDataset.Node;
 import com.github.jsonldjava.core.RDFDataset.Quad;
 import com.github.jsonldjava.core.RDFDatasetUtils;
+import com.github.jsonldjava.core.RemoteDocument;
 import com.github.jsonldjava.utils.JsonUtils;
 
 import com.google.gson.JsonArray;
@@ -38,11 +51,14 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import it.unibo.arces.wot.sepa.api.ITSPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.engine.bean.NgisLdHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
@@ -134,6 +150,10 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 	 * Converts from a JSON LD object into a RDF graph
 	 */
 	private RDFDataset fromJsonLd(JsonObject in) {
+		DocumentLoader d1 = new DocumentLoader();
+        final RemoteDocument document = d1.loadDocument("http://schema.org/docs/jsonldcontext.json");
+        final Object context = document.getDocument();
+        
 		// JSON-LD JAVA
 		Map<String, Object> jsonLd = null;
 		try {
@@ -146,17 +166,94 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 			return null;
 		}
 
+		// Fake document loader that always returns the imported context
+		// from classpath
+		DocumentLoader documentLoader = new DocumentLoader() {
+			@Override
+			public RemoteDocument loadDocument(String url) throws JsonLdError {
+				Object context = null;
+				try {
+					URL link = new URL(url);
+
+					HttpURLConnection urlConn = (HttpURLConnection) link.openConnection();
+					urlConn.addRequestProperty("Accept", "application/ld+json");
+
+					StringWriter output = new StringWriter();
+					try (InputStream directStream = urlConn.getInputStream();) {
+						IOUtils.copy(directStream, output, Charset.forName("UTF-8"));
+					}
+					context = JsonUtils.fromReader(new StringReader(output.toString()));
+				} catch (MalformedURLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (JsonParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				return new RemoteDocument(url, context);
+			}
+		};
+		
 		JsonLdOptions options = new JsonLdOptions();
-		options.setProcessingMode(JsonLdOptions.JSON_LD_1_1);
-		//
-		// String localContextString = null;
+		options.setDocumentLoader(documentLoader);
+
+//		// Loading remote context
+//		DocumentLoader documentLoader = new DocumentLoader();
+//		try {
+//			final URL url = new URL("https://schema.org/docs/jsonldcontext.json");
+//
+//			final HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
+//			urlConn.addRequestProperty("Accept", "application/ld+json");
+//
+//			final StringWriter output = new StringWriter();
+//			try (final InputStream directStream = urlConn.getInputStream();) {
+//				IOUtils.copy(directStream, output, Charset.forName("UTF-8"));
+//			}
+//			final Object context = JsonUtils.fromReader(new StringReader(output.toString()));
+//		} catch (MalformedURLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (JsonParseException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+
+		
+
 		// try {
-		// localContextString = new String(Files.readAllBytes(Paths.get("td.jsonld")));
-		// } catch (IOException e) {
-		// logger.error(e.getMessage());
+		// DocumentLoader documentLoader = new DocumentLoader();
+		// ClassLoader classLoader = NgsiLdRdfMapper.class.getClassLoader();
+		// File keyFile = new File(classLoader.getResource("sepa.jks").getFile());
+		// SEPASecurityManager sm = new SEPASecurityManager(keyFile.getPath(),
+		// "sepa2017", "sepa2017", null);
+		// documentLoader.setHttpClient(sm.getSSLHttpClient());
+		// options.setDocumentLoader(documentLoader);
+		// } catch (SEPASecurityException e) {
+		// // TODO Auto-generated catch block
+		// e.printStackTrace();
 		// }
+
+		// options.setProcessingMode(JsonLdOptions.JSON_LD_1_0);
+		//
+		// String localContextString =
+		// "[\"https://schema.org/docs/jsonldcontext.json\",\"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld\"]";
+		// // try {
+		// // localContextString = new
+		// String(Files.readAllBytes(Paths.get("td.jsonld")));
+		// // } catch (IOException e) {
+		// // logger.error(e.getMessage());
+		// // }
 		// DocumentLoader dl = new DocumentLoader();
-		// dl.addInjectedDoc("https://www.w3.org/ns/td.jsonld", localContextString);
+		// dl.addInjectedDoc("https://schema.org/docs/jsonldcontext.json",
+		// localContextString);
+		// dl.addInjectedDoc("https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
+		// localContextString);
 		// options.setDocumentLoader(dl);
 
 		// Context localContext = getLocalContext(in.get("@context"));

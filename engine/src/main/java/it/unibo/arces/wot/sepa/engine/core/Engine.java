@@ -17,10 +17,15 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
+import java.util.Iterator;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.AppenderRef;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -306,8 +311,17 @@ public class Engine implements EngineMBean {
 			System.out.println(
 					"*****************************************************************************************");
 
-			System.out.println("Log level: " +logger.getLevel().toString());
-			
+			System.out.println(">>> Logging <<<");
+			System.out.println("Level: " +logger.getLevel().toString());
+			final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+	        final Configuration config = ctx.getConfiguration();
+	        LoggerConfig rootLoggerConfig = config.getLoggers().get("");
+	        Iterator<AppenderRef> it = rootLoggerConfig.getAppenderRefs().iterator();
+			while(it.hasNext()) {
+				AppenderRef ref = it.next();
+				System.out.println("Appender: <"+ref.getRef()+"> Level: "+ref.getLevel());
+			}
+	
 		} catch (SEPAPropertiesException | SEPASecurityException
 				| IllegalArgumentException | SEPAProtocolException | InterruptedException e) {
 			System.err.println(e.getMessage());

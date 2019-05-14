@@ -28,10 +28,11 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-
+import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 /**
@@ -43,11 +44,12 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  */
 
 public abstract class SPU extends Thread implements ISPU {
-	
+
 	// To be implemented by a specific SPU
-	public abstract Response postUpdateInternalProcessing();
-	public abstract void preUpdateInternalProcessing(InternalUpdateRequest update);
-	
+	public abstract Notification postUpdateInternalProcessing(UpdateResponse ret) throws SEPAProcessingException;
+
+	public abstract void preUpdateInternalProcessing(InternalUpdateRequest update) throws SEPAProcessingException;
+
 	protected final Logger logger = LogManager.getLogger();
 
 	// SPU identifier
@@ -64,9 +66,6 @@ public abstract class SPU extends Thread implements ISPU {
 
 	// Last bindings results
 	protected BindingsResults lastBindings = null;
-
-	// Notification result
-	private Response notify;
 
 	// List of processing SPU
 	protected final SPUManager manager;
@@ -115,9 +114,9 @@ public abstract class SPU extends Thread implements ISPU {
 	}
 
 	@Override
-	public final void preUpdateProcessing(InternalUpdateRequest res) {
+	public final void preUpdateProcessing(InternalUpdateRequest req) {
 		try {
-			updateRequestQueue.put(res);
+			updateRequestQueue.put(req);
 		} catch (InterruptedException e) {
 			logger.error(e.getMessage());
 		}
@@ -131,53 +130,41 @@ public abstract class SPU extends Thread implements ISPU {
 			Response response;
 
 			try {
+				// Wait update request
 				logger.debug("Wait update request...");
 				request = updateRequestQueue.take();
-			} catch (InterruptedException e1) {
-				// Notify SPU manager
+				
+				// PRE processing
+				logger.debug("* PRE PROCESSING *");
+				preUpdateInternalProcessing(request);
 				logger.debug("Notify SPU manager of EOP. Running: " + running);
 				manager.endOfProcessing(this);
-				continue;
-			}
-
-			// Processing update
-			logger.debug("* PRE PROCESSING *");
-			preUpdateInternalProcessing(request);
-
-			// Notify SPU manager
-			logger.debug("Notify SPU manager of EOP. Running: " + running);
-			manager.endOfProcessing(this);
-
-			// Wait
-			try {
+				
+				// Wait update response
 				logger.debug("Wait update response...");
 				response = updateResponseQueue.take();
-			} catch (InterruptedException e1) {
-				// Notify SPU manager
-				logger.debug("Notify SPU manager of EOP. Running: " + running);
-				manager.endOfProcessing(this);
-				continue;
-			}
-
-			if (!response.isError()) {
+				
 				// POST processing and waiting for result
 				logger.debug("* POST PROCESSING *");
-				notify = postUpdateInternalProcessing();
-
-				// Notify event handler
-				if (notify.isNotification())
-					try {
-						subscribe.getEventHandler().notifyEvent((Notification) notify);
-					} catch (SEPAProtocolException e) {
-						logger.error(e.getMessage());
-					}
-				else
-					logger.debug("Not a notification: " + notify);
+				Notification notify = postUpdateInternalProcessing((UpdateResponse) response);
+				logger.debug("Notify SPU manager of EOP. Running: " + running);
+				manager.endOfProcessing(this);
+				if (notify != null) subscribe.getEventHandler().notifyEvent(notify);			
+			} catch (InterruptedException e1) {
+				logger.warn(e1.getMessage());
+				running.set(false);
+				logger.warn("SPU interrupted. Exit");
+				manager.exceptionOnProcessing(this);
+				break;
+			} catch (SEPAProcessingException e2) {
+				logger.warn(e2.getMessage());
+				manager.exceptionOnProcessing(this);
+				continue;
+			} catch (SEPAProtocolException e3) {
+				logger.warn(e3.getMessage());
+				manager.exceptionOnProcessing(this);
+				continue;
 			}
-
-			// Notify SPU manager
-			logger.debug("Notify SPU manager of EOP. Running: " + running);
-			manager.endOfProcessing(this);
 		}
 	}
 }
