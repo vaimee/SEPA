@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.nimbusds.jose.JOSEException;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
@@ -47,7 +48,7 @@ public class Dependability {
 		return AuthorizationManager.validateToken(jwt);
 	}
 
-	public static void onCloseGate(String gid) {
+	public static void onCloseGate(String gid) throws SEPAProcessingException {
 		SubscriptionManager.onClose(gid);
 	}
 

@@ -1,11 +1,17 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 class UpdateProcessingThread extends Thread {
+	private static final Logger logger = LogManager.getLogger();
+	
 	private final Processor processor;
 	
 	public UpdateProcessingThread(Processor processor) {
@@ -31,17 +37,33 @@ class UpdateProcessingThread extends Thread {
 			// PRE-processing update request
 			InternalUpdateRequest preRequest = processor.getUpdateProcessor().preProcess(update);
 			
-			// PRE-processing subscriptions (pre update)
-			processor.preUpdateProcessing(preRequest);
+			// PRE-processing subscriptions (endpoint not yet updated)
+			try {
+				processor.preUpdateProcessing(preRequest);
+			} catch (SEPAProcessingException e) {
+				logger.warn("Pre processing interrupted. "+e.getMessage());
+				continue;
+			}
 			
-			// Processing update
-			Response ret = processor.getUpdateProcessor().process(preRequest);
+			// Processing UPDATE
+			Response ret;
+			try {
+				ret = processor.getUpdateProcessor().process(preRequest);
+			} catch (InterruptedException e1) {
+				logger.warn("Update processing interrupted. "+e1.getMessage());
+				continue;
+			}
 
 			// Notify update result
 			if (processor.isUpdateReilable()) processor.getScheduler().addResponse(request.getToken(),ret);
 
 			// Subscription processing (post update)
-			processor.postUpdateProcessing(ret);
+			try {
+				processor.postUpdateProcessing(ret);
+			} catch (SEPAProcessingException e) {
+				logger.warn("Post processing interrupted. "+e.getMessage());
+				continue;
+			}
 		}
 	}
 }

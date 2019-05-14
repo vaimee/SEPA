@@ -48,41 +48,38 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		this.endpoint = new SPARQL11Protocol();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
-		
+
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
-	
+
 	public synchronized InternalUpdateRequest preProcess(InternalUpdateRequest update) {
 		return update;
 	}
 
-	public synchronized Response process(InternalUpdateRequest req) {
+	public synchronized Response process(InternalUpdateRequest req) throws InterruptedException {
 		long start = Timings.getTime();
 
 		if (endpointSemaphore != null)
-			try {
-				//TODO: timeout
-				endpointSemaphore.acquire();
-			} catch (InterruptedException e) {
-				return new ErrorResponse(500, "InterruptedException",e.getMessage());
-			}
+			// TODO: timeout
+			endpointSemaphore.acquire();
 
 		// Authorized access to the endpoint
 		String authorizationHeader = null;
 		try {
-			//TODO: to implement also bearer authentication
+			// TODO: to implement also bearer authentication
 			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
-			if (oauth.isEnabled()) authorizationHeader = oauth.getBasicAuthorizationHeader();			
+			if (oauth.isEnabled())
+				authorizationHeader = oauth.getBasicAuthorizationHeader();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn("Authorization header "+e.getMessage());
+			logger.warn("Authorization header " + e.getMessage());
 		}
-				
+
 		// UPDATE the endpoint
 		Response ret;
-		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(),
-				properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
-				properties.getUpdatePath(), req.getSparql(), req.getDefaultGraphUri(),
-				req.getNamedGraphUri(), authorizationHeader,UpdateProcessorBeans.getTimeout());
+		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getDefaultProtocolScheme(),
+				properties.getDefaultHost(), properties.getDefaultPort(), properties.getUpdatePath(), req.getSparql(),
+				req.getDefaultGraphUri(), req.getNamedGraphUri(), authorizationHeader,
+				UpdateProcessorBeans.getTimeout());
 		logger.trace(request);
 		ret = endpoint.update(request);
 
@@ -91,10 +88,10 @@ class UpdateProcessor implements UpdateProcessorMBean {
 
 		long stop = Timings.getTime();
 		UpdateProcessorBeans.timings(start, stop);
-		
+
 		logger.trace("Response: " + ret.toString());
 		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
-		
+
 		return ret;
 	}
 

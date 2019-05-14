@@ -27,6 +27,9 @@ public class ProcessorBeans {
 	public static int getMaxConcurrentRequests() {
 		return maxConcurrentRequests;
 	}
+	public static void setMaxConcurrentRequests(int n) {
+		maxConcurrentRequests = n;
+	}
 	public static String getEndpointHost() {
 		return host;
 	}

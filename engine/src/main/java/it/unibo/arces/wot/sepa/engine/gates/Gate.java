@@ -12,6 +12,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
@@ -42,7 +43,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		return scheduler;
 	}
 
-	public final void close() {
+	public final void close() throws SEPAProcessingException {
 		Dependability.onCloseGate(gid);
 	}
 	
