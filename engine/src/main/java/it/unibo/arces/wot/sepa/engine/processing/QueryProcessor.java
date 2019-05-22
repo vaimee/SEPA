@@ -69,7 +69,7 @@ public class QueryProcessor implements QueryProcessorMBean {
 		AuthenticationProperties oauth = null;
 		try {
 			// TODO: to implement also bearer authentication
-			oauth = new AuthenticationProperties(properties.getFilename());
+			oauth = new AuthenticationProperties(properties.getJSAPFilename());
 			if (oauth.isEnabled())
 				authorizationHeader = oauth.getBasicAuthorizationHeader();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
@@ -78,8 +78,8 @@ public class QueryProcessor implements QueryProcessorMBean {
 
 		Response ret;
 		QueryRequest request;
-		request = new QueryRequest(properties.getQueryMethod(), properties.getDefaultProtocolScheme(),
-				properties.getDefaultHost(), properties.getDefaultPort(), properties.getDefaultQueryPath(),
+		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
+				properties.getHost(), properties.getPort(), properties.getQueryPath(),
 				req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
 				authorizationHeader,QueryProcessorBeans.getTimeout());
 

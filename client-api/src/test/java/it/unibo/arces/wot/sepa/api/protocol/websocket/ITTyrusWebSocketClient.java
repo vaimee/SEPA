@@ -46,9 +46,9 @@ public class ITTyrusWebSocketClient {
 		if (properties.isSecure()) {
 			int port = properties.getSubscribePort();
 			if (port == -1)
-				url = "wss://" + properties.getDefaultHost() + properties.getSubscribePath();
+				url = "wss://" + properties.getSubscribeHost() + properties.getSubscribePath();
 			else
-				url = "wss://" + properties.getDefaultHost() + ":" + String.valueOf(port)
+				url = "wss://" + properties.getSubscribeHost() + ":" + String.valueOf(port)
 						+ properties.getSubscribePath();
 
 			try {
@@ -59,9 +59,9 @@ public class ITTyrusWebSocketClient {
 		} else {
 			int port = properties.getSubscribePort();
 			if (port == -1)
-				url = "ws://" + properties.getDefaultHost() + properties.getSubscribePath();
+				url = "ws://" + properties.getSubscribeHost() + properties.getSubscribePath();
 			else
-				url = "ws://" + properties.getDefaultHost() + ":" + String.valueOf(port)
+				url = "ws://" + properties.getSubscribeHost() + ":" + String.valueOf(port)
 						+ properties.getSubscribePath();
 		}
 	}

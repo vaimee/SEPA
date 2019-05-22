@@ -88,6 +88,23 @@ public class AuthenticationProperties {
 		this(jsapFileName, null);
 	}
 
+	public AuthenticationProperties() {
+		enabled = false;
+		registrationURL = "https://localhost:8443/oauth/register";
+		tokenRequestURL = "https://localhost:8443/oauth/token";
+		propertiesFile = null;
+		
+		encryption = new Encryption();
+		
+		jsap = new JsonObject();
+//		JsonObject oauth = new JsonObject();
+//		oauth.add("enable", new JsonPrimitive(false));
+//		oauth.add("register", new JsonPrimitive("https://localhost:8443/oauth/register"));
+//		oauth.add("tokenRequest", new JsonPrimitive("https://localhost:8443/oauth/token"));
+//		
+//		jsap.add("oauth", oauth);
+	}
+
 	public boolean isEnabled() {
 		return enabled;
 	}

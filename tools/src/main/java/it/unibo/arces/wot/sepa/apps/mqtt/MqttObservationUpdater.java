@@ -1,6 +1,7 @@
 package it.unibo.arces.wot.sepa.apps.mqtt;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,12 +25,12 @@ public class MqttObservationUpdater extends Aggregator {
 
 	private final MqttTopicMapper mapper;
 
-	public MqttObservationUpdater(JSAP jsap, SEPASecurityManager sm)
-			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, SEPABindingsException {
+	public MqttObservationUpdater(JSAP jsap, SEPASecurityManager sm) throws SEPAProtocolException,
+			SEPASecurityException, SEPAPropertiesException, IOException, SEPABindingsException {
 		super(jsap, "MQTT_MESSAGES", "UPDATE_OBSERVATION_VALUE", sm);
-		
+
 		mapper = new MqttTopicMapper(jsap, sm);
-		mapper.subscribe(5000);	
+		mapper.subscribe(5000);
 	}
 
 	@Override
@@ -39,22 +40,26 @@ public class MqttObservationUpdater extends Aggregator {
 			String topic = bindings.getValue("topic");
 			String value = bindings.getValue("value");
 
-			if (value == null || topic == null) continue;
-			if (value.equals("NaN")) continue;
-			
-			try {
-				String[] observation = mapper.map(topic, value);
+			if (value == null || topic == null)
+				continue;
+			if (value.equals("NaN"))
+				continue;
 
-				if (observation == null) {
+			try {
+				ArrayList<String[]> observations = mapper.map(topic, value);
+
+				if (observations == null) {
 					logger.warn("Topic NOT found: " + topic);
 					continue;
 				}
-				
-				setUpdateBindingValue("observation", new RDFTermURI(observation[0]));
-				setUpdateBindingValue("value", new RDFTermLiteral(observation[1],
-						appProfile.getUpdateBindings("UPDATE_OBSERVATION_VALUE").getDatatype("value")));
 
-				update();
+				for (String[] observation : observations) {
+					setUpdateBindingValue("observation", new RDFTermURI(observation[0]));
+					setUpdateBindingValue("value", new RDFTermLiteral(observation[1],
+							appProfile.getUpdateBindings("UPDATE_OBSERVATION_VALUE").getDatatype("value")));
+
+					update();
+				}
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 			}

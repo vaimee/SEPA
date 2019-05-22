@@ -18,6 +18,7 @@
 package it.unibo.arces.wot.sepa.engine.core;
 
 import java.util.Iterator;
+import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.logging.log4j.LogManager;
@@ -198,6 +199,21 @@ public class Engine implements EngineMBean {
 
 		// Command arguments
 		parsingArgument(args);
+		
+		// Environmental variable for DOCKER
+		Map<String, String> env = System.getenv();
+		if (env.containsKey("SEPA_ENV_ENDPOINT")) {
+			logger.debug("SEPA_ENV_ENDPOINT: "+env.get("SEPA_ENV_ENDPOINT").toUpperCase());
+			switch(env.get("SEPA_ENV_ENDPOINT").toUpperCase()) {
+			case "VIRTUOSO":
+				endpointJpar = "virtuoso.jpar";
+				break;
+			case "BLAZEGRAPH":
+				endpointJpar = "blazegraph.jpar";
+				break;
+			}
+		}
+		logger.debug("endpointJpar: "+endpointJpar);
 
 		// Beans
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
@@ -213,6 +229,10 @@ public class Engine implements EngineMBean {
 			EngineBeans.setEngineProperties(properties);
 
 			SPARQL11Properties endpointProperties = new SPARQL11Properties(endpointJpar);
+			
+			// DOCKER environmental variable
+			if (env.containsKey("SEPA_ENV_ENDPOINT_HOST"))
+				endpointProperties.setHost(env.get("SEPA_ENV_ENDPOINT_HOST"));
 
 			// OAUTH 2.0 Authorization Manager
 			if (properties.isSecure()) {
@@ -227,7 +247,7 @@ public class Engine implements EngineMBean {
 			Dependability.setProcessor(processor);
 			
 			// SPARQL protocol service
-			int port = endpointProperties.getDefaultPort();
+			int port = endpointProperties.getPort();
 			String portS = "";
 			if (port != -1)
 				portS = String.format(":%d", port);
@@ -260,9 +280,9 @@ public class Engine implements EngineMBean {
 
 			System.out.println("SPARQL 1.1 endpoint");
 			System.out.println("----------------------");
-			System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getDefaultHost() + portS
-					+ endpointProperties.getDefaultQueryPath() + queryMethod);
-			System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getDefaultHost() + portS
+			System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getHost() + portS
+					+ endpointProperties.getQueryPath() + queryMethod);
+			System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getHost() + portS
 					+ endpointProperties.getUpdatePath() + updateMethod);
 			System.out.println("----------------------");
 			System.out.println("");
