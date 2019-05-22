@@ -34,7 +34,7 @@ public class MqttAdapter extends Producer implements MqttCallback {
 
 	private boolean sslEnabled = false;
 	private MqttConnectOptions options;
-	
+
 	public void simulator(JsonObject topics) {
 		new Thread() {
 			public void run() {
@@ -43,20 +43,21 @@ public class MqttAdapter extends Producer implements MqttCallback {
 						String topic = observation.getKey();
 						int min = observation.getValue().getAsJsonArray().get(0).getAsInt();
 						int max = observation.getValue().getAsJsonArray().get(1).getAsInt();
-						String value = String.format("%.2f", min + (Math.random() * (max - min)));						
-						
-						logger.info("[Simulate MQTT message] Topic: "+topic+ " Value: "+value);
-						
+						String value = String.format("%.2f", min + (Math.random() * (max - min)));
+
+						logger.info("[Simulate MQTT message] Topic: " + topic + " Value: " + value);
+
 						try {
-							setUpdateBindingValue("topic",new RDFTermLiteral(topic));
-							setUpdateBindingValue("value",new RDFTermLiteral(value));
-							setUpdateBindingValue("broker",new RDFTermLiteral("simulator"));
-							
+							setUpdateBindingValue("topic", new RDFTermLiteral(topic));
+							setUpdateBindingValue("value", new RDFTermLiteral(value));
+							setUpdateBindingValue("broker", new RDFTermLiteral("simulator"));
+
 							update();
-						} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+						} catch (SEPASecurityException | IOException | SEPAPropertiesException
+								| SEPABindingsException e) {
 							logger.error(e.getMessage());
 						}
-						
+
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {
@@ -67,18 +68,18 @@ public class MqttAdapter extends Producer implements MqttCallback {
 			}
 		}.start();
 	}
-	
-	public MqttAdapter(JSAP appProfile, SEPASecurityManager sm,JsonObject mqtt,boolean sim)
+
+	public MqttAdapter(JSAP appProfile, SEPASecurityManager sm, JsonObject mqtt, boolean sim)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, MqttException {
 		super(appProfile, "MQTT_MESSAGE", sm);
-		
+
 		if (sim) {
 			simulator(mqtt);
 			return;
 		}
-		
-		//JsonObject mqtt = appProfile.getExtendedData().get("mqtt").getAsJsonObject();
-		
+
+		// JsonObject mqtt = appProfile.getExtendedData().get("mqtt").getAsJsonObject();
+
 		String url = mqtt.get("url").getAsString();
 		int port = mqtt.get("port").getAsInt();
 		JsonArray topics = mqtt.get("topics").getAsJsonArray();
@@ -124,10 +125,17 @@ public class MqttAdapter extends Producer implements MqttCallback {
 
 		// Connect
 		logger.info("Connecting...");
-		try {
-			mqttClient.connect(options);
-		} catch (MqttException e) {
-			logger.error(e.getMessage());
+		while (!mqttClient.isConnected()) {
+			try {
+				mqttClient.connect(options);
+			} catch (MqttException e) {
+				logger.error(e.getMessage()+" Broker URI: "+mqttClient.getServerURI());
+				try {
+					Thread.sleep(10000);
+				} catch (InterruptedException e1) {
+					return;
+				}
+			}
 		}
 
 		// Subscribe
@@ -174,7 +182,7 @@ public class MqttAdapter extends Producer implements MqttCallback {
 	}
 
 	@Override
-	public void messageArrived(String topic, MqttMessage message)  {
+	public void messageArrived(String topic, MqttMessage message) {
 		byte[] payload = message.getPayload();
 		String converted = "";
 		for (int i = 0; i < payload.length; i++) {
@@ -183,13 +191,13 @@ public class MqttAdapter extends Producer implements MqttCallback {
 			converted += String.format("%c", payload[i]);
 		}
 
-		logger.info(serverURI+" message received: " + topic + " " + converted);
-		
+		logger.info(serverURI + " message received: " + topic + " " + converted);
+
 		try {
-			setUpdateBindingValue("topic",new RDFTermLiteral(topic));
-			setUpdateBindingValue("value",new RDFTermLiteral(converted));
-			setUpdateBindingValue("broker",new RDFTermLiteral(serverURI));
-			
+			setUpdateBindingValue("topic", new RDFTermLiteral(topic));
+			setUpdateBindingValue("value", new RDFTermLiteral(converted));
+			setUpdateBindingValue("broker", new RDFTermLiteral(serverURI));
+
 			update();
 		} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
@@ -205,7 +213,7 @@ public class MqttAdapter extends Producer implements MqttCallback {
 	@Override
 	public void close() throws IOException {
 		super.close();
-		
+
 		try {
 			if (topicsFilter != null)
 				mqttClient.unsubscribe(topicsFilter);
@@ -219,5 +227,5 @@ public class MqttAdapter extends Producer implements MqttCallback {
 			logger.error("Failed to disconnect " + e.getMessage());
 		}
 	}
-	
+
 }

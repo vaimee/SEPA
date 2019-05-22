@@ -50,12 +50,37 @@
 	},
 	"extended": {
 		"adapters": {
-			"simulator": [
+			"mqtt": [
 				{
-					"/ffa574972ab9/applink/107/001BC50C700009CD": [
-						10,
-						50
-					]
+					"url": "eu.thethings.network",
+					"port": 1883,
+					"topics": [
+						"swamp/devices/moisture1/up/Moisture_Signal_to_Supply_Perc",
+						"swamp/devices/moisture1/up/Moisture_Supply_Voltage",
+						"swamp/devices/moisture1/up/Battery_Level"
+					],
+					"ssl": false,
+					"username": "swamp",
+					"password": "ttn-account-v2.ES-s-MdMIHv8Z8HI5BR0FHzRjLD0WEmySE7cYM-Kepg"
+				},
+				{
+					"url": "giove.arces.unibo.it",
+					"port": 52877,
+					"topics": [
+						"#"
+					],
+					"ssl": false
+				},
+				{
+					"url": "roger.wizzilab.com",
+					"port": 8883,
+					"topics": [
+						"/applink/3BC51892/report/107/001BC50C700009BB",
+						"/applink/3BC51892/report/107/001BC50C700009CD"
+					],
+					"ssl": false,
+					"username": "ffa574972ab9",
+					"password": "6e257b56172ea934d79ee1f5c2c1c7a9"
 				}
 			]
 		},
@@ -238,14 +263,14 @@
 			}
 		},
 		"semantic-mappings": {
-			"/ffa574972ab9/applink/107/001BC50C700009CD": {
+			"/applink/3BC51892/report/107/001BC50C700009CD": {
 				"observation": "arces-monitor:001BC50C700009CD-DASH7-Temperature",
 				"unit": "qudt-unit-1-1:DegreeCelsius",
 				"location": "arces-monitor:Star_SEHM_Lab",
 				"comment": "Temperature sensor used to show the need of a new air conditioning system in SEHM lab",
 				"label": "SEHM lab temperature (Star)"
 			},
-			"/ffa574972ab9/applink/107/001BC50C700009BB": {
+			"/applink/3BC51892/report/107/001BC50C700009BB": {
 				"observation": "arces-monitor:001BC50C700009BB-DASH7-Temperature",
 				"unit": "qudt-unit-1-1:DegreeCelsius",
 				"location": "arces-monitor:Star_ST_Office",
@@ -830,7 +855,7 @@
 			}
 		},
 		"CONTAINED_PLACES": {
-			"sparql": "SELECT * where { ?root schema:containsPlace ?child . ?child schema:name ?childName}",
+			"sparql": "SELECT * where { ?root schema:containsPlace ?child }",
 			"forcedBindings": {
 				"root": {
 					"type": "uri",
@@ -845,7 +870,7 @@
 			"sparql": "SELECT * WHERE {?observation rdf:type sosa:Observation ; arces-monitor:hasMqttTopic ?topic}"
 		},
 		"OBSERVATIONS": {
-			"sparql": "SELECT * WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity ; sosa:hasFeatureOfInterest ?location . ?location schema:name ?name . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit . OPTIONAL {?quantity qudt-1-1:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}}"
+			"sparql": "SELECT * WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity ; sosa:hasFeatureOfInterest ?location . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit . OPTIONAL {?quantity qudt-1-1:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}}"
 		},
 		"OBSERVATIONS_BY_LOCATION": {
 			"sparql": "SELECT * WHERE { ?observation sosa:hasFeatureOfInterest ?location ; rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity . ?quantity rdf:type qudt-1-1:QuantityValue ; qudt-1-1:unit ?unit . OPTIONAL {?quantity qudt-1-1:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}}",
@@ -901,12 +926,6 @@
 		},
 		"LIVE_TRIPLES": {
 			"sparql": "SELECT (COUNT(?log) AS ?count) WHERE {GRAPH <http://wot.arces.unibo.it/monitor/mqtt> {?log ?x ?y}}"
-		},
-		"OBSERVATIONS_COUNT": {
-			"sparql": "SELECT (COUNT(?log) AS ?count) WHERE {GRAPH <http://wot.arces.unibo.it/monitor/mqtt> {?log rdf:type sosa:Observation}}"
-		},
-		"PLACES_COUNT": {
-			"sparql": "SELECT (COUNT(?log) AS ?count) WHERE {GRAPH <http://wot.arces.unibo.it/monitor/mqtt> {?log rdf:type schema:Place}}"
 		}
 	}
 }

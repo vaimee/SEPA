@@ -67,7 +67,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		String authorizationHeader = null;
 		try {
 			// TODO: to implement also bearer authentication
-			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
+			AuthenticationProperties oauth = new AuthenticationProperties(properties.getJSAPFilename());
 			if (oauth.isEnabled())
 				authorizationHeader = oauth.getBasicAuthorizationHeader();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
@@ -76,8 +76,8 @@ class UpdateProcessor implements UpdateProcessorMBean {
 
 		// UPDATE the endpoint
 		Response ret;
-		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getDefaultProtocolScheme(),
-				properties.getDefaultHost(), properties.getDefaultPort(), properties.getUpdatePath(), req.getSparql(),
+		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
+				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
 				req.getDefaultGraphUri(), req.getNamedGraphUri(), authorizationHeader,
 				UpdateProcessorBeans.getTimeout());
 		logger.trace(request);

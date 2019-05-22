@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.engine.core;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Map;
 import java.util.NoSuchElementException;
 
 import org.apache.logging.log4j.Logger;
@@ -77,8 +78,9 @@ public class EngineProperties {
 
 	public EngineProperties(String propertiesFile) throws SEPAPropertiesException {
 
-		if (propertiesFile == null)
+		if (propertiesFile == null) {
 			throw new SEPAPropertiesException(new IllegalArgumentException("Properties file is null"));
+		}
 
 		FileReader in = null;
 		try {

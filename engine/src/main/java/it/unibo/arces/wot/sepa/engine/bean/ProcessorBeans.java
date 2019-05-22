@@ -14,9 +14,9 @@ public class ProcessorBeans {
 	private static int maxConcurrentRequests;
 	
 	public static void setEndpoint(SPARQL11Properties prop,int maxReq) {
-		host = prop.getDefaultHost();
-		port = prop.getDefaultPort();
-		queryPath = prop.getDefaultQueryPath();
+		host = prop.getHost();
+		port = prop.getPort();
+		queryPath = prop.getQueryPath();
 		updatePath = prop.getUpdatePath();
 		updateMethod = prop.getUpdateMethod().name();
 		queryMethod = prop.getQueryMethod().name();

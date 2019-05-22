@@ -625,8 +625,9 @@ public class Dashboard {
 				}
 				rows.add(row);
 			}
-
-			subscriptionResultsTables.get(spuid).changeSelection(subscriptionResultsTables.get(spuid).getRowCount() - 1,
+			
+			if (subscriptionResultsTables.get(spuid) != null)
+				subscriptionResultsTables.get(spuid).changeSelection(subscriptionResultsTables.get(spuid).getRowCount() - 1,
 					0, false, false);
 
 			super.fireTableDataChanged();
