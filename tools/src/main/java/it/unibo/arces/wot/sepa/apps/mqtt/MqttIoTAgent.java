@@ -69,8 +69,7 @@ public class MqttIoTAgent {
 		return false;
 	}
 
-	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException,
-			IOException, MqttException, SEPABindingsException {
+	public static void main(String[] args) {
 		if (args.length < 1) {
 			printUsage();
 			System.exit(-1);
@@ -78,15 +77,32 @@ public class MqttIoTAgent {
 
 		SEPASecurityManager sm = null;
 
-		JSAP app = new JSAP(args[0]);
+		JSAP app = null;
+		try {
+			app = new JSAP(args[0]);
+		} catch (SEPAPropertiesException | SEPASecurityException e1) {
+			logger.error(e1.getMessage());
+			return;
+		}
+		
 		if (app.isSecure())
-			sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", app.getAuthenticationProperties());
+			try {
+				sm = new SEPASecurityManager("sepa.jks", "sepa2017", "sepa2017", app.getAuthenticationProperties());
+			} catch (SEPASecurityException e1) {
+				logger.error(e1.getMessage());
+				return;
+			}
 
 		if (clear(args)) {
 			// Clear all
-			client = new Producer(app, "DELETE_ALL", sm);
-			client.update();
-			client.close();
+			try {
+				client = new Producer(app, "DELETE_ALL", sm);
+				client.update();
+				client.close();
+			} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException | SEPABindingsException e) {
+				logger.error(e.getMessage());
+				return;
+			}	
 		}
 
 		if (insertPlaces(args)) {
@@ -94,7 +110,12 @@ public class MqttIoTAgent {
 			if (app.getExtendedData().has("places")) {
 				JsonObject places = app.getExtendedData().get("places").getAsJsonObject();
 
-				client = new Producer(app, "ADD_PLACE", sm);
+				try {
+					client = new Producer(app, "ADD_PLACE", sm);
+				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
+					logger.error(e.getMessage());
+					return;
+				}
 
 				logger.info("Add places");
 				for (Entry<String, JsonElement> mapping : places.entrySet()) {
@@ -104,31 +125,70 @@ public class MqttIoTAgent {
 					float lat = mapping.getValue().getAsJsonObject().get("lat").getAsFloat();
 					float lon = mapping.getValue().getAsJsonObject().get("lon").getAsFloat();
 
-					client.setUpdateBindingValue("place", new RDFTermURI(place));
-					client.setUpdateBindingValue("name", new RDFTermLiteral(name));
-					client.setUpdateBindingValue("lat", new RDFTermLiteral(String.format("%f", lat)));
-					client.setUpdateBindingValue("lon", new RDFTermLiteral(String.format("%f", lon)));
-					Response ret = client.update();
+					try {
+						client.setUpdateBindingValue("place", new RDFTermURI(place));
+						client.setUpdateBindingValue("name", new RDFTermLiteral(name));
+						client.setUpdateBindingValue("lat", new RDFTermLiteral(String.format("%f", lat)));
+						client.setUpdateBindingValue("lon", new RDFTermLiteral(String.format("%f", lon)));
+					} catch (SEPABindingsException e) {
+						logger.error(e.getMessage());
+						return;
+					}
+					
+					Response ret = null;
+					try {
+						ret = client.update();
+					} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+						logger.error(e.getMessage());
+						return;
+					}
 					if (ret.isError())
 						logger.error(ret);
 
 					if (mapping.getValue().getAsJsonObject().has("childs")) {
-						Producer childs = new Producer(app, "LINK_PLACES", sm);
+						Producer childs;
+						try {
+							childs = new Producer(app, "LINK_PLACES", sm);
+						} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
+							logger.error(e.getMessage());
+							return;
+						}
 						JsonArray children = mapping.getValue().getAsJsonObject().get("childs").getAsJsonArray();
 						for (JsonElement child : children) {
 							String contained = child.getAsString();
 
-							childs.setUpdateBindingValue("child", new RDFTermURI(contained));
-							childs.setUpdateBindingValue("root", new RDFTermURI(place));
-							ret = childs.update();
+							try {
+								childs.setUpdateBindingValue("child", new RDFTermURI(contained));
+								childs.setUpdateBindingValue("root", new RDFTermURI(place));
+								ret = childs.update();
+							} catch (SEPABindingsException | SEPASecurityException | IOException | SEPAPropertiesException e) {
+								try {
+									childs.close();
+								} catch (IOException e1) {
+									logger.error(e1.getMessage());
+								}
+								logger.error(e.getMessage());
+								return;
+							}
+							
 							if (ret.isError())
 								logger.error(ret);
 						}
-						childs.close();
+						try {
+							childs.close();
+						} catch (IOException e) {
+							logger.error(e.getMessage());
+							return;
+						}
 					}
 				}
 
-				client.close();
+				try {
+					client.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage());
+					return;
+				}
 			}
 		}
 
@@ -137,7 +197,12 @@ public class MqttIoTAgent {
 			if (app.getExtendedData().has("semantic-mappings")) {
 				JsonObject mappings = app.getExtendedData().get("semantic-mappings").getAsJsonObject();
 
-				client = new Producer(app, "ADD_OBSERVATION", sm);
+				try {
+					client = new Producer(app, "ADD_OBSERVATION", sm);
+				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
+					logger.error(e.getMessage());
+					return;
+				}
 
 				logger.info("Add observations");
 				for (Entry<String, JsonElement> mapping : mappings.entrySet()) {
@@ -149,19 +214,36 @@ public class MqttIoTAgent {
 					String comment = mapping.getValue().getAsJsonObject().get("comment").getAsString();
 					String label = mapping.getValue().getAsJsonObject().get("label").getAsString();
 
-					client.setUpdateBindingValue("observation", new RDFTermURI(observation));
-					client.setUpdateBindingValue("comment", new RDFTermLiteral(comment));
-					client.setUpdateBindingValue("label", new RDFTermLiteral(label));
-					client.setUpdateBindingValue("location", new RDFTermURI(location));
-					client.setUpdateBindingValue("unit", new RDFTermURI(unit));
-					client.setUpdateBindingValue("topic", new RDFTermLiteral(topic));
+					try {
+						client.setUpdateBindingValue("observation", new RDFTermURI(observation));
+						client.setUpdateBindingValue("comment", new RDFTermLiteral(comment));
+						client.setUpdateBindingValue("label", new RDFTermLiteral(label));
+						client.setUpdateBindingValue("location", new RDFTermURI(location));
+						client.setUpdateBindingValue("unit", new RDFTermURI(unit));
+						client.setUpdateBindingValue("topic", new RDFTermLiteral(topic));
+					} catch (SEPABindingsException e) {
+						logger.error(e.getMessage());
+						return;
+					}
+					
 
-					Response ret = client.update();
+					Response ret = null;
+					try {
+						ret = client.update();
+					} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+						logger.error(e.getMessage());
+						return;
+					}
 					if (ret.isError())
 						logger.error(ret);
 				}
 
-				client.close();
+				try {
+					client.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage());
+					return;
+				}
 			}
 		}
 		
@@ -171,27 +253,49 @@ public class MqttIoTAgent {
 		if (doLog(args)) {
 			logger.info("Historical data logging enabled");
 			logger.info("Create observation logger");
-			logObservation = new ObservationLogger(app, sm);
-			logObservation.subscribe(5000);
+			try {
+				logObservation = new ObservationLogger(app, sm);
+				logObservation.subscribe(5000);
+			} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException | SEPABindingsException e) {
+				logger.error(e.getMessage());
+				return;
+			}
+			
 		}
 
 		logger.info("Create observation updater");
-		observation = new MqttObservationUpdater(app, sm);
-		observation.subscribe(5000);
+		try {
+			observation = new MqttObservationUpdater(app, sm);
+			observation.subscribe(5000);
+		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException
+				| SEPABindingsException e1) {
+			logger.error(e1.getMessage());
+			return;
+		}
+		
 
 		logger.info("Create adapters");
 		if (app.getExtendedData().get("adapters").getAsJsonObject().has("mqtt")) {
 			for (JsonElement arg : app.getExtendedData().get("adapters").getAsJsonObject().get("mqtt")
 					.getAsJsonArray()) {
-				adapters.add(new MqttAdapter(app, sm, arg.getAsJsonObject(), false));
-				logger.info("Adapter: " + arg.getAsJsonObject());
+				try {
+					logger.info("Creating adapter: " + arg.getAsJsonObject());
+					adapters.add(new MqttAdapter(app, sm, arg.getAsJsonObject(), false));
+				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | MqttException e) {
+					logger.warn(e.getMessage());
+				}		
 			}
 		}
 		if (app.getExtendedData().get("adapters").getAsJsonObject().has("simulator")) {
 			for (JsonElement arg : app.getExtendedData().get("adapters").getAsJsonObject().get("simulator")
 					.getAsJsonArray()) {
-				adapters.add(new MqttAdapter(app, sm, arg.getAsJsonObject(), true));
-				logger.info("Simulator: " + arg.getAsJsonObject());
+				try {
+					logger.info("Creating simulator: " + arg.getAsJsonObject());
+					adapters.add(new MqttAdapter(app, sm, arg.getAsJsonObject(), true));
+				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | MqttException e) {
+					logger.warn(e.getMessage());
+				}
+				
 			}
 		}
 
@@ -206,11 +310,23 @@ public class MqttIoTAgent {
 		logger.info("Closing...");
 
 		if (observation != null)
-			observation.close();
+			try {
+				observation.close();
+			} catch (IOException e) {
+				logger.warn(e.getMessage());
+			}
 		if (logObservation != null)
-			logObservation.close();
+			try {
+				logObservation.close();
+			} catch (IOException e) {
+				logger.warn(e.getMessage());
+			}
 		for (MqttAdapter adapter : adapters)
-			adapter.close();
+			try {
+				adapter.close();
+			} catch (IOException e) {
+				logger.warn(e.getMessage());
+			}
 
 		System.exit(1);
 	}
