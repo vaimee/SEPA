@@ -123,29 +123,47 @@ public class MqttAdapter extends Producer implements MqttCallback {
 			options.setPassword(mqtt.get("password").getAsString().toCharArray());
 		}
 
-		// Connect
-		logger.info("Connecting...");
-		while (!mqttClient.isConnected()) {
-			try {
-				mqttClient.connect(options);
-			} catch (MqttException e) {
-				logger.error(e.getMessage()+" Broker URI: "+mqttClient.getServerURI());
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException e1) {
-					return;
-				}
-			}
-		}
-
-		// Subscribe
 		mqttClient.setCallback(this);
-		logger.info("Subscribing...");
 
-		mqttClient.subscribe(topicsFilter);
+		// Connect
+		new Thread() {
+			public void run() {
+				logger.info("Connecting...");
+				while (!mqttClient.isConnected()) {
+					try {
+						mqttClient.connect(options);
+					} catch (MqttException e) {
+						logger.error(e.getMessage() + " Broker URI: " + mqttClient.getServerURI());
+						try {
+							Thread.sleep(10000);
+						} catch (InterruptedException e1) {
+							return;
+						}
+					}
+				}
 
-		for (String topic : topicsFilter)
-			logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topic);
+				// Subscribe
+				logger.info("Subscribing...");
+				boolean subscribed = false;
+
+				while (!subscribed) {
+					try {
+						mqttClient.subscribe(topicsFilter);
+					} catch (MqttException e) {
+						logger.error(e.getMessage());
+						try {
+							Thread.sleep(5000);
+						} catch (InterruptedException e1) {
+							return;
+						}
+					}
+					subscribed = true;
+				}
+
+				for (String topic : topicsFilter)
+					logger.info("MQTT client " + clientID + " subscribed to " + serverURI + " Topic filter " + topic);
+			}
+		}.start();
 	}
 
 	@Override

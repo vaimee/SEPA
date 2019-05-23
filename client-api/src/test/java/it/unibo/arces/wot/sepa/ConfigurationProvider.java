@@ -1,6 +1,5 @@
 package it.unibo.arces.wot.sepa;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
@@ -8,19 +7,47 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
-import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Set;
+import java.util.TimeZone;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class ConfigurationProvider {
+	static {
+		configureLogger();
+	}
+
 	protected final Logger logger = LogManager.getLogger();
 
 	private final JSAP appProfile;
-	
+	private String prefixes = "";
+
+	public static void configureLogger() {
+		// Logging
+		TimeZone tz = TimeZone.getTimeZone("UTC");
+		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
+		df.setTimeZone(tz);
+		String nowAsISO = df.format(new Date());
+		System.setProperty("logFilename", nowAsISO);
+
+		//Create file
+		final File logfolder = new File("logs/");
+		if(!logfolder.exists()){
+			logfolder.mkdir();
+		}
+
+		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
+				.getContext(false);
+		ctx.reconfigure();
+	}
+
 	public ConfigurationProvider() throws SEPAPropertiesException, SEPASecurityException {
 		String jsapFileName = "sepatest.jsap";
 
@@ -40,24 +67,19 @@ public class ConfigurationProvider {
 		}
 		
 		appProfile = new JSAP(path);
+		
+		Set<String> appPrefixes = appProfile.getPrefixes();
+		for (String prefix : appPrefixes) {
+			prefixes += "PREFIX " + prefix + ":<" + appProfile.getNamespaceURI(prefix) + "> ";
+		}
 	}
 
 	private String getSPARQLUpdate(String id) {
-		try {
-			return appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLUpdate(id), new Bindings());
-		} catch (SEPABindingsException e) {
-			logger.error(e.getMessage());
-		}
-		return null;
+		return prefixes + " " +appProfile.getSPARQLUpdate(id);
 	}
 	
 	private String getSPARQLQuery(String id) {
-		try {
-			return appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLQuery(id), new Bindings());
-		} catch (SEPABindingsException e) {
-			logger.error(e.getMessage());
-		}
-		return null;
+		return prefixes + " " +appProfile.getSPARQLQuery(id);
 	}
 	
 	public UpdateRequest buildUpdateRequest(String id, long timeout,SEPASecurityManager sm) {
@@ -91,6 +113,13 @@ public class ConfigurationProvider {
 				appProfile.getQueryHost(id), appProfile.getQueryPort(id), appProfile.getQueryPath(id),
 				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id),
 				authorization, timeout);
+	}
+
+	public QueryRequest buildQueryRequest(String id, long timeout,String authToken) {
+		return new QueryRequest(appProfile.getQueryMethod(id), appProfile.getQueryProtocolScheme(id),
+				appProfile.getQueryHost(id), appProfile.getQueryPort(id), appProfile.getQueryPath(id),
+				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id),
+				authToken, timeout);
 	}
 
 	public SubscribeRequest buildSubscribeRequest(String id, long timeout,SEPASecurityManager sm) {

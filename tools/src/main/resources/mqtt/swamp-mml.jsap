@@ -1,5 +1,5 @@
 {
-	"host": "mml.arces.unibo.it",
+	"host": "localhost",
 	"oauth": {
 		"enable": false,
 		"register": "https://localhost:8443/oauth/register",
@@ -81,6 +81,14 @@
 					"ssl": false,
 					"username": "ffa574972ab9",
 					"password": "6e257b56172ea934d79ee1f5c2c1c7a9"
+				},
+				{
+					"url": "177.104.61.17",
+					"port": 1883,
+					"topics": [
+						"#"
+					],
+					"ssl": false
 				}
 			]
 		},
@@ -104,17 +112,16 @@
 			"ground/lora/moisture": {
 				"id": "nodeId",
 				"value": {
-					"size" : "1",
-					"tag" : "moistureValue"
+					"parsing" : "(?<value>\\w+)",
+					"member" : "moistureValue"
 				}
 			},
 			"application/1/device/1bc0f73caf72d467/rx": {
 				"id": "deviceName",
 				"value": {
-					"size" : "3",
-					"tag" : "data",
+					"member" : "data",
 					"encoding" : "base64",
-					"parsing" : ".\\w+.[|].\\w+.[|].\\w+.[|].\\w+[|].(?<id1>\\w+).[|].(?<value1>\\w+).[|].(?<id2>\\w+).[|].(?<value2>\\w+).[|].(?<id3>\\w+).[|].(?<value3>\\w+)"
+					"parsing" : "S[|]\w+[|]I[|]\w+[|](?<id1>\w+)[|](?<value1>\w+)[|](?<id2>\w+)[|](?<value2>\w+)[|](?<id3>\w+)[|](?<value3>\w+)"
 				}
 			}
 		},
