@@ -145,7 +145,7 @@ public class ITSPARQL11SEProtocol {
 
 			final long expiringTime = 5000;
 			Thread.sleep(expiringTime+1000);
-			final Response tokenTest = client.query(provider.buildQueryRequest("ALL", 5000, sm));
+			final Response tokenTest = client.query(provider.buildQueryRequest("ALL", 5000, authorization));
 
 			assertTrue("Response should be error since the token is expired",tokenTest.isError());
 		}
