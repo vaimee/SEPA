@@ -32,12 +32,13 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityMonitor;
-import it.unibo.arces.wot.sepa.engine.gates.dtn.DtnGate;
+import it.unibo.arces.wot.sepa.engine.gates.dtn.DtnGateQuery;
+import it.unibo.arces.wot.sepa.engine.gates.dtn.DtnGateUpdate;
+import it.unibo.arces.wot.sepa.engine.gates.dtn.DtnSubscriptionServer;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpGate;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpsGate;
 import it.unibo.arces.wot.sepa.engine.gates.websocket.SecureWebsocketServer;
@@ -297,8 +298,9 @@ public class Engine implements EngineMBean {
 			else
 				httpsGate = new HttpsGate(properties, scheduler);
 			
-			DtnGate dtnGate = new DtnGate(scheduler);
-			dtnGate.start();
+			new DtnGateUpdate(scheduler).start();
+			new DtnGateQuery(scheduler).start();
+			new DtnSubscriptionServer(scheduler).start();
 
 			// SPARQL 1.1 SE protocol gates
 			System.out.println("----------------------");
