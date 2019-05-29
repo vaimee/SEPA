@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.gates.dtn;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 import org.apache.logging.log4j.LogManager;
@@ -31,7 +32,13 @@ public class DtnSubscriptionGate extends Gate {
 	@Override
 	public void send(String response) throws SEPAProtocolException {
 		Bundle bundle = new Bundle(this.bundle.getSource());
-		bundle.setData(StandardCharsets.UTF_8.encode(response).array());
+		byte[] responseData = StandardCharsets.UTF_8.encode(response).array();
+		
+		DtnResponseHeader header = new DtnResponseHeader(this.bundle.getCreationTimestamp());
+		ByteBuffer buffer = ByteBuffer.allocate(header.getHeaderSize() + responseData.length);
+		header.insertHeaderInByteBuffer(buffer);
+		buffer.put(responseData);
+		
 		try {
 			this.socket.send(bundle);
 		} catch (NullPointerException | IllegalArgumentException | IllegalStateException | JALNullPointerException
