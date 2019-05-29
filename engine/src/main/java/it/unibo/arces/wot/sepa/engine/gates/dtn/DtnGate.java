@@ -41,7 +41,7 @@ public abstract class DtnGate implements Runnable {
 		this.scheduler = scheduler;
 		try {
 			this.socket = BPSocket.register(demuxString, demuxIPN);
-			logger.info("Opened DTN socket on demux string = " + demuxString + " and demux ipn = " + demuxIPN);
+			logger.info("Opened DTN socket on : " + this.socket.getLocalEID());
 		} catch (JALRegisterException e) {
 			logger.error("Error on registering DTN socket. Error message: " + e.getMessage());
 		}
@@ -87,7 +87,7 @@ public abstract class DtnGate implements Runnable {
 					final String sparql = new String(buffer.array(), StandardCharsets.UTF_8);
 					final String defaultGraphUri = null;
 					final String namedGraphUri = null;
-					//InternalRequest request = new InternalUpdateRequest(sparql, defaultGraphUri, namedGraphUri);
+
 					final InternalRequest request = this.getInternalRequest(sparql, defaultGraphUri, namedGraphUri);
 					final ResponseHandler handler = new HandlerDtn(bundle, this.socket);
 					this.scheduler.schedule(request, handler);
@@ -103,7 +103,9 @@ public abstract class DtnGate implements Runnable {
 	}
 	
 	public void start() {
-		new Thread(this).start();
+		Thread t = new Thread(this, "Dtn gate at " + this.socket.getLocalEID());
+		t.setDaemon(true);
+		t.start();
 	}
 	
 }

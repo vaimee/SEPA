@@ -64,18 +64,18 @@ public class DtnSubscriptionServer implements Runnable {
 			}
 			
 			if (bundle != null) {
-				DtnSubscriptionGate gate = this.map.get(bundle.getSource());
-				if (gate == null) {
-					gate = new DtnSubscriptionGate(this.scheduler, this.socket, bundle);
-					this.map.put(bundle.getSource(), gate);
-				}
-				
 				final byte[] data = bundle.getData();
 				if (data != null) {
 					final ByteBuffer buffer = ByteBuffer.wrap(data);
 					
 					// XXX Uncomment to enable request header
 					//DtnRequestHeader requestHeader = DtnRequestHeader.getRequestHeader(buffer);
+					
+					DtnSubscriptionGate gate = this.map.get(bundle.getSource());
+					if (gate == null) {
+						gate = new DtnSubscriptionGate(this.scheduler, this.socket, bundle);
+						this.map.put(bundle.getSource(), gate);
+					}
 					
 					try {
 						gate.onMessage(new String(buffer.array(), StandardCharsets.UTF_8));
@@ -94,7 +94,9 @@ public class DtnSubscriptionServer implements Runnable {
 	}
 	
 	public void start() {
-		new Thread(this).start();
+		Thread t = new Thread(this, "Dtn subscription server at " + this.socket.getLocalEID());
+		t.setDaemon(true);
+		t.start();
 	}
 	
 }
