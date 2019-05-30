@@ -156,11 +156,23 @@ public class ITSPARQL11SEProtocol {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", 5000,sm));
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
+	
+	@Test(timeout = 1000)
+	public void MalformedUpdate() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
+		Response ret = client.update(provider.buildUpdateRequest("WRONG", 5000,sm));
+		assertTrue(String.valueOf(ret), ret.isError());
+	}
 
 	@Test(timeout = 5000)
 	public void Query() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.query(provider.buildQueryRequest("ALL", 5000,sm));
 		assertFalse(String.valueOf(ret), ret.isError());
+	}
+	
+	@Test(timeout = 5000)
+	public void MalformedQuery() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
+		Response ret = client.query(provider.buildQueryRequest("WRONG", 5000,sm));
+		assertTrue(String.valueOf(ret), ret.isError());
 	}
 
 	@Test (timeout = 5000)
@@ -280,6 +292,35 @@ public class ITSPARQL11SEProtocol {
 				"Events:" + sync.getEvents() + "(" + subscribers.size()
 						+ subscribers.size() * publishers.size() * publishers.size() + ")",
 				sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
+	}
+	
+	@Test(timeout = 60000)
+	public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
+			SEPAPropertiesException, SEPASecurityException {
+
+		int n = 5;
+
+		for (int i = 0; i < n; i++) {
+			subscribers.add(new Subscriber("RANDOM", sync));
+			publishers.add(new Publisher("RANDOM", n));
+			publishers.add(new Publisher("WRONG", n));
+		}
+
+		for (Subscriber sub : subscribers) sub.start();
+
+		sync.waitSubscribes(subscribers.size());
+		sync.waitEvents(subscribers.size());
+		
+		for (Publisher pub : publishers) pub.start();
+
+		sync.waitEvents(subscribers.size() + subscribers.size() * (publishers.size()/2) * (publishers.size()/2));
+
+		assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
+				sync.getSubscribes() != subscribers.size());
+		assertFalse(
+				"Events:" + sync.getEvents() + "(" + subscribers.size()
+						+ subscribers.size() * (publishers.size()/2) * (publishers.size()/2) + ")",
+				sync.getEvents() != subscribers.size() + subscribers.size() * (publishers.size()/2) * (publishers.size()/2));
 	}
 
 	@Test(timeout = 60000)
