@@ -48,11 +48,6 @@ public class MqttObservationUpdater extends Aggregator {
 			try {
 				ArrayList<String[]> observations = mapper.map(topic, value);
 
-				if (observations == null) {
-					logger.warn("Topic NOT found: " + topic);
-					continue;
-				}
-
 				for (String[] observation : observations) {
 					setUpdateBindingValue("observation", new RDFTermURI(observation[0]));
 					setUpdateBindingValue("value", new RDFTermLiteral(observation[1],
@@ -61,7 +56,7 @@ public class MqttObservationUpdater extends Aggregator {
 					update();
 				}
 			} catch (Exception e) {
-				logger.error(e.getMessage());
+				logger.error("Topic: " +topic+" value: "+value+" Exception: "+e.getMessage());
 			}
 		}
 	}

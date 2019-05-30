@@ -1,0 +1,89 @@
+{
+	"extended": {
+		"mqtt-parsing" : {
+			"patterns" : {
+				"plain" : {
+					"format" : "plain",
+					"value": {
+						"regex" : ["(?<value>\\d+.\\d++)"]
+					}
+				},
+				"plain1" : {
+					"format" : "plain",
+					"value": {
+						"regex" : [".[|].ID:.(\\w+).[|].(Temperature)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d+\n",
+				".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].(Humidity)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d+\n",
+				".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d++.[|].(Pressure)[:].(?<value>\\d+.\\d+)\n"]
+					}
+				},
+				"json" :{
+					"format" : "json",
+					"id": "nodeId",
+					"value": {
+						"regex" : ["(?<value>\\w+)"],
+						"member" : "moistureValue"
+					}	
+				},
+				"json1" :{
+					"format" : "json",
+					"id": "deviceName",
+					"value": {
+						"member" : "data",
+						"encoding" : "base64",
+						"regex" : ["S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)[|](?<id3>\\w+)[|](?<value3>\\w+)","S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)"]
+					}	
+				}
+			},
+			"topics" : {
+				"swamp/devices/moisture1/up/Moisture_Signal_to_Supply_Perc": "plain",
+				"swamp/devices/moisture1/up/Moisture_Supply_Voltage":  "plain",
+				"swamp/devices/moisture1/up/Battery_Level": "plain",
+				"pepoli:6lowpan:network":  "plain1",
+				"ground/lora/moisture": "json",
+				"application/1/device/754366e02ff23515/rx" : "json1",
+				"application/1/device/1bc0f73caf72d467/rx": "json1"
+			}
+		},
+		"regexTopics": {
+			"swamp/devices/moisture1/up/Moisture_Signal_to_Supply_Perc": [
+				"(?<value>\\d+.\\d++)"
+			],
+			"swamp/devices/moisture1/up/Moisture_Supply_Voltage": [
+				"(?<value>\\d+.\\d++)"
+			],
+			"swamp/devices/moisture1/up/Battery_Level": [
+				"(?<value>\\d+.\\d++>)"
+			],
+			"pepoli:6lowpan:network": [
+				".[|].ID:.(\\w+).[|].(Temperature)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d+\n",
+				".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].(Humidity)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d+\n",
+				".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d++.[|].(Pressure)[:].(?<value>\\d+.\\d+)\n"
+			]
+		},
+		"jsonTopics": {
+			"ground/lora/moisture": {
+				"id": "nodeId",
+				"value": {
+					"regex" : ["(?<value>\\w+)"],
+					"member" : "moistureValue"
+				}
+			},
+			"application/1/device/754366e02ff23515/rx" :{
+			"id": "deviceName",
+				"value": {
+					"member" : "data",
+					"encoding" : "base64",
+					"regex" : ["S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)[|](?<id3>\\w+)[|](?<value3>\\w+)","S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)"]
+				}
+			},
+			"application/1/device/1bc0f73caf72d467/rx": {
+				"id": "deviceName",
+				"value": {
+					"member" : "data",
+					"encoding" : "base64",
+					"regex" : ["S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)[|](?<id3>\\w+)[|](?<value3>\\w+)","S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)"]
+				}
+			}
+		}
+	}
+}

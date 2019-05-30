@@ -81,32 +81,89 @@
 					"ssl": false,
 					"username": "ffa574972ab9",
 					"password": "6e257b56172ea934d79ee1f5c2c1c7a9"
+				},
+				{
+					"url": "177.104.61.17",
+					"port": 1883,
+					"topics": [
+						"#"
+					],
+					"ssl": false
 				}
 			]
 		},
-		"regexTopics": {
-			"swamp/devices/moisture1/up/Moisture_Signal_to_Supply_Perc": [
-				"(?<value>\\d+.\\d++)"
-			],
-			"swamp/devices/moisture1/up/Moisture_Supply_Voltage": [
-				"(?<value>\\d+.\\d++)"
-			],
-			"swamp/devices/moisture1/up/Battery_Level": [
-				"(?<value>\\d+.\\d++>)"
-			],
-			"pepoli:6lowpan:network": [
-				".[|].ID:.(\\w+).[|].(Temperature)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d+\n",
-				".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].(Humidity)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d+\n",
-				".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d++.[|].(Pressure)[:].(?<value>\\d+.\\d+)\n"
-			]
-		},
-		"jsonTopics": {
-			"ground/lora/moisture": {
-				"id": "nodeId",
-				"value": "moistureValue"
+		"mqtt-parsing": {
+			"patterns": {
+				"plain": {
+					"format": "plain",
+					"value": {
+						"regex": [
+							"(?<value>\\d+.\\d++)"
+						]
+					}
+				},
+				"plain1": {
+					"format": "plain",
+					"value": {
+						"regex": [
+							".[|].ID:.(\\w+).[|].(Temperature)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d+\n",
+							".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].(Humidity)[:].(?<value>\\d+.\\d++).[|].\\w+[:].\\d+.\\d+\n",
+							".[|].ID:.(\\w+).[|].\\w+[:].\\d+.\\d++.[|].\\w+[:].\\d+.\\d++.[|].(Pressure)[:].(?<value>\\d+.\\d+)\n"
+						]
+					}
+				},
+				"json": {
+					"format": "json",
+					"id": "nodeId",
+					"value": {
+						"regex": [
+							"(?<value>\\w+)"
+						],
+						"member": "moistureValue"
+					}
+				},
+				"json1": {
+					"format": "json",
+					"id": "deviceName",
+					"value": {
+						"member": "data",
+						"encoding": "base64",
+						"regex": [
+							"S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)[|](?<id3>\\w+)[|](?<value3>\\w+)",
+							"S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)"
+						]
+					}
+				}
+			},
+			"topics": {
+				"swamp/devices/moisture1/up/Moisture_Signal_to_Supply_Perc": "plain",
+				"swamp/devices/moisture1/up/Moisture_Supply_Voltage": "plain",
+				"swamp/devices/moisture1/up/Battery_Level": "plain",
+				"pepoli:6lowpan:network": "plain1",
+				"ground/lora/moisture": "json",
+				"application/1/device/754366e02ff23515/rx": "json1",
+				"application/1/device/1bc0f73caf72d467/rx": "json1"
 			}
 		},
 		"places": {
+			"arces-monitor:Embrapa_EndNode1002": {
+				"name": "Embrapa soil probe 1002",
+				"lat": -22.179811,
+				"lon": -46.741638
+			},
+			"arces-monitor:Embrapa_EndNode1001": {
+				"name": "Embrapa soil probe 1001",
+				"lat": -22.180546,
+				"lon": -46.740673
+			},
+			"arces-monitor:Guaspari": {
+				"name": "Guaspari",
+				"lat": -22.179539,
+				"lon": -46.741868,
+				"childs": [
+					"arces-monitor:Embrapa_EndNode1001","arces-monitor:Embrapa_EndNode1002"
+				]
+			},
 			"arces-monitor:SWAMP": {
 				"name": "SWAMP",
 				"lat": 44.514060,
@@ -263,6 +320,76 @@
 			}
 		},
 		"semantic-mappings": {
+			"application/1/device/1bc0f73caf72d467/rx/EndNode1002/B": {
+				"observation": "arces-monitor:Embrapa_EndNode1002_B",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level B in Guaspari",
+				"label": "Soil probe reading B"
+			},
+			"application/1/device/754366e02ff23515/rx/EndNode1001/B": {
+				"observation": "arces-monitor:Embrapa_EndNode1001_B",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level B in Guaspari",
+				"label": "Soil probe reading B"
+			},
+			"application/1/device/1bc0f73caf72d467/rx/EndNode1002/T0": {
+				"observation": "arces-monitor:Embrapa_EndNode1002_T0",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level T0 in Guaspari",
+				"label": "Soil probe reading T0"
+			},
+			"application/1/device/754366e02ff23515/rx/EndNode1001/T0": {
+				"observation": "arces-monitor:Embrapa_EndNode1001_T0",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level T0 in Guaspari",
+				"label": "Soil probe reading T0"
+			},
+			"application/1/device/1bc0f73caf72d467/rx/EndNode1002/H1": {
+				"observation": "arces-monitor:Embrapa_EndNode1002_H1",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level H1 in Guaspari",
+				"label": "Soil probe reading H1"
+			},
+			"application/1/device/1bc0f73caf72d467/rx/EndNode1002/H2": {
+				"observation": "arces-monitor:Embrapa_EndNode1002_H2",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level H2 in Guaspari",
+				"label": "Soil probe reading H2"
+			},
+			"application/1/device/1bc0f73caf72d467/rx/EndNode1002/H3": {
+				"observation": "arces-monitor:Embrapa_EndNode1002_H3",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level H3 in Guaspari",
+				"label": "Soil probe reading H3"
+			},
+			"application/1/device/754366e02ff23515/rx/EndNode1001/H1": {
+				"observation": "arces-monitor:Embrapa_EndNode1001_H1",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level H1 in Guaspari",
+				"label": "Soil probe reading H1"
+			},
+			"application/1/device/754366e02ff23515/rx/EndNode1001/H2": {
+				"observation": "arces-monitor:Embrapa_EndNode1001_H2",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level H2 in Guaspari",
+				"label": "Soil probe reading H2"
+			},
+			"application/1/device/754366e02ff23515/rx/EndNode1001/H3": {
+				"observation": "arces-monitor:Embrapa_EndNode1001_H3",
+				"unit": "unit:MilliVolt",
+				"location": "arces-monitor:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level H3 in Guaspari",
+				"label": "Soil probe reading H3"
+			},
 			"/applink/3BC51892/report/107/001BC50C700009CD": {
 				"observation": "arces-monitor:001BC50C700009CD-DASH7-Temperature",
 				"unit": "qudt-unit-1-1:DegreeCelsius",
