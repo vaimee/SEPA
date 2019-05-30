@@ -146,7 +146,11 @@ public abstract class SPU extends Thread implements ISPU {
 				
 				// POST processing and waiting for result
 				logger.debug("* POST PROCESSING *");
-				Notification notify = postUpdateInternalProcessing((UpdateResponse) response);
+				Notification notify = null;
+				if (response.isError()) {
+					logger.error("Update failed. Error: "+response); 
+				}
+				else notify = postUpdateInternalProcessing((UpdateResponse) response);
 				logger.debug("Notify SPU manager of EOP. Running: " + running);
 				manager.endOfProcessing(this);
 				if (notify != null) subscribe.getEventHandler().notifyEvent(notify);			
