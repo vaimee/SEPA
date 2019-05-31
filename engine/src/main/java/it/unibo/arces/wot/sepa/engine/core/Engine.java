@@ -211,8 +211,7 @@ public class Engine implements EngineMBean {
 		try {
 			// Initialize SPARQL 1.1 SE processing service properties
 
-			properties = secure.isPresent() ? new EngineProperties(engineJpar,secure.get())
-                    : new EngineProperties(engineJpar);
+			properties = secure.isPresent() ? EngineProperties.load(engineJpar, secure.get()) : EngineProperties.load(engineJpar);
 
 			EngineBeans.setEngineProperties(properties);
 
