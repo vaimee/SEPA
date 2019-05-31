@@ -125,14 +125,15 @@ class HandlerDtn implements ResponseHandler {
 	@Override
 	public void sendResponse(Response response) throws SEPAProtocolException {
 		final String responseString = response.toString();
-		
+		final byte[] responseData = StandardCharsets.UTF_8.encode(responseString).array();
+
 		logger.debug("Response string that is going to be sent via DTN socket : " + responseString);
 		
 		final DtnResponseHeader responseHeader = new DtnResponseHeader(bundle.getCreationTimestamp()); // Prepare the response header
 		final Bundle responseBundle = new Bundle(this.bundle.getSource());
-		final ByteBuffer buffer = ByteBuffer.allocate(responseHeader.getHeaderSize() + responseString.length());
+		final ByteBuffer buffer = ByteBuffer.allocate(responseHeader.getHeaderSize() + responseData.length);
 		responseHeader.insertHeaderInByteBuffer(buffer); // Put the response header in buffer
-		buffer.put(StandardCharsets.UTF_8.encode(responseString).array());
+		buffer.put(responseData);
 		
 		responseBundle.setData(buffer.array());
 		

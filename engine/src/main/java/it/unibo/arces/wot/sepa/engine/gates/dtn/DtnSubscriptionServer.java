@@ -37,7 +37,7 @@ public class DtnSubscriptionServer implements Runnable {
 		this.scheduler = scheduler;
 		try {
 			this.socket = BPSocket.register(DEMUXSTRING, DEMUXIPN);
-			logger.info("Opened DTN socket on demux string = " + DEMUXSTRING + " and demux ipn = " + DEMUXIPN);
+			logger.info("Opened DTN socket on " + this.socket.getLocalEID());
 		} catch (JALRegisterException e) {
 			logger.error("Error on registering DTN socket. Error message: " + e.getMessage());
 		}
