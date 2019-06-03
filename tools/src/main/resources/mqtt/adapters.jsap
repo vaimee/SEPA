@@ -1,6 +1,11 @@
 {
 	"extended": {
 		"adapters": {
+			"simulator" : [
+				{"italy/site1/soilmoisture" : [35,75]},
+				{"italy/site1/pressure" : [900,1100]},
+				{"italy/site1/temperature" : [15,40]}
+			];
 			"mqtt": [
 				{
 					"url": "eu.thethings.network",
