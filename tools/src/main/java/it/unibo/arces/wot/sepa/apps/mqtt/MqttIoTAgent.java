@@ -16,14 +16,25 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
+import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
+import it.unibo.arces.wot.sepa.pattern.Consumer;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
-public class MqttIoTAgent {
+public class MqttIoTAgent extends Consumer {
+	
+	public MqttIoTAgent(JSAP appProfile, String subscribeID, SEPASecurityManager sm)
+			throws SEPAProtocolException, SEPASecurityException {
+		super(appProfile, subscribeID, sm);
+		// TODO Auto-generated constructor stub
+	}
+
 	private static final Logger logger = LogManager.getLogger();
 
 	private static Producer client = null;
@@ -329,5 +340,47 @@ public class MqttIoTAgent {
 			}
 
 		System.exit(1);
+	}
+
+	@Override
+	public void onResults(ARBindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onAddedResults(BindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onRemovedResults(BindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onBrokenConnection() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onError(ErrorResponse errorResponse) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onSubscribe(String spuid, String alias) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onUnsubscribe(String spuid) {
+		// TODO Auto-generated method stub
+		
 	}
 }

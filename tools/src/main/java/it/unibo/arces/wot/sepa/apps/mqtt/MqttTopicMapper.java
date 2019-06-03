@@ -47,7 +47,9 @@ public class MqttTopicMapper extends Consumer {
 
 		// No need to parse the value
 		if (!appProfile.getExtendedData().getAsJsonObject("mqtt-parsing").getAsJsonObject("topics").has(topic)) {
-			ret.add(new String[] { topic, value });
+			String observation = topic2observation.get(newTopic);
+			
+			ret.add(new String[] { observation, value });
 			return ret;
 		}
 
