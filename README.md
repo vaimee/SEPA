@@ -50,7 +50,7 @@ SEPA is a publish-subscribe architecture designed to support information level i
 ### For Hackers 💻👩‍💻👨‍💻
 
 ```bash
-curl -s https://api.github.com/repos/arces-wot/SEPA/releases/latest | grep "browser_download_url.*jar" | cut -d : -f 2,3 | tr -d \" | wget
+curl -s https://api.github.com/repos/arces-wot/SEPA/releases/latest | grep "browser_download_url.*jar" | cut -d : -f 2,3 | tr -d \" | wget -O engine.jar -i -
 curl -L https://sourceforge.net/projects/bigdata/files/bigdata/2.1.5/blazegraph.jar/download > blazegraph.jar
 java -jar blazegraph.jar &
 java -jar engine.jar
