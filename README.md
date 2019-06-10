@@ -47,6 +47,15 @@ SEPA is a publish-subscribe architecture designed to support information level i
 
 - Download [Blazegraph](https://sourceforge.net/projects/bigdata/files/latest/download) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
 
+### For Hackers 💻👩‍💻👨‍💻
+
+```bash
+curl -s https://api.github.com/repos/arces-wot/SEPA/releases/latest | grep "browser_download_url.*jar" | cut -d : -f 2,3 | tr -d \" | wget
+curl -L https://sourceforge.net/projects/bigdata/files/bigdata/2.1.5/blazegraph.jar/download > blazegraph.jar
+java -jar blazegraph.jar &
+java -jar engine.jar
+```
+
 ## Configuration
 
 The SEPA engine uses two JSON configuration files: `engine.jpar` and `endpoint.jpar` (included in the [SEPA Engine release](https://github.com/arces-wot/SEPA/releases/download/0.7.0/engine-0.7.0.rar) distribution). 
