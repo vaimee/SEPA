@@ -17,6 +17,7 @@ Please delete options that are not relevant.
 
 ### Checklist:
 
+- [ ] I have read the contributing file on the root of this repository
 - [ ] I have performed a self-review of my own code
 - [ ] I have made corresponding changes to the documentation
 - [ ] My changes generate no new warnings
