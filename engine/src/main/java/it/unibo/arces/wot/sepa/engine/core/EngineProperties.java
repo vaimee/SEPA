@@ -91,7 +91,6 @@ public class EngineProperties {
 		
 		try {
 			result = gson.fromJson(new FileReader(propertiesFile), EngineProperties.class);
-			setDefaultForNulls(result);
 		} catch (Exception e) {
 			logger.warn(e.getMessage());
 			result = defaults();
@@ -114,40 +113,6 @@ public class EngineProperties {
 		return new Gson().toJson(this);
 	}
 
-	private static void setDefaultForNulls(EngineProperties result) {
-		EngineProperties defaultProperties = defaults();
-		
-		// Scheduler
-		if (result.parameters.scheduler.queueSize < 0) result.parameters.scheduler.queueSize = defaultProperties.parameters.scheduler.queueSize;
-		if (result.parameters.scheduler.timeout < 0) result.parameters.scheduler.timeout = defaultProperties.parameters.scheduler.timeout;
-		
-		// Processor
-		if (result.parameters.processor.updateTimeout < 0) result.parameters.processor.updateTimeout = defaultProperties.parameters.processor.updateTimeout;
-		if (result.parameters.processor.updateTimeout < 0) result.parameters.processor.queryTimeout = defaultProperties.parameters.processor.queryTimeout;
-		if (result.parameters.processor.maxConcurrentRequests < 0) result.parameters.processor.maxConcurrentRequests = defaultProperties.parameters.processor.maxConcurrentRequests;
-		//result.parameters.processor.reliableUpdate = defaultProperties.parameters.processor.reliableUpdate;
-		
-		// SPU
-		if (result.parameters.spu.timeout < 0) result.parameters.spu.timeout = defaultProperties.parameters.spu.timeout;
-
-		// Gates
-		//result.parameters.gates.secure = defaultProperties.parameters.gates.secure;
-
-		// Gates -> Ports
-		if (result.parameters.gates.ports.http <= 0) result.parameters.gates.ports.http = defaultProperties.parameters.gates.ports.http;
-		if (result.parameters.gates.ports.https <= 0) result.parameters.gates.ports.https = defaultProperties.parameters.gates.ports.https;
-		if (result.parameters.gates.ports.ws <= 0) result.parameters.gates.ports.ws = defaultProperties.parameters.gates.ports.ws;
-		if (result.parameters.gates.ports.wss <= 0) result.parameters.gates.ports.wss = defaultProperties.parameters.gates.ports.wss;
-
-		// Gates -> Paths
-		if (result.parameters.gates.paths.secure == null) result.parameters.gates.paths.secure = defaultProperties.parameters.gates.paths.secure;
-		if (result.parameters.gates.paths.update == null) result.parameters.gates.paths.update = defaultProperties.parameters.gates.paths.update;
-		if (result.parameters.gates.paths.query == null) result.parameters.gates.paths.query = defaultProperties.parameters.gates.paths.query;
-		if (result.parameters.gates.paths.subscribe == null) result.parameters.gates.paths.subscribe = defaultProperties.parameters.gates.paths.subscribe;
-		if (result.parameters.gates.paths.unsubscribe == null) result.parameters.gates.paths.unsubscribe = defaultProperties.parameters.gates.paths.unsubscribe;
-		if (result.parameters.gates.paths.register == null) result.parameters.gates.paths.register = defaultProperties.parameters.gates.paths.register;
-		if (result.parameters.gates.paths.tokenRequest == null) result.parameters.gates.paths.tokenRequest = defaultProperties.parameters.gates.paths.tokenRequest;
-	}
 	
 	protected static EngineProperties defaults() {
 		EngineProperties result = new EngineProperties();
@@ -267,36 +232,61 @@ public class EngineProperties {
 		return this.parameters.scheduler.timeout;
 	}
 
-	private class Parameters {
+	static private class Parameters {
 		public Scheduler scheduler = new Scheduler();
 		public Processor processor = new Processor();
 		public Spu spu = new Spu();
 		public Gates gates = new Gates();
+
+		public Parameters(){
+			scheduler = new Scheduler();
+			processor = new Processor();
+			spu = new Spu();
+			gates = new Gates();
+		}
+
 	}
 	
-	private class Scheduler {
+	static private class Scheduler {
 		public int queueSize;
 		public int timeout;
+
+		public Scheduler(){
+			queueSize = 100;
+			timeout = 5000;
+		}
 	}
 	
-	private class Processor {
+	static private class Processor {
 		public int updateTimeout;
 		public int queryTimeout;
 		public int maxConcurrentRequests;
 		public boolean reliableUpdate;
+
+		public Processor(){
+			reliableUpdate = true;
+			updateTimeout = 5000;
+			queryTimeout = 5000;
+			maxConcurrentRequests = 5;
+		}
 	}
 	
-	private class Spu {
+	static private class Spu {
 		public int timeout;
+
+		public Spu(){
+			timeout = 5000;
+		}
 	}
 	
-	private class Gates {
+	static private class Gates {
 		public boolean secure;
 		public Paths paths = new Paths();
 		public Ports ports = new Ports();
+
 	}
 	
-	private class Paths {
+	static private class Paths {
 		public String secure;
 		public String update;
 		public String query;
@@ -304,13 +294,30 @@ public class EngineProperties {
 		public String unsubscribe;
 		public String register;
 		public String tokenRequest;
+
+		public Paths(){
+			secure       = "/secure";
+			update       = "/update";
+			query        = "/query";
+			subscribe    = "/subscribe";
+			unsubscribe  = "/unsubscribe";
+			register     = "/oauth/register";
+			tokenRequest = "/oauth/token";
+		}
 	}
-	
-	private class Ports {
+
+	static private class Ports {
 		public int http;
 		public int https;
 		public int ws;
 		public int wss;
+
+		public Ports(){
+			http  = 8000;
+			https = 8443;
+			ws    = 9000;
+			wss   = 9443;
+		}
 	}
 
 }
