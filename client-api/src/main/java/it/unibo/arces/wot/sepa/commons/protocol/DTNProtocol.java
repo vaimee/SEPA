@@ -184,8 +184,7 @@ public class DTNProtocol implements ISPARQL11Interface {
 
 	@Override
 	public void close() throws IOException {
-		// TODO Auto-generated method stub
-
+		this.socket.unregister();
 	}
 	
 	public static DTNProtocol of(JSAP appProfile) {
@@ -194,6 +193,7 @@ public class DTNProtocol implements ISPARQL11Interface {
 
 
 
+	// TODO to synchronize with the class in engine project (used inside SEPA)
 	private static class DtnResponseHeader {
 		private BundleTimestamp timestamp;
 		private String message;
