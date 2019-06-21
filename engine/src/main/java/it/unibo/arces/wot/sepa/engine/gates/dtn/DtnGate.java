@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
@@ -125,11 +126,25 @@ class HandlerDtn implements ResponseHandler {
 	@Override
 	public void sendResponse(Response response) throws SEPAProtocolException {
 		final String responseString = response.toString();
-		final byte[] responseData = StandardCharsets.UTF_8.encode(responseString).array();
+		final byte[] responseData = responseString.getBytes(StandardCharsets.UTF_8);
 
 		logger.debug("Response string that is going to be sent via DTN socket : " + responseString);
 		
-		final DtnResponseHeader responseHeader = new DtnResponseHeader(bundle.getCreationTimestamp()); // Prepare the response header
+		final int resultCode;
+		final String errorMessage;
+		final String errorDescription;
+		if (response.isError()) {
+			ErrorResponse errResponse = (ErrorResponse) response;
+			resultCode = errResponse.getStatusCode();
+			errorMessage = errResponse.getError();
+			errorDescription = errResponse.getErrorDescription();
+		} else {
+			resultCode = 200;
+			errorMessage = "";
+			errorDescription = "";
+		}
+		
+		final DtnResponseHeader responseHeader = new DtnResponseHeader(bundle.getCreationTimestamp(), errorMessage, resultCode, errorDescription); // Prepare the response header
 		final Bundle responseBundle = new Bundle(this.bundle.getSource());
 		final ByteBuffer buffer = ByteBuffer.allocate(responseHeader.getHeaderSize() + responseData.length);
 		responseHeader.insertHeaderInByteBuffer(buffer); // Put the response header in buffer

@@ -23,7 +23,7 @@ import it.unibo.dtn.JAL.exceptions.JALUnregisterException;
 public class DtnSubscriptionServer implements Runnable {
 	
 	private static final String DEMUXSTRING = "/sepa/subscription";
-	private static final int DEMUXIPN = 10;
+	private static final int DEMUXIPN = 152;
 
 	// Logging
 	private static final Logger logger = LogManager.getLogger();

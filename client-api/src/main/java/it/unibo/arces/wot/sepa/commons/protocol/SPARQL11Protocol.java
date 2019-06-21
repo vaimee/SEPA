@@ -67,7 +67,7 @@ import org.apache.logging.log4j.LogManager;
  * This class implements the SPARQL 1.1 Protocol
  */
 
-public class SPARQL11Protocol implements java.io.Closeable {
+public class SPARQL11Protocol implements java.io.Closeable, ISPARQL11Interface {
 
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
@@ -274,6 +274,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	 *
 	 * </pre>
 	 */
+	@Override
 	public Response query(QueryRequest req) {
 		switch (req.getHttpMethod()) {
 		case GET:
@@ -336,6 +337,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	 * success or failure of the request via HTTP response status code.
 	 * </pre>
 	 */
+	@Override
 	public Response update(UpdateRequest req) {
 		switch (req.getHttpMethod()) {
 		case POST:

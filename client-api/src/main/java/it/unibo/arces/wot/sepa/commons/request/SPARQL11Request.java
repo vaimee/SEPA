@@ -22,7 +22,6 @@ public abstract class SPARQL11Request extends Request {
 	@Override
 	public String toString() {
 		return sparql;
-		
 	}
 	
 	public HTTPMethod getHttpMethod() {

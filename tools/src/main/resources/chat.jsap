@@ -140,6 +140,21 @@
 		},
 		"REGISTER_USER": {
 			"sparql": "WITH <http://wot.arces.unibo.it/chat/> DELETE {?x rdf:type schema:Person . ?x schema:name ?userName} INSERT {?person rdf:type schema:Person ; schema:name ?userName}  WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/chat/person_\",STRUUID())) AS ?person) OPTIONAL {?x rdf:type schema:Person . ?x schema:name ?userName}}",
+			"host" : "5",
+			"sparql11protocol": {
+				"protocol": "ipn",
+				"port": 150,
+				"query": {
+					"path": "/query",
+					"method": "POST",
+					"format": "JSON"
+				},
+				"update": {
+					"path": "/update",
+					"method": "POST",
+					"format": "JSON"
+				}
+			},
 			"forcedBindings": {
 				"userName": {
 					"type": "literal",
