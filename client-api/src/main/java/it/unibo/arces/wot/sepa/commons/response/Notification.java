@@ -134,7 +134,6 @@ public class Notification extends Response {
 	 * @return the sequence
 	 */
 	public Integer getSequence() {
-		
-		return json.get("sequence").getAsInt();
+		return json.getAsJsonObject("notification").get("sequence").getAsInt();
 	}
 }
