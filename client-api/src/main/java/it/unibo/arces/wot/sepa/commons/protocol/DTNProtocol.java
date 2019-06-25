@@ -33,6 +33,7 @@ import it.unibo.dtn.JAL.exceptions.JALReceptionInterruptedException;
 import it.unibo.dtn.JAL.exceptions.JALRegisterException;
 import it.unibo.dtn.JAL.exceptions.JALSendException;
 import it.unibo.dtn.JAL.exceptions.JALTimeoutException;
+import it.unibo.dtn.JAL.exceptions.JALUnregisterException;
 
 public class DTNProtocol implements ISPARQL11Interface {
 	private static final String PROTOCOLDTN = "/client";
@@ -184,7 +185,11 @@ public class DTNProtocol implements ISPARQL11Interface {
 
 	@Override
 	public void close() throws IOException {
-		this.socket.unregister();
+		try {
+			this.socket.unregister();
+		} catch (JALUnregisterException e) {
+			
+		}
 	}
 	
 	public static DTNProtocol of(JSAP appProfile) {

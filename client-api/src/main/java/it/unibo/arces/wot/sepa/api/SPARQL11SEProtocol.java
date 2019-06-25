@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.protocol.ISPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
@@ -42,7 +43,7 @@ import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
  * @see <a href="http://wot.arces.unibo.it/TR/sparql11-subscribe.html">SPARQL
  *      1.1 Subscribe Language</a>
  */
-public class SPARQL11SEProtocol extends SPARQL11Protocol {
+public class SPARQL11SEProtocol extends SPARQL11Protocol implements ISPARQL11SEProtocol {
 	private static final Logger logger = LogManager.getLogger();
 
 	private final SubscriptionProtocol subscriptionProtocol;

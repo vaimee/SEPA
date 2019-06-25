@@ -31,7 +31,7 @@ public class DtnSubscriptionGate extends Gate {
 	@Override
 	public void send(String response) throws SEPAProtocolException {
 		Bundle bundle = new Bundle(this.bundle.getSource());
-		bundle.setData(StandardCharsets.UTF_8.encode(response).array());
+		bundle.setData(response.getBytes(StandardCharsets.UTF_8));
 		
 		try {
 			this.socket.send(bundle);
