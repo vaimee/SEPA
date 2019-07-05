@@ -44,18 +44,18 @@ public class ITPattern {
 		consumerRandom1 = new ITConsumer(app,"RANDOM1",sm);
 	}
 
-	//@Test (timeout = 5000)
+	@Test (timeout = 5000)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
 	}
 	
-	//@Test (timeout = 5000)
+	@Test (timeout = 5000)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
 		consumerAll.waitNotification();
 	}
 	
-	//@Test (timeout = 5000)
+	@Test (timeout = 5000)
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
 		consumerAll.waitNotification();
@@ -63,7 +63,7 @@ public class ITPattern {
 		consumerAll.waitNotification();
 	}
 	
-	//@Test (timeout = 5000)
+	@Test (timeout = 5000)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {		
 		consumerRandom1.subscribe();
 		consumerRandom1.waitNotification();

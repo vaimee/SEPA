@@ -21,10 +21,8 @@ package it.unibo.arces.wot.sepa.commons.security;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -223,91 +221,6 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 		oauthProperties = oauthProp;
 	}
-
-//	public Socket getSSLSocket(String protocol) throws SEPASecurityException {
-//		SSLContext sslContext;
-//
-//		try {
-//			sslContext = SSLContext.getInstance(protocol);
-//		} catch (NoSuchAlgorithmException e) {
-//			throw new SEPASecurityException(e);
-//		}
-//		try {
-//			sslContext.init(kmfactory.getKeyManagers(), tmf.getTrustManagers(), null);
-//		} catch (KeyManagementException e) {
-//			throw new SEPASecurityException(e);
-//		}
-//
-//		try {
-//			return sslContext.getSocketFactory().createSocket();
-//		} catch (IOException e) {
-//			throw new SEPASecurityException(e);
-//		}
-//	}
-
-//	public Socket getSSLSocket(String protocol, String caCrtFile) throws SEPASecurityException {
-//		SSLContext sslContext;
-//
-//		// load CA certificate
-//		X509Certificate caCert = null;
-//
-//		FileInputStream fis;
-//		try {
-//			fis = new FileInputStream(caCrtFile);
-//		} catch (FileNotFoundException e2) {
-//			throw new SEPASecurityException(e2.getMessage());
-//		}
-//		BufferedInputStream bis = new BufferedInputStream(fis);
-//		CertificateFactory cf;
-//		try {
-//			cf = CertificateFactory.getInstance("X.509");
-//		} catch (CertificateException e2) {
-//			try {
-//				bis.close();
-//			} catch (IOException e) {
-//				throw new SEPASecurityException(e);
-//			}
-//			throw new SEPASecurityException(e2);
-//		}
-//
-//		try {
-//			while (bis.available() > 0) {
-//				caCert = (X509Certificate) cf.generateCertificate(bis);
-//			}
-//		} catch (CertificateException | IOException e1) {
-//			throw new SEPASecurityException(e1.getMessage());
-//		}
-//
-//		// CA certificate is used to authenticate server
-//		TrustManagerFactory tmf;
-//		try {
-//			KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
-//			caKs.load(null, null);
-//			caKs.setCertificateEntry("ca-certificate", caCert);
-//			tmf = TrustManagerFactory.getInstance("X509");
-//			tmf.init(caKs);
-//		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e1) {
-//			throw new SEPASecurityException(e1);
-//		}
-//
-//		try {
-//			sslContext = SSLContext.getInstance(protocol);
-//		} catch (NoSuchAlgorithmException e) {
-//			throw new SEPASecurityException(e);
-//		}
-//		try {
-//			sslContext.init(kmfactory.getKeyManagers(), tmf.getTrustManagers(), null);
-//		} catch (KeyManagementException e) {
-//			throw new SEPASecurityException(e);
-//		}
-//
-//		try {
-//			return sslContext.getSocketFactory().createSocket();
-//		} catch (IOException e) {
-//			throw new SEPASecurityException(e);
-//		}
-//
-//	}
 
 	static TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
 		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
