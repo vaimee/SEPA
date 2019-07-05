@@ -36,7 +36,7 @@ public class ITPattern {
 			assertFalse("Configuration not found", false);
 		}
 		
-		if (app.isSecure()) sm = new SEPASecurityManager("sepa.jks","sepa2017","sepa2017",app.getAuthenticationProperties());
+		if (app.isSecure()) sm = new ConfigurationProvider().buildSecurityManager();
 		
 		consumerAll = new ITConsumer(app,"ALL",sm);
 		randomProducer = new Producer(app,"RANDOM",sm);
@@ -50,6 +50,11 @@ public class ITPattern {
 	}
 	
 	@Test (timeout = 5000)
+	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+		for (int i=0; i < 50; i++) randomProducer.update();
+	}
+	
+	@Test (timeout = 5000)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
 		consumerAll.waitNotification();
@@ -59,7 +64,9 @@ public class ITPattern {
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
 		consumerAll.waitNotification();
+		
 		randomProducer.update();
+		
 		consumerAll.waitNotification();
 	}
 	
@@ -75,6 +82,21 @@ public class ITPattern {
 		
 		randomAggregator.waitNotification();
 		consumerRandom1.waitNotification();
+	}
+	
+	@Test (timeout = 5000)
+	public void aggregationX10() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {		
+		consumerRandom1.subscribe();
+		consumerRandom1.waitNotification();
 		
+		randomAggregator.subscribe();
+		randomAggregator.waitNotification();
+		
+		for (int i=0; i < 10; i++) {
+			randomProducer.update();
+			
+			randomAggregator.waitNotification();
+			consumerRandom1.waitNotification();
+		}	
 	}
 }
