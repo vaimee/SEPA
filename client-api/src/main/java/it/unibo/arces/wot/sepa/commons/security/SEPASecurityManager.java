@@ -18,8 +18,10 @@
 
 package it.unibo.arces.wot.sepa.commons.security;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -32,13 +34,17 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Date;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -176,14 +182,10 @@ public class SEPASecurityManager implements HostnameVerifier {
 	/**
 	 * Instantiates a new Security Manager.
 	 *
-	 * @param protocol
-	 *            the protocol
-	 * @param jksName
-	 *            the jks name
-	 * @param jksPassword
-	 *            the jks password
-	 * @param keyPassword
-	 *            the key password
+	 * @param protocol    the protocol
+	 * @param jksName     the jks name
+	 * @param jksPassword the jks password
+	 * @param keyPassword the key password
 	 * @throws SEPASecurityException
 	 */
 	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
@@ -208,9 +210,12 @@ public class SEPASecurityManager implements HostnameVerifier {
 			tmf.init(keystore);
 
 			// Trust own CA and all self-signed certificates and allow TLSv1 protocol only
-			sslsf = new SSLConnectionSocketFactory(SSLContexts.custom()
-					.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(), new TrustSelfSignedStrategy())
-					.build(), new String[] { "TLSv1" }, null, this);
+			sslsf = new SSLConnectionSocketFactory(
+					SSLContexts.custom()
+							.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(),
+									new TrustSelfSignedStrategy())
+							.build(),
+					new String[] { "TLSv1", "TLSv1.2", "TLS", "SSL" }, null, this);
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
 				| UnrecoverableKeyException | KeyManagementException e) {
 			throw new SEPASecurityException(e);
@@ -219,44 +224,151 @@ public class SEPASecurityManager implements HostnameVerifier {
 		oauthProperties = oauthProp;
 	}
 
-//	public SEPASecurityManager(AuthenticationProperties oauthProp) throws SEPASecurityException {
-//		this("sepa.jks", "sepa2017", "sepa2017", oauthProp);
-//	}
+//	public Socket getSSLSocket(String protocol) throws SEPASecurityException {
+//		SSLContext sslContext;
 //
-//	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword) throws SEPASecurityException {
-//		this(jksName, jksPassword, keyPassword, null);
-//	}
+//		try {
+//			sslContext = SSLContext.getInstance(protocol);
+//		} catch (NoSuchAlgorithmException e) {
+//			throw new SEPASecurityException(e);
+//		}
+//		try {
+//			sslContext.init(kmfactory.getKeyManagers(), tmf.getTrustManagers(), null);
+//		} catch (KeyManagementException e) {
+//			throw new SEPASecurityException(e);
+//		}
 //
-//	public SEPASecurityManager() throws SEPASecurityException {
-//		this("sepa.jks", "sepa2017", "sepa2017", null);
+//		try {
+//			return sslContext.getSocketFactory().createSocket();
+//		} catch (IOException e) {
+//			throw new SEPASecurityException(e);
+//		}
 //	}
 
-	public Socket getSSLSocket() throws SEPASecurityException {
-		SSLContext sslContext;
+//	public Socket getSSLSocket(String protocol, String caCrtFile) throws SEPASecurityException {
+//		SSLContext sslContext;
+//
+//		// load CA certificate
+//		X509Certificate caCert = null;
+//
+//		FileInputStream fis;
+//		try {
+//			fis = new FileInputStream(caCrtFile);
+//		} catch (FileNotFoundException e2) {
+//			throw new SEPASecurityException(e2.getMessage());
+//		}
+//		BufferedInputStream bis = new BufferedInputStream(fis);
+//		CertificateFactory cf;
+//		try {
+//			cf = CertificateFactory.getInstance("X.509");
+//		} catch (CertificateException e2) {
+//			try {
+//				bis.close();
+//			} catch (IOException e) {
+//				throw new SEPASecurityException(e);
+//			}
+//			throw new SEPASecurityException(e2);
+//		}
+//
+//		try {
+//			while (bis.available() > 0) {
+//				caCert = (X509Certificate) cf.generateCertificate(bis);
+//			}
+//		} catch (CertificateException | IOException e1) {
+//			throw new SEPASecurityException(e1.getMessage());
+//		}
+//
+//		// CA certificate is used to authenticate server
+//		TrustManagerFactory tmf;
+//		try {
+//			KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
+//			caKs.load(null, null);
+//			caKs.setCertificateEntry("ca-certificate", caCert);
+//			tmf = TrustManagerFactory.getInstance("X509");
+//			tmf.init(caKs);
+//		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e1) {
+//			throw new SEPASecurityException(e1);
+//		}
+//
+//		try {
+//			sslContext = SSLContext.getInstance(protocol);
+//		} catch (NoSuchAlgorithmException e) {
+//			throw new SEPASecurityException(e);
+//		}
+//		try {
+//			sslContext.init(kmfactory.getKeyManagers(), tmf.getTrustManagers(), null);
+//		} catch (KeyManagementException e) {
+//			throw new SEPASecurityException(e);
+//		}
+//
+//		try {
+//			return sslContext.getSocketFactory().createSocket();
+//		} catch (IOException e) {
+//			throw new SEPASecurityException(e);
+//		}
+//
+//	}
 
+	static TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+			return new X509Certificate[0];
+		}
+
+		public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+		}
+
+		public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+		}
+	} };
+
+	public static SSLContext getSSLContextTrustAllCa(String protocol) throws SEPASecurityException {
+		SSLContext sc = null;
 		try {
-			sslContext = SSLContext.getInstance("TLSv1");
-		} catch (NoSuchAlgorithmException e) {
+			sc = SSLContext.getInstance(protocol);
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+		} catch (NoSuchAlgorithmException | KeyManagementException e) {
 			throw new SEPASecurityException(e);
 		}
-		try {
-			sslContext.init(kmfactory.getKeyManagers(), tmf.getTrustManagers(), null);
-		} catch (KeyManagementException e) {
-			throw new SEPASecurityException(e);
-		}
 
+		return sc;
+	}
+
+	public static SSLContext getSSLContext(String protocol, String caCertFile) throws SEPASecurityException {
 		try {
-			return sslContext.getSocketFactory().createSocket();
-		} catch (IOException e) {
+			// Load certificates into the keystore
+			KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
+			caKs.load(null, null);
+
+			FileInputStream fis = new FileInputStream(caCertFile);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			CertificateFactory cf;
+			cf = CertificateFactory.getInstance("X.509");
+			while (bis.available() > 0) {
+				X509Certificate caCert = (X509Certificate) cf.generateCertificate(bis);
+				caKs.setCertificateEntry(caCert.getIssuerX500Principal().getName(), caCert);
+			}
+			
+			// Trust manager
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
+			tmf.init(caKs);
+			
+			// Create SSL context
+			SSLContext sslContext = SSLContext.getInstance(protocol);
+			sslContext.init(null, tmf.getTrustManagers(), null);
+
+			return sslContext;
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
+				| KeyManagementException e) {
+			e.printStackTrace();
 			throw new SEPASecurityException(e);
 		}
 	}
 
-	public SSLContext getSSLContext() throws SEPASecurityException {
+	public SSLContext getSSLContext(String protocol) throws SEPASecurityException {
 		SSLContext sslContext;
 
 		try {
-			sslContext = SSLContext.getInstance("TLSv1");
+			sslContext = SSLContext.getInstance(protocol);
 		} catch (NoSuchAlgorithmException e) {
 			throw new SEPASecurityException(e);
 		}
@@ -288,9 +400,8 @@ public class SEPASecurityManager implements HostnameVerifier {
 	 * Register the identity and store the credentials into the Authentication
 	 * properties
 	 * 
-	 * @param identity
-	 *            is a string that identifies the client (e.g., registration code,
-	 *            MAC address, EPC, ...)
+	 * @param identity is a string that identifies the client (e.g., registration
+	 *                 code, MAC address, EPC, ...)
 	 * @return RegistrationResponse or ErrorResponse in case of an error
 	 * @see RegistrationResponse
 	 * @see ErrorResponse
@@ -474,26 +585,13 @@ public class SEPASecurityManager implements HostnameVerifier {
 			httpRequest.setHeader("Accept", "application/json");
 			httpRequest.setHeader("Authorization", authorization);
 
-			// int retries = 5;
-			// while (true) {
 			try {
 				response = getSSLHttpClient().execute(httpRequest);
 				// break;
 			} catch (IOException e) {
 				logger.error("HTTP EXECUTE: " + e.getMessage());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
-				// if (retries == 0) return new
-				// ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-				// "HttpExecute",e.getMessage());
 			}
-			// retries--;
-			// try {
-			// Thread.sleep(100);
-			// } catch (InterruptedException e) {
-			// return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-			// "InterruptedException",e.getMessage());
-			// }
-			// }
 
 			logger.debug("Response: " + response);
 			HttpEntity entity = response.getEntity();

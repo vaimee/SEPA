@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 
 import com.google.gson.JsonElement;
@@ -1171,7 +1172,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 				// Not a number or boolean
 				if (!numbersOrBoolean.contains(datatype)) {
-					value = "'" + value + "'";
+					value = "'" + StringEscapeUtils.escapeJava(value) + "'";
 
 					// Check if datatype is a qname or not
 					URI uri = null;

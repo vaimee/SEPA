@@ -18,6 +18,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -70,9 +71,25 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		}
 	}
 
-	// TODO: filtering SPUs to be activated
+	// TODO: filtering SPUs to be activated & check if there are "zombie" SPUs
 	protected Collection<SPU> filter(InternalUpdateRequest update) {
-		return spus.values();
+		Collection<SPU> all = spus.values();
+		Collection<SPU> ret = new ArrayList<SPU>();
+		
+		for (SPU spu : all) {
+			if (Subscriptions.isZombieSpu(spu.getSPUID())) {
+				spu.finish();
+				spu.interrupt();	
+				synchronized(spus) {
+					spus.remove(spu.getSPUID());
+				}
+			}
+			else {
+				ret.add(spu);
+			}
+		}
+		
+		return ret;
 	}
 
 	public synchronized void preUpdateProcessing(InternalUpdateRequest update) throws SEPAProcessingException {

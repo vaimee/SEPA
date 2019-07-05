@@ -114,7 +114,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	}
 
 	@Override
-	public final void onSemanticEvent(Notification notify) {
+	public void onSemanticEvent(Notification notify) {
 		ARBindingsResults results = notify.getARBindingsResults();
 
 		BindingsResults added = results.getAddedBindings();

@@ -68,7 +68,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		}
 
 		if (Dependability.isPreFlightRequest(exchange)) {
-			logger.error("Preflight request");
+			logger.warn("Preflight request");
 			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
 			return false;
 		}

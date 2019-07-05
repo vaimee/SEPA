@@ -560,6 +560,6 @@ Respond with 401 if not
 	}
 
 	public static SSLContext getSSLContext() throws SEPASecurityException {
-		return sManager.getSSLContext();
+		return sManager.getSSLContext("TLSv1");
 	}	
 }

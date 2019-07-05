@@ -1,5 +1,5 @@
 {
-	"host": "localhost",
+	"host": "mml.arces.unibo.it",
 	"oauth": {
 		"enable": false,
 		"register": "https://localhost:8443/oauth/register",
@@ -49,27 +49,69 @@
 	},
 	"extended": {},
 	"updates": {
-		"ADD_MQTT_BROKER" : {
-			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> INSERT {_:broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:ssl ?ssl} WHERE {FILTER NOT EXISTS {?broker mqtt:url ?url ; mqtt:port ?port} }",
+		"ADD_MQTT_MAPPING" : {
+			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> DELETE {?mapping ?p ?o} INSERT {_:mapping rdf:type mqtt:Mapping ; mqtt:observation ?observation ; mqtt:topic ?topic} WHERE {OPTIONAL{?mapping rdf:type mqtt:Mapping ; mqtt:observation ?observation ; ?p ?o}}",
 			"forcedBindings": {
-				"url": {
+				"topic": {
 					"type": "literal",
-					"value": "giove.arces.unibo.it"
+					"value": "5CCF7F1B599E/temperature"
 				},
-				"port": {
-					"type": "literal",
-					"value": 52877,
-					"datatype": "xsd:integer"
-				},
-				"ssl" : {
-					"type" : "literal",
-					"value" : false,
-					"datatype" : "xsd:boolean"
+				"observation": {
+					"type": "uri",
+					"value": "arces-monitor:5CCF7F1B599E-temperature"
 				}
 			}
 		},
-		"ADD_MQTT_BROKER_WITH_AUTH" : {
-			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> INSERT {_:broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:ssl ?ssl ; mqtt:user ?user ; mqtt:password ?password} WHERE {FILTER NOT EXISTS {?broker mqtt:url ?url ; mqtt:port ?port} }",
+		"ADD_MQTT_MAPPER" : {
+			"sparql" : "INSERT DATA {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapper rdf:type mqtt:Mapper ; mqtt:topic ?topic}}",
+			"forcedBindings": {
+				"topic": {
+					"type": "literal",
+					"value": "application/1/device/754366e02ff23515/rx"
+				},
+				"mapper": {
+					"type": "uri",
+					"value": "mqtt:GuaspariMapper"
+				}
+			}
+		},
+		"REMOVE_MQTT_MAPPER" : {
+			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> DELETE {?mapper ?p ?o} WHERE {?mapper rdf:type mqtt:Mapper ; ?p ?o} ",
+			"forcedBindings": {
+				"pattern": {
+					"type": "uri",
+					"value": "mqtt:GuaspariMapper"
+				}
+			}
+		},
+		"ADD_REGEX_TO_MQTT_MAPPER" : {
+			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> INSERT {?mapper mqtt:regex ?regex} WHERE {?mapper rdf:type mqtt:Mapper}",
+			"forcedBindings": {
+				"regex": {
+					"type": "literal",
+					"value": "S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)"
+				},
+				"mapper": {
+					"type": "uri",
+					"value": "mqtt:GuaspariMapper"
+				}
+			}
+		},
+		"ADD_TOPIC_TO_MQTT_MAPPER" : {
+			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> INSERT {?mapper mqtt:topic ?topic} WHERE {?mapper rdf:type mqtt:Mapper}",
+			"forcedBindings": {
+				"topic": {
+					"type": "literal",
+					"value": "application/1/device/1bc0f73caf72d467/rx"
+				},
+				"mapper": {
+					"type": "uri",
+					"value": "mqtt:GuaspariMapper"
+				}
+			}
+		},
+		"ADD_MQTT_BROKER" : {
+			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> DELETE {?broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:user ?username ; mqtt:password ?password ; mqtt:sslProtocol ?sslProtocol ; mqtt:sslCA ?caFile ; mqtt:clientId ?clientId} INSERT {_:broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:user ?username ; mqtt:password ?password ; mqtt:sslProtocol ?sslProtocol ; mqtt:sslCA ?caFile ; mqtt:clientId ?clientId} WHERE {OPTIONAL {?broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:user ?username ; mqtt:password ?password ; mqtt:sslProtocol ?sslProtocol ; mqtt:sslCA ?caFile ; mqtt:clientId ?clientId} }",
 			"forcedBindings": {
 				"url": {
 					"type": "literal",
@@ -80,22 +122,29 @@
 					"value": 8883,
 					"datatype": "xsd:integer"
 				},
-				"ssl" : {
-					"type" : "literal",
-					"value" : false,
-					"datatype" : "xsd:boolean"
-				},
-				"user" : {
+				"username" : {
 					"type": "literal",
 					"value": "ffa574972ab9"
 				},
 				"password" : {
 					"type": "literal",
 					"value": "6e257b56172ea934d79ee1f5c2c1c7a9"
+				},
+				"sslProtocol" : {
+					"type": "literal",
+					"value": "TLSv1.2"
+				},
+				"caFile" : {
+					"type": "literal",
+					"value": "/ect/ssl/cert.pem"
+				},
+				"clientId" : {
+					"type": "literal",
+					"value": "ffa574972ab9:1"
 				}
 			}
 		},
-		"ADD_TOPIC_TO_BROKER" : {
+		"ADD_TOPIC_TO_MQTT_BROKER" : {
 			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> INSERT {?broker mqtt:topic ?topic} WHERE {?broker rdf:type mqtt:Broker ; mqtt:url ?url ; mqtt:port ?port}",
 			"forcedBindings": {
 				"url": {
@@ -114,7 +163,7 @@
 			}
 		},
 		"REMOVE_MQTT_BROKER" : {
-			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> DELETE {?broker ?s ?p} WHERE {?broker rdf:type mqtt:Broker ; mqtt:url ?url ; mqtt:port ?port ; ?s ?p }",
+			"sparql" : "WITH <http://wot.arces.unibo.it/mqtt> DELETE {?broker ?p ?o} WHERE {?broker rdf:type mqtt:Broker ; mqtt:url ?url ; mqtt:port ?port ; ?p ?o }",
 			"forcedBindings": {
 				"url": {
 					"type": "literal",
@@ -130,11 +179,17 @@
 		"CLEAR_MQTT_GRAPH": {
 			"sparql": "WITH <http://wot.arces.unibo.it/mqtt> DELETE {?s ?p ?o} WHERE {?s ?p ?o}"
 		},
-		"CLEAR_HISTORY": {
+		"CLEAR_HISTORY_GRAPH": {
 			"sparql": "WITH <http://wot.arces.unibo.it/observation/history> DELETE {?s ?p ?o} WHERE {?s ?p ?o}"
 		},
-		"CLEAR_MQTT_MESSAGES": {
+		"CLEAR_MQTT_MESSAGE_GRAPH": {
 			"sparql": "WITH <http://wot.arces.unibo.it/mqtt/message> DELETE {?s ?p ?o} WHERE {?s ?p ?o}"
+		},
+		"CLEAR_CONTEXT_GRAPH": {
+			"sparql": "WITH <http://wot.arces.unibo.it/context> DELETE {?s ?p ?o} WHERE {?s ?p ?o}"
+		},
+		"CLEAR_OBSERVATION_GRAPH": {
+			"sparql": "WITH <http://wot.arces.unibo.it/observation> DELETE {?s ?p ?o} WHERE {?s ?p ?o}"
 		},
 		"REMOVE_PLACE": {
 			"sparql": "WITH <http://wot.arces.unibo.it/context> DELETE {?place rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?lon} WHERE {?place rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?lon}",
@@ -195,7 +250,7 @@
 			}
 		},
 		"MQTT_MESSAGE": {
-			"sparql": "WITH <http://wot.arces.unibo.it/mqtt/message> DELETE {?oldMessage rdf:type mqtt:Message ; mqtt:value ?oldValue ; mqtt:topic ?topic ; mqtt:hasBroker ?broker ; time:inXSDDateTimeStamp ?oldTimestamp} INSERT {_:message rdf:type mqtt:Message ; mqtt:value ?value ; mqtt:topic ?topic ; mqtt:hasBroker ?broker ; time:inXSDDateTimeStamp ?timestamp} WHERE {OPTIONAL{?oldMessage rdf:type mqtt:Message ; mqtt:value ?oldValue ; mqtt:topic ?topic ; mqtt:hasBroker ?broker ; time:inXSDDateTimeStamp ?oldTimestamp} . BIND(now() AS ?timestamp)}",
+			"sparql": "WITH <http://wot.arces.unibo.it/mqtt/message> DELETE {?oldMessage rdf:type mqtt:Message ; mqtt:value ?oldValue ; mqtt:topic ?topic ; mqtt:hasBroker ?broker ; time:inXSDDateTimeStamp ?oldTimestamp} INSERT {_:message rdf:type mqtt:Message ; mqtt:value ?value ; mqtt:topic ?topic ; mqtt:hasBroker ?broker ; time:inXSDDateTimeStamp ?timestamp} WHERE {OPTIONAL{?oldMessage rdf:type mqtt:Message ; mqtt:value ?oldValue ; mqtt:topic ?topic ; mqtt:hasBroker ?broker ; time:inXSDDateTimeStamp ?oldTimestamp}}",
 			"forcedBindings": {
 				"value": {
 					"type": "literal",
@@ -208,11 +263,16 @@
 				"broker": {
 					"type": "literal",
 					"value": "tcp://giove.arces.unibo.it:52887"
+				},
+				"timestamp": {
+					"type": "literal",
+					"value": "2019-07-03T14:39:13.000",
+					"datatype": "xsd:dateTime"
 				}
 			}
 		},
 		"LOG_QUANTITY": {
-			"sparql": "INSERT {GRAPH <http://wot.arces.unibo.it/observation/history> {_:result sosa:isResultOf ?observation ; qudt:numericValue ?value ; time:inXSDDateTimeStamp ?timestamp}} WHERE {BIND(now() AS ?timestamp)}",
+			"sparql": "INSERT {GRAPH <http://wot.arces.unibo.it/observation/history> {_:result sosa:isResultOf ?observation ; qudt:numericValue ?value ; time:inXSDDateTimeStamp ?timestamp}} WHERE {}",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",
@@ -222,11 +282,16 @@
 					"type": "literal",
 					"value": "1234",
 					"datatype": "xsd:decimal"
+				},
+				"timestamp": {
+					"type": "literal",
+					"value": "2019-07-03T14:39:13.000",
+					"datatype": "xsd:dateTime"
 				}
 			}
 		},
 		"REMOVE_OBSERVATION": {
-			"sparql": "WITH <http://wot.arces.unibo.it/observation> DELETE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; arces-monitor:hasMqttTopic ?topic ; sosa:hasResult ?quantity . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit ; qudt:numericValue ?value} WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; mqtt:topic ?topic ; sosa:hasResult ?quantity . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit ; qudt:numericValue ?value}",
+			"sparql": "WITH <http://wot.arces.unibo.it/observation> DELETE {?observation rdf:type sosa:Observation ; ?p ?o} WHERE {?observation rdf:type sosa:Observation ; ?p ?o}",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",
@@ -235,7 +300,7 @@
 			}
 		},
 		"ADD_OBSERVATION": {
-			"sparql": "INSERT {GRAPH <http://wot.arces.unibo.it/observation> {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; mqtt:topic ?topic ; sosa:hasResult _:quantity . _:quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit ; qudt:numericValue 'NaN'}} WHERE {}",
+			"sparql": "INSERT {GRAPH <http://wot.arces.unibo.it/observation> {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; sosa:hasResult _:quantity . _:quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit ; qudt:numericValue 'NaN'}} WHERE {}",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",
@@ -253,10 +318,6 @@
 					"type": "uri",
 					"value": "arces-monitor:Mars"
 				},
-				"topic": {
-					"type": "literal",
-					"value": "mqttTopicXYZ"
-				},
 				"unit": {
 					"type": "uri",
 					"value": "unit:DegreeCelsius"
@@ -264,7 +325,7 @@
 			}
 		},
 		"UPDATE_OBSERVATION_VALUE": {
-			"sparql": "WITH <http://wot.arces.unibo.it/observation> DELETE { ?quantity qudt:numericValue ?oldValue . ?observation sosa:resultTime ?oldTime } INSERT { ?quantity qudt:numericValue ?value . ?observation sosa:resultTime ?now } WHERE { ?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL { ?observation sosa:resultTime ?oldTime} . OPTIONAL {?quantity qudt:numericValue ?oldValue } BIND(now() AS ?now) }",
+			"sparql": "WITH <http://wot.arces.unibo.it/observation> DELETE { ?quantity qudt:numericValue ?oldValue . ?observation sosa:resultTime ?oldTime } INSERT { ?quantity qudt:numericValue ?value . ?observation sosa:resultTime ?timestamp } WHERE { ?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL { ?observation sosa:resultTime ?oldTime} . OPTIONAL {?quantity qudt:numericValue ?oldValue }}",
 			"forcedBindings": {
 				"observation": {
 					"type": "uri",
@@ -274,13 +335,33 @@
 					"type": "literal",
 					"datatype": "xsd:decimal",
 					"value": "12345.67890"
+				},
+				"timestamp": {
+					"type": "literal",
+					"datatype": "xsd:decimal",
+					"value": "2019-07-03T14:39:13.000"
 				}
 			}
 		}
 	},
 	"queries": {
+		"MQTT_MAPPINGS" : {
+			"sparql" : "SELECT * {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapping rdf:type mqtt:Mapping ; mqtt:observation ?observation ; mqtt:topic ?topic}}"
+		},
+		"MQTT_MAPPER" : {
+			"sparql" : "SELECT ?topic ?regex {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapper rdf:type mqtt:Mapper ; mqtt:topic ?topic . OPTIONAL {?mapper mqtt:regex ?regex}}}",
+			"forcedBindings": {
+				"mapper": {
+					"type": "uri",
+					"value": "mqtt:GuaspariMapper"
+				}
+			}
+		},
+		"MQTT_MAPPERS_TOPICS" : {
+			"sparql" : "SELECT DISTINCT ?topic {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapper rdf:type mqtt:Mapper ; mqtt:topic ?topic}}"
+		},
 		"MQTT_BROKERS" : {
-			"sparql" : "SELECT * WHERE { GRAPH <http://wot.arces.unibo.it/mqtt> {?broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:ssl ?ssl . OPTIONAL {?broker mqtt:user ?user ; mqtt:password ?password}}}"
+			"sparql" : "SELECT * WHERE { GRAPH <http://wot.arces.unibo.it/mqtt> {?broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:sslProtocol ?sslProtocol ; mqtt:user ?user ; mqtt:password ?password ; mqtt:sslCA ?caFile ; mqtt:clientId ?clientId}}"
 		},
 		"MQTT_BROKER_TOPICS" : {
 			"sparql" : "SELECT ?topic WHERE { GRAPH <http://wot.arces.unibo.it/mqtt> {?broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:topic ?topic}}",
@@ -336,11 +417,8 @@
 		"ROOT_PLACES": {
 			"sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/context> {?root rdf:type schema:Place .  FILTER NOT EXISTS{?root schema:containedInPlace ?place} }}"
 		},
-		"OBSERVATIONS_TOPICS": {
-			"sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/observation> {?observation rdf:type sosa:Observation ; mqtt:topic ?topic}}"
-		},
 		"OBSERVATIONS": {
-			"sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/observation> {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity ; sosa:hasFeatureOfInterest ?location . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit . OPTIONAL {?quantity qudt:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}}}"
+				"sparql": "SELECT * WHERE {?unit qudt:symbol ?symbol . GRAPH <http://wot.arces.unibo.it/observation> {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity ; sosa:hasFeatureOfInterest ?location . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit . OPTIONAL {?quantity qudt:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}} . GRAPH <http://wot.arces.unibo.it/context> {?location schema:name ?name} }"
 		},
 		"OBSERVATIONS_BY_LOCATION": {
 			"sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/observation> {?observation sosa:hasFeatureOfInterest ?location ; rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit . OPTIONAL {?quantity qudt:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}}}",
@@ -392,6 +470,12 @@
 		},
 		"LIVE_TRIPLES": {
 			"sparql": "SELECT (COUNT(?log) AS ?count) WHERE {GRAPH <http://wot.arces.unibo.it/observation> {?log ?x ?y}}"
+		},
+		"PLACES_COUNT": {
+			"sparql": "SELECT (COUNT(?place) AS ?count) WHERE {GRAPH <http://wot.arces.unibo.it/context> {?place rdf:type schema:Place}}"
+		},
+		"OBSERVATIONS_COUNT": {
+			"sparql": "SELECT (COUNT(?observation) AS ?count) WHERE {GRAPH <http://wot.arces.unibo.it/observation> {?observation rdf:type sosa:Observation}}"
 		}
 	}
 }
