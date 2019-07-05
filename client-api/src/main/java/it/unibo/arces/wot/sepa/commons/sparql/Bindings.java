@@ -26,7 +26,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-// TODO: Auto-generated Javadoc
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+
 /**
  * This class represents a query solution of a SPARQL 1.1 Query
  * 
@@ -75,8 +77,8 @@ public class Bindings {
 		return ret;
 	}
 	
-	public RDFTerm getRDFTerm(String variable) {
-		if (!solution.has(variable)) throw new IllegalArgumentException(String.format("Variable not found: %s",variable));
+	public RDFTerm getRDFTerm(String variable) throws SEPABindingsException {
+		if (!solution.has(variable)) throw new SEPABindingsException(String.format("Variable not found: %s",variable));
 		
 		try {
 			String type = solution.get(variable).getAsJsonObject().get("type").getAsString();
@@ -93,7 +95,7 @@ public class Bindings {
 			}
 		}
 		catch(Exception e) {
-			
+			throw new SEPABindingsException(e);
 		}
 		
 		return null;
@@ -106,14 +108,14 @@ public class Bindings {
 	 *            the variable
 	 * @return the binding value
 	 */
-	public void setBindingValue(String variable,String value,String datatype) throws IllegalArgumentException {
-		if (variable == null || value == null) throw new IllegalArgumentException("One or more arguments are null");
+	public void setBindingValue(String variable,String value,String datatype) throws SEPABindingsException {
+		if (variable == null || value == null) throw new SEPABindingsException("One or more arguments are null");
 		try {
 			solution.get(variable).getAsJsonObject().add("value", new JsonPrimitive(value));
 			solution.get(variable).getAsJsonObject().add("datatype",new JsonPrimitive(datatype));
 		}
 		catch(Exception e) {
-			throw new IllegalArgumentException(String.format("Variable not found: %s",variable));
+			throw new SEPABindingsException(String.format("Variable not found: %s",variable));
 		}		
 	}
 	
@@ -123,22 +125,23 @@ public class Bindings {
 	 * @param variable
 	 *            the variable
 	 * @return the binding value
+	 * @throws SEPAPropertiesException 
 	 */
-	public void setBindingValue(String variable,RDFTerm value) throws IllegalArgumentException {
-		if (variable == null || value == null) throw new IllegalArgumentException("One or more arguments are null");
+	public void setBindingValue(String variable,RDFTerm value) throws SEPABindingsException  {
+		if (variable == null || value == null) throw new SEPABindingsException("One or more arguments are null");
 			
 		try {
 			if (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("literal")) {
-				if(!value.getClass().equals(RDFTermLiteral.class)) throw new IllegalArgumentException("Value of ariable: "+variable+" must be a literal");
+				if(!value.getClass().equals(RDFTermLiteral.class)) throw new SEPABindingsException("Value of ariable: "+variable+" must be a literal");
 				if (((RDFTermLiteral) value).getDatatype() != null) solution.get(variable).getAsJsonObject().add("datatype", new JsonPrimitive(((RDFTermLiteral) value).getDatatype()));
 			}
-			if (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("uri") && !value.getClass().equals(RDFTermURI.class))throw new IllegalArgumentException("Value of ariable: "+variable+" must be an URI");
-			if (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("bnode")  && !value.getClass().equals(RDFTermBNode.class)) throw new IllegalArgumentException("Value of ariable: "+variable+" must be a b-node");
+			if (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("uri") && !value.getClass().equals(RDFTermURI.class))throw new SEPABindingsException("Value of ariable: "+variable+" must be an URI");
+			if (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("bnode")  && !value.getClass().equals(RDFTermBNode.class)) throw new SEPABindingsException("Value of ariable: "+variable+" must be a b-node");
 			
 			solution.get(variable).getAsJsonObject().add("value", new JsonPrimitive(value.getValue()));
 		}
 		catch(Exception e) {
-			throw new IllegalArgumentException(String.format("Variable not found: %s",variable));
+			throw new SEPABindingsException(String.format("Variable not found or bad type: %s",variable));
 		}		
 	}
 	
@@ -151,7 +154,7 @@ public class Bindings {
 	 */
 	public String getValue(String variable) {
 		try {
-			return solution.get(variable).getAsJsonObject().get("value").getAsString();	
+			return solution.getAsJsonObject(variable).get("value").getAsString();	
 		}
 		catch(Exception e) {
 			return null;
@@ -168,7 +171,7 @@ public class Bindings {
 	 */
 	public String getDatatype(String variable) {
 		try {
-			return solution.get(variable).getAsJsonObject().get("datatype").getAsString();
+			return solution.getAsJsonObject(variable).get("datatype").getAsString();
 		}
 		catch(Exception e) {
 			return null;
@@ -199,9 +202,9 @@ public class Bindings {
 	 *            the variable
 	 * @return true, if is literal
 	 */
-	public boolean isLiteral(String variable) throws IllegalArgumentException {
+	public boolean isLiteral(String variable) throws SEPABindingsException {
 		if (!solution.has(variable))
-			throw new IllegalArgumentException("Variable not found");
+			throw new SEPABindingsException("Variable not found");
 
 		return (solution.get(variable).getAsJsonObject().get("type").getAsString().equals("literal") || solution.get(variable).getAsJsonObject().get("type").getAsString().equals("typed-literal"));
 	}
@@ -213,9 +216,9 @@ public class Bindings {
 	 *            the variable
 	 * @return true, if is uri
 	 */
-	public boolean isURI(String variable) throws IllegalArgumentException {
+	public boolean isURI(String variable) throws SEPABindingsException {
 		if (!solution.has(variable))
-			throw new IllegalArgumentException("Variable not found");
+			throw new SEPABindingsException("Variable not found");
 
 		return solution.get(variable).getAsJsonObject().get("type").getAsString().equals("uri");
 	}
@@ -227,9 +230,9 @@ public class Bindings {
 	 *            the variable
 	 * @return true, if is b node
 	 */
-	public boolean isBNode(String variable) {
+	public boolean isBNode(String variable) throws SEPABindingsException  {
 		if (!solution.has(variable))
-			throw new IllegalArgumentException("Variable not found");
+			throw new SEPABindingsException("Variable not found");
 
 		return solution.get(variable).getAsJsonObject().get("type").getAsString().equals("bnode");
 	}

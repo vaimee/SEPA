@@ -77,8 +77,9 @@ public class EngineProperties {
 
 	public EngineProperties(String propertiesFile) throws SEPAPropertiesException {
 
-		if (propertiesFile == null)
+		if (propertiesFile == null) {
 			throw new SEPAPropertiesException(new IllegalArgumentException("Properties file is null"));
+		}
 
 		FileReader in = null;
 		try {

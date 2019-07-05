@@ -1,0 +1,162 @@
+{
+	"extended": {
+		"observations": {
+			"swamp:Embrapa_EndNode1002_B": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level B in Guaspari",
+				"label": "Soil probe reading B"
+			},
+			"swamp:Embrapa_EndNode1001_B": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level B in Guaspari",
+				"label": "Soil probe reading B"
+			},
+			"swamp:Embrapa_EndNode1002_T0": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level T0 in Guaspari",
+				"label": "Soil probe reading T0"
+			},
+			"swamp:Embrapa_EndNode1001_T0": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level T0 in Guaspari",
+				"label": "Soil probe reading T0"
+			},
+			"swamp:Embrapa_EndNode1002_H1": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level H1 in Guaspari",
+				"label": "Soil probe reading H1"
+			},
+			"swamp:Embrapa_EndNode1002_H2": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level H2 in Guaspari",
+				"label": "Soil probe reading H2"
+			},
+			"swamp:Embrapa_EndNode1002_H3": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1002",
+				"comment": "Embrapa EndNode1002 reading level H3 in Guaspari",
+				"label": "Soil probe reading H3"
+			},
+			"swamp:Embrapa_EndNode1001_H1": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level H1 in Guaspari",
+				"label": "Soil probe reading H1"
+			},
+			"swamp:Embrapa_EndNode1001_H2": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level H2 in Guaspari",
+				"label": "Soil probe reading H2"
+			},
+			"swamp:Embrapa_EndNode1001_H3": {
+				"unit": "unit:MilliVolt",
+				"location": "swamp:Embrapa_EndNode1001",
+				"comment": "Embrapa EndNode1001 reading level H3 in Guaspari",
+				"label": "Soil probe reading H3"
+			},
+			"arces-monitor:001BC50C700009CD-Temperature": {
+				"unit": "unit:DegreeCelsius",
+				"location": "arces-monitor:Star_SEHM_Lab",
+				"comment": "Temperature sensor used to show the need of a new air conditioning system in SEHM lab",
+				"label": "SEHM lab temperature (Star)"
+			},
+			"arces-monitor:001BC50C700009CD-Humidity": {
+				"unit": "unit:Percent",
+				"location": "arces-monitor:Star_SEHM_Lab",
+				"comment": "Humidity sensor used to show the need of a new air conditioning system in SEHM lab",
+				"label": "SEHM lab humidity (Star)"
+			},
+			"arces-monitor:001BC50C700009CD-Pressure": {
+				"unit": "unit:Millibar",
+				"location": "arces-monitor:Star_SEHM_Lab",
+				"comment": "Pressure sensor used to show the need of a new air conditioning system in SEHM lab",
+				"label": "SEHM lab pressure (Star)"
+			},
+			"arces-monitor:001BC50C700009CD-Acc-X": {
+				"unit": "unit:Gravity",
+				"location": "arces-monitor:Star_SEHM_Lab",
+				"comment": "Accelerometer X axis",
+				"label": "SEHM lab accelerometer X axis (Star)"
+			},
+			"arces-monitor:001BC50C700009CD-Acc-Y": {
+				"unit": "unit:Gravity",
+				"location": "arces-monitor:Star_SEHM_Lab",
+				"comment": "Accelerometer Y axis",
+				"label": "SEHM lab accelerometer Y axis (Star)"
+			},
+			"arces-monitor:001BC50C700009CD-Acc-Z": {
+				"unit": "unit:Gravity",
+				"location": "arces-monitor:Star_SEHM_Lab",
+				"comment": "Accelerometer Z axis sensor used to show the need of a new air conditioning system in SEHM lab",
+				"label": "SEHM lab accelerometer Z axis (Star)"
+			},
+			"arces-monitor:5CCF7F15676D-temperature": {
+				"unit": "unit:DegreeCelsius",
+				"location": "arces-monitor:Mars_Server_Rack",
+				"comment": "Temperatura zona rack sala server Toffano",
+				"label": "Server rack zone temperature (Mars)"
+			},
+			"arces-monitor:5CCF7F15676D-humidity": {
+				"unit": "unit:Percent",
+				"location": "arces-monitor:Mars_Server_Rack",
+				"comment": "Umidità zona rack sala server Toffano",
+				"label": "Server rack zone humidity (Mars)"
+			},
+			"arces-monitor:5CCF7F1B599E-temperature": {
+				"unit": "unit:DegreeCelsius",
+				"location": "arces-monitor:Mars_Garden",
+				"comment": "Temperatura esterna Toffano",
+				"label": "External temperature (Mars)"
+			},
+			"arces-monitor:5CCF7F1B599E-humidity": {
+				"unit": "unit:Percent",
+				"location": "arces-monitor:Mars_Garden",
+				"comment": "Umidità esterna Toffano",
+				"label": "External humidity (Mars)"
+			},
+			"arces-monitor:5CCF7F151DC9-temperature": {
+				"unit": "unit:DegreeCelsius",
+				"location": "arces-monitor:Mars_Server_Room",
+				"comment": "Temperatura interna sala server Toffano",
+				"label": "Near window temperature (Mars)"
+			},
+			"arces-monitor:5CCF7F1B58AC-temperature": {
+				"unit": "unit:DegreeCelsius",
+				"location": "arces-monitor:Star_Server_Room",
+				"comment": "Temperatura zona rack sala server Pepoli",
+				"label": "Server rack zone temperature (Star)"
+			},
+			"arces-monitor:5CCF7F1B58AC-humidity": {
+				"unit": "unit:Percent",
+				"location": "arces-monitor:Star_Server_Room",
+				"comment": "Umidità zona rack sala server Pepoli",
+				"label": "Server rack zone humidity (Star)"
+			},
+			"arces-monitor:swamp_devices_moisture1_up_Moisture_Signal_to_Supply_Perc": {
+				"unit": "unit:Percent",
+				"location": "swamp:BertacchiniSoilProbe",
+				"comment": "Soil moisture sensor provided by SWAMP brasilian partner. The node communicates with LoRa.",
+				"label": "Soil moisture (SWAMP sensor)"
+			},
+			"arces-monitor:swamp_devices_moisture1_up_Moisture_Supply_Voltage": {
+				"unit": "unit:Volt",
+				"location": "swamp:BertacchiniSoilProbe",
+				"comment": "Soil moisture sensor provided by SWAMP brasilian partner. The node communicates with LoRa.",
+				"label": "Sensor supply voltage (SWAMP sensor)"
+			},
+			"arces-monitor:swamp_devices_moisture1_up_Battery_Level": {
+				"unit": "unit:Percent",
+				"location": "swamp:BertacchiniSoilProbe",
+				"comment": "Soil moisture sensor provided by SWAMP brasilian partner. The node communicates with LoRa.",
+				"label": "Battery voltage (SWAMP sensor)"
+			}
+		}
+	}
+}

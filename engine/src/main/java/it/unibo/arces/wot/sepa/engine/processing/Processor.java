@@ -21,10 +21,10 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -32,6 +32,7 @@ import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class Processor implements ProcessorMBean {
@@ -68,6 +69,7 @@ public class Processor implements ProcessorMBean {
 		this.scheduler = scheduler;
 		
 		// Processors
+		//queryProcessor = new QueryProcessor(endpointProperties,endpointSemaphore);
 		queryProcessor = new QueryProcessor(endpointProperties,endpointSemaphore);
 		updateProcessor = new UpdateProcessor(endpointProperties,endpointSemaphore);
 		
@@ -124,8 +126,23 @@ public class Processor implements ProcessorMBean {
 		updateProcessingThread.interrupt();
 	}
 	
-	public Response subscribe(InternalSubscribeRequest request) {
+	public Response subscribe(InternalSubscribeRequest request) throws SEPAProcessingException {
 		return spuManager.subscribe(request);
+	}
+	public void killSubscription(String sid, String gid) throws SEPAProcessingException {
+		spuManager.killSubscription(sid, gid);
+	}
+
+	public Response unsubscribe(String sid, String gid) throws SEPAProcessingException {
+		return spuManager.unsubscribe(sid, gid);
+	}
+
+	public void postUpdateProcessing(Response ret) throws SEPAProcessingException {
+		spuManager.postUpdateProcessing(ret);
+	}
+
+	public void preUpdateProcessing(InternalUpdateRequest update) throws SEPAProcessingException {
+		spuManager.preUpdateProcessing(update);		
 	}
 	
 	public boolean isUpdateReilable() {
@@ -165,17 +182,5 @@ public class Processor implements ProcessorMBean {
 	@Override
 	public int getMaxConcurrentRequests() {
 		return ProcessorBeans.getMaxConcurrentRequests();
-	}
-
-	public void killSubscription(String sid, String gid) {
-		spuManager.killSubscription(sid, gid);
-	}
-
-	public Response unsubscribe(String sid, String gid) {
-		return spuManager.unsubscribe(sid, gid);
-	}
-
-	public void process(UpdateResponse update) {
-		spuManager.process(update);
 	}
 }

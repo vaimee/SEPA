@@ -1,6 +1,6 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
-public class Message {
+class Message {
 	private String from;
 	private String to;
 	private String time;

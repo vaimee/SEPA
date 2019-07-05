@@ -96,17 +96,10 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		super(propertiesFile);
 	}
 
-//	/**
-//	 * Instantiates a new SPARQL 11 SE properties.
-//	 *
-//	 * @param propertiesFile
-//	 *            the properties file
-//	 * @throws SEPAPropertiesException
-//	 */
-//	public SPARQL11SEProperties(File propertiesFile) throws SEPAPropertiesException {
-//		super(propertiesFile);
-//	}
-
+	public SPARQL11SEProperties() {
+		super();
+	}
+	
 	public String toString() {
 		return jsap.toString();
 	}
@@ -127,6 +120,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		}
 	 * </pre>
 	 */
+	
 	@Override
 	protected void defaults() {
 		super.defaults();
@@ -194,13 +188,17 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		}
 	}
 
-	public String getDefaultHost() {
+	public String getSubscribeHost() {
 		try {
 			return jsap.get("sparql11seprotocol").getAsJsonObject().get("host").getAsString();
 		}
 		catch(Exception e) {
-			return super.getDefaultHost();
+			return super.getHost();
 		}
+	}
+	
+	public void setHost(String host) {
+		jsap.get("sparql11seprotocol").getAsJsonObject().add("host",new JsonPrimitive(host));
 	}
 	
 	public String getSubscribePath() {
@@ -213,6 +211,11 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 			return null;
 		}
 	}
+	
+	public void setSubscribePath(String path) {
+		jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
+						.get(jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()).getAsJsonObject().add("path",new JsonPrimitive(path));
+	}
 
 	public int getSubscribePort() {
 		try {
@@ -224,16 +227,21 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 			return -1;
 		}
 	}
-
-	public int getHttpsPort() {
-		try {
-			if (jsap.get("sparql11protocol").getAsJsonObject().get("protocol").getAsString().equals("https"))
-				return jsap.get("sparql11protocol").getAsJsonObject().get("port").getAsInt();
-		} catch (Exception e) {
-			return -1;
-		}
-		return -1;
+	
+	public void setSubscribePort(int port) {
+		jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
+						.get(jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()).getAsJsonObject().add("port",new JsonPrimitive(port));
 	}
+
+//	public int getHttpsPort() {
+//		try {
+//			if (jsap.get("sparql11protocol").getAsJsonObject().get("protocol").getAsString().equals("https"))
+//				return jsap.get("sparql11protocol").getAsJsonObject().get("port").getAsInt();
+//		} catch (Exception e) {
+//			return -1;
+//		}
+//		return -1;
+//	}
 
 	public SubscriptionProtocol getSubscriptionProtocol() {
 		return subscriptionProtocol;

@@ -2,13 +2,11 @@ package it.unibo.arces.wot.sepa.api;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
-import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -17,7 +15,6 @@ import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
-import org.apache.logging.log4j.LogManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -26,18 +23,11 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.TimeZone;
 
 import static org.junit.Assert.*;
 
 public class ITSPARQL11SEProtocol {
-	static {
-		ConfigurationProvider.configureLogger();
-	}
 	private static JSAP properties = null;
 	private static ConfigurationProvider provider;
 	
@@ -86,7 +76,6 @@ public class ITSPARQL11SEProtocol {
 		while(ret.isError() && ((ErrorResponse)ret).getStatusCode() == 400 &&
 				properties.isSecure()){
 			sm.forceRefreshToken();
-			final String authorizationHeader = sm.getAuthorizationHeader();
 			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000,sm));
 		}
 		assertFalse(String.valueOf(ret), ret.isError());
@@ -155,7 +144,6 @@ public class ITSPARQL11SEProtocol {
 			assertFalse("Failed to get authorization header", authorization == null);
 
 			final long expiringTime = 5000;
-			final Date date = new Date();
 			Thread.sleep(expiringTime+1000);
 			final Response tokenTest = client.query(provider.buildQueryRequest("ALL", 5000, authorization));
 
@@ -168,14 +156,26 @@ public class ITSPARQL11SEProtocol {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", 5000,sm));
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
+	
+	@Test(timeout = 1000)
+	public void MalformedUpdate() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
+		Response ret = client.update(provider.buildUpdateRequest("WRONG", 5000,sm));
+		assertTrue(String.valueOf(ret), ret.isError());
+	}
 
 	@Test(timeout = 5000)
 	public void Query() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.query(provider.buildQueryRequest("ALL", 5000,sm));
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
-
+	
 	@Test(timeout = 5000)
+	public void MalformedQuery() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
+		Response ret = client.query(provider.buildQueryRequest("WRONG", 5000,sm));
+		assertTrue(String.valueOf(ret), ret.isError());
+	}
+
+	@Test (timeout = 5000)
 	public void UpdateAndQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", 5000,sm));
@@ -292,6 +292,35 @@ public class ITSPARQL11SEProtocol {
 				"Events:" + sync.getEvents() + "(" + subscribers.size()
 						+ subscribers.size() * publishers.size() * publishers.size() + ")",
 				sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
+	}
+	
+	@Test(timeout = 60000)
+	public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
+			SEPAPropertiesException, SEPASecurityException {
+
+		int n = 5;
+
+		for (int i = 0; i < n; i++) {
+			subscribers.add(new Subscriber("RANDOM", sync));
+			publishers.add(new Publisher("RANDOM", n));
+			publishers.add(new Publisher("WRONG", n));
+		}
+
+		for (Subscriber sub : subscribers) sub.start();
+
+		sync.waitSubscribes(subscribers.size());
+		sync.waitEvents(subscribers.size());
+		
+		for (Publisher pub : publishers) pub.start();
+
+		sync.waitEvents(subscribers.size() + subscribers.size() * (publishers.size()/2) * (publishers.size()/2));
+
+		assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
+				sync.getSubscribes() != subscribers.size());
+		assertFalse(
+				"Events:" + sync.getEvents() + "(" + subscribers.size()
+						+ subscribers.size() * (publishers.size()/2) * (publishers.size()/2) + ")",
+				sync.getEvents() != subscribers.size() + subscribers.size() * (publishers.size()/2) * (publishers.size()/2));
 	}
 
 	@Test(timeout = 60000)

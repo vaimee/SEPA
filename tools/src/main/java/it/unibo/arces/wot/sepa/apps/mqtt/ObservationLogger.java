@@ -4,12 +4,13 @@ import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.eclipse.paho.client.mqttv3.MqttException;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -21,30 +22,9 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 public class ObservationLogger extends Aggregator {
 	private static final Logger logger = LogManager.getLogger();
 	
-	public static void main(String[] args)
-			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, MqttException {
-		if (args.length != 1) {
-			logger.error("Please provide the jsap file as argument");
-			System.exit(-1);
-		}
-		
-		// Logger
-		ObservationLogger analytics = new ObservationLogger(args[0]);
-		analytics.subscribe(5000);
-		
-		logger.info("Press any key to exit...");
-		try {
-			System.in.read();
-		} catch (IOException e) {
-			logger.warn(e.getMessage());
-		}
-		
-		analytics.close();
-	}
-	
-	public ObservationLogger(String jsap)
+	public ObservationLogger(JSAP jsap,SEPASecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(new JSAP(jsap), "OBSERVATIONS", "LOG_QUANTITY");
+		super(jsap, "OBSERVATIONS", "LOG_QUANTITY",sm);
 	}
 
 	@Override
@@ -54,17 +34,16 @@ public class ObservationLogger extends Aggregator {
 	public void onAddedResults(BindingsResults results) {
 		for (Bindings binding : results.getBindings()) {
 			if (binding.getValue("value").equals("NaN")) continue;
-			
-			RDFTermLiteral literal = new RDFTermLiteral(binding.getValue("value"), binding.getDatatype("value"));
-			
-			this.setUpdateBindingValue("quantity", new RDFTermURI(binding.getValue("quantity")));
-			this.setUpdateBindingValue("value", literal);
-			this.setUpdateBindingValue("unit", new RDFTermURI(binding.getValue("unit")));
+
+			logger.info("Logging: "+binding.getValue("observation") +" "+binding.getValue("value"));
 			
 			try {
+				this.setUpdateBindingValue("observation", new RDFTermURI(binding.getValue("observation")));
+				this.setUpdateBindingValue("value", new RDFTermLiteral(binding.getValue("value"), binding.getDatatype("value")));
+				this.setUpdateBindingValue("timestamp", new RDFTermLiteral(binding.getValue("timestamp"), binding.getDatatype("value")));
+				
 				update();
-			} catch (SEPASecurityException | IOException | SEPAPropertiesException e) {
-				// TODO Auto-generated catch block
+			} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
 				e.printStackTrace();
 			}
 		}
@@ -74,20 +53,22 @@ public class ObservationLogger extends Aggregator {
 	public void onRemovedResults(BindingsResults results) {}
 
 	@Override
-	public void onBrokenConnection() {}
+	public void onBrokenConnection() {
+		logger.error("Broken connection");
+	}
 
 	@Override
-	public void onError(ErrorResponse errorResponse) {}
+	public void onError(ErrorResponse errorResponse) {
+		logger.error(errorResponse);
+	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		// TODO Auto-generated method stub
-		
+		logger.info("Subscribed. SPUID: "+spuid+" alias: "+alias);
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		// TODO Auto-generated method stub
-		
+		logger.info("Unsubscribed. SPUID: "+spuid);
 	}
 }
