@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-{"parameters":{"scheduler":{"queueSize":100,"timeout":5000},"processor":{"updateTimeout":5000,"queryTimeout":5000,"maxConcurrentRequests":5},"spu":{"timeout":5000},"gates":{"secure":false,"paths":{"securePath":"/secure","update":"/update","query":"/query","subscribe":"/subscribe","unsubscribe":"/unsubscribe","register":"/oauth/register","tokenRequest":"/oauth/token"},"ports":{"http":8000,"https":8443,"ws":9000,"wss":9443}}}}
-=======
 {
 	"parameters": {
 		"scheduler": {
@@ -34,4 +31,3 @@
 		}
 	}
 }
->>>>>>> refs/heads/luca-local-mess

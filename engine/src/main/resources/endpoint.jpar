@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-{"host":"localhost","sparql11protocol":{"protocol":"http","port":9999,"query":{"path":"/blazegraph/namespace/kb/sparql","method":"POST","format":"JSON"},"update":{"path":"/blazegraph/namespace/kb/sparql","method":"POST","format":"JSON"}}}
-=======
 {
 	"host": "localhost",
 	"sparql11protocol": {
@@ -18,4 +15,3 @@
 		}
 	}
 }
->>>>>>> refs/heads/luca-local-mess
