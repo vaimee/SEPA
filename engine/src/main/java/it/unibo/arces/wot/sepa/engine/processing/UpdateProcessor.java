@@ -23,13 +23,13 @@ import java.util.concurrent.Semaphore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -45,40 +45,41 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	private final SPARQL11Properties properties;
 
 	public UpdateProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
-		endpoint = new SPARQL11Protocol();
+		this.endpoint = new SPARQL11Protocol();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
-		
+
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized Response process(InternalUpdateRequest req) {
+	public synchronized InternalUpdateRequest preProcess(InternalUpdateRequest update) throws SEPAProcessingException {
+		return update;
+	}
+
+	public synchronized Response process(InternalUpdateRequest req) throws InterruptedException {
 		long start = Timings.getTime();
 
 		if (endpointSemaphore != null)
-			try {
-				//TODO: timeout
-				endpointSemaphore.acquire();
-			} catch (InterruptedException e) {
-				return new ErrorResponse(500, "InterruptedException",e.getMessage());
-			}
+			// TODO: timeout
+			endpointSemaphore.acquire();
 
 		// Authorized access to the endpoint
 		String authorizationHeader = null;
 		try {
-			//TODO: to implement also bearer authentication
-			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
-			if (oauth.isEnabled()) authorizationHeader = oauth.getBasicAuthorizationHeader();			
+			// TODO: to implement also bearer authentication
+			AuthenticationProperties oauth = new AuthenticationProperties(properties.getJSAPFilename());
+			if (oauth.isEnabled())
+				authorizationHeader = oauth.getBasicAuthorizationHeader();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn(e.getMessage());
+			logger.warn("Authorization header " + e.getMessage());
 		}
-				
+
 		// UPDATE the endpoint
 		Response ret;
-		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(),
-				properties.getDefaultProtocolScheme(), properties.getDefaultHost(), properties.getDefaultPort(),
-				properties.getUpdatePath(), req.getSparql(), req.getDefaultGraphUri(),
-				req.getNamedGraphUri(), authorizationHeader,UpdateProcessorBeans.getTimeout());
+		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
+				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
+				req.getDefaultGraphUri(), req.getNamedGraphUri(), authorizationHeader,
+				UpdateProcessorBeans.getTimeout());
 		logger.trace(request);
 		ret = endpoint.update(request);
 
@@ -87,10 +88,10 @@ class UpdateProcessor implements UpdateProcessorMBean {
 
 		long stop = Timings.getTime();
 		UpdateProcessorBeans.timings(start, stop);
-		
+
 		logger.trace("Response: " + ret.toString());
 		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
-		
+
 		return ret;
 	}
 

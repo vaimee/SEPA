@@ -3,6 +3,7 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
@@ -40,7 +41,11 @@ class SubscribeProcessingThread extends Thread {
 				// Send back response
 				processor.getScheduler().addResponse(request.getToken(), response);
 
+			} catch (SEPAProcessingException e) {
+				logger.warn(e.getMessage());
+				continue;
 			} catch (InterruptedException e) {
+				logger.warn(e.getMessage());
 				return;
 			}
 		}

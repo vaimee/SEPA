@@ -30,6 +30,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -39,7 +40,7 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 public abstract class Consumer extends Client implements IConsumer {
-	private static final Logger logger = LogManager.getLogger("Consumer");
+	private static final Logger logger = LogManager.getLogger();
 
 	protected String sparqlSubscribe = null;
 	protected String subID = "";
@@ -49,19 +50,21 @@ public abstract class Consumer extends Client implements IConsumer {
 
 	public Consumer(JSAP appProfile, String subscribeID, SEPASecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile);
+		super(appProfile,sm);
 
 		if (subscribeID == null) {
 			logger.fatal("Subscribe ID is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe ID is null"));
 		}
-
+		
 		if (appProfile.getSPARQLQuery(subscribeID) == null) {
 			logger.fatal("SUBSCRIBE ID [" + subscribeID + "] not found in " + appProfile.getFileName());
 			throw new IllegalArgumentException(
 					"SUBSCRIBE ID [" + subscribeID + "] not found in " + appProfile.getFileName());
 		}
 
+		subID = subscribeID;
+		
 		sparqlSubscribe = appProfile.getSPARQLQuery(subscribeID);
 
 		forcedBindings = appProfile.getQueryBindings(subscribeID);
@@ -71,65 +74,26 @@ public abstract class Consumer extends Client implements IConsumer {
 			throw new SEPAProtocolException(new IllegalArgumentException("SPARQL subscribe is null"));
 		}
 
+		// Subscription protocol
 		SubscriptionProtocol protocol = null;
-
 		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
 				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID));
 		protocol.setHandler(this);
-		protocol.enableSecurity(sm);
+		if (appProfile.isSecure()) protocol.enableSecurity(sm);
 
 		client = new SPARQL11SEProtocol(protocol,sm);
-		
-		subID = subscribeID;
 	}
 
-	public Consumer(JSAP appProfile, String subscribeID) throws SEPAProtocolException {
-		super(appProfile);
-
-		if (subscribeID == null) {
-			logger.fatal("Subscribe ID is null");
-			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe ID is null"));
-		}
-
-		if (appProfile.getSPARQLQuery(subscribeID) == null) {
-			logger.fatal("SUBSCRIBE ID [" + subscribeID + "] not found in " + appProfile.getFileName());
-			throw new IllegalArgumentException(
-					"SUBSCRIBE ID [" + subscribeID + "] not found in " + appProfile.getFileName());
-		}
-
-		sparqlSubscribe = appProfile.getSPARQLQuery(subscribeID);
-
-		forcedBindings = appProfile.getQueryBindings(subscribeID);
-
-		if (sparqlSubscribe == null) {
-			logger.fatal("SPARQL subscribe is null");
-			throw new SEPAProtocolException(new IllegalArgumentException("SPARQL subscribe is null"));
-		}
-
-		SubscriptionProtocol protocol = null;
-
-		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
-				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID));
-		protocol.setHandler(this);
-
-		client = new SPARQL11SEProtocol(protocol,null);
-		
-		subID = subscribeID;
-	}
-
-	public final void setSubscribeBindingValue(String variable, RDFTerm value) throws IllegalArgumentException {
+	public final void setSubscribeBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
 		forcedBindings.setBindingValue(variable, value);
-
 	}
 
-	public final void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {
+	public final void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		String authorizationHeader = null;
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
-
-		String sparql = prefixes() + replaceBindings(sparqlSubscribe, forcedBindings);
 		
-		client.subscribe(new SubscribeRequest(sparql, null, appProfile.getDefaultGraphURI(subID),
+		client.subscribe(new SubscribeRequest(addPrefixesAndReplaceBindings(sparqlSubscribe, forcedBindings), null, appProfile.getDefaultGraphURI(subID),
 				appProfile.getNamedGraphURI(subID),
 				authorizationHeader,timeout));
 	}
@@ -150,17 +114,18 @@ public abstract class Consumer extends Client implements IConsumer {
 	}
 
 	@Override
-	public final void onSemanticEvent(Notification notify) {
+	public void onSemanticEvent(Notification notify) {
 		ARBindingsResults results = notify.getARBindingsResults();
 
 		BindingsResults added = results.getAddedBindings();
 		BindingsResults removed = results.getRemovedBindings();
 
+		onResults(results);
+		
 		// Dispatch different notifications based on notify content
 		if (!added.isEmpty())
 			onAddedResults(added);
 		if (!removed.isEmpty())
 			onRemovedResults(removed);
-		onResults(results);
 	}
 }

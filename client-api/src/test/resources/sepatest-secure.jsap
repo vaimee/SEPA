@@ -1,4 +1,5 @@
 {
+ 
 	"host": "localhost",
 	"oauth": {
 		"enable": true,
@@ -37,34 +38,40 @@
 		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	},
 	"updates": {
-		"DELETE_ALL": {
-			"sparql": "DELETE {GRAPH<http://sepatest/> {?x ?y ?z} } WHERE {GRAPH<http://sepatest/> {?x ?y ?z} }"
+		"WRONG" : {
+			"sparql" : "WITH <http://sepatest> DELETE {?x ?y} WHERE {?y ?z}"
+		},
+		"DELETE_ALL" : {
+			"sparql" : "WITH <http://sepatest> DELETE {?x ?y ?z} WHERE {?x ?y ?z}"
 		},
 		"VAIMEE": {
-			"sparql": "DELETE {GRAPH<http://sepatest/> {sepa:SV sepa:PV ?o}} WHERE {GRAPH<http://sepatest/> {sepa:SV sepa:PV ?o}} ; INSERT DATA {GRAPH <http://sepatest/> {sepa:SV sepa:PV \"ვაიმეე\"}}"
+			"sparql": "WITH <http://sepatest> DELETE {sepa:SV sepa:PV ?o}  WHERE {sepa:SV sepa:PV ?o} ; INSERT DATA {GRAPH<http://sepatest> {sepa:SV sepa:PV \"ვაიმეე\"}}"
 		},
 		"RANDOM": {
-			"sparql": "DELETE {GRAPH<http://sepatest/> {sepa:S sepa:P ?o}} WHERE {GRAPH<http://sepatest/> {sepa:S sepa:P ?o}} ; INSERT {GRAPH<http://sepatest/> {sepa:S sepa:P ?random}} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+			"sparql": "WITH <http://sepatest> DELETE {sepa:S sepa:P ?o} WHERE {sepa:S sepa:P ?o} ; WITH <http://sepatest> INSERT {sepa:S sepa:P ?random} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
 		},
 		"RANDOM1": {
-			"sparql": "DELETE {GRAPH<http://sepatest/> {sepa:S1 sepa:P1 ?o}} WHERE {graph<http://sepatest/> {sepa:S1 sepa:P1 ?o}} ; INSERT {GRAPH<http://sepatest/> {sepa:S1 sepa:P1 ?random}} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+			"sparql": "WITH <http://sepatest> DELETE {sepa:S sepa:P ?o} WHERE {sepa:S1 sepa:P1 ?o} ; WITH <http://sepatest> INSERT {sepa:S1 sepa:P1 ?random} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
 		}
 	},
 	"queries": {
+		"WRONG": {
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest> {?x \"ვაიმეე\"}}"
+		},
 		"VAIMEE": {
-			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {?x ?y \"ვაიმეე\"}}"
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest> {?x ?y \"ვაიმეე\"}}"
 		},
 		"ALL": {
-			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {?x ?y ?z}}"
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest> {?x ?y ?z}}"
 		},
 		"RANDOM": {
-			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S sepa:P ?random}}"
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest> {sepa:S sepa:P ?random}}"
 		},
 		"RANDOM1": {
-			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S1 sepa:P1 ?random}}"
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest> {sepa:S1 sepa:P1 ?random}}"
 		},
 		"COUNT": {
-			"sparql": "SELECT (COUNT(?x) AS ?n) WHERE {GRAPH <http://sepatest/> {?x ?y ?z}}"
+			"sparql": "SELECT (COUNT(?x) AS ?n) WHERE {GRAPH <http://sepatest> {?x ?y ?z}}"
 		}
 	}
 }
