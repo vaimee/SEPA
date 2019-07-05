@@ -16,7 +16,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
-import it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.oauth.JWTRequestHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.oauth.RegisterHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SecureQueryHandler;
@@ -46,7 +45,6 @@ public class HttpsGate {
 					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),
 							new SecureUpdateHandler(scheduler))
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
-					.registerHandler("/ngsi-ld/v1", new NgsiLdHandler(scheduler))
 					.registerHandler("/echo", new EchoHandler()).create();
 		} catch (IllegalArgumentException e) {
 			throw new SEPASecurityException(e);
