@@ -155,17 +155,17 @@ public abstract class SPU extends Thread implements ISPU {
 				manager.endOfProcessing(this);
 				if (notify != null) subscribe.getEventHandler().notifyEvent(notify);			
 			} catch (InterruptedException e1) {
-				logger.warn(e1.getMessage());
+				logger.warn("Interrupted exception: "+e1.getMessage());
 				running.set(false);
 				logger.warn("SPU interrupted. Exit");
-				manager.exceptionOnProcessing(this);
+				//manager.exceptionOnProcessing(this);
 				break;
 			} catch (SEPAProcessingException e2) {
-				logger.warn(e2.getMessage());
+				logger.warn("SEPAProcessingException "+e2.getMessage());
 				manager.exceptionOnProcessing(this);
 				continue;
 			} catch (SEPAProtocolException e3) {
-				logger.warn(e3.getMessage());
+				logger.warn("SEPAProtocolException "+e3.getMessage());
 				manager.exceptionOnProcessing(this);
 				continue;
 			}

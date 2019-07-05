@@ -31,7 +31,9 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
+
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
@@ -42,34 +44,66 @@ import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
+// TODO: Auto-generated Javadoc
+/**
+ * The Class GenericClient.
+ */
 public class GenericClient extends Client {
 
+	/**
+	 * The Class Handler.
+	 */
 	class Handler implements ISubscriptionHandler {
+		
+		/** The handler. */
 		private ISubscriptionHandler _handler;
+		
+		/** The url. */
 		private String _url;
+		
+		/** The client. */
 		private SPARQL11SEProtocol _client;
 		
+		/**
+		 * Instantiates a new handler.
+		 *
+		 * @param url the url
+		 * @param client the client
+		 * @param handler the handler
+		 */
 		public Handler(String url,SPARQL11SEProtocol client, ISubscriptionHandler handler) {
 			_url = url;
 			_client = client;
 			_handler = handler;
 		}
 		
+		/* (non-Javadoc)
+		 * @see it.unibo.arces.wot.sepa.api.ISubscriptionHandler#onSemanticEvent(it.unibo.arces.wot.sepa.commons.response.Notification)
+		 */
 		@Override
 		public void onSemanticEvent(Notification notify) {
 			if (_handler != null) _handler.onSemanticEvent(notify);
 		}
 
+		/* (non-Javadoc)
+		 * @see it.unibo.arces.wot.sepa.api.ISubscriptionHandler#onBrokenConnection()
+		 */
 		@Override
 		public void onBrokenConnection() {
 			if (_handler != null) _handler.onBrokenConnection();
 		}
 
+		/* (non-Javadoc)
+		 * @see it.unibo.arces.wot.sepa.api.ISubscriptionHandler#onError(it.unibo.arces.wot.sepa.commons.response.ErrorResponse)
+		 */
 		@Override
 		public void onError(ErrorResponse errorResponse) {
 			if (_handler != null) _handler.onError(errorResponse);
 		}
 
+		/* (non-Javadoc)
+		 * @see it.unibo.arces.wot.sepa.api.ISubscriptionHandler#onSubscribe(java.lang.String, java.lang.String)
+		 */
 		@Override
 		public void onSubscribe(String spuid, String alias) {
 			activeUrls.put(_url, _client);
@@ -77,6 +111,9 @@ public class GenericClient extends Client {
 			if (_handler != null) _handler.onSubscribe(spuid,alias);
 		}
 
+		/* (non-Javadoc)
+		 * @see it.unibo.arces.wot.sepa.api.ISubscriptionHandler#onUnsubscribe(java.lang.String)
+		 */
 		@Override
 		public void onUnsubscribe(String spuid) {
 			if (_handler != null) _handler.onUnsubscribe(spuid);
@@ -84,35 +121,104 @@ public class GenericClient extends Client {
 		}
 		
 	}
+	
+	/** The active urls. */
 	// URL ==> client
 	private Hashtable<String, SPARQL11SEProtocol> activeUrls = new Hashtable<String, SPARQL11SEProtocol>();
 	
+	/** The subscriptions. */
 	// SPUID ==> URL
 	private Hashtable<String, SPARQL11SEProtocol> subscriptions = new Hashtable<String, SPARQL11SEProtocol>();
 	
+	/**
+	 * Instantiates a new generic client.
+	 *
+	 * @param appProfile the JSAP profile
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 */
 	public GenericClient(JSAP appProfile) throws SEPAProtocolException {
 		super(appProfile,null);
 	}
 
+	/**
+	 * Instantiates a new generic client.
+	 *
+	 * @param appProfile the JSAP profile
+	 * @param sm the security manager (needed for secure connections)
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 */
 	public GenericClient(JSAP appProfile, SEPASecurityManager sm) throws SEPAProtocolException {
 		super(appProfile,sm);
 	}
 
+	/**
+	 * Update.
+	 *
+	 * @param ID the identifier of the update within the JSAP
+	 * @param sparql if specified it replaces the default SPARQL in the JSAP 
+	 * @param forced the forced bindings
+	 * @param timeout the timeout
+	 * @return the response
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws SEPABindingsException the SEPA bindings exception
+	 */
 	public Response update(String ID, String sparql, Bindings forced, int timeout)
 			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		return _update(ID, sparql, forced, timeout);
 	}
 
+	/**
+	 * Update.
+	 *
+	 * @param ID the identifier of the update within the JSAP
+	 * @param forced the forced bindings
+	 * @param timeout the timeout
+	 * @return the response
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws SEPABindingsException the SEPA bindings exception
+	 */
 	public Response update(String ID, Bindings forced, int timeout)
 			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		return _update(ID, null, forced, timeout);
 	}
 
+	/**
+	 * Query.
+	 *
+	 * @param ID the identifier of the query within the JSAP
+	 * @param sparql if specified it replaces the default SPARQL in the JSAP
+	 * @param forced the forced bindings
+	 * @param timeout the timeout
+	 * @return the response
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws SEPABindingsException the SEPA bindings exception
+	 */
 	public Response query(String ID, String sparql, Bindings forced, int timeout)
 			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		return _query(ID, sparql, forced, timeout);
 	}
 
+	/**
+	 * Query.
+	 *
+	 * @param ID the identifier of the query within the JSAP
+	 * @param forced the forced
+	 * @param timeout the timeout
+	 * @return the response
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws SEPABindingsException the SEPA bindings exception
+	 */
 	public Response query(String ID, Bindings forced, int timeout)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		try {
@@ -122,10 +228,53 @@ public class GenericClient extends Client {
 		}
 	}
 
+	/**
+	 * Subscribe.
+	 *
+	 * @param ID the identifier of the subscribe within the JSAP
+	 * @param sparql if specified it replaces the default SPARQL in the JSAP
+	 * @param forced the forced
+	 * @param handler the handler
+	 * @param timeout the timeout
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws SEPABindingsException the SEPA bindings exception
+	 */
+	public void subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler, long timeout,String alias)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
+		try {
+			_subscribe(ID, sparql, forced, handler,timeout,alias);
+		} catch (IOException | URISyntaxException e) {
+			throw new SEPAProtocolException(e);
+		}
+	}
+	
 	public void subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler, long timeout)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		try {
-			_subscribe(ID, sparql, forced, handler,timeout);
+			_subscribe(ID, sparql, forced, handler,timeout,null);
+		} catch (IOException | URISyntaxException e) {
+			throw new SEPAProtocolException(e);
+		}
+	}
+
+	/**
+	 * Subscribe.
+	 *
+	 * @param ID the identifier of the subscribe within the JSAP
+	 * @param forced the forced
+	 * @param handler the handler
+	 * @param timeout the timeout
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws SEPABindingsException the SEPA bindings exception
+	 */
+	public void subscribe(String ID, Bindings forced, ISubscriptionHandler handler, long timeout,String alias)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
+		try {
+			_subscribe(ID, null, forced, handler,timeout,alias);
 		} catch (IOException | URISyntaxException e) {
 			throw new SEPAProtocolException(e);
 		}
@@ -134,12 +283,21 @@ public class GenericClient extends Client {
 	public void subscribe(String ID, Bindings forced, ISubscriptionHandler handler, long timeout)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		try {
-			_subscribe(ID, null, forced, handler,timeout);
+			_subscribe(ID, null, forced, handler,timeout,null);
 		} catch (IOException | URISyntaxException e) {
 			throw new SEPAProtocolException(e);
 		}
 	}
-
+	
+	/**
+	 * Unsubscribe.
+	 *
+	 * @param ID the SPUID of the active subscription
+	 * @param timeout the timeout
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 */
 	public void unsubscribe(String subID,long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		if (!subscriptions.containsKey(subID)) return;
 
@@ -152,6 +310,20 @@ public class GenericClient extends Client {
 		subscriptions.get(subID).unsubscribe(new UnsubscribeRequest(subID, auth,timeout));
 	}
 
+	/**
+	 * Update.
+	 *
+	 * @param ID the identifier of the update within the JSAP
+	 * @param sparql if specified it replaces the default SPARQL in the JSAP
+	 * @param forced the forced
+	 * @param timeout the timeout
+	 * @return the response
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws SEPABindingsException the SEPA bindings exception
+	 */
 	private Response _update(String ID, String sparql, Bindings forced, int timeout)
 			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		SPARQL11Protocol client;
@@ -168,6 +340,7 @@ public class GenericClient extends Client {
 
 		if (sparql == null)
 			sparql = appProfile.getSPARQLUpdate(ID);
+		
 		Response ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
 				appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
 				appProfile.getUpdatePath(ID), addPrefixesAndReplaceBindings(sparql, forced),
@@ -177,6 +350,20 @@ public class GenericClient extends Client {
 		return ret;
 	}
 
+	/**
+	 * Query.
+	 *
+	 * @param ID the identifier of the query within the JSAP
+	 * @param sparql if specified it replaces the default SPARQL in the JSAP
+	 * @param forced the forced
+	 * @param timeout the timeout
+	 * @return the response
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws SEPABindingsException the SEPA bindings exception
+	 */
 	private Response _query(String ID, String sparql, Bindings forced, int timeout)
 			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		SPARQL11Protocol client;
@@ -202,7 +389,22 @@ public class GenericClient extends Client {
 		return ret;
 	}
 
-	private void _subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler,long timeout)
+	/**
+	 * Subscribe.
+	 *
+	 * @param ID the identifier of the subscribe within the JSAP
+	 * @param sparql if specified it replaces the default SPARQL in the JSAP
+	 * @param forced the forced
+	 * @param handler the handler
+	 * @param timeout the timeout
+	 * @throws SEPAProtocolException the SEPA protocol exception
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 * @throws URISyntaxException the URI syntax exception
+	 * @throws SEPABindingsException the SEPA bindings exception
+	 */
+	private void _subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler,long timeout,String alias)
 			throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, URISyntaxException, SEPABindingsException {
 
 		// Create client
@@ -254,18 +456,32 @@ public class GenericClient extends Client {
 		if (sparql == null)
 			sparql = appProfile.getSPARQLQuery(ID);
 
-		SubscribeRequest req = new SubscribeRequest(addPrefixesAndReplaceBindings(sparql, forced), null,
+		SubscribeRequest req = new SubscribeRequest(addPrefixesAndReplaceBindings(sparql, forced), alias,
 				appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth,timeout);
 
 		client.subscribe(req);
 	}
 
+	/* (non-Javadoc)
+	 * @see java.io.Closeable#close()
+	 */
 	@Override
 	public void close() throws IOException {
 		for (SPARQL11SEProtocol client : activeUrls.values())
 			client.close();
 	}
 
+	/**
+	 * Register.
+	 *
+	 * @param jksFile the jks file
+	 * @param storePwd the store pwd
+	 * @param keyPwd the key pwd
+	 * @param identity the identity
+	 * @return the response
+	 * @throws SEPASecurityException the SEPA security exception
+	 * @throws SEPAPropertiesException the SEPA properties exception
+	 */
 	// Registration to the Authorization Server (AS)
 	public Response register(String jksFile,String storePwd,String keyPwd,String identity) throws SEPASecurityException, SEPAPropertiesException {
 		SEPASecurityManager security = new SEPASecurityManager(jksFile,storePwd,keyPwd,appProfile.getAuthenticationProperties());

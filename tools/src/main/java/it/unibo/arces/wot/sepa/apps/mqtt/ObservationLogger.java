@@ -40,6 +40,7 @@ public class ObservationLogger extends Aggregator {
 			try {
 				this.setUpdateBindingValue("observation", new RDFTermURI(binding.getValue("observation")));
 				this.setUpdateBindingValue("value", new RDFTermLiteral(binding.getValue("value"), binding.getDatatype("value")));
+				this.setUpdateBindingValue("timestamp", new RDFTermLiteral(binding.getValue("timestamp"), binding.getDatatype("value")));
 				
 				update();
 			} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
@@ -52,14 +53,22 @@ public class ObservationLogger extends Aggregator {
 	public void onRemovedResults(BindingsResults results) {}
 
 	@Override
-	public void onBrokenConnection() {}
+	public void onBrokenConnection() {
+		logger.error("Broken connection");
+	}
 
 	@Override
-	public void onError(ErrorResponse errorResponse) {}
+	public void onError(ErrorResponse errorResponse) {
+		logger.error(errorResponse);
+	}
 
 	@Override
-	public void onSubscribe(String spuid, String alias) {}
+	public void onSubscribe(String spuid, String alias) {
+		logger.info("Subscribed. SPUID: "+spuid+" alias: "+alias);
+	}
 
 	@Override
-	public void onUnsubscribe(String spuid) {}
+	public void onUnsubscribe(String spuid) {
+		logger.info("Unsubscribed. SPUID: "+spuid);
+	}
 }

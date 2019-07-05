@@ -154,7 +154,7 @@ public class Bindings {
 	 */
 	public String getValue(String variable) {
 		try {
-			return solution.get(variable).getAsJsonObject().get("value").getAsString();	
+			return solution.getAsJsonObject(variable).get("value").getAsString();	
 		}
 		catch(Exception e) {
 			return null;
@@ -171,7 +171,7 @@ public class Bindings {
 	 */
 	public String getDatatype(String variable) {
 		try {
-			return solution.get(variable).getAsJsonObject().get("datatype").getAsString();
+			return solution.getAsJsonObject(variable).get("datatype").getAsString();
 		}
 		catch(Exception e) {
 			return null;

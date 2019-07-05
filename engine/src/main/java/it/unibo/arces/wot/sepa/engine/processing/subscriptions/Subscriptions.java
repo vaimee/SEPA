@@ -96,4 +96,24 @@ public class Subscriptions {
 			}
 		}
 	}
+	
+	public synchronized static boolean isZombieSpu(String spuid) {
+		if (handlers.get(spuid) == null) return true;
+		if (handlers.get(spuid).isEmpty()) return true;
+		
+		InternalSubscribeRequest req = null;
+		for (Subscriber client : handlers.get(spuid)) {
+			if (client.getHandler() == null) {
+				req = subscribers.get(client.getSID()).getSPU().getSubscribe();
+				subscribers.remove(client.getSID());
+				continue;
+			}
+			return false;
+		}
+		
+		handlers.remove(spuid);
+		requests.remove(req);
+		
+		return true;
+	}
 }

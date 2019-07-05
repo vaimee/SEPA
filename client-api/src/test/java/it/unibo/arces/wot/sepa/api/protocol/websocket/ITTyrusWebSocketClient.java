@@ -75,7 +75,7 @@ public class ITTyrusWebSocketClient {
 		for (int i = 0; i < n; i++) {
 			ClientManager client = ClientManager.createClient();
 			if (properties.isSecure()) {
-				SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext());
+				SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext("TLSv1"));
 				config.setHostVerificationEnabled(false);
 				client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, config);	
 			}
