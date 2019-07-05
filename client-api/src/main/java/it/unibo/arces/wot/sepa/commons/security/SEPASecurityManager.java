@@ -176,6 +176,8 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 	private final KeyManagerFactory kmfactory;
 	private final TrustManagerFactory tmf;
+	
+	private static final String[] protocolStrings = {"TLSv1","TLSv1.1","TLSv1.2"};
 
 	/**
 	 * Instantiates a new Security Manager.
@@ -213,7 +215,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 							.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(),
 									new TrustSelfSignedStrategy())
 							.build(),
-					new String[] { "TLSv1", "TLSv1.2", "TLS", "SSL" }, null, this);
+							protocolStrings, null, this);
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
 				| UnrecoverableKeyException | KeyManagementException e) {
 			throw new SEPASecurityException(e);
