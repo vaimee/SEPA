@@ -355,15 +355,20 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 		if (isTokenExpired()) {
 			logger.trace("Token expired. Request a new token");
+//			try {
+//				Thread.sleep(2000);
+//			} catch (InterruptedException e) {
+//				throw new SEPASecurityException(e);
+//			}
 			requestToken();
 		}
 
 		return oauthProperties.getBearerAuthorizationHeader();
 	}
-
-	public synchronized void forceRefreshToken() throws SEPAPropertiesException, SEPASecurityException {
-		requestToken();
-	}
+//
+//	public synchronized void forceRefreshToken() throws SEPAPropertiesException, SEPASecurityException {
+//		requestToken();
+//	}
 
 	/**
 	 * It is used to request a new token using the "Basic" credentials stored in the

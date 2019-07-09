@@ -1,7 +1,5 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
-import java.io.IOException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -24,7 +22,7 @@ public class DeleteAll extends Producer {
 		logger.info("Delete all");
 		try {
 			update();
-		} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+		} catch (SEPASecurityException | SEPAPropertiesException | SEPABindingsException | SEPAProtocolException e) {
 			logger.error(e.getMessage());
 		}
 	}

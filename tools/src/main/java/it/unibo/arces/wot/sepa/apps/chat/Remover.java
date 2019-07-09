@@ -1,7 +1,5 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
-import java.io.IOException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +28,7 @@ public class Remover extends Aggregator {
 		this.setSubscribeBindingValue("sender", new RDFTermURI(senderURI));
 	}
 
-	public void joinChat() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+	public void joinChat() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("joinChat");
 		while (!joined) {
 			subscribe(5000);
@@ -40,7 +38,7 @@ public class Remover extends Aggregator {
 		}
 	}
 
-	public void leaveChat() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
+	public void leaveChat() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
 		logger.debug("leaveChat");
 		while (joined) {
 			unsubscribe(5000);
@@ -66,7 +64,7 @@ public class Remover extends Aggregator {
 				this.setUpdateBindingValue("message", bindings.getRDFTerm("message"));
 				
 				update();
-			} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+			} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 				logger.error(e.getMessage());
 			}
 		}
@@ -86,7 +84,7 @@ public class Remover extends Aggregator {
 		
 		try {
 			joinChat();
-		} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPAProtocolException | InterruptedException | SEPABindingsException e2) {
+		} catch (SEPASecurityException  | SEPAPropertiesException | SEPAProtocolException | InterruptedException | SEPABindingsException e2) {
 		}
 	}
 

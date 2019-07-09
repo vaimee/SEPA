@@ -1,7 +1,5 @@
 package it.unibo.arces.wot.sepa.apps.mqtt;
 
-import java.io.IOException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,7 +41,7 @@ public class ObservationLogger extends Aggregator {
 				this.setUpdateBindingValue("timestamp", new RDFTermLiteral(binding.getValue("timestamp"), binding.getDatatype("value")));
 				
 				update();
-			} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+			} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 				e.printStackTrace();
 			}
 		}

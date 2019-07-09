@@ -200,7 +200,7 @@ public class AuthenticationProperties {
 		if (clientId != null && clientSecret != null) {
 			String plainString = clientId + ":" + clientSecret;
 			try {
-				return "Basic " + new String(Base64.getEncoder().encode(plainString.getBytes()), "UTF-8");
+				return "Basic " + new String(Base64.getEncoder().encode(plainString.getBytes("UTF-8")), "UTF-8");
 			} catch (UnsupportedEncodingException e) {
 				throw new SEPASecurityException(e);
 			}

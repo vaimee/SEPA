@@ -4,7 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+//import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -12,6 +12,7 @@ import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
@@ -55,18 +56,30 @@ class Publisher extends Thread implements Closeable {
 
 		while(running.get() > 0) {
 			Response ret = client.update(provider.buildUpdateRequest(id,5000,sm));
-			if(ret.isError() && ((ErrorResponse)ret).isTokenExpiredError()){
-				logger.debug(ret);
-				try {
-					sm.forceRefreshToken();
+			
+			if(ret.isError()) {
+				ErrorResponse errorResponse = (ErrorResponse)ret;
+				
+				if (errorResponse.isTokenExpiredError()) {
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						return;
+					}
 					ret = client.update(provider.buildUpdateRequest(id,5000,sm));
-				} catch (SEPAPropertiesException | SEPASecurityException  e) {
-					logger.error(e);
+				
+					if (ret.isError()) {
+						logger.error(ret);
+					}
 				}
 			}
-			if (ret.isError()) {
-				logger.error(ret);
-			}
+//				
+//				&& ((ErrorResponse)ret).isTokenExpiredError()){
+//				logger.debug(ret);
+//				//					sm.forceRefreshToken();
+//				
+//			}
+			
 			running.set(running.get()-1);
 		}
 		

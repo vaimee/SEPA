@@ -1,6 +1,5 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
-import java.io.IOException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,7 +27,7 @@ public class UserRegistration extends Producer {
 			this.setUpdateBindingValue("userName", new RDFTermLiteral(userName));
 			
 			update();
-		} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e.getMessage());
 		}
 	}
