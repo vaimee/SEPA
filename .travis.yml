@@ -14,7 +14,7 @@ jobs:
   - stage: test
   - stage: integration
     before_script:
-    - docker run --name blazegraph -d -p 9999:9999 nawer/blazegraph:2.1.1
+    - docker run --name blazegraph -d -p 9999:9999 nawer/blazegraph:2.1.5
     - sleep 30
     - wget http://localhost:9999/blazegraph/namespace/kb/sparql
     - mvn package
@@ -31,7 +31,7 @@ jobs:
     - "cat engine/target/log.txt"
   - stage: integrationSecure
     before_script:
-    - docker run --name blazegraph -d -p 9999:9999 nawer/blazegraph:2.1.1
+    - docker run --name blazegraph -d -p 9999:9999 nawer/blazegraph:2.1.5
     - sleep 30
     - wget http://localhost:9999/blazegraph/namespace/kb/sparql
     - mvn package
