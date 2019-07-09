@@ -341,7 +341,7 @@ public class MqttIotAgent {
 				Response ret = null;
 				try {
 					ret = client.update();
-				} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+				} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 					logger.error(e.getMessage());
 					try {
 						client.close();
@@ -369,7 +369,7 @@ public class MqttIotAgent {
 							childs.setUpdateBindingValue("child", new RDFTermURI(contained));
 							childs.setUpdateBindingValue("root", new RDFTermURI(place));
 							ret = childs.update();
-						} catch (SEPABindingsException | SEPASecurityException | IOException
+						} catch (SEPABindingsException | SEPASecurityException | SEPAProtocolException
 								| SEPAPropertiesException e) {
 							try {
 								childs.close();
@@ -447,7 +447,7 @@ public class MqttIotAgent {
 				Response ret = null;
 				try {
 					ret = client.update();
-				} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+				} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 					logger.error(e.getMessage());
 					try {
 						client.close();
@@ -568,7 +568,7 @@ public class MqttIotAgent {
 			try {
 				logObservation = new ObservationLogger(app, sm);
 				logObservation.subscribe(5000);
-			} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException
+			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
 					| SEPABindingsException e) {
 				logger.fatal("Exception on creating ObservationLogger " + e.getMessage());
 				System.exit(-1);

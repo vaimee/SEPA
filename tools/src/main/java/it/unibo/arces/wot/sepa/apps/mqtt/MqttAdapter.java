@@ -224,7 +224,7 @@ public class MqttAdapter extends Aggregator implements MqttCallbackExtended {
 		try {
 			logger.debug(serverURI + " subscribe to SEPA...");
 			subscribe(5000);
-		} catch (IOException | SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
+		} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
 				| SEPABindingsException e) {
 			logger.error(serverURI + " failed to subscribe: " + e.getMessage());
 		}
@@ -251,7 +251,7 @@ public class MqttAdapter extends Aggregator implements MqttCallbackExtended {
 							setUpdateBindingValue("timestamp", new RDFTermLiteral(utc.toString()));
 							
 							update();
-						} catch (SEPASecurityException | IOException | SEPAPropertiesException
+						} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException
 								| SEPABindingsException e) {
 							logger.error(e.getMessage());
 						}
@@ -304,7 +304,7 @@ public class MqttAdapter extends Aggregator implements MqttCallbackExtended {
 			setUpdateBindingValue("timestamp", new RDFTermLiteral(utc.toString()));
 			
 			update();
-		} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(serverURI + " exception:" + e.getMessage());
 		}
 	}

@@ -88,7 +88,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		forcedBindings.setBindingValue(variable, value);
 	}
 
-	public final void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+	public final void subscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		String authorizationHeader = null;
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
@@ -98,14 +98,15 @@ public abstract class Consumer extends Client implements IConsumer {
 				authorizationHeader,timeout));
 	}
 
-	public final void unsubscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {
+	public final void unsubscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		logger.debug("UNSUBSCRIBE " + subID);
 
-		String oauth =  null;
-		if (isSecure()) oauth = sm.getAuthorizationHeader();
-
+		String authorizationHeader = null;
+		
+		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
+		
 		client.unsubscribe(
-				new UnsubscribeRequest(subID, oauth,timeout));
+				new UnsubscribeRequest(subID, authorizationHeader,timeout));
 	}
 
 	@Override

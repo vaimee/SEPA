@@ -1,7 +1,5 @@
 package it.unibo.arces.wot.sepa.apps.chat;
 
-import java.io.IOException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,7 +33,7 @@ public class Receiver extends Aggregator {
 		this.client = client;
 	}
 
-	public void joinChat() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException,
+	public void joinChat() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			InterruptedException, SEPABindingsException {
 		logger.debug("Join the chat");
 		while (!joined) {
@@ -47,7 +45,7 @@ public class Receiver extends Aggregator {
 		logger.info("Joined");
 	}
 
-	public void leaveChat() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException,
+	public void leaveChat() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			InterruptedException {
 		logger.debug("Leave the chat");
 		while (joined) {
@@ -73,7 +71,7 @@ public class Receiver extends Aggregator {
 				this.setUpdateBindingValue("message", new RDFTermURI(bindings.getValue("message")));
 
 				update();
-			} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPABindingsException e) {
+			} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 				logger.error(e.getMessage());
 			}
 		}
@@ -102,7 +100,7 @@ public class Receiver extends Aggregator {
 
 		try {
 			joinChat();
-		} catch (SEPASecurityException | IOException | SEPAPropertiesException | SEPAProtocolException
+		} catch (SEPASecurityException  | SEPAPropertiesException | SEPAProtocolException
 				| InterruptedException | SEPABindingsException e2) {
 		}
 	}

@@ -43,6 +43,7 @@ public interface ISubscriptionHandler {
 	
 	/**
 	 * This method is called if an error occurred
+	 * 
 	 * @param errorResponse the error
 	 * 
 	 * @see ErrorResponse
