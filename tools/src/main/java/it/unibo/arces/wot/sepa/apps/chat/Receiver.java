@@ -127,4 +127,10 @@ public class Receiver extends Aggregator {
 			notify();
 		}
 	}
+
+	@Override
+	public void onFirstResults(BindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
 }

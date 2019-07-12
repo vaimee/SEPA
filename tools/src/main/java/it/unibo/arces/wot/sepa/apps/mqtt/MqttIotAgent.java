@@ -12,9 +12,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import it.unibo.arces.wot.sepa.apps.mqtt.mappers.DefaultMapper;
-import it.unibo.arces.wot.sepa.apps.mqtt.mappers.GuaspariMapper;
-import it.unibo.arces.wot.sepa.apps.mqtt.mappers.WizzilabMapper;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -26,47 +23,38 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 
+import it.unibo.arces.wot.sepa.apps.mqtt.mappers.*;
+
 public class MqttIotAgent {
 	private static final Logger logger = LogManager.getLogger();
-
-	private static void clearAll(JSAP app, SEPASecurityManager sm) {
+	
+	private static void clearAll(JSAP app, SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException,
+			SEPAPropertiesException, SEPABindingsException, IOException {
 		// Clear all
 		Producer client = null;
-		try {
-			client = new Producer(app, "CLEAR_MQTT_GRAPH", sm);
-			client.update();
-			client.close();
+		client = new Producer(app, "CLEAR_MQTT_GRAPH", sm);
+		client.update();
+		client.close();
 
-			client = new Producer(app, "CLEAR_MQTT_MESSAGE_GRAPH", sm);
-			client.update();
-			client.close();
+		client = new Producer(app, "CLEAR_MQTT_MESSAGE_GRAPH", sm);
+		client.update();
+		client.close();
 
-			client = new Producer(app, "CLEAR_CONTEXT_GRAPH", sm);
-			client.update();
-			client.close();
+		client = new Producer(app, "CLEAR_CONTEXT_GRAPH", sm);
+		client.update();
+		client.close();
 
-			client = new Producer(app, "CLEAR_OBSERVATION_GRAPH", sm);
-			client.update();
-			client.close();
-		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException
-				| SEPABindingsException e) {
-			logger.error(e.getMessage());
-			return;
-		}
+		client = new Producer(app, "CLEAR_OBSERVATION_GRAPH", sm);
+		client.update();
+		client.close();
 	}
 
-	private static void clearHistory(JSAP app, SEPASecurityManager sm) {
+	private static void clearHistory(JSAP app, SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException, IOException {
 		// Clear all
 		Producer client = null;
-		try {
-			client = new Producer(app, "CLEAR_HISTORY_GRAPH", sm);
-			client.update();
-			client.close();
-		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException
-				| SEPABindingsException e) {
-			logger.error(e.getMessage());
-			return;
-		}
+		client = new Producer(app, "CLEAR_HISTORY_GRAPH", sm);
+		client.update();
+		client.close();
 	}
 
 	private static void printUsage() {
@@ -139,7 +127,7 @@ public class MqttIotAgent {
 		return false;
 	}
 
-	private static void addAdapters(JSAP app, SEPASecurityManager sm) throws FileNotFoundException, IOException {
+	private static void addAdapters(JSAP app, SEPASecurityManager sm) throws IOException {
 		logger.info("Parse adapters");
 
 		app.read("adapters.jsap", true);
@@ -255,7 +243,7 @@ public class MqttIotAgent {
 					JsonObject map = mapper.getValue().getAsJsonObject();
 
 					String mapperUriString = mapper.getKey();
-					
+
 					JsonArray regex = null;
 					if (map.has("regex")) {
 						regex = map.getAsJsonArray("regex");
@@ -341,7 +329,7 @@ public class MqttIotAgent {
 				Response ret = null;
 				try {
 					ret = client.update();
-				} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
+				} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException | SEPABindingsException e) {
 					logger.error(e.getMessage());
 					try {
 						client.close();
@@ -447,7 +435,8 @@ public class MqttIotAgent {
 				Response ret = null;
 				try {
 					ret = client.update();
-				} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
+				} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException
+						| SEPABindingsException e) {
 					logger.error(e.getMessage());
 					try {
 						client.close();
@@ -470,7 +459,7 @@ public class MqttIotAgent {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException, IOException {
 
 		printUsage();
 
@@ -554,8 +543,7 @@ public class MqttIotAgent {
 		MqttAdapterPool agent = null;
 		try {
 			agent = new MqttAdapterPool(app, sm);
-		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException
-				| SEPABindingsException e1) {
+		} catch (SEPAProtocolException | IOException | SEPASecurityException | SEPAPropertiesException | SEPABindingsException e1) {
 			logger.fatal("Exception on creating AdapterPool " + e1.getMessage());
 			System.exit(-1);
 		}

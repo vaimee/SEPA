@@ -110,4 +110,10 @@ public class Remover extends Aggregator {
 			notify();
 		}
 	}
+
+	@Override
+	public void onFirstResults(BindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
 }

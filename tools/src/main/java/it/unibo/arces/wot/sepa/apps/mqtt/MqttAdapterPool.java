@@ -110,4 +110,9 @@ public class MqttAdapterPool extends Consumer {
 	public void onUnsubscribe(String spuid) {
 		logger.info("Unsubscribed. SPUID: "+spuid);
 	}
+
+	@Override
+	public void onFirstResults(BindingsResults results) {
+		onAddedResults(results);		
+	}
 }

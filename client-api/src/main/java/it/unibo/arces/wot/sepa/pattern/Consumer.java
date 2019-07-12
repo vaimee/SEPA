@@ -27,6 +27,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
@@ -84,7 +85,19 @@ public abstract class Consumer extends Client implements IConsumer {
 		client = new SPARQL11SEProtocol(protocol,sm);
 	}
 
+//	public final void setSubscribeBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
+//		forcedBindings.setBindingValue(variable, value);
+//	}
+	
 	public final void setSubscribeBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
+		if (value.isLiteral()) {
+			RDFTermLiteral literalValue = (RDFTermLiteral) value;
+			String datatype = literalValue.getDatatype();
+			if (datatype == null)
+				if(appProfile.getQueryBindings(subID).getDatatype(variable) != null) {
+					value = new RDFTermLiteral(literalValue.getValue(), appProfile.getUpdateBindings(subID).getDatatype(variable));
+			}
+		}
 		forcedBindings.setBindingValue(variable, value);
 	}
 
@@ -115,12 +128,19 @@ public abstract class Consumer extends Client implements IConsumer {
 	}
 
 	@Override
-	public void onSemanticEvent(Notification notify) {
+	public void onSemanticEvent(Notification notify) {		
 		ARBindingsResults results = notify.getARBindingsResults();
 
 		BindingsResults added = results.getAddedBindings();
 		BindingsResults removed = results.getRemovedBindings();
 
+		logger.debug("onSemanticEvent: "+notify.getSpuid()+" "+notify.getSequence());
+		
+		if (notify.getSequence() == 0) {
+			if (!added.isEmpty()) onFirstResults(added);
+			return;
+		}
+		
 		onResults(results);
 		
 		// Dispatch different notifications based on notify content

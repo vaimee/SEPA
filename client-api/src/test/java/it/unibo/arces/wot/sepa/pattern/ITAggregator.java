@@ -88,4 +88,10 @@ public class ITAggregator extends Aggregator {
 		subscribed = false;
 		
 	}
+
+	@Override
+	public void onFirstResults(BindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
 }

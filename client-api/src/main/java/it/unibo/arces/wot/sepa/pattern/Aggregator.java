@@ -23,6 +23,7 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -101,6 +102,14 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 	}
 
 	public final void setUpdateBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
+		if (value.isLiteral()) {
+			RDFTermLiteral literalValue = (RDFTermLiteral) value;
+			String datatype = literalValue.getDatatype();
+			if (datatype == null)
+				if(appProfile.getUpdateBindings(SPARQL_ID).getDatatype(variable) != null) {
+					value = new RDFTermLiteral(literalValue.getValue(), appProfile.getUpdateBindings(SPARQL_ID).getDatatype(variable));
+			}
+		}
 		updateForcedBindings.setBindingValue(variable, value);
 	}
 }
