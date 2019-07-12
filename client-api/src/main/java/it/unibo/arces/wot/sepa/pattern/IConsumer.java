@@ -33,4 +33,5 @@ public interface IConsumer extends ISubscriptionHandler {
 	void onResults(ARBindingsResults results);
 	void onAddedResults(BindingsResults results);
 	void onRemovedResults(BindingsResults results);
+	void onFirstResults(BindingsResults results);
 }

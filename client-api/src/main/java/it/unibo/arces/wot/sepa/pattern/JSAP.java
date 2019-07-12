@@ -1170,6 +1170,8 @@ public class JSAP extends SPARQL11SEProperties {
 				String datatype = bindings.getDatatype(var);
 				String lang = bindings.getLanguage(var);
 
+				if (datatype == null) datatype = "xsd:string";
+				
 				// Not a number or boolean
 				if (!numbersOrBoolean.contains(datatype)) {
 					value = "'" + StringEscapeUtils.escapeJava(value) + "'";

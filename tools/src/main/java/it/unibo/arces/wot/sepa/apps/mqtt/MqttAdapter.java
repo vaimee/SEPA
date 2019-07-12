@@ -295,13 +295,12 @@ public class MqttAdapter extends Aggregator implements MqttCallbackExtended {
 		logger.info(serverURI + " message received: " + topic + " " + converted);
 
 		try {
+			OffsetDateTime utc = OffsetDateTime.now(ZoneOffset.UTC);
+			
 			setUpdateBindingValue("topic", new RDFTermLiteral(topic));
 			setUpdateBindingValue("value", new RDFTermLiteral(converted));
-			setUpdateBindingValue("broker", new RDFTermLiteral(serverURI));
-			
-			
-			OffsetDateTime utc = OffsetDateTime.now(ZoneOffset.UTC);			
-			setUpdateBindingValue("timestamp", new RDFTermLiteral(utc.toString()));
+			setUpdateBindingValue("broker", new RDFTermLiteral(serverURI));			
+			setUpdateBindingValue("timestamp", new RDFTermLiteral(utc.toString(),"xsd:dateTime"));
 			
 			update();
 		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
@@ -394,5 +393,10 @@ public class MqttAdapter extends Aggregator implements MqttCallbackExtended {
 	@Override
 	public void onUnsubscribe(String spuid) {
 		logger.debug(serverURI + " onUnsubscribe SPUID: " + spuid);
+	}
+
+	@Override
+	public void onFirstResults(BindingsResults results) {
+		onAddedResults(results);	
 	}
 }

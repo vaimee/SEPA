@@ -133,4 +133,10 @@ public class Users extends Consumer {
 		}
 	}
 
+	@Override
+	public void onFirstResults(BindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
