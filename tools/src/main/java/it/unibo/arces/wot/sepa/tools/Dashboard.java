@@ -651,7 +651,8 @@ public class Dashboard {
 				String v = (String) table.getValueAt(row, 1);
 				String type = (String) table.getValueAt(row, 2);
 				logger.trace("Row: " + row + " Col: " + col + " Value: " + v + " Type: " + type);
-				if (checkType(v, type)) {
+				if (type == null) l.setBackground(Color.WHITE);
+				else if (checkType(v, type)) {
 					if (v.equals(""))
 						l.setBackground(Color.ORANGE);
 					else
@@ -1819,6 +1820,8 @@ public class Dashboard {
 	}
 
 	private boolean checkType(String value, String type) {
+		if (type == null) return true;
+		
 		try {
 			switch (type) {
 			case "URI":
@@ -1881,7 +1884,8 @@ public class Dashboard {
 			return;
 		else {
 			for (int row = 0; row < updateForcedBindings.getRowCount(); row++) {
-				String type = updateForcedBindings.getValueAt(row, 2).toString();
+				String type = null;			
+				if (updateForcedBindings.getValueAt(row, 2) != null) type = updateForcedBindings.getValueAt(row, 2).toString();
 				String value = updateForcedBindings.getValueAt(row, 1).toString();
 				if (!checkType(value, type))
 					return;
@@ -1897,7 +1901,9 @@ public class Dashboard {
 			return;
 		else {
 			for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
-				String type = queryForcedBindings.getValueAt(row, 2).toString();
+				String type = null;
+				
+				if (queryForcedBindings.getValueAt(row, 2) != null) type = queryForcedBindings.getValueAt(row, 2).toString();
 				String value = queryForcedBindings.getValueAt(row, 1).toString();
 				if (!checkType(value, type))
 					return;
