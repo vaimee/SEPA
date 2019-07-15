@@ -345,6 +345,15 @@ public class GenericClient extends Client {
 		
 		if (sparql == null)
 			sparql = appProfile.getSPARQLUpdate(ID);
+		
+		if (sparql == null) {
+			try {
+				client.close();
+			} catch (IOException e) {
+			
+			}
+			throw new SEPAProtocolException("SPARQL update not found "+ID);
+		}
 
 		Response ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
 				appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
@@ -382,6 +391,17 @@ public class GenericClient extends Client {
 		if (sparql == null)
 			sparql = appProfile.getSPARQLQuery(ID);
 
+		if (sparql == null) {
+			try {
+				client.close();
+			} catch (IOException e) {
+			
+			}
+			throw new SEPAProtocolException("SPARQL query not found "+ID);
+		}
+		
+		sparql = addPrefixesAndReplaceBindings(sparql, forced);
+	
 		String auth = null;
 		try {
 			auth = sm.getAuthorizationHeader();
@@ -391,7 +411,7 @@ public class GenericClient extends Client {
 
 		Response ret = client.query(new QueryRequest(appProfile.getQueryMethod(ID),
 				appProfile.getQueryProtocolScheme(ID), appProfile.getQueryHost(ID), appProfile.getQueryPort(ID),
-				appProfile.getQueryPath(ID), addPrefixesAndReplaceBindings(sparql, forced),
+				appProfile.getQueryPath(ID), sparql,
 				appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout));
 
 		try {
@@ -470,6 +490,15 @@ public class GenericClient extends Client {
 		// Send request
 		if (sparql == null)
 			sparql = appProfile.getSPARQLQuery(ID);
+		
+		if (sparql == null) {
+			try {
+				client.close();
+			} catch (IOException e) {
+			
+			}
+			throw new SEPAProtocolException("SPARQL query not found "+ID);
+		}
 
 		SubscribeRequest req = new SubscribeRequest(addPrefixesAndReplaceBindings(sparql, forced), alias,
 				appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout);
