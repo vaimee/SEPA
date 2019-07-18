@@ -12,7 +12,7 @@
 	},
 	"dtnprotocol": {
 		"schema": "ipn",
-		"availableSchema": {
+		"availableSchemas": {
 			"ipn": {
 				"destination": "5",
 				"updatedemux": 150,
