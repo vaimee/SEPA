@@ -3,6 +3,7 @@ package it.unibo.arces.wot.sepa.api.protocols.dtn;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
@@ -46,8 +47,12 @@ public class DTNSubscriptionProtocol implements SubscriptionProtocol {
 	
 	@Override
 	public void close() throws IOException {
-		this.socket.unregister();
-		this.thread.interrupt();
+		CompletableFuture.runAsync(() -> {
+			this.thread.interrupt();
+		});
+		CompletableFuture.runAsync(() -> {
+			try { this.socket.unregister(); } catch (Throwable e) {}
+		});
 	}
 
 	@Override

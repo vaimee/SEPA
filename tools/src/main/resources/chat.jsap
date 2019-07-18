@@ -11,8 +11,9 @@
 		"type": "vvcpMsVLTnhHZ0KnT5PchA=="
 	},
 	"sparql11protocol": {
-		"protocol": "http",
-		"port": 8000,
+		"protocol": "ipn",
+		"port": 152,
+		"host": "5",
 		"query": {
 			"path": "/query",
 			"method": "POST",
@@ -200,7 +201,22 @@
 			}
 		},
 		"USERS": {
-			"sparql": "SELECT ?user ?userName WHERE {?user rdf:type schema:Person ; schema:name ?userName}"
+			"sparql": "SELECT ?user ?userName WHERE {?user rdf:type schema:Person ; schema:name ?userName}",
+			"host" : "5",
+			"sparql11protocol": {
+				"protocol": "ipn",
+				"port" : 151,
+				"query": {
+					"path": "/query",
+					"method": "POST",
+					"format": "JSON"
+				},
+				"update": {
+					"path": "/update",
+					"method": "POST",
+					"format": "JSON"
+				}
+			}
 		},
 		"QUERY_ALL": {
 			"sparql": "SELECT * WHERE {?s ?p ?o}"

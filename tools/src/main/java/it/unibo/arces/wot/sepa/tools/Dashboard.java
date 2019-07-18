@@ -77,6 +77,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.JSplitPane;
 
 import it.unibo.arces.wot.sepa.pattern.JSAP;
+import it.unibo.arces.wot.sepa.pattern.DTNGenericClient;
 import it.unibo.arces.wot.sepa.pattern.GenericClient;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties.SubscriptionProtocol;
@@ -125,6 +126,10 @@ public class Dashboard {
 	private static final String versionLabel = "SEPA Dashboard Ver 0.9.6";
 
 	private GenericClient sepaClient;
+	private DTNGenericClient sepaDTNClient;
+	
+	private boolean DTNEnabled = false; 
+	
 	private DashboardHandler handler = new DashboardHandler();
 	private JSAP appProfile;
 	private Properties appProperties = new Properties();
@@ -263,7 +268,7 @@ public class Dashboard {
 			unsubscribeButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					try {
-						sepaClient.unsubscribe(spuid,Integer.parseInt(timeout.getText()));
+						getSepaClient().unsubscribe(spuid,Integer.parseInt(timeout.getText()));
 					} catch (NumberFormatException | SEPASecurityException | SEPAPropertiesException
 							| SEPAProtocolException e1) {
 						logger.error(e1.getMessage());
@@ -887,6 +892,13 @@ public class Dashboard {
 				logger.error(e.getMessage());
 				return false;
 			}
+		}
+		
+		try {
+			sepaDTNClient = new DTNGenericClient(appProfile);
+		} catch (SEPAProtocolException e) {
+			logger.error(e.getMessage());
+			return false;
 		}
 
 		return true;
@@ -1608,6 +1620,20 @@ public class Dashboard {
 			}
 		});
 		chckbxQname.setSelected(true);
+		
+		JCheckBox chckbxDTN = new JCheckBox("DTN");
+		GridBagConstraints gbc_chckbxDTN = new GridBagConstraints();
+		gbc_chckbxDTN.insets = new Insets(0, 0, 0, 5);
+		gbc_chckbxDTN.gridx = 3;
+		gbc_chckbxDTN.gridy = 0;
+		infoPanel.add(chckbxDTN, gbc_chckbxDTN);
+		chckbxDTN.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				DTNEnabled = chckbxDTN.isSelected();
+			}
+		});
+		chckbxDTN.setSelected(false);
 
 		JButton btnNewButton = new JButton("Clear results");
 		GridBagConstraints gbc_btnNewButton = new GridBagConstraints();
@@ -1663,8 +1689,8 @@ public class Dashboard {
 			else
 				bindings.addBinding(variable, new RDFTermLiteral(value, type));
 		}
-
-		sepaClient.subscribe(queryID, querySPARQL.getText(), bindings, handler,Integer.parseInt(timeout.getText()));
+		
+		getSepaClient().subscribe(queryID, querySPARQL.getText(), bindings, handler,Integer.parseInt(timeout.getText()));
 	}
 
 	protected void query() throws SEPAPropertiesException, SEPABindingsException {
@@ -1683,7 +1709,7 @@ public class Dashboard {
 
 		try {
 			Instant start = Instant.now();
-			Response ret = sepaClient.query(queryID, querySPARQL.getText(), bindings,
+			Response ret = getSepaClient().query(queryID, querySPARQL.getText(), bindings,
 					Integer.parseInt(timeout.getText()));
 			Instant stop = Instant.now();
 			if (ret.isError()) {
@@ -1719,7 +1745,7 @@ public class Dashboard {
 
 		try {
 			Instant start = Instant.now();
-			Response ret = sepaClient.update(updateID, updateSPARQL.getText(), bindings,
+			Response ret = getSepaClient().update(updateID, updateSPARQL.getText(), bindings,
 					Integer.parseInt(timeout.getText()));
 			Instant stop = Instant.now();
 			if (ret.isError()) {
@@ -1738,7 +1764,7 @@ public class Dashboard {
 		if (id == null)
 			return;
 		updateID = id;
-		JSAP app = sepaClient.getApplicationProfile();
+		JSAP app = getSepaClient().getApplicationProfile();
 		updateSPARQL.setText(app.getSPARQLUpdate(id));
 
 		Bindings bindings = app.getUpdateBindings(id);
@@ -1775,7 +1801,7 @@ public class Dashboard {
 			return;
 
 		queryID = id;
-		JSAP app = sepaClient.getApplicationProfile();
+		JSAP app = getSepaClient().getApplicationProfile();
 		querySPARQL.setText(app.getSPARQLQuery(id));
 
 		Bindings bindings = app.getQueryBindings(id);
@@ -1906,4 +1932,9 @@ public class Dashboard {
 		btnQuery.setEnabled(true);
 		subscribeButton.setEnabled(true);
 	}
+	
+	private GenericClient getSepaClient() {
+		return (this.DTNEnabled ? this.sepaDTNClient : this.sepaClient);
+	}
+	
 }

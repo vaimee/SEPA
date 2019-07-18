@@ -798,6 +798,8 @@ public class JSAP extends SPARQL11SEProperties {
 		return super.getSubscriptionProtocol();
 	}
 	
+	// Bisa: FIXME I do think this is a bug!
+	@SuppressWarnings("unused")
 	public void setSubscribeProtocol(String id,SubscriptionProtocol sp) {
 		String protocol ="ws";
 		switch(sp) {

@@ -14,7 +14,7 @@ public class MainTest {
 		SEPASecurityManager sm = null;
 		
 		DTNProducer producer = new DTNProducer(appProfile, updateID, sm);
-		producer.setUpdateBindingValue("userName", new RDFTermLiteral("DTNtest22"));
+		producer.setUpdateBindingValue("userName", new RDFTermLiteral("DTNtest23"));
 		Response r = producer.update(6000);
 		
 		System.out.println(r);

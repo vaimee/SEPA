@@ -3,6 +3,7 @@ package it.unibo.arces.wot.sepa.commons.protocol;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Random;
 
 import org.apache.http.HttpStatus;
 
@@ -36,14 +37,16 @@ import it.unibo.dtn.JAL.exceptions.JALTimeoutException;
 import it.unibo.dtn.JAL.exceptions.JALUnregisterException;
 
 public class DTNProtocol implements ISPARQL11Interface {
-	private static final String PROTOCOLDTN = "/client";
-	private static final int PROTOCOLIPN = 9000;
+	private static final String DEMUXDTN = "/client";
+	private static final int BASEDEMUXIPN = 20000;
+	private static final int SIZERANDOMDEMUXIPN = 1000;
 	
 	private BPSocket socket;
 	
 	public DTNProtocol() throws JALLocalEIDException, JALOpenException, JALIPNParametersException, JALRegisterException {
-		this.socket = BPSocket.register(PROTOCOLDTN, PROTOCOLIPN);
-		
+		final int demuxIPN = new Random(System.currentTimeMillis()).nextInt(BASEDEMUXIPN) + SIZERANDOMDEMUXIPN;
+		final String demuxDTN = DEMUXDTN + '_' + demuxIPN;
+		this.socket = BPSocket.register(demuxDTN, demuxIPN);
 	}
 	
 	@Override
@@ -200,6 +203,7 @@ public class DTNProtocol implements ISPARQL11Interface {
 
 	// TODO to synchronize with the class in engine project (used inside SEPA)
 	private static class DtnResponseHeader {
+		@SuppressWarnings("unused")
 		private BundleTimestamp timestamp;
 		private String message;
 		private int resultCode;

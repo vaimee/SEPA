@@ -54,7 +54,7 @@ public class DtnSubscriptionServer implements Runnable {
 			} catch ( JALReceptionInterruptedException e) {
 				logger.debug("Reception interrupted on receiving from DTN socket. Message: " + e.getMessage());
 			} catch (JALTimeoutException e) {
-				logger.debug("Timeout on receiving from DTN socket. Message: " + e.getMessage());
+				//logger.debug("Timeout on receiving from DTN socket. Message: " + e.getMessage());
 			} catch (JALNotRegisteredException e) {
 				logger.error("Error on receiving from DTN socket, the socket was not registered. Message: " + e.getMessage());
 				running = false;
