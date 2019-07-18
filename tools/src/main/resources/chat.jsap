@@ -1,7 +1,7 @@
 {
 	"host": "localhost",
 	"oauth": {
-		"enable": false,
+		"enable" : false,
 		"register": "https://localhost:8443/oauth/register",
 		"tokenRequest": "https://localhost:8443/oauth/token",
 		"client_id": "WqSyq+UBdQpvZ6BSOZyJQb7RgKEizLi1tH7tvw5dTgMD4cU1fGXYtSo68/v952re",
@@ -10,10 +10,26 @@
 		"expires": "+s6urz6vJqZ1sS/SK8+LpA==",
 		"type": "vvcpMsVLTnhHZ0KnT5PchA=="
 	},
+	"dtnprotocol": {
+		"schema": "ipn",
+		"availableSchema": {
+			"ipn": {
+				"destination": "5",
+				"updatedemux": 150,
+				"querydemux": 151,
+				"subscribedemux": 152 
+			},
+			"dtn": {
+				"destination": "destmachine",
+				"updatedemux": "/sepa/update",
+				"querydemux": "/sepa/query",
+				"subscribedemux": "/sepa/subscription"
+			}
+		}
+	},
 	"sparql11protocol": {
-		"protocol": "ipn",
-		"port": 152,
-		"host": "5",
+		"protocol": "http",
+		"port": 8000,
 		"query": {
 			"path": "/query",
 			"method": "POST",
@@ -42,13 +58,13 @@
 		"type": "basic",
 		"base": 0,
 		"clients": 10,
-		"messages": 10
+		"messages": 1
 	},
-	"graphs": {
-		"default-graph-uri": "http://wot.arces.unibo.it/chat/",
-		"named-graph-uri": "http://wot.arces.unibo.it/chat/",
-		"using-graph-uri": "http://wot.arces.unibo.it/chat/",
-		"using-named-graph-uri": "http://wot.arces.unibo.it/chat/"
+	"graphs_DISABLED": {
+		"default-graph-uri": "http://wot.arces.unibo.it/chat",
+		"named-graph-uri": "http://wot.arces.unibo.it/chat",
+		"using-graph-uri": "http://wot.arces.unibo.it/chat",
+		"using-named-graph-uri": "http://wot.arces.unibo.it/chat"
 	},
 	"namespaces": {
 		"schema": "http://schema.org/",
@@ -57,7 +73,7 @@
 	},
 	"updates": {
 		"SEND": {
-			"sparql": "WITH <http://wot.arces.unibo.it/chat/> INSERT {?message rdf:type schema:Message ; schema:text ?text ; schema:sender ?sender ; schema:toRecipient ?receiver; schema:dateSent ?time} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/chat/message_\",STRUUID())) AS ?message) . ?sender rdf:type schema:Person . ?receiver rdf:type schema:Person . BIND(STR(now()) AS ?time)}",
+			"sparql": "INSERT {?message rdf:type schema:Message ; schema:text ?text ; schema:sender ?sender ; schema:toRecipient ?receiver; schema:dateSent ?time} WHERE {?sender rdf:type schema:Person . ?receiver rdf:type schema:Person BIND(STR(now()) AS ?time) BIND(IRI(CONCAT(\"http://schema.org/Message-\",STRUUID())) AS ?message)}",
 			"forcedBindings": {
 				"text": {
 					"type": "literal",
@@ -74,7 +90,7 @@
 			}
 		},
 		"SET_RECEIVED": {
-			"sparql": "WITH <http://wot.arces.unibo.it/chat/> INSERT {?message schema:dateReceived ?time} WHERE {?message rdf:type schema:Message . BIND(STR(now()) AS ?time)}",
+			"sparql": "INSERT {?message schema:dateReceived ?time} WHERE {?message rdf:type schema:Message BIND(STR(now()) AS ?time)}",
 			"forcedBindings": {
 				"message": {
 					"type": "uri",
@@ -83,7 +99,7 @@
 			}
 		},
 		"REMOVE": {
-			"sparql": "WITH <http://wot.arces.unibo.it/chat/> DELETE {?message ?p ?o} WHERE {?message rdf:type schema:Message ; ?p ?o}",
+			"sparql": "DELETE {?message ?p ?o} WHERE {?message rdf:type schema:Message ; ?p ?o}",
 			"forcedBindings": {
 				"message": {
 					"type": "uri",
@@ -92,12 +108,12 @@
 			}
 		},
 		"STORE_SENT": {
-			"sparql": "WITH <http://wot.arces.unibo.it/chat/log/> INSERT DATA {?message schema:text ?text ; schema:sender ?sender ; schema:toRecipient ?receiver; schema:dateSent ?dateSent}",
+			"sparql": "INSERT DATA {?message schema:text ?text ; schema:sender ?sender ; schema:toRecipient ?receiver; schema:dateSent ?dateSent}",
 			"forcedBindings": {
 				"dateSent": {
 					"type": "literal",
 					"value": "2018-06-28T00:00:00",
-					"datatype": "xsd:dateTime"
+					"datatype" : "xsd:dateTime"
 				},
 				"message": {
 					"type": "uri",
@@ -122,12 +138,12 @@
 			}
 		},
 		"STORE_RECEIVED": {
-			"sparql": "WITH <http://wot.arces.unibo.it/chat/log/> INSERT DATA {?message schema:dateReceived ?dateReceived}",
+			"sparql": "INSERT DATA {?message schema:dateReceived ?dateReceived}",
 			"forcedBindings": {
 				"dateReceived": {
 					"type": "literal",
 					"value": "2018-06-28T00:00:00",
-					"datatype": "xsd:dateTime"
+					"datatype" : "xsd:dateTime"
 				},
 				"message": {
 					"type": "uri",
@@ -140,22 +156,7 @@
 			}
 		},
 		"REGISTER_USER": {
-			"sparql": "WITH <http://wot.arces.unibo.it/chat/> DELETE {?x rdf:type schema:Person . ?x schema:name ?userName} INSERT {?person rdf:type schema:Person ; schema:name ?userName}  WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/chat/person_\",STRUUID())) AS ?person) OPTIONAL {?x rdf:type schema:Person . ?x schema:name ?userName}}",
-			"host" : "5",
-			"sparql11protocol": {
-				"protocol": "ipn",
-				"port": 150,
-				"query": {
-					"path": "/query",
-					"method": "POST",
-					"format": "JSON"
-				},
-				"update": {
-					"path": "/update",
-					"method": "POST",
-					"format": "JSON"
-				}
-			},
+			"sparql": "DELETE {?x rdf:type schema:Person . ?x schema:name ?userName} WHERE {?x rdf:type schema:Person . ?x schema:name ?userName} ; INSERT {?id rdf:type schema:Person ; schema:name ?userName} WHERE {BIND(IRI(CONCAT(\"http://schema.org/Person-\",STRUUID())) AS ?id)}",
 			"forcedBindings": {
 				"userName": {
 					"type": "literal",
@@ -164,7 +165,7 @@
 			}
 		},
 		"DELETE_ALL": {
-			"sparql": "DELETE {?s ?p ?o} WHERE {?s ?p ?o}"
+			"sparql": "delete {?s ?p ?o} where {?s ?p ?o}"
 		}
 	},
 	"queries": {
@@ -189,37 +190,22 @@
 		"LOG_SENT": {
 			"sparql": "SELECT ?message ?sender ?receiver ?text ?dateSent WHERE {?message schema:text ?text ; schema:sender ?sender ; schema:toRecipient ?receiver; schema:dateSent ?dateSent}",
 			"graphs": {
-				"default-graph-uri": "http://wot.arces.unibo.it/chat/log/",
-				"named-graph-uri": "http://wot.arces.unibo.it/chat/log/"
+				"default-graph-uri": "http://wot.arces.unibo.it/chat/log",
+				"named-graph-uri": "http://wot.arces.unibo.it/chat/log"
 			}
 		},
 		"LOG_RECEIVED": {
 			"sparql": "SELECT ?message ?dateReceived WHERE {?message schema:dateReceived ?dateReceived}",
 			"graphs": {
-				"default-graph-uri": "http://wot.arces.unibo.it/chat/log/",
-				"named-graph-uri": "http://wot.arces.unibo.it/chat/log/"
+				"default-graph-uri": "http://wot.arces.unibo.it/chat/log",
+				"named-graph-uri": "http://wot.arces.unibo.it/chat/log"
 			}
 		},
 		"USERS": {
-			"sparql": "SELECT ?user ?userName WHERE {?user rdf:type schema:Person ; schema:name ?userName}",
-			"host" : "5",
-			"sparql11protocol": {
-				"protocol": "ipn",
-				"port" : 151,
-				"query": {
-					"path": "/query",
-					"method": "POST",
-					"format": "JSON"
-				},
-				"update": {
-					"path": "/update",
-					"method": "POST",
-					"format": "JSON"
-				}
-			}
+			"sparql": "SELECT ?user ?userName WHERE {?user rdf:type schema:Person ; schema:name ?userName}"
 		},
 		"QUERY_ALL": {
-			"sparql": "SELECT * WHERE {?s ?p ?o}"
+			"sparql": "select * where {?s ?p ?o}"
 		}
 	}
 }

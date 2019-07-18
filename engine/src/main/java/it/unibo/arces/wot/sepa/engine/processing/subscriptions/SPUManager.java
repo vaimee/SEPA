@@ -192,9 +192,11 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	public void exceptionOnProcessing(SPU s) {
 		logger.error("@exceptionOnProcessing  SPUID: " + s.getSPUID());
 
-		synchronized (activeSpus) {
-			activeSpus.remove(s);
-		}
+		try {
+			synchronized (activeSpus) {
+				activeSpus.remove(s);
+			}
+		} catch (Exception e) {}
 		endOfProcessing(s);
 	}
 

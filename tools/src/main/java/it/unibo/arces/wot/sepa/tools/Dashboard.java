@@ -1387,7 +1387,7 @@ public class Dashboard {
 		timeout.setText("5000");
 		timeout.setColumns(10);
 
-		JLabel lblToms = new JLabel("Timeout (ms)");
+		JLabel lblToms = new JLabel(getTimeoutText());
 		GridBagConstraints gbc_lblToms = new GridBagConstraints();
 		gbc_lblToms.anchor = GridBagConstraints.EAST;
 		gbc_lblToms.gridx = 3;
@@ -1631,6 +1631,7 @@ public class Dashboard {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				DTNEnabled = chckbxDTN.isSelected();
+				lblToms.setText(getTimeoutText());
 			}
 		});
 		chckbxDTN.setSelected(false);
@@ -1935,6 +1936,10 @@ public class Dashboard {
 	
 	private GenericClient getSepaClient() {
 		return (this.DTNEnabled ? this.sepaDTNClient : this.sepaClient);
+	}
+	
+	private String getTimeoutText() {
+		return (this.DTNEnabled ? "Timeout (s)" : "Timeout (ms)");
 	}
 	
 }

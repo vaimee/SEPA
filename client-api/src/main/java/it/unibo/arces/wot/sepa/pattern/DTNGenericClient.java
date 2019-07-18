@@ -11,6 +11,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.DTNProtocol;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
@@ -165,9 +166,10 @@ public class DTNGenericClient extends GenericClient {
 		if (sparql == null) {
 			sparql = appProfile.getSPARQLUpdate(ID);
 		}
-		Response ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
-				appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
-				appProfile.getUpdatePath(ID), addPrefixesAndReplaceBindings(sparql, forced),
+		final String demux = "updatedemux";
+		Response ret = client.update(new UpdateRequest(HTTPMethod.POST,
+				appProfile.getUpdateProtocolSchemeDTN(ID), appProfile.getUpdateDestinationDTN(ID), appProfile.getUpdateDemuxIPN(ID, demux),
+				appProfile.getUpdateDemuxDTN(ID, demux), addPrefixesAndReplaceBindings(sparql, forced),
 				appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), null, timeout));
 		client.close();
 
@@ -180,9 +182,10 @@ public class DTNGenericClient extends GenericClient {
 		if (sparql == null) {
 			sparql = appProfile.getSPARQLQuery(ID);
 		}
-		Response ret = client.query(new QueryRequest(appProfile.getQueryMethod(ID),
-				appProfile.getQueryProtocolScheme(ID), appProfile.getQueryHost(ID), appProfile.getQueryPort(ID),
-				appProfile.getQueryPath(ID), addPrefixesAndReplaceBindings(sparql, forced),
+		final String demux = "querydemux";
+		Response ret = client.query(new QueryRequest(HTTPMethod.POST,
+				appProfile.getQueryProtocolSchemeDTN(ID), appProfile.getQueryDestinationDTN(ID), appProfile.getQueryDemuxIPN(ID, demux),
+				appProfile.getQueryDemuxDTN(ID, demux), addPrefixesAndReplaceBindings(sparql, forced),
 				appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), null, timeout));
 		client.close();
 
@@ -192,16 +195,16 @@ public class DTNGenericClient extends GenericClient {
 	private void _subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler,long timeout) throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, URISyntaxException, SEPABindingsException, JALLocalEIDException, JALOpenException, JALIPNParametersException, JALRegisterException {
 		BundleEID destination = null;
 		
-		// XXX check this
-		String schema = appProfile.getProtocolScheme();
+		final String demux = "subscribedemux";
+		String schema = appProfile.getQueryProtocolSchemeDTN(ID);
 		if (schema.equals("ipn")) {
 			try {
-				destination = new BundleEIDIPNScheme(Integer.parseInt(appProfile.getHost()), appProfile.getPort());
+				destination = new BundleEIDIPNScheme(Integer.parseInt(appProfile.getQueryDestinationDTN(ID)), appProfile.getQueryDemuxIPN(ID, demux));
 			} catch (NumberFormatException e) {
 				throw new IllegalArgumentException("Error on host. Must be an integer");
 			}
 		} else if (schema.equals("dtn")) {
-			destination = new BundleEIDDTNScheme(appProfile.getHost(), appProfile.getQueryPath());
+			destination = new BundleEIDDTNScheme(appProfile.getQueryDestinationDTN(ID), appProfile.getQueryDemuxDTN(ID, demux));
 		} else {
 			throw new IllegalArgumentException("No schema found for DTN protocol.");
 		}
