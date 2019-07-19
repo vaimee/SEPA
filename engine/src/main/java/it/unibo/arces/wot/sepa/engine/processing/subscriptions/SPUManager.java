@@ -42,18 +42,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	// SPUID ==> SPU
 	private final HashMap<String, SPU> spus = new HashMap<String, SPU>();
 
-	// // SID ==> Subscriber
-	// private final HashMap<String, Subscriber> subscribers = new HashMap<String,
-	// Subscriber>();
-	//
-	// // SPUID ==> Subscribers
-	// private final HashMap<String, HashSet<Subscriber>> handlers = new
-	// HashMap<String, HashSet<Subscriber>>();
-	//
-	// // Request ==> SPU
-	// private final HashMap<InternalSubscribeRequest, SPU> requests = new
-	// HashMap<InternalSubscribeRequest, SPU>();
-
 	private final Processor processor;
 
 	public SPUManager(Processor processor) {
@@ -233,8 +221,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		// Create or link to an existing SPU
 		SPU spu;
 		if (Subscriptions.contains(req)) {
-			// if (requests.containsKey(req)) {
-			// spu = requests.get(req);
 			spu = Subscriptions.getSPU(req);
 		} else {
 			spu = createSPU(wrappedRequest, this);
@@ -250,33 +236,18 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			}
 
 			// Register request
-			// requests.put(req, spu);
 			Subscriptions.register(req, spu);
 
 			// Create new entry for handler
 			synchronized (spus) {
-				// handlers.put(spu.getSPUID(), new HashSet<Subscriber>());
 				spus.put(spu.getSPUID(), spu);
 			}
 
 			// Start the SPU thread
 			spu.setName(spu.getSPUID());
 			spu.start();
-
-			// SPUManagerBeans.setActiveSPUs(handlers.size());
-			//
-			// logger.debug("@subscribe SPU activated: " + spu.getSPUID() + " total (" +
-			// handlers.size() + ")");
 		}
 
-		// New subscriber
-		// Subscriber sub = new Subscriber(spu, req.getEventHandler());
-		// handlers.get(spu.getSPUID()).add(sub);
-		// subscribers.put(sub.getSID(), sub);
-		//
-		// SPUManagerBeans.addSubscriber();
-		//
-		// Dependability.onSubscribe(sub.getGID(), sub.getSID());
 		Subscriber sub = Subscriptions.addSubscriber(req, spu);
 
 		processingMutex.release();
@@ -321,42 +292,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			return new ErrorResponse(500, "sid_not_found", "Unregistering a not existing subscriber: " + sid);
 		}
 
-//		if (!subscribers.containsKey(sid)) {
-//			logger.warn("@internalUnsubscribe SID not found: " + sid);
-//			return new ErrorResponse(500, "sid_not_found", "Unregistering a not existing subscriber: " + sid);
-//		}
-//
-//		// Remove subscriber
-//		Subscriber sub = subscribers.get(sid);
-//		String spuid = sub.getSPU().getSPUID();
-//
-//		logger.trace("@internalUnsubscribe SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
-//				+ subscribers.size());
-//
-//		handlers.get(spuid).remove(sub);
-//		subscribers.remove(sid);
-//
-//		SPUManagerBeans.removeSubscriber();
-//
-//		// No more handlers: remove SPU
-//		if (handlers.get(spuid).isEmpty()) {
-//			logger.debug("@internalUnsubscribe no more subscribers. Kill SPU: " + sub.getSPU().getSPUID());
-//
-//			// If it is the last handler: kill SPU
-//			spus.get(spuid).finish();
-//			spus.get(spuid).interrupt();
-//
-//			// Clear
-//			synchronized (spus) {
-//				spus.remove(spuid);
-//				requests.remove(sub.getSPU().getSubscribe());
-//				handlers.remove(spuid);
-//			}
-//
-//			logger.info("@internalUnsubscribe active SPUs: " + spus.size());
-//			SPUManagerBeans.setActiveSPUs(spus.size());
-//		}
-
 		if (dep)
 			Dependability.onUnsubscribe(gid, sid);
 
@@ -374,16 +309,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		synchronized (spus) {
 			if (spus.containsKey(spuid)) {
 				Subscriptions.notifySubscribers(spuid, notify);
-//				for (Subscriber client : handlers.get(spuid)) {
-//					try {
-//						// Dispatching events
-//						Notification event = new Notification(client.getSID(), notify.getARBindingsResults(),
-//								client.nextSequence());
-//						client.getHandler().notifyEvent(event);
-//					} catch (Exception e) {
-//						logger.error("@notifyEvent " + e.getMessage());
-//					}
-//				}
 			}
 		}
 	}
