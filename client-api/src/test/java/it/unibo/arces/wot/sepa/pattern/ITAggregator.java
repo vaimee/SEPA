@@ -86,12 +86,13 @@ public class ITAggregator extends Aggregator {
 	@Override
 	public void onUnsubscribe(String spuid) {
 		subscribed = false;
-		
 	}
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
-		// TODO Auto-generated method stub
-		
+		synchronized(this) {
+			notificationReceived = true;
+			notify();
+		}
 	}
 }

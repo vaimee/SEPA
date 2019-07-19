@@ -26,6 +26,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 
 public abstract class Client implements java.io.Closeable {
 	protected final Logger logger = LogManager.getLogger();
@@ -53,7 +55,28 @@ public abstract class Client implements java.io.Closeable {
 		this.sm = sm;
 	}
 	
-	protected final String addPrefixesAndReplaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
-		return appProfile.addPrefixesAndReplaceBindings(sparql,bindings);
+	protected Bindings addDefaultDatatype(Bindings bindings,String id,boolean query) throws SEPABindingsException {
+		if (id == null) return bindings;
+		
+		// Forced bindings by JSAP
+		Bindings fb;
+		if (query) fb = appProfile.getQueryBindings(id);
+		else fb = appProfile.getUpdateBindings(id);
+		
+		// Add missing datatype is any
+		Bindings retBindings = new Bindings();
+		for (String varString : bindings.getVariables()) {
+			RDFTerm term = bindings.getRDFTerm(varString);
+			if (term.isLiteral()) {
+				RDFTermLiteral literal = (RDFTermLiteral) term;
+				if (literal.getDatatype() == null) {
+					if (fb.getDatatype(varString) !=null ) {
+						retBindings.addBinding(varString, new RDFTermLiteral(literal.getValue(), fb.getDatatype(varString)));
+					}
+				}
+			}
+			else retBindings.addBinding(varString, term);
+		}
+		return retBindings;
 	}
 }

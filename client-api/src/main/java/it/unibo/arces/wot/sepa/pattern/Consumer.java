@@ -27,7 +27,6 @@ import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
-import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
@@ -84,20 +83,8 @@ public abstract class Consumer extends Client implements IConsumer {
 
 		client = new SPARQL11SEProtocol(protocol,sm);
 	}
-
-//	public final void setSubscribeBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
-//		forcedBindings.setBindingValue(variable, value);
-//	}
 	
 	public final void setSubscribeBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
-		if (value.isLiteral()) {
-			RDFTermLiteral literalValue = (RDFTermLiteral) value;
-			String datatype = literalValue.getDatatype();
-			if (datatype == null)
-				if(appProfile.getQueryBindings(subID).getDatatype(variable) != null) {
-					value = new RDFTermLiteral(literalValue.getValue(), appProfile.getUpdateBindings(subID).getDatatype(variable));
-			}
-		}
 		forcedBindings.setBindingValue(variable, value);
 	}
 
@@ -106,7 +93,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
-		client.subscribe(new SubscribeRequest(addPrefixesAndReplaceBindings(sparqlSubscribe, forcedBindings), null, appProfile.getDefaultGraphURI(subID),
+		client.subscribe(new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparqlSubscribe, addDefaultDatatype(forcedBindings,subID,true)), null, appProfile.getDefaultGraphURI(subID),
 				appProfile.getNamedGraphURI(subID),
 				authorizationHeader,timeout));
 	}
@@ -137,7 +124,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		logger.debug("onSemanticEvent: "+notify.getSpuid()+" "+notify.getSequence());
 		
 		if (notify.getSequence() == 0) {
-			if (!added.isEmpty()) onFirstResults(added);
+			onFirstResults(added);
 			return;
 		}
 		
