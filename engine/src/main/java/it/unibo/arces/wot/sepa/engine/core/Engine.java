@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.TimeZone;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.logging.log4j.LogManager;
