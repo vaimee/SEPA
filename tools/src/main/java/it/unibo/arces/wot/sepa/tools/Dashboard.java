@@ -129,7 +129,7 @@ public class Dashboard {
 	private JSAP appProfile;
 	private Properties appProperties = new Properties();
 	private AuthenticationProperties oauth = null;
-	
+
 	private DefaultTableModel namespacesDM;
 	private String namespacesHeader[] = new String[] { "Prefix", "URI" };
 
@@ -248,8 +248,7 @@ public class Dashboard {
 			sub.setName(queryList.getSelectedValue());
 
 			// Query label
-			JLabel queryLabel = new JLabel(
-					"<html>" + querySPARQL.getText() + "</html>");
+			JLabel queryLabel = new JLabel("<html>" + querySPARQL.getText() + "</html>");
 			queryLabel.setFont(new Font("Arial", Font.BOLD, 14));
 
 			// Info label
@@ -263,7 +262,7 @@ public class Dashboard {
 			unsubscribeButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					try {
-						sepaClient.unsubscribe(spuid,Integer.parseInt(timeout.getText()));
+						sepaClient.unsubscribe(spuid, Integer.parseInt(timeout.getText()));
 					} catch (NumberFormatException | SEPASecurityException | SEPAPropertiesException
 							| SEPAProtocolException e1) {
 						logger.error(e1.getMessage());
@@ -298,9 +297,9 @@ public class Dashboard {
 
 			subscriptionsPanel.setSelectedIndex(subscriptionsPanel.getTabCount() - 1);
 			mainTabs.setSelectedIndex(1);
-			
+
 			subscriptions.put(spuid, sub);
-			
+
 		}
 
 		@Override
@@ -309,7 +308,7 @@ public class Dashboard {
 			subscriptions.remove(spuid);
 			subscriptionResultsDM.remove(spuid);
 			subscriptionResultsLabels.remove(spuid);
-			subscriptionResultsTables.remove(spuid);	
+			subscriptionResultsTables.remove(spuid);
 		}
 	}
 
@@ -475,11 +474,13 @@ public class Dashboard {
 		private boolean added = true;
 		private String value;
 		private boolean literal = true;
+		private String dataType = null;
 
-		public BindingValue(String value, boolean literal, boolean added) {
+		public BindingValue(String value, boolean literal, String dataType, boolean added) {
 			this.value = value;
 			this.added = added;
 			this.literal = literal;
+			this.dataType = dataType;
 		}
 
 		public boolean isAdded() {
@@ -489,6 +490,10 @@ public class Dashboard {
 
 		public String get() {
 			return value;
+		}
+
+		public String getDataType() {
+			return dataType;
 		}
 
 		public boolean isLiteral() {
@@ -531,7 +536,8 @@ public class Dashboard {
 				for (Bindings sol : res.getRemovedBindings().getBindings()) {
 					HashMap<String, BindingValue> row = new HashMap<String, BindingValue>();
 					for (String var : sol.getVariables()) {
-						row.put(var, new BindingValue(sol.getValue(var), sol.isLiteral(var), false));
+						row.put(var,
+								new BindingValue(sol.getValue(var), sol.isLiteral(var), sol.getDatatype(var), false));
 					}
 					rows.add(row);
 				}
@@ -541,7 +547,8 @@ public class Dashboard {
 				for (Bindings sol : res.getAddedBindings().getBindings()) {
 					HashMap<String, BindingValue> row = new HashMap<String, BindingValue>();
 					for (String var : sol.getVariables()) {
-						row.put(var, new BindingValue(sol.getValue(var), sol.isLiteral(var), true));
+						row.put(var,
+								new BindingValue(sol.getValue(var), sol.isLiteral(var), sol.getDatatype(var), true));
 					}
 					rows.add(row);
 				}
@@ -621,14 +628,14 @@ public class Dashboard {
 			for (Bindings sol : bindingsResults.getBindings()) {
 				HashMap<String, BindingValue> row = new HashMap<String, BindingValue>();
 				for (String var : sol.getVariables()) {
-					row.put(var, new BindingValue(sol.getValue(var), sol.isLiteral(var), true));
+					row.put(var, new BindingValue(sol.getValue(var), sol.isLiteral(var), sol.getDatatype(var), true));
 				}
 				rows.add(row);
 			}
-			
+
 			if (subscriptionResultsTables.get(spuid) != null)
-				subscriptionResultsTables.get(spuid).changeSelection(subscriptionResultsTables.get(spuid).getRowCount() - 1,
-					0, false, false);
+				subscriptionResultsTables.get(spuid)
+						.changeSelection(subscriptionResultsTables.get(spuid).getRowCount() - 1, 0, false, false);
 
 			super.fireTableDataChanged();
 		}
@@ -651,7 +658,8 @@ public class Dashboard {
 				String v = (String) table.getValueAt(row, 1);
 				String type = (String) table.getValueAt(row, 2);
 				logger.trace("Row: " + row + " Col: " + col + " Value: " + v + " Type: " + type);
-				if (type == null) l.setBackground(Color.WHITE);
+				if (type == null)
+					l.setBackground(Color.WHITE);
 				else if (checkType(v, type)) {
 					if (v.equals(""))
 						l.setBackground(Color.ORANGE);
@@ -686,18 +694,31 @@ public class Dashboard {
 			showAsQname = set;
 		}
 
-		private String qName(String uri) {
+		private String qName(String value, boolean literal, String dataType) {
 			if (namespaces == null)
-				return uri;
-			if (uri == null)
+				return value;
+			if (value == null)
 				return null;
-			for (int row = 0; row < namespaces.getRowCount(); row++) {
-				String prefix = namespaces.getValueAt(row, 0).toString();
-				String ns = namespaces.getValueAt(row, 1).toString();
-				if (uri.startsWith(ns))
-					return uri.replace(ns, prefix + ":");
+
+			if (!literal) {
+				for (int row = 0; row < namespaces.getRowCount(); row++) {
+					String prefix = namespaces.getValueAt(row, 0).toString();
+					String ns = namespaces.getValueAt(row, 1).toString();
+					if (value.startsWith(ns))
+						return value.replace(ns, prefix + ":");
+				}
+			} else if (dataType != null) {
+				for (int row = 0; row < namespaces.getRowCount(); row++) {
+					String prefix = namespaces.getValueAt(row, 0).toString();
+					String ns = namespaces.getValueAt(row, 1).toString();
+					if (dataType.startsWith(ns)) {
+						dataType = dataType.replace(ns, prefix + ":");
+						break;
+					}
+				}
+				return value + "^^" + dataType;
 			}
-			return uri;
+			return value;
 		}
 
 		@Override
@@ -738,7 +759,9 @@ public class Dashboard {
 
 			// Render as qname or URI
 			if (showAsQname)
-				setText(qName(binding.get()));
+				setText(qName(binding.get(), binding.isLiteral(), binding.getDataType()));
+			else if (binding.isLiteral() && binding.getDataType() != null)
+				setText(binding.get() + "^^" + binding.getDataType());
 			else
 				setText(binding.get());
 
@@ -869,7 +892,7 @@ public class Dashboard {
 				return false;
 			}
 			try {
-				sm = new SEPASecurityManager(jksName, jksPass, keyPass,oauth);
+				sm = new SEPASecurityManager(jksName, jksPass, keyPass, oauth);
 				sepaClient = new GenericClient(appProfile, sm);
 			} catch (SEPAProtocolException | SEPASecurityException e) {
 				logger.error(e.getMessage());
@@ -877,11 +900,10 @@ public class Dashboard {
 			}
 			btnRegister.setEnabled(true);
 			userID.setEnabled(true);
-		}
-		else {
+		} else {
 			btnRegister.setEnabled(false);
 			userID.setEnabled(false);
-			
+
 			try {
 				sepaClient = new GenericClient(appProfile);
 			} catch (SEPAProtocolException e) {
@@ -905,7 +927,8 @@ public class Dashboard {
 
 		@Override
 		public boolean accept(File f) {
-			if (f.isDirectory()) return true;
+			if (f.isDirectory())
+				return true;
 			for (String ext : extensions)
 				if (f.getName().contains(ext))
 					return true;
@@ -1434,7 +1457,8 @@ public class Dashboard {
 			public void actionPerformed(ActionEvent e) {
 				try {
 					subscribe();
-				} catch (IOException | SEPAPropertiesException | NumberFormatException | SEPAProtocolException | SEPASecurityException | SEPABindingsException e1) {
+				} catch (IOException | SEPAPropertiesException | NumberFormatException | SEPAProtocolException
+						| SEPASecurityException | SEPABindingsException e1) {
 					logger.error(e1.getMessage());
 				}
 			}
@@ -1651,10 +1675,13 @@ public class Dashboard {
 		}
 	}
 
-	protected void subscribe() throws IOException, SEPAPropertiesException, NumberFormatException, SEPAProtocolException, SEPASecurityException, SEPABindingsException {
+	protected void subscribe() throws IOException, SEPAPropertiesException, NumberFormatException,
+			SEPAProtocolException, SEPASecurityException, SEPABindingsException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
-			String type = queryForcedBindings.getValueAt(row, 2).toString();
+			String type;
+			if (queryForcedBindings.getValueAt(row, 2) == null) type = "xsd:string"; 
+			else type = queryForcedBindings.getValueAt(row, 2).toString();
 			String value = queryForcedBindings.getValueAt(row, 1).toString();
 			String variable = queryForcedBindings.getValueAt(row, 0).toString();
 			if (type.toUpperCase().equals("URI"))
@@ -1665,13 +1692,15 @@ public class Dashboard {
 				bindings.addBinding(variable, new RDFTermLiteral(value, type));
 		}
 
-		sepaClient.subscribe(queryID, querySPARQL.getText(), bindings, handler,Integer.parseInt(timeout.getText()));
+		sepaClient.subscribe(queryID, querySPARQL.getText(), bindings, handler, Integer.parseInt(timeout.getText()));
 	}
 
 	protected void query() throws SEPAPropertiesException, SEPABindingsException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
-			String type = queryForcedBindings.getValueAt(row, 2).toString();
+			String type;
+			if (queryForcedBindings.getValueAt(row, 2) == null) type = "xsd:string"; 
+			else type = queryForcedBindings.getValueAt(row, 2).toString();
 			String value = queryForcedBindings.getValueAt(row, 1).toString();
 			String variable = queryForcedBindings.getValueAt(row, 0).toString();
 			if (type.toUpperCase().equals("URI"))
@@ -1707,7 +1736,9 @@ public class Dashboard {
 	protected void update() throws SEPAPropertiesException, SEPABindingsException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < updateForcedBindings.getRowCount(); row++) {
-			String type = updateForcedBindings.getValueAt(row, 2).toString();
+			String type;
+			if (updateForcedBindings.getValueAt(row, 2) == null) type = "xsd:string"; 
+			else type = updateForcedBindings.getValueAt(row, 2).toString();
 			String value = updateForcedBindings.getValueAt(row, 1).toString();
 			String variable = updateForcedBindings.getValueAt(row, 0).toString();
 			if (type.equals("URI"))
@@ -1820,8 +1851,9 @@ public class Dashboard {
 	}
 
 	private boolean checkType(String value, String type) {
-		if (type == null) return true;
-		
+		if (type == null)
+			return true;
+
 		try {
 			switch (type) {
 			case "URI":
@@ -1884,8 +1916,9 @@ public class Dashboard {
 			return;
 		else {
 			for (int row = 0; row < updateForcedBindings.getRowCount(); row++) {
-				String type = null;			
-				if (updateForcedBindings.getValueAt(row, 2) != null) type = updateForcedBindings.getValueAt(row, 2).toString();
+				String type = null;
+				if (updateForcedBindings.getValueAt(row, 2) != null)
+					type = updateForcedBindings.getValueAt(row, 2).toString();
 				String value = updateForcedBindings.getValueAt(row, 1).toString();
 				if (!checkType(value, type))
 					return;
@@ -1902,8 +1935,9 @@ public class Dashboard {
 		else {
 			for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
 				String type = null;
-				
-				if (queryForcedBindings.getValueAt(row, 2) != null) type = queryForcedBindings.getValueAt(row, 2).toString();
+
+				if (queryForcedBindings.getValueAt(row, 2) != null)
+					type = queryForcedBindings.getValueAt(row, 2).toString();
 				String value = queryForcedBindings.getValueAt(row, 1).toString();
 				if (!checkType(value, type))
 					return;
