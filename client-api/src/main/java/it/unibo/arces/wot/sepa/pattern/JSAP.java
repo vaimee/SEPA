@@ -1097,22 +1097,6 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String addPrefixesAndReplaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 		return prefixes + replaceBindings(sparql, bindings);
-
-		// if (!sparql.contains(";")) return prefixes + replaceBindings(sparql,
-		// bindings);
-		//
-		// String[] update = sparql.split(";");
-		//
-		// //TODO ";" may belong to a literal. To be checked.
-		// String multipleUpdates = "";
-		// for (int i=0; i < update.length ; i++) {
-		// if (!update[i].trim().toUpperCase().startsWith("INSERT") &&
-		// !update[i].trim().toUpperCase().startsWith("DELETE")) continue;
-		// if (i != update.length -1 ) multipleUpdates += prefixes +
-		// replaceBindings(update[i], bindings) + ";";
-		// else multipleUpdates += replaceBindings(update[i], bindings) ;
-		// }
-		// return multipleUpdates;
 	}
 
 	private final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {

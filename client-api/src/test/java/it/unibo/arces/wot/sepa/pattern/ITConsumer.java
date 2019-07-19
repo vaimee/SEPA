@@ -91,8 +91,10 @@ public class ITConsumer extends Consumer {
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
-		// TODO Auto-generated method stub
-		
+		synchronized(this) {
+			notificationReceived = true;
+			notify();
+		}	
 	}
 
 }
