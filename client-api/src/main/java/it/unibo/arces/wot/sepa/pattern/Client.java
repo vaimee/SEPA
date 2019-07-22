@@ -69,11 +69,9 @@ public abstract class Client implements java.io.Closeable {
 			RDFTerm term = bindings.getRDFTerm(varString);
 			if (term.isLiteral()) {
 				RDFTermLiteral literal = (RDFTermLiteral) term;
-				if (literal.getDatatype() == null) {
-					if (fb.getDatatype(varString) !=null ) {
-						retBindings.addBinding(varString, new RDFTermLiteral(literal.getValue(), fb.getDatatype(varString)));
-					}
-				}
+				if (literal.getDatatype() == null && fb.getDatatype(varString) !=null) retBindings.addBinding(varString, new RDFTermLiteral(literal.getValue(), fb.getDatatype(varString)));
+				else retBindings.addBinding(varString, term);
+				
 			}
 			else retBindings.addBinding(varString, term);
 		}

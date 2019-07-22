@@ -87,7 +87,7 @@ public class Bindings {
 			case "uri":
 				return new RDFTermURI(value);
 			case "literal":
-				if(solution.getAsJsonObject(variable).get("datatype") != null) return new RDFTermLiteral(value);
+				if(solution.getAsJsonObject(variable).get("datatype") == null) return new RDFTermLiteral(value);
 				return new RDFTermLiteral(value,solution.getAsJsonObject(variable).get("datatype").getAsString());				
 			case "bnode":
 				return new RDFTermBNode(value);

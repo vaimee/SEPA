@@ -1698,12 +1698,13 @@ public class Dashboard {
 	protected void query() throws SEPAPropertiesException, SEPABindingsException {
 		Bindings bindings = new Bindings();
 		for (int row = 0; row < queryForcedBindings.getRowCount(); row++) {
-			String type;
-			if (queryForcedBindings.getValueAt(row, 2) == null) type = "xsd:string"; 
-			else type = queryForcedBindings.getValueAt(row, 2).toString();
+			String type = null;
+			if (queryForcedBindings.getValueAt(row, 2) != null) type = queryForcedBindings.getValueAt(row, 2).toString();
 			String value = queryForcedBindings.getValueAt(row, 1).toString();
 			String variable = queryForcedBindings.getValueAt(row, 0).toString();
-			if (type.toUpperCase().equals("URI"))
+			
+			if (type == null) bindings.addBinding(variable, new RDFTermLiteral(value));
+			else if (type.toUpperCase().equals("URI"))
 				bindings.addBinding(variable, new RDFTermURI(value));
 			else if (type.toUpperCase().equals("BNODE"))
 				bindings.addBinding(variable, new RDFTermBNode(value));
