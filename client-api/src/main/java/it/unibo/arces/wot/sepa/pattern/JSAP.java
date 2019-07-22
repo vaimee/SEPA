@@ -48,6 +48,16 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermBNode;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
+//import org.apache.jena.datatypes.xsd.impl.XSDPlainType;
+//import org.apache.jena.enhanced.Implementation;
+//import org.apache.jena.graph.NodeFactory;
+//import org.apache.jena.query.QueryExecution;
+//import org.apache.jena.query.QueryExecutionFactory;
+//import org.apache.jena.query.QuerySolutionMap;
+//import org.apache.jena.rdf.model.ResourceFactory;
+//import org.apache.jena.rdf.model.impl.LiteralImpl;
+//import org.apache.jena.rdf.model.impl.ResourceImpl;
+
 /**
  * JSAP file example
  * 
@@ -1099,6 +1109,26 @@ public class JSAP extends SPARQL11SEProperties {
 		return prefixes + replaceBindings(sparql, bindings);
 	}
 
+//	private final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
+//		QuerySolutionMap initialBinding = new QuerySolutionMap();
+//		for (String var : bindings.getVariables()) {
+//			if (bindings.getRDFTerm(var).isLiteral()) {
+//				RDFTermLiteral literal = (RDFTermLiteral) bindings.getRDFTerm(var);
+//				String dataType = literal.getDatatype();
+//				String lan = literal.getLanguageTag();
+//				String value = literal.getValue();
+//				if (dataType == null && lan == null) initialBinding.add(var, ResourceFactory.createPlainLiteral(value));
+//				else if (dataType != null) initialBinding.add(var, ResourceFactory.createTypedLiteral(value, new XSDPlainType(dataType) ));
+//				else if (lan != null) initialBinding.add(var, ResourceFactory.createLangLiteral(value, lan));
+//			}
+//			else initialBinding.add(var, ResourceFactory.createResource(bindings.getValue(var)));
+//
+//		}
+//		QueryExecution qe = QueryExecutionFactory.create(sparql, initialBinding);
+//		return qe.getQuery().toString();
+//		
+//	}
+
 	private final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 		if (bindings == null || sparql == null)
 			return sparql;
@@ -1110,6 +1140,7 @@ public class JSAP extends SPARQL11SEProperties {
 			selectPattern = replacedSparql.substring(0, sparql.indexOf('{'));
 			replacedSparql = replacedSparql.substring(sparql.indexOf('{'), replacedSparql.length());
 		}
+
 		for (String var : bindings.getVariables()) {
 			String value = bindings.getValue(var);
 			if (value == null)
@@ -1154,12 +1185,13 @@ public class JSAP extends SPARQL11SEProperties {
 				String datatype = bindings.getDatatype(var);
 				String lang = bindings.getLanguage(var);
 
-				if (datatype == null) datatype = "xsd:string";
-				
-				// Not a number or boolean
-				if (!numbersOrBoolean.contains(datatype)) {
-					value = "'" + StringEscapeUtils.escapeJava(value) + "'";
-
+				if (datatype == null) {
+					if (lang != null)
+						value += "@" + bindings.getLanguage(var);
+					else {
+						value = "'" + StringEscapeUtils.escapeJava(value) + "'";	
+					}
+				} else if (!numbersOrBoolean.contains(datatype)) {
 					// Check if datatype is a qname or not
 					URI uri = null;
 					try {
@@ -1173,10 +1205,8 @@ public class JSAP extends SPARQL11SEProperties {
 							datatype = "<" + datatype + ">";
 					}
 
-					if (lang != null)
-						value += "@" + bindings.getLanguage(var);
-					else
-						value += "^^" + datatype;
+					value = "'" + StringEscapeUtils.escapeJava(value) + "'";
+					value += "^^" + datatype;
 				}
 			} else if (bindings.isURI(var)) {
 				// See https://www.w3.org/TR/rdf-sparql-query/#QSynIRI
