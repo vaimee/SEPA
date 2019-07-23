@@ -1269,7 +1269,7 @@ public class JSAP extends SPARQL11SEProperties {
 					start = index;
 			}
 
-			selectPattern = selectPattern.replace("?" + var, "");
+			selectPattern = selectPattern.replace(" ?" + var+" ", "");
 		}
 
 		return selectPattern + replacedSparql;
