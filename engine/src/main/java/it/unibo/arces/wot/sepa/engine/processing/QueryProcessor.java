@@ -38,14 +38,15 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class QueryProcessor implements QueryProcessorMBean {
-	private static final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 
-	private final SPARQL11Protocol endpoint;
-	private final Semaphore endpointSemaphore;
-	private final SPARQL11Properties properties;
+	protected final SPARQL11Protocol endpoint;
+	protected final Semaphore endpointSemaphore;
+	protected final SPARQL11Properties properties;
 
 	public QueryProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
 		this.endpoint = new SPARQL11Protocol();
+		//this.endpoint = new JenaSparql11Service();
 		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 		
@@ -65,19 +66,20 @@ public class QueryProcessor implements QueryProcessorMBean {
 
 		// Authorized access to the endpoint
 		String authorizationHeader = null;
+		AuthenticationProperties oauth = null;
 		try {
 			// TODO: to implement also bearer authentication
-			AuthenticationProperties oauth = new AuthenticationProperties(properties.getFilename());
+			oauth = new AuthenticationProperties(properties.getJSAPFilename());
 			if (oauth.isEnabled())
 				authorizationHeader = oauth.getBasicAuthorizationHeader();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn(e.getMessage());
+			logger.warn("Endpoint authorization: "+e.getMessage());
 		}
 
 		Response ret;
 		QueryRequest request;
-		request = new QueryRequest(properties.getQueryMethod(), properties.getDefaultProtocolScheme(),
-				properties.getDefaultHost(), properties.getDefaultPort(), properties.getDefaultQueryPath(),
+		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
+				properties.getHost(), properties.getPort(), properties.getQueryPath(),
 				req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
 				authorizationHeader,QueryProcessorBeans.getTimeout());
 

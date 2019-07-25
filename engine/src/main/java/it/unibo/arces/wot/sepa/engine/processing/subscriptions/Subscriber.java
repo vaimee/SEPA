@@ -2,8 +2,8 @@ package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.util.UUID;
 
-import it.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
+import it.unibo.arces.wot.sepa.engine.gates.Gate;
 
 public class Subscriber {
 	private final SPU spu;

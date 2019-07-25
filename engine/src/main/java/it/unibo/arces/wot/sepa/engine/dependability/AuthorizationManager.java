@@ -30,6 +30,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
@@ -76,7 +77,7 @@ class AuthorizationManager {
 	
 	//TODO: CLIENTS DB to be made persistent
 	//IDENTITY ==> ID
-	private static final HashMap<String,String> clients = new HashMap<String,String>();
+	//private static final HashMap<String,String> clients = new HashMap<String,String>();
 	
 	//TODO: CREDENTIALS DB to be made persistent
 	//ID ==> Secret
@@ -165,7 +166,7 @@ class AuthorizationManager {
 	}
 	
 	public static void init(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {	
-		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd,keyPwd);
+		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd,keyPwd,null);
 		initStore(sManager.getKeyStore(),keyAlias, keyPwd);
 		
 		securityCheck(UUID.randomUUID().toString());
@@ -260,24 +261,15 @@ Respond with 401 if not
 		String client_id = null;
 		String client_secret = null;
 		
-		//Check if identity has been already registered
-		if (clients.containsKey(identity)) {
-			logger.warn("Giving credentials to a registered identity "+identity);
-			client_id = clients.get(identity);
-			client_secret = credentials.get(client_id);
-		}
-		else {
-			//Create credentials
-			client_id = UUID.randomUUID().toString();
-			client_secret = UUID.randomUUID().toString();
+		//Create credentials
+		client_id = UUID.randomUUID().toString();
+		client_secret = UUID.randomUUID().toString();
 		
-			//Store credentials
-			while(credentials.containsKey(client_id)) client_id = UUID.randomUUID().toString();
-			credentials.put(client_id,client_secret);
-		
-			//Register client
-			clients.put(identity, client_id);
-		}
+		//Store credentials
+		while(credentials.containsKey(client_id)) client_id = UUID.randomUUID().toString();
+		credentials.put(client_id,client_secret);
+
+
 		return new RegistrationResponse(client_id,client_secret,jwkPublicKey);
 	}
 	
@@ -362,19 +354,20 @@ According to RFC6749, the error member can assume the following values: invalid_
 		 // If not yet expired return an error
 		if (clientClaims.containsKey(id)) {
 			Date expiring = clientClaims.get(id).getExpirationTime();
-			
-			long delta = expiring.getTime()-now.getTime();
+			long expiringUnixSeconds = (expiring.getTime()/1000)*1000;
+			long nowUnixSeconds = (now.getTime()/1000)*1000;
+			long delta = expiringUnixSeconds - nowUnixSeconds;
 			// Expires if major than current time
 			logger.debug("ID: "+id+" ==> Token will expire in: "+delta+" ms");
 			if(delta > 0) {
 				logger.warn("Token is NOT EXPIRED");
-				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant",now+" token will expire on "+expiring);
+				SimpleDateFormat sdf = new SimpleDateFormat("dd HH:mm:ss.SSS");
+				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant",sdf.format(now)+" token will expire on "+sdf.format(expiring));
 			}
 			logger.debug("Token is EXPIRED. Release a fresh token.");
 		}
 		
 		// Define validity period
-		 //Date before = new Date(now.getTime()-1000);
 		 Date expires = new Date(now.getTime()+(AuthorizationManagerBeans.getTokenExpiringPeriod()*1000));
 		
 		/*
@@ -427,7 +420,9 @@ According to RFC6749, the error member can assume the following values: invalid_
 	   Implementers MAY provide for some small leeway, usually no more than
 	   a few minutes, to account for clock skew.  Its value MUST be a number
 	   containing a NumericDate value.  Use of this claim is OPTIONAL.*/
-		
+
+		/*NOTICE: this date is serialized as SECONDS from UNIX time
+		 NOT milliseconds!*/
 		 claimsSetBuilder.expirationTime(expires);
 		
 		/*4.1.5.  "nbf" (Not Before) Claim
@@ -486,7 +481,7 @@ According to RFC6749, the error member can assume the following values: invalid_
 		//Add the token to the released tokens
 		clientClaims.put(id, jwtClaims);
 		
-		JWTResponse jwt = new JWTResponse(signedJWT.serialize(),"bearer",AuthorizationManagerBeans.getTokenExpiringPeriod());
+		JWTResponse jwt = new JWTResponse(signedJWT.serialize(),"Bearer",AuthorizationManagerBeans.getTokenExpiringPeriod());
 		logger.debug("Released token: "+jwt);
 		
 		return jwt;
@@ -553,16 +548,18 @@ Respond with 401 if not
 		}
 		
 //		//Check token expiration
-//		Date now = new Date();
-//		Date expiring = claimsSet.getExpirationTime();
-//		Date notBefore = claimsSet.getNotBeforeTime();
-//		if (expiring.getTime()-now.getTime() <= 0) return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","Token is expired "+claimsSet.getExpirationTime());		
-//		if (now.getTime() < notBefore.getTime()) return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","Token can not be used before: "+claimsSet.getNotBeforeTime());	
+		Date now = new Date();
+		long nowUnixSeconds = (now.getTime()/1000)*1000;
+		Date expiring = claimsSet.getExpirationTime();
+		Date notBefore = claimsSet.getNotBeforeTime();
+		SimpleDateFormat sdf = new SimpleDateFormat("dd HH:mm:ss.SSS");
+		if (expiring.getTime()- nowUnixSeconds <= 0) return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","Token is expired "+sdf.format(claimsSet.getExpirationTime())+" now is "+sdf.format(new Date(nowUnixSeconds)));
+		if (notBefore != null && nowUnixSeconds < notBefore.getTime()) return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","Token can not be used before: "+claimsSet.getNotBeforeTime());
 				
 		return new JWTResponse(accessToken,"bearer",claimsSet.getExpirationTime().getTime()-new Date().getTime());
 	}
 
 	public static SSLContext getSSLContext() throws SEPASecurityException {
-		return sManager.getSSLContext();
+		return sManager.getSSLContext("TLSv1");
 	}	
 }
