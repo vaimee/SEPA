@@ -58,10 +58,6 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 		
 		this.subscriptionProtocol = protocol;
 	}
-	
-//	public boolean isSecure() {
-//		return super.isSecure() && subscriptionProtocol.isSecure();
-//	}
 
 	/**
 	 * Subscribe with a SPARQL 1.1 Subscription language. All the notification will
@@ -73,7 +69,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * @throws SEPAProtocolException 
 	 */
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
-		logger.info("SUBSCRIBE: "+request.toString());
+		logger.debug("SUBSCRIBE: "+request.toString());
 		
 		subscriptionProtocol.subscribe(request);
 	}

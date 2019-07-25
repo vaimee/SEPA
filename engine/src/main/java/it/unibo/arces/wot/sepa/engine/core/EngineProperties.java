@@ -74,13 +74,13 @@ public class EngineProperties {
 	private Parameters parameters = new Parameters();
 
 	private EngineProperties() {}
-	
+
 	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		EngineProperties result = EngineProperties.load(propertiesFile);
 		result.parameters.gates.secure = secure;
 		return result;
 	}
-	
+
 	public static EngineProperties load(String propertiesFile) throws SEPAPropertiesException {
 		if (propertiesFile == null) {
 			throw new SEPAPropertiesException(new IllegalArgumentException("Properties file is null"));
@@ -88,7 +88,7 @@ public class EngineProperties {
 
 		EngineProperties result;
 		Gson gson = new Gson();
-		
+
 		try {
 			result = gson.fromJson(new FileReader(propertiesFile), EngineProperties.class);
 		} catch (Exception e) {
@@ -108,25 +108,25 @@ public class EngineProperties {
 	public static void store(EngineProperties properties, String propertiesFile) throws IOException {
 		properties.storeProperties(propertiesFile);
 	}
-	
+
 	public String toString() {
 		return new Gson().toJson(this);
 	}
 
-	
+
 	protected static EngineProperties defaults() {
 		EngineProperties result = new EngineProperties();
-		
+
 		// Scheduler
 		result.parameters.scheduler.queueSize = 100;
 		result.parameters.scheduler.timeout = 5000;
-		
+
 		// Processor
 		result.parameters.processor.updateTimeout = 5000;
 		result.parameters.processor.queryTimeout = 5000;
 		result.parameters.processor.maxConcurrentRequests = 5;
 		result.parameters.processor.reliableUpdate = true;
-		
+
 		// SPU
 		result.parameters.spu.timeout = 5000;
 
@@ -199,7 +199,7 @@ public class EngineProperties {
 	public String getSubscribePath() {
 		return this.parameters.gates.paths.subscribe;
 	}
-	
+
 	public String getUnsubscribePath() {
 		return this.parameters.gates.paths.unsubscribe;
 	}
@@ -246,7 +246,7 @@ public class EngineProperties {
 		}
 
 	}
-	
+
 	static private class Scheduler {
 		public int queueSize;
 		public int timeout;
@@ -256,7 +256,7 @@ public class EngineProperties {
 			timeout = 5000;
 		}
 	}
-	
+
 	static private class Processor {
 		public int updateTimeout;
 		public int queryTimeout;
@@ -270,7 +270,7 @@ public class EngineProperties {
 			maxConcurrentRequests = 5;
 		}
 	}
-	
+
 	static private class Spu {
 		public int timeout;
 
@@ -278,14 +278,14 @@ public class EngineProperties {
 			timeout = 5000;
 		}
 	}
-	
+
 	static private class Gates {
 		public boolean secure;
 		public Paths paths = new Paths();
 		public Ports ports = new Ports();
 
 	}
-	
+
 	static private class Paths {
 		public String secure;
 		public String update;

@@ -21,6 +21,13 @@ public class SPUManagerBeans {
 	private static int subscribers = 0;
 
 	private static long subscribers_max = 0;
+
+	private static long filteringRequests = 0;
+	
+	private static long filteringTime;
+	private static long filteringMinTime;
+	private static long filteringMaxTime;
+	private static long filteringAverageTime;
 	
 	public static void scale_ms() {
 		unitScale = 1000000;
@@ -111,7 +118,7 @@ public class SPUManagerBeans {
 		return maxTime/unitScale;
 	}
 
-	public static float getSPUs_time_averaae() {
+	public static float getSPUs_time_average() {
 		return averageTime/unitScale;
 	}
 
@@ -146,5 +153,41 @@ public class SPUManagerBeans {
 
 	public static long getSubscribersMax() {
 		return subscribers_max;
+	}
+
+	public static void filteringTimings(long start, long stop) {
+		filteringRequests ++;
+		filteringTime = stop - start;
+
+		if (filteringMinTime == -1)
+			filteringMinTime = filteringTime;
+		else if (filteringTime < filteringMinTime)
+			filteringMinTime = filteringTime;
+
+		if (filteringMaxTime == -1)
+			filteringMaxTime = filteringTime;
+		else if (filteringTime > filteringMaxTime)
+			filteringMaxTime = filteringTime;
+
+		if (filteringAverageTime == -1)
+			filteringAverageTime = filteringTime;
+		else
+			filteringAverageTime = ((filteringAverageTime * (filteringRequests - 1)) + filteringTime) / filteringRequests;	
+	}
+	
+	public static float getFiltering_time() {
+		return filteringTime/unitScale;
+	}
+	
+	public static float getFiltering_time_min() {
+		return filteringMinTime/unitScale;
+	}
+
+	public static float getFiltering_time_max() {
+		return filteringMaxTime/unitScale;
+	}
+
+	public static float getFiltering_time_average() {
+		return filteringAverageTime/unitScale;
 	}
 }

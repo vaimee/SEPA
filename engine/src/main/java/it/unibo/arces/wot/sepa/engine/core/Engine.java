@@ -22,9 +22,15 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 import java.util.TimeZone;
+import java.util.Iterator;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.AppenderRef;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -35,13 +41,11 @@ import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.dependability.DependabilityMonitor;
+import it.unibo.arces.wot.sepa.engine.gates.http.HttpGate;
+import it.unibo.arces.wot.sepa.engine.gates.http.HttpsGate;
+import it.unibo.arces.wot.sepa.engine.gates.websocket.SecureWebsocketServer;
+import it.unibo.arces.wot.sepa.engine.gates.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
-
-import it.unibo.arces.wot.sepa.engine.protocol.websocket.WebsocketServer;
-import it.unibo.arces.wot.sepa.engine.protocol.http.HttpGate;
-import it.unibo.arces.wot.sepa.engine.protocol.http.HttpsGate;
-import it.unibo.arces.wot.sepa.engine.protocol.websocket.SecureWebsocketServer;
-
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 /**
@@ -100,6 +104,21 @@ public class Engine implements EngineMBean {
 				.getContext(false);
 		ctx.reconfigure();
 	}
+	// Logging
+	private static final Logger logger = LogManager.getLogger();
+	// Logging file name
+	// Can be configured within the log4j2.xml configuration file
+//	private void setLoggingFileName() {
+//		// Logging
+//		TimeZone tz = TimeZone.getTimeZone("UTC");
+//		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
+//		df.setTimeZone(tz);
+//		String nowAsISO = df.format(new Date());
+//		System.setProperty("logFilename", nowAsISO);
+//		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
+//				.getContext(false);
+//		ctx.reconfigure();
+//	}
 
 	private void printUsage() {
 		System.out.println("Usage:");
@@ -121,7 +140,7 @@ public class Engine implements EngineMBean {
 		System.out.println("-XX:+UseG1GC");
 		System.out.println("");
 		System.out.println("LOG4J");
-		System.out.println("-Dlog4j.configurationFile=./log4j2.xml");
+		System.out.println("-Dlog4j.configurationFile=path/to/log4j2.xml");
 		System.out.println("");
 		System.out.println("JKS OPTIONS:");
 		System.out.println("-storename=<name> : file name of the JKS     (default: sepa.jks)");
@@ -215,23 +234,22 @@ public class Engine implements EngineMBean {
 
 			EngineBeans.setEngineProperties(properties);
 
-			SPARQL11Properties endpointProperties = null;
-			endpointProperties = new SPARQL11Properties(endpointJpar);
+			SPARQL11Properties endpointProperties = new SPARQL11Properties(endpointJpar);
 
 			// OAUTH 2.0 Authorization Manager
 			if (properties.isSecure()) {
 				Dependability.enableSecurity(storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
-			}
-
+			} 
+			
 			// SPARQL 1.1 SE request scheduler
 			scheduler = new Scheduler(properties);
-
+			
 			// SEPA Processor
 			processor = new Processor(endpointProperties, properties, scheduler);
 			Dependability.setProcessor(processor);
-
+			
 			// SPARQL protocol service
-			int port = endpointProperties.getDefaultPort();
+			int port = endpointProperties.getPort();
 			String portS = "";
 			if (port != -1)
 				portS = String.format(":%d", port);
@@ -264,9 +282,9 @@ public class Engine implements EngineMBean {
 
 			System.out.println("SPARQL 1.1 endpoint");
 			System.out.println("----------------------");
-			System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getDefaultHost() + portS
-					+ endpointProperties.getDefaultQueryPath() + queryMethod);
-			System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getDefaultHost() + portS
+			System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getHost() + portS
+					+ endpointProperties.getQueryPath() + queryMethod);
+			System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getHost() + portS
 					+ endpointProperties.getUpdatePath() + updateMethod);
 			System.out.println("----------------------");
 			System.out.println("");
@@ -283,7 +301,7 @@ public class Engine implements EngineMBean {
 			// SPARQL 1.1 SE protocol gates
 			System.out.println("----------------------");
 			System.out.println("");
-			System.out.println("SPARQL 1.1 SE Protocol (https://mml.arces.unibo.it/TR/sparql11-se-protocol/)");
+			System.out.println("SPARQL 1.1 SE Protocol (http://mml.arces.unibo.it/TR/sparql11-se-protocol.html)");
 			System.out.println("----------------------");
 
 			if (!properties.isSecure()) {
@@ -314,6 +332,17 @@ public class Engine implements EngineMBean {
 					"*                                Let Things Talk!                                       *");
 			System.out.println(
 					"*****************************************************************************************");
+
+			System.out.println(">>> Logging <<<");
+			System.out.println("Level: " +logger.getLevel().toString());
+			final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+	        final Configuration config = ctx.getConfiguration();
+	        LoggerConfig rootLoggerConfig = config.getLoggers().get("");
+	        Iterator<AppenderRef> it = rootLoggerConfig.getAppenderRefs().iterator();
+			while(it.hasNext()) {
+				AppenderRef ref = it.next();
+				System.out.println("Appender: <"+ref.getRef()+"> Level: "+ref.getLevel());
+			}
 
 		} catch (SEPAPropertiesException | SEPASecurityException
 				| IllegalArgumentException | SEPAProtocolException | InterruptedException e) {

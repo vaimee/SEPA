@@ -77,7 +77,7 @@ class AuthorizationManager {
 	
 	//TODO: CLIENTS DB to be made persistent
 	//IDENTITY ==> ID
-	private static final HashMap<String,String> clients = new HashMap<String,String>();
+	//private static final HashMap<String,String> clients = new HashMap<String,String>();
 	
 	//TODO: CREDENTIALS DB to be made persistent
 	//ID ==> Secret
@@ -166,7 +166,7 @@ class AuthorizationManager {
 	}
 	
 	public static void init(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {	
-		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd,keyPwd);
+		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd,keyPwd,null);
 		initStore(sManager.getKeyStore(),keyAlias, keyPwd);
 		
 		securityCheck(UUID.randomUUID().toString());
@@ -481,7 +481,7 @@ According to RFC6749, the error member can assume the following values: invalid_
 		//Add the token to the released tokens
 		clientClaims.put(id, jwtClaims);
 		
-		JWTResponse jwt = new JWTResponse(signedJWT.serialize(),"bearer",AuthorizationManagerBeans.getTokenExpiringPeriod());
+		JWTResponse jwt = new JWTResponse(signedJWT.serialize(),"Bearer",AuthorizationManagerBeans.getTokenExpiringPeriod());
 		logger.debug("Released token: "+jwt);
 		
 		return jwt;
@@ -560,6 +560,6 @@ Respond with 401 if not
 	}
 
 	public static SSLContext getSSLContext() throws SEPASecurityException {
-		return sManager.getSSLContext();
+		return sManager.getSSLContext("TLSv1");
 	}	
 }

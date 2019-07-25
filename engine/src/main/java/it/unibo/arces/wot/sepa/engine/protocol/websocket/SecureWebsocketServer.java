@@ -1,3 +1,4 @@
+
 package it.unibo.arces.wot.sepa.engine.protocol.websocket;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;

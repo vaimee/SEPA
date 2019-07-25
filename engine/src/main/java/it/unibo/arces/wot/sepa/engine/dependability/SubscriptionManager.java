@@ -6,6 +6,7 @@ import java.util.HashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
 class SubscriptionManager {
@@ -59,7 +60,7 @@ class SubscriptionManager {
 		gates.get(gid).remove(sid);
 	}
 
-	public static synchronized void onClose(String gid) {
+	public static synchronized void onClose(String gid) throws SEPAProcessingException {
 		if (gid == null) {
 			logger.error("@onClose GID is null");
 			return;
