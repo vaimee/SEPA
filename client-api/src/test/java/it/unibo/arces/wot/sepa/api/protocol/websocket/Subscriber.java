@@ -29,7 +29,7 @@ class Subscriber extends Thread implements Closeable {
 		if (provider.getJsap().isSecure())
 			sm = provider.buildSecurityManager();
 
-		client = new WebsocketSubscriptionProtocol(provider.getJsap().getDefaultHost(),
+		client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
 				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath());
 
 		if (provider.getJsap().isSecure())
@@ -41,6 +41,13 @@ class Subscriber extends Thread implements Closeable {
 	}
 
 	public void run() {
+		if(provider.getJsap().isSecure()){
+			try {
+				sm.register("SEPATest");
+			} catch (SEPASecurityException | SEPAPropertiesException  e) {
+				logger.error(e);
+			}
+		}
 		for (int j = 0; j < n; j++) {
 			try {
 				client.subscribe(provider.buildSubscribeRequest("RANDOM", 500, sm));

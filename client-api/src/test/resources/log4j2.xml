@@ -7,27 +7,25 @@ OFF					0
 FATAL				100
 ERROR				200
 WARN					300
-
-*TIMING*				350
-
 INFO					400
 DEBUG				500
 TRACE				600
 ALL					Integer.MAX_VALUE
 	 -->
-		<CustomLevel name="timing" intLevel="550" />
+		<CustomLevel name="timing" intLevel="50" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout pattern="%d{ISO8601} [%-5level] [%-25t] (%F:%L) %msg%n%throwable" />
+			<PatternLayout pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
 		</Console>
 		<File name="Log" fileName="logs/${sys:logFilename}.csv">
 			<PatternLayout pattern="%m\n"/>
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="error">
+		<Root level="debug">
 			<AppenderRef ref="Console" level="debug"/>
+			<AppenderRef ref="Console" level="off"/> 
 		</Root>
 	</Loggers>
 </Configuration>

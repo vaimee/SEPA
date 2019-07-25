@@ -18,10 +18,8 @@
 
 package it.unibo.arces.wot.sepa.commons.sparql;
 
-//import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 
-// TODO: Auto-generated Javadoc
 /**
  * This class represents the content of a SEPA notification
  * 
@@ -29,20 +27,6 @@ import com.google.gson.JsonObject;
  */
 
 public class ARBindingsResults {
-
-//	
-//	/** The results. */
-//	JsonObject results = new JsonObject();
-//
-//	/**
-//	 * Instantiates a new AR bindings results.
-//	 *
-//	 * @param results
-//	 *            the results
-//	 */
-//	public ARBindingsResults(JsonObject results) {
-//		this.results = results;
-//	}
 
 	private BindingsResults added;
 	private BindingsResults removed;
@@ -56,31 +40,6 @@ public class ARBindingsResults {
 	 *            the removed
 	 */
 	public ARBindingsResults(BindingsResults added, BindingsResults removed) {
-//		JsonObject nullResults = new JsonObject();
-//		JsonArray arr = new JsonArray();
-//		nullResults.add("bindings", arr);
-//
-//		JsonObject nullHead = new JsonObject();
-//		nullHead.add("vars", new JsonArray());
-//
-//		JsonObject addedResults = nullResults;
-//		JsonObject removedResults = nullResults;
-//		JsonObject head = nullHead;
-//
-//		if (added != null) {
-//			head = added.toJson().get("head").getAsJsonObject();
-//			addedResults = added.toJson().get("results").getAsJsonObject();
-//		}
-//
-//		if (removed != null) {
-//			head = removed.toJson().get("head").getAsJsonObject();
-//			removedResults = removed.toJson().get("results").getAsJsonObject();
-//		}
-//
-//		results.add("addedresults", addedResults);
-//		results.add("removedresults", removedResults);
-//		results.add("head", head);
-		
 		this.added = added;
 		this.removed = removed;
 	}
@@ -92,8 +51,6 @@ public class ARBindingsResults {
 	 */
 	// Serialized according to the SPARQL 1.1 SE Notification JSON format
 	public String toString() {
-		//return results.toString();
-		
 		return toJson().toString();
 	}
 
@@ -103,7 +60,6 @@ public class ARBindingsResults {
 	 * @return the json object
 	 */
 	public JsonObject toJson() {
-		//return results;
 		JsonObject ar = new JsonObject();
 		ar.add("addedResults", added.toJson());
 		ar.add("removedResults", removed.toJson());
@@ -116,11 +72,6 @@ public class ARBindingsResults {
 	 * @return the added bindings
 	 */
 	public BindingsResults getAddedBindings() {
-//		JsonObject ret = new JsonObject();
-//		ret.add("results", results.get("addedresults"));
-//		ret.add("head", results.get("head"));
-//		return new BindingsResults(ret);
-		
 		return added;
 	}
 
@@ -130,11 +81,6 @@ public class ARBindingsResults {
 	 * @return the removed bindings
 	 */
 	public BindingsResults getRemovedBindings() {
-//		JsonObject ret = new JsonObject();
-//		ret.add("results", results.get("removedresults"));
-//		ret.add("head", results.get("head"));
-//		return new BindingsResults(ret);
-		
 		return removed;
 	}
 }

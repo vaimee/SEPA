@@ -3,10 +3,6 @@ package it.unibo.arces.wot.sepa.api.protocol.websocket;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 import javax.websocket.DeploymentException;
 
@@ -30,10 +26,6 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 import static org.junit.Assert.assertFalse;
 
 public class ITTyrusWebSocketClient {
-	static {
-		ConfigurationProvider.configureLogger();
-	}
-
 	protected final Logger logger = LogManager.getLogger();
 	protected static JSAP properties = null;
 	
@@ -54,9 +46,9 @@ public class ITTyrusWebSocketClient {
 		if (properties.isSecure()) {
 			int port = properties.getSubscribePort();
 			if (port == -1)
-				url = "wss://" + properties.getDefaultHost() + properties.getSubscribePath();
+				url = "wss://" + properties.getSubscribeHost() + properties.getSubscribePath();
 			else
-				url = "wss://" + properties.getDefaultHost() + ":" + String.valueOf(port)
+				url = "wss://" + properties.getSubscribeHost() + ":" + String.valueOf(port)
 						+ properties.getSubscribePath();
 
 			try {
@@ -67,9 +59,9 @@ public class ITTyrusWebSocketClient {
 		} else {
 			int port = properties.getSubscribePort();
 			if (port == -1)
-				url = "ws://" + properties.getDefaultHost() + properties.getSubscribePath();
+				url = "ws://" + properties.getSubscribeHost() + properties.getSubscribePath();
 			else
-				url = "ws://" + properties.getDefaultHost() + ":" + String.valueOf(port)
+				url = "ws://" + properties.getSubscribeHost() + ":" + String.valueOf(port)
 						+ properties.getSubscribePath();
 		}
 	}
@@ -83,7 +75,7 @@ public class ITTyrusWebSocketClient {
 		for (int i = 0; i < n; i++) {
 			ClientManager client = ClientManager.createClient();
 			if (properties.isSecure()) {
-				SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext());
+				SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext("TLSv1"));
 				config.setHostVerificationEnabled(false);
 				client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, config);	
 			}

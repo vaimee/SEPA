@@ -19,6 +19,7 @@ package it.unibo.arces.wot.sepa.commons.response;
 
 import com.google.gson.JsonObject;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 // TODO: Auto-generated Javadoc
@@ -45,6 +46,14 @@ public class QueryResponse extends Response {
 	 */
 	public BindingsResults getBindingsResults() {	
 		if (json == null) return null;
-		return new BindingsResults(json);
+		
+		return new BindingsResults(json.getAsJsonObject());
+	}
+	
+	public boolean getAskResult() throws SEPABindingsException {
+		if (json == null) throw new SEPABindingsException("Response is null");
+		if (!json.has("boolean")) throw new SEPABindingsException("Response format do not conform with ASK");
+		
+		return json.get("boolean").getAsBoolean();
 	}
 }

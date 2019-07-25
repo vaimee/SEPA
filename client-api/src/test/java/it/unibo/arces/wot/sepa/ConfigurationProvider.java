@@ -115,6 +115,13 @@ public class ConfigurationProvider {
 				authorization, timeout);
 	}
 
+	public QueryRequest buildQueryRequest(String id, long timeout,String authToken) {
+		return new QueryRequest(appProfile.getQueryMethod(id), appProfile.getQueryProtocolScheme(id),
+				appProfile.getQueryHost(id), appProfile.getQueryPort(id), appProfile.getQueryPath(id),
+				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id),
+				authToken, timeout);
+	}
+
 	public SubscribeRequest buildSubscribeRequest(String id, long timeout,SEPASecurityManager sm) {
 		String authorization = null;		
 		if (sm != null)
