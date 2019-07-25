@@ -72,7 +72,6 @@ public class SecureWebsocketGate extends WebsocketGate{
 	</pre>
 	*/
 	private Response validateRequest(JsonObject request) {
-		String bearer = null;
 		JsonObject subUnsub = null;
 		
 		if (request.has("subscribe")) subUnsub = request.get("subscribe").getAsJsonObject();

@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
@@ -31,6 +32,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
 import java.util.UUID;
 
@@ -68,7 +70,12 @@ class SPUNaive extends SPU {
 	}
 
 	@Override
-	public Response processInternal(UpdateResponse update) {
+	public void preUpdateInternalProcessing(InternalUpdateRequest req) throws SEPAProcessingException {
+		
+	}
+	
+	@Override
+	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException {
 		logger.debug("* PROCESSING *" + subscribe);
 		Response ret;
 		
@@ -77,8 +84,7 @@ class SPUNaive extends SPU {
 			ret = manager.getQueryProcessor().process(subscribe);
 
 			if (ret.getClass().equals(ErrorResponse.class)) {
-				logger.error(ret);
-				return ret;
+				throw new SEPAProcessingException(ret.toString());
 			}
 
 			// Current and previous bindings
@@ -120,12 +126,11 @@ class SPUNaive extends SPU {
 			lastBindings = currentBindings;
 
 			// Send notification (or end processing indication)
-			if (!added.isEmpty() || !removed.isEmpty()) 
-				ret = new Notification(getSPUID(), new ARBindingsResults(added, removed));
+			if (!added.isEmpty() || !removed.isEmpty()) return new Notification(getSPUID(), new ARBindingsResults(added, removed));
 		} catch (Exception e) {
-			ret = new ErrorResponse(500, "Exception: ",e.getMessage());
+			throw new SEPAProcessingException(e);
 		}
 		
-		return ret;
+		return null;
 	}
 }
