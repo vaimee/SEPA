@@ -48,16 +48,6 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermBNode;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
-//import org.apache.jena.datatypes.xsd.impl.XSDPlainType;
-//import org.apache.jena.enhanced.Implementation;
-//import org.apache.jena.graph.NodeFactory;
-//import org.apache.jena.query.QueryExecution;
-//import org.apache.jena.query.QueryExecutionFactory;
-//import org.apache.jena.query.QuerySolutionMap;
-//import org.apache.jena.rdf.model.ResourceFactory;
-//import org.apache.jena.rdf.model.impl.LiteralImpl;
-//import org.apache.jena.rdf.model.impl.ResourceImpl;
-
 /**
  * JSAP file example
  * 
@@ -277,7 +267,7 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("extended");
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			logger.error("Extended data section not found");
 		}
 
 		return null;
@@ -311,7 +301,7 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("updates").getAsJsonObject(id).get("sparql").getAsString();
 		} catch (Exception e) {
-			logger.debug(e.getMessage());
+			logger.error("SPARQL Update "+id+"  not found");
 		}
 		return null;
 	}
@@ -339,7 +329,7 @@ public class JSAP extends SPARQL11SEProperties {
 			else
 				return "application/html";
 		} catch (Exception e) {
-			logger.debug(e.getMessage());
+			
 		}
 
 		return super.getUpdateAcceptHeader();
@@ -519,14 +509,14 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("queries").getAsJsonObject(id).get("sparql").getAsString();
 		} catch (Exception e) {
-			logger.debug(e.getMessage());
+			logger.error("SPARQL query "+id+" not found");
 		}
 		return null;
 	}
 
 	public String getQueryHost(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).get("sparql11protocol").getAsJsonObject()
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
 					.get("host").getAsString();
 		} catch (Exception e) {
 			try {
@@ -541,8 +531,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getQueryProtocolScheme(String id) {
 		try {
-			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11protocol")
-					.getAsJsonObject().get("protocol").getAsString();
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("protocol").getAsString();
 		} catch (Exception e) {
 		}
 
@@ -551,8 +540,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public int getQueryPort(String id) {
 		try {
-			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11protocol")
-					.getAsJsonObject().get("port").getAsInt();
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("port").getAsInt();
 		} catch (Exception e) {
 		}
 
@@ -561,8 +549,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getQueryPath(String id) {
 		try {
-			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11protocol")
-					.getAsJsonObject().get("query").getAsJsonObject().get("path").getAsString();
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("path").getAsString();
 		} catch (Exception e) {
 		}
 
@@ -571,8 +558,8 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public HTTPMethod getQueryMethod(String id) {
 		try {
-			switch (jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11protocol")
-					.getAsJsonObject().get("query").getAsJsonObject().get("method").getAsString()) {
+			switch (jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
+					.getAsJsonObject("query").get("method").getAsString()) {
 			case "URL_ENCODED_POST":
 				return HTTPMethod.URL_ENCODED_POST;
 			case "POST":
@@ -588,7 +575,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getQueryAcceptHeader(String id) {
 		try {
-			switch (jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("format").getAsString()) {
+			switch (jsap.getAsJsonObject("queries").getAsJsonObject(id).get("format").getAsString()) {
 			case "JSON":
 				return "application/sparql-results+json";
 			case "XML":
@@ -599,7 +586,7 @@ public class JSAP extends SPARQL11SEProperties {
 				return "application/sparql-results+json";
 			}
 		} catch (Exception e) {
-			logger.debug(e.getMessage());
+			
 		}
 
 		return super.getQueryAcceptHeader();
@@ -607,7 +594,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getNamedGraphURI(String id) {
 		try {
-			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("graphs").getAsJsonObject()
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs")
 					.get("named-graph-uri").getAsString();
 		} catch (Exception e) {
 		}
@@ -617,7 +604,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getDefaultGraphURI(String id) {
 		try {
-			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("graphs").getAsJsonObject()
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs")
 					.get("default-graph-uri").getAsString();
 		} catch (Exception e) {
 		}
@@ -796,7 +783,7 @@ public class JSAP extends SPARQL11SEProperties {
 			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
 					.getAsJsonObject("availableProtocols").getAsJsonObject(protocol).get("host").getAsString();
 		} catch (Exception e) {
-			logger.debug(e.getMessage());
+			
 		}
 
 		return super.getSubscribeHost();
@@ -848,8 +835,8 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public SubscriptionProtocol getSubscribeProtocol(String id) {
 		try {
-			if (jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11seprotocol")
-					.getAsJsonObject().get("protocol").getAsString().equals("ws"))
+			if (jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
+					.get("protocol").getAsString().equals("ws"))
 				return SubscriptionProtocol.WS;
 
 			if (jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
@@ -892,7 +879,7 @@ public class JSAP extends SPARQL11SEProperties {
 		HashSet<String> ret = new HashSet<String>();
 
 		try {
-			for (Entry<String, JsonElement> key : jsap.get("queries").getAsJsonObject().entrySet()) {
+			for (Entry<String, JsonElement> key : jsap.getAsJsonObject("queries").entrySet()) {
 				ret.add(key.getKey());
 			}
 		} catch (Exception e) {
@@ -930,12 +917,12 @@ public class JSAP extends SPARQL11SEProperties {
 
 		Bindings ret = new Bindings();
 
-		if (!jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject().has("forcedBindings"))
+		if (!jsap.getAsJsonObject("updates").getAsJsonObject(id).has("forcedBindings"))
 			return ret;
 
 		try {
-			for (Entry<String, JsonElement> binding : jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject()
-					.get("forcedBindings").getAsJsonObject().entrySet()) {
+			for (Entry<String, JsonElement> binding : jsap.getAsJsonObject("updates").getAsJsonObject(id)
+					.getAsJsonObject("forcedBindings").entrySet()) {
 
 				if (!binding.getValue().getAsJsonObject().has("type")) {
 					logger.error("JSAP missing binding type: " + binding);
@@ -973,6 +960,7 @@ public class JSAP extends SPARQL11SEProperties {
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
+			logger.error("getUpdateBindings "+id+" exception: "+e.getMessage());
 		}
 
 		return ret;
@@ -984,12 +972,12 @@ public class JSAP extends SPARQL11SEProperties {
 
 		Bindings ret = new Bindings();
 
-		if (!jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().has("forcedBindings"))
+		if (!jsap.getAsJsonObject("queries").getAsJsonObject(id).has("forcedBindings"))
 			return ret;
 
 		try {
-			for (Entry<String, JsonElement> binding : jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject()
-					.get("forcedBindings").getAsJsonObject().entrySet()) {
+			for (Entry<String, JsonElement> binding : jsap.getAsJsonObject("queries").getAsJsonObject(id)
+					.getAsJsonObject("forcedBindings").entrySet()) {
 
 				RDFTerm bindingValue = null;
 				String value = null;
@@ -1022,6 +1010,7 @@ public class JSAP extends SPARQL11SEProperties {
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
+			logger.error("getQueryBindings "+id+" exception: "+e.getMessage());
 		}
 
 		return ret;
@@ -1039,17 +1028,17 @@ public class JSAP extends SPARQL11SEProperties {
 		HashSet<String> ret = new HashSet<String>();
 
 		try {
-			for (Entry<String, JsonElement> key : jsap.get("namespaces").getAsJsonObject().entrySet())
+			for (Entry<String, JsonElement> key : jsap.getAsJsonObject("namespaces").entrySet())
 				ret.add(key.getKey());
 		} catch (Exception e) {
-			logger.debug(e.getMessage());
+			logger.error("getPrefixes exception: "+e.getMessage());
 		}
 		return ret;
 	}
 
 	public String getNamespaceURI(String prefix) {
 		try {
-			return jsap.get("namespaces").getAsJsonObject().get(prefix).getAsString();
+			return jsap.getAsJsonObject("namespaces").get(prefix).getAsString();
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			return null;
@@ -1109,6 +1098,7 @@ public class JSAP extends SPARQL11SEProperties {
 		return prefixes + replaceBindings(sparql, bindings);
 	}
 
+	//TODO: use Jena?
 //	private final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 //		QuerySolutionMap initialBinding = new QuerySolutionMap();
 //		for (String var : bindings.getVariables()) {
