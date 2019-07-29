@@ -57,13 +57,14 @@ public abstract class Client implements java.io.Closeable {
 	
 	protected Bindings addDefaultDatatype(Bindings bindings,String id,boolean query) throws SEPABindingsException {
 		if (id == null) return bindings;
+		if (bindings == null) return bindings;
 		
 		// Forced bindings by JSAP
 		Bindings fb;
 		if (query) fb = appProfile.getQueryBindings(id);
 		else fb = appProfile.getUpdateBindings(id);
 		
-		// Add missing datatype is any
+		// Add missing datatype, if any
 		Bindings retBindings = new Bindings();
 		for (String varString : bindings.getVariables()) {
 			RDFTerm term = bindings.getRDFTerm(varString);
