@@ -7,5 +7,4 @@ public interface ProcessorMBean {
 	public  String getEndpointUpdatePath();
 	public  String getEndpointUpdateMethod();
 	public  String getEndpointQueryMethod();
-	public  int getMaxConcurrentRequests();
 }

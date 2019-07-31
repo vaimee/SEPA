@@ -18,7 +18,6 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
@@ -47,9 +46,6 @@ public class Processor implements ProcessorMBean {
 	
 	// SPU manager
 	private final SPUManager spuManager;
-
-	// Concurrent endpoint limit
-	private final Semaphore endpointSemaphore;
 	
 	// Scheduler queue
 	private final Scheduler scheduler;
@@ -60,18 +56,12 @@ public class Processor implements ProcessorMBean {
 	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties,
 			Scheduler scheduler) throws IllegalArgumentException, SEPAProtocolException {		
 		
-		// Number of maximum concurrent requests (supported by the endpoint)
-		int max = properties.getMaxConcurrentRequests();
-		// TODO: extending at run-time the semaphore max
-		if (max > 0) endpointSemaphore = new Semaphore(max, true);
-		else endpointSemaphore = null;
-		
 		this.scheduler = scheduler;
 		
 		// Processors
 		//queryProcessor = new QueryProcessor(endpointProperties,endpointSemaphore);
-		queryProcessor = new QueryProcessor(endpointProperties,endpointSemaphore);
-		updateProcessor = new UpdateProcessor(endpointProperties,endpointSemaphore);
+		queryProcessor = new QueryProcessor(endpointProperties);
+		updateProcessor = new UpdateProcessor(endpointProperties);
 		
 		// SPU Manager
 		spuManager = new SPUManager(this);
@@ -88,7 +78,7 @@ public class Processor implements ProcessorMBean {
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		
-		ProcessorBeans.setEndpoint(endpointProperties, max);
+		ProcessorBeans.setEndpoint(endpointProperties);
 		
 		QueryProcessorBeans.setTimeout(properties.getQueryTimeout());
 		
@@ -177,10 +167,5 @@ public class Processor implements ProcessorMBean {
 	@Override
 	public String getEndpointQueryMethod() {
 		return ProcessorBeans.getEndpointQueryMethod();
-	}
-
-	@Override
-	public int getMaxConcurrentRequests() {
-		return ProcessorBeans.getMaxConcurrentRequests();
 	}
 }
