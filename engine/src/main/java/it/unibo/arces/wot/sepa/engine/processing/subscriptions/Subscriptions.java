@@ -64,6 +64,8 @@ public class Subscriptions {
 			throw new SEPANotExistsException("SID not found: " + sid);
 		}
 		
+		SPUManagerBeans.removeSubscriber();
+		
 		logger.trace("@internalUnsubscribe SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
 				+ subscribers.size());
 

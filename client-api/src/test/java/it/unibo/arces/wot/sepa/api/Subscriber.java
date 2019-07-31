@@ -31,7 +31,7 @@ class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 
 	public Subscriber(String id, Sync sync)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		this.setName("Subcriber-"+id+"-"+this.getId());
+		this.setName("Subscriber-"+id+"-"+this.getId());
 		provider = new ConfigurationProvider();
 		
 		this.id = id;

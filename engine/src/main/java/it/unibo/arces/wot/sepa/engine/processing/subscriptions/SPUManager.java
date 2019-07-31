@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.concurrent.Semaphore;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,7 +36,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	// SPUs processing pool
 	private final HashSet<SPU> processingPool = new HashSet<SPU>();
 	private Collection<SPU> activeSpus;
-	private Semaphore processingMutex = new Semaphore(1, true);
 
 	// SPUID ==> SPU
 	private final HashMap<String, SPU> spus = new HashMap<String, SPU>();
@@ -68,9 +66,8 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			if (Subscriptions.isZombieSpu(spu.getSPUID())) {
 				spu.finish();
 				spu.interrupt();	
-				synchronized(spus) {
-					spus.remove(spu.getSPUID());
-				}
+				spus.remove(spu.getSPUID());
+				
 			}
 			else {
 				ret.add(spu);
@@ -81,20 +78,13 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	}
 
 	public synchronized void preUpdateProcessing(InternalUpdateRequest update) throws SEPAProcessingException {
-		try {
-			processingMutex.acquire();
-		} catch (InterruptedException e) {
-			throw new SEPAProcessingException(e);
-		}
-
 		logger.debug("*** PRE PROCESSING SUBSCRIPTIONS BEGIN *** ");
 
 		long start = Timings.getTime();
 
 		// Get active SPUs (e.g., LUTT filtering)
-		synchronized (spus) {
-			activeSpus = filter(update);
-		}
+		activeSpus = filter(update);
+		
 		long stop = Timings.getTime();
 
 		SPUManagerBeans.filteringTimings(start, stop);
@@ -104,13 +94,11 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		// Copy active SPU pool
 		processingPool.clear();
 
-		synchronized (activeSpus) {
-			for (SPU spu : activeSpus) {
-				processingPool.add(spu);
-				spu.preUpdateProcessing(update);
-			}
+		for (SPU spu : activeSpus) {
+			processingPool.add(spu);
+			spu.preUpdateProcessing(update);
 		}
-
+		
 		logger.debug("@preUpdateProcessing SPU processing pool size: " + processingPool.size());
 
 		// Wait all SPUs to complete processing
@@ -120,7 +108,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			try {
 				wait(SPUManagerBeans.getSPUProcessingTimeout());
 			} catch (InterruptedException e) {
-				processingMutex.release();
 				throw new SEPAProcessingException(e);
 			}
 		}
@@ -148,13 +135,11 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		processingPool.clear();
 
-		synchronized (activeSpus) {
-			for (SPU spu : activeSpus) {
-				processingPool.add(spu);
-				spu.postUpdateProcessing(ret);
-			}
+		for (SPU spu : activeSpus) {
+			processingPool.add(spu);
+			spu.postUpdateProcessing(ret);
 		}
-
+		
 		logger.debug("@postUpdateProcessing SPU processing pool size: " + processingPool.size());
 
 		if (!processingPool.isEmpty()) {
@@ -163,7 +148,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			try {
 				wait(SPUManagerBeans.getSPUProcessingTimeout());
 			} catch (InterruptedException e) {
-				processingMutex.release();
 				throw new SEPAProcessingException(e);
 			}
 		}
@@ -182,8 +166,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		SPUManagerBeans.timings(start, stop);
 
 		logger.debug("*** POST PROCESSING SUBSCRIPTIONS END *** ");
-
-		processingMutex.release();
 	}
 
 	public synchronized void endOfProcessing(SPU s) {
@@ -194,20 +176,14 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			notify();
 	}
 
-	public void exceptionOnProcessing(SPU s) {
+	public synchronized void exceptionOnProcessing(SPU s) {
 		logger.error("@exceptionOnProcessing  SPUID: " + s.getSPUID());
 
 		activeSpus.remove(s);
 		endOfProcessing(s);
 	}
 
-	public Response subscribe(InternalSubscribeRequest req) throws SEPAProcessingException {
-		try {
-			processingMutex.acquire();
-		} catch (InterruptedException e) {
-			throw new SEPAProcessingException(e);
-		}
-
+	public synchronized Response subscribe(InternalSubscribeRequest req) throws SEPAProcessingException {
 		SPUManagerBeans.subscribeRequest();
 
 		// Set the SPU Manager as event handler
@@ -239,10 +215,8 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			Subscriptions.register(req, spu);
 
 			// Create new entry for handler
-			synchronized (spus) {
-				spus.put(spu.getSPUID(), spu);
-			}
-
+			spus.put(spu.getSPUID(), spu);
+			
 			// Start the SPU thread
 			spu.setName(spu.getSPUID());
 			spu.start();
@@ -250,26 +224,18 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		Subscriber sub = Subscriptions.addSubscriber(req, spu);
 
-		processingMutex.release();
-
 		return new SubscribeResponse(sub.getSID(), req.getAlias(), sub.getSPU().getLastBindings());
 	}
 
-	public Response unsubscribe(String sid, String gid) throws SEPAProcessingException {
+	public synchronized Response unsubscribe(String sid, String gid) throws SEPAProcessingException {
 		return internalUnsubscribe(sid, gid, true);
 	}
 
-	public void killSubscription(String sid, String gid) throws SEPAProcessingException {
+	public synchronized void killSubscription(String sid, String gid) throws SEPAProcessingException {
 		internalUnsubscribe(sid, gid, false);
 	}
 
 	private Response internalUnsubscribe(String sid, String gid, boolean dep) throws SEPAProcessingException {
-		try {
-			processingMutex.acquire();
-		} catch (InterruptedException e) {
-			throw new SEPAProcessingException(e);
-		}
-
 		try {
 			Subscriber sub = Subscriptions.getSubscriber(sid);
 			String spuid = sub.getSPU().getSPUID();
@@ -280,10 +246,8 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 				spus.get(spuid).interrupt();
 
 				// Clear
-				synchronized (spus) {
-					spus.remove(spuid);
-				}
-
+				spus.remove(spuid);
+				
 				logger.info("@internalUnsubscribe active SPUs: " + spus.size());
 				SPUManagerBeans.setActiveSPUs(spus.size());
 			}
@@ -295,22 +259,16 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		if (dep)
 			Dependability.onUnsubscribe(gid, sid);
 
-		processingMutex.release();
-
 		return new UnsubscribeResponse(sid);
 	}
 
 	@Override
-	public void notifyEvent(Notification notify) throws SEPAProtocolException {
+	public synchronized void notifyEvent(Notification notify) throws SEPAProtocolException {
 		logger.debug("@notifyEvent " + notify);
 
 		String spuid = notify.getSpuid();
 
-		synchronized (spus) {
-			if (spus.containsKey(spuid)) {
-				Subscriptions.notifySubscribers(spuid, notify);
-			}
-		}
+		if (spus.containsKey(spuid)) Subscriptions.notifySubscribers(spuid, notify);
 	}
 
 	public QueryProcessor getQueryProcessor() {

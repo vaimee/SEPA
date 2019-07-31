@@ -28,7 +28,8 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	protected final Scheduler scheduler;
 
 	public abstract void send(String response) throws SEPAProtocolException;
-
+	public abstract boolean ping();
+	
 	public Gate(Scheduler scheduler) {
 		this.scheduler = scheduler;
 		
