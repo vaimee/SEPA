@@ -436,6 +436,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		// Body
 		post.setEntity(requestEntity);
 
+		// Setting timeout
 		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout((int) req.getTimeout())
 				.setConnectTimeout((int) req.getTimeout()).build();
 		post.setConfig(requestConfig);
@@ -526,10 +527,11 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					e.getMessage());
 		}
 
+		// Set Accept header
 		post.setHeader("Accept", req.getAcceptHeader());
-
 		post.setEntity(requestEntity);
 
+		// Set timeout
 		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout((int) req.getTimeout())
 				.setConnectTimeout((int) req.getTimeout()).build();
 		post.setConfig(requestConfig);
@@ -592,8 +594,10 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		HttpGet get;
 		get = new HttpGet(url);
 
+		// Set Accept header
 		get.setHeader("Accept", req.getAcceptHeader());
 
+		// Set timeout
 		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout((int) req.getTimeout())
 				.setConnectTimeout((int) req.getTimeout()).build();
 		get.setConfig(requestConfig);
@@ -611,103 +615,3 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		}
 	}
 }
-
-// private Response patchVirtuoso(UpdateRequest req) {
-// // 1) "INSERT DATA" is not supported. Only INSERT (also if the WHERE is not
-// // present).
-// String fixedSparql = req.getSPARQL();
-// Pattern p = null;
-// try {
-// p = Pattern.compile(
-// "(?<update>.*)(delete)([^{]*)(?<udtriples>.*)(insert)([^{]*)(?<uitriples>.*)|(?<delete>.*)(delete)(?<where>[^{]*)(?<dtriples>.*)|(?<insert>.*)(insert)([^{]*)(?<itriples>.*)",
-// Pattern.CASE_INSENSITIVE);
-//
-// Matcher m = p.matcher(req.getSPARQL());
-// if (m.matches()) {
-// if (m.group("update") != null) {
-// fixedSparql = m.group("update") + " DELETE " + m.group("udtriples") + "
-// INSERT "
-// + m.group("uitriples");
-// } else if (m.group("insert") != null) {
-// fixedSparql = m.group("insert") + " INSERT " + m.group("itriples");
-// } else {
-// if (m.group("where") != null) {
-// if (m.group("where").toLowerCase().contains("where")) {
-// fixedSparql = m.group("delete") + " DELETE " + m.group("where") +
-// m.group("dtriples");
-// }
-// else
-// fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
-// }
-// else fixedSparql = m.group("delete") + " DELETE " + m.group("dtriples");
-// }
-// }
-// } catch (Exception e) {
-// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
-// e.getMessage());
-// }
-//
-// // 2) SPARQL 1.1 Update are issued as GET request (like for a SPARQL 1.1
-// Query)
-// String query;
-// try {
-// // custom "format" parameter
-// query = "query=" + URLEncoder.encode(fixedSparql, "UTF-8") + "&format="
-// + URLEncoder.encode(req.getAcceptHeader(), "UTF-8");
-// } catch (UnsupportedEncodingException e1) {
-// logger.error(e1.getMessage());
-// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
-// e1.getMessage());
-// }
-//
-// // 3) Named-graphs specified like a query
-// String graphs = "";
-// try {
-// if (req.getUsingGraphUri() != null) {
-//
-// graphs += "default-graph-uri=" + URLEncoder.encode(req.getUsingGraphUri(),
-// "UTF-8");
-//
-// if (req.getUsingNamedGraphUri() != null) {
-// graphs += "&named-graph-uri=" +
-// URLEncoder.encode(req.getUsingNamedGraphUri(), "UTF-8");
-// }
-// } else if (req.getUsingNamedGraphUri() != null) {
-// graphs += "named-graph-uri=" + URLEncoder.encode(req.getUsingNamedGraphUri(),
-// "UTF-8");
-// }
-// } catch (UnsupportedEncodingException e) {
-// logger.error(e.getMessage());
-// return new ErrorResponse(req.getToken(), HttpStatus.SC_INTERNAL_SERVER_ERROR,
-// e.getMessage());
-// }
-//
-// if (!graphs.equals(""))
-// query += "&" + graphs;
-//
-// logger.debug("Query: " + query);
-//
-// // Setting URL
-// String scheme = req.getScheme();
-// String host = req.getHost();
-// int port = req.getPort();
-// String queryPath = req.getPath();
-//
-// String url;
-// if (port != -1)
-// url = scheme + "://" + host + ":" + port + queryPath + "?" + query;
-// else
-// url = scheme + "://" + host + queryPath + "?" + query;
-//
-// HttpGet get;
-// get = new HttpGet(url);
-//
-// get.setHeader("Accept", req.getAcceptHeader());
-//
-// RequestConfig requestConfig =
-// RequestConfig.custom().setSocketTimeout(req.getTimeout())
-// .setConnectTimeout(req.getTimeout()).build();
-// get.setConfig(requestConfig);
-//
-// return executeRequest(get, req);
-// }
