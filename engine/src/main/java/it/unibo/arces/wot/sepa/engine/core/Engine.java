@@ -53,16 +53,12 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  * Event Processing Architecture (SEPA)
  *
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.9.7
+ * @version 0.9.8
  */
 
 public class Engine implements EngineMBean {
-	// private final static Engine engine;
-	private final static String version = "0.9.7";
+	private final static String version = "0.9.8";
 	private EngineProperties properties = null;
-
-	// Scheduler request queue
-	// private final SchedulerQueue schedulerQueue = new SchedulerQueue();
 
 	// Primitives scheduler/dispatcher
 	private Scheduler scheduler = null;
@@ -78,7 +74,7 @@ public class Engine implements EngineMBean {
 	private HttpsGate httpsGate = null;
 	private int wsShutdownTimeout = 5000;
 
-	// JKS Credentials
+	// JKS default credentials
 	private String storeName = "sepa.jks";
 	private String storePassword = "sepa2017";
 	private String jwtAlias = "sepakey";
@@ -96,7 +92,7 @@ public class Engine implements EngineMBean {
 	static {
 		// Logging
 		TimeZone tz = TimeZone.getTimeZone("UTC");
-		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
+		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate GMT, no timezone offset
 		df.setTimeZone(tz);
 		String nowAsISO = df.format(new Date());
 		System.setProperty("logFilename", nowAsISO);
@@ -106,19 +102,6 @@ public class Engine implements EngineMBean {
 	}
 	// Logging
 	private static final Logger logger = LogManager.getLogger();
-	// Logging file name
-	// Can be configured within the log4j2.xml configuration file
-//	private void setLoggingFileName() {
-//		// Logging
-//		TimeZone tz = TimeZone.getTimeZone("UTC");
-//		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
-//		df.setTimeZone(tz);
-//		String nowAsISO = df.format(new Date());
-//		System.setProperty("logFilename", nowAsISO);
-//		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
-//				.getContext(false);
-//		ctx.reconfigure();
-//	}
 
 	private void printUsage() {
 		System.out.println("Usage:");
@@ -195,11 +178,11 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 		System.out
-				.println("# SEPA Broker                                                                            #");
+				.println("# SPARQL Event Processing Architecture broker                                            #");
 		System.out
 				.println("# Dynamic Linked Data & Web of Things Research - University of Bologna (Italy)           #");
 		System.out
-				.println("# Copyright (C) 2016-2018                                                                #");
+				.println("# Copyright (C) 2016-2019                                                                #");
 		System.out
 				.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
 		System.out
@@ -217,8 +200,6 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 
-
-
 		// Command arguments
 		parsingArgument(args);
 
@@ -229,7 +210,6 @@ public class Engine implements EngineMBean {
 
 		try {
 			// Initialize SPARQL 1.1 SE processing service properties
-
 			properties = secure.isPresent() ? new EngineProperties(engineJpar,secure.get())
                     : new EngineProperties(engineJpar);
 
@@ -327,24 +307,13 @@ public class Engine implements EngineMBean {
 			System.out.println("");
 			System.out.println(
 					"*****************************************************************************************");
-			System.out.println("*                      SEPA Broker Ver " + version
+			System.out.println("*                      SEPA broker Ver " + version
 					+ " is up and running                          *");
 			System.out.println(
 					"*                                Let Things Talk!                                       *");
 			System.out.println(
 					"*****************************************************************************************");
-
-			System.out.println(">>> Logging <<<");
-			System.out.println("Level: " +logger.getLevel().toString());
-			final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-	        final Configuration config = ctx.getConfiguration();
-	        LoggerConfig rootLoggerConfig = config.getLoggers().get("");
-	        Iterator<AppenderRef> it = rootLoggerConfig.getAppenderRefs().iterator();
-			while(it.hasNext()) {
-				AppenderRef ref = it.next();
-				System.out.println("Appender: <"+ref.getRef()+"> Level: "+ref.getLevel());
-			}
-
+			
 		} catch (SEPAPropertiesException | SEPASecurityException
 				| IllegalArgumentException | SEPAProtocolException | InterruptedException e) {
 			System.err.println(e.getMessage());
@@ -353,6 +322,19 @@ public class Engine implements EngineMBean {
 
 	}
 
+	public static void printLog4jConfiguration() {
+		System.out.println(">>> Logging <<<");
+		System.out.println("Level: " +logger.getLevel().toString());
+		final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+        final Configuration config = ctx.getConfiguration();
+        LoggerConfig rootLoggerConfig = config.getLoggers().get("");
+        Iterator<AppenderRef> it = rootLoggerConfig.getAppenderRefs().iterator();
+		while(it.hasNext()) {
+			AppenderRef ref = it.next();
+			System.out.println("Appender: <"+ref.getRef()+"> Level: "+ref.getLevel());
+		}
+	}
+	
 	public static void main(String[] args) throws SEPASecurityException, SEPAProtocolException {
 		// Attach CTRL+C hook
 		Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(new Engine(args)));
