@@ -73,12 +73,6 @@ class Publisher extends Thread implements Closeable {
 					}
 				}
 			}
-//				
-//				&& ((ErrorResponse)ret).isTokenExpiredError()){
-//				logger.debug(ret);
-//				//					sm.forceRefreshToken();
-//				
-//			}
 			
 			running.set(running.get()-1);
 		}
