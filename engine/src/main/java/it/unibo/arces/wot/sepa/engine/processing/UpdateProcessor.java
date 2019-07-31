@@ -18,8 +18,6 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -41,12 +39,10 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	private static final Logger logger = LogManager.getLogger();
 
 	private final SPARQL11Protocol endpoint;
-	private final Semaphore endpointSemaphore;
 	private final SPARQL11Properties properties;
 
-	public UpdateProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
+	public UpdateProcessor(SPARQL11Properties properties) throws SEPAProtocolException {
 		this.endpoint = new SPARQL11Protocol();
-		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
@@ -58,10 +54,6 @@ class UpdateProcessor implements UpdateProcessorMBean {
 
 	public synchronized Response process(InternalUpdateRequest req) throws InterruptedException {
 		long start = Timings.getTime();
-
-		if (endpointSemaphore != null)
-			// TODO: timeout
-			endpointSemaphore.acquire();
 
 		// Authorized access to the endpoint
 		String authorizationHeader = null;
@@ -82,9 +74,6 @@ class UpdateProcessor implements UpdateProcessorMBean {
 				UpdateProcessorBeans.getTimeout());
 		logger.trace(request);
 		ret = endpoint.update(request);
-
-		if (endpointSemaphore != null)
-			endpointSemaphore.release();
 
 		long stop = Timings.getTime();
 		UpdateProcessorBeans.timings(start, stop);
