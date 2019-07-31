@@ -11,25 +11,15 @@ public class ProcessorBeans {
 	private static String updateMethod;
 	private static String queryMethod;
 	
-	private static int maxConcurrentRequests;
-	
-	public static void setEndpoint(SPARQL11Properties prop,int maxReq) {
+	public static void setEndpoint(SPARQL11Properties prop) {
 		host = prop.getHost();
 		port = prop.getPort();
 		queryPath = prop.getQueryPath();
 		updatePath = prop.getUpdatePath();
 		updateMethod = prop.getUpdateMethod().name();
 		queryMethod = prop.getQueryMethod().name();
-		
-		maxConcurrentRequests = maxReq;
 	}
-	
-	public static int getMaxConcurrentRequests() {
-		return maxConcurrentRequests;
-	}
-	public static void setMaxConcurrentRequests(int n) {
-		maxConcurrentRequests = n;
-	}
+
 	public static String getEndpointHost() {
 		return host;
 	}

@@ -18,8 +18,6 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,7 +27,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
@@ -41,13 +38,10 @@ public class QueryProcessor implements QueryProcessorMBean {
 	protected static final Logger logger = LogManager.getLogger();
 
 	protected final SPARQL11Protocol endpoint;
-	protected final Semaphore endpointSemaphore;
 	protected final SPARQL11Properties properties;
 
-	public QueryProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
+	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException {
 		this.endpoint = new SPARQL11Protocol();
-		//this.endpoint = new JenaSparql11Service();
-		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 		
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
@@ -55,14 +49,6 @@ public class QueryProcessor implements QueryProcessorMBean {
 
 	public Response process(InternalQueryRequest req) {
 		long start = Timings.getTime();
-
-		if (endpointSemaphore != null)
-			try {
-				//TODO: timeout
-				endpointSemaphore.acquire();
-			} catch (InterruptedException e) {
-				return new ErrorResponse(500, "InterruptedException",e.getMessage());
-			}
 
 		// Authorized access to the endpoint
 		String authorizationHeader = null;
@@ -84,9 +70,6 @@ public class QueryProcessor implements QueryProcessorMBean {
 				authorizationHeader,QueryProcessorBeans.getTimeout());
 
 		ret = endpoint.query(request);
-
-		if (endpointSemaphore != null)
-			endpointSemaphore.release();
 
 		long stop = Timings.getTime();
 		
