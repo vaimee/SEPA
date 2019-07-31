@@ -100,7 +100,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 			try {
 				subscribeRequest = request.toString();
 
-				logger.info("Connect to: " + url);
+				logger.debug("Connect to: " + url);
 
 				client.connectToServer(this, url);
 
@@ -163,7 +163,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 
 	@Override
 	public void onOpen(Session session, EndpointConfig config) {
-		logger.info("@onOpen session: " + session.getId());
+		logger.debug("@onOpen session: " + session.getId());
 
 		this.session = session;
 
