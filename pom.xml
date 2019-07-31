@@ -8,7 +8,6 @@
   <description>The project aims at developing a SPARQL Event Processing Architecture using JAVA technologies, including APIs and tools</description>
     <modules>
         <module>client-api</module>
-        <module>tools</module>
         <module>engine</module>
   </modules>
   <name>SEPA Project</name>
