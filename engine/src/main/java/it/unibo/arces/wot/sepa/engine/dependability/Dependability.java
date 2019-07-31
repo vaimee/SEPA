@@ -18,6 +18,7 @@ import com.nimbusds.jose.JOSEException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
 public class Dependability {
@@ -52,6 +53,14 @@ public class Dependability {
 		SubscriptionManager.onClose(gid);
 	}
 
+	public static void addGate(Gate g)  {
+		SubscriptionManager.addGate(g);
+	}
+	
+	public static void removeGate(Gate g)  {
+		SubscriptionManager.removeGate(g);
+	}
+	
 	public static void onGateError(String gid, Exception e) {
 		SubscriptionManager.onError(gid, e);
 	}

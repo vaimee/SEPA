@@ -22,6 +22,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
+import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.gates.WebsocketGate;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
@@ -72,6 +73,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			WebsocketGate gate = new WebsocketGate(conn, scheduler);
 			
 			gates.put(conn, gate);
+			
+			Dependability.addGate(gate);
 
 			fragmentedMessages.put(conn, null);
 
@@ -94,6 +97,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 					logger.warn(e.getMessage());
 				}
 
+			Dependability.removeGate(gates.get(conn));
+			
 			// Remove from active gates
 			gates.remove(conn);
 		}

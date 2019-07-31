@@ -52,4 +52,9 @@ public class WebsocketGate extends Gate {
 		
 		WebsocketBeans.notification();
 	}
+
+	@Override
+	public boolean ping() {
+		return socket.isOpen();
+	}
 }
