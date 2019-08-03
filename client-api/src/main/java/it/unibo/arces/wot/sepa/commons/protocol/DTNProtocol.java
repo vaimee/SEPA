@@ -154,7 +154,8 @@ public class DTNProtocol implements ISPARQL11Interface {
 		boolean received = false;
 		while (!received) {
 			try {
-				bundle = this.socket.receive((int) req.getTimeout());
+				final int timeout = (req.getTimeout() <= 0 ? -1 : (int)req.getTimeout()); // timeout <= 0 --> blocking receive
+				bundle = this.socket.receive(timeout);
 				received = true;
 			} catch (JALReceptionInterruptedException e) {
 				continue;

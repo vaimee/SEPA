@@ -18,19 +18,37 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
+import it.unibo.arces.wot.sepa.pattern.DTNProducer;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
+import it.unibo.dtn.JAL.exceptions.JALIPNParametersException;
+import it.unibo.dtn.JAL.exceptions.JALLocalEIDException;
+import it.unibo.dtn.JAL.exceptions.JALOpenException;
+import it.unibo.dtn.JAL.exceptions.JALRegisterException;
 
 public class MqttObservationUpdater extends Aggregator {
 	private final Logger logger = LogManager.getLogger();
 
 	private final MqttTopicMapper mapper;
+	private DTNProducer DTNproducer = null;
 
-	public MqttObservationUpdater(JSAP jsap, SEPASecurityManager sm) throws SEPAProtocolException,
-			SEPASecurityException, SEPAPropertiesException, IOException, SEPABindingsException {
+	/**
+	 * Creates a MqttObservationUpdater in HTTP mode
+	 */
+	public MqttObservationUpdater(JSAP jsap, SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, SEPABindingsException {
 		super(jsap, "MQTT_MESSAGES", "UPDATE_OBSERVATION_VALUE", sm);
 
 		mapper = new MqttTopicMapper(jsap, sm);
 		mapper.subscribe(5000);
+	}
+	
+	/**
+	 * Creates a MqttObservationUpdater in DTN or HTTP mode
+	 */
+	public MqttObservationUpdater(JSAP jsap, SEPASecurityManager sm, boolean enableDTN) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, IOException, SEPABindingsException, JALLocalEIDException, JALOpenException, JALIPNParametersException, JALRegisterException {
+		this(jsap, sm);
+
+		if (enableDTN)
+			this.DTNproducer = new DTNProducer(jsap, "UPDATE_OBSERVATION_VALUE", sm);
 	}
 
 	@Override
@@ -54,11 +72,7 @@ public class MqttObservationUpdater extends Aggregator {
 				}
 
 				for (String[] observation : observations) {
-					setUpdateBindingValue("observation", new RDFTermURI(observation[0]));
-					setUpdateBindingValue("value", new RDFTermLiteral(observation[1],
-							appProfile.getUpdateBindings("UPDATE_OBSERVATION_VALUE").getDatatype("value")));
-
-					update();
+					this.updateByObservation(observation);
 				}
 			} catch (Exception e) {
 				logger.error(e.getMessage());
@@ -66,39 +80,49 @@ public class MqttObservationUpdater extends Aggregator {
 		}
 	}
 
+	private void updateByObservation(String[] observation) throws SEPABindingsException, SEPASecurityException, IOException, SEPAPropertiesException {
+		if (this.DTNproducer != null) { // DTN
+			this.DTNproducer.setUpdateBindingValue("observation", new RDFTermURI(observation[0]));
+			this.DTNproducer.setUpdateBindingValue("value", new RDFTermLiteral(observation[1],
+					this.DTNproducer.getApplicationProfile().getUpdateBindings("UPDATE_OBSERVATION_VALUE").getDatatype("value")));
+			
+			this.DTNproducer.update();
+		} else { // Not DTN
+			this.setUpdateBindingValue("observation", new RDFTermURI(observation[0]));
+			this.setUpdateBindingValue("value", new RDFTermLiteral(observation[1],
+					this.DTNproducer.getApplicationProfile().getUpdateBindings("UPDATE_OBSERVATION_VALUE").getDatatype("value")));
+			
+			this.update();
+		}
+	}
+
 	@Override
 	public void onResults(ARBindingsResults results) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void onRemovedResults(BindingsResults results) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void onBrokenConnection() {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		// TODO Auto-generated method stub
 
 	}
 }

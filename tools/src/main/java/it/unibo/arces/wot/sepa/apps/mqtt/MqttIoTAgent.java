@@ -22,6 +22,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
+import it.unibo.dtn.JAL.exceptions.JALRegisterException;
 
 public class MqttIoTAgent {
 	private static final Logger logger = LogManager.getLogger();
@@ -39,6 +40,7 @@ public class MqttIoTAgent {
 		System.out.println("   -observations: insert observations");
 		System.out.println("   -places: insert places");
 		System.out.println("   -clear: clear observations and places");
+		System.out.println("   -dtn: enables DTN");
 	}
 
 	private static boolean doLog(String[] args) {
@@ -65,6 +67,13 @@ public class MqttIoTAgent {
 	private static boolean clear(String[] args) {
 		for (int i = 0; i < args.length; i++)
 			if (args[i].equals("-clear"))
+				return true;
+		return false;
+	}
+	
+	private static boolean dtn(String[] args) {
+		for (int i = 0; i < args.length; i++)
+			if (args[i].equals("-dtn"))
 				return true;
 		return false;
 	}
@@ -265,10 +274,10 @@ public class MqttIoTAgent {
 
 		logger.info("Create observation updater");
 		try {
-			observation = new MqttObservationUpdater(app, sm);
+			observation = new MqttObservationUpdater(app, sm, dtn(args));
 			observation.subscribe(5000);
 		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException
-				| SEPABindingsException e1) {
+				| SEPABindingsException | JALRegisterException e1) {
 			logger.error(e1.getMessage());
 			return;
 		}
