@@ -15,6 +15,7 @@ public class DTNProducer extends AbstractProducer {
 	public DTNProducer(JSAP appProfile, String updateID, SEPASecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, JALLocalEIDException, JALOpenException, JALIPNParametersException, JALRegisterException {
 		super(appProfile, updateID, sm, new DTNProtocol());
+		appProfile.setDTN(true);
 	}
 
 }

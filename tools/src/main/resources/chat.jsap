@@ -14,7 +14,7 @@
 		"schema": "ipn",
 		"availableSchemas": {
 			"ipn": {
-				"destination": "5",
+				"destination": "100",
 				"updatedemux": 150,
 				"querydemux": 151,
 				"subscribedemux": 152 
@@ -28,7 +28,7 @@
 		}
 	},
 	"sparql11protocol": {
-		"protocol": "http",
+		"protocol": "ipn",
 		"port": 8000,
 		"query": {
 			"path": "/query",
@@ -42,7 +42,7 @@
 		}
 	},
 	"sparql11seprotocol": {
-		"protocol": "ws",
+		"protocol": "ipn",
 		"availableProtocols": {
 			"ws": {
 				"port": 9000,

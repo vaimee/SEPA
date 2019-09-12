@@ -159,19 +159,28 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 		}}
  * </pre>
  */
-public class JSAP extends SPARQL11SEProperties {
+public class JSAP extends SPARQL11SEProperties { // FIXME THIS IS NOT AN EXTENSION!! It violates Liskov substitution principle (https://it.wikipedia.org/wiki/Principio_di_sostituzione_di_Liskov)
 	protected static ArrayList<String> numbersOrBoolean = new ArrayList<String>();
 
 	protected String prefixes = "";
 
 	protected final AuthenticationProperties oauth;
-
+	
+	private boolean isDTN;
+	
 	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
+		this(propertiesFile, false);
+	}
+	
+	public JSAP(String propertiesFile, boolean dtn) throws SEPAPropertiesException, SEPASecurityException {
 		super(propertiesFile);
 
 		defaultNamespaces();
 
 		oauth = new AuthenticationProperties(propertiesFile);
+		
+		this.isDTN = dtn;
+		
 	}
 
 	public JSAP() {
@@ -180,8 +189,10 @@ public class JSAP extends SPARQL11SEProperties {
 		defaultNamespaces();
 
 		oauth = new AuthenticationProperties();
+		
+		this.isDTN = false;
 	}
-
+	
 	private void defaultNamespaces() {
 		if (!jsap.has("namespaces"))
 			jsap.add("namespaces", new JsonObject());
@@ -262,6 +273,8 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public String getUpdateHost(String id) {
+		if (this.isDTN)
+			return this.getDestinationDTN();
 		try {
 			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("host")
 					.getAsString();
@@ -291,6 +304,8 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public HTTPMethod getUpdateMethod(String id) {
+		if (this.isDTN)
+			return HTTPMethod.POST;
 		try {
 			switch (jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
 					.getAsJsonObject("update").get("method").getAsString()) {
@@ -309,6 +324,8 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public String getUpdateProtocolScheme(String id) {
+		if (this.isDTN)
+			return this.getUpdateProtocolSchemeDTN(id);
 		try {
 			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
 					.get("protocol").getAsString();
@@ -319,6 +336,8 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public String getUpdatePath(String id) {
+		if (this.isDTN)
+			return this.getUpdateDemuxDTN(id);
 		try {
 			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
 					.getAsJsonObject("update").get("path").getAsString();
@@ -329,6 +348,8 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public int getUpdatePort(String id) {
+		if (this.isDTN)
+			return this.getUpdateDemuxIPN(id);
 		try {
 			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("port")
 					.getAsInt();
@@ -496,6 +517,8 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 	
 	public String getQueryHost(String id) {
+		if (this.isDTN)
+			return this.getDestinationDTN();
 		try {
 			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11protocol")
 					.getAsJsonObject().get("host").getAsString();
@@ -535,6 +558,8 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public String getQueryProtocolScheme(String id) {
+		if (this.isDTN)
+			return this.getQueryProtocolSchemeDTN(id);
 		try {
 			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11protocol")
 					.getAsJsonObject().get("protocol").getAsString();
@@ -545,6 +570,8 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public int getQueryPort(String id) {
+		if (this.isDTN)
+			return this.getQueryDemuxIPN(id);
 		try {
 			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11protocol")
 					.getAsJsonObject().get("port").getAsInt();
@@ -554,7 +581,8 @@ public class JSAP extends SPARQL11SEProperties {
 		return super.getPort();
 	}
 	
-	public int getQueryDemuxIPN(String id, String demux) {
+	public int getSubscribeDemuxIPN(String id) {
+		final String demux = "subscribedemux";
 		try {
 			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("dtnprotocol")
 					.getAsJsonObject().get("availableSchemas").getAsJsonObject().get("ipn").getAsJsonObject()
@@ -565,7 +593,32 @@ public class JSAP extends SPARQL11SEProperties {
 		return this.getDemuxIPN(demux);
 	}
 	
-	public int getUpdateDemuxIPN(String id, String demux) {
+	public String getSubscribeDemuxDTN(String id) {
+		final String demux = "subscribedemux";
+		try {
+			return jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject().get("dtnprotocol")
+					.getAsJsonObject().get("availableSchemas").getAsJsonObject().get("dtn").getAsJsonObject()
+					.get(demux).getAsString();
+		} catch (Exception e) {
+		}
+
+		return this.getDemuxDTN(demux);
+	}
+	
+	public int getQueryDemuxIPN(String id) {
+		final String demux = "querydemux";
+		try {
+			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("dtnprotocol")
+					.getAsJsonObject().get("availableSchemas").getAsJsonObject().get("ipn").getAsJsonObject()
+					.get(demux).getAsInt();
+		} catch (Exception e) {
+		}
+
+		return this.getDemuxIPN(demux);
+	}
+	
+	public int getUpdateDemuxIPN(String id) {
+		final String demux = "updatedemux";
 		try {
 			return jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject().get("dtnprotocol")
 					.getAsJsonObject().get("availableSchemas").getAsJsonObject().get("ipn").getAsJsonObject()
@@ -581,6 +634,8 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public String getQueryPath(String id) {
+		if (this.isDTN)
+			return this.getQueryDemuxDTN(id);
 		try {
 			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11protocol")
 					.getAsJsonObject().get("query").getAsJsonObject().get("path").getAsString();
@@ -590,7 +645,8 @@ public class JSAP extends SPARQL11SEProperties {
 		return super.getQueryPath();
 	}
 	
-	public String getQueryDemuxDTN(String id, String demux) {
+	public String getQueryDemuxDTN(String id) {
+		final String demux = "querydemux";
 		try {
 			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("dtnprotocol")
 					.getAsJsonObject().get("availableSchemas").getAsJsonObject().get("dtn").getAsJsonObject()
@@ -601,7 +657,8 @@ public class JSAP extends SPARQL11SEProperties {
 		return this.getDemuxDTN(demux);
 	}
 	
-	public String getUpdateDemuxDTN(String id, String demux) {
+	public String getUpdateDemuxDTN(String id) {
+		final String demux = "updatedemux";
 		try {
 			return jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject().get("dtnprotocol")
 					.getAsJsonObject().get("availableSchemas").getAsJsonObject().get("dtn").getAsJsonObject()
@@ -1317,4 +1374,9 @@ public class JSAP extends SPARQL11SEProperties {
 				|| (0x2070 <= c && c <= 0x218F) || (0x2C00 <= c && c <= 0x2FEF) || (0x3001 <= c && c <= 0xD7FF)
 				|| (0xF900 <= c && c <= 0xFDCF) || (0xFDF0 <= c && c <= 0xFFFD) || (0x10000 <= c && c <= 0xEFFFF));
 	}
+
+	public void setDTN(boolean dtn) {
+		this.isDTN = dtn;
+	}
+	
 }

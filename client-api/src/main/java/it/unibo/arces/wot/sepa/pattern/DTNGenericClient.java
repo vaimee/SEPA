@@ -166,10 +166,9 @@ public class DTNGenericClient extends GenericClient {
 		if (sparql == null) {
 			sparql = appProfile.getSPARQLUpdate(ID);
 		}
-		final String demux = "updatedemux";
 		Response ret = client.update(new UpdateRequest(HTTPMethod.POST,
-				appProfile.getUpdateProtocolSchemeDTN(ID), appProfile.getUpdateDestinationDTN(ID), appProfile.getUpdateDemuxIPN(ID, demux),
-				appProfile.getUpdateDemuxDTN(ID, demux), addPrefixesAndReplaceBindings(sparql, forced),
+				appProfile.getUpdateProtocolSchemeDTN(ID), appProfile.getUpdateDestinationDTN(ID), appProfile.getUpdateDemuxIPN(ID),
+				appProfile.getUpdateDemuxDTN(ID), addPrefixesAndReplaceBindings(sparql, forced),
 				appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), null, timeout));
 		client.close();
 
@@ -182,10 +181,9 @@ public class DTNGenericClient extends GenericClient {
 		if (sparql == null) {
 			sparql = appProfile.getSPARQLQuery(ID);
 		}
-		final String demux = "querydemux";
 		Response ret = client.query(new QueryRequest(HTTPMethod.POST,
-				appProfile.getQueryProtocolSchemeDTN(ID), appProfile.getQueryDestinationDTN(ID), appProfile.getQueryDemuxIPN(ID, demux),
-				appProfile.getQueryDemuxDTN(ID, demux), addPrefixesAndReplaceBindings(sparql, forced),
+				appProfile.getQueryProtocolSchemeDTN(ID), appProfile.getQueryDestinationDTN(ID), appProfile.getQueryDemuxIPN(ID),
+				appProfile.getQueryDemuxDTN(ID), addPrefixesAndReplaceBindings(sparql, forced),
 				appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), null, timeout));
 		client.close();
 
@@ -195,16 +193,15 @@ public class DTNGenericClient extends GenericClient {
 	private void _subscribe(String ID, String sparql, Bindings forced, ISubscriptionHandler handler,long timeout) throws SEPAProtocolException, SEPASecurityException, IOException, SEPAPropertiesException, URISyntaxException, SEPABindingsException, JALLocalEIDException, JALOpenException, JALIPNParametersException, JALRegisterException {
 		BundleEID destination = null;
 		
-		final String demux = "subscribedemux";
 		String schema = appProfile.getQueryProtocolSchemeDTN(ID);
 		if (schema.equals("ipn")) {
 			try {
-				destination = new BundleEIDIPNScheme(Integer.parseInt(appProfile.getQueryDestinationDTN(ID)), appProfile.getQueryDemuxIPN(ID, demux));
+				destination = new BundleEIDIPNScheme(Integer.parseInt(appProfile.getQueryDestinationDTN(ID)), appProfile.getSubscribeDemuxIPN((ID)));
 			} catch (NumberFormatException e) {
 				throw new IllegalArgumentException("Error on host. Must be an integer");
 			}
 		} else if (schema.equals("dtn")) {
-			destination = new BundleEIDDTNScheme(appProfile.getQueryDestinationDTN(ID), appProfile.getQueryDemuxDTN(ID, demux));
+			destination = new BundleEIDDTNScheme(appProfile.getQueryDestinationDTN(ID), appProfile.getSubscribeDemuxDTN(ID));
 		} else {
 			throw new IllegalArgumentException("No schema found for DTN protocol.");
 		}
