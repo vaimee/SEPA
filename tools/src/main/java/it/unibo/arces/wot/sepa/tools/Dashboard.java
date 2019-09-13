@@ -1718,7 +1718,8 @@ public class Dashboard {
 				queryInfo.setText("Error: " + ((ErrorResponse) ret).getStatusCode());
 			} else {
 				QueryResponse results = (QueryResponse) ret;
-				logger.info(String.format("Results: %d (%d ms)", results.getBindingsResults().size(),
+				if (results.getBindingsResults() != null)
+					logger.info(String.format("Results: %d (%d ms)", results.getBindingsResults().size(),
 						(stop.toEpochMilli() - start.toEpochMilli())));
 				queryInfo.setText(String.format("Results: %d (%d ms)", results.getBindingsResults().size(),
 						(stop.toEpochMilli() - start.toEpochMilli())));

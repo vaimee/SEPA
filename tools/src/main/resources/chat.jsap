@@ -28,7 +28,7 @@
 		}
 	},
 	"sparql11protocol": {
-		"protocol": "ipn",
+		"protocol": "http",
 		"port": 8000,
 		"query": {
 			"path": "/query",
@@ -42,7 +42,7 @@
 		}
 	},
 	"sparql11seprotocol": {
-		"protocol": "ipn",
+		"protocol": "ws",
 		"availableProtocols": {
 			"ws": {
 				"port": 9000,

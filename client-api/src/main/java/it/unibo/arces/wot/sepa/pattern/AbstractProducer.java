@@ -42,12 +42,12 @@ public abstract class AbstractProducer extends Client implements IProducer {
 		this.client = client;
 	}
 	
-	public final Response update() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
+	public Response update() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
 		return update(0);
 	}
 	
 	@Override
-	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException{	 
+	public Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException{	 
 		String authorizationHeader = null;
 		
 		if (isSecure()) 	authorizationHeader = sm.getAuthorizationHeader();
