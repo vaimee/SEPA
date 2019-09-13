@@ -11,6 +11,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.ISPARQL11Interface;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
@@ -42,21 +43,45 @@ public abstract class AbstractProducer extends Client implements IProducer {
 		this.client = client;
 	}
 	
-	public Response update() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
+	public Response update() throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
 		return update(0);
 	}
 	
 	@Override
-	public Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException{	 
+	public Response update(int timeout) throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException{	 
 		String authorizationHeader = null;
 		
-		if (isSecure()) 	authorizationHeader = sm.getAuthorizationHeader();
+		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
-					appProfile.getUpdatePath(SPARQL_ID), addPrefixesAndReplaceBindings(sparqlUpdate, forcedBindings),
+					appProfile.getUpdatePath(SPARQL_ID), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(forcedBindings,SPARQL_ID,false)),
 					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout);
 		 
-		 return client.update(req);		 
+		 Response retResponse = client.update(req);
+		 
+		 if (retResponse.isError()) {
+			 if (isSecure()) {
+				 ErrorResponse errorResponse = (ErrorResponse) retResponse;
+				 if (errorResponse.isTokenExpiredError()) {
+					 try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						throw new SEPAProtocolException(e);
+					}
+					 
+				 }
+				 
+				 authorizationHeader = sm.getAuthorizationHeader();
+					
+				 req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
+								appProfile.getUpdatePath(SPARQL_ID), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(forcedBindings,SPARQL_ID,false)),
+								appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout);
+					 
+				 retResponse = client.update(req);
+			 }
+		 }
+		 
+		 return retResponse;
 	 }
 
 	@Override

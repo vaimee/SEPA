@@ -59,15 +59,17 @@ public abstract class SPU extends Thread implements ISPU {
 	private final LinkedBlockingQueue<InternalUpdateRequest> updateRequestQueue = new LinkedBlockingQueue<InternalUpdateRequest>();
 	private final LinkedBlockingQueue<Response> updateResponseQueue = new LinkedBlockingQueue<Response>();
 
-	protected final InternalSubscribeRequest subscribe;
-
 	// Thread loop
 	private final AtomicBoolean running = new AtomicBoolean(true);
 
 	// Last bindings results
 	protected BindingsResults lastBindings = null;
-
-	// List of processing SPU
+	
+	// Request and response
+	protected InternalUpdateRequest request;
+	protected Response response;
+	protected final InternalSubscribeRequest subscribe;
+	
 	protected final SPUManager manager;
 
 	public SPU(InternalSubscribeRequest subscribe, SPUManager manager) {
@@ -125,10 +127,6 @@ public abstract class SPU extends Thread implements ISPU {
 	@Override
 	public void run() {
 		while (running.get()) {
-			// Poll the request from the queue
-			InternalUpdateRequest request;
-			Response response;
-
 			try {
 				// Wait update request
 				logger.debug("Wait update request...");
@@ -146,25 +144,35 @@ public abstract class SPU extends Thread implements ISPU {
 				
 				// POST processing and waiting for result
 				logger.debug("* POST PROCESSING *");
-				Notification notify = postUpdateInternalProcessing((UpdateResponse) response);
-				logger.debug("Notify SPU manager of EOP. Running: " + running);
-				manager.endOfProcessing(this);
-				if (notify != null) subscribe.getEventHandler().notifyEvent(notify);			
+				Notification notify = null;
+				if (response.isError()) {
+					logger.error("Update failed. Error: "+response); 
+				}
+				else {
+					notify = postUpdateInternalProcessing((UpdateResponse) response);
+					
+					// NOTIFY event
+					if (notify != null) subscribe.getEventHandler().notifyEvent(notify);
+				}			
 			} catch (InterruptedException e1) {
-				logger.warn(e1.getMessage());
+				logger.warn("Interrupted exception: "+e1.getMessage());
 				running.set(false);
 				logger.warn("SPU interrupted. Exit");
-				manager.exceptionOnProcessing(this);
+				//manager.exceptionOnProcessing(this);
 				break;
 			} catch (SEPAProcessingException e2) {
-				logger.warn(e2.getMessage());
+				logger.error("SEPAProcessingException "+e2.getMessage());
 				manager.exceptionOnProcessing(this);
 				continue;
 			} catch (SEPAProtocolException e3) {
-				logger.warn(e3.getMessage());
+				logger.error("SEPAProtocolException "+e3.getMessage());
 				manager.exceptionOnProcessing(this);
 				continue;
 			}
+			
+			// EOP
+			logger.debug("Notify SPU manager of EOP. Running: " + running);
+			manager.endOfProcessing(this);
 		}
 	}
 }

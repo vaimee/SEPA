@@ -1,7 +1,5 @@
 package it.unibo.arces.wot.sepa.pattern;
 
-import java.io.IOException;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -22,12 +20,12 @@ public class DTNProducer extends AbstractProducer {
 	}
 	
 	@Override
-	public final Response update() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
+	public final Response update() throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
 		return this.update(-1);
 	}
 	
 	@Override
-	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
+	public final Response update(int timeout) throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
 		appProfile.setDTN(true);
 		 
 		 Response result = super.update(timeout);

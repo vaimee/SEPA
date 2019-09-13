@@ -17,8 +17,12 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Optional;
+import java.util.TimeZone;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.logging.log4j.LogManager;
@@ -49,7 +53,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the SPARQL
  * Event Processing Architecture (SEPA)
- * 
+ *
  * @author Luca Roffia (luca.roffia@unibo.it)
  * @version 0.9.7
  */
@@ -87,10 +91,25 @@ public class Engine implements EngineMBean {
 	private String engineJpar = "engine.jpar";
 	private String endpointJpar = "endpoint.jpar";
 
+	// Secure option
+	private Optional<Boolean> secure = Optional.empty();
+
+	// Logging file name
+	static {
+		// Logging
+		TimeZone tz = TimeZone.getTimeZone("UTC");
+		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
+		df.setTimeZone(tz);
+		String nowAsISO = df.format(new Date());
+		System.setProperty("logFilename", nowAsISO);
+		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
+				.getContext(false);
+		ctx.reconfigure();
+	}
 	// Logging
 	private static final Logger logger = LogManager.getLogger();
 	// Logging file name
-	// Can be configured within the log4j2.xml configuration file 
+	// Can be configured within the log4j2.xml configuration file
 //	private void setLoggingFileName() {
 //		// Logging
 //		TimeZone tz = TimeZone.getTimeZone("UTC");
@@ -106,8 +125,9 @@ public class Engine implements EngineMBean {
 	private void printUsage() {
 		System.out.println("Usage:");
 		System.out.println(
-				"java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-engine=engine.jpar] [-endpoint=endpoint.jpar] [JKS OPTIONS]");
+				"java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-secure=true] [-engine=engine.jpar] [-endpoint=endpoint.jpar] [JKS OPTIONS]");
 		System.out.println("Options: ");
+		System.out.println("-secure : overwrite the current secure option of engine.jpar");
 		System.out.println(
 				"-engine : can be used to specify the JSON configuration parameters for the engine (default: engine.jpar)");
 		System.out.println(
@@ -163,6 +183,9 @@ public class Engine implements EngineMBean {
 				case "-endpoint":
 					endpointJpar = tmp[1];
 					break;
+				case "-secure":
+				    secure = Optional.of(Boolean.parseBoolean(tmp[1]));
+				    break;
 				default:
 					break;
 				}
@@ -196,45 +219,24 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 
-		// Set logging file name with the current timestamp YYYYMMDD_HH_MM_SS
-		//setLoggingFileName();
+
 
 		// Command arguments
 		parsingArgument(args);
-		
-		// Environmental variable for DOCKER
-		Map<String, String> env = System.getenv();
-		if (env.containsKey("SEPA_ENV_ENDPOINT")) {
-			logger.debug("SEPA_ENV_ENDPOINT: "+env.get("SEPA_ENV_ENDPOINT").toUpperCase());
-			switch(env.get("SEPA_ENV_ENDPOINT").toUpperCase()) {
-			case "VIRTUOSO":
-				endpointJpar = "virtuoso.jpar";
-				break;
-			case "BLAZEGRAPH":
-				endpointJpar = "blazegraph.jpar";
-				break;
-			}
-		}
-		logger.debug("endpointJpar: "+endpointJpar);
 
 		// Beans
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		EngineBeans.setVersion(version);
-		
-		// Dependability monitor
 		new DependabilityMonitor();
-		
+
 		try {
 			// Initialize SPARQL 1.1 SE processing service properties
-			properties = new EngineProperties(engineJpar);
+
+			properties = secure.isPresent() ? EngineProperties.load(engineJpar, secure.get()) : EngineProperties.load(engineJpar);
 
 			EngineBeans.setEngineProperties(properties);
 
 			SPARQL11Properties endpointProperties = new SPARQL11Properties(endpointJpar);
-			
-			// DOCKER environmental variable
-			if (env.containsKey("SEPA_ENV_ENDPOINT_HOST"))
-				endpointProperties.setHost(env.get("SEPA_ENV_ENDPOINT_HOST"));
 
 			// OAUTH 2.0 Authorization Manager
 			if (properties.isSecure()) {
@@ -305,7 +307,7 @@ public class Engine implements EngineMBean {
 			// SPARQL 1.1 SE protocol gates
 			System.out.println("----------------------");
 			System.out.println("");
-			System.out.println("SPARQL 1.1 SE Protocol (http://mml.arces.unibo.it/TR/sparql11-se-protocol/)");
+			System.out.println("SPARQL 1.1 SE Protocol (http://mml.arces.unibo.it/TR/sparql11-se-protocol.html)");
 			System.out.println("----------------------");
 
 			if (!properties.isSecure()) {
@@ -314,12 +316,12 @@ public class Engine implements EngineMBean {
 				wsServer = new SecureWebsocketServer(properties.getWssPort(),
 						properties.getSecurePath() + properties.getSubscribePath(), scheduler);
 			}
-			
+
 			// Start all
 			scheduler.start();
 			processor.start();
 			wsServer.start();
-			
+
 			synchronized (wsServer) {
 				wsServer.wait(5000);
 			}
@@ -347,7 +349,7 @@ public class Engine implements EngineMBean {
 				AppenderRef ref = it.next();
 				System.out.println("Appender: <"+ref.getRef()+"> Level: "+ref.getLevel());
 			}
-	
+
 		} catch (SEPAPropertiesException | SEPASecurityException
 				| IllegalArgumentException | SEPAProtocolException | InterruptedException e) {
 			System.err.println(e.getMessage());
@@ -368,12 +370,12 @@ public class Engine implements EngineMBean {
 			System.out.println("Stopping HTTP gate...");
 			httpGate.shutdown();
 		}
-		
+
 		if (httpsGate != null) {
 			System.out.println("Stopping HTTPS gate...");
 			httpsGate.shutdown();
 		}
-		
+
 		if (wsServer != null) {
 			System.out.println("Stopping WebSocket gate...");
 			wsServer.stop(wsShutdownTimeout);

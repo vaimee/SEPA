@@ -18,8 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
-import java.io.IOException;
-
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -29,10 +27,11 @@ import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public interface IConsumer extends ISubscriptionHandler {	
-	void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException ;
-	void unsubscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException;
+	void subscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException ;
+	void unsubscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException;
 	
 	void onResults(ARBindingsResults results);
 	void onAddedResults(BindingsResults results);
 	void onRemovedResults(BindingsResults results);
+	void onFirstResults(BindingsResults results);
 }

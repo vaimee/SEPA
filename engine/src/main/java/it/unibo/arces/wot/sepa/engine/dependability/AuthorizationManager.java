@@ -77,7 +77,7 @@ class AuthorizationManager {
 	
 	//TODO: CLIENTS DB to be made persistent
 	//IDENTITY ==> ID
-	private static final HashMap<String,String> clients = new HashMap<String,String>();
+	//private static final HashMap<String,String> clients = new HashMap<String,String>();
 	
 	//TODO: CREDENTIALS DB to be made persistent
 	//ID ==> Secret
@@ -560,6 +560,6 @@ Respond with 401 if not
 	}
 
 	public static SSLContext getSSLContext() throws SEPASecurityException {
-		return sManager.getSSLContext();
+		return sManager.getSSLContext("TLSv1");
 	}	
 }

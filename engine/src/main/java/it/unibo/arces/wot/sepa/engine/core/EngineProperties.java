@@ -1,6 +1,7 @@
 /* This class implements the configuration properties of the Semantic Event Processing Architecture (SEPA) Engine
  * 
- * Author: Luca Roffia (luca.roffia@unibo.it)
+ * Authors:	Luca Roffia (luca.roffia@unibo.it)
+ * 			Andrea Bisacchi (andrea.bisacchi5@studio.unibo.it)
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,24 +21,21 @@ package it.unibo.arces.wot.sepa.engine.core;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.NoSuchElementException;
-
-import org.apache.logging.log4j.Logger;
-
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import com.google.gson.Gson;
+
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 
 /**
  * <pre>
 {
 	"parameters": {
 		"scheduler": {
-			"queueSize": 100
+			"queueSize": 100,
+			"timeout" : 5000
 		},
 		"processor": {
 			"updateTimeout": 60000,
@@ -69,399 +67,256 @@ import org.apache.logging.log4j.LogManager;
  * </pre>
  */
 public class EngineProperties {
-	private static final Logger logger = LogManager.getLogger();
+	private static final transient Logger logger = LogManager.getLogger();
 
-	private String defaultsFileName = "engine.jpar";
+	private static final transient String defaultsFileName = "engine.jpar";
 
-	private JsonObject properties = new JsonObject();
+	private Parameters parameters = new Parameters();
 
-	public EngineProperties(String propertiesFile) throws SEPAPropertiesException {
+	private EngineProperties() {}
 
+	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
+		EngineProperties result = EngineProperties.load(propertiesFile);
+		result.parameters.gates.secure = secure;
+		return result;
+	}
+
+	public static EngineProperties load(String propertiesFile) throws SEPAPropertiesException {
 		if (propertiesFile == null) {
 			throw new SEPAPropertiesException(new IllegalArgumentException("Properties file is null"));
 		}
 
-		FileReader in = null;
+		EngineProperties result;
+		Gson gson = new Gson();
+
 		try {
-			in = new FileReader(propertiesFile);
-			if (in != null) {
-				properties = new JsonParser().parse(in).getAsJsonObject();
-				if (properties.get("parameters") == null) {
-					logger.warn("parameters key is missing");
-					throw new SEPAPropertiesException(new NoSuchElementException("Parameters key is missing"));
-				}
-				properties = properties.get("parameters").getAsJsonObject();
-
-				validate();
-			}
-			if (in != null)
-				in.close();
-		} catch (IOException e) {
+			result = gson.fromJson(new FileReader(propertiesFile), EngineProperties.class);
+		} catch (Exception e) {
 			logger.warn(e.getMessage());
-
-			defaults();
-
+			result = defaults();
 			try {
-				storeProperties(defaultsFileName);
+				result.storeProperties(defaultsFileName);
 			} catch (IOException e1) {
 				logger.error(e1.getMessage());
 				throw new SEPAPropertiesException(e1);
 			}
-
 			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
-			// throw new SEPAPropertiesException(new FileNotFoundException(
-			// "USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again
-			// the broker"));
 		}
+		return result;
 	}
 
-	public EngineProperties(String propertiesFile,boolean secure) throws SEPAPropertiesException{
-		this(propertiesFile);
-		this.properties.get("gates").getAsJsonObject().addProperty("secure",secure);
+	public static void store(EngineProperties properties, String propertiesFile) throws IOException {
+		properties.storeProperties(propertiesFile);
 	}
 
 	public String toString() {
-		return properties.toString();
+		return new Gson().toJson(this);
 	}
 
-	protected void defaults() {
-		JsonObject parameters = new JsonObject();
 
-		// Scheduler properties
-		JsonObject scheduler = new JsonObject();
-		scheduler.add("queueSize", new JsonPrimitive(100));
-		scheduler.add("timeout", new JsonPrimitive(5000));
-		parameters.add("scheduler", scheduler);
+	protected static EngineProperties defaults() {
+		EngineProperties result = new EngineProperties();
 
-		// Processor properties
-		JsonObject processor = new JsonObject();
-		processor.add("updateTimeout", new JsonPrimitive(5000));
-		processor.add("queryTimeout", new JsonPrimitive(5000));
-		processor.add("maxConcurrentRequests", new JsonPrimitive(5));
-		parameters.add("processor", processor);
+		// Scheduler
+		result.parameters.scheduler.queueSize = 100;
+		result.parameters.scheduler.timeout = 5000;
+
+		// Processor
+		result.parameters.processor.updateTimeout = 5000;
+		result.parameters.processor.queryTimeout = 5000;
+		result.parameters.processor.maxConcurrentRequests = 5;
+		result.parameters.processor.reliableUpdate = true;
 
 		// SPU
-		JsonObject spu = new JsonObject();
-		spu.add("timeout", new JsonPrimitive(5000));
-		parameters.add("spu", spu);
+		result.parameters.spu.timeout = 5000;
 
 		// Gates
-		JsonObject gates = new JsonObject();
-		gates.add("secure", new JsonPrimitive(false));
+		result.parameters.gates.secure = false;
 
-		// Ports
-		JsonObject ports = new JsonObject();
-		ports.add("http", new JsonPrimitive(8000));
-		ports.add("https", new JsonPrimitive(8443));
-		ports.add("ws", new JsonPrimitive(9000));
-		ports.add("wss", new JsonPrimitive(9443));
+		// Gates -> Ports
+		result.parameters.gates.ports.http = 8000;
+		result.parameters.gates.ports.https = 8443;
+		result.parameters.gates.ports.ws = 9000;
+		result.parameters.gates.ports.wss = 9443;
 
-		// URI patterns
-		JsonObject paths = new JsonObject();
-		paths.add("securePath", new JsonPrimitive("/secure"));
-		paths.add("update", new JsonPrimitive("/update"));
-		paths.add("query", new JsonPrimitive("/query"));
-		paths.add("subscribe", new JsonPrimitive("/subscribe"));
-		paths.add("unsubscribe", new JsonPrimitive("/unsubscribe"));
-		paths.add("register", new JsonPrimitive("/oauth/register"));
-		paths.add("tokenRequest", new JsonPrimitive("/oauth/token"));
-
-		gates.add("paths", paths);
-		gates.add("ports", ports);
-		parameters.add("gates", gates);
-
-		properties.add("parameters", parameters);
-	}
-
-	protected void validate() throws SEPAPropertiesException {
-		try {
-			properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
-		}
-		catch (Exception e) {
-			logger.error("scheduler-queueSize is missing");
-			throw new SEPAPropertiesException("scheduler-queueSize is missing");
-		}
-		
-		try {
-			properties.get("scheduler").getAsJsonObject().get("timeout").getAsInt();	
-		}
-		catch (Exception e) {
-			logger.error("scheduler-timeout is missing");
-			throw new SEPAPropertiesException("scheduler-timeout is missing");
-		}
-		
-		try {
-			properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
-		}
-		catch (Exception e) {
-			logger.error("processor-updateTimeout is missing");
-			throw new SEPAPropertiesException("processor-updateTimeout is missing");
-		}	
-		
-		try {
-			properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
-		}
-		catch (Exception e) {
-			logger.error("processor-queryTimeout is missing");
-			throw new SEPAPropertiesException("processor-queryTimeout is missing");
-		}	
-			
-		try {
-			properties.get("processor").getAsJsonObject().get("maxConcurrentRequests").getAsInt();
-		}
-		catch (Exception e) {
-			logger.error("processor-maxConcurrentRequests is missing");
-			throw new SEPAPropertiesException("processor-maxConcurrentRequests is missing");
-		}	
-			
-		try {
-			properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
-		}
-		catch (Exception e) {
-			logger.error("spu-timeout is missing");
-			throw new SEPAPropertiesException("spu-timeout is missing");
-		}
-			
-		try {
-			properties.get("gates").getAsJsonObject().get("secure").getAsBoolean();
-		}
-		catch (Exception e) {
-			logger.error("gates-secure is missing");
-			throw new SEPAPropertiesException("gates-secure is missing");
-		}
-			
-		try {
-			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("http").getAsInt();
-		}
-		catch (Exception e) {
-			logger.error("gates-ports-http is missing");
-			throw new SEPAPropertiesException("gates-ports-http is missing");
-		}
-		
-		try {
-			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("https").getAsInt();
-		}
-		catch (Exception e) {
-			logger.error("gates-ports-https is missing");
-			throw new SEPAPropertiesException("gates-ports-https is missing");
-		}
-		
-		try {
-			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("ws").getAsInt();
-		}
-		catch (Exception e) {
-			logger.error("gates-ports-ws is missing");
-			throw new SEPAPropertiesException("gates-ports-ws is missing");
-		}
-		
-		try {
-			properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("wss").getAsInt();
-		}
-		catch (Exception e) {
-			logger.error("gates-ports-wss is missing");
-			throw new SEPAPropertiesException("gates-ports-wss is missing");
-		}	
-			
-		try {
-			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("securePath").getAsString();
-		}
-		catch (Exception e) {
-			logger.error("gates-paths-securePath is missing");
-			throw new SEPAPropertiesException("gates-paths-securePath is missing");
-		}
-		
-		try {
-			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("update").getAsString();
-		}
-		catch (Exception e) {
-			logger.error("gates-paths-update is missing");
-			throw new SEPAPropertiesException("gates-paths-update is missing");
-		}
-		
-		try {
-			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("query").getAsString();
-		}
-		catch (Exception e) {
-			logger.error("gates-paths-query is missing");
-			throw new SEPAPropertiesException("gates-paths-query is missing");
-		}
-		
-		try {
-			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("subscribe").getAsString();
-		}
-		catch (Exception e) {
-			logger.error("gates-paths-subscribe is missing");
-			throw new SEPAPropertiesException("gates-paths-subscribe is missing");
-		}
-		
-		try {
-			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("register").getAsString();
-		}
-		catch (Exception e) {
-			logger.error("gates-paths-register is missing");
-			throw new SEPAPropertiesException("gates-paths-register is missing");
-		}
-			
-		try {
-			properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("tokenRequest").getAsString();
-		}
-		catch (Exception e) {
-			logger.error("gates-paths-tokenRequest is missing");
-			throw new SEPAPropertiesException("gates-paths-tokenRequest is missing");
-		}
+		// Gates -> Paths
+		result.parameters.gates.paths.secure = "/secure";
+		result.parameters.gates.paths.update = "/update";
+		result.parameters.gates.paths.query = "/query";
+		result.parameters.gates.paths.subscribe = "/subscribe";
+		result.parameters.gates.paths.unsubscribe = "/unsubscribe";
+		result.parameters.gates.paths.register = "/oauth/register";
+		result.parameters.gates.paths.tokenRequest = "/oauth/token";
+		return result;
 	}
 
 	private void storeProperties(String propertiesFile) throws IOException {
 		FileWriter out = new FileWriter(propertiesFile);
-		out.write(properties.toString());
+		out.write(this.toString());
 		out.close();
 	}
 
 	public boolean isSecure() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("secure").getAsBoolean();
-		} catch (Exception e) {
-			return false;
-		}
+		return this.parameters.gates.secure;
 	}
 
 	public int getMaxConcurrentRequests() {
-		try {
-			return properties.get("processor").getAsJsonObject().get("maxConcurrentRequests").getAsInt();
-		} catch (Exception e) {
-			return 5;
-		}
+		return this.parameters.processor.maxConcurrentRequests;
 	}
 
 	public int getUpdateTimeout() {
-		try {
-			return properties.get("processor").getAsJsonObject().get("updateTimeout").getAsInt();
-		} catch (Exception e) {
-			return 5000;
-		}
+		return this.parameters.processor.updateTimeout;
 	}
 
 	public int getQueryTimeout() {
-		try {
-			return properties.get("processor").getAsJsonObject().get("queryTimeout").getAsInt();
-		} catch (Exception e) {
-			return 5000;
-		}
+		return this.parameters.processor.queryTimeout;
 	}
 
 	public int getSchedulingQueueSize() {
-		try {
-			return properties.get("scheduler").getAsJsonObject().get("queueSize").getAsInt();
-		} catch (Exception e) {
-			return 1000;
-		}
+		return this.parameters.scheduler.queueSize;
 	}
 
 	public int getWsPort() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("ws").getAsInt();
-		} catch (Exception e) {
-			return 9000;
-		}
+		return this.parameters.gates.ports.ws;
 	}
 
 	public int getHttpPort() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("http").getAsInt();
-		} catch (Exception e) {
-			return 8000;
-		}
+		return this.parameters.gates.ports.http;
 	}
 
 	public int getHttpsPort() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("https").getAsInt();
-		} catch (Exception e) {
-			return 8443;
-		}
+		return this.parameters.gates.ports.https;
 	}
 
 	public int getWssPort() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("ports").getAsJsonObject().get("wss").getAsInt();
-		} catch (Exception e) {
-			return 9443;
-		}
+		return this.parameters.gates.ports.wss;
 	}
 
 	public String getUpdatePath() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("update").getAsString();
-		} catch (Exception e) {
-			return "/update";
-		}
+		return this.parameters.gates.paths.update;
 	}
 
 	public String getSubscribePath() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("subscribe")
-					.getAsString();
-		} catch (Exception e) {
-			return "/subscribe";
-		}
+		return this.parameters.gates.paths.subscribe;
+	}
+
+	public String getUnsubscribePath() {
+		return this.parameters.gates.paths.unsubscribe;
 	}
 
 	public String getQueryPath() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("query").getAsString();
-		} catch (Exception e) {
-			return "/query";
-		}
+		return this.parameters.gates.paths.query;
 	}
 
 	public String getRegisterPath() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("register")
-					.getAsString();
-		} catch (Exception e) {
-			return "/oauth/register";
-		}
+		return this.parameters.gates.paths.register;
 	}
 
 	public String getTokenRequestPath() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("tokenRequest")
-					.getAsString();
-		} catch (Exception e) {
-			return "/oauth/token";
-		}
+		return this.parameters.gates.paths.tokenRequest;
 	}
 
 	public String getSecurePath() {
-		try {
-			return properties.get("gates").getAsJsonObject().get("paths").getAsJsonObject().get("securePath")
-					.getAsString();
-		} catch (Exception e) {
-			return "/secure";
-		}
+		return this.parameters.gates.paths.secure;
 	}
 
 	public int getSPUProcessingTimeout() {
-		try {
-			return properties.get("spu").getAsJsonObject().get("timeout").getAsInt();
-		} catch (Exception e) {
-			return 2000;
-		}
+		return this.parameters.spu.timeout;
 	}
 
 	public boolean isUpdateReliable() {
-		try {
-			return properties.get("processor").getAsJsonObject().get("reliableUpdate").getAsBoolean();
-		} catch (Exception e) {
-			return true;
-		}
+		return this.parameters.processor.reliableUpdate;
 	}
 
 	public int getSchedulerTimeout() {
-		try {
-			return properties.get("scheduler").getAsJsonObject().get("timeout").getAsInt();
-		} catch (Exception e) {
-			return 60000;
+		return this.parameters.scheduler.timeout;
+	}
+
+	static private class Parameters {
+		public Scheduler scheduler = new Scheduler();
+		public Processor processor = new Processor();
+		public Spu spu = new Spu();
+		public Gates gates = new Gates();
+
+		public Parameters(){
+			scheduler = new Scheduler();
+			processor = new Processor();
+			spu = new Spu();
+			gates = new Gates();
+		}
+
+	}
+
+	static private class Scheduler {
+		public int queueSize;
+		public int timeout;
+
+		public Scheduler(){
+			queueSize = 100;
+			timeout = 5000;
+		}
+	}
+
+	static private class Processor {
+		public int updateTimeout;
+		public int queryTimeout;
+		public int maxConcurrentRequests;
+		public boolean reliableUpdate;
+
+		public Processor(){
+			reliableUpdate = true;
+			updateTimeout = 5000;
+			queryTimeout = 5000;
+			maxConcurrentRequests = 5;
+		}
+	}
+
+	static private class Spu {
+		public int timeout;
+
+		public Spu(){
+			timeout = 5000;
+		}
+	}
+
+	static private class Gates {
+		public boolean secure;
+		public Paths paths = new Paths();
+		public Ports ports = new Ports();
+
+	}
+
+	static private class Paths {
+		public String secure;
+		public String update;
+		public String query;
+		public String subscribe;
+		public String unsubscribe;
+		public String register;
+		public String tokenRequest;
+
+		public Paths(){
+			secure       = "/secure";
+			update       = "/update";
+			query        = "/query";
+			subscribe    = "/subscribe";
+			unsubscribe  = "/unsubscribe";
+			register     = "/oauth/register";
+			tokenRequest = "/oauth/token";
+		}
+	}
+
+	static private class Ports {
+		public int http;
+		public int https;
+		public int ws;
+		public int wss;
+
+		public Ports(){
+			http  = 8000;
+			https = 8443;
+			ws    = 9000;
+			wss   = 9443;
 		}
 	}
 

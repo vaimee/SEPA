@@ -96,5 +96,11 @@ class TestConsumer extends DTNConsumer {
 	public void onUnsubscribe(String spuid) {
 		logger.info(spuid.toString());
 	}
+
+	@Override
+	public void onFirstResults(BindingsResults results) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

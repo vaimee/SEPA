@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler;
+
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.QueryHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.UpdateHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
@@ -38,7 +38,6 @@ public class HttpGate {
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
 				.registerHandler(properties.getQueryPath(), new QueryHandler(scheduler))
 				.registerHandler(properties.getUpdatePath(), new UpdateHandler(scheduler))
-				.registerHandler("/ngsi-ld/v1/*", new NgsiLdHandler(scheduler))
 				.registerHandler("/echo", new EchoHandler()).create();
 		
 		try {

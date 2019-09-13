@@ -66,24 +66,25 @@ public abstract class AbstractConsumer extends Client implements IConsumer  {
 		forcedBindings.setBindingValue(variable, value);
 	}
 
-	public final void subscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+	public final void subscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		String authorizationHeader = null;
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
-		client.subscribe(new SubscribeRequest(addPrefixesAndReplaceBindings(sparqlSubscribe, forcedBindings), null, appProfile.getDefaultGraphURI(subID),
+		client.subscribe(new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparqlSubscribe, addDefaultDatatype(forcedBindings,subID,true)), null, appProfile.getDefaultGraphURI(subID),
 				appProfile.getNamedGraphURI(subID),
 				authorizationHeader,timeout));
 	}
 
-	public final void unsubscribe(long timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException {
+	public final void unsubscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		logger.debug("UNSUBSCRIBE " + subID);
 
-		String oauth =  null;
-		if (isSecure()) oauth = sm.getAuthorizationHeader();
-
+		String authorizationHeader = null;
+		
+		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
+		
 		client.unsubscribe(
-				new UnsubscribeRequest(subID, oauth,timeout));
+				new UnsubscribeRequest(subID, authorizationHeader,timeout));
 	}
 
 	@Override
@@ -92,12 +93,19 @@ public abstract class AbstractConsumer extends Client implements IConsumer  {
 	}
 
 	@Override
-	public void onSemanticEvent(Notification notify) {
+	public void onSemanticEvent(Notification notify) {		
 		ARBindingsResults results = notify.getARBindingsResults();
 
 		BindingsResults added = results.getAddedBindings();
 		BindingsResults removed = results.getRemovedBindings();
 
+		logger.debug("onSemanticEvent: "+notify.getSpuid()+" "+notify.getSequence());
+		
+		if (notify.getSequence() == 0) {
+			onFirstResults(added);
+			return;
+		}
+		
 		onResults(results);
 		
 		// Dispatch different notifications based on notify content

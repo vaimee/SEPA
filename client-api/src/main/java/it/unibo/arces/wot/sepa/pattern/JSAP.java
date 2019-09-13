@@ -957,18 +957,17 @@ public class JSAP extends SPARQL11SEProperties { // FIXME THIS IS NOT AN EXTENSI
 		return super.getSubscriptionProtocol();
 	}
 	
-	// Bisa: FIXME I do think this is a bug!
-	@SuppressWarnings("unused")
-	public void setSubscribeProtocol(String id,SubscriptionProtocol sp) {
-		String protocol ="ws";
-		switch(sp) {
-			case WS:
-				protocol = "ws";
-				break;
-			case WSS:
-				protocol = "wss";
-				break;
-		}	
+	public void setSubscribeProtocol(String id, SubscriptionProtocol sp) {
+		switch (sp) {
+		case WS:
+			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol").add("protocol",
+					new JsonPrimitive("ws"));
+			break;
+		case WSS:
+			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol").add("protocol",
+					new JsonPrimitive("wss"));
+			break;
+		}
 	}
 
 	public Set<String> getUpdateIds() {

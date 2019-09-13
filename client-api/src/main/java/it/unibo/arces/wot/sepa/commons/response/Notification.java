@@ -28,7 +28,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  * Language)
  *
  * The JSON serialization looks like: {@code
- * { "notification":{"spuid" : "SPUID" , "sequence" : "SEQUENTIAL NUMBER", "addedResults" : <JSON
+ * { "notification":{"alias" : "the alias if present", "spuid" : "SPUID" , "sequence" : "SEQUENTIAL NUMBER", "addedResults" : <JSON
  * Notification Results>, "removedResults" : <JSON Notification Results> }} }
  * 
  */
@@ -107,7 +107,7 @@ public class Notification extends Response {
 	 */
 	public String getSpuid() {
 		try {
-			return json.get("notification").getAsJsonObject().get("spuid").getAsString();
+			return json.getAsJsonObject("notification").get("spuid").getAsString();
 		}
 		catch(Exception e) {
 			return "";
@@ -121,7 +121,7 @@ public class Notification extends Response {
 	 */
 	public ARBindingsResults getARBindingsResults() {
 		try {
-			return new ARBindingsResults(new BindingsResults(json.get("notification").getAsJsonObject().get("addedResults").getAsJsonObject()),new BindingsResults(json.get("notification").getAsJsonObject().get("removedResults").getAsJsonObject()));	
+			return new ARBindingsResults(new BindingsResults(json.getAsJsonObject("notification").getAsJsonObject("addedResults")),new BindingsResults(json.getAsJsonObject("notification").getAsJsonObject("removedResults")));	
 		}
 		catch(Exception e) {
 			return null;
