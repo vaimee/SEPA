@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.logging.log4j.Logger;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 
 import com.google.gson.JsonElement;
@@ -1276,6 +1277,7 @@ public class JSAP extends SPARQL11SEProperties { // FIXME THIS IS NOT AN EXTENSI
 			selectPattern = replacedSparql.substring(0, sparql.indexOf('{'));
 			replacedSparql = replacedSparql.substring(sparql.indexOf('{'), replacedSparql.length());
 		}
+
 		for (String var : bindings.getVariables()) {
 			String value = bindings.getValue(var);
 			if (value == null)
@@ -1320,10 +1322,13 @@ public class JSAP extends SPARQL11SEProperties { // FIXME THIS IS NOT AN EXTENSI
 				String datatype = bindings.getDatatype(var);
 				String lang = bindings.getLanguage(var);
 
-				// Not a number or boolean
-				if (!numbersOrBoolean.contains(datatype)) {
-					value = "'" + value + "'";
-
+				if (datatype == null) {
+					if (lang != null)
+						value += "@" + bindings.getLanguage(var);
+					else {
+						value = "'" + StringEscapeUtils.escapeJava(value) + "'";	
+					}
+				} else if (!numbersOrBoolean.contains(datatype)) {
 					// Check if datatype is a qname or not
 					URI uri = null;
 					try {
@@ -1337,10 +1342,8 @@ public class JSAP extends SPARQL11SEProperties { // FIXME THIS IS NOT AN EXTENSI
 							datatype = "<" + datatype + ">";
 					}
 
-					if (lang != null)
-						value += "@" + bindings.getLanguage(var);
-					else
-						value += "^^" + datatype;
+					value = "'" + StringEscapeUtils.escapeJava(value) + "'";
+					value += "^^" + datatype;
 				}
 			} else if (bindings.isURI(var)) {
 				// See https://www.w3.org/TR/rdf-sparql-query/#QSynIRI
@@ -1403,7 +1406,7 @@ public class JSAP extends SPARQL11SEProperties { // FIXME THIS IS NOT AN EXTENSI
 					start = index;
 			}
 
-			selectPattern = selectPattern.replace("?" + var, "");
+			selectPattern = selectPattern.replace(" ?" + var+" ", "");
 		}
 
 		return selectPattern + replacedSparql;

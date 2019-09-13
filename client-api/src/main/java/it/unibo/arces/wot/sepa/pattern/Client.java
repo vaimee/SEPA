@@ -57,6 +57,8 @@ public abstract class Client implements java.io.Closeable {
 	
 	protected Bindings addDefaultDatatype(Bindings bindings,String id,boolean query) throws SEPABindingsException {
 		if (id == null) return bindings;
+		if (bindings == null)
+			return null;
 		
 		// Forced bindings by JSAP
 		Bindings fb;
