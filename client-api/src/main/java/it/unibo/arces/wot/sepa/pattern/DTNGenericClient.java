@@ -183,7 +183,7 @@ public class DTNGenericClient extends GenericClient {
 		}
 		Response ret = client.query(new QueryRequest(HTTPMethod.POST,
 				appProfile.getQueryProtocolSchemeDTN(ID), appProfile.getQueryDestinationDTN(ID), appProfile.getQueryDemuxIPN(ID),
-				appProfile.getQueryDemuxDTN(ID), appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced,ID,false)),
+				appProfile.getQueryDemuxDTN(ID), appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced,ID,true)),
 				appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), null, timeout));
 		client.close();
 
@@ -220,7 +220,7 @@ public class DTNGenericClient extends GenericClient {
 			sparql = appProfile.getSPARQLQuery(ID);
 		}
 
-		SubscribeRequest req = new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced,ID,false)), null,
+		SubscribeRequest req = new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced,ID,true)), null,
 				appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), null, timeout);
 
 		client.subscribe(req);

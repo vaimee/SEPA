@@ -18,6 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -30,6 +33,7 @@ import org.apache.logging.log4j.LogManager;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
@@ -191,6 +195,46 @@ public class JSAP extends SPARQL11SEProperties { // FIXME THIS IS NOT AN EXTENSI
 		oauth = new AuthenticationProperties();
 		
 		this.isDTN = false;
+	}
+	
+	/**
+	 * Parse the file and merge the content with the actual JSAP object. Primitive
+	 * values are replaced if replace = true.
+	 * 
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 */
+	public void read(String filename, boolean replace) throws FileNotFoundException, IOException {
+		final FileReader in = new FileReader(filename);
+		JsonObject temp = new JsonParser().parse(in).getAsJsonObject();
+		merge(temp, jsap, replace);
+	}
+
+	private JsonObject merge(JsonObject temp, JsonObject jsap, boolean replace) {
+		for (Entry<String, JsonElement> entry : temp.entrySet()) {
+			JsonElement value = entry.getValue();
+			String key = entry.getKey();
+
+			if (!jsap.has(key)) {
+				jsap.add(key, value);
+				continue;
+			}
+
+			if (value.isJsonPrimitive()) {
+				if (!replace)
+					continue;
+				jsap.add(key, value);
+			} else if (value.isJsonObject()) {
+				JsonObject obj = merge(value.getAsJsonObject(), jsap.getAsJsonObject(key), replace);
+				jsap.add(key, obj);
+			} else if (value.isJsonArray()) {
+				for (JsonElement arr : value.getAsJsonArray()) {
+					jsap.getAsJsonArray(key).add(arr);
+				}
+			}
+		}
+
+		return jsap;
 	}
 	
 	private void defaultNamespaces() {
