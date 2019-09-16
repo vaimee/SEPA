@@ -165,13 +165,10 @@ public class EngineProperties {
 		
 		// Dtn
 		result.parameters.dtn.enable = false;
-		result.parameters.dtn.query = new DtnCoupleIPNDTN();
 		result.parameters.dtn.query.demuxDTN = "/sepa/query";
 		result.parameters.dtn.query.demuxIPN = 151; 
-		result.parameters.dtn.update = new DtnCoupleIPNDTN();
 		result.parameters.dtn.update.demuxDTN = "/sepa/update";
 		result.parameters.dtn.update.demuxIPN = 150; 
-		result.parameters.dtn.subscription = new DtnCoupleIPNDTN();
 		result.parameters.dtn.subscription.demuxDTN = "/sepa/subscription";
 		result.parameters.dtn.subscription.demuxIPN = 152; 
 		
@@ -371,9 +368,9 @@ public class EngineProperties {
 	
 	static private class Dtn {
 		public boolean enable;
-		public DtnCoupleIPNDTN query;
-		public DtnCoupleIPNDTN update;
-		public DtnCoupleIPNDTN subscription;
+		public DtnCoupleIPNDTN query = new DtnCoupleIPNDTN();
+		public DtnCoupleIPNDTN update = new DtnCoupleIPNDTN();
+		public DtnCoupleIPNDTN subscription = new DtnCoupleIPNDTN();
 	}
 	
 	static private class DtnCoupleIPNDTN {
