@@ -300,9 +300,11 @@ public class Engine implements EngineMBean {
 			else
 				httpsGate = new HttpsGate(properties, scheduler);
 			
-			new DtnGateUpdate(scheduler).start();
-			new DtnGateQuery(scheduler).start();
-			new DtnSubscriptionServer(scheduler).start();
+			if (properties.isDTNEnabled()) {
+				new DtnGateUpdate(properties, scheduler).start();
+				new DtnGateQuery(properties, scheduler).start();
+				new DtnSubscriptionServer(properties, scheduler).start();
+			}
 
 			// SPARQL 1.1 SE protocol gates
 			System.out.println("----------------------");

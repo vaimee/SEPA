@@ -28,6 +28,21 @@
 				"tokenRequest": "/oauth/token",
 				"securePath": "/secure"
 			}
+		},
+		"dtn": {
+			"enable": true,
+			"query": {
+				"demuxIPN": 151,
+				"demuxDTN": "/sepa/query"
+			},
+			"update": {
+				"demuxIPN": 150,
+				"demuxDTN": "/sepa/update"
+			},
+			"subscription": {
+				"demuxIPN": 152,
+				"demuxDTN": "/sepa/subscription"
+			}
 		}
 	}
 }

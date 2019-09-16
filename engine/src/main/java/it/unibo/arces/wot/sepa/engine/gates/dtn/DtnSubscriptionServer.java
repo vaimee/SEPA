@@ -9,6 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.dtn.JAL.BPSocket;
 import it.unibo.dtn.JAL.Bundle;
@@ -22,9 +23,6 @@ import it.unibo.dtn.JAL.exceptions.JALUnregisterException;
 
 public class DtnSubscriptionServer implements Runnable {
 	
-	private static final String DEMUXSTRING = "/sepa/subscription";
-	private static final int DEMUXIPN = 152;
-
 	// Logging
 	private static final Logger logger = LogManager.getLogger();
 	
@@ -33,10 +31,10 @@ public class DtnSubscriptionServer implements Runnable {
 	private BPSocket socket;
 	private Scheduler scheduler;
 	
-	public DtnSubscriptionServer(Scheduler scheduler) {
+	public DtnSubscriptionServer(EngineProperties properties, Scheduler scheduler) {
 		this.scheduler = scheduler;
 		try {
-			this.socket = BPSocket.register(DEMUXSTRING, DEMUXIPN);
+			this.socket = BPSocket.register(properties.getSubscriptionDemuxDTN(), properties.getSubscriptionDemuxIPN());
 			logger.info("Opened DTN socket on " + this.socket.getLocalEID());
 		} catch (JALRegisterException e) {
 			logger.error("Error on registering DTN socket. Error message: " + e.getMessage());

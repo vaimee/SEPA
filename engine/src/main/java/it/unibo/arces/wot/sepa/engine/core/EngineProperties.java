@@ -231,20 +231,41 @@ public class EngineProperties {
 	public int getSchedulerTimeout() {
 		return this.parameters.scheduler.timeout;
 	}
+	
+	public boolean isDTNEnabled() {
+		return this.parameters.dtn.enable;
+	}
+	
+	public int getQueryDemuxIPN() {
+		return this.parameters.dtn.query.demuxIPN;
+	}
+	
+	public String getQueryDemuxDTN() {
+		return this.parameters.dtn.query.demuxDTN;
+	}
+	
+	public int getUpdateDemuxIPN() {
+		return this.parameters.dtn.update.demuxIPN;
+	}
+	
+	public String getUpdateDemuxDTN() {
+		return this.parameters.dtn.update.demuxDTN;
+	}
+	
+	public int getSubscriptionDemuxIPN() {
+		return this.parameters.dtn.subscription.demuxIPN;
+	}
+	
+	public String getSubscriptionDemuxDTN() {
+		return this.parameters.dtn.subscription.demuxDTN;
+	}
 
 	static private class Parameters {
 		public Scheduler scheduler = new Scheduler();
 		public Processor processor = new Processor();
 		public Spu spu = new Spu();
 		public Gates gates = new Gates();
-
-		public Parameters(){
-			scheduler = new Scheduler();
-			processor = new Processor();
-			spu = new Spu();
-			gates = new Gates();
-		}
-
+		public Dtn dtn = new Dtn();
 	}
 
 	static private class Scheduler {
@@ -318,6 +339,18 @@ public class EngineProperties {
 			ws    = 9000;
 			wss   = 9443;
 		}
+	}
+	
+	static private class Dtn {
+		public boolean enable;
+		public DtnCoupleIPNDTN query;
+		public DtnCoupleIPNDTN update;
+		public DtnCoupleIPNDTN subscription;
+	}
+	
+	static private class DtnCoupleIPNDTN {
+		public int demuxIPN;
+		public String demuxDTN;
 	}
 
 }
