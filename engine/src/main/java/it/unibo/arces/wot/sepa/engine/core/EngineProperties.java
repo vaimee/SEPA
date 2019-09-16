@@ -61,6 +61,21 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 				"ws": 9000,
 				"wss": 9443
 			}
+		},
+		"dtn": {
+			"enable": true,
+			"query": {
+				"demuxIPN": 151,
+				"demuxDTN": "/sepa/query"
+			},
+			"update": {
+				"demuxIPN": 150,
+				"demuxDTN": "/sepa/update"
+			},
+			"subscription": {
+				"demuxIPN": 152,
+				"demuxDTN": "/sepa/subscription"
+			}
 		}
 	}
 }
@@ -147,6 +162,19 @@ public class EngineProperties {
 		result.parameters.gates.paths.unsubscribe = "/unsubscribe";
 		result.parameters.gates.paths.register = "/oauth/register";
 		result.parameters.gates.paths.tokenRequest = "/oauth/token";
+		
+		// Dtn
+		result.parameters.dtn.enable = false;
+		result.parameters.dtn.query = new DtnCoupleIPNDTN();
+		result.parameters.dtn.query.demuxDTN = "/sepa/query";
+		result.parameters.dtn.query.demuxIPN = 151; 
+		result.parameters.dtn.update = new DtnCoupleIPNDTN();
+		result.parameters.dtn.update.demuxDTN = "/sepa/update";
+		result.parameters.dtn.update.demuxIPN = 150; 
+		result.parameters.dtn.subscription = new DtnCoupleIPNDTN();
+		result.parameters.dtn.subscription.demuxDTN = "/sepa/subscription";
+		result.parameters.dtn.subscription.demuxIPN = 152; 
+		
 		return result;
 	}
 
