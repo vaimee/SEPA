@@ -103,36 +103,6 @@
 	</build>
 	<dependencies>
 
-		<!-- *** JSON LD *** -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-rdf-api</artifactId>
-			<version>0.5.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-rdf-jsonld-java</artifactId>
-			<version>0.5.0</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.github.jsonld-java/jsonld-java -->
-		<dependency>
-			<groupId>com.github.jsonld-java</groupId>
-			<artifactId>jsonld-java</artifactId>
-			<version>0.12.4</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
-		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>apache-jena-libs</artifactId>
-			<version>3.10.0</version>
-			<type>pom</type>
-		</dependency>
-
-		<!-- <dependency> <groupId>com.github.jsonld-java</groupId> <artifactId>jsonld-java</artifactId> 
-			<version>0.12.4-SNAPSHOT</version> </dependency> <dependency> <groupId>org.eclipse.rdf4j</groupId> 
-			<artifactId>rdf4j-runtime</artifactId> <version>2.5.0-M2</version> </dependency> -->
-		<!-- *** JSON LD *** -->
-
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -147,19 +117,14 @@
 			<artifactId>httpcore</artifactId>
 			<version>4.4.6</version>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>2.8.1</version>
-		</dependency>
+		
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
 			<version>2.8.1</version>
 		</dependency>
+		
 		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -173,15 +138,7 @@
 			<artifactId>nimbus-jose-jwt</artifactId>
 			<version>4.34.2</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.5</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.glassfish.grizzly/grizzly-websockets-server -->
-		<!-- <dependency> <groupId>org.glassfish.grizzly</groupId> <artifactId>grizzly-websockets-server</artifactId> 
-			<version>2.3.30</version> </dependency> -->
+
 		<dependency>
 			<groupId>org.java-websocket</groupId>
 			<artifactId>Java-WebSocket</artifactId>
