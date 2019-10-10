@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
-// TODO: Auto-generated Javadoc
 /**
  * This class represents the results of a SPARQL 1.1 Query
  */

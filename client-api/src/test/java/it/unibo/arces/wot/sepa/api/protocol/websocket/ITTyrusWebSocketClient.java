@@ -53,7 +53,7 @@ public class ITTyrusWebSocketClient {
 
 			try {
 				sm = provider.buildSecurityManager();
-			} catch (SEPASecurityException e) {
+			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				assertFalse("Security exception " + e.getMessage(), false);
 			}
 		} else {

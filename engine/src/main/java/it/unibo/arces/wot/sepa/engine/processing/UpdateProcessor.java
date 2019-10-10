@@ -22,14 +22,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
@@ -55,15 +53,15 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	public synchronized Response process(InternalUpdateRequest req) throws InterruptedException {
 		long start = Timings.getTime();
 
-		// Authorized access to the endpoint
+		// TODO: to implement other authentication mechanisms (Digest, Bearer, ...)
+		// Basic authorization access to the endpoint
 		String authorizationHeader = null;
-		try {
-			// TODO: to implement also bearer authentication
-			AuthenticationProperties oauth = new AuthenticationProperties(properties.getJSAPFilename());
-			if (oauth.isEnabled())
-				authorizationHeader = oauth.getBasicAuthorizationHeader();
-		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn("Authorization header " + e.getMessage());
+		if (req.getCredentials() != null) {
+			try {
+				authorizationHeader = req.getCredentials().getBasicAuthorizationHeader();
+			} catch (SEPASecurityException e) {
+				logger.error(e.getMessage());
+			}
 		}
 
 		// UPDATE the endpoint

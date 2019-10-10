@@ -323,7 +323,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
 	 */
-	public synchronized Response register(String identity) throws SEPASecurityException, SEPAPropertiesException {
+	public Response register(String identity) throws SEPASecurityException, SEPAPropertiesException {
 		if (oauthProperties == null)
 			throw new SEPAPropertiesException("Authorization properties are null");
 
@@ -340,76 +340,77 @@ public class SEPASecurityManager implements HostnameVerifier {
 	}
 
 	/**
-	 * Returns the Bearer authentication header
+	 * Returns the Bearer authentication header if the token is not expired, otherwise requests and returns a fresh token
 	 * 
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
 	 * 
 	 * @see AuthenticationProperties
 	 */
-	public synchronized String getAuthorizationHeader() throws SEPASecurityException, SEPAPropertiesException {
+	public String getAuthorizationHeader() throws SEPASecurityException, SEPAPropertiesException {
 		if (oauthProperties == null) {
 			logger.warn("OAuth properties are null");
 			return null;
 		}
 
-		if (isTokenExpired()) {
-			logger.trace("Token expired. Request a new token");
-//			try {
-//				Thread.sleep(2000);
-//			} catch (InterruptedException e) {
-//				throw new SEPASecurityException(e);
-//			}
-			requestToken();
-		}
-
 		return oauthProperties.getBearerAuthorizationHeader();
 	}
-//
-//	public synchronized void forceRefreshToken() throws SEPAPropertiesException, SEPASecurityException {
-//		requestToken();
-//	}
 
-	/**
-	 * It is used to request a new token using the "Basic" credentials stored in the
-	 * AuthenticationProperties. When retrieved, the token is stored within the
-	 * AuthenticationProperties.
-	 * 
-	 * @return In case of success, it returns an JWTResponse. Otherwise an
-	 *         ErrorResponse is returned as specified in RFC6749
-	 * @throws SEPASecurityException
-	 * @throws SEPAPropertiesException
-	 * @see ErrorResponse
-	 * @see JWTResponse
-	 * @see AuthenticationProperties
-	 */
-	private void requestToken() throws SEPASecurityException, SEPAPropertiesException {
+	public void refreshToken() throws SEPAPropertiesException, SEPASecurityException {	
 		Response ret = requestToken(oauthProperties.getTokenRequestUrl(),
 				oauthProperties.getBasicAuthorizationHeader());
-
+	
 		if (ret.isJWTResponse()) {
 			JWTResponse jwt = (JWTResponse) ret;
-
-			logger.debug(jwt);
-
+	
+			logger.debug("New token: "+ jwt);
+	
 			oauthProperties.setJWT(jwt);
 		} else {
-			logger.error("requestToken@ " + new Date() + " Response: " + ret);
+			logger.error("FAILED to request a new token " + new Date() + " Response: " + ret);
 		}
 	}
 
-	/**
-	 * Returns true if the token is expired or not available. If the token is
-	 * expired, the client MUST request a new token to renew the authorization
-	 * header.
-	 * 
-	 * @throws SEPAPropertiesException
-	 * 
-	 * @see AuthenticationProperties
-	 */
-	private boolean isTokenExpired() {
-		return oauthProperties.isTokenExpired();
-	}
+//	/**
+//	 * It is used to request a new token using the "Basic" credentials stored in the
+//	 * AuthenticationProperties. When retrieved, the token is stored within the
+//	 * AuthenticationProperties.
+//	 * 
+//	 * @return In case of success, it returns an JWTResponse. Otherwise an
+//	 *         ErrorResponse is returned as specified in RFC6749
+//	 * @throws SEPASecurityException
+//	 * @throws SEPAPropertiesException
+//	 * @see ErrorResponse
+//	 * @see JWTResponse
+//	 * @see AuthenticationProperties
+//	 */
+//	private void requestToken() throws SEPASecurityException, SEPAPropertiesException {
+//		Response ret = requestToken(oauthProperties.getTokenRequestUrl(),
+//				oauthProperties.getBasicAuthorizationHeader());
+//
+//		if (ret.isJWTResponse()) {
+//			JWTResponse jwt = (JWTResponse) ret;
+//
+//			logger.debug(jwt);
+//
+//			oauthProperties.setJWT(jwt);
+//		} else {
+//			logger.error("requestToken@ " + new Date() + " Response: " + ret);
+//		}
+//	}
+
+//	/**
+//	 * Returns true if the token is expired or not available. If the token is
+//	 * expired, the client MUST request a new token to renew the authorization
+//	 * header.
+//	 * 
+//	 * @throws SEPAPropertiesException
+//	 * 
+//	 * @see AuthenticationProperties
+//	 */
+//	private boolean isTokenExpired() {
+//		return oauthProperties.isTokenExpired();
+//	}
 
 	private Response register(String url, String identity) {
 		logger.info("REGISTER " + identity);
@@ -528,11 +529,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 				return error;
 			}
 
-			int seconds = json.get("token").getAsJsonObject().get("expires_in").getAsInt();
-			String jwt = json.get("token").getAsJsonObject().get("access_token").getAsString();
-			String type = json.get("token").getAsJsonObject().get("token_type").getAsString();
-
-			return new JWTResponse(jwt, type, seconds);
+			return new JWTResponse(json);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			Timings.log("TOKEN_REQUEST", start, Timings.getTime());

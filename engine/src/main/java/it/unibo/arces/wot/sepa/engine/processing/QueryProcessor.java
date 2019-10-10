@@ -21,14 +21,12 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
@@ -50,16 +48,15 @@ public class QueryProcessor implements QueryProcessorMBean {
 	public Response process(InternalQueryRequest req) {
 		long start = Timings.getTime();
 
-		// Authorized access to the endpoint
+		// TODO: to implement other authentication mechanisms (Digest, Bearer, ...)
+		// Basic authorization access to the endpoint
 		String authorizationHeader = null;
-		AuthenticationProperties oauth = null;
-		try {
-			// TODO: to implement also bearer authentication
-			oauth = new AuthenticationProperties(properties.getJSAPFilename());
-			if (oauth.isEnabled())
-				authorizationHeader = oauth.getBasicAuthorizationHeader();
-		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn("Endpoint authorization: "+e.getMessage());
+		if (req.getCredentials() != null) {
+			try {
+				authorizationHeader = req.getCredentials().getBasicAuthorizationHeader();
+			} catch (SEPASecurityException e) {
+				logger.error(e.getMessage());
+			}
 		}
 
 		Response ret;

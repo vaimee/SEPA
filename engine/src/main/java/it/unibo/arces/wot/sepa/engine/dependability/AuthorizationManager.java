@@ -34,11 +34,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.UUID;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -70,154 +70,160 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
-import it.unibo.arces.wot.sepa.engine.bean.AuthorizationManagerBeans;
 
 class AuthorizationManager {
 	private static final Logger logger = LogManager.getLogger();
-	
-	//TODO: CLIENTS DB to be made persistent
-	//IDENTITY ==> ID
-	//private static final HashMap<String,String> clients = new HashMap<String,String>();
-	
-	//TODO: CREDENTIALS DB to be made persistent
-	//ID ==> Secret
-	private static final HashMap<String,String> credentials = new HashMap<String,String>();
-	
-	//TODO: TOKENS DB to be made persistent
-	//ID ==> JWTClaimsSet
-	private static final HashMap<String,JWTClaimsSet> clientClaims = new HashMap<String,JWTClaimsSet>();
-	
-	//*************************
-	//JWT signing and verifying
-	//*************************
-	private static JWSSigner signer;
-	private static RSASSAVerifier verifier;
-	private static JsonElement jwkPublicKey;
-	private static ConfigurableJWTProcessor<SEPASecurityContext> jwtProcessor;
-	private static SEPASecurityManager sManager;
-	
-	private static void securityCheck(String identity) {
+
+	// *************************
+	// JWT signing and verifying
+	// *************************
+	private JWSSigner signer;
+	private RSASSAVerifier verifier;
+	private JsonElement jwkPublicKey;
+	private ConfigurableJWTProcessor<SEPASecurityContext> jwtProcessor;
+	private SEPASecurityManager sManager;
+	private IClientAuthorization auth;
+
+	public AuthorizationManager() {
+		auth = new InMemoryAuthorization();
+	}
+
+	public AuthorizationManager(String host, int port, String base, String uid, String pwd) throws LdapException {
+		auth = new LdapAuthorization(host, port, base, uid, pwd);
+	}
+
+	public AuthorizationManager(String host, int port, String base) throws LdapException {
+		auth = new LdapAuthorization(host, port, base);
+	}
+
+	private void securityCheck(String identity) throws SEPASecurityException {
 		logger.debug("*** Security check ***");
-		//Add identity
-		AuthorizationManagerBeans.getAuthorizedIdentities().put(identity, true);
-		
-		//Register
-		logger.debug("Register: "+identity);
+		// Add identity
+		auth.addAuthorizedIdentity(identity);
+
+		// Register
+		logger.debug("Register: " + identity);
 		Response response = register(identity);
 		if (response.getClass().equals(RegistrationResponse.class)) {
 			RegistrationResponse ret = (RegistrationResponse) response;
-			String auth = ret.getClientId()+":"+ret.getClientSecret();	
-			logger.debug("ID:SECRET="+auth);
-			
-			//Get token
+			String auth = ret.getClientId() + ":" + ret.getClientSecret();
+			logger.debug("ID:SECRET=" + auth);
+
+			// Get token
 			String encodedCredentials = Base64.getEncoder().encodeToString(auth.getBytes());
-			logger.debug("Authorization Basic "+encodedCredentials);
+			logger.debug("Authorization Basic " + encodedCredentials);
 			response = getToken(encodedCredentials);
-			
+
 			if (response.getClass().equals(JWTResponse.class)) {
-				logger.debug("Access token: "+((JWTResponse) response).getAccessToken());
-				
-				//Validate token
-				Response valid = validateToken(((JWTResponse) response).getAccessToken());
-				if(!valid.getClass().equals(ErrorResponse.class)) logger.debug("PASSED");
+				logger.debug("Access token: " + ((JWTResponse) response).getAccessToken());
+
+				// Validate token
+				AuthorizationResponse authRet = validateToken(((JWTResponse) response).getAccessToken());
+				if (authRet.isAuthorized())
+					logger.debug("PASSED");
 				else {
-					ErrorResponse error = (ErrorResponse) valid;
-					logger.error(error);
+					logger.error("FAILED: " + authRet.getError());
 				}
-			}
-			else logger.debug("FAILED");
-		}
-		else logger.debug("FAILED");
+			} else
+				logger.debug("FAILED: " + response.toString());
+		} else
+			logger.debug("FAILED: " + response.toString());
 		logger.debug("**********************");
-		System.out.println("");	
-		
-		//Remove identity
-		AuthorizationManagerBeans.getAuthorizedIdentities().remove(identity);
+		System.out.println("");
+
+		// Remove identity
+		auth.removeAuthorizedIdentity(identity);
 	}
-	
-	private static void initStore(KeyStore keyStore,String keyAlias,String keyPwd) throws KeyStoreException, JOSEException{		
+
+	private void initStore(KeyStore keyStore, String keyAlias, String keyPwd) throws KeyStoreException, JOSEException {
 		// Load the key from the key store
 		RSAKey jwk = RSAKey.load(keyStore, keyAlias, keyPwd.toCharArray());
-						
-		//Get the private and public keys to sign and verify
+
+		// Get the private and public keys to sign and verify
 		RSAPrivateKey privateKey;
 		RSAPublicKey publicKey;
-		
+
 		privateKey = jwk.toRSAPrivateKey();
 		publicKey = jwk.toRSAPublicKey();
-		
+
 		// Create RSA-signer with the private key
 		signer = new RSASSASigner(privateKey);
-		
+
 		// Create RSA-verifier with the public key
 		verifier = new RSASSAVerifier(publicKey);
-				
-		//Serialize the public key to be deliverer during registration
+
+		// Serialize the public key to be deliverer during registration
 		jwkPublicKey = new JsonParser().parse(jwk.toPublicJWK().toJSONString());
-		
+
 		// Set up a JWT processor to parse the tokens and then check their signature
 		// and validity time window (bounded by the "iat", "nbf" and "exp" claims)
 		jwtProcessor = new DefaultJWTProcessor<SEPASecurityContext>();
 		JWKSet jws = new JWKSet(jwk);
 		JWKSource<SEPASecurityContext> keySource = new ImmutableJWKSet<SEPASecurityContext>(jws);
 		JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
-		JWSKeySelector<SEPASecurityContext> keySelector = new JWSVerificationKeySelector<SEPASecurityContext>(expectedJWSAlg, keySource);
+		JWSKeySelector<SEPASecurityContext> keySelector = new JWSVerificationKeySelector<SEPASecurityContext>(
+				expectedJWSAlg, keySource);
 		jwtProcessor.setJWSKeySelector(keySelector);
 	}
-	
-	public static void init(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {	
-		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd,keyPwd,null);
-		initStore(sManager.getKeyStore(),keyAlias, keyPwd);
-		
+
+	public void init(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate)
+			throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
+			CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {
+		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd, keyPwd, null);
+		initStore(sManager.getKeyStore(), keyAlias, keyPwd);
+
 		securityCheck(UUID.randomUUID().toString());
 	}
-	
+
 	/**
 	 * Operation when receiving a HTTP request at a protected endpoint
 	 * 
-<pre>
-1. Check if the request contains an Authorization header. 
-
-2. Check if the request contains an Authorization: Bearer-header with non-null/empty contents 
-
-3. Check if the value of the Authorization: Bearer-header is a JWT object 
-
-4. Check if the JWT object is signed 
-
-5. Check if the signature of the JWT object is valid. This is to be checked with AS public signature verification key 
-
-6. Check the contents of the JWT object 
-
-7. Check if the value of "iss" is https://wot.arces.unibo.it:8443/oauth/token 
-
-8. Check if the value of "aud" contains https://wot.arces.unibo.it:8443/sparql 
-
-9. Accept the request as well as "sub" as the originator of the request and process it as usual
- 
-Respond with 401 if not
- 
-</pre>
-	 */
+	 * <pre>
+	1. Check if the request contains an Authorization header. 
 	
-	private static boolean authorizeIdentity(String id) {
-		logger.debug("Authorize identity:"+id);
-		
-		//TODO: WARNING! TO BE REMOVED IN PRODUCTION. ONLY FOR TESTING.
+	2. Check if the request contains an Authorization: Bearer-header with non-null/empty contents 
+	
+	3. Check if the value of the Authorization: Bearer-header is a JWT object 
+	
+	4. Check if the JWT object is signed 
+	
+	5. Check if the signature of the JWT object is valid. This is to be checked with AS public signature verification key 
+	
+	6. Check the contents of the JWT object 
+	
+	7. Check if the value of "iss" is https://wot.arces.unibo.it:8443/oauth/token 
+	
+	8. Check if the value of "aud" contains https://wot.arces.unibo.it:8443/sparql 
+	
+	9. Accept the request as well as "sub" as the originator of the request and process it as usual
+	 
+	Respond with 401 if not
+	 * 
+	 * </pre>
+	 * 
+	 * @throws SEPASecurityException
+	 */
+
+	private boolean authorizeIdentity(String id) throws SEPASecurityException {
+		logger.debug("Authorize identity:" + id);
+
+		// TODO: WARNING!!! TO BE REMOVED IN PRODUCTION. ONLY FOR TESTING.
 		if (id.equals("SEPATest")) {
 			logger.warn("SEPATest authorized! Setting expiring token period to 5 seconds");
-			AuthorizationManagerBeans.addAuthorizedIdentity(id);
-			AuthorizationManagerBeans.setTokenExpiringPeriod(5);
+			auth.addAuthorizedIdentity(id);
+			auth.setTokenExpiringPeriod(id, 5);
 			return true;
 		}
-		
-		if(!AuthorizationManagerBeans.getAuthorizedIdentities().containsKey(id)) return false;
-		
-		if(!AuthorizationManagerBeans.getAuthorizedIdentities().get(id)) return false;
-		
-		AuthorizationManagerBeans.getAuthorizedIdentities().put(id, false);
+
+		if (!auth.isAuthorized(id))
+			return false;
+
+		// Remove identity if it has been authorized
+		auth.removeAuthorizedIdentity(id);
+
 		return true;
 	}
-	
+
 	/**
 	 * <pre>
 	 * POST https://wot.arces.unibo.it:8443/oauth/token
@@ -240,326 +246,414 @@ Respond with 401 if not
 	 * }
 	 * 
 	 * In case of error, the following applies:
- {
-   "error":"Unless specified otherwise see RFC6749. Otherwise, this is specific of the SPARQL 1.1 SE Protocol",
-   "error_description":"Unless specified otherwise, see RFC6749. Otherwise, this is specific of the SPARQL 1.1 SE Protocol", (OPTIONAL)
-   "status_code" : the HTTP status code (would be 400 for Oauth 2.0 errors).
- }
+	{
+	"error":"Unless specified otherwise see RFC6749. Otherwise, this is specific of the SPARQL 1.1 SE Protocol",
+	"error_description":"Unless specified otherwise, see RFC6749. Otherwise, this is specific of the SPARQL 1.1 SE Protocol", (OPTIONAL)
+	"status_code" : the HTTP status code (would be 400 for Oauth 2.0 errors).
+	}
 	 * </pre>
 	 * 
+	 * Create client credentials for an authorized identity
+	 * 
 	 * @param identity the client identity to be registered
-	 * */
-	public static synchronized Response register(String identity) {
-		logger.info("REGISTER: "+identity);
-		
-		//Check if entity is authorized to request credentials
+	 * @throws SEPASecurityException
+	 */
+	public synchronized Response register(String identity) throws SEPASecurityException {
+		logger.info("REGISTER: " + identity);
+
+		// Check if entity is authorized to request credentials
 		if (!authorizeIdentity(identity)) {
-			logger.warn("Not authorized identity "+identity);
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"not_authorized_identity","Client "+identity+" is not authorized");
+			logger.warn("Not authorized identity " + identity);
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "not_authorized_identity",
+					"Client " + identity + " is not authorized");
 		}
-		
+
 		String client_id = null;
 		String client_secret = null;
-		
-		//Create credentials
-		client_id = UUID.randomUUID().toString();
-		client_secret = UUID.randomUUID().toString();
-		
-		//Store credentials
-		while(credentials.containsKey(client_id)) client_id = UUID.randomUUID().toString();
-		credentials.put(client_id,client_secret);
 
+		// Create credentials
+		// TODO: WARNING!!! TO BE REMOVED IN PRODUCTION. ONLY FOR TESTING.
+		if (identity.equals("SEPATest")) {
+			client_id = "dba";
+			client_secret = "dba";
+		} else {
+			client_id = UUID.randomUUID().toString();
+			client_secret = UUID.randomUUID().toString();
+		}
+		
+		// Store credentials
+		auth.storeCredentials(client_id, client_secret);
 
-		return new RegistrationResponse(client_id,client_secret,jwkPublicKey);
+		return new RegistrationResponse(client_id, client_secret, jwkPublicKey);
+	}
+
+	/**
+	 * It requests a token to the Authorization Server. A token request should be
+	 * made when the current token is expired or it is the first token. If the token
+	 * is not expired, the "invalid_grant" error is returned.
+	 * 
+	 * @param encodedCredentials the client credentials encoded using Base64
+	 * @return JWTResponse in case of success, ErrorResponse otherwise
+	 * @throws SEPASecurityException
+	 * @see JWTResponse
+	 * @see ErrorResponse
+	 * 
+	 *      <pre>
+	POST https://wot.arces.unibo.it:8443/oauth/token
+	 
+	Content-Type: application/x-www-form-urlencoded
+	Accept: application/json
+	Authorization: Basic Basic64(id:secret)
+	 
+	Response example:
+	{
+	"access_token": "eyJraWQiOiIyN.........",
+	"token_type": "bearer",
+	"expires_in": 3600 
 	}
 	
-/**
- It requests a token to the Authorization Server. A token request should be made when the current token is expired or it is the first token. 
- If the token is not expired, the "invalid_grant" error is returned.
- 
- @param encodedCredentials the client credentials encoded using Base64
- @return JWTResponse in case of success, ErrorResponse otherwise
- @see JWTResponse
- @see ErrorResponse
- 
-<pre>
-POST https://wot.arces.unibo.it:8443/oauth/token
- 
-Content-Type: application/x-www-form-urlencoded
-Accept: application/json
-Authorization: Basic Basic64(id:secret)
- 
-Response example:
-{
-"access_token": "eyJraWQiOiIyN.........",
-"token_type": "bearer",
-"expires_in": 3600 
-}
-
- Error response example:
- {
-   "error":"Unless specified otherwise see RFC6749. Otherwise, this is specific of the SPARQL 1.1 SE Protocol",
-   "error_description":"Unless specified otherwise, see RFC6749. Otherwise, this is specific to the SPARQL 1.1 SE Protocol", (OPTIONAL)
-   "status_code" : the HTTP status code (should be 400 for all Oauth 2.0 errors).
- }
-
-According to RFC6749, the error member can assume the following values: invalid_request, invalid_client, invalid_grant, unauthorized_client, unsupported_grant_type, invalid_scope.
- </pre>
-*/
+	 Error response example:
+	 {
+	   "error":"Unless specified otherwise see RFC6749. Otherwise, this is specific of the SPARQL 1.1 SE Protocol",
+	   "error_description":"Unless specified otherwise, see RFC6749. Otherwise, this is specific to the SPARQL 1.1 SE Protocol", (OPTIONAL)
+	   "status_code" : the HTTP status code (should be 400 for all Oauth 2.0 errors).
+	 }
 	
-	public static synchronized Response getToken(String encodedCredentials) {
+	According to RFC6749, the error member can assume the following values: invalid_request, invalid_client, invalid_grant, unauthorized_client, unsupported_grant_type, invalid_scope.
+	 *      </pre>
+	 */
+
+	public synchronized Response getToken(String encodedCredentials) throws SEPASecurityException {
 		logger.debug("Get token");
-		
-		//Decode credentials
+
+		// Decode credentials
 		byte[] decoded = null;
-		try{
+		try {
 			decoded = Base64.getDecoder().decode(encodedCredentials);
-		}
-		catch (IllegalArgumentException e) {
+		} catch (IllegalArgumentException e) {
 			logger.error("Not authorized");
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"invalid_client",e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_client", e.getMessage());
 		}
-		
+
 		// Parse credentials
 		String decodedCredentials = new String(decoded);
 		String[] clientID = decodedCredentials.split(":");
-		if (clientID==null){
+		if (clientID == null) {
 			logger.error("Wrong Basic authorization");
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"invalid_client","Client id not found: "+decodedCredentials);
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_client",
+					"Client id not found: " + decodedCredentials);
 		}
 		if (clientID.length != 2) {
 			logger.error("Wrong Basic authorization");
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"invalid_client","Wrong credentials: "+decodedCredentials);
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_client",
+					"Wrong credentials: " + decodedCredentials);
 		}
-		
+
 		String id = decodedCredentials.split(":")[0];
 		String secret = decodedCredentials.split(":")[1];
-		logger.debug("Credentials: "+id+" "+secret);
-		
-		//Verify credentials
-		if (!credentials.containsKey(id)) {
-			logger.error("Client id: "+id+" is not registered");
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","Client "+id+" not found");
+		logger.debug("Credentials: " + id + " " + secret);
+
+		// Verify credentials
+		if (!auth.isClientRegistered(id)) {
+			logger.error("Client id: " + id + " is not registered");
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Client identity " + id + " not found");
 		}
-		
-		if (!credentials.get(id).equals(secret)) {
-			logger.error("Wrong secret: "+secret+ " for client id: "+id);
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","Client not authorized");
+
+		if (!auth.passwordCheck(id, secret)) {
+			logger.error("Wrong secret: " + secret + " for client id: " + id);
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Client identity " + id + " not authorized");
 		}
-		
+
 		// Prepare JWT with claims set
-		 JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
-		 Date now = new Date();
-				 
-		 // If not yet expired return an error
-		if (clientClaims.containsKey(id)) {
-			Date expiring = clientClaims.get(id).getExpirationTime();
-			long expiringUnixSeconds = (expiring.getTime()/1000)*1000;
-			long nowUnixSeconds = (now.getTime()/1000)*1000;
+		JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
+		Date now = new Date();
+
+		// If not yet expired return an error
+		if (auth.containsToken(id)) {
+			Date expiring = auth.getExpiringTime(id);
+			long expiringUnixSeconds = (expiring.getTime() / 1000) * 1000;
+			long nowUnixSeconds = (now.getTime() / 1000) * 1000;
 			long delta = expiringUnixSeconds - nowUnixSeconds;
+			
 			// Expires if major than current time
-			logger.debug("ID: "+id+" ==> Token will expire in: "+delta+" ms");
-			if(delta > 0) {
-				logger.warn("Token is NOT EXPIRED");
-				SimpleDateFormat sdf = new SimpleDateFormat("dd HH:mm:ss.SSS");
-				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant",sdf.format(now)+" token will expire on "+sdf.format(expiring));
+			logger.debug("ID: " + id + " ==> Token will expire in: " + delta + " ms");
+			if (delta > 0) {
+				logger.warn("Token is NOT EXPIRED. Return the current token.");
+				
+				JWTResponse jwt = null;
+				try {
+					jwt = new JWTResponse(auth.getToken(id));
+				} catch (SEPASecurityException e) {
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
+							"Failed to retrieve expiring period of id: " + id);
+				}
+				
+				return jwt;
 			}
 			logger.debug("Token is EXPIRED. Release a fresh token.");
 		}
-		
+
 		// Define validity period
-		 Date expires = new Date(now.getTime()+(AuthorizationManagerBeans.getTokenExpiringPeriod()*1000));
-		
+		Date expires;
+		try {
+			expires = new Date(now.getTime() + (auth.getTokenExpiringPeriod(id) * 1000));
+		} catch (SEPASecurityException e1) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
+					"Failed to retrieve expiring period of id: " + id);
+		}
+
 		/*
-		 * 4.1.1.  "iss" (Issuer) Claim
+		 * 4.1.1. "iss" (Issuer) Claim
+		 * 
+		 * The "iss" (issuer) claim identifies the principal that issued the JWT. The
+		 * processing of this claim is generally application specific. The "iss" value
+		 * is a case-sensitive string containing a StringOrURI value. Use of this claim
+		 * is OPTIONAL.
+		 */
 
-	   The "iss" (issuer) claim identifies the principal that issued the
-	   JWT.  The processing of this claim is generally application specific.
-	   The "iss" value is a case-sensitive string containing a StringOrURI
-	   value.  Use of this claim is OPTIONAL.*/
-		 
-		 claimsSetBuilder.issuer(AuthorizationManagerBeans.getIssuer());
-		 
-	 /* 4.1.2.  "sub" (Subject) Claim
+		claimsSetBuilder.issuer(auth.getIssuer());
 
-	   The "sub" (subject) claim identifies the principal that is the
-	   subject of the JWT.  The Claims in a JWT are normally statements
-	   about the subject.  The subject value MUST either be scoped to be
-	   locally unique in the context of the issuer or be globally unique.
-	   The processing of this claim is generally application specific.  The
-	   "sub" value is a case-sensitive string containing a StringOrURI
-	   value.  Use of this claim is OPTIONAL.*/
-		 
-		 claimsSetBuilder.subject(AuthorizationManagerBeans.getSubject());
-		
-	 /* 4.1.3.  "aud" (Audience) Claim
+		/*
+		 * 4.1.2. "sub" (Subject) Claim
+		 * 
+		 * The "sub" (subject) claim identifies the principal that is the subject of the
+		 * JWT. The Claims in a JWT are normally statements about the subject. The
+		 * subject value MUST either be scoped to be locally unique in the context of
+		 * the issuer or be globally unique. The processing of this claim is generally
+		 * application specific. The "sub" value is a case-sensitive string containing a
+		 * StringOrURI value. Use of this claim is OPTIONAL.
+		 */
 
-	   The "aud" (audience) claim identifies the recipients that the JWT is
-	   intended for.  Each principal intended to process the JWT MUST
-	   identify itself with a value in the audience claim.  If the principal
-	   processing the claim does not identify itself with a value in the
-	   "aud" claim when this claim is present, then the JWT MUST be
-	   rejected.  In the general case, the "aud" value is an array of case-
-	   sensitive strings, each containing a StringOrURI value.  In the
-	   special case when the JWT has one audience, the "aud" value MAY be a
-	   single case-sensitive string containing a StringOrURI value.  The
-	   interpretation of audience values is generally application specific.
-	   Use of this claim is OPTIONAL.*/
-		 
-		 ArrayList<String> audience = new ArrayList<String>();
-		 audience.add(AuthorizationManagerBeans.getHttpsAudience());
-		 audience.add(AuthorizationManagerBeans.getWssAudience());
-		 claimsSetBuilder.audience(audience);
-		
-		/* 4.1.4.  "exp" (Expiration Time) Claim
+		claimsSetBuilder.subject(auth.getSubject());
 
-	   The "exp" (expiration time) claim identifies the expiration time on
-	   or after which the JWT MUST NOT be accepted for processing.  The
-	   processing of the "exp" claim requires that the current date/time
-	   MUST be before the expiration date/time listed in the "exp" claim.
-	   Implementers MAY provide for some small leeway, usually no more than
-	   a few minutes, to account for clock skew.  Its value MUST be a number
-	   containing a NumericDate value.  Use of this claim is OPTIONAL.*/
+		/*
+		 * 4.1.3. "aud" (Audience) Claim
+		 * 
+		 * The "aud" (audience) claim identifies the recipients that the JWT is intended
+		 * for. Each principal intended to process the JWT MUST identify itself with a
+		 * value in the audience claim. If the principal processing the claim does not
+		 * identify itself with a value in the "aud" claim when this claim is present,
+		 * then the JWT MUST be rejected. In the general case, the "aud" value is an
+		 * array of case- sensitive strings, each containing a StringOrURI value. In the
+		 * special case when the JWT has one audience, the "aud" value MAY be a single
+		 * case-sensitive string containing a StringOrURI value. The interpretation of
+		 * audience values is generally application specific. Use of this claim is
+		 * OPTIONAL.
+		 */
 
-		/*NOTICE: this date is serialized as SECONDS from UNIX time
-		 NOT milliseconds!*/
-		 claimsSetBuilder.expirationTime(expires);
-		
-		/*4.1.5.  "nbf" (Not Before) Claim
+		ArrayList<String> audience = new ArrayList<String>();
+		audience.add(auth.getHttpsAudience());
+		audience.add(auth.getWssAudience());
+		claimsSetBuilder.audience(audience);
 
-	   The "nbf" (not before) claim identifies the time before which the JWT
-	   MUST NOT be accepted for processing.  The processing of the "nbf"
-	   claim requires that the current date/time MUST be after or equal to
-	   the not-before date/time listed in the "nbf" claim.  Implementers MAY
-	   provide for some small leeway, usually no more than a few minutes, to
-	   account for clock skew.  Its value MUST be a number containing a
-	   NumericDate value.  Use of this claim is OPTIONAL.*/
-		
+		/*
+		 * 4.1.4. "exp" (Expiration Time) Claim
+		 * 
+		 * The "exp" (expiration time) claim identifies the expiration time on or after
+		 * which the JWT MUST NOT be accepted for processing. The processing of the
+		 * "exp" claim requires that the current date/time MUST be before the expiration
+		 * date/time listed in the "exp" claim. Implementers MAY provide for some small
+		 * leeway, usually no more than a few minutes, to account for clock skew. Its
+		 * value MUST be a number containing a NumericDate value. Use of this claim is
+		 * OPTIONAL.
+		 */
+
+		/*
+		 * NOTICE: this date is serialized as SECONDS from UNIX time NOT milliseconds!
+		 */
+		claimsSetBuilder.expirationTime(expires);
+
+		/*
+		 * 4.1.5. "nbf" (Not Before) Claim
+		 * 
+		 * The "nbf" (not before) claim identifies the time before which the JWT MUST
+		 * NOT be accepted for processing. The processing of the "nbf" claim requires
+		 * that the current date/time MUST be after or equal to the not-before date/time
+		 * listed in the "nbf" claim. Implementers MAY provide for some small leeway,
+		 * usually no more than a few minutes, to account for clock skew. Its value MUST
+		 * be a number containing a NumericDate value. Use of this claim is OPTIONAL.
+		 */
+
 		// claimsSetBuilder.notBeforeTime(before);
-		
-		/* 4.1.6.  "iat" (Issued At) Claim
 
-	   The "iat" (issued at) claim identifies the time at which the JWT was
-	   issued.  This claim can be used to determine the age of the JWT.  Its
-	   value MUST be a number containing a NumericDate value.  Use of this
-	   claim is OPTIONAL.*/
+		/*
+		 * 4.1.6. "iat" (Issued At) Claim
+		 * 
+		 * The "iat" (issued at) claim identifies the time at which the JWT was issued.
+		 * This claim can be used to determine the age of the JWT. Its value MUST be a
+		 * number containing a NumericDate value. Use of this claim is OPTIONAL.
+		 */
 
 		claimsSetBuilder.issueTime(now);
-		
-		/*4.1.7.  "jti" (JWT ID) Claim
 
-	   The "jti" (JWT ID) claim provides a unique identifier for the JWT.
-	   The identifier value MUST be assigned in a manner that ensures that
-	   there is a negligible probability that the same value will be
-	   accidentally assigned to a different data object; if the application
-	   uses multiple issuers, collisions MUST be prevented among values
-	   produced by different issuers as well.  The "jti" claim can be used
-	   to prevent the JWT from being replayed.  The "jti" value is a case-
-	   sensitive string.  Use of this claim is OPTIONAL.*/
-		
-		claimsSetBuilder.jwtID(id+":"+secret);
+		/*
+		 * 4.1.7. "jti" (JWT ID) Claim
+		 * 
+		 * The "jti" (JWT ID) claim provides a unique identifier for the JWT. The
+		 * identifier value MUST be assigned in a manner that ensures that there is a
+		 * negligible probability that the same value will be accidentally assigned to a
+		 * different data object; if the application uses multiple issuers, collisions
+		 * MUST be prevented among values produced by different issuers as well. The
+		 * "jti" claim can be used to prevent the JWT from being replayed. The "jti"
+		 * value is a case- sensitive string. Use of this claim is OPTIONAL.
+		 */
+
+		claimsSetBuilder.jwtID(id + ":" + secret+":"+UUID.randomUUID());
 
 		JWTClaimsSet jwtClaims = claimsSetBuilder.build();
-		
-		//******************************
+
+		// ******************************
 		// Sign JWT with private RSA key
-		//******************************
+		// ******************************
 		SignedJWT signedJWT;
 		try {
 			signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), JWTClaimsSet.parse(jwtClaims.toString()));
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","ParseException: "+e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_grant", "ParseException: " + e.getMessage());
 		}
 		try {
 			signedJWT.sign(signer);
 		} catch (JOSEException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","JOSEException: "+e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_grant", "JOSEException: " + e.getMessage());
 		}
-						
-		//Add the token to the released tokens
-		clientClaims.put(id, jwtClaims);
-		
-		JWTResponse jwt = new JWTResponse(signedJWT.serialize(),"Bearer",AuthorizationManagerBeans.getTokenExpiringPeriod());
-		logger.debug("Released token: "+jwt);
+
+		// Add the token to the released tokens
+		auth.addToken(id, signedJWT);
+
+		JWTResponse jwt = null;
+		try {
+			jwt = new JWTResponse(signedJWT);
+		} catch (SEPASecurityException e) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
+					"Failed to retrieve expiring period of id: " + id);
+		}
+		logger.debug("Released token: " + jwt);
 		
 		return jwt;
 	}
-	
+
 	/**
 	 * Operation when receiving a request at a protected endpoint
 	 * 
-<pre>
-Specific to HTTP request:
-1. Check if the request contains an Authorization header. 
-2. Check if the request contains an Authorization: Bearer-header with non-null/empty contents 
-3. Check if the value of the Authorization: Bearer-header is a JWT object 
+	 * <pre>
+	Specific to HTTP request:
+	1. Check if the request contains an Authorization header. 
+	2. Check if the request contains an Authorization: Bearer-header with non-null/empty contents 
+	3. Check if the value of the Authorization: Bearer-header is a JWT object 
+	
+	Token validation:
+	4. Check if the JWT object is signed 
+	5. Check if the signature of the JWT object is valid. This is to be checked with AS public signature verification key 
+	6. Check the contents of the JWT object 
+	7. Check if the value of "iss" is https://wot.arces.unibo.it:8443/oauth/token 
+	8. Check if the value of "aud" contains https://wot.arces.unibo.it:8443/sparql 
+	9. Accept the request as well as "sub" as the originator of the request and process it as usual
+	 
+	Respond with 401 if not
+	
+	According to RFC6749, the error member can assume the following values: invalid_request, invalid_client, invalid_grant, unauthorized_client, unsupported_grant_type, invalid_scope.
+	
+	         invalid_request
+               The request is missing a required parameter, includes an
+               unsupported parameter value (other than grant type),
+               repeats a parameter, includes multiple credentials,
+               utilizes more than one mechanism for authenticating the
+               client, or is otherwise malformed.
 
-Token validation:
-4. Check if the JWT object is signed 
-5. Check if the signature of the JWT object is valid. This is to be checked with AS public signature verification key 
-6. Check the contents of the JWT object 
-7. Check if the value of "iss" is https://wot.arces.unibo.it:8443/oauth/token 
-8. Check if the value of "aud" contains https://wot.arces.unibo.it:8443/sparql 
-9. Accept the request as well as "sub" as the originator of the request and process it as usual
- 
-Respond with 401 if not
- 
-</pre>
+         invalid_client
+               Client authentication failed (e.g., unknown client, no
+               client authentication included, or unsupported
+               authentication method).  The authorization server MAY
+               return an HTTP 401 (Unauthorized) status code to indicate
+               which HTTP authentication schemes are supported.  If the
+               client attempted to authenticate via the "Authorization"
+               request header field, the authorization server MUST
+               respond with an HTTP 401 (Unauthorized) status code and
+               include the "WWW-Authenticate" response header field
+               matching the authentication scheme used by the client.
 
-@param accessToken the JWT token to be validate according to points 4-9
+         invalid_grant
+               The provided authorization grant (e.g., authorization
+               code, resource owner credentials) or refresh token is
+               invalid, expired, revoked, does not match the redirection
+               URI used in the authorization request, or was issued to
+               another client.
+
+         unauthorized_client
+               The authenticated client is not authorized to use this
+               authorization grant type.
+
+         unsupported_grant_type
+               The authorization grant type is not supported by the
+               authorization server.
+	 * 
+	 * </pre>
+	 * 
+	 * @param accessToken the JWT token to be validate according to points 4-9
 	 */
-	public static synchronized Response validateToken(String accessToken) {
+	public synchronized AuthorizationResponse validateToken(String accessToken) {
 		logger.trace("Validate token");
-		
-		//Parse and verify the token
+
+		// Parse token
 		SignedJWT signedJWT = null;
 		try {
 			signedJWT = SignedJWT.parse(accessToken);
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","ParseException: "+e.getMessage());
+			return new AuthorizationResponse("invalid_request","ParseException: " + e.getMessage());
 		}
 
+		// Verify token
 		try {
-			 if(!signedJWT.verify(verifier)) {
-				 logger.error("Signed JWT not verified");
-				 return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","Signed JWT not verified");
-			 }
-			 
+			if (!signedJWT.verify(verifier)) {
+				logger.error("Signed JWT not verified");
+				return new AuthorizationResponse("invalid_request","Signed JWT not verified");
+			}
+
 		} catch (JOSEException e) {
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","JOSEException: "+e.getMessage());
+			return new AuthorizationResponse("unsupported_grant_type","JOSEException: " + e.getMessage());
 		}
-		
-		// Process the token (validate)
+
+		// Process token (validate)
 		JWTClaimsSet claimsSet = null;
 		try {
 			claimsSet = jwtProcessor.process(accessToken, new SEPASecurityContext());
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","ParseException: "+e.getMessage());
+			return new AuthorizationResponse("unsupported_grant_type","ParseException: " + e.getMessage());
 		} catch (BadJOSEException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","BadJOSEException: "+e.getMessage());
+			return new AuthorizationResponse("unsupported_grant_type","BadJOSEException: " + e.getMessage());
 		} catch (JOSEException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","JOSEException: "+e.getMessage());
+			return new AuthorizationResponse("unsupported_grant_type","JOSEException: " + e.getMessage());
 		}
-		
-//		//Check token expiration
+
+		// Check token expiration (an "invalid_grant" error is raised if the token is expired)
 		Date now = new Date();
-		long nowUnixSeconds = (now.getTime()/1000)*1000;
+		long nowUnixSeconds = (now.getTime() / 1000) * 1000;
 		Date expiring = claimsSet.getExpirationTime();
 		Date notBefore = claimsSet.getNotBeforeTime();
-		SimpleDateFormat sdf = new SimpleDateFormat("dd HH:mm:ss.SSS");
-		if (expiring.getTime()- nowUnixSeconds <= 0) return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","Token is expired "+sdf.format(claimsSet.getExpirationTime())+" now is "+sdf.format(new Date(nowUnixSeconds)));
-		if (notBefore != null && nowUnixSeconds < notBefore.getTime()) return new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"invalid_grant","Token can not be used before: "+claimsSet.getNotBeforeTime());
-				
-		return new JWTResponse(accessToken,"bearer",claimsSet.getExpirationTime().getTime()-new Date().getTime());
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+		if (expiring.getTime() - nowUnixSeconds < 0) {
+			logger.warn("Token is expired: " + sdf.format(claimsSet.getExpirationTime()) + " < "
+					+ sdf.format(new Date(nowUnixSeconds)));
+			return new AuthorizationResponse("invalid_grant","Token issued at "+sdf.format(claimsSet.getIssueTime())+" is expired: " + sdf.format(claimsSet.getExpirationTime())
+					+ " < " + sdf.format(now));
+		}
+
+		if (notBefore != null && nowUnixSeconds < notBefore.getTime()) {
+			logger.warn("Token can not be used before: " + claimsSet.getNotBeforeTime());
+			return new AuthorizationResponse("invalid_scope","Token can not be used before: " + claimsSet.getNotBeforeTime());
+		}
+
+		return new AuthorizationResponse(
+				new ClientCredentials(claimsSet.getJWTID().split(":")[0], claimsSet.getJWTID().split(":")[1]));
 	}
 
-	public static SSLContext getSSLContext() throws SEPASecurityException {
+	public SSLContext getSSLContext() throws SEPASecurityException {
 		return sManager.getSSLContext("TLSv1");
-	}	
+	}
 }

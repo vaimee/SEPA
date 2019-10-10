@@ -216,7 +216,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		String defaultGraph = req.getDefaultGraphUri();
 		String namedGraph = req.getNamedGraphUri();
 		InternalSubscribeRequest wrappedRequest = new InternalSubscribeRequest(sparql, alias, defaultGraph, namedGraph,
-				this);
+				this,req.getCredentials());
 
 		// Create or link to an existing SPU
 		SPU spu;

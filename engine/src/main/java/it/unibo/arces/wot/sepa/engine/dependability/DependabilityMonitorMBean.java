@@ -18,34 +18,34 @@
 
 package it.unibo.arces.wot.sepa.engine.dependability;
 
-import java.util.HashMap;
+//import java.util.HashMap;
 
 public interface DependabilityMonitorMBean {
-	void addAuthorizedIdentity(String id);
-
-	void removeAuthorizedIdentity(String id);
-
-	HashMap<String, Boolean> getAuthorizedIdentities();
-
-	long getTokenExpiringPeriod();
-
-	void setTokenExpiringPeriod(long period);
-
-	String getIssuer();
-
-	void setIssuer(String issuer);
-
-	String getHttpsAudience();
-
-	void setHttpsAudience(String audience);
-
-	String getWssAudience();
-
-	void setWssAudience(String audience);
-
-	String getSubject();
-
-	void setSubject(String sub);
+//	void addAuthorizedIdentity(String id);
+//
+//	void removeAuthorizedIdentity(String id);
+//
+//	HashMap<String, Boolean> getAuthorizedIdentities();
+//
+//	long getTokenExpiringPeriod();
+//
+//	void setTokenExpiringPeriod(long period);
+//
+//	String getIssuer();
+//
+//	void setIssuer(String issuer);
+//
+//	String getHttpsAudience();
+//
+//	void setHttpsAudience(String audience);
+//
+//	String getWssAudience();
+//
+//	void setWssAudience(String audience);
+//
+//	String getSubject();
+//
+//	void setSubject(String sub);
 	
 	long getNumberOfGates();
 	

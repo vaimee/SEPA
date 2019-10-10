@@ -509,7 +509,7 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("queries").getAsJsonObject(id).get("sparql").getAsString();
 		} catch (Exception e) {
-			logger.error("SPARQL query "+id+" not found");
+			logger.fatal("SPARQL query "+id+" not found");
 		}
 		return null;
 	}
