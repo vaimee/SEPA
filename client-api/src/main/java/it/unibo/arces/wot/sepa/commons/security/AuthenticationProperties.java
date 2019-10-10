@@ -134,50 +134,18 @@ public class AuthenticationProperties {
 	}
 
 	/**
-	 * Checks if is token expired.
-	 *
-	 * @return true, if is token expired
-	 * @throws SEPASecurityException
-	 * @throws NumberFormatException
-	 */
-	public synchronized boolean isTokenExpired() {
-		return getExpiringTime() == 0;
-	}
-
-	/**
-	 * Gets the expiring seconds.
-	 *
-	 * @return the expiring seconds
-	 * @throws SEPASecurityException
-	 * @throws NumberFormatException
-	 */
-	public synchronized long getExpiringTime() {
-		try {
-			long now = new Date().getTime();
-
-			logger.trace("@getExpiringTime Diff:" + (expires - now) + " Now: " + now + " Expires: " + expires);
-
-			if (expires - now < 0)
-				return 0;
-			return expires - now;
-		} catch (Exception e) {
-			return 0;
-		}
-	}
-
-	/**
 	 * Gets the access token.
 	 *
 	 * @return the access token
 	 */
-	public synchronized String getBearerAuthorizationHeader() {
+	public String getBearerAuthorizationHeader() {
 		if (jwt != null)
 			return "Bearer " + jwt;
 		else
 			return null;
 	}
 
-	public synchronized String getToken() {
+	public String getToken() {
 		return jwt;
 	}
 
@@ -186,7 +154,7 @@ public class AuthenticationProperties {
 	 *
 	 * @return the token type
 	 */
-	public synchronized String getTokenType() {
+	public String getTokenType() {
 		return type;
 	}
 
@@ -196,7 +164,7 @@ public class AuthenticationProperties {
 	 * @return the basic authorization
 	 * @throws SEPASecurityException
 	 */
-	public synchronized String getBasicAuthorizationHeader() throws SEPASecurityException {
+	public String getBasicAuthorizationHeader() throws SEPASecurityException {
 		if (clientId != null && clientSecret != null) {
 			String plainString = clientId + ":" + clientSecret;
 			try {
@@ -214,7 +182,7 @@ public class AuthenticationProperties {
 	 * @param id     the username
 	 * @param secret the password
 	 */
-	public synchronized void setCredentials(String id, String secret)
+	public void setCredentials(String id, String secret)
 			throws SEPAPropertiesException, SEPASecurityException {
 		logger.debug("@setCredentials Id: " + id + " Secret:" + secret);
 

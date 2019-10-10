@@ -1,10 +1,14 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import it.unibo.arces.wot.sepa.engine.dependability.ClientCredentials;
+
 public class InternalUnsubscribeRequest extends InternalRequest {
 	protected String sid;
 	protected String gid;
 	
-	public InternalUnsubscribeRequest(String gid,String sid) {
+	public InternalUnsubscribeRequest(String gid,String sid,ClientCredentials credentials) {
+		super(credentials);
+		
 		this.sid = sid;
 		this.gid = gid;
 	}

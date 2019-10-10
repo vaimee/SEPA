@@ -170,7 +170,7 @@ public class ErrorResponse extends Response {
 	public ErrorResponse(int code,String error,String description) {
 		super();
 		
-		if (error == null || description == null) throw new IllegalArgumentException("One or more parameters are null");
+		if (error == null || description == null) throw new IllegalArgumentException("Failed to create ErrorResponse. error: "+error+" description: "+description);
 
 		json.add("error", new JsonPrimitive(error));
 		json.add("status_code", new JsonPrimitive(code));
@@ -178,7 +178,7 @@ public class ErrorResponse extends Response {
 	}
 
 	/**
-	 * When error is refered to a subscription it may optionally has the corrisponding
+	 * When error is referred to a subscription it may optionally has the corresponding
 	 * alias. This method sets this alias
 	 * @param alias
 	 */

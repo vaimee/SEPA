@@ -10,11 +10,9 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.gates.SecureWebsocketGate;
-import it.unibo.arces.wot.sepa.engine.gates.WebsocketGate;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SecureWebsocketServer extends WebsocketServer {
-	//private final static Logger logger = LogManager.getLogger();
 
 	@Override
 	protected String getWelcomeMessage() {
@@ -42,7 +40,7 @@ public class SecureWebsocketServer extends WebsocketServer {
 
 		// Add new gate
 		synchronized (gates) {
-			WebsocketGate handler = new SecureWebsocketGate(conn, scheduler);
+			SecureWebsocketGate handler = new SecureWebsocketGate(conn, scheduler);
 			gates.put(conn, handler);
 
 			fragmentedMessages.put(conn, null);

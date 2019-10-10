@@ -73,10 +73,13 @@ public class ITSPARQL11SEProtocol {
 		publishers.clear();
 
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
-		while (ret.isError() && ((ErrorResponse) ret).getStatusCode() == 400 && properties.isSecure()) {
-//			sm.forceRefreshToken();
+		
+		if (ret.isError()) {
+			ErrorResponse error = (ErrorResponse) ret;
+			if (error.isTokenExpiredError() && properties.isSecure()) sm.refreshToken();
 			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
 		}
+
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
@@ -155,6 +158,8 @@ public class ITSPARQL11SEProtocol {
 						for (int i = 0; i < 100; i++) {
 							String authorization = null;
 							try {
+								authorization = sm.getAuthorizationHeader();
+								if (authorization == null) sm.refreshToken();
 								authorization = sm.getAuthorizationHeader();
 							} catch (SEPASecurityException | SEPAPropertiesException e1) {
 								assertFalse(e1.getMessage(),true);

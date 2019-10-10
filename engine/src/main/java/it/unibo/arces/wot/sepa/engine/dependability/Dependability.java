@@ -9,6 +9,7 @@ import java.security.cert.CertificateException;
 
 import javax.net.ssl.SSLContext;
 
+import org.apache.http.HttpStatus;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,6 +18,7 @@ import com.nimbusds.jose.JOSEException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
@@ -26,13 +28,16 @@ public class Dependability {
 	
 	private static boolean isSecure = false;
 
+	private static AuthorizationManager authManager;
+	
 	public static boolean isSecure() {
 		return isSecure;
 	}
 	
 	public static void enableSecurity(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws SEPASecurityException {
 		try {
-			AuthorizationManager.init(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
+			authManager = new AuthorizationManager();
+			authManager.init(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
 		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
 				| CertificateException | IOException | JOSEException | SEPASecurityException e) {
 			logger.error(e.getMessage());
@@ -45,8 +50,8 @@ public class Dependability {
 		SubscriptionManager.setProcessor(p);
 	}
 	
-	public static Response validateToken(String jwt) {
-		return AuthorizationManager.validateToken(jwt);
+	public static AuthorizationResponse validateToken(String jwt) {
+		return authManager.validateToken(jwt);
 	}
 
 	public static void onCloseGate(String gid) throws SEPAProcessingException {
@@ -74,15 +79,23 @@ public class Dependability {
 	}
 
 	public static SSLContext getSSLContext() throws SEPASecurityException {
-		return AuthorizationManager.getSSLContext();
+		return authManager.getSSLContext();
 	}
 
 	public static Response getToken(String encodedCredentials) {
-		return AuthorizationManager.getToken(encodedCredentials);
+		try {
+			return authManager.getToken(encodedCredentials);
+		} catch (SEPASecurityException e) {
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get token",e.toString());
+		}
 	}
 
-	public static Response register(String identity) {
-		return AuthorizationManager.register(identity);
+	public static Response register(String identity){
+		try {
+			return authManager.register(identity);
+		} catch (SEPASecurityException e) {
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to register identity: "+identity,e.toString());
+		}
 	}
 
 	public static boolean processCORSRequest(HttpAsyncExchange exchange) {

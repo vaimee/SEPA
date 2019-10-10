@@ -2,7 +2,7 @@ package it.unibo.arces.wot.sepa.engine.bean;
 
 import it.unibo.arces.wot.sepa.timing.Timings;
 
-public class WebsocketBeans {
+public class GateBeans {
 	private static long messages = 0;
 	private static long notAuthorized = 0;
 	private static long errors = 0;

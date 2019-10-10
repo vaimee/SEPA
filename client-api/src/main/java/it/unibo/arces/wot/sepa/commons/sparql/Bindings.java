@@ -27,19 +27,29 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 
 /**
- * This class represents a query solution of a SPARQL 1.1 Query
+ * This class represents a query solution of a SPARQL 1.1 Query. An example of the internal representation as JSON object follows:
  * 
- * An example of the internal representation as JSON object follows: {@code {
- * "x" : { "type": "bnode", "value": "r2" }, "hpage" : { "type": "uri", "value":
- * "http://work.example.org/alice/" }, "blurb" : { "datatype":
- * "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral", "type": "literal",
- * "value": "<p xmlns=\"http://www.w3.org/1999/xhtml\">My name is <b>alice</b>
- * </p>
- * " }, "name" : { "type": "literal", "value": "Bob", "xml:lang": "en" } }}
- * 
+ <pre>
+ 
+ {
+ "x" : { 
+ 	"type": "bnode", 
+ 	"value": "r2" }, 
+ "hpage" : { 
+ 	"type": "uri", 
+ 	"value":"http://work.example.org/alice/" }, 
+ "blurb" : { 
+ 	"datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral", 
+ 	"type": "literal",
+ 	"value": "<p xmlns=\"http://www.w3.org/1999/xhtml\">My name is <b>alice</b></p>" },
+ "name" : { 
+ 	"type": "literal", 
+ 	"value": "Bob", 
+ 	"xml:lang": "en" } }
+  
+  NOTE: Virtuoso uses "typed-literal" as type when the "datatype" is specified
  */
 
 public class Bindings {	
@@ -87,6 +97,7 @@ public class Bindings {
 			case "uri":
 				return new RDFTermURI(value);
 			case "literal":
+			case "typed-literal":
 				if(solution.getAsJsonObject(variable).get("datatype") == null) return new RDFTermLiteral(value);
 				return new RDFTermLiteral(value,solution.getAsJsonObject(variable).get("datatype").getAsString());				
 			case "bnode":
@@ -101,11 +112,11 @@ public class Bindings {
 	}
 
 	/**
-	 * Gets the binding value.
+	 * Sets the binding value.
 	 *
-	 * @param variable
-	 *            the variable
-	 * @return the binding value
+	 * @param variable the variable
+	 * @param value the value
+	 * @param datatype the datatype
 	 */
 	public void setBindingValue(String variable,String value,String datatype) throws SEPABindingsException {
 		if (variable == null || value == null) throw new SEPABindingsException("One or more arguments are null");
@@ -119,18 +130,17 @@ public class Bindings {
 	}
 	
 	/**
-	 * Gets the binding value.
+	 * Sets the binding value.
 	 *
-	 * @param variable
-	 *            the variable
-	 * @return the binding value
-	 * @throws SEPAPropertiesException 
+	 * @param variable the variable
+	 * @param value the RDFTerm
+	 * @see RDFTerm
 	 */
 	public void setBindingValue(String variable,RDFTerm value) throws SEPABindingsException  {
 		if (variable == null || value == null) throw new SEPABindingsException("One or more arguments are null");
 			
 		try {
-			if (solution.getAsJsonObject(variable).get("type").getAsString().equals("literal")) {
+			if (solution.getAsJsonObject(variable).get("type").getAsString().equals("literal") || solution.getAsJsonObject(variable).get("type").getAsString().equals("typed-literal")) {
 				if(!value.getClass().equals(RDFTermLiteral.class)) throw new SEPABindingsException("Value of ariable: "+variable+" must be a literal");
 				if (((RDFTermLiteral) value).getDatatype() != null) solution.getAsJsonObject(variable).add("datatype", new JsonPrimitive(((RDFTermLiteral) value).getDatatype()));
 			}

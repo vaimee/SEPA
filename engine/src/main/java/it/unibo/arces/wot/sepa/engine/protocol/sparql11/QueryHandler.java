@@ -10,8 +10,8 @@ import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationResponse;
+import it.unibo.arces.wot.sepa.engine.dependability.ClientCredentials;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
@@ -33,7 +33,7 @@ public class QueryHandler extends SPARQL11Handler {
 	}
 
 	@Override
-	protected InternalUQRequest parse(HttpAsyncExchange exchange) throws SPARQL11ProtocolException {
+	protected InternalUQRequest parse(HttpAsyncExchange exchange,ClientCredentials credentials) throws SPARQL11ProtocolException {
 		switch (exchange.getRequest().getRequestLine().getMethod().toUpperCase()) {
 		case "GET":
 			 /* <pre>
@@ -77,12 +77,12 @@ public class QueryHandler extends SPARQL11Handler {
 				String graphUri = params.get("default-graph-uri");
 				String namedGraphUri = params.get("named-graph-uri");
 
-				return new InternalQueryRequest(sparql, graphUri, namedGraphUri);
+				return new InternalQueryRequest(sparql, graphUri, namedGraphUri,credentials);
 			} catch (Exception e) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}
 		case "POST":
-			return parsePost(exchange,"query");
+			return parsePost(exchange,"query",credentials);
 		}
 
 		logger.error("UNSUPPORTED METHOD: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());
@@ -91,7 +91,7 @@ public class QueryHandler extends SPARQL11Handler {
 	}
 
 	@Override
-	protected Response authorize(HttpRequest request) {
-		return new JWTResponse("Unsecure request is always authorized","authorized",0);
+	protected AuthorizationResponse authorize(HttpRequest request) {
+		return new AuthorizationResponse();
 	}
 }

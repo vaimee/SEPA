@@ -6,6 +6,7 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
@@ -28,7 +29,8 @@ public class ConfigurationProvider {
 
 	private final JSAP appProfile;
 	private String prefixes = "";
-
+	private final String jsapPath; 
+	
 	public static void configureLogger() {
 		// Logging
 		TimeZone tz = TimeZone.getTimeZone("UTC");
@@ -59,14 +61,14 @@ public class ConfigurationProvider {
 			logger.info("JSAP secure default: " + jsapFileName);
 		}
 
-		String path = getClass().getClassLoader().getResource(jsapFileName).getPath();
-		File f = new File(path);
+		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
+		File f = new File(jsapPath);
 		if (!f.exists()) {
-			logger.error("File not found: " + path);
-			throw new SEPAPropertiesException("File not found: "+path);
+			logger.error("File not found: " + jsapPath);
+			throw new SEPAPropertiesException("File not found: "+jsapPath);
 		}
 		
-		appProfile = new JSAP(path);
+		appProfile = new JSAP(jsapPath);
 		
 		Set<String> appPrefixes = appProfile.getPrefixes();
 		for (String prefix : appPrefixes) {
@@ -88,7 +90,10 @@ public class ConfigurationProvider {
 		if (sm != null)
 			try {
 				authorization = sm.getAuthorizationHeader();
-				logger.debug("Authorized");
+				if (authorization == null) {
+					sm.refreshToken();
+					authorization = sm.getAuthorizationHeader();
+				}
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
@@ -105,6 +110,10 @@ public class ConfigurationProvider {
 		if (sm != null)
 			try {
 				authorization = sm.getAuthorizationHeader();
+				if (authorization == null) {
+					sm.refreshToken();
+					authorization = sm.getAuthorizationHeader();
+				}
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
@@ -127,6 +136,10 @@ public class ConfigurationProvider {
 		if (sm != null)
 			try {
 				authorization = sm.getAuthorizationHeader();
+				if (authorization == null) {
+					sm.refreshToken();
+					authorization = sm.getAuthorizationHeader();
+				}
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
@@ -140,6 +153,10 @@ public class ConfigurationProvider {
 		if (sm != null)
 			try {
 				authorization = sm.getAuthorizationHeader();
+				if (authorization == null) {
+					sm.refreshToken();
+					authorization = sm.getAuthorizationHeader();
+				}
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
@@ -147,14 +164,15 @@ public class ConfigurationProvider {
 		return new UnsubscribeRequest(spuid, authorization, timeout);
 	}
 
-	public SEPASecurityManager buildSecurityManager() throws SEPASecurityException {
+	public SEPASecurityManager buildSecurityManager() throws SEPASecurityException, SEPAPropertiesException {
 		String path = getClass().getClassLoader().getResource("sepa.jks").getPath();
 		File f = new File(path);
 		if (!f.exists()) {
 			logger.error("File not found: " + path);
 			throw new SEPASecurityException("File not found: "+path);
 		}
-		return new SEPASecurityManager(f.getPath(), "sepa2017", "sepa2017",appProfile.getAuthenticationProperties());
+				
+		return new SEPASecurityManager(f.getPath(), "sepa2017", "sepa2017",new AuthenticationProperties(jsapPath));
 	}
 	
 	public JSAP getJsap() {

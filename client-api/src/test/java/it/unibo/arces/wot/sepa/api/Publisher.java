@@ -22,13 +22,13 @@ class Publisher extends Thread implements Closeable {
 	private final SEPASecurityManager sm;
 	private final SPARQL11Protocol client;
 	private final String id;
-	
+
 	private final AtomicLong running;
-	
+
 	private static ConfigurationProvider provider;
 
-	public Publisher(String id,long n) throws SEPAPropertiesException, SEPASecurityException {
-		this.setName("Publisher-"+id+"-"+this.getId());
+	public Publisher(String id, long n) throws SEPAPropertiesException, SEPASecurityException {
+		this.setName("Publisher-" + id + "-" + this.getId());
 		provider = new ConfigurationProvider();
 
 		this.id = id;
@@ -36,54 +36,56 @@ class Publisher extends Thread implements Closeable {
 		if (provider.getJsap().isSecure()) {
 			sm = provider.buildSecurityManager();
 			client = new SPARQL11Protocol(sm);
-		}
-		else {
+		} else {
 			sm = null;
 			client = new SPARQL11Protocol();
 		}
 
 		running = new AtomicLong(n);
 	}
-	
+
 	public void run() {
-		if(provider.getJsap().isSecure()){
+		if (provider.getJsap().isSecure()) {
 			try {
 				sm.register("SEPATest");
-			} catch (SEPASecurityException | SEPAPropertiesException  e) {
+			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e);
 			}
 		}
 
-		while(running.get() > 0) {
-			Response ret = client.update(provider.buildUpdateRequest(id,5000,sm));
-			
-			if(ret.isError()) {
-				ErrorResponse errorResponse = (ErrorResponse)ret;
-				
+		while (running.get() > 0) {
+			Response ret = client.update(provider.buildUpdateRequest(id, 5000, sm));
+
+			if (ret.isError()) {
+				ErrorResponse errorResponse = (ErrorResponse) ret;
+				logger.error(errorResponse);
+
 				if (errorResponse.isTokenExpiredError()) {
 					try {
-						Thread.sleep(2000);
-					} catch (InterruptedException e) {
-						return;
+						sm.refreshToken();
+					} catch (SEPAPropertiesException | SEPASecurityException e) {
+						logger.error("Failed to refresh token: "+e.getMessage());
 					}
-					ret = client.update(provider.buildUpdateRequest(id,5000,sm));
-				
+					
+					ret = client.update(provider.buildUpdateRequest(id, 5000, sm));
+
 					if (ret.isError()) {
-						logger.error(ret);
+						errorResponse = (ErrorResponse) ret;
+						logger.error(errorResponse);
 					}
 				}
 			}
-			
-			running.set(running.get()-1);
+
+			running.set(running.get() - 1);
 		}
-		
+
 		try {
 			client.close();
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
 	}
-	
+
 	public void close() {
 		running.set(0);
 	}

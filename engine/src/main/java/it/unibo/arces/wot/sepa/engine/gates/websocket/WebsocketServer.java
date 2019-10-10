@@ -21,7 +21,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
-import it.unibo.arces.wot.sepa.engine.bean.WebsocketBeans;
+import it.unibo.arces.wot.sepa.engine.bean.GateBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.gates.WebsocketGate;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
@@ -106,7 +106,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onMessage(WebSocket conn, String message) {
-		WebsocketBeans.onMessage();
+		GateBeans.onMessage();
 
 		// Check path
 		if (!conn.getResourceDescriptor().equals(path)) {
@@ -159,7 +159,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		logger.debug("Fragmented message: " + fragmentedMessages.get(conn));
 
 		if (fragment.isFin()) {
-			WebsocketBeans.onFragmentedMessage();
+			GateBeans.onFragmentedMessage();
 
 			onMessage(conn, fragmentedMessages.get(conn));
 			fragmentedMessages.put(conn, null);
@@ -170,7 +170,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	public void onError(WebSocket conn, Exception ex) {
 		logger.error("@onError: " + conn + " Exception: " + ex);
 
-		WebsocketBeans.onError();
+		GateBeans.onError();
 
 		if (ex.getClass().equals(BindException.class)) {
 			logger.fatal("Failed to start. Exit");
@@ -194,41 +194,41 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void reset() {
-		WebsocketBeans.reset();
+		GateBeans.reset();
 	}
 
 	@Override
 	public long getMessages() {
-		return WebsocketBeans.getMessages();
+		return GateBeans.getMessages();
 	}
 
 	@Override
 	public long getFragmented() {
-		return WebsocketBeans.getFragmented();
+		return GateBeans.getFragmented();
 	}
 
 	@Override
 	public long getErrors() {
-		return WebsocketBeans.getErrors();
+		return GateBeans.getErrors();
 	}
 
 	@Override
 	public long getErrorResponses() {
-		return WebsocketBeans.getErrorResponses();
+		return GateBeans.getErrorResponses();
 	}
 
 	@Override
 	public long getSubscribeResponse() {
-		return WebsocketBeans.getSubscribeResponses();
+		return GateBeans.getSubscribeResponses();
 	}
 
 	@Override
 	public long getUnsubscribeResponse() {
-		return WebsocketBeans.getUnsubscribeResponses();
+		return GateBeans.getUnsubscribeResponses();
 	}
 
 	@Override
 	public long getNotifications() {
-		return WebsocketBeans.getNotifications();
+		return GateBeans.getNotifications();
 	}
 }

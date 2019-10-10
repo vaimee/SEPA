@@ -55,14 +55,58 @@ public abstract class Client implements java.io.Closeable {
 		this.sm = sm;
 	}
 	
+	/** 
+	 * Add the datatype for literals that are not specified in "bindings" but are specified in the corresponding JSAP entry (query or update) identified by "id".
+	 * 
+<pre>
+17.1 Operand Data Types (https://www.w3.org/TR/sparql11-query/#operandDataTypes)
+</pre>
+SPARQL functions and operators operate on RDF terms and SPARQL variables. A subset of these functions and operators are taken from the XQuery 1.0 and XPath 2.0 Functions and Operators [FUNCOP] and have XML Schema typed value arguments and return types. RDF typed literals passed as arguments to these functions and operators are mapped to XML Schema typed values with a string value of the lexical form and an atomic datatype corresponding to the datatype IRI. The returned typed values are mapped back to RDF typed literals the same way.
+
+SPARQL has additional operators which operate on specific subsets of RDF terms. When referring to a type, the following terms denote a typed literal with the corresponding XML Schema [XSDT] datatype IRI:
+<pre>
+xsd:integer
+xsd:decimal
+xsd:float
+xsd:double
+xsd:string
+xsd:boolean
+xsd:dateTime
+
+The following terms identify additional types used in SPARQL value tests:
+
+numeric denotes typed literals with datatypes xsd:integer, xsd:decimal, xsd:float, and xsd:double.
+simple literal denotes a plain literal with no language tag.
+RDF term denotes the types IRI, literal, and blank node.
+variable denotes a SPARQL variable.
+
+The following types are derived from numeric types and are valid arguments to functions and operators taking numeric arguments:
+
+xsd:nonPositiveInteger
+xsd:negativeInteger
+xsd:long
+xsd:int
+xsd:short
+xsd:byte
+xsd:nonNegativeInteger
+xsd:unsignedLong
+xsd:unsignedInt
+xsd:unsignedShort
+xsd:unsignedByte
+xsd:positiveInteger
+
+SPARQL language extensions may treat additional types as being derived from XML schema datatypes.
+</pre>
+* **/
+	
 	protected Bindings addDefaultDatatype(Bindings bindings,String id,boolean query) throws SEPABindingsException {
 		if (id == null) return bindings;
 		if (bindings == null) return bindings;
 		
 		// Forced bindings by JSAP
-		Bindings fb;
-		if (query) fb = appProfile.getQueryBindings(id);
-		else fb = appProfile.getUpdateBindings(id);
+		Bindings jsap_template;
+		if (query) jsap_template = appProfile.getQueryBindings(id);
+		else jsap_template = appProfile.getUpdateBindings(id);
 		
 		// Add missing datatype, if any
 		Bindings retBindings = new Bindings();
@@ -70,7 +114,7 @@ public abstract class Client implements java.io.Closeable {
 			RDFTerm term = bindings.getRDFTerm(varString);
 			if (term.isLiteral()) {
 				RDFTermLiteral literal = (RDFTermLiteral) term;
-				if (literal.getDatatype() == null && fb.getDatatype(varString) !=null) retBindings.addBinding(varString, new RDFTermLiteral(literal.getValue(), fb.getDatatype(varString)));
+				if (literal.getDatatype() == null && jsap_template.getDatatype(varString) !=null) retBindings.addBinding(varString, new RDFTermLiteral(literal.getValue(), jsap_template.getDatatype(varString)));
 				else retBindings.addBinding(varString, term);
 				
 			}
