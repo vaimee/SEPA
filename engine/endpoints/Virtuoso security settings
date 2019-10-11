@@ -1,0 +1,61 @@
+************************************************************************
+* Configuring Virtuoso for open access on http://localhost:8890/sparql *
+************************************************************************
+Virtuoso 42000 Error SR186:SECURITY: No permission to execute procedure DB.DBA.SPARQL_DELETE_DICT_CONTENT with user ID 107, group ID 107
+Virtuoso 42000 Error SR186:SECURITY: No permission to execute procedure DB.DBA.SPARQL_INSERT_DICT_CONTENT with user ID 107, group ID 107
+Virtuoso 42000 Error SR186:SECURITY: No permission to execute dpipe DB.DBA.L_O_LOOK with user ID 107, group ID 107
+Virtuoso 42000 Error CL...:SECURITY: No SPARQL_UPDATE permission to use RDF loader
+
+--------------------------------------
+User						ID	GROUP|
+--------------------------------------
+SPARQL						107	107  | ** NO AUTH **
+SPARQL_LOAD_SERVICE_DATA	102	102  |
+SPARQL_SELECT				100	100  |
+SPARQL_SPONGE				101	101  |
+SPARQL_UPDATE				103	103  |
+dba							0	0    |
+nobody						5	5    |
+--------------------------------------
+User account "SPARQL" is a special account used for all anonymous web users of SPARQL web service endpoint, not a real user.
+
+
+isql:
+-----
+grant execute on DB.DBA.SPARQL_DELETE_DICT_CONTENT to "SPARQL";
+grant execute on DB.DBA.SPARQL_INSERT_DICT_CONTENT to "SPARQL";
+grant execute on DB.DBA.L_O_LOOK to "SPARQL";
+
+System admin->User Accounts-->SPARQL-->Edit
+-------------------------------------------
+Give "SPARQL_UPDATE" role
+
+****************************************************************************
+* Configuring Virtuoso for basic auth on http://localhost:8890/sparql-auth *
+****************************************************************************
+PERMS bits are:
+1 = R
+2 = W
+8 = list members of graph groups
+
+e.g., R/W = 3
+
+Note: If READ is not granted, the endpoint returns an empty list of results (not a 401 error)
+
+0) Create user
+
+DB.DBA.USER_CREATE ('SEPATest', 'SEPATest');
+GRANT SPARQL_UPDATE TO "SEPATest";
+
+1) Remembering that some graphs within are supposed to be confidential, the whole quad store is first set to confidential.
+
+DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('nobody', 0);
+
+2) Set default permission of a user
+
+DB.DBA.RDF_DEFAULT_USER_PERMS_SET (USER, PREMS);
+
+3) Set specific permission of a user on each graph
+
+DB.DBA.RDF_GRAPH_USER_PERMS_SET (GRAPH_URI, USER, PERMS);
+
