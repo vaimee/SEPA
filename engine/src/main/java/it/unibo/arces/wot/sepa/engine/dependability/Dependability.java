@@ -1,24 +1,13 @@
 package it.unibo.arces.wot.sepa.engine.dependability;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.HttpStatus;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.nimbusds.jose.JOSEException;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
@@ -34,15 +23,13 @@ public class Dependability {
 		return isSecure;
 	}
 	
+	public static void enableSecurity(String host, int port, String base, String uid, String pwd,String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws SEPASecurityException {
+		authManager = new AuthorizationManager(host,port,base,uid,pwd,keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
+		isSecure = true;
+	}
+	
 	public static void enableSecurity(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws SEPASecurityException {
-		try {
-			authManager = new AuthorizationManager();
-			authManager.init(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
-		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
-				| CertificateException | IOException | JOSEException | SEPASecurityException e) {
-			logger.error(e.getMessage());
-			throw new SEPASecurityException(e);
-		}
+		authManager = new AuthorizationManager(keystoreFileName,keystorePwd,keyAlias,keyPwd, certificate);
 		isSecure = true;
 	}
 	
@@ -50,7 +37,7 @@ public class Dependability {
 		SubscriptionManager.setProcessor(p);
 	}
 	
-	public static AuthorizationResponse validateToken(String jwt) {
+	public static AuthorizationResponse validateToken(String jwt) throws SEPASecurityException {
 		return authManager.validateToken(jwt);
 	}
 
@@ -83,19 +70,11 @@ public class Dependability {
 	}
 
 	public static Response getToken(String encodedCredentials) {
-		try {
-			return authManager.getToken(encodedCredentials);
-		} catch (SEPASecurityException e) {
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to get token",e.toString());
-		}
+		return authManager.getToken(encodedCredentials);
 	}
 
 	public static Response register(String identity){
-		try {
-			return authManager.register(identity);
-		} catch (SEPASecurityException e) {
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"Failed to register identity: "+identity,e.toString());
-		}
+		return authManager.register(identity);
 	}
 
 	public static boolean processCORSRequest(HttpAsyncExchange exchange) {

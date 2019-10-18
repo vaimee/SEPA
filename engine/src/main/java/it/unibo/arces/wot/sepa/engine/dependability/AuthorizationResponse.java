@@ -1,5 +1,7 @@
 package it.unibo.arces.wot.sepa.engine.dependability;
 
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
+
 public class AuthorizationResponse {
 
 	private boolean authorized = true;
@@ -7,7 +9,7 @@ public class AuthorizationResponse {
 	private String error = null;
 	private String description = null;
 	
-	private ClientCredentials credentials = null;
+	private Credentials credentials = null;
 	
 	public AuthorizationResponse() {
 	}
@@ -18,7 +20,7 @@ public class AuthorizationResponse {
 		this.description = description;
 	}
 	
-	public AuthorizationResponse(ClientCredentials credentials) {
+	public AuthorizationResponse(Credentials credentials) {
 		this.credentials = credentials;
 	}
 	
@@ -26,7 +28,7 @@ public class AuthorizationResponse {
 		return authorized;
 	}
 	
-	public ClientCredentials getClientCredentials() {
+	public Credentials getClientCredentials() {
 		return credentials;
 	}
 	

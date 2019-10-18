@@ -70,6 +70,10 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ApplicationIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.IAuthorization;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.InMemoryAuthorization;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapAuthorization;
 
 class AuthorizationManager {
 	private static final Logger logger = LogManager.getLogger();
@@ -82,24 +86,38 @@ class AuthorizationManager {
 	private JsonElement jwkPublicKey;
 	private ConfigurableJWTProcessor<SEPASecurityContext> jwtProcessor;
 	private SEPASecurityManager sManager;
-	private IClientAuthorization auth;
+	private IAuthorization auth;
 
-	public AuthorizationManager() {
+	public AuthorizationManager(String host, int port, String base, String uid, String pwd,String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate) throws SEPASecurityException {
+		try {
+			auth = new LdapAuthorization(host, port, base, uid, pwd);
+		} catch (LdapException e1) {
+			throw new SEPASecurityException(e1);
+		}
+		
+		try {
+			init(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
+		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
+				| CertificateException | IOException | JOSEException | SEPASecurityException e) {
+			throw new SEPASecurityException(e);
+		}
+	}
+	
+	public AuthorizationManager(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate) throws SEPASecurityException {
 		auth = new InMemoryAuthorization();
-	}
-
-	public AuthorizationManager(String host, int port, String base, String uid, String pwd) throws LdapException {
-		auth = new LdapAuthorization(host, port, base, uid, pwd);
-	}
-
-	public AuthorizationManager(String host, int port, String base) throws LdapException {
-		auth = new LdapAuthorization(host, port, base);
+		
+		try {
+			init(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
+		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
+				| CertificateException | IOException | JOSEException | SEPASecurityException e) {
+			throw new SEPASecurityException(e);
+		}
 	}
 
 	private void securityCheck(String identity) throws SEPASecurityException {
 		logger.debug("*** Security check ***");
 		// Add identity
-		auth.addAuthorizedIdentity(identity);
+		auth.addIdentity(new ApplicationIdentity(identity));
 
 		// Register
 		logger.debug("Register: " + identity);
@@ -132,7 +150,7 @@ class AuthorizationManager {
 		System.out.println("");
 
 		// Remove identity
-		auth.removeAuthorizedIdentity(identity);
+		auth.removeIdentity(identity);
 	}
 
 	private void initStore(KeyStore keyStore, String keyAlias, String keyPwd) throws KeyStoreException, JOSEException {
@@ -166,62 +184,13 @@ class AuthorizationManager {
 		jwtProcessor.setJWSKeySelector(keySelector);
 	}
 
-	public void init(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate)
+	private void init(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate)
 			throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
 			CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {
 		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd, keyPwd, null);
 		initStore(sManager.getKeyStore(), keyAlias, keyPwd);
 
 		securityCheck(UUID.randomUUID().toString());
-	}
-
-	/**
-	 * Operation when receiving a HTTP request at a protected endpoint
-	 * 
-	 * <pre>
-	1. Check if the request contains an Authorization header. 
-	
-	2. Check if the request contains an Authorization: Bearer-header with non-null/empty contents 
-	
-	3. Check if the value of the Authorization: Bearer-header is a JWT object 
-	
-	4. Check if the JWT object is signed 
-	
-	5. Check if the signature of the JWT object is valid. This is to be checked with AS public signature verification key 
-	
-	6. Check the contents of the JWT object 
-	
-	7. Check if the value of "iss" is https://wot.arces.unibo.it:8443/oauth/token 
-	
-	8. Check if the value of "aud" contains https://wot.arces.unibo.it:8443/sparql 
-	
-	9. Accept the request as well as "sub" as the originator of the request and process it as usual
-	 
-	Respond with 401 if not
-	 * 
-	 * </pre>
-	 * 
-	 * @throws SEPASecurityException
-	 */
-
-	private boolean authorizeIdentity(String id) throws SEPASecurityException {
-		logger.debug("Authorize identity:" + id);
-
-		// TODO: WARNING!!! TO BE REMOVED IN PRODUCTION. ONLY FOR TESTING.
-		if (id.equals("SEPATest")) {
-			logger.warn("SEPATest authorized! Setting expiring token period to 5 seconds");
-			auth.addAuthorizedIdentity(id);
-			auth.setTokenExpiringPeriod(id, 5);
-			return true;
-		}
-
-		if (!auth.isAuthorized(id))
-			return false;
-
-		// Remove identity if it has been authorized
-		auth.removeAuthorizedIdentity(id);
-
-		return true;
 	}
 
 	/**
@@ -258,33 +227,43 @@ class AuthorizationManager {
 	 * @param identity the client identity to be registered
 	 * @throws SEPASecurityException
 	 */
-	public synchronized Response register(String identity) throws SEPASecurityException {
-		logger.info("REGISTER: " + identity);
+	public synchronized Response register(String uid) {
+		logger.info("REGISTER: " + uid);
 
 		// Check if entity is authorized to request credentials
-		if (!authorizeIdentity(identity)) {
-			logger.warn("Not authorized identity " + identity);
+		try {
+			if (!auth.isAuthorized(uid)) {
+				logger.warn("Not authorized identity " + uid);
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "not_authorized_identity",
+						"Client " + uid + " is not authorized");
+			}
+		} catch (SEPASecurityException e) {
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "not_authorized_identity",
-					"Client " + identity + " is not authorized");
+					"Exception on authorizing client " + uid+ " "+e.getMessage());
 		}
 
-		String client_id = null;
-		String client_secret = null;
-
-		// Create credentials
-		// TODO: WARNING!!! TO BE REMOVED IN PRODUCTION. ONLY FOR TESTING.
-		if (identity.equals("SEPATest")) {
-			client_id = "dba";
-			client_secret = "dba";
-		} else {
-			client_id = UUID.randomUUID().toString();
-			client_secret = UUID.randomUUID().toString();
-		}
+		// Generate password
+		String client_secret = UUID.randomUUID().toString();
+		if (uid.equals("SEPATest")) client_secret = "SEPATest";
 		
 		// Store credentials
-		auth.storeCredentials(client_id, client_secret);
+		 try {
+			auth.storeCredentials(auth.getIdentity(uid), client_secret);
+		} catch (SEPASecurityException e) {
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "storing_credentials",
+					"Exception on storing credentials " + uid+ " "+e.getMessage());
+		}
+		
+		// One time registration
+		if (!uid.equals("SEPATest"))
+			try {
+				auth.removeIdentity(uid);
+			} catch (SEPASecurityException e) {
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "remove_identity",
+						"Exception on removing identity " + uid+ " "+e.getMessage());
+			}
 
-		return new RegistrationResponse(client_id, client_secret, jwkPublicKey);
+		return new RegistrationResponse(uid, client_secret, jwkPublicKey);
 	}
 
 	/**
@@ -323,7 +302,7 @@ class AuthorizationManager {
 	 *      </pre>
 	 */
 
-	public synchronized Response getToken(String encodedCredentials) throws SEPASecurityException {
+	public synchronized Response getToken(String encodedCredentials) {
 		logger.debug("Get token");
 
 		// Decode credentials
@@ -354,14 +333,22 @@ class AuthorizationManager {
 		logger.debug("Credentials: " + id + " " + secret);
 
 		// Verify credentials
-		if (!auth.isClientRegistered(id)) {
-			logger.error("Client id: " + id + " is not registered");
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Client identity " + id + " not found");
+		try {
+			if (!auth.containsCredentials(id)) {
+				logger.error("Client id: " + id + " is not registered");
+				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Client identity " + id + " not found");
+			}
+		} catch (SEPASecurityException e2) {
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", e2.getMessage());
 		}
 
-		if (!auth.passwordCheck(id, secret)) {
-			logger.error("Wrong secret: " + secret + " for client id: " + id);
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Client identity " + id + " not authorized");
+		try {
+			if (!auth.checkCredentials(id, secret)) {
+				logger.error("Wrong secret: " + secret + " for client id: " + id);
+				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Client identity " + id + " not authorized");
+			}
+		} catch (SEPASecurityException e2) {
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", e2.getMessage());
 		}
 
 		// Prepare JWT with claims set
@@ -369,28 +356,32 @@ class AuthorizationManager {
 		Date now = new Date();
 
 		// If not yet expired return an error
-		if (auth.containsToken(id)) {
-			Date expiring = auth.getExpiringTime(id);
-			long expiringUnixSeconds = (expiring.getTime() / 1000) * 1000;
-			long nowUnixSeconds = (now.getTime() / 1000) * 1000;
-			long delta = expiringUnixSeconds - nowUnixSeconds;
-			
-			// Expires if major than current time
-			logger.debug("ID: " + id + " ==> Token will expire in: " + delta + " ms");
-			if (delta > 0) {
-				logger.warn("Token is NOT EXPIRED. Return the current token.");
+		try {
+			if (auth.containsToken(id)) {
+				Date expiring = auth.getTokenExpiringDate(id);
+				long expiringUnixSeconds = (expiring.getTime() / 1000) * 1000;
+				long nowUnixSeconds = (now.getTime() / 1000) * 1000;
+				long delta = expiringUnixSeconds - nowUnixSeconds;
 				
-				JWTResponse jwt = null;
-				try {
-					jwt = new JWTResponse(auth.getToken(id));
-				} catch (SEPASecurityException e) {
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
-							"Failed to retrieve expiring period of id: " + id);
+				// Expires if major than current time
+				logger.debug("ID: " + id + " ==> Token will expire in: " + delta + " ms");
+				if (delta > 0) {
+					logger.warn("Token is NOT EXPIRED. Return the current token.");
+					
+					JWTResponse jwt = null;
+					try {
+						jwt = new JWTResponse(auth.getToken(id));
+					} catch (SEPASecurityException e) {
+						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
+								"Failed to retrieve expiring period of id: " + id);
+					}
+					
+					return jwt;
 				}
-				
-				return jwt;
+				logger.debug("Token is EXPIRED. Release a fresh token.");
 			}
-			logger.debug("Token is EXPIRED. Release a fresh token.");
+		} catch (SEPASecurityException e2) {
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "ldap_error", e2.getMessage());
 		}
 
 		// Define validity period
@@ -411,7 +402,12 @@ class AuthorizationManager {
 		 * is OPTIONAL.
 		 */
 
-		claimsSetBuilder.issuer(auth.getIssuer());
+		try {
+			claimsSetBuilder.issuer(auth.getIssuer());
+		} catch (SEPASecurityException e1) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_scope",
+					e1.getMessage());
+		}
 
 		/*
 		 * 4.1.2. "sub" (Subject) Claim
@@ -424,7 +420,12 @@ class AuthorizationManager {
 		 * StringOrURI value. Use of this claim is OPTIONAL.
 		 */
 
-		claimsSetBuilder.subject(auth.getSubject());
+		try {
+			claimsSetBuilder.subject(auth.getSubject());
+		} catch (SEPASecurityException e1) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_scope",
+					e1.getMessage());
+		}
 
 		/*
 		 * 4.1.3. "aud" (Audience) Claim
@@ -442,8 +443,18 @@ class AuthorizationManager {
 		 */
 
 		ArrayList<String> audience = new ArrayList<String>();
-		audience.add(auth.getHttpsAudience());
-		audience.add(auth.getWssAudience());
+		try {
+			audience.add(auth.getHttpsAudience());
+		} catch (SEPASecurityException e1) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_scope",
+					e1.getMessage());
+		}
+		try {
+			audience.add(auth.getWssAudience());
+		} catch (SEPASecurityException e1) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_scope",
+					e1.getMessage());
+		}
 		claimsSetBuilder.audience(audience);
 
 		/*
@@ -498,7 +509,7 @@ class AuthorizationManager {
 		 * value is a case- sensitive string. Use of this claim is OPTIONAL.
 		 */
 
-		claimsSetBuilder.jwtID(id + ":" + secret+":"+UUID.randomUUID());
+		claimsSetBuilder.jwtID(id);
 
 		JWTClaimsSet jwtClaims = claimsSetBuilder.build();
 
@@ -520,7 +531,12 @@ class AuthorizationManager {
 		}
 
 		// Add the token to the released tokens
-		auth.addToken(id, signedJWT);
+		try {
+			auth.addToken(id, signedJWT);
+		} catch (SEPASecurityException e1) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
+					e1.getMessage());
+		}
 
 		JWTResponse jwt = null;
 		try {
@@ -592,8 +608,9 @@ class AuthorizationManager {
 	 * </pre>
 	 * 
 	 * @param accessToken the JWT token to be validate according to points 4-9
+	 * @throws SEPASecurityException 
 	 */
-	public synchronized AuthorizationResponse validateToken(String accessToken) {
+	public synchronized AuthorizationResponse validateToken(String accessToken) throws SEPASecurityException {
 		logger.trace("Validate token");
 
 		// Parse token
@@ -640,6 +657,7 @@ class AuthorizationManager {
 		if (expiring.getTime() - nowUnixSeconds < 0) {
 			logger.warn("Token is expired: " + sdf.format(claimsSet.getExpirationTime()) + " < "
 					+ sdf.format(new Date(nowUnixSeconds)));
+			
 			return new AuthorizationResponse("invalid_grant","Token issued at "+sdf.format(claimsSet.getIssueTime())+" is expired: " + sdf.format(claimsSet.getExpirationTime())
 					+ " < " + sdf.format(now));
 		}
@@ -649,8 +667,7 @@ class AuthorizationManager {
 			return new AuthorizationResponse("invalid_scope","Token can not be used before: " + claimsSet.getNotBeforeTime());
 		}
 
-		return new AuthorizationResponse(
-				new ClientCredentials(claimsSet.getJWTID().split(":")[0], claimsSet.getJWTID().split(":")[1]));
+		return new AuthorizationResponse(auth.getEndpointCredentials(claimsSet.getJWTID()));
 	}
 
 	public SSLContext getSSLContext() throws SEPASecurityException {

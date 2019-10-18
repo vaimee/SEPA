@@ -3,6 +3,7 @@ package it.unibo.arces.wot.sepa.engine.protocol.sparql11;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationResponse;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
@@ -36,9 +37,10 @@ According to RFC6749, the error member can assume the following values: invalid_
 	
 NOTE: In this implementation, the use of an expired token corresponds to a "invalid_grant" error
 </pre>
+	 * @throws SEPASecurityException 
 	 */
 	@Override
-	protected AuthorizationResponse authorize(HttpRequest request) {
+	protected AuthorizationResponse authorize(HttpRequest request) throws SEPASecurityException {
 		// Extract Bearer authorization
 		Header[] bearer = request.getHeaders("Authorization");
 

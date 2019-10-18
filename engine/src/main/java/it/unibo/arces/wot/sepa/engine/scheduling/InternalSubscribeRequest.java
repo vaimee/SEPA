@@ -1,14 +1,14 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
-import it.unibo.arces.wot.sepa.engine.dependability.ClientCredentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
 
 public class InternalSubscribeRequest extends InternalQueryRequest {
 
 	private String alias = null;
 	private EventHandler gate;
 	
-	public InternalSubscribeRequest(String sparql, String alias,String defaultGraphUri, String namedGraphUri,EventHandler gate,ClientCredentials credentials) {
+	public InternalSubscribeRequest(String sparql, String alias,String defaultGraphUri, String namedGraphUri,EventHandler gate,Credentials credentials) {
 		super(sparql, defaultGraphUri, namedGraphUri,credentials);
 		
 		this.alias = alias;

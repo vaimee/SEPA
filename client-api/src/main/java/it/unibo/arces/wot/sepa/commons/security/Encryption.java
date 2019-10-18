@@ -25,7 +25,7 @@ class Encryption {
 	private static Key key = new SecretKeySpec(keyValue, ALGO);
 
 	/**
-	 * Inits the.
+	 * Init the secret value.
 	 *
 	 * @param secret
 	 *            the secret

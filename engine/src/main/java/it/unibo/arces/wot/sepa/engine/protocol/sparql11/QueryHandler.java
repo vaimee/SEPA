@@ -10,8 +10,9 @@ import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationResponse;
-import it.unibo.arces.wot.sepa.engine.dependability.ClientCredentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
@@ -33,7 +34,7 @@ public class QueryHandler extends SPARQL11Handler {
 	}
 
 	@Override
-	protected InternalUQRequest parse(HttpAsyncExchange exchange,ClientCredentials credentials) throws SPARQL11ProtocolException {
+	protected InternalUQRequest parse(HttpAsyncExchange exchange,Credentials credentials) throws SPARQL11ProtocolException {
 		switch (exchange.getRequest().getRequestLine().getMethod().toUpperCase()) {
 		case "GET":
 			 /* <pre>
@@ -91,7 +92,7 @@ public class QueryHandler extends SPARQL11Handler {
 	}
 
 	@Override
-	protected AuthorizationResponse authorize(HttpRequest request) {
+	protected AuthorizationResponse authorize(HttpRequest request) throws SEPASecurityException {
 		return new AuthorizationResponse();
 	}
 }
