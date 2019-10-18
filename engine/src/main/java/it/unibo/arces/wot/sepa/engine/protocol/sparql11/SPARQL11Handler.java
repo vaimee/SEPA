@@ -22,12 +22,13 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationResponse;
-import it.unibo.arces.wot.sepa.engine.dependability.ClientCredentials;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
@@ -59,7 +60,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		return true;
 	}
 
-	protected abstract AuthorizationResponse authorize(HttpRequest request);
+	protected abstract AuthorizationResponse authorize(HttpRequest request) throws SEPASecurityException;
 
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
 		if (!Dependability.processCORSRequest(exchange)) {
@@ -77,7 +78,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		return true;
 	}
 
-	protected abstract InternalUQRequest parse(HttpAsyncExchange exchange,ClientCredentials credentials);
+	protected abstract InternalUQRequest parse(HttpAsyncExchange exchange,Credentials credentials);
 
 	/**
 	 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
@@ -105,7 +106,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	 * </pre>
 	 * 
 	 */
-	protected InternalUQRequest parsePost(HttpAsyncExchange exchange, String type, ClientCredentials credentials) {
+	protected InternalUQRequest parsePost(HttpAsyncExchange exchange, String type, Credentials credentials) {
 		String contentTypePost = "application/sparql-query";
 		String defGraph = "default-graph-uri";
 		String namedGraph = "named-graph-uri";
@@ -189,7 +190,14 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		}
 		
 		// Authorize
-		AuthorizationResponse oauth = authorize(httpExchange.getRequest());
+		AuthorizationResponse oauth = null;
+		try {
+			oauth = authorize(httpExchange.getRequest());
+		} catch (SEPASecurityException e1) {
+			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"oauth_exception",e1.getMessage()));
+			jmx.authorizingFailed();
+			return;
+		}
 		if (!oauth.isAuthorized()) {
 //			final Header header = httpExchange.getRequest().getLastHeader("Authorization");
 			logger.error("<< NOT AUTHORIZED: " + oauth.getError());

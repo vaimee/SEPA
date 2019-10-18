@@ -40,7 +40,7 @@ public class ITSPARQL11SEProtocol {
 	private static SPARQL11Protocol client;
 	private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
 	private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
-
+	
 	@BeforeClass
 	public static void init() throws Exception {
 		provider = new ConfigurationProvider();
@@ -54,7 +54,7 @@ public class ITSPARQL11SEProtocol {
 
 			// Registration
 			Response response = sm.register(VALID_ID);
-			assertFalse("Failed to register a valid ID", response.isError());
+			assertFalse(response.toString(), response.isError());
 		}
 	}
 
@@ -98,7 +98,7 @@ public class ITSPARQL11SEProtocol {
 	public void RegisterNotAllowed() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
 			Response response = sm.register(NOT_VALID_ID);
-			assertFalse("Failed to register a not valid ID", !response.isError());
+			assertFalse(response.toString(), !response.isError());
 		}
 	}
 
@@ -106,7 +106,7 @@ public class ITSPARQL11SEProtocol {
 	public void Register() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
 			Response response = sm.register(VALID_ID);
-			assertFalse("Failed to register a valid ID", response.isError());
+			assertFalse(response.toString(), response.isError());
 		}
 	}
 
@@ -191,7 +191,7 @@ public class ITSPARQL11SEProtocol {
 			Thread.sleep(expiringTime + 1000);
 			final Response tokenTest = client.query(provider.buildQueryRequest("ALL", 5000, authorization));
 
-			assertTrue("Response should be error since the token is expired", tokenTest.isError());
+			assertTrue(tokenTest.toString(), tokenTest.isError());
 		}
 	}
 
@@ -299,13 +299,13 @@ public class ITSPARQL11SEProtocol {
 	@Test(timeout = 5000)
 	public void Notify() throws IOException, IllegalArgumentException, SEPAProtocolException, SEPAPropertiesException,
 			SEPASecurityException, InterruptedException {
-
+		
 		subscribers.add(new Subscriber("VAIMEE", sync));
 		for (Subscriber sub : subscribers)
 			sub.start();
 
 		sync.waitSubscribes(subscribers.size());
-
+		
 		publishers.add(new Publisher("VAIMEE", 1));
 		for (Publisher pub : publishers)
 			pub.start();
@@ -317,7 +317,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse("Events:" + sync.getEvents() + "(1)", sync.getEvents() != 1);
 	}
 
-	@Test(timeout = 60000)
+	@Test(timeout = 60000)	
 	public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
 

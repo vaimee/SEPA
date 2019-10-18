@@ -14,6 +14,7 @@ import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -21,8 +22,8 @@ import it.unibo.arces.wot.sepa.engine.bean.GateBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.AuthorizationResponse;
-import it.unibo.arces.wot.sepa.engine.dependability.ClientCredentials;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
 
 public abstract class Gate implements ResponseHandler, EventHandler {
 	private static final Logger logger = LogManager.getLogger();
@@ -99,7 +100,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			error.setAlias(subUnsub.get("alias").getAsString());
 	}
 
-	public final void onMessage(String message) throws SEPAProtocolException {
+	public final void onMessage(String message) throws SEPAProtocolException, SEPASecurityException {
 		// Authorize the request
 		AuthorizationResponse auth = authorize(message);
 		if (!auth.isAuthorized()) {
@@ -185,8 +186,9 @@ public abstract class Gate implements ResponseHandler, EventHandler {
                authorization server.
 	 * 
 	 * </pre>
+	 * @throws SEPASecurityException 
 	 */
-	protected final AuthorizationResponse authorize(String message) {
+	protected final AuthorizationResponse authorize(String message) throws SEPASecurityException {
 		if (!authorizationRequired)
 			return new AuthorizationResponse();
 
@@ -264,7 +266,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	 * 
 	 * @throws SEPAProtocolException
 	 */
-	protected final InternalRequest parseRequest(String request, ClientCredentials credentials)
+	protected final InternalRequest parseRequest(String request, Credentials credentials)
 			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException,
 			SEPAProtocolException {
 		JsonObject req;

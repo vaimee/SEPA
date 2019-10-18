@@ -1,11 +1,11 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
-import it.unibo.arces.wot.sepa.engine.dependability.ClientCredentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
 
 public abstract class InternalRequest {
-	private ClientCredentials credentials;
+	private Credentials credentials;
 	
-	public InternalRequest(ClientCredentials credentials) {
+	public InternalRequest(Credentials credentials) {
 		this.credentials = credentials;
 	}
 	
@@ -25,7 +25,7 @@ public abstract class InternalRequest {
 		return this.getClass().equals(InternalUnsubscribeRequest.class);
 	}
 	
-	public ClientCredentials getCredentials() {
+	public Credentials getCredentials() {
 		return credentials;
 	}
 }

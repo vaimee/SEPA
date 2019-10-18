@@ -19,6 +19,7 @@ import org.java_websocket.server.WebSocketServer;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -127,7 +128,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 				else {
 					logger.error("Gate NOT FOUND: "+conn);
 				}
-			} catch (SEPAProtocolException e) {
+			} catch (SEPAProtocolException | SEPASecurityException e) {
 				logger.error(e);
 			}
 		}

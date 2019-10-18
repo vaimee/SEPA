@@ -22,6 +22,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 import java.util.TimeZone;
+
 import java.util.Iterator;
 import java.util.regex.PatternSyntaxException;
 
@@ -57,7 +58,8 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.9.8";
+	private final static String version = "0.9.9";
+	
 	private EngineProperties properties = null;
 
 	// Primitives scheduler/dispatcher
@@ -74,19 +76,26 @@ public class Engine implements EngineMBean {
 	private HttpsGate httpsGate = null;
 	private int wsShutdownTimeout = 5000;
 
+	// Properties files
+	private String engineJpar = "engine.jpar";
+	private String endpointJpar = "endpoint.jpar";
+	
+	// Secure option
+	private Optional<Boolean> secure = Optional.empty();
+
 	// JKS default credentials
 	private String storeName = "sepa.jks";
 	private String storePassword = "sepa2017";
 	private String jwtAlias = "sepakey";
 	private String jwtPassword = "sepa2017";
 	private String serverCertificate = "sepacert";
-
-	// Properties files
-	private String engineJpar = "engine.jpar";
-	private String endpointJpar = "endpoint.jpar";
-
-	// Secure option
-	private Optional<Boolean> secure = Optional.empty();
+	
+	// LDAP
+	private String ldapHost = "localhost";
+	private int ldapPort = 10389;
+	private String ldapDn ="o=vaimee";
+	private String ldapUser = null;
+	private String ldapPwd = null;
 
 	// Logging file name
 	static {
@@ -106,7 +115,7 @@ public class Engine implements EngineMBean {
 	private void printUsage() {
 		System.out.println("Usage:");
 		System.out.println(
-				"java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-secure=true] [-engine=engine.jpar] [-endpoint=endpoint.jpar] [JKS OPTIONS]");
+				"java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-secure=true] [-engine=engine.jpar] [-endpoint=endpoint.jpar] [JKS OPTIONS] [LDAP OPTIONS]");
 		System.out.println("Options: ");
 		System.out.println("-secure : overwrite the current secure option of engine.jpar");
 		System.out.println(
@@ -131,6 +140,12 @@ public class Engine implements EngineMBean {
 		System.out.println("-alias=<jwt> : alias for the JWT key         (default: sepakey)");
 		System.out.println("-aliaspwd=<pwd> : password of the JWT key    (default: sepa2017)");
 		System.out.println("-certificate=<crt> : name of the certificate (default: sepacert)");
+		System.out.println("LDAP OPTIONS:");
+		System.out.println("-ldaphost=<name> : host     		         (default: localhost)");
+		System.out.println("-ldapport=<port> : port                      (default: 10389)");
+		System.out.println("-ldapdn=<dn> : domain                        (default: o=vaimee)");
+		System.out.println("-ldapusr=<usr> : username                    (default: null)");
+		System.out.println("-ldappwd=<pwd> : password                    (default: null)");
 	}
 
 	private void parsingArgument(String[] args) throws PatternSyntaxException {
@@ -167,6 +182,21 @@ public class Engine implements EngineMBean {
 				case "-secure":
 				    secure = Optional.of(Boolean.parseBoolean(tmp[1]));
 				    break;
+				case "-ldaphost":
+					ldapHost = tmp[1];
+					break;
+				case "-ldapport":
+					ldapPort  = Integer.parseInt(tmp[1]);
+					break;
+				case "-ldapdn":
+					ldapDn  = tmp[1];
+					break;
+				case "-ldapuser":
+					ldapUser = tmp[1];
+					break;
+				case "-ldappwd":
+					ldapPwd = tmp[1];
+					break;
 				default:
 					break;
 				}
@@ -178,7 +208,7 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 		System.out
-				.println("# SPARQL Event Processing Architecture broker                                            #");
+				.println("# SPARQL Event Processing Architecture Broker                                            #");
 		System.out
 				.println("# Dynamic Linked Data & Web of Things Research - University of Bologna (Italy)           #");
 		System.out
@@ -194,9 +224,9 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("# GITHUB: https://github.com/arces-wot/sepa                                              #");
 		System.out
-				.println("# WEB: http://site.unibo.it/wot                                                          #");
+				.println("# WEB:    http://site.unibo.it/wot                                                          #");
 		System.out
-				.println("# WIKI: https://github.com/arces-wot/SEPA/wiki                                           #");
+				.println("# WIKI:   https://github.com/arces-wot/SEPA/wiki                                           #");
 		System.out
 				.println("##########################################################################################");
 
@@ -219,7 +249,7 @@ public class Engine implements EngineMBean {
 
 			// OAUTH 2.0 Authorization Manager
 			if (properties.isSecure()) {
-				Dependability.enableSecurity(storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
+				Dependability.enableSecurity(ldapHost,ldapPort,ldapDn,ldapUser,ldapPwd,storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
 			} 
 			
 			// SPARQL 1.1 SE request scheduler
