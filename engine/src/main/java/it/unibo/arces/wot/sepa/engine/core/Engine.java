@@ -224,9 +224,9 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("# GITHUB: https://github.com/arces-wot/sepa                                              #");
 		System.out
-				.println("# WEB:    http://site.unibo.it/wot                                                          #");
+				.println("# WEB:    http://site.unibo.it/wot                                                       #");
 		System.out
-				.println("# WIKI:   https://github.com/arces-wot/SEPA/wiki                                           #");
+				.println("# WIKI:   https://github.com/arces-wot/SEPA/wiki                                         #");
 		System.out
 				.println("##########################################################################################");
 
@@ -337,7 +337,7 @@ public class Engine implements EngineMBean {
 			System.out.println("");
 			System.out.println(
 					"*****************************************************************************************");
-			System.out.println("*                      SEPA broker Ver " + version
+			System.out.println("*                      SEPA Broker Ver " + version
 					+ " is up and running                          *");
 			System.out.println(
 					"*                                Let Things Talk!                                       *");

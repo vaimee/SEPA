@@ -1,4 +1,4 @@
-/* The class represents a device identity
+/* The class represents the response to an authorization request
  * 
  * Author: Luca Roffia (luca.roffia@unibo.it)
 
@@ -18,19 +18,42 @@
 
 package it.unibo.arces.wot.sepa.engine.dependability.authorization;
 
-public class DeviceIdentity extends DigitalIdentity {
+public class AuthorizationResponse {
 
-	public DeviceIdentity(String uid) {
-		super(uid);
-	}
-
-	public DeviceIdentity(String uid,Credentials cred) {
-		super(uid,cred);
+	private boolean authorized = true;
+	
+	private String error = null;
+	private String description = null;
+	
+	private Credentials credentials = null;
+	
+	public AuthorizationResponse() {
 	}
 	
-	@Override
-	public String getObjectClass() {
-		return "device";
+	public AuthorizationResponse(String error,String description) {
+		this.authorized = false;
+		this.error = error;
+		this.description = description;
+	}
+	
+	public AuthorizationResponse(Credentials credentials) {
+		this.credentials = credentials;
+	}
+	
+	public boolean isAuthorized() {
+		return authorized;
+	}
+	
+	public Credentials getClientCredentials() {
+		return credentials;
+	}
+	
+	public String getError() {
+		return error;
+	}
+	
+	public String getDescription() {
+		return description;
 	}
 
 }

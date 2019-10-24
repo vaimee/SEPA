@@ -1,3 +1,21 @@
+/* Main entry point for dependability management
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.dependability;
 
 import javax.net.ssl.SSLContext;
@@ -9,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
@@ -17,19 +36,19 @@ public class Dependability {
 	
 	private static boolean isSecure = false;
 
-	private static AuthorizationManager authManager;
+	private static SecurityManager authManager;
 	
 	public static boolean isSecure() {
 		return isSecure;
 	}
 	
 	public static void enableSecurity(String host, int port, String base, String uid, String pwd,String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws SEPASecurityException {
-		authManager = new AuthorizationManager(host,port,base,uid,pwd,keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
+		authManager = new SecurityManager(host,port,base,uid,pwd,keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
 		isSecure = true;
 	}
 	
 	public static void enableSecurity(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws SEPASecurityException {
-		authManager = new AuthorizationManager(keystoreFileName,keystorePwd,keyAlias,keyPwd, certificate);
+		authManager = new SecurityManager(keystoreFileName,keystorePwd,keyAlias,keyPwd, certificate);
 		isSecure = true;
 	}
 	

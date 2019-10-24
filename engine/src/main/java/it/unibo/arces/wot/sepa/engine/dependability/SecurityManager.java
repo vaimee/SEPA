@@ -71,11 +71,12 @@ import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.ApplicationIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.InMemoryAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapAuthorization;
 
-class AuthorizationManager {
+class SecurityManager {
 	private static final Logger logger = LogManager.getLogger();
 
 	// *************************
@@ -88,7 +89,7 @@ class AuthorizationManager {
 	private SEPASecurityManager sManager;
 	private IAuthorization auth;
 
-	public AuthorizationManager(String host, int port, String base, String uid, String pwd,String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate) throws SEPASecurityException {
+	public SecurityManager(String host, int port, String base, String uid, String pwd,String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate) throws SEPASecurityException {
 		try {
 			auth = new LdapAuthorization(host, port, base, uid, pwd);
 		} catch (LdapException e1) {
@@ -103,7 +104,7 @@ class AuthorizationManager {
 		}
 	}
 	
-	public AuthorizationManager(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate) throws SEPASecurityException {
+	public SecurityManager(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate) throws SEPASecurityException {
 		auth = new InMemoryAuthorization();
 		
 		try {
@@ -277,7 +278,8 @@ class AuthorizationManager {
 	 * @see JWTResponse
 	 * @see ErrorResponse
 	 * 
-	 *      <pre>
+	 *    
+	<pre>
 	POST https://wot.arces.unibo.it:8443/oauth/token
 	 
 	Content-Type: application/x-www-form-urlencoded
@@ -299,7 +301,41 @@ class AuthorizationManager {
 	 }
 	
 	According to RFC6749, the error member can assume the following values: invalid_request, invalid_client, invalid_grant, unauthorized_client, unsupported_grant_type, invalid_scope.
-	 *      </pre>
+	
+	invalid_request
+               The request is missing a required parameter, includes an
+               unsupported parameter value (other than grant type),
+               repeats a parameter, includes multiple credentials,
+               utilizes more than one mechanism for authenticating the
+               client, or is otherwise malformed.
+
+         invalid_client
+               Client authentication failed (e.g., unknown client, no
+               client authentication included, or unsupported
+               authentication method).  The authorization server MAY
+               return an HTTP 401 (Unauthorized) status code to indicate
+               which HTTP authentication schemes are supported.  If the
+               client attempted to authenticate via the "Authorization"
+               request header field, the authorization server MUST
+               respond with an HTTP 401 (Unauthorized) status code and
+               include the "WWW-Authenticate" response header field
+               matching the authentication scheme used by the client.
+
+         invalid_grant
+               The provided authorization grant (e.g., authorization
+               code, resource owner credentials) or refresh token is
+               invalid, expired, revoked, does not match the redirection
+               URI used in the authorization request, or was issued to
+               another client.
+
+         unauthorized_client
+               The authenticated client is not authorized to use this
+               authorization grant type.
+
+         unsupported_grant_type
+               The authorization grant type is not supported by the
+               authorization server.
+		</pre>
 	 */
 
 	public synchronized Response getToken(String encodedCredentials) {
@@ -311,7 +347,7 @@ class AuthorizationManager {
 			decoded = Base64.getDecoder().decode(encodedCredentials);
 		} catch (IllegalArgumentException e) {
 			logger.error("Not authorized");
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_client", e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_request", e.getMessage());
 		}
 
 		// Parse credentials
@@ -355,7 +391,7 @@ class AuthorizationManager {
 		JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
 		Date now = new Date();
 
-		// If not yet expired return an error
+		// Check if the token is not expired
 		try {
 			if (auth.containsToken(id)) {
 				Date expiring = auth.getTokenExpiringDate(id);
@@ -372,8 +408,8 @@ class AuthorizationManager {
 					try {
 						jwt = new JWTResponse(auth.getToken(id));
 					} catch (SEPASecurityException e) {
-						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
-								"Failed to retrieve expiring period of id: " + id);
+						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
+								"Failed to retrieve expiring period");
 					}
 					
 					return jwt;
@@ -381,16 +417,7 @@ class AuthorizationManager {
 				logger.debug("Token is EXPIRED. Release a fresh token.");
 			}
 		} catch (SEPASecurityException e2) {
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "ldap_error", e2.getMessage());
-		}
-
-		// Define validity period
-		Date expires;
-		try {
-			expires = new Date(now.getTime() + (auth.getTokenExpiringPeriod(id) * 1000));
-		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
-					"Failed to retrieve expiring period of id: " + id);
+			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "security_error", e2.getMessage());
 		}
 
 		/*
@@ -405,7 +432,7 @@ class AuthorizationManager {
 		try {
 			claimsSetBuilder.issuer(auth.getIssuer());
 		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_scope",
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_issuer",
 					e1.getMessage());
 		}
 
@@ -423,7 +450,7 @@ class AuthorizationManager {
 		try {
 			claimsSetBuilder.subject(auth.getSubject());
 		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_scope",
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_subject",
 					e1.getMessage());
 		}
 
@@ -446,13 +473,13 @@ class AuthorizationManager {
 		try {
 			audience.add(auth.getHttpsAudience());
 		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_scope",
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_https_audience",
 					e1.getMessage());
 		}
 		try {
 			audience.add(auth.getWssAudience());
 		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_scope",
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_wss_audience",
 					e1.getMessage());
 		}
 		claimsSetBuilder.audience(audience);
@@ -472,6 +499,14 @@ class AuthorizationManager {
 		/*
 		 * NOTICE: this date is serialized as SECONDS from UNIX time NOT milliseconds!
 		 */
+		// Define the expiration time
+		Date expires;
+		try {
+			expires = new Date(now.getTime() + (auth.getTokenExpiringPeriod(id) * 1000));
+		} catch (SEPASecurityException e1) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
+					"Failed to retrieve expiring period");
+		}
 		claimsSetBuilder.expirationTime(expires);
 
 		/*
@@ -521,20 +556,20 @@ class AuthorizationManager {
 			signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), JWTClaimsSet.parse(jwtClaims.toString()));
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_grant", "ParseException: " + e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "parsing_exception", "ParseException: " + e.getMessage());
 		}
 		try {
 			signedJWT.sign(signer);
 		} catch (JOSEException e) {
 			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_grant", "JOSEException: " + e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "sign_exception", "JOSEException: " + e.getMessage());
 		}
 
 		// Add the token to the released tokens
 		try {
 			auth.addToken(id, signedJWT);
 		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
 					e1.getMessage());
 		}
 
@@ -542,8 +577,8 @@ class AuthorizationManager {
 		try {
 			jwt = new JWTResponse(signedJWT);
 		} catch (SEPASecurityException e) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ldap_error",
-					"Failed to retrieve expiring period of id: " + id);
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
+					"Failed to retrieve expiring period");
 		}
 		logger.debug("Released token: " + jwt);
 		
@@ -571,7 +606,7 @@ class AuthorizationManager {
 	
 	According to RFC6749, the error member can assume the following values: invalid_request, invalid_client, invalid_grant, unauthorized_client, unsupported_grant_type, invalid_scope.
 	
-	         invalid_request
+	     invalid_request
                The request is missing a required parameter, includes an
                unsupported parameter value (other than grant type),
                repeats a parameter, includes multiple credentials,
@@ -626,11 +661,11 @@ class AuthorizationManager {
 		try {
 			if (!signedJWT.verify(verifier)) {
 				logger.error("Signed JWT not verified");
-				return new AuthorizationResponse("invalid_request","Signed JWT not verified");
+				return new AuthorizationResponse("invalid_grant","Signed JWT not verified");
 			}
 
 		} catch (JOSEException e) {
-			return new AuthorizationResponse("unsupported_grant_type","JOSEException: " + e.getMessage());
+			return new AuthorizationResponse("invalid_grant","JOSEException: " + e.getMessage());
 		}
 
 		// Process token (validate)
@@ -639,13 +674,13 @@ class AuthorizationManager {
 			claimsSet = jwtProcessor.process(accessToken, new SEPASecurityContext());
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("unsupported_grant_type","ParseException: " + e.getMessage());
+			return new AuthorizationResponse("invalid_grant","ParseException: " + e.getMessage());
 		} catch (BadJOSEException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("unsupported_grant_type","BadJOSEException: " + e.getMessage());
+			return new AuthorizationResponse("invalid_grant","BadJOSEException: " + e.getMessage());
 		} catch (JOSEException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("unsupported_grant_type","JOSEException: " + e.getMessage());
+			return new AuthorizationResponse("invalid_grant","JOSEException: " + e.getMessage());
 		}
 
 		// Check token expiration (an "invalid_grant" error is raised if the token is expired)
@@ -664,7 +699,7 @@ class AuthorizationManager {
 
 		if (notBefore != null && nowUnixSeconds < notBefore.getTime()) {
 			logger.warn("Token can not be used before: " + claimsSet.getNotBeforeTime());
-			return new AuthorizationResponse("invalid_scope","Token can not be used before: " + claimsSet.getNotBeforeTime());
+			return new AuthorizationResponse("invalid_grant","Token can not be used before: " + claimsSet.getNotBeforeTime());
 		}
 
 		return new AuthorizationResponse(auth.getEndpointCredentials(claimsSet.getJWTID()));
