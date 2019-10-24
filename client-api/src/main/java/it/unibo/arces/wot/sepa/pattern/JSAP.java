@@ -864,6 +864,8 @@ public class JSAP extends SPARQL11SEProperties {
 	public Set<String> getUpdateIds() {
 		HashSet<String> ret = new HashSet<String>();
 
+		if (!jsap.has("updates")) return ret;
+		
 		try {
 			for (Entry<String, JsonElement> key : jsap.getAsJsonObject("updates").entrySet()) {
 				ret.add(key.getKey());
@@ -878,6 +880,8 @@ public class JSAP extends SPARQL11SEProperties {
 	public Set<String> getQueryIds() {
 		HashSet<String> ret = new HashSet<String>();
 
+		if (!jsap.has("queries")) return ret;
+		
 		try {
 			for (Entry<String, JsonElement> key : jsap.getAsJsonObject("queries").entrySet()) {
 				ret.add(key.getKey());
