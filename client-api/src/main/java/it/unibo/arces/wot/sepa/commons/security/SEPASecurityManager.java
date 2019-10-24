@@ -191,13 +191,13 @@ public class SEPASecurityManager implements HostnameVerifier {
 	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
 			AuthenticationProperties oauthProp) throws SEPASecurityException {
 		// Arguments check
-		if (jksName == null || jksPassword == null)
-			throw new IllegalArgumentException("JKS name or password are null");
+		if (jksName == null || jksPassword == null || keyPassword == null)
+			throw new SEPASecurityException("JKS name or passwords are null");
 
 		// Initialize SSL context
 		File f = new File(jksName);
 		if (!f.exists() || f.isDirectory())
-			throw new SEPASecurityException(new KeyStoreException(jksName + " not found"));
+			throw new SEPASecurityException(jksName + " not found");
 
 		try {
 			keystore = KeyStore.getInstance("JKS");
@@ -218,7 +218,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 							protocolStrings, null, this);
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
 				| UnrecoverableKeyException | KeyManagementException e) {
-			throw new SEPASecurityException(e);
+			throw new SEPASecurityException(e.getMessage());
 		}
 
 		oauthProperties = oauthProp;
@@ -318,6 +318,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 	 * @param identity is a string that identifies the client (e.g., registration
 	 *                 code, MAC address, EPC, ...)
 	 * @return RegistrationResponse or ErrorResponse in case of an error
+	 * 
 	 * @see RegistrationResponse
 	 * @see ErrorResponse
 	 * @throws SEPAPropertiesException
@@ -355,8 +356,28 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 		return oauthProperties.getBearerAuthorizationHeader();
 	}
+	
+	public void storeOAuthProperties() throws SEPAPropertiesException, SEPASecurityException {
+		oauthProperties.storeProperties();
+	}
+	
+	public boolean isTokenExpired() {
+		return oauthProperties.isTokenExpired();
+	}
+	
+	public boolean isClientRegistered() {
+		return oauthProperties.isClientRegistered();
+	}
+	
+	public void setClientCredentials(String username,String password) throws SEPAPropertiesException, SEPASecurityException {
+		oauthProperties.setCredentials(username, password);
+	}
 
-	public void refreshToken() throws SEPAPropertiesException, SEPASecurityException {	
+	public Response refreshToken() throws SEPAPropertiesException, SEPASecurityException {	
+		if(!isClientRegistered()) {
+			return new ErrorResponse(401,"invalid_client","Client is not registered");
+		}
+		
 		Response ret = requestToken(oauthProperties.getTokenRequestUrl(),
 				oauthProperties.getBasicAuthorizationHeader());
 	
@@ -367,8 +388,10 @@ public class SEPASecurityManager implements HostnameVerifier {
 	
 			oauthProperties.setJWT(jwt);
 		} else {
-			logger.error("FAILED to request a new token " + new Date() + " Response: " + ret);
+			logger.error("FAILED to refresh token " + new Date() + " Response: " + ret);
 		}
+		
+		return ret;
 	}
 
 //	/**
@@ -544,5 +567,9 @@ public class SEPASecurityManager implements HostnameVerifier {
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
 		}
+	}
+
+	public String getClientId() {
+		return oauthProperties.getClientId();
 	}
 }
