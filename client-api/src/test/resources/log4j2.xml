@@ -18,13 +18,13 @@ ALL					Integer.MAX_VALUE
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
 		</Console>
-		<File name="Log" fileName="logs/${sys:logFilename}.csv">
-			<PatternLayout pattern="%m\n"/>
-		</File>
+<!-- 		<File name="Log" fileName="logs/${sys:logFilename}.csv"> -->
+<!-- 			<PatternLayout pattern="%m\n"/> -->
+<!-- 		</File> -->
 	</Appenders>
 	<Loggers>
-		<Root level="fatal">
-			<AppenderRef ref="Console" level="warn"/>
+		<Root level="debug">
+			<AppenderRef ref="Console" level="debug"/>
 		</Root>
 	</Loggers>
 </Configuration>

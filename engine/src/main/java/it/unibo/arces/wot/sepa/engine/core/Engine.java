@@ -59,7 +59,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class Engine implements EngineMBean {
 	private final static String version = "0.9.9";
-	
+
 	private EngineProperties properties = null;
 
 	// Primitives scheduler/dispatcher
@@ -79,7 +79,7 @@ public class Engine implements EngineMBean {
 	// Properties files
 	private String engineJpar = "engine.jpar";
 	private String endpointJpar = "endpoint.jpar";
-	
+
 	// Secure option
 	private Optional<Boolean> secure = Optional.empty();
 
@@ -89,11 +89,11 @@ public class Engine implements EngineMBean {
 	private String jwtAlias = "sepakey";
 	private String jwtPassword = "sepa2017";
 	private String serverCertificate = "sepacert";
-	
+
 	// LDAP
 	private String ldapHost = "localhost";
 	private int ldapPort = 10389;
-	private String ldapDn ="o=vaimee";
+	private String ldapDn = "dc=example,dc=com";
 	private String ldapUser = null;
 	private String ldapPwd = null;
 
@@ -135,73 +135,90 @@ public class Engine implements EngineMBean {
 		System.out.println("-Dlog4j.configurationFile=path/to/log4j2.xml");
 		System.out.println("");
 		System.out.println("JKS OPTIONS:");
-		System.out.println("-storename=<name> : file name of the JKS     (default: sepa.jks)");
-		System.out.println("-storepwd=<pwd> : password of the JKS        (default: sepa2017)");
-		System.out.println("-alias=<jwt> : alias for the JWT key         (default: sepakey)");
-		System.out.println("-aliaspwd=<pwd> : password of the JWT key    (default: sepa2017)");
-		System.out.println("-certificate=<crt> : name of the certificate (default: sepacert)");
+		System.out.println("-storename <name> : file name of the JKS     (default: sepa.jks)");
+		System.out.println("-storepwd <pwd> : password of the JKS        (default: sepa2017)");
+		System.out.println("-alias <jwt> : alias for the JWT key         (default: sepakey)");
+		System.out.println("-aliaspwd <pwd> : password of the JWT key    (default: sepa2017)");
+		System.out.println("-certificate <crt> : name of the certificate (default: sepacert)");
 		System.out.println("LDAP OPTIONS:");
-		System.out.println("-ldaphost=<name> : host     		         (default: localhost)");
-		System.out.println("-ldapport=<port> : port                      (default: 10389)");
-		System.out.println("-ldapdn=<dn> : domain                        (default: o=vaimee)");
-		System.out.println("-ldapusr=<usr> : username                    (default: null)");
-		System.out.println("-ldappwd=<pwd> : password                    (default: null)");
+		System.out.println("-ldaphost <name> : host     		         (default: localhost)");
+		System.out.println("-ldapport <port> : port                      (default: 10389)");
+		System.out.println("-ldapdn <dn> : domain                        (default: dc=example,dc=com)");
+		System.out.println("-ldapuser <usr> : username                    (default: null)");
+		System.out.println("-ldappwd <pwd> : password                    (default: null)");
 	}
 
 	private void parsingArgument(String[] args) throws PatternSyntaxException {
-		String[] tmp;
-		for (String arg : args) {
-			if (arg.equals("-help")) {
+		for (int i = 0; i < args.length; i = i + 2) {
+			if (args[i].equals("-help")) {
 				printUsage();
 				return;
 			}
-			if (arg.startsWith("-")) {
-				tmp = arg.split("=");
-				switch (tmp[0]) {
-				case "-storename":
-					storeName = tmp[1];
-					break;
-				case "-storepwd":
-					storePassword = tmp[1];
-					break;
-				case "-alias":
-					jwtAlias = tmp[1];
-					break;
-				case "-aliaspwd":
-					jwtPassword = tmp[1];
-					break;
-				case "-certificate":
-					serverCertificate = tmp[1];
-					break;
-				case "-engine":
-					engineJpar = tmp[1];
-					break;
-				case "-endpoint":
-					endpointJpar = tmp[1];
-					break;
-				case "-secure":
-				    secure = Optional.of(Boolean.parseBoolean(tmp[1]));
-				    break;
-				case "-ldaphost":
-					ldapHost = tmp[1];
-					break;
-				case "-ldapport":
-					ldapPort  = Integer.parseInt(tmp[1]);
-					break;
-				case "-ldapdn":
-					ldapDn  = tmp[1];
-					break;
-				case "-ldapuser":
-					ldapUser = tmp[1];
-					break;
-				case "-ldappwd":
-					ldapPwd = tmp[1];
-					break;
-				default:
-					break;
-				}
+
+			switch (args[i]) {
+			case "-storename":
+				storeName = args[i+1];
+				break;
+			case "-storepwd":
+				storePassword = args[i+1];
+				break;
+			case "-alias":
+				jwtAlias = args[i+1];
+				break;
+			case "-aliaspwd":
+				jwtPassword = args[i+1];
+				break;
+			case "-certificate":
+				serverCertificate = args[i+1];
+				break;
+			case "-engine":
+				engineJpar = args[i+1];
+				break;
+			case "-endpoint":
+				endpointJpar = args[i+1];
+				break;
+			case "-secure":
+				secure = Optional.of(Boolean.parseBoolean(args[i+1]));
+				break;
+			case "-ldaphost":
+				ldapHost = args[i+1];
+				break;
+			case "-ldapport":
+				ldapPort = Integer.parseInt(args[i+1]);
+				break;
+			case "-ldapdn":
+				ldapDn = args[i+1];
+				break;
+			case "-ldapuser":
+				ldapUser = args[i+1];
+				break;
+			case "-ldappwd":
+				ldapPwd = args[i+1];
+				break;
+			default:
+				break;
 			}
+
 		}
+
+		logger.debug("--- JKS ---");
+		logger.debug("-storename: " + storeName);
+		logger.debug("-storepwd: " + storePassword);
+		logger.debug("-alias: " + jwtAlias);
+		logger.debug("-aliaspwd: " + jwtPassword);
+		logger.debug("-certificate: " + serverCertificate);
+
+		logger.debug("--- Engine/endpoint ---");
+		logger.debug("-engine: " + engineJpar);
+		logger.debug("-endpoint: " + endpointJpar);
+		logger.debug("-secure: " + secure);
+
+		logger.debug("--- LDAP ---");
+		logger.debug("-ldaphost: " + ldapHost);
+		logger.debug("-ldapport: " + ldapPort);
+		logger.debug("-ldapdn: " + ldapDn);
+		logger.debug("-ldapuser: " + ldapUser);
+		logger.debug("-ldappwd: " + ldapPwd);
 	}
 
 	public Engine(String[] args) {
@@ -240,8 +257,8 @@ public class Engine implements EngineMBean {
 
 		try {
 			// Initialize SPARQL 1.1 SE processing service properties
-			properties = secure.isPresent() ? new EngineProperties(engineJpar,secure.get())
-                    : new EngineProperties(engineJpar);
+			properties = secure.isPresent() ? new EngineProperties(engineJpar, secure.get())
+					: new EngineProperties(engineJpar);
 
 			EngineBeans.setEngineProperties(properties);
 
@@ -249,16 +266,17 @@ public class Engine implements EngineMBean {
 
 			// OAUTH 2.0 Authorization Manager
 			if (properties.isSecure()) {
-				Dependability.enableSecurity(ldapHost,ldapPort,ldapDn,ldapUser,ldapPwd,storeName, storePassword, jwtAlias, jwtPassword, serverCertificate);
-			} 
-			
+				Dependability.enableSecurity(ldapHost, ldapPort, ldapDn, ldapUser, ldapPwd, storeName, storePassword,
+						jwtAlias, jwtPassword, serverCertificate);
+			}
+
 			// SPARQL 1.1 SE request scheduler
 			scheduler = new Scheduler(properties);
-			
+
 			// SEPA Processor
 			processor = new Processor(endpointProperties, properties, scheduler);
 			Dependability.setProcessor(processor);
-			
+
 			// SPARQL protocol service
 			int port = endpointProperties.getPort();
 			String portS = "";
@@ -343,9 +361,9 @@ public class Engine implements EngineMBean {
 					"*                                Let Things Talk!                                       *");
 			System.out.println(
 					"*****************************************************************************************");
-			
-		} catch (SEPAPropertiesException | SEPASecurityException
-				| IllegalArgumentException | SEPAProtocolException | InterruptedException e) {
+
+		} catch (SEPAPropertiesException | SEPASecurityException | IllegalArgumentException | SEPAProtocolException
+				| InterruptedException e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
 		}
@@ -354,17 +372,17 @@ public class Engine implements EngineMBean {
 
 	public static void printLog4jConfiguration() {
 		System.out.println(">>> Logging <<<");
-		System.out.println("Level: " +logger.getLevel().toString());
+		System.out.println("Level: " + logger.getLevel().toString());
 		final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-        final Configuration config = ctx.getConfiguration();
-        LoggerConfig rootLoggerConfig = config.getLoggers().get("");
-        Iterator<AppenderRef> it = rootLoggerConfig.getAppenderRefs().iterator();
-		while(it.hasNext()) {
+		final Configuration config = ctx.getConfiguration();
+		LoggerConfig rootLoggerConfig = config.getLoggers().get("");
+		Iterator<AppenderRef> it = rootLoggerConfig.getAppenderRefs().iterator();
+		while (it.hasNext()) {
 			AppenderRef ref = it.next();
-			System.out.println("Appender: <"+ref.getRef()+"> Level: "+ref.getLevel());
+			System.out.println("Appender: <" + ref.getRef() + "> Level: " + ref.getLevel());
 		}
 	}
-	
+
 	public static void main(String[] args) throws SEPASecurityException, SEPAProtocolException {
 		// Attach CTRL+C hook
 		Runtime.getRuntime().addShutdownHook(new EngineShutdownHook(new Engine(args)));

@@ -168,7 +168,8 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		JsonObject ret = null;
 		if (responseCode >= 400) {
-			// Parse the JSON error response body
+			// SPARQL 1.1 does not recommend any format
+			// SPARQL 1.1 SE suggests to use a JSON format: http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
 			try {
 				ret = new JsonParser().parse(responseBody).getAsJsonObject();
 			} catch (Exception e) {

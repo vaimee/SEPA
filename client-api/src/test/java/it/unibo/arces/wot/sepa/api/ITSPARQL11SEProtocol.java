@@ -15,6 +15,8 @@ import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -28,6 +30,8 @@ import java.util.ArrayList;
 import static org.junit.Assert.*;
 
 public class ITSPARQL11SEProtocol {
+	protected final Logger logger = LogManager.getLogger();
+	
 	private static JSAP properties = null;
 	private static ConfigurationProvider provider;
 
@@ -79,6 +83,8 @@ public class ITSPARQL11SEProtocol {
 			if (error.isTokenExpiredError() && properties.isSecure()) sm.refreshToken();
 			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
 		}
+		
+		logger.debug(ret);
 
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
@@ -98,6 +104,7 @@ public class ITSPARQL11SEProtocol {
 	public void RegisterNotAllowed() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
 			Response response = sm.register(NOT_VALID_ID);
+			logger.debug(response);
 			assertFalse(response.toString(), !response.isError());
 		}
 	}
@@ -106,6 +113,7 @@ public class ITSPARQL11SEProtocol {
 	public void Register() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
 			Response response = sm.register(VALID_ID);
+			logger.debug(response);
 			assertFalse(response.toString(), response.isError());
 		}
 	}
@@ -114,13 +122,16 @@ public class ITSPARQL11SEProtocol {
 	public void DeleteAllWithCheck() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		// Delete all triples
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
+		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 
 		// Evaluate if the store is empty
 		ret = client.query(provider.buildQueryRequest("COUNT", 5000, sm));
+		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 
 		QueryResponse results = (QueryResponse) ret;
+		logger.debug(ret);
 		assertFalse(String.valueOf(results), results.getBindingsResults().size() != 1);
 
 		for (Bindings bindings : results.getBindingsResults().getBindings()) {
@@ -150,6 +161,7 @@ public class ITSPARQL11SEProtocol {
 						Response response = null;
 						try {
 							response = sm.register(VALID_ID);
+							logger.debug(response);
 						} catch (SEPASecurityException | SEPAPropertiesException e1) {
 							assertFalse(e1.getMessage(),true);
 						}
@@ -190,7 +202,7 @@ public class ITSPARQL11SEProtocol {
 			final long expiringTime = 5000;
 			Thread.sleep(expiringTime + 1000);
 			final Response tokenTest = client.query(provider.buildQueryRequest("ALL", 5000, authorization));
-
+			logger.debug(tokenTest);
 			assertTrue(tokenTest.toString(), tokenTest.isError());
 		}
 	}
@@ -198,6 +210,7 @@ public class ITSPARQL11SEProtocol {
 	@Test(timeout = 1000)
 	public void Update() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", 5000, sm));
+		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
@@ -205,12 +218,14 @@ public class ITSPARQL11SEProtocol {
 	public void MalformedUpdate()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("WRONG", 5000, sm));
+		logger.debug(ret);
 		assertTrue(String.valueOf(ret), ret.isError());
 	}
 
 	@Test(timeout = 5000)
 	public void Query() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.query(provider.buildQueryRequest("ALL", 5000, sm));
+		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
 
@@ -218,6 +233,7 @@ public class ITSPARQL11SEProtocol {
 	public void MalformedQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.query(provider.buildQueryRequest("WRONG", 5000, sm));
+		logger.debug(ret);
 		assertTrue(String.valueOf(ret), ret.isError());
 	}
 
@@ -225,9 +241,11 @@ public class ITSPARQL11SEProtocol {
 	public void UpdateAndQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", 5000, sm));
+		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 
 		ret = client.query(provider.buildQueryRequest("VAIMEE", 5000, sm));
+		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 
 		assertFalse(String.valueOf(ret), ((QueryResponse) ret).getBindingsResults().size() != 1);

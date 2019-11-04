@@ -26,6 +26,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -74,6 +75,11 @@ public class QueryProcessor implements QueryProcessorMBean {
 		Timings.log("QUERY_PROCESSING_TIME", start, stop);
 		QueryProcessorBeans.timings(start, stop);
 
+		if (ret.isError()) {
+			ErrorResponse err = (ErrorResponse) ret;
+			if (err.getStatusCode() == 401) return new ErrorResponse(401,"unauthorized_client","Check the security settings of the endpoint");
+		}
+		
 		return ret;
 	}
 

@@ -20,12 +20,12 @@
 		"protocol": "http",
 		"port": 8890,
 		"query": {
-			"path": "/sparql",
+			"path": "/sparql-auth",
 			"method": "GET",
 			"format": "JSON"
 		},
 		"update": {
-			"path": "/sparql",
+			"path": "/sparql-auth",
 			"method": "POST",
 			"format": "JSON"
 		}
