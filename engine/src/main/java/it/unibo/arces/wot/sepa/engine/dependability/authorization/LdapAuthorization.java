@@ -43,6 +43,161 @@ import com.nimbusds.jwt.SignedJWT;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 
+/**
+ * The directory structure follows:
+ * 
+ * <pre>
+ * 
+dn: dc=vaimee,dc=com
+objectclass: top
+objectclass: domain
+dc: vaimee
+
+dn: o=vaimee
+objectclass: extensibleObject
+objectclass: top
+objectclass: domain
+dc: vaimee
+o: vaimee
+
+
+### Authorized identities ###
+dn: ou=authorizedIdentities,o=vaimee
+objectClass: organizationalUnit
+objectClass: top
+ou: authorizedIdentities
+
+dn: uid=SEPATest,ou=authorizedIdentities,o=vaimee
+objectClass: applicationProcess | device
+objectClass: uidObject
+objectClass: top
+cn: SEPATest
+uid: SEPATest
+
+### Credentials ###
+dn: ou=credentials,o=vaimee
+objectClass: organizationalUnit
+objectClass: top
+ou: credentials
+
+dn: uid=SEPATest,ou=credentials,o=vaimee
+ObjectClass: applicationProcess
+ObjectClass: uidObject
+ObjectClass: javaSerializedObject
+ObjectClass: simpleSecurityObject
+ObjectClass: top
+ObjectClass: javaObject
+cn: Authorized Digital Identity SEPATest
+javaClassName: it.unibo.arces.wot.sepa.engine.dependability.authorization.Cr
+ edentials
+javaSerializedData:: 77+977+9AAVzcgBGaXQudW5pYm8uYXJjZXMud290LnNlcGEuZW5naW5
+ lLmRlcGVuZGFiaWxpdHkuYXV0aG9yaXphdGlvbi5DcmVkZW50aWFsc2dPZ++/vRo9160CAAJMAA
+ hwYXNzd29yZHQAEkxqYXZhL2xhbmcvU3RyaW5nO0wABHVzZXJxAH4AAXhwdAAIU0VQQVRlc3RxA
+ H4AAw==
+uid: SEPATest
+userPassword: {SSHA}/hybr9FEohB6Y6sxn2K+/V8HTzbpKxGa8RxxSQ==
+
+### Tokens ###
+dn: ou=tokens,o=vaimee
+objectClass: organizationalUnit
+objectClass: top
+ou: tokens
+
+dn: uid=SEPATest,ou=tokens,o=vaimee
+objectclass: account
+objectclass: javaSerializedObject
+objectclass: top
+objectclass: javaObject
+javaclassname: com.nimbusds.jwt.SignedJWT
+javaSerializedData: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJodHRwOlwvXC9zdWJqZWN0Iiw
+ iYXVkIjpbImh0dHBzOlwvXC9hdWRpZW5jZSIsImF1ZGllbmNlIl0sImlzcyI6Imh0dHA6XC9cL2
+ lzc3VlciIsImV4cCI6MTU3MTY3MzQxNSwiaWF0IjoxNTcxNjczNDEwLCJqdGkiOiJTRVBBVGVzd
+ CJ9.fPpCRUle3g49HMJIHWgzqEUDUEQ5ukg4ffp7y6yRT3hSMpp95MMgNRcOLPJFhlVvWAHxoag
+ DW6g6hI85Ks7XFfL4yqIwogOt5cgprVYSCCvOKXk4j7VNrb2aaNcAq8Y3oD2LgX6BDzMG37VlJ3
+ TXwKNZSsm6WlDMRIiiWooFeb_Ystmtt2x38ksIWO3oZ3K0se3sUiSqUD6M0BArOJXydX7TyfgIU
+ Vy4zWRsqLUwTOl0f_ReWHi1lwMi8ex-gucj-byy7QCXHLYLYx6KfUP72XhFObpf2Asc0cUd2O_C
+ 3DvtWlcHCbK0MV4YoEf0cQYyqmf6oDRpOlepijodi9tTDQ
+uid: SEPATest
+
+### JWT ###
+dn: ou=jwt,o=vaimee
+objectClass: organizationalUnit
+objectClass: top
+ou: jwt
+
+dn: uid=expiring,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+uid: expiring
+
+dn: uid=SEPATest,uid=expiring,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+objectClass: pwdPolicy
+pwdAttribute: userPassword
+uid: SEPATest
+pwdGraceExpire: 5
+
+dn: uid=device,uid=expiring,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+objectClass: pwdPolicy
+pwdAttribute: userPassword
+uid: device
+description: Default expiring time for devices (i.e., 1h)
+pwdGraceExpire: 3600
+
+dn: uid=application,uid=expiring,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+objectClass: pwdPolicy
+pwdAttribute: userPassword
+uid: application
+description: Default expiring time for applications (i.e., 24h)
+pwdGraceExpire: 43200
+
+dn: uid=default,uid=expiring,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+objectClass: pwdPolicy
+pwdAttribute: userPassword
+uid: default
+pwdGraceExpire: 5
+
+dn: uid=user,uid=expiring,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+objectClass: pwdPolicy
+pwdAttribute: userPassword
+uid: user
+description: Default expiring time for users (i.e., 5 minutes)
+pwdGraceExpire: 300
+
+dn: uid=subject,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+uid: subject
+host: http://subject
+
+dn: uid=httpsAudience,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+uid: httpsAudience
+host: https://audience
+
+dn: uid=wssAudience,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+uid: wssAudience
+host: audience
+
+dn: uid=issuer,ou=jwt,o=vaimee
+objectClass: account
+objectClass: top
+uid: issuer
+host: http://issuer
+ * </pre>
+ * */
 public class LdapAuthorization implements IAuthorization {
 	protected static Logger logger = LogManager.getLogger();
 
@@ -51,6 +206,8 @@ public class LdapAuthorization implements IAuthorization {
 	private final String pwd;
 	private final String user;
 
+	EntryCursor cursor = null;
+	
 	public LdapAuthorization(String host, int port, String base, String user, String pwd) throws LdapException {
 		if (user != null && pwd == null)
 			throw new LdapException("Password is null for user: " + user);
@@ -65,41 +222,59 @@ public class LdapAuthorization implements IAuthorization {
 			try {
 				ldap.bind(user, pwd);
 			} catch (LdapException e) {
-				throw new SEPASecurityException(e);
+				logger.error("Exception on LDAP binding: "+e.getMessage());
+				throw new SEPASecurityException("Exception on LDAP binding: "+e.getMessage());
 			}
 		else
 			try {
 				ldap.bind();
 			} catch (LdapException e) {
-				throw new SEPASecurityException(e);
+				logger.error("Exception on LDAP binding: "+e.getMessage());
+				throw new SEPASecurityException("Exception on LDAP binding: "+e.getMessage());
 			}
 	}
+	
+	private void unbind() throws SEPASecurityException {		
+		try {
+			if (cursor != null) cursor.close();
+			ldap.unBind();
+		} catch (IOException e) {
+			logger.error("IOException: "+e.getMessage());
+			throw new SEPASecurityException(e.getMessage());
+		} catch (LdapException e) {
+			logger.error("LdapException: "+e.getMessage());
+			throw new SEPASecurityException(e.getMessage());
+		} finally {
+			cursor = null;
+		}
+	} 
 
 	@Override
 	public Credentials getEndpointCredentials(String uid) throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("getEndpointCredentials "+uid);
+		
+		bind();
+		
 		try {
-
-			bind();
+			logger.debug("getEndpointCredentials Base DN: "+"uid=" + uid + ",ou=credentials," + ldapRoot);
 
 			cursor = ldap.search("uid=" + uid + ",ou=credentials," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
 
 			if (cursor.next()) {
-				if(cursor.get().get("javaSerializedData") != null) {
-					return Credentials.deserialize(cursor.get().get("javaSerializedData").getBytes());
+				Attribute attr = cursor.get().get("javaSerializedData");
+				
+				if(attr != null) {
+					byte[] cred = attr.getBytes();
+					return Credentials.deserialize(cred);
 				}				
 			}
 		}
 		catch(LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("LdapException|CursorException : "+e.getMessage());
+			throw new SEPASecurityException(e.getMessage());
 		}finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-				} catch (IOException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 		
 		return null;
@@ -107,6 +282,10 @@ public class LdapAuthorization implements IAuthorization {
 	
 	@Override
 	public void addIdentity(DigitalIdentity identity) throws SEPASecurityException {
+		logger.debug("addIdentity uid="+identity.getUid()+" class: "+identity.getObjectClass());
+		
+		bind();	
+		
 		try {
 			Entry entry = new DefaultEntry("uid=" + identity.getUid() + ",ou=authorizedIdentities," + ldapRoot);
 			entry.add("ObjectClass", "uidObject");
@@ -119,48 +298,42 @@ public class LdapAuthorization implements IAuthorization {
 
 			entry.add("javaClassName", identity.getEndpointCredentials().getClass().getName());
 			entry.add("javaSerializedData", identity.getEndpointCredentials().serialize());
-
-			bind();
-			ldap.add(entry);
-			ldap.unBind();
+					
+			ldap.add(entry);						
 		} catch (LdapException e) {
-			throw new SEPASecurityException(e);
+			logger.error("addIdentity exception: "+e.getMessage());
+			throw new SEPASecurityException("addIdentity exception: "+e.getMessage());
+		} finally {
+			unbind();
 		}
 	}
 
 	@Override
-	public void removeIdentity(String id) throws SEPASecurityException {
+	public void removeIdentity(String id) throws SEPASecurityException {		
+		logger.debug("removeIdentity "+id);
+		
 		bind();
-
-		EntryCursor cursor = null;
+		
 		try {
 			ldap.delete("uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
 		} catch (LdapException e) {
-
+			logger.error("Exception on removing identity: "+"uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
+			throw new SEPASecurityException("Exception on removing identity: "+"uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-				} catch (IOException e) {
-
-				}
-			try {
-				ldap.unBind();
-			} catch (LdapException e) {
-				throw new SEPASecurityException(e);
-			}
+			unbind();
 		}
 	}
 
 	@Override
 	public void storeCredentials(DigitalIdentity identity, String client_secret) throws SEPASecurityException {
+		logger.debug("storeCredentials "+identity+" secret: "+client_secret);
+		
 		byte[] password = PasswordUtil.createStoragePassword(client_secret.getBytes(),
 				LdapSecurityConstants.HASH_METHOD_SSHA);
 
-		EntryCursor cursor = null;
+		bind();
+		
 		try {
-			bind();
-
 			cursor = ldap.search("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
 
@@ -181,34 +354,29 @@ public class LdapAuthorization implements IAuthorization {
 				
 				ldap.add(entry);
 			} else {
-				Modification replace = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
+				Modification pwd = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
 						"userPassword", password);
+				Modification cred = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
+						"javaSerializedData", identity.getEndpointCredentials().serialize());
 				
-				try {
-					ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,replace);
-				} catch (LdapException e1) {
-					throw new SEPASecurityException(e1);
-				}
+				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,pwd,cred);
+
 			}
-			ldap.unBind();
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("storeCredentials exception "+e.getMessage());
+			throw new SEPASecurityException("storeCredentials exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-				} catch (IOException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public boolean checkCredentials(String uid, String secret) throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("checkCredentials "+uid+" secret: "+secret);
+		
+		bind();
 
-		try {
-			bind();
+		try {			
 			cursor = ldap.search("uid=" + uid + ",ou=credentials," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
 			if (cursor.next()) {
@@ -217,54 +385,67 @@ public class LdapAuthorization implements IAuthorization {
 			} else
 				return false;
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("checkCredentials exception "+e.getMessage());
+			throw new SEPASecurityException("checkCredentials exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					ldap.unBind();
-					cursor.close();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public void removeCredentials(DigitalIdentity identity) throws SEPASecurityException {
-		try {
-			bind();
+		logger.debug("removeCredentials "+identity);
+		
+		bind();
+		
+		try {	
 			ldap.delete("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot);
-			ldap.unBind();
 		} catch (LdapException e) {
-			throw new SEPASecurityException(e);
+			logger.error("checkCredentials exception "+e.getMessage());
+			throw new SEPASecurityException("checkCredentials exception "+e.getMessage());
+		} finally {
+			unbind();
+		}
+	}
+	
+	@Override
+	public void removeToken(String uid) throws SEPASecurityException {
+		logger.debug("removeToken "+uid);
+		
+		bind();
+		
+		try {	
+			ldap.delete("uid=" + uid + ",ou=tokens," + ldapRoot);
+		} catch (LdapException e) {
+			logger.error("removeToken exception "+e.getMessage());
+			throw new SEPASecurityException("removeToken exception "+e.getMessage());
+		} finally {
+			unbind();
 		}
 	}
 
 	@Override
 	public boolean containsCredentials(String uid) throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("containsCredentials "+uid);
+		
+		bind();
+		
 		try {
-			bind();
 			cursor = ldap.search("uid=" + uid + ",ou=credentials," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
 			return cursor.next();
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("checkCredentials exception "+e.getMessage());
+			throw new SEPASecurityException("checkCredentials exception "+e.getMessage());
 		} finally {
-			try {
-				ldap.unBind();
-				if (cursor != null)
-					cursor.close();
-			} catch (IOException | LdapException e) {
-				throw new SEPASecurityException(e);
-			}
+			unbind();
 		}
 	}
 
 	@Override
 	public long getTokenExpiringPeriod(String id) throws SEPASecurityException {
-		EntryCursor cursor = null;
-
+		logger.debug("getTokenExpiringPeriod "+id);
+		
 		bind();
 
 		try {
@@ -319,40 +500,44 @@ public class LdapAuthorization implements IAuthorization {
 			Attribute attr = entry.get("pwdGraceExpire");
 			return Long.parseLong(attr.get().getString());
 		} catch (LdapException | CursorException | IOException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getTokenExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("getTokenExpiringPeriod exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					ldap.unBind();
-					cursor.close();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 
 	}
 
 	@Override
 	public void setTokenExpiringPeriod(String uid, long period) throws SEPASecurityException {
+		logger.debug("setTokenExpiringPeriod "+uid+ " period: "+period);
+		
+		bind();
+		
 		try {
-			bind();
 			Modification pwdGraceExpire = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
 					"pwdGraceExpire", String.format("%d", period));
 			Modification pwdPolicy = new DefaultModification(ModificationOperation.ADD_ATTRIBUTE, "objectClass",
 					"pwdPolicy");
 			Modification pwdAttribute = new DefaultModification(ModificationOperation.ADD_ATTRIBUTE, "pwdAttribute",
 					"userPassword");
+			
 			ldap.modify("uid=" + uid + ",ou=credentials," + ldapRoot, pwdGraceExpire, pwdPolicy, pwdAttribute);
-			ldap.unBind();
-		} catch (LdapException e2) {
-			throw new SEPASecurityException(e2);
+			
+		} catch (LdapException e) {
+			logger.error("setTokenExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("setTokenExpiringPeriod exception "+e.getMessage());
+		} finally {
+			unbind();
 		}
 	}
 
 	@Override
 	public String getIssuer() throws SEPASecurityException {
+		logger.debug("getIssuer");
+		
 		bind();
-		EntryCursor cursor = null;
+		
 		try {
 			cursor = ldap.search("uid=issuer,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next())
@@ -362,35 +547,37 @@ public class LdapAuthorization implements IAuthorization {
 
 			return cursor.get().get("host").getString();
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getIssuer exception "+e.getMessage());
+			throw new SEPASecurityException("getIssuer exception "+e.getMessage());
 		} finally {
-			try {
-				if (cursor != null)
-					cursor.close();
-				ldap.unBind();
-			} catch (LdapException | IOException e) {
-				throw new SEPASecurityException(e);
-			}
+			unbind();
 		}
 	}
 
 	@Override
 	public void setIssuer(String issuer) throws SEPASecurityException {
-		Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", issuer);
+		logger.debug("setIssuer "+issuer);
+		
+		bind();
+		
 		try {
-			bind();
+			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", issuer);	
 			ldap.modify("uid=issuer,ou=jwt," + ldapRoot, replaceGn);
-			ldap.unBind();
 		} catch (LdapException e) {
-			throw new SEPASecurityException(e);
+			logger.error("setIssuer exception "+e.getMessage());
+			throw new SEPASecurityException("setIssuer exception "+e.getMessage());
+		} finally {
+			unbind();
 		}
 	}
 
 	@Override
 	public String getHttpsAudience() throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("getHttpsAudience");
+		
+		bind();
+		
 		try {
-			bind();
 			cursor = ldap.search("uid=httpsAudience,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next())
 				throw new SEPASecurityException("uid=httpsAudience,ou=jwt," + ldapRoot + " NOT FOUND");
@@ -399,34 +586,37 @@ public class LdapAuthorization implements IAuthorization {
 
 			return cursor.get().get("host").getString();
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getHttpsAudience exception "+e.getMessage());
+			throw new SEPASecurityException("getHttpsAudience exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 
 		}
 	}
 
 	@Override
 	public void setHttpsAudience(String audience) throws SEPASecurityException {
-		Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
+		logger.debug("setHttpsAudience "+audience);
+		
+		bind();
+		
 		try {
-			bind();
+			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
 			ldap.modify("uid=httpsAudience,ou=jwt," + ldapRoot, replaceGn);
-			ldap.unBind();
-		} catch (LdapException e1) {
-			throw new SEPASecurityException(e1);
+		} catch (LdapException e) {
+			logger.error("setHttpsAudience exception "+e.getMessage());
+			throw new SEPASecurityException("setHttpsAudience exception "+e.getMessage());
+		} finally {
+			unbind();
 		}
 	}
 
 	@Override
 	public String getWssAudience() throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("getWssAudience");
+		
+		bind();
+		
 		try {
 			cursor = ldap.search("uid=wssAudience,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next())
@@ -436,35 +626,37 @@ public class LdapAuthorization implements IAuthorization {
 
 			return cursor.get().get("host").getString();
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getWssAudience exception "+e.getMessage());
+			throw new SEPASecurityException("getWssAudience exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public void setWssAudience(String audience) throws SEPASecurityException {
-		Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
+		logger.debug("setWssAudience "+audience);
+		
+		bind();
+		
 		try {
-			bind();
+			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
 			ldap.modify("uid=wssAudience,ou=jwt," + ldapRoot, replaceGn);
-			ldap.unBind();
-		} catch (LdapException e1) {
-			throw new SEPASecurityException(e1);
+		} catch (LdapException e) {
+			logger.error("setWssAudience exception "+e.getMessage());
+			throw new SEPASecurityException("setWssAudience exception "+e.getMessage());
+		} finally {
+			unbind();
 		}
 	}
 
 	@Override
 	public String getSubject() throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("getSubject");
+		
+		bind();
+		
 		try {
-			bind();
 			cursor = ldap.search("uid=subject,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next())
 				throw new SEPASecurityException("uid=subject,ou=jwt," + ldapRoot + " NOT FOUND");
@@ -473,55 +665,55 @@ public class LdapAuthorization implements IAuthorization {
 
 			return cursor.get().get("host").getString();
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getSubject exception "+e.getMessage());
+			throw new SEPASecurityException("getSubject exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public void setSubject(String subject) throws SEPASecurityException {
-		Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", subject);
+		logger.debug("setSubject "+subject);
+		
+		bind();
+		
 		try {
-			bind();
+			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", subject);
 			ldap.modify("uid=subject,ou=jwt," + ldapRoot, replaceGn);
-			ldap.unBind();
-		} catch (LdapException e1) {
-			throw new SEPASecurityException(e1);
+		} catch (LdapException e) {
+			logger.error("setSubject exception "+e.getMessage());
+			throw new SEPASecurityException("setSubject exception "+e.getMessage());
+		} finally {
+			unbind();
 		}
 	}
 
 	@Override
 	public boolean isAuthorized(String uid) throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("isAuthorized "+uid);
+		
+		bind();
+		
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=authorizedIdentities," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
 			return cursor.next();
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("isAuthorized exception "+e.getMessage());
+			throw new SEPASecurityException("isAuthorized exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public void addToken(String uid, SignedJWT token) throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("addToken "+uid);
+		
+		bind();
+		
 		try {
-			bind();
 			cursor = ldap.search("uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next()) {
 				ldap.add(new DefaultEntry("uid=" + uid + ",ou=tokens," + ldapRoot, "ObjectClass: top",
@@ -530,93 +722,80 @@ public class LdapAuthorization implements IAuthorization {
 			} else {
 				Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
 						"javaSerializedData", token.serialize());
-				try {
-					ldap.modify("uid=" + uid + ",ou=tokens," + ldapRoot, replaceGn);
-				} catch (LdapException e1) {
-					throw new SEPASecurityException(e1);
-				}
+				
+				ldap.modify("uid=" + uid + ",ou=tokens," + ldapRoot, replaceGn);
 			}
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("addToken exception "+e.getMessage());
+			throw new SEPASecurityException("addToken exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public boolean containsToken(String uid) throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("containsToken "+uid);
+		
+		bind();
+		
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			return cursor.next();
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("containsToken exception "+e.getMessage());
+			throw new SEPASecurityException("containsToken exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public Date getTokenExpiringDate(String uid) throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("getTokenExpiringDate "+uid);
+		
+		bind();
+		
 		try {
-			bind();
 			cursor = ldap.search("uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next())
 				throw new SEPASecurityException("uid=" + uid + ",ou=tokens," + ldapRoot + " NOT FOUND");
 			SignedJWT jwt = SignedJWT.parse(cursor.get().get("javaSerializedData").getString());
 			return jwt.getJWTClaimsSet().getExpirationTime();
 		} catch (LdapException | CursorException | ParseException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getTokenExpiringDate exception "+e.getMessage());
+			throw new SEPASecurityException("getTokenExpiringDate exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public SignedJWT getToken(String uid) throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("getToken "+uid);
+		
+		bind();
+		
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next())
 				throw new SEPASecurityException("uid=" + uid + ",ou=tokens," + ldapRoot + " NOT FOUND");
 			return SignedJWT.parse(cursor.get().get("javaSerializedData").getString());
 		} catch (LdapException | CursorException | ParseException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getToken exception "+e.getMessage());
+			throw new SEPASecurityException("getToken exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public DigitalIdentity getIdentity(String uid) throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("getIdentity "+uid);
+		
+		bind();
+		
 		try {
-			bind();
 			cursor = ldap.search("uid=" + uid + ",ou=authorizedIdentities," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
 			if (!cursor.next())
@@ -634,43 +813,38 @@ public class LdapAuthorization implements IAuthorization {
 			else
 				throw new SEPASecurityException("Digital identity class NOT FOUND");
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getIdentity exception "+e.getMessage());
+			throw new SEPASecurityException("getIdentity exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public void setDeviceExpiringPeriod(long period) throws SEPASecurityException {
+		logger.debug("setDeviceExpiringPeriod "+period);
+		
+		bind();
+		
 		try {
 			Modification expiring = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "pwdGraceExpire");
-
-			bind();
-
 			ldap.modify("uid=device,uid=expiring,ou=jwt," + ldapRoot, expiring);
 
 		} catch (LdapException e) {
-			throw new SEPASecurityException(e);
+			logger.error("setDeviceExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("setDeviceExpiringPeriod exception "+e.getMessage());
 		} finally {
-			try {
-				ldap.unBind();
-			} catch (LdapException e) {
-				throw new SEPASecurityException(e);
-			}
+			unbind();
 		}
 	}
 
 	@Override
 	public long getDeviceExpiringPeriod() throws SEPASecurityException {
-		EntryCursor cursor = null;
-		try {
-			bind();
+		logger.debug("getDeviceExpiringPeriod");
+		
+		bind();
+		
+		try {	
 			cursor = ldap.search("uid=device,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
 			if (!cursor.next())
@@ -681,43 +855,37 @@ public class LdapAuthorization implements IAuthorization {
 
 			return Long.parseLong(cursor.get().get("pwdGraceExpire").getString());
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getDeviceExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("getDeviceExpiringPeriod exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public void setApplicationExpiringPeriod(long period) throws SEPASecurityException {
+		logger.debug("setApplicationExpiringPeriod "+period);
+		
+		bind();
+		
 		try {
 			Modification expiring = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "pwdGraceExpire");
-
-			bind();
-
 			ldap.modify("uid=application,uid=expiring,ou=jwt," + ldapRoot, expiring);
-
 		} catch (LdapException e) {
-			throw new SEPASecurityException(e);
+			logger.error("setApplicationExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("setApplicationExpiringPeriod exception "+e.getMessage());
 		} finally {
-			try {
-				ldap.unBind();
-			} catch (LdapException e) {
-				throw new SEPASecurityException(e);
-			}
+			unbind();
 		}
 	}
 
 	@Override
 	public long getApplicationExpiringPeriod() throws SEPASecurityException {
-		EntryCursor cursor = null;
-		try {
-			bind();
+		logger.debug("getApplicationExpiringPeriod");
+		
+		bind();
+		
+		try {	
 			cursor = ldap.search("uid=application,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
 			if (!cursor.next())
@@ -728,44 +896,38 @@ public class LdapAuthorization implements IAuthorization {
 
 			return Long.parseLong(cursor.get().get("pwdGraceExpire").getString());
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getApplicationExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("getApplicationExpiringPeriod exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public void setUserExpiringPeriod(long period) throws SEPASecurityException {
+		logger.debug("setUserExpiringPeriod "+period);
+		
+		bind();
+		
 		try {
 			Modification expiring = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "pwdGraceExpire");
-
-			bind();
-
 			ldap.modify("uid=user,uid=expiring,ou=jwt," + ldapRoot, expiring);
-
 		} catch (LdapException e) {
-			throw new SEPASecurityException(e);
+			logger.error("setUserExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("setUserExpiringPeriod exception "+e.getMessage());
 		} finally {
-			try {
-				ldap.unBind();
-			} catch (LdapException e) {
-				throw new SEPASecurityException(e);
-			}
+			unbind();
 		}
 
 	}
 
 	@Override
 	public long getUserExpiringPeriod() throws SEPASecurityException {
-		EntryCursor cursor = null;
-		try {
-			bind();
+		logger.debug("getUserExpiringPeriod");
+		
+		bind();
+		
+		try {	
 			cursor = ldap.search("uid=user,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
 			if (!cursor.next())
@@ -776,43 +938,37 @@ public class LdapAuthorization implements IAuthorization {
 
 			return Long.parseLong(cursor.get().get("pwdGraceExpire").getString());
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getUserExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("getUserExpiringPeriod exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
 
 	@Override
 	public void setDefaultExpiringPeriod(long period) throws SEPASecurityException {
+		logger.debug("setDefaultExpiringPeriod "+period);
+		
+		bind();
+		
 		try {
 			Modification expiring = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "pwdGraceExpire");
-
-			bind();
-
 			ldap.modify("uid=default,uid=expiring,ou=jwt," + ldapRoot, expiring);
-
 		} catch (LdapException e) {
-			throw new SEPASecurityException(e);
+			logger.error("setDefaultExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("setDefaultExpiringPeriod exception "+e.getMessage());
 		} finally {
-			try {
-				ldap.unBind();
-			} catch (LdapException e) {
-				throw new SEPASecurityException(e);
-			}
+			unbind();
 		}
 	}
 
 	@Override
 	public long getDefaultExpiringPeriod() throws SEPASecurityException {
-		EntryCursor cursor = null;
+		logger.debug("getDefaultExpiringPeriod");
+		
+		bind();
+		
 		try {
-			bind();
 			cursor = ldap.search("uid=default,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
 			if (!cursor.next())
@@ -824,18 +980,10 @@ public class LdapAuthorization implements IAuthorization {
 			Attribute attr = cursor.get().get("pwdGraceExpire");
 			return Long.parseLong(attr.getString());
 		} catch (LdapException | CursorException e) {
-			throw new SEPASecurityException(e);
+			logger.error("getDefaultExpiringPeriod exception "+e.getMessage());
+			throw new SEPASecurityException("getDefaultExpiringPeriod exception "+e.getMessage());
 		} finally {
-			if (cursor != null)
-				try {
-					cursor.close();
-					ldap.unBind();
-				} catch (IOException | LdapException e) {
-					throw new SEPASecurityException(e);
-				}
+			unbind();
 		}
 	}
-
-
-
 }

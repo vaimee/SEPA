@@ -72,6 +72,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.ApplicationIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.InMemoryAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapAuthorization;
@@ -91,12 +92,14 @@ class SecurityManager {
 
 	public SecurityManager(String host, int port, String base, String uid, String pwd,String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate) throws SEPASecurityException {
 		try {
+			logger.debug("Create LDAP authorization: "+host+":"+port+" DN: "+base+" UID: "+uid+" PWD: "+pwd);
 			auth = new LdapAuthorization(host, port, base, uid, pwd);
 		} catch (LdapException e1) {
 			throw new SEPASecurityException(e1);
 		}
 		
 		try {
+			logger.debug("Init JKS: "+keystoreFileName+" PWD: "+keystorePwd+" key alias: "+keyAlias+" key pwd: "+keyPwd+" certificate: "+certificate);
 			init(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
 		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
 				| CertificateException | IOException | JOSEException | SEPASecurityException e) {
@@ -116,7 +119,7 @@ class SecurityManager {
 	}
 
 	private void securityCheck(String identity) throws SEPASecurityException {
-		logger.debug("*** Security check ***");
+		logger.info("*** Security check ***");
 		// Add identity
 		auth.addIdentity(new ApplicationIdentity(identity));
 
@@ -125,11 +128,11 @@ class SecurityManager {
 		Response response = register(identity);
 		if (response.getClass().equals(RegistrationResponse.class)) {
 			RegistrationResponse ret = (RegistrationResponse) response;
-			String auth = ret.getClientId() + ":" + ret.getClientSecret();
+			String basicAuth = ret.getClientId() + ":" + ret.getClientSecret();
 			logger.debug("ID:SECRET=" + auth);
 
 			// Get token
-			String encodedCredentials = Base64.getEncoder().encodeToString(auth.getBytes());
+			String encodedCredentials = Base64.getEncoder().encodeToString(basicAuth.getBytes());
 			logger.debug("Authorization Basic " + encodedCredentials);
 			response = getToken(encodedCredentials);
 
@@ -138,20 +141,26 @@ class SecurityManager {
 
 				// Validate token
 				AuthorizationResponse authRet = validateToken(((JWTResponse) response).getAccessToken());
-				if (authRet.isAuthorized())
-					logger.debug("PASSED");
-				else {
-					logger.error("FAILED: " + authRet.getError());
+				if (authRet.isAuthorized()) {
+					auth.removeCredentials(new ApplicationIdentity(ret.getClientId()));
+					auth.removeToken(ret.getClientId());
+					logger.info("*** PASSED ***");
 				}
-			} else
-				logger.debug("FAILED: " + response.toString());
-		} else
-			logger.debug("FAILED: " + response.toString());
-		logger.debug("**********************");
+				else {
+					logger.error(authRet.getError());
+					logger.info("*** FAILED ***");
+				}
+			} else {
+				logger.debug(response.toString());
+				logger.info("*** FAILED ***");
+			}
+		} else {
+			logger.debug(response.toString());
+			logger.info("*** FAILED ***");
+			// Remove identity
+			auth.removeIdentity(identity);
+		}
 		System.out.println("");
-
-		// Remove identity
-		auth.removeIdentity(identity);
 	}
 
 	private void initStore(KeyStore keyStore, String keyAlias, String keyPwd) throws KeyStoreException, JOSEException {
@@ -643,9 +652,8 @@ class SecurityManager {
 	 * </pre>
 	 * 
 	 * @param accessToken the JWT token to be validate according to points 4-9
-	 * @throws SEPASecurityException 
 	 */
-	public synchronized AuthorizationResponse validateToken(String accessToken) throws SEPASecurityException {
+	public synchronized AuthorizationResponse validateToken(String accessToken) {
 		logger.trace("Validate token");
 
 		// Parse token
@@ -701,8 +709,18 @@ class SecurityManager {
 			logger.warn("Token can not be used before: " + claimsSet.getNotBeforeTime());
 			return new AuthorizationResponse("invalid_grant","Token can not be used before: " + claimsSet.getNotBeforeTime());
 		}
+		
+		String jwt = claimsSet.getJWTID();
+		
+		Credentials cred = null;
+		try {
+			cred = auth.getEndpointCredentials(jwt);
+		} catch (SEPASecurityException e) {
+			logger.error("Failed to retrieve credentials ("+jwt+")");
+			return new AuthorizationResponse("invalid_grant","Failed to get credentials ("+jwt+")");
+		}
 
-		return new AuthorizationResponse(auth.getEndpointCredentials(claimsSet.getJWTID()));
+		return new AuthorizationResponse(cred);
 	}
 
 	public SSLContext getSSLContext() throws SEPASecurityException {

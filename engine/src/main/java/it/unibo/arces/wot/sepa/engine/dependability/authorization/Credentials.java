@@ -59,7 +59,7 @@ public class Credentials implements Serializable  {
 		try {
 			return "Basic " + new String(Base64.getEncoder().encode(plainString.getBytes("UTF-8")), "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			throw new SEPASecurityException(e);
+			throw new SEPASecurityException(e.getMessage());
 		}
 	}
 	
@@ -72,7 +72,7 @@ public class Credentials implements Serializable  {
 			out.flush();
 			return bos.toByteArray();
 		} catch (IOException e) {
-			throw new SEPASecurityException(e);
+			throw new SEPASecurityException("Serialize exception: "+e.getMessage());
 		} finally {
 			try {
 				bos.close();
@@ -89,7 +89,7 @@ public class Credentials implements Serializable  {
 		  in = new ObjectInputStream(bis);
 		 return (Credentials) in.readObject(); 
 		} catch (IOException | ClassNotFoundException e) {
-			throw new SEPASecurityException(e);
+			throw new SEPASecurityException("Deserialize exception: "+e.getMessage());
 		} finally {
 		  try {
 		    if (in != null) {

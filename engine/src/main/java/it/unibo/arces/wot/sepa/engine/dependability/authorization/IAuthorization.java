@@ -42,6 +42,7 @@ public interface IAuthorization {
 	void addToken(String id,SignedJWT claims) throws SEPASecurityException;
 	boolean containsToken(String id) throws SEPASecurityException;
 	SignedJWT getToken(String uid) throws SEPASecurityException;
+	void removeToken(String id) throws SEPASecurityException;
 	
 	// Token expiring
 	Date getTokenExpiringDate(String id) throws SEPASecurityException;

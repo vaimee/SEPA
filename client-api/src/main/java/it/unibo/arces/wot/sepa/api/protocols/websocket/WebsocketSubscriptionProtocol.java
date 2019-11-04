@@ -221,6 +221,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 
 					// Event
 					try {
+						logger.trace("Message received: "+jsonMessage);
 						Notification notify = new Notification(jsonMessage);
 						logger.trace("Notification: " + notify);
 						handler.onSemanticEvent(notify);

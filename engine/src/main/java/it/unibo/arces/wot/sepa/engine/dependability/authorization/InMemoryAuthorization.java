@@ -77,6 +77,10 @@ public class InMemoryAuthorization implements IAuthorization {
 		public boolean containsToken() {
 			return token != null;
 		}
+		
+		public void removeToken() {
+			token = null;
+		}
 
 		public Date getTokenExpiringDate() throws SEPASecurityException {
 			JWTClaimsSet claims = null;
@@ -209,6 +213,12 @@ public class InMemoryAuthorization implements IAuthorization {
 	public void addToken(String id, SignedJWT jwt) throws SEPASecurityException {
 		logger.debug("addToken "+id+" "+jwt.serialize());
 		identities.get(id).addToken(jwt);
+	}
+	
+	@Override
+	public void removeToken(String id) throws SEPASecurityException {
+		logger.debug("removeToken "+id);
+		if (identities.containsKey(id)) identities.get(id).removeToken();
 	}
 
 	// JWT
