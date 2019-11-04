@@ -23,8 +23,8 @@ ALL					Integer.MAX_VALUE
 <!-- 		</File> -->
 	</Appenders>
 	<Loggers>
-		<Root level="debug">
-			<AppenderRef ref="Console" level="debug"/>
+		<Root level="error">
+			<AppenderRef ref="Console" level="error"/>
 		</Root>
 	</Loggers>
 </Configuration>

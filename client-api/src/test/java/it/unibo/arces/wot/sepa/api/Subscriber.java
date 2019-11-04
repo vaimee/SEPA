@@ -103,7 +103,19 @@ class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		logger.error("@onError: " + errorResponse);
+		if (errorResponse.getStatusCode() == 401 && errorResponse.getError().equals("auth_failed")) {
+			// Expired token
+			try {
+				logger.error("Token expired. Refreshing token and subscribe again");
+				sm.refreshToken();
+				subscribe();
+			} catch (SEPAProtocolException | InterruptedException | SEPAPropertiesException | SEPASecurityException e) {
+				logger.error("Failed to subscribe after token expired "+e.getMessage());
+			}
+		}
+		else {
+			logger.error("@onError: " + errorResponse);
+		}
 	}
 
 	@Override

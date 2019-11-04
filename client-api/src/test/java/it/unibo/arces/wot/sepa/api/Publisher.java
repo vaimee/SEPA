@@ -58,7 +58,7 @@ class Publisher extends Thread implements Closeable {
 
 			if (ret.isError()) {
 				ErrorResponse errorResponse = (ErrorResponse) ret;
-				logger.error(errorResponse);
+				//logger.error(errorResponse);
 
 				if (errorResponse.isTokenExpiredError()) {
 					try {

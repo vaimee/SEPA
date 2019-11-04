@@ -1,10 +1,10 @@
 {
  
-	"host": "localhost",
+	"host": "sepa.vaimee.it",
 	"oauth": {
 		"enable": true,
-		"register": "https://localhost:8443/oauth/register",
-		"tokenRequest": "https://localhost:8443/oauth/token"
+		"register": "https://sepa.vaimee.it:8443/oauth/register",
+		"tokenRequest": "https://sepa.vaimee.it:8443/oauth/token"
 	},
 	"sparql11protocol": {
 		"protocol": "https",
