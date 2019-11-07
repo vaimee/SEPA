@@ -47,6 +47,7 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.ParseException;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -176,8 +177,8 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 	private final KeyManagerFactory kmfactory;
 	private final TrustManagerFactory tmf;
-	
-	private static final String[] protocolStrings = {"TLSv1","TLSv1.1","TLSv1.2"};
+
+	private static final String[] protocolStrings = { "TLSv1", "TLSv1.1", "TLSv1.2" };
 
 	/**
 	 * Instantiates a new Security Manager.
@@ -210,12 +211,9 @@ public class SEPASecurityManager implements HostnameVerifier {
 			tmf.init(keystore);
 
 			// Trust own CA and all self-signed certificates and allow TLSv1 protocol only
-			sslsf = new SSLConnectionSocketFactory(
-					SSLContexts.custom()
-							.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(),
-									new TrustSelfSignedStrategy())
-							.build(),
-							protocolStrings, null, this);
+			sslsf = new SSLConnectionSocketFactory(SSLContexts.custom()
+					.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(), new TrustSelfSignedStrategy())
+					.build(), protocolStrings, null, this);
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
 				| UnrecoverableKeyException | KeyManagementException e) {
 			throw new SEPASecurityException(e.getMessage());
@@ -262,11 +260,11 @@ public class SEPASecurityManager implements HostnameVerifier {
 				X509Certificate caCert = (X509Certificate) cf.generateCertificate(bis);
 				caKs.setCertificateEntry(caCert.getIssuerX500Principal().getName(), caCert);
 			}
-			
+
 			// Trust manager
 			TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
 			tmf.init(caKs);
-			
+
 			// Create SSL context
 			SSLContext sslContext = SSLContext.getInstance(protocol);
 			sslContext.init(null, tmf.getTrustManagers(), null);
@@ -324,11 +322,11 @@ public class SEPASecurityManager implements HostnameVerifier {
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
 	 */
-	public Response register(String identity) throws SEPASecurityException, SEPAPropertiesException {
+	public Response register(String identity, int timeout) throws SEPASecurityException, SEPAPropertiesException {
 		if (oauthProperties == null)
 			throw new SEPAPropertiesException("Authorization properties are null");
 
-		Response ret = register(oauthProperties.getRegisterUrl(), identity);
+		Response ret = register(oauthProperties.getRegisterUrl(), identity, timeout);
 
 		if (ret.isRegistrationResponse()) {
 			RegistrationResponse reg = (RegistrationResponse) ret;
@@ -340,8 +338,13 @@ public class SEPASecurityManager implements HostnameVerifier {
 		return ret;
 	}
 
+	public Response register(String identity) throws SEPASecurityException, SEPAPropertiesException {
+		return register(identity, 5000);
+	}
+
 	/**
-	 * Returns the Bearer authentication header if the token is not expired, otherwise requests and returns a fresh token
+	 * Returns the Bearer authentication header if the token is not expired,
+	 * otherwise requests and returns a fresh token
 	 * 
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
@@ -356,42 +359,47 @@ public class SEPASecurityManager implements HostnameVerifier {
 
 		return oauthProperties.getBearerAuthorizationHeader();
 	}
-	
+
 	public void storeOAuthProperties() throws SEPAPropertiesException, SEPASecurityException {
 		oauthProperties.storeProperties();
 	}
-	
+
 	public boolean isTokenExpired() {
 		return oauthProperties.isTokenExpired();
 	}
-	
+
 	public boolean isClientRegistered() {
 		return oauthProperties.isClientRegistered();
 	}
-	
-	public void setClientCredentials(String username,String password) throws SEPAPropertiesException, SEPASecurityException {
+
+	public void setClientCredentials(String username, String password)
+			throws SEPAPropertiesException, SEPASecurityException {
 		oauthProperties.setCredentials(username, password);
 	}
 
-	public Response refreshToken() throws SEPAPropertiesException, SEPASecurityException {	
-		if(!isClientRegistered()) {
-			return new ErrorResponse(401,"invalid_client","Client is not registered");
+	public Response refreshToken(int timeout) throws SEPAPropertiesException, SEPASecurityException {
+		if (!isClientRegistered()) {
+			return new ErrorResponse(401, "invalid_client", "Client is not registered");
 		}
-		
+
 		Response ret = requestToken(oauthProperties.getTokenRequestUrl(),
-				oauthProperties.getBasicAuthorizationHeader());
-	
+				oauthProperties.getBasicAuthorizationHeader(),timeout);
+
 		if (ret.isJWTResponse()) {
 			JWTResponse jwt = (JWTResponse) ret;
-	
-			logger.debug("New token: "+ jwt);
-	
+
+			logger.debug("New token: " + jwt);
+
 			oauthProperties.setJWT(jwt);
 		} else {
 			logger.error("FAILED to refresh token " + new Date() + " Response: " + ret);
 		}
-		
+
 		return ret;
+	}
+	
+	public Response refreshToken() throws SEPAPropertiesException, SEPASecurityException {
+		return refreshToken(5000);
 	}
 
 //	/**
@@ -435,7 +443,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 //		return oauthProperties.isTokenExpired();
 //	}
 
-	private Response register(String url, String identity) {
+	private Response register(String url, String identity, int timeout) {
 		logger.info("REGISTER " + identity);
 
 		CloseableHttpResponse response = null;
@@ -449,6 +457,11 @@ public class SEPASecurityManager implements HostnameVerifier {
 			httpRequest.setHeader("Content-Type", "application/json");
 			httpRequest.setHeader("Accept", "application/json");
 			httpRequest.setEntity(body);
+
+			// Set timeout
+			RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout)
+					.build();
+			httpRequest.setConfig(requestConfig);
 
 			logger.trace(httpRequest);
 
@@ -515,7 +528,7 @@ public class SEPASecurityManager implements HostnameVerifier {
 		}
 	}
 
-	private Response requestToken(String url, String authorization) {
+	private Response requestToken(String url, String authorization,int timeout) {
 		logger.info("TOKEN_REQUEST: " + authorization);
 
 		CloseableHttpResponse response = null;
@@ -528,6 +541,11 @@ public class SEPASecurityManager implements HostnameVerifier {
 			httpRequest.setHeader("Content-Type", "application/json");
 			httpRequest.setHeader("Accept", "application/json");
 			httpRequest.setHeader("Authorization", authorization);
+
+			// Set timeout
+			RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout)
+					.build();
+			httpRequest.setConfig(requestConfig);
 
 			try {
 				response = getSSLHttpClient().execute(httpRequest);

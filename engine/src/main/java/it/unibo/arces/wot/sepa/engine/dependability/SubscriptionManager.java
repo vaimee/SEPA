@@ -44,7 +44,7 @@ class SubscriptionManager {
 				}
 			}
 		};
-		thread.setName("SubscriptionManager-BrokenGates");
+		thread.setName("SEPA-Gates-Ping");
 		thread.start();	
 	}
 	

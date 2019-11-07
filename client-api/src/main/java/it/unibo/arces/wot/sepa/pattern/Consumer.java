@@ -36,16 +36,19 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 public abstract class Consumer extends Client implements IConsumer {
-	private static final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 
 	protected String sparqlSubscribe = null;
 	protected String subID = "";
 	private Bindings forcedBindings;
 
+	private boolean subscribed = false;
+	
 	protected SPARQL11SEProtocol client;
 
 	public Consumer(JSAP appProfile, String subscribeID, SEPASecurityManager sm)
@@ -114,8 +117,12 @@ public abstract class Consumer extends Client implements IConsumer {
 		client.close();
 	}
 
+	public boolean isSubscribed() {
+		return subscribed;
+	}
+	
 	@Override
-	public void onSemanticEvent(Notification notify) {		
+	public final void onSemanticEvent(Notification notify) {		
 		ARBindingsResults results = notify.getARBindingsResults();
 
 		BindingsResults added = results.getAddedBindings();
@@ -135,5 +142,69 @@ public abstract class Consumer extends Client implements IConsumer {
 			onAddedResults(added);
 		if (!removed.isEmpty())
 			onRemovedResults(removed);
+	}
+	
+	// TODO: implement auto-reconnection mechanism?
+	@Override
+	public void onBrokenConnection() {
+		logger.warn("onBrokenConnection");
+		subscribed = false;	
+	}
+
+	@Override
+	public void onError(ErrorResponse errorResponse) {
+		logger.error(errorResponse);
+		logger.error("Subscribed: "+subscribed+ " Token expired: "+errorResponse.isTokenExpiredError()+" SM: "+(sm != null));
+		if (!subscribed && errorResponse.isTokenExpiredError() && sm != null) {
+			try {
+				logger.info("refreshToken");
+				sm.refreshToken();
+			} catch (SEPAPropertiesException | SEPASecurityException e) {
+				logger.error("Failed to refresh token "+e.getMessage());
+			}
+			
+			try {
+				logger.debug("subscribe");
+				subscribe(5000);
+			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
+					| SEPABindingsException e) {
+				logger.error("Failed to subscribe "+e.getMessage());
+			}
+		}
+	}
+
+	@Override
+	public final void onSubscribe(String spuid, String alias) {
+		synchronized(this) {
+			logger.debug("onSubscribe");
+			subscribed = true;
+		}
+	}
+
+	@Override
+	public final void onUnsubscribe(String spuid) {
+		logger.debug("onUnsubscribe");
+		subscribed = false;		
+	}
+	
+	@Override
+	public void onAddedResults(BindingsResults results) {
+		logger.debug("Added results "+results);
+		
+	}
+
+	@Override
+	public void onRemovedResults(BindingsResults results) {
+		logger.debug("Removed results "+results);
+	}
+	
+	@Override
+	public void onResults(ARBindingsResults results) {
+		logger.debug("Results "+results);
+	}
+
+	@Override
+	public void onFirstResults(BindingsResults results) {
+		logger.debug("First results "+results);
 	}
 }

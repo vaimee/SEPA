@@ -2,6 +2,8 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -40,19 +42,31 @@ public class ITPattern {
 		if (app.isSecure()) {
 			sm = new ConfigurationProvider().buildSecurityManager();
 			Response ret = sm.register("SEPATest");
-
+			ret = sm.refreshToken();
 			assertFalse(ret.isError());
 		}
-
+	}
+	
+	@Before
+	public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		consumerAll = new ITConsumer(app, "ALL", sm);
 		randomProducer = new Producer(app, "RANDOM", sm);
 		randomAggregator = new ITAggregator(app, "RANDOM", "RANDOM1", sm);
 		consumerRandom1 = new ITConsumer(app, "RANDOM1", sm);
 	}
 
-	@Test(timeout = 5000)
+	@After
+	public void afterTest() throws IOException {
+		consumerAll.close();
+		randomProducer.close();
+		randomAggregator.close();
+		consumerRandom1.close();
+	}
+	
+	@Test(timeout = 10000)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
+		Thread.sleep(6000);
 		consumerAll.subscribe();
 	}
 
@@ -60,19 +74,29 @@ public class ITPattern {
 	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		Response ret = randomProducer.update();
+		
 		assertFalse(ret.isError());
 	}
-
-	@Test(timeout = 15000)
-	public void produceX50() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
+	
+	@Test(timeout = 10000)
+	public void produceX100() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		for (int i = 0; i < 50; i++) {
+		for (int i = 0; i < 100; i++) {
+			Response ret = randomProducer.update();
+			assertFalse("Failed on update: "+i,ret.isError());
+		}
+	}
+	
+	@Test(timeout = 60000)
+	public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
+			SEPAProtocolException, SEPABindingsException {
+		for (int i = 0; i < 1000; i++) {
 			Response ret = randomProducer.update();
 			assertFalse("Failed on update: "+i,ret.isError());
 		}
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 10000)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
@@ -90,7 +114,7 @@ public class ITPattern {
 		consumerAll.waitNotification();
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 10000)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerRandom1.subscribe();
@@ -105,7 +129,7 @@ public class ITPattern {
 		consumerRandom1.waitNotification();
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 10000)
 	public void aggregationX10() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerRandom1.subscribe();
@@ -115,6 +139,23 @@ public class ITPattern {
 		randomAggregator.waitNotification();
 
 		for (int i = 0; i < 10; i++) {
+			randomProducer.update();
+
+			randomAggregator.waitNotification();
+			consumerRandom1.waitNotification();
+		}
+	}
+	
+	@Test(timeout = 60000)
+	public void aggregationX100() throws InterruptedException, SEPASecurityException, IOException,
+			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+		consumerRandom1.subscribe();
+		consumerRandom1.waitNotification();
+
+		randomAggregator.subscribe();
+		randomAggregator.waitNotification();
+
+		for (int i = 0; i < 100; i++) {
 			randomProducer.update();
 
 			randomAggregator.waitNotification();

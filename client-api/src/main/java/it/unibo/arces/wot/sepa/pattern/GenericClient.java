@@ -312,7 +312,7 @@ public class GenericClient extends Client {
 
 		String auth = null;
 		try {
-			auth = sm.getAuthorizationHeader();
+			if (sm != null) auth = sm.getAuthorizationHeader();
 		} catch (Exception e) {
 		}
 
@@ -339,7 +339,7 @@ public class GenericClient extends Client {
 
 		String auth = null;
 		try {
-			auth = sm.getAuthorizationHeader();
+			if (sm != null) auth = sm.getAuthorizationHeader();
 		} catch (Exception e) {
 		}
 		
@@ -360,6 +360,27 @@ public class GenericClient extends Client {
 				appProfile.getUpdatePath(ID), appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced,ID,false)),
 				appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), auth, timeout));
 		
+		while (isSecure() && ret.isError()) {
+			ErrorResponse errorResponse = (ErrorResponse) ret;
+
+			if (errorResponse.isTokenExpiredError()) {
+				try {
+					sm.refreshToken();
+				} catch (SEPAPropertiesException | SEPASecurityException e) {
+					logger.error("Failed to refresh token: " + e.getMessage());
+				}
+			} else {
+				logger.error("Failed to refresh token: " + errorResponse);
+				break;
+			}
+
+			auth = sm.getAuthorizationHeader();
+
+			ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
+					appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
+					appProfile.getUpdatePath(ID), appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced,ID,false)),
+					appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), auth, timeout));
+		}
 		
 		try {
 			client.close();
@@ -402,7 +423,7 @@ public class GenericClient extends Client {
 	
 		String auth = null;
 		try {
-			auth = sm.getAuthorizationHeader();
+			if (sm != null) auth = sm.getAuthorizationHeader();
 		} catch (Exception e) {
 
 		}
@@ -412,6 +433,29 @@ public class GenericClient extends Client {
 				appProfile.getQueryPath(ID), appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced,ID,true)),
 				appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout));
 
+		while (isSecure() && ret.isError()) {
+			ErrorResponse errorResponse = (ErrorResponse) ret;
+
+			if (errorResponse.isTokenExpiredError()) {
+				try {
+					sm.refreshToken();
+				} catch (SEPAPropertiesException | SEPASecurityException e) {
+					logger.error("Failed to refresh token: " + e.getMessage());
+				}
+			} else {
+				logger.error("Failed to refresh token: " + errorResponse);
+				break;
+			}
+
+			auth = sm.getAuthorizationHeader();
+
+			ret = client.query(new QueryRequest(appProfile.getQueryMethod(ID),
+					appProfile.getQueryProtocolScheme(ID), appProfile.getQueryHost(ID), appProfile.getQueryPort(ID),
+					appProfile.getQueryPath(ID), appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced,ID,true)),
+					appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout));
+
+		}
+		
 		try {
 			client.close();
 		} catch (IOException e) {
@@ -477,7 +521,7 @@ public class GenericClient extends Client {
 				client = activeUrls.get(url);
 
 			try {
-				auth = sm.getAuthorizationHeader();
+				if (sm != null) auth = sm.getAuthorizationHeader();
 			} catch (Exception e) {
 				throw new SEPASecurityException("Failed to get bearer authorization header");
 			}

@@ -56,9 +56,8 @@ class Publisher extends Thread implements Closeable {
 		while (running.get() > 0) {
 			Response ret = client.update(provider.buildUpdateRequest(id, 5000, sm));
 
-			if (ret.isError()) {
+			while (ret.isError()) {
 				ErrorResponse errorResponse = (ErrorResponse) ret;
-				//logger.error(errorResponse);
 
 				if (errorResponse.isTokenExpiredError()) {
 					try {
@@ -66,14 +65,13 @@ class Publisher extends Thread implements Closeable {
 					} catch (SEPAPropertiesException | SEPASecurityException e) {
 						logger.error("Failed to refresh token: "+e.getMessage());
 					}
-					
-					ret = client.update(provider.buildUpdateRequest(id, 5000, sm));
-
-					if (ret.isError()) {
-						errorResponse = (ErrorResponse) ret;
-						logger.error(errorResponse);
-					}
 				}
+				else {
+					logger.error("Failed to refresh token: "+errorResponse);
+					break;
+				}
+				
+				ret = client.update(provider.buildUpdateRequest(id, 5000, sm));
 			}
 
 			running.set(running.get() - 1);

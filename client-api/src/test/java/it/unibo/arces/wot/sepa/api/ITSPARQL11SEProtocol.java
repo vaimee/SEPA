@@ -415,10 +415,10 @@ public class ITSPARQL11SEProtocol {
 			pub.join();
 	}
 
-	@Test(timeout = 60000)
+	@Test //(timeout = 60000)
 	public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
-		int n = 10;
+		int n = 15;
 
 		for (int i = 0; i < n; i++) {
 			subscribers.add(new Subscriber("ALL", sync));

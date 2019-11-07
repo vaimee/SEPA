@@ -253,6 +253,8 @@ public class Engine implements EngineMBean {
 		// Beans
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		EngineBeans.setVersion(version);
+		
+		// Dependability monitor
 		new DependabilityMonitor();
 
 		try {

@@ -21,8 +21,11 @@ package it.unibo.arces.wot.sepa.engine.gates;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.java_websocket.WebSocket;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.response.Notification;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class WebsocketGate extends Gate {
@@ -35,14 +38,21 @@ public class WebsocketGate extends Gate {
 		this.socket = s;
 	}
 	
-	public void send(String ret) throws SEPAProtocolException {
+	public void send(Response ret) throws SEPAProtocolException {
 		try{
-			socket.send(ret);
+			socket.send(ret.toString());
 			logger.debug("Sent: "+ret);
 		}
-		catch(Exception e){
-			logger.warn("Socket: "+socket.hashCode()+" failed to send response: "+ret+" Exception:"+e.getMessage());
-			throw new SEPAProtocolException(e);
+		catch(WebsocketNotConnectedException e){
+			if (ret.isNotification()) {
+				Notification notify = (Notification) ret;
+				logger.warn("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
+				throw new SEPAProtocolException("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
+			}
+			else {
+				logger.warn("WebsocketNotConnectedException failed to send error response "+ret);
+				throw new SEPAProtocolException("WebsocketNotConnectedException failed to send error response "+ret);
+			}
 		}	
 	}
 

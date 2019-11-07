@@ -213,6 +213,6 @@ public class ErrorResponse extends Response {
 	}
 	
 	public boolean isTokenExpiredError() {
-		return getError().equals("invalid_grant");
+		return getStatusCode() == 401 && getError().equals("invalid_grant");
 	}
 }

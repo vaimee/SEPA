@@ -31,6 +31,8 @@ public interface QueryProcessorMBean {
 	
 	public int getTimeout();
 	public void setTimeout(int t);
+	public int getTimeoutNRetry();
+	public void setTimeoutNRetry(int n);
 	
 	public void scale_ms();
 	public void scale_us();

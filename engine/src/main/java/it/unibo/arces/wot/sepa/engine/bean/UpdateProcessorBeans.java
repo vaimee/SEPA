@@ -26,8 +26,9 @@ public class UpdateProcessorBeans {
 	private static float max = -1;
 	private static float current = -1;
 
-	private static long timeout;
-
+	private static long timeout = 5000;
+	private static int nRetry = 3;
+	
 	private static long unitScale = 1000000;
 
 	private static boolean reliable = true;
@@ -116,5 +117,13 @@ public class UpdateProcessorBeans {
 	
 	public static boolean getReilable() {
 		return reliable;
+	}
+	
+	public static void setTimeoutNRetry(int n) {
+		nRetry = n;
+	}
+
+	public static int getTimeoutNRetry() {
+		return nRetry;
 	}
 }

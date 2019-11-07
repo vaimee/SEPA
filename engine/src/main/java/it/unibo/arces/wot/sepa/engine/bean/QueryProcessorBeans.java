@@ -26,7 +26,8 @@ public class QueryProcessorBeans {
 	private static float max = -1;
 	private static float current = -1;
 	
-	private static int timeout;
+	private static int timeout = 5000;
+	private static int nRetry = 3;
 	
 	private static long unitScale = 1000000;
 	
@@ -104,5 +105,13 @@ public class QueryProcessorBeans {
 
 	public static long getRequests() {
 		return requests;
+	}
+	
+	public static void setTimeoutNRetry(int n) {
+		nRetry = n;
+	}
+
+	public static int getTimeoutNRetry() {
+		return nRetry;
 	}
 }

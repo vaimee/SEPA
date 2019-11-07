@@ -135,6 +135,8 @@ public abstract class SPU extends Thread implements ISPU {
 				// PRE processing
 				logger.debug("* PRE PROCESSING *");
 				preUpdateInternalProcessing(request);
+				
+				// End of PRE processing
 				logger.debug("Notify SPU manager of EOP. Running: " + running);
 				manager.endOfProcessing(this);
 				

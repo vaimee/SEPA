@@ -1,40 +1,21 @@
 package it.unibo.arces.wot.sepa.pattern;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.io.IOException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public class ITAggregator extends Aggregator {
-	protected final Logger logger = LogManager.getLogger();
-	
-	protected static boolean subscribed = false;
 	protected static boolean notificationReceived = false;
 	
 	public ITAggregator(JSAP appProfile, String subscribeID, String updateID, SEPASecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile, subscribeID, updateID, sm);
-	}
-	
-	public void subscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
-		super.subscribe(5000);
-		synchronized(this) {
-			while (!subscribed) wait();
-		}
-	}
-	
-	public void waitNotification() throws InterruptedException {
-		synchronized(this) {
-			while (!notificationReceived) wait();
-			notificationReceived = false;
-		}
 	}
 
 	@Override
@@ -51,48 +32,31 @@ public class ITAggregator extends Aggregator {
 		}
 		
 	}
-
-	@Override
-	public void onAddedResults(BindingsResults results) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onRemovedResults(BindingsResults results) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onBrokenConnection() {
-		subscribed = false;
-	}
-
-	@Override
-	public void onError(ErrorResponse errorResponse) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void onSubscribe(String spuid, String alias) {
+	
+	public void subscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+		logger.debug("subscribe");
+		super.subscribe(5000);
 		synchronized(this) {
-			subscribed = true;
-			notify();
+			while (!isSubscribed()) wait();
+			logger.debug("subscribed");
 		}
 	}
-
-	@Override
-	public void onUnsubscribe(String spuid) {
-		subscribed = false;
+	
+	public void waitNotification() throws InterruptedException {
+		synchronized(this) {
+			logger.debug("waitNotification");
+			while (!notificationReceived) wait();
+			notificationReceived = false;
+			logger.debug("notify!");
+		}
 	}
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
 		synchronized(this) {
+			logger.debug("onFirstResults");
 			notificationReceived = true;
 			notify();
-		}
+		}	
 	}
 }

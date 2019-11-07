@@ -31,6 +31,8 @@ public interface ISubscriptionHandler {
 	/**
 	 * An event about changes in the graph.
 	 * @param notify notification about added and removed triples
+	 * 
+	 * @see Notification
 	 */
 	void onSemanticEvent(Notification notify);
 

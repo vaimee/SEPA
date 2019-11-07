@@ -51,7 +51,10 @@ public abstract class Client implements java.io.Closeable {
 		logger.trace("SEPA parameters: " + appProfile.printParameters());
 		
 		// Security manager
-		if (appProfile.isSecure() && sm == null) throw new IllegalArgumentException("Security is enabled but SEPA security manager is null");
+		if (appProfile.isSecure()) {
+			if(sm == null) throw new IllegalArgumentException("Security is enabled but SEPA security manager is null");
+		}
+		
 		this.sm = sm;
 	}
 	
