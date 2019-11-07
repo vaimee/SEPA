@@ -25,6 +25,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPANotExistsException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
@@ -49,11 +50,11 @@ public class Subscriptions {
 	public synchronized static void register(InternalSubscribeRequest req, SPU spu) {
 		handlers.put(spu.getSPUID(), new HashSet<Subscriber>());
 		requests.put(req, spu);
-		
+
 		SPUManagerBeans.setActiveSPUs(handlers.size());
 		logger.debug("@subscribe SPU activated: " + spu.getSPUID() + " total (" + handlers.size() + ")");
 	}
-	
+
 	public synchronized static SPU getSPU(InternalSubscribeRequest req) {
 		return requests.get(req);
 	}
@@ -65,10 +66,10 @@ public class Subscriptions {
 
 		SPUManagerBeans.addSubscriber();
 		Dependability.onSubscribe(sub.getGID(), sub.getSID());
-		
+
 		return sub;
 	}
-	
+
 	public synchronized static Subscriber getSubscriber(String sid) {
 		return subscribers.get(sid);
 	}
@@ -76,14 +77,14 @@ public class Subscriptions {
 	public synchronized static boolean removeSubscriber(Subscriber sub) throws SEPANotExistsException {
 		String sid = sub.getSID();
 		String spuid = sub.getSPU().getSPUID();
-		
+
 		if (!subscribers.containsKey(sid)) {
 			logger.warn("@internalUnsubscribe SID not found: " + sid);
 			throw new SEPANotExistsException("SID not found: " + sid);
 		}
-		
+
 		SPUManagerBeans.removeSubscriber();
-		
+
 		logger.trace("@internalUnsubscribe SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
 				+ subscribers.size());
 
@@ -96,31 +97,35 @@ public class Subscriptions {
 
 			requests.remove(sub.getSPU().getSubscribe());
 			handlers.remove(spuid);
-			
+
 			return true;
 		}
-		
+
 		// More handlers
 		return false;
 	}
-	
-	public synchronized static void notifySubscribers(String spuid,Notification notify) {
+
+	public synchronized static void notifySubscribers(String spuid, Notification notify) {
 		for (Subscriber client : handlers.get(spuid)) {
-			try {
-				// Dispatching events
-				Notification event = new Notification(client.getSID(), notify.getARBindingsResults(),
-						client.nextSequence());
-				client.getHandler().notifyEvent(event);
-			} catch (Exception e) {
-				logger.error("@notifyEvent " + e.getMessage());
-			}
+			// Dispatching events
+			Notification event = new Notification(client.getSID(), notify.getARBindingsResults(),
+					client.nextSequence());
+			if (client.getHandler() != null)
+				try {
+					client.getHandler().notifyEvent(event);
+				} catch (SEPAProtocolException e) {
+					logger.error(e.getMessage());
+					logger.trace(e);
+				}
 		}
 	}
-	
+
 	public synchronized static boolean isZombieSpu(String spuid) {
-		if (handlers.get(spuid) == null) return true;
-		if (handlers.get(spuid).isEmpty()) return true;
-		
+		if (handlers.get(spuid) == null)
+			return true;
+		if (handlers.get(spuid).isEmpty())
+			return true;
+
 		InternalSubscribeRequest req = null;
 		for (Subscriber client : handlers.get(spuid)) {
 			if (client.getHandler() == null) {
@@ -130,10 +135,10 @@ public class Subscriptions {
 			}
 			return false;
 		}
-		
+
 		handlers.remove(spuid);
 		requests.remove(req);
-		
+
 		return true;
 	}
 }

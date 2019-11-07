@@ -51,7 +51,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		return update;
 	}
 
-	public synchronized Response process(InternalUpdateRequest req) throws InterruptedException {
+	public synchronized Response process(InternalUpdateRequest req,int nRetry) {
 		long start = Timings.getTime();
 
 		// TODO: to implement other authentication mechanisms (Digest, Bearer, ...)
@@ -62,6 +62,8 @@ class UpdateProcessor implements UpdateProcessorMBean {
 				authorizationHeader = req.getCredentials().getBasicAuthorizationHeader();
 			} catch (SEPASecurityException e) {
 				logger.error(e.getMessage());
+				return new ErrorResponse(401, "unauthorized_client",
+						"Exception on creating Basic Authorization Header");
 			}
 		}
 
@@ -79,10 +81,18 @@ class UpdateProcessor implements UpdateProcessorMBean {
 
 		logger.trace("Response: " + ret.toString());
 		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
-		
+
 		if (ret.isError()) {
 			ErrorResponse err = (ErrorResponse) ret;
-			if (err.getStatusCode() == 401) return new ErrorResponse(401,"unauthorized_client","Check the security settings of the endpoint");
+			if (err.getStatusCode() == 401)
+				return new ErrorResponse(401, "unauthorized_client", "Check the security settings of the endpoint");
+
+			// *** Timeout retry ***
+			if (err.getStatusCode() == 500 && err.getError().equals("IOException")
+					&& err.getErrorDescription().equals("Read timed out") && nRetry > 0) {
+				logger.warn("READ TIMED OUT. RETRY " + nRetry);
+				return process(req, nRetry - 1);
+			}
 		}
 
 		return ret;
@@ -146,5 +156,15 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	@Override
 	public String getUnitScale() {
 		return UpdateProcessorBeans.getUnitScale();
+	}
+
+	@Override
+	public int getTimeoutNRetry() {
+		return UpdateProcessorBeans.getTimeoutNRetry();
+	}
+
+	@Override
+	public void setTimeoutNRetry(int n) {
+		UpdateProcessorBeans.setTimeoutNRetry(n);
 	}
 }

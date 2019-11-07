@@ -250,6 +250,9 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 				if (alias != null) {
 					((ErrorResponse) init).setAlias(alias);
 				}
+				
+				processingMutex.release();
+				
 				return init;
 			}
 
@@ -307,6 +310,9 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			}
 		} catch (SEPANotExistsException e) {
 			logger.warn("@internalUnsubscribe SID not found: " + sid);
+			
+			processingMutex.release();
+			
 			return new ErrorResponse(500, "sid_not_found", "Unregistering a not existing subscriber: " + sid);
 		}
 

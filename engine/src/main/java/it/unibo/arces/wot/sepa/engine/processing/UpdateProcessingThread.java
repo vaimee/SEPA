@@ -25,6 +25,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
@@ -57,9 +58,9 @@ class UpdateProcessingThread extends Thread {
 			InternalUpdateRequest preRequest;
 			try {
 				preRequest = processor.getUpdateProcessor().preProcess(update);
-			} catch (SEPAProcessingException e2) {
-				logger.error("Pre processing aborted: "+e2.getMessage());
-				ErrorResponse errorResponse = new ErrorResponse(500, "PreProcessing failed: "+update, e2.getMessage());
+			} catch (SEPAProcessingException e) {
+				logger.error("*** PRE UPDATE PROCESSING ABORTED *** "+e.getMessage());
+				ErrorResponse errorResponse = new ErrorResponse(500, "pre_update_processing_aborted","Update: "+update+ " Message: "+ e.getMessage());
 				processor.getScheduler().addResponse(request.getToken(),errorResponse);
 				continue;
 			}
@@ -68,20 +69,18 @@ class UpdateProcessingThread extends Thread {
 			try {
 				processor.preUpdateProcessing(preRequest);
 			} catch (SEPAProcessingException e) {
-				logger.error("PreUpdateProcessing failed: "+e.getMessage());
-				ErrorResponse errorResponse = new ErrorResponse(500, "PreUpdateProcessing failed: "+update, e.getMessage());
+				logger.error("*** PRE UPDATE PROCESSING FAILED *** "+e.getMessage());
+				ErrorResponse errorResponse = new ErrorResponse(500, "pre_update_processing_failed","Update: "+update+ " Message: "+ e.getMessage());
 				processor.getScheduler().addResponse(request.getToken(),errorResponse);
 				continue;
 			}
 			
-			// Processing UPDATE
-			Response ret;
-			try {
-				ret = processor.getUpdateProcessor().process(preRequest);
-			} catch (InterruptedException e1) {
-				logger.error("Processing failed: "+e1.getMessage());
-				ErrorResponse errorResponse = new ErrorResponse(500, "Processing failed: "+update, e1.getMessage());
-				processor.getScheduler().addResponse(request.getToken(),errorResponse);
+			// Update the endpoint
+			Response ret = processor.getUpdateProcessor().process(preRequest,UpdateProcessorBeans.getTimeoutNRetry());
+			
+			if (ret.isError()) {
+				logger.error("*** UPDATE PROCESSING FAILED *** "+ret);
+				processor.getScheduler().addResponse(request.getToken(),ret);
 				continue;
 			}
 
@@ -92,7 +91,7 @@ class UpdateProcessingThread extends Thread {
 			try {
 				processor.postUpdateProcessing(ret);
 			} catch (SEPAProcessingException e) {
-				logger.warn("Post processing failed: "+e.getMessage());
+				logger.error("*** POST UPDATE PROCESSING FAILED *** "+e.getMessage());
 				continue;
 			}
 		}

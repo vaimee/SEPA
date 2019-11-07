@@ -131,7 +131,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 				if (retries == 0) throw new SEPAProtocolException(e);
 				
 				try {
-					Thread.sleep(100);
+					Thread.sleep(1000);
 				} catch (InterruptedException e1) {
 					throw new SEPAProtocolException(e1);
 				}
@@ -196,7 +196,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 				try {
 					jsonMessage = new JsonParser().parse(message).getAsJsonObject();
 				} catch (Exception e) {
-					logger.error(e.getMessage());
+					logger.error("Exception on parsing message: "+message+" exception: "+e.getMessage());
 					return;
 				}
 
@@ -214,7 +214,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 							logger.trace("Subscribed: " + spuid + " alias: " + alias);
 							handler.onSubscribe(spuid, alias);
 						} catch (Exception e) {
-							logger.error("Handler is null " + e.getMessage());
+							logger.error("Exception on handling onSubscribe. Handler: "+handler+" Exception: " + e.getMessage());
 							return;
 						}
 					}
@@ -226,7 +226,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 						logger.trace("Notification: " + notify);
 						handler.onSemanticEvent(notify);
 					} catch (Exception e) {
-						logger.error("Exception on handling notification. Handler: "+handler+" Exception: " + e.getMessage());
+						logger.error("Exception on handling onSemanticEvent. Handler: "+handler+" Exception: " + e.getMessage());
 					}
 				} else if (jsonMessage.has("error")) {
 					ErrorResponse error = new ErrorResponse(jsonMessage.get("status_code").getAsInt(),
@@ -235,7 +235,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 					try {
 						handler.onError(error);
 					} catch (Exception e) {
-						logger.error("Handler is null " + e.getMessage());
+						logger.error("Exception on handling onError. Handler: "+handler+" Exception: " + e.getMessage());
 					}
 				} else if (jsonMessage.has("unsubscribed")) {
 					logger.debug("unsubscribed");
@@ -243,7 +243,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 						handler.onUnsubscribe(
 								jsonMessage.get("unsubscribed").getAsJsonObject().get("spuid").getAsString());
 					} catch (Exception e) {
-						logger.error("Handler is null " + e.getMessage());
+						logger.error("Exception on handling onUnsubscribe. Handler: "+handler+" Exception: " + e.getMessage());
 					}
 				} else
 					logger.error("Unknown message: " + message);
@@ -265,7 +265,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 		try {
 			handler.onBrokenConnection();
 		} catch (Exception e) {
-			logger.error("Handler is null " + e.getMessage());
+			logger.error("Exception on handling onBrokenConnection. Handler: "+handler+" Exception: " + e.getMessage());
 		}
 	}
 
@@ -277,12 +277,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 		try {
 			handler.onError(error);
 		} catch (Exception e) {
-			logger.error("Handler is null " + e.getMessage());
-		}
-		try {
-			handler.onError(error);
-		} catch (Exception e) {
-			logger.error("Handler is null " + e.getMessage());
+			logger.error("Exception on handling onError. Handler: "+handler+" Exception: " + e.getMessage());
 		}
 	}
 

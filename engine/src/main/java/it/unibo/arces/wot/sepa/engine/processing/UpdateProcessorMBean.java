@@ -30,6 +30,8 @@ public interface UpdateProcessorMBean {
 	
 	public long getTimeout();
 	public void setTimeout(long t);
+	public int getTimeoutNRetry();
+	public void setTimeoutNRetry(int n);
 	
 	public void scale_ms();
 	public void scale_us();

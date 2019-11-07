@@ -46,20 +46,22 @@ public class QueryProcessor implements QueryProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public Response process(InternalQueryRequest req) {
+	public Response process(InternalQueryRequest req,int nRetry) {
 		long start = Timings.getTime();
 
 		// TODO: to implement other authentication mechanisms (Digest, Bearer, ...)
-		// Basic authorization access to the endpoint
 		String authorizationHeader = null;
 		if (req.getCredentials() != null) {
 			try {
+				// Basic authorization access to the endpoint
 				authorizationHeader = req.getCredentials().getBasicAuthorizationHeader();
 			} catch (SEPASecurityException e) {
 				logger.error(e.getMessage());
+				return new ErrorResponse(401,"unauthorized_client","Exception on creating Basic Authorization Header");
 			}
 		}
 
+		// Build the request
 		Response ret;
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
@@ -78,6 +80,12 @@ public class QueryProcessor implements QueryProcessorMBean {
 		if (ret.isError()) {
 			ErrorResponse err = (ErrorResponse) ret;
 			if (err.getStatusCode() == 401) return new ErrorResponse(401,"unauthorized_client","Check the security settings of the endpoint");
+			
+			// *** Timeout retry ***
+			if (err.getStatusCode() == 500 && err.getError().equals("IOException") && err.getErrorDescription().equals("Read timed out") && nRetry > 0) {
+				logger.warn("READ TIMED OUT. RETRY "+nRetry);
+				return process(req,nRetry-1);
+			}
 		}
 		
 		return ret;
@@ -142,5 +150,15 @@ public class QueryProcessor implements QueryProcessorMBean {
 	@Override
 	public String getUnitScale() {
 		return QueryProcessorBeans.getUnitScale();
+	}
+
+	@Override
+	public int getTimeoutNRetry() {
+		return QueryProcessorBeans.getTimeoutNRetry();
+	}
+
+	@Override
+	public void setTimeoutNRetry(int n) {
+		QueryProcessorBeans.setTimeoutNRetry(n);
 	}
 }

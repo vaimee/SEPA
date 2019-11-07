@@ -19,6 +19,7 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
@@ -27,7 +28,7 @@ class QueryProcessingThread extends Thread{
 	
 	public QueryProcessingThread(Processor processor) {
 		this.processor = processor; 
-		setName("SEPA-Query-Processing");
+		setName("SEPA-Query-Processor");
 	}
 	
 	public void run() {
@@ -40,7 +41,7 @@ class QueryProcessingThread extends Thread{
 			}
 			
 			InternalQueryRequest query = (InternalQueryRequest) request.getRequest();
-			Response ret = processor.getQueryProcessor().process(query);
+			Response ret = processor.getQueryProcessor().process(query,QueryProcessorBeans.getTimeoutNRetry());
 			
 			processor.getScheduler().addResponse(request.getToken(),ret);
 		}

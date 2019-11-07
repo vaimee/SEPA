@@ -114,10 +114,13 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 			try {
 				httpResponse = httpClient.execute(req);
+			} catch (ClientProtocolException e) {
+				logger.warn("ClientProtocolException: " + e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ClientProtocolException", e.getMessage());
 			} catch (IOException e) {
-				logger.error("HTTP EXECUTE: " + e.getMessage());
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
-			}
+				logger.warn("IOException: " + e.getMessage());
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
+			} 
 
 			long stop = Timings.getTime();
 
@@ -168,8 +171,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		JsonObject ret = null;
 		if (responseCode >= 400) {
-			// SPARQL 1.1 does not recommend any format
-			// SPARQL 1.1 SE suggests to use a JSON format: http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
+			// SPARQL 1.1 protocol does not recommend any format, while SPARQL 1.1 SE suggests to use a JSON format: http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
 			try {
 				ret = new JsonParser().parse(responseBody).getAsJsonObject();
 			} catch (Exception e) {

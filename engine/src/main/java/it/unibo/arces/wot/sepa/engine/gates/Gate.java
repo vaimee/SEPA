@@ -49,7 +49,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	protected final Scheduler scheduler;
 	private boolean authorizationRequired = false;
 
-	public abstract void send(String response) throws SEPAProtocolException;
+	public abstract void send(Response response) throws SEPAProtocolException;
 
 	public abstract boolean ping();
 
@@ -82,7 +82,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	@Override
 	public final void notifyEvent(Notification notify) throws SEPAProtocolException {
 		logger.debug("@notifyEvent: " + notify);
-		send(notify.toString());
+		send(notify);
 		
 		GateBeans.notification();
 	}
@@ -90,7 +90,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	@Override
 	public final void sendResponse(Response response) throws SEPAProtocolException {
 		logger.debug("@sendResponse: " + response);
-		send(response.toString());
+		send(response);
 
 		// JMX
 		if (response.isSubscribeResponse()) {
@@ -121,7 +121,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		// Authorize the request
 		AuthorizationResponse auth = authorize(message);
 		if (!auth.isAuthorized()) {
-			ErrorResponse error = new ErrorResponse(401, "auth_failed", auth.getError());
+			ErrorResponse error = new ErrorResponse(401, auth.getError(), auth.getDescription());
 			setAliasIfPresent(error, message);
 			sendResponse(error);
 			return;
