@@ -57,7 +57,7 @@ public class QueryProcessor implements QueryProcessorMBean {
 				authorizationHeader = req.getCredentials().getBasicAuthorizationHeader();
 			} catch (SEPASecurityException e) {
 				logger.error(e.getMessage());
-				return new ErrorResponse(401,"unauthorized_client","Exception on creating Basic Authorization Header");
+				return new ErrorResponse(401,"unauthorized_client","Basic Authorization Header exception");
 			}
 		}
 
@@ -79,7 +79,7 @@ public class QueryProcessor implements QueryProcessorMBean {
 
 		if (ret.isError()) {
 			ErrorResponse err = (ErrorResponse) ret;
-			if (err.getStatusCode() == 401) return new ErrorResponse(401,"unauthorized_client","Check the security settings of the endpoint");
+			if (err.getStatusCode() == 401) return new ErrorResponse(401,"unauthorized_client",err.getErrorDescription());
 			
 			// *** Timeout retry ***
 			if (err.getStatusCode() == 500 && err.getError().equals("IOException") && err.getErrorDescription().equals("Read timed out") && nRetry > 0) {

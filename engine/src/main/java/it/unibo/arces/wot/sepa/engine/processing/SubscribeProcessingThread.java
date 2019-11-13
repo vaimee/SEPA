@@ -21,7 +21,6 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
@@ -42,7 +41,7 @@ class SubscribeProcessingThread extends Thread {
 		while (processor.isRunning()) {
 			try {
 				// Wait request...
-				ScheduledRequest request = processor.getScheduler().waitSubscribeUnsubscribeRequest();
+				ScheduledRequest request = processor.waitSubscribeUnsubscribeRequest();
 				logger.debug(">> " + request);
 
 				// Process request
@@ -57,11 +56,8 @@ class SubscribeProcessingThread extends Thread {
 				logger.debug("<< " + response);
 
 				// Send back response
-				processor.getScheduler().addResponse(request.getToken(), response);
+				processor.addResponse(request.getToken(), response);
 
-			} catch (SEPAProcessingException e) {
-				logger.warn(e.getMessage());
-				continue;
 			} catch (InterruptedException e) {
 				logger.warn(e.getMessage());
 				return;

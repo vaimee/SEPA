@@ -43,7 +43,7 @@ class UpdateProcessingThread extends Thread {
 		while (processor.isRunning()) {
 			ScheduledRequest request;
 			try {
-				request = processor.getScheduler().waitUpdateRequest();
+				request = processor.waitUpdateRequest();
 			} catch (InterruptedException e) {
 				return;
 			}
@@ -52,47 +52,46 @@ class UpdateProcessingThread extends Thread {
 			InternalUpdateRequest update = (InternalUpdateRequest)request.getRequest();
 			
 			// Notify update (not reliable)
-			if (!processor.isUpdateReilable()) processor.getScheduler().addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
+			if (!processor.isUpdateReilable()) processor.addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
 						
 			// PRE-processing update request
 			InternalUpdateRequest preRequest;
 			try {
-				preRequest = processor.getUpdateProcessor().preProcess(update);
+				preRequest = processor.preProcessUpdate(update);
 			} catch (SEPAProcessingException e) {
-				logger.error("*** PRE UPDATE PROCESSING ABORTED *** "+e.getMessage());
-				ErrorResponse errorResponse = new ErrorResponse(500, "pre_update_processing_aborted","Update: "+update+ " Message: "+ e.getMessage());
-				processor.getScheduler().addResponse(request.getToken(),errorResponse);
-				continue;
-			}
-			
-			// PRE-processing subscriptions (endpoint not yet updated)
-			try {
-				processor.preUpdateProcessing(preRequest);
-			} catch (SEPAProcessingException e) {
-				logger.error("*** PRE UPDATE PROCESSING FAILED *** "+e.getMessage());
+				logger.error("*** PRE-UPDATE PROCESSING FAILED *** "+e.getMessage());
 				ErrorResponse errorResponse = new ErrorResponse(500, "pre_update_processing_failed","Update: "+update+ " Message: "+ e.getMessage());
-				processor.getScheduler().addResponse(request.getToken(),errorResponse);
+				if (processor.isUpdateReilable()) processor.addResponse(request.getToken(),errorResponse);
 				continue;
 			}
 			
-			// Update the endpoint
-			Response ret = processor.getUpdateProcessor().process(preRequest,UpdateProcessorBeans.getTimeoutNRetry());
+			// PRE-processing subscriptions (ENDPOINT not yet updated)
+			try {
+				processor.preProcessingSubscriptions(preRequest);
+			} catch (InterruptedException e) {
+				logger.error("*** PRE-SUBSCRIPTIONS PROCESSING FAILED *** "+e.getMessage());
+				ErrorResponse errorResponse = new ErrorResponse(500, "pre_update_processing_interrupted","Update: "+update+ " Message: "+ e.getMessage());
+				if (processor.isUpdateReilable()) processor.addResponse(request.getToken(),errorResponse);
+				continue;
+			}
+			
+			// Update the ENDPOINT
+			Response ret = processor.processUpdate(preRequest,UpdateProcessorBeans.getTimeoutNRetry());
 			
 			if (ret.isError()) {
 				logger.error("*** UPDATE PROCESSING FAILED *** "+ret);
-				processor.getScheduler().addResponse(request.getToken(),ret);
-				continue;
+//				if (processor.isUpdateReilable()) processor.getScheduler().addResponse(request.getToken(),ret);
+//				continue;
 			}
 
 			// Notify update result
-			if (processor.isUpdateReilable()) processor.getScheduler().addResponse(request.getToken(),ret);
+			if (processor.isUpdateReilable()) processor.addResponse(request.getToken(),ret);
 
 			// Subscription processing (post update)
 			try {
-				processor.postUpdateProcessing(ret);
-			} catch (SEPAProcessingException e) {
-				logger.error("*** POST UPDATE PROCESSING FAILED *** "+e.getMessage());
-				continue;
+				processor.postProcessingSubscriptions(ret);
+			} catch (InterruptedException e) {
+				logger.error("*** POST-SUBSCRIPTIONS PROCESSING FAILED *** "+e.getMessage());
 			}
 		}
 	}

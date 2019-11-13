@@ -63,17 +63,18 @@ class UpdateProcessor implements UpdateProcessorMBean {
 			} catch (SEPASecurityException e) {
 				logger.error(e.getMessage());
 				return new ErrorResponse(401, "unauthorized_client",
-						"Exception on creating Basic Authorization Header");
+						"Basic Authorization Header exception");
 			}
 		}
 
-		// UPDATE the endpoint
+		// ENDPOINT UPDATE
 		Response ret;
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
 				req.getDefaultGraphUri(), req.getNamedGraphUri(), authorizationHeader,
 				UpdateProcessorBeans.getTimeout());
 		logger.trace(request);
+		
 		ret = endpoint.update(request);
 
 		long stop = Timings.getTime();
@@ -85,7 +86,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		if (ret.isError()) {
 			ErrorResponse err = (ErrorResponse) ret;
 			if (err.getStatusCode() == 401)
-				return new ErrorResponse(401, "unauthorized_client", "Check the security settings of the endpoint");
+				return new ErrorResponse(401, "unauthorized_client", err.getErrorDescription());
 
 			// *** Timeout retry ***
 			if (err.getStatusCode() == 500 && err.getError().equals("IOException")

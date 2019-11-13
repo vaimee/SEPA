@@ -71,7 +71,7 @@ dn: uid=SEPATest,ou=authorizedIdentities,o=vaimee
 objectClass: applicationProcess | device
 objectClass: uidObject
 objectClass: top
-cn: SEPATest
+cn: TEST
 uid: SEPATest
 
 ### Credentials ###
@@ -699,6 +699,25 @@ public class LdapAuthorization implements IAuthorization {
 			cursor = ldap.search("uid=" + uid + ",ou=authorizedIdentities," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
 			return cursor.next();
+		} catch (LdapException | CursorException e) {
+			logger.error("isAuthorized exception "+e.getMessage());
+			throw new SEPASecurityException("isAuthorized exception "+e.getMessage());
+		} finally {
+			unbind();
+		}
+	}
+	
+	@Override
+	public boolean isForTesting(String uid) throws SEPASecurityException {
+		logger.debug("isForTesting "+uid);
+		
+		bind();
+		
+		try {
+			cursor = ldap.search("uid=" + uid + ",ou=authorizedIdentities," + ldapRoot, "(objectclass=*)",
+					SearchScope.OBJECT, "*");
+			if (!cursor.next()) return false;
+			return cursor.get().get("cn").getString().equals("TEST");
 		} catch (LdapException | CursorException e) {
 			logger.error("isAuthorized exception "+e.getMessage());
 			throw new SEPASecurityException("isAuthorized exception "+e.getMessage());

@@ -212,6 +212,8 @@ public class ErrorResponse extends Response {
 		return json.get("error_description").getAsString();
 	}
 	
+	// {"error":"invalid_grant","status_code":401,"error_description":"BadJOSEException: Expired JWT"}
+	
 	public boolean isTokenExpiredError() {
 		return getStatusCode() == 401 && getError().equals("invalid_grant");
 	}

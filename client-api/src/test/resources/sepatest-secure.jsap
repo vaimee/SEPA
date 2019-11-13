@@ -1,10 +1,14 @@
 {
- 
-	"host": "sepa.vaimee.it",
+	"host": "localhost",
 	"oauth": {
 		"enable": true,
-		"register": "https://sepa.vaimee.it:8443/oauth/register",
-		"tokenRequest": "https://sepa.vaimee.it:8443/oauth/token"
+		"register": "https://localhost:8443/oauth/register",
+		"tokenRequest": "https://localhost:8443/oauth/token",
+		"client_id": "Jxo4sYqGc0pGKES4V3YY/Q==",
+		"client_secret": "Jxo4sYqGc0pGKES4V3YY/Q==",
+		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+2lNivt5y9E4M+NWnH70aTRfI5GVokEbCFTKvs4mgObdsqTIe6+j8hWRnZM8muS1a9JsaTMXgpl00IoUi/PEkJdkZMYbpTJkwJUGwP4FEGrGN8grcIapcbGwhKzW+XQ5THLd8hacTrXa13rZKlO0ziNIcXk+ktWJFkEepfvxkBlsvJJgVOxyZCrMomnPMH83DR/UegrH0OsRq0FtrPFLzzzN40u9H6FI/lueUHr9EZWciamKaKhfUEIePNS7LMlTz2nmOmeuoEfxF9BenC0iPHifEni2SIVxH7QmJTKlv/+nUu7nFPr8gpbomQ4dc9qprnULByMSOf5rjWrAMkFt/O/ThQQgw1m17X05PR3BEXXCLnuaio+zE1PiGg9orBBvTiZU2kHq6Bp7d/vqYCNZl+aZVXIY/lgKu3BnWzsAc6Zj3Gkcp0T7wsO9VcmXQReKqLIgZRBfbFssUS1IQ0KM+Ks2YMCzXZfg5/9NMzTxv3UdRKZytHnkXFvD0QMOHxDfD88dc4MGzLfkg9WpT+dwn/X7XHbROoqTOnwvFzygO+zs4DI7+igs1yITPNtit/YENPMm6yjwuOz8L7iQfUgGI0x/FPYDa8cM4f4zZcZUo1hfLeqVG6GJyb9vAlAcErF4CFOYpIeK7miwleBTN+1RmIkuOrzzvPUEwlz2QK7K0N6Gw15LsISFU9oB4UzTfhtGGM=",
+		"expires": "HqI+yienttZmh9Lovc+6WQ==",
+		"type": "XPrHEX2xHy+5IuXHPHigMw=="
 	},
 	"sparql11protocol": {
 		"protocol": "https",
@@ -38,11 +42,11 @@
 		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	},
 	"updates": {
-		"WRONG" : {
-			"sparql" : "WITH <http://sepatest/> DELETE {?x ?y} WHERE {?y ?z}"
+		"WRONG": {
+			"sparql": "WITH <http://sepatest/> DELETE {?x ?y} WHERE {?y ?z}"
 		},
-		"DELETE_ALL" : {
-			"sparql" : "WITH <http://sepatest/> DELETE {?x ?y ?z} WHERE {?x ?y ?z}"
+		"DELETE_ALL": {
+			"sparql": "WITH <http://sepatest/> DELETE {?x ?y ?z} WHERE {?x ?y ?z}"
 		},
 		"VAIMEE": {
 			"sparql": "WITH <http://sepatest/> DELETE {sepa:SV sepa:PV ?o}  WHERE {sepa:SV sepa:PV ?o} ; INSERT DATA {GRAPH<http://sepatest/> {sepa:SV sepa:PV \"ვაიმეე\"}}"
@@ -51,7 +55,7 @@
 			"sparql": "WITH <http://sepatest/> DELETE {sepa:S sepa:P ?o} WHERE {sepa:S sepa:P ?o} ; WITH <http://sepatest/> INSERT {sepa:S sepa:P ?random} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
 		},
 		"RANDOM1": {
-			"sparql": "WITH <http://sepatest/> DELETE {sepa:S sepa:P ?o} WHERE {sepa:S1 sepa:P1 ?o} ; WITH <http://sepatest/> INSERT {sepa:S1 sepa:P1 ?random} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+			"sparql": "WITH <http://sepatest/> DELETE {sepa:S1 sepa:P1 ?o} WHERE {sepa:S1 sepa:P1 ?o} ; WITH <http://sepatest/> INSERT {sepa:S1 sepa:P1 ?random1} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random1)}"
 		}
 	},
 	"queries": {
@@ -68,7 +72,7 @@
 			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S sepa:P ?random}}"
 		},
 		"RANDOM1": {
-			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S1 sepa:P1 ?random}}"
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S1 sepa:P1 ?random1}}"
 		},
 		"COUNT": {
 			"sparql": "SELECT (COUNT(?x) AS ?n) WHERE {GRAPH <http://sepatest/> {?x ?y ?z}}"

@@ -67,7 +67,7 @@ class Publisher extends Thread implements Closeable {
 					}
 				}
 				else {
-					logger.error("Failed to refresh token: "+errorResponse);
+					logger.error(errorResponse);
 					break;
 				}
 				

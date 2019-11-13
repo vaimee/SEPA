@@ -125,9 +125,9 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			long stop = Timings.getTime();
 
 			if (request.getClass().equals(UpdateRequest.class))
-				Timings.log("ENDPOINT_UPDATE_TIME", start, stop);
+				Timings.log("HTTP_UPDATE_TIME", start, stop);
 			else
-				Timings.log("ENDPOINT_QUERY_TIME", start, stop);
+				Timings.log("HTTP_QUERY_TIME", start, stop);
 
 			// Status code
 			responseCode = httpResponse.getStatusLine().getStatusCode();
