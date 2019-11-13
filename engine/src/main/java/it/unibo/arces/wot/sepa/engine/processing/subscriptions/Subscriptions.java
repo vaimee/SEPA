@@ -60,12 +60,12 @@ public class Subscriptions {
 	}
 
 	public synchronized static Subscriber addSubscriber(InternalSubscribeRequest req, SPU spu) {
-		Subscriber sub = new Subscriber(spu, req.getEventHandler());
+		Subscriber sub = new Subscriber(spu, req);
 		handlers.get(spu.getSPUID()).add(sub);
 		subscribers.put(sub.getSID(), sub);
 
 		SPUManagerBeans.addSubscriber();
-		Dependability.onSubscribe(sub.getGID(), sub.getSID());
+		Dependability.onSubscribe(req.getGID(), sub.getSID());
 
 		return sub;
 	}
@@ -110,13 +110,20 @@ public class Subscriptions {
 			// Dispatching events
 			Notification event = new Notification(client.getSID(), notify.getARBindingsResults(),
 					client.nextSequence());
-			if (client.getHandler() != null)
-				try {
-					client.getHandler().notifyEvent(event);
-				} catch (SEPAProtocolException e) {
-					logger.error(e.getMessage());
-					logger.trace(e);
-				}
+			try {
+				client.notifyEvent(event);
+			} catch (SEPAProtocolException e) {
+				logger.error(e.getMessage());
+				if (logger.isTraceEnabled()) e.printStackTrace();
+			}
+			
+//			if (client.getHandler() != null)
+//				try {
+//					client.getHandler().notifyEvent(event);
+//				} catch (SEPAProtocolException e) {
+//					logger.error(e.getMessage());
+//					logger.trace(e);
+//				}
 		}
 	}
 
@@ -128,7 +135,7 @@ public class Subscriptions {
 
 		InternalSubscribeRequest req = null;
 		for (Subscriber client : handlers.get(spuid)) {
-			if (client.getHandler() == null) {
+			if (client.getGID() == null) {
 				req = subscribers.get(client.getSID()).getSPU().getSubscribe();
 				subscribers.remove(client.getSID());
 				continue;

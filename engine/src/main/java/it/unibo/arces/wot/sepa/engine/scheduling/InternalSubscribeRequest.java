@@ -17,8 +17,11 @@
 */
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
+import it.unibo.arces.wot.sepa.engine.gates.Gate;
 
 public class InternalSubscribeRequest extends InternalQueryRequest {
 
@@ -41,7 +44,22 @@ public class InternalSubscribeRequest extends InternalQueryRequest {
 		return alias;
 	}
 	
-	public EventHandler getEventHandler() {
-		return gate;
+	public void setEventHandler(EventHandler gate) {
+		this.gate = gate;
+	}
+	
+//	public EventHandler getEventHandler() {
+//		return gate;
+//	}
+
+	public void notifyEvent(Notification notify) throws SEPAProtocolException {
+		if (gate != null) gate.notifyEvent(notify);	
+	}
+	
+	public String getGID() {
+		if (Gate.class.isInstance(gate)) {
+			return ((Gate)gate).getGID();
+		}
+		return null;
 	}
 }

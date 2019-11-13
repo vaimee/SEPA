@@ -24,6 +24,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+//import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
@@ -51,21 +52,11 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		return update;
 	}
 
-	public synchronized Response process(InternalUpdateRequest req,int nRetry) {
+	public synchronized Response process(InternalUpdateRequest req,int nRetry) throws SEPASecurityException {
 		long start = Timings.getTime();
 
 		// TODO: to implement other authentication mechanisms (Digest, Bearer, ...)
-		// Basic authorization access to the endpoint
-		String authorizationHeader = null;
-		if (req.getCredentials() != null) {
-			try {
-				authorizationHeader = req.getCredentials().getBasicAuthorizationHeader();
-			} catch (SEPASecurityException e) {
-				logger.error(e.getMessage());
-				return new ErrorResponse(401, "unauthorized_client",
-						"Basic Authorization Header exception");
-			}
-		}
+		String authorizationHeader = req.getBasicAuthorizationHeader();
 
 		// ENDPOINT UPDATE
 		Response ret;

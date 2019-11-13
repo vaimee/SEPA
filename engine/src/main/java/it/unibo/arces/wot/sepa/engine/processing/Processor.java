@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
@@ -190,7 +191,7 @@ public class Processor implements ProcessorMBean {
 		return updateProcessor.preProcess(update);
 	}
 
-	public Response processUpdate(InternalUpdateRequest preRequest, int timeoutNRetry) {
+	public Response processUpdate(InternalUpdateRequest preRequest, int timeoutNRetry) throws SEPASecurityException {
 		return updateProcessor.process(preRequest, timeoutNRetry);
 	}
 }

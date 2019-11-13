@@ -17,10 +17,11 @@
 */
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
 
 public abstract class InternalRequest {
-	private Credentials credentials;
+	protected Credentials credentials;
 	
 	public InternalRequest(Credentials credentials) {
 		this.credentials = credentials;
@@ -42,7 +43,8 @@ public abstract class InternalRequest {
 		return this.getClass().equals(InternalUnsubscribeRequest.class);
 	}
 	
-	public Credentials getCredentials() {
-		return credentials;
+	public String getBasicAuthorizationHeader() throws SEPASecurityException {
+		if (credentials == null) return null;
+		return credentials.getBasicAuthorizationHeader();
 	}
 }

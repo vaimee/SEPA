@@ -22,6 +22,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
@@ -76,7 +77,14 @@ class UpdateProcessingThread extends Thread {
 			}
 			
 			// Update the ENDPOINT
-			Response ret = processor.processUpdate(preRequest,UpdateProcessorBeans.getTimeoutNRetry());
+			Response ret;
+			try {
+				ret = processor.processUpdate(preRequest,UpdateProcessorBeans.getTimeoutNRetry());
+			} catch (SEPASecurityException e1) {
+				logger.error(e1.getMessage());
+				if (logger.isTraceEnabled()) e1.printStackTrace();
+				ret = new ErrorResponse(401,"SEPASecurityException",e1.getMessage());
+			}
 			
 			if (ret.isError()) {
 				logger.error("*** UPDATE PROCESSING FAILED *** "+ret);
