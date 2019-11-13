@@ -232,6 +232,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 				if (alias != null) {
 					((ErrorResponse) init).setAlias(alias);
 				}
+				processingMutex.release();
 				return init;
 			}
 
