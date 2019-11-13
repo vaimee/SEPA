@@ -24,7 +24,6 @@ import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
@@ -60,7 +59,7 @@ public class Dependability {
 		return authManager.validateToken(jwt);
 	}
 
-	public static void onCloseGate(String gid) throws SEPAProcessingException {
+	public static void onCloseGate(String gid) throws InterruptedException {
 		SubscriptionManager.onClose(gid);
 	}
 

@@ -30,6 +30,7 @@ public interface IAuthorization {
 	public void removeIdentity(String uid) throws SEPASecurityException;
 	public DigitalIdentity getIdentity (String uid) throws SEPASecurityException;
 	public boolean isAuthorized(String identity) throws SEPASecurityException;
+	public boolean isForTesting(String identity) throws SEPASecurityException;
 	
 	// Credentials
 	void storeCredentials(DigitalIdentity identity,String secret) throws SEPASecurityException;

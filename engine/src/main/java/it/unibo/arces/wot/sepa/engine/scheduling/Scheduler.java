@@ -88,7 +88,6 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			SchedulerBeans.newRequest(request, true);
 
 			// Register response handlers
-
 			logger.trace("Register handler: " + handler + " token: " + scheduled.getToken());
 			responders.put(scheduled.getToken(), handler);
 		}

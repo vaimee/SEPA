@@ -103,7 +103,7 @@ class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		if (errorResponse.getStatusCode() == 401 && errorResponse.getError().equals("auth_failed")) {
+		if (errorResponse.isTokenExpiredError()) {
 			// Expired token
 			try {
 				logger.error("Token expired. Refreshing token and subscribe again");

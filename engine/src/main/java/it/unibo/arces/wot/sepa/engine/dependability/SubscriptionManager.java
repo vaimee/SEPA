@@ -26,7 +26,6 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
@@ -71,7 +70,7 @@ class SubscriptionManager {
 		for (Gate g: brokenGates) {
 			try {
 				onCloseInternal(g.getGID());
-			} catch (SEPAProcessingException e) {
+			} catch (InterruptedException e) {
 				logger.warn("Exception on closing gate: "+g.getGID()+" exception: "+e.getMessage());
 			}
 			gates.remove(g);
@@ -125,11 +124,11 @@ class SubscriptionManager {
 		SUBSCRIPTIONS_HASH_MAP.get(gid).remove(sid);
 	}
 
-	public static synchronized void onClose(String gid) throws SEPAProcessingException {
+	public static synchronized void onClose(String gid) throws InterruptedException {
 		onCloseInternal(gid);
 	}
 	
-	public static void onCloseInternal(String gid) throws SEPAProcessingException {
+	public static void onCloseInternal(String gid) throws InterruptedException {
 		if (gid == null) {
 			logger.error("@onClose GID is null");
 			return;

@@ -254,7 +254,15 @@ class SecurityManager {
 
 		// Generate password
 		String client_secret = UUID.randomUUID().toString();
-		if (uid.equals("SEPATest")) client_secret = "SEPATest";
+		boolean forTesting = false;
+		try {
+			forTesting = auth.isForTesting(uid);
+		} catch (SEPASecurityException e1) {
+			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "check_for_testing",
+			
+					"Exception on for test checking " + uid+ " "+e1.getMessage());
+		}
+		if (forTesting) client_secret = "SEPATest";
 		
 		// Store credentials
 		 try {
@@ -264,8 +272,8 @@ class SecurityManager {
 					"Exception on storing credentials " + uid+ " "+e.getMessage());
 		}
 		
-		// One time registration
-		if (!uid.equals("SEPATest"))
+		// One time registration (not removed for testing purposes)
+		if (!forTesting)
 			try {
 				auth.removeIdentity(uid);
 			} catch (SEPASecurityException e) {
@@ -682,13 +690,13 @@ class SecurityManager {
 			claimsSet = jwtProcessor.process(accessToken, new SEPASecurityContext());
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("invalid_grant","ParseException: " + e.getMessage());
+			return new AuthorizationResponse("invalid_grant","ParseException. " + e.getMessage());
 		} catch (BadJOSEException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("invalid_grant","BadJOSEException: " + e.getMessage());
+			return new AuthorizationResponse("invalid_grant","BadJOSEException. " + e.getMessage());
 		} catch (JOSEException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("invalid_grant","JOSEException: " + e.getMessage());
+			return new AuthorizationResponse("invalid_grant","JOSEException. " + e.getMessage());
 		}
 
 		// Check token expiration (an "invalid_grant" error is raised if the token is expired)

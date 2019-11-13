@@ -315,4 +315,9 @@ public class InMemoryAuthorization implements IAuthorization {
 	public long getDefaultExpiringPeriod() throws SEPASecurityException {
 		return defaultExpiringTime;
 	}
+
+	@Override
+	public boolean isForTesting(String identity) throws SEPASecurityException {
+		return identity.equals("SEPATest");
+	}
 }

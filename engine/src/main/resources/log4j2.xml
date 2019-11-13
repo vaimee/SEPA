@@ -12,7 +12,7 @@ DEBUG				500
 TRACE				600
 ALL					Integer.MAX_VALUE
 	 -->
-		<CustomLevel name="timing" intLevel="650" />
+		<CustomLevel name="timing" intLevel="250" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">

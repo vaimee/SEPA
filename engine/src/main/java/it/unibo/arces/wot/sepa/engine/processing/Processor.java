@@ -32,6 +32,7 @@ import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class Processor implements ProcessorMBean {
@@ -90,9 +91,9 @@ public class Processor implements ProcessorMBean {
 		return running.get();
 	}
 	
-	public Scheduler getScheduler() {
-		return scheduler;
-	}
+//	public Scheduler getScheduler() {
+//		return scheduler;
+//	}
 	
 	public QueryProcessor getQueryProcessor() {
 		return queryProcessor;
@@ -116,22 +117,22 @@ public class Processor implements ProcessorMBean {
 		updateProcessingThread.interrupt();
 	}
 	
-	public Response subscribe(InternalSubscribeRequest request) throws SEPAProcessingException {
+	public Response subscribe(InternalSubscribeRequest request) throws InterruptedException {
 		return spuManager.subscribe(request);
 	}
-	public void killSubscription(String sid, String gid) throws SEPAProcessingException {
+	public void killSubscription(String sid, String gid) throws InterruptedException {
 		spuManager.killSubscription(sid, gid);
 	}
 
-	public Response unsubscribe(String sid, String gid) throws SEPAProcessingException {
+	public Response unsubscribe(String sid, String gid) throws InterruptedException {
 		return spuManager.unsubscribe(sid, gid);
 	}
 
-	public void postUpdateProcessing(Response ret) throws SEPAProcessingException {
+	public void postProcessingSubscriptions(Response ret) throws InterruptedException {
 		spuManager.postUpdateProcessing(ret);
 	}
 
-	public void preUpdateProcessing(InternalUpdateRequest update) throws SEPAProcessingException {
+	public void preProcessingSubscriptions(InternalUpdateRequest update) throws InterruptedException {
 		spuManager.preUpdateProcessing(update);		
 	}
 	
@@ -167,5 +168,29 @@ public class Processor implements ProcessorMBean {
 	@Override
 	public String getEndpointQueryMethod() {
 		return ProcessorBeans.getEndpointQueryMethod();
+	}
+
+	public ScheduledRequest waitQueryRequest() throws InterruptedException {
+		return scheduler.waitQueryRequest();
+	}
+
+	public void addResponse(int token, Response ret) {
+		scheduler.addResponse(token, ret);		
+	}
+
+	public ScheduledRequest waitSubscribeUnsubscribeRequest() throws InterruptedException {
+		return scheduler.waitSubscribeUnsubscribeRequest();
+	}
+
+	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
+		return scheduler.waitUpdateRequest();
+	}
+
+	public InternalUpdateRequest preProcessUpdate(InternalUpdateRequest update) throws SEPAProcessingException {
+		return updateProcessor.preProcess(update);
+	}
+
+	public Response processUpdate(InternalUpdateRequest preRequest, int timeoutNRetry) {
+		return updateProcessor.process(preRequest, timeoutNRetry);
 	}
 }
