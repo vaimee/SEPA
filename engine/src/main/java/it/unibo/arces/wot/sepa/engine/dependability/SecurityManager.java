@@ -31,7 +31,6 @@ import java.security.interfaces.RSAPublicKey;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
@@ -446,12 +445,12 @@ class SecurityManager {
 		 * is OPTIONAL.
 		 */
 
-		try {
-			claimsSetBuilder.issuer(auth.getIssuer());
-		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_issuer",
-					e1.getMessage());
-		}
+//		try {
+//			claimsSetBuilder.issuer(auth.getIssuer());
+//		} catch (SEPASecurityException e1) {
+//			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_issuer",
+//					e1.getMessage());
+//		}
 
 		/*
 		 * 4.1.2. "sub" (Subject) Claim
@@ -464,12 +463,7 @@ class SecurityManager {
 		 * StringOrURI value. Use of this claim is OPTIONAL.
 		 */
 
-		try {
-			claimsSetBuilder.subject(auth.getSubject());
-		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_subject",
-					e1.getMessage());
-		}
+		claimsSetBuilder.subject(id);
 
 		/*
 		 * 4.1.3. "aud" (Audience) Claim
@@ -486,20 +480,20 @@ class SecurityManager {
 		 * OPTIONAL.
 		 */
 
-		ArrayList<String> audience = new ArrayList<String>();
-		try {
-			audience.add(auth.getHttpsAudience());
-		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_https_audience",
-					e1.getMessage());
-		}
-		try {
-			audience.add(auth.getWssAudience());
-		} catch (SEPASecurityException e1) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_wss_audience",
-					e1.getMessage());
-		}
-		claimsSetBuilder.audience(audience);
+//		ArrayList<String> audience = new ArrayList<String>();
+//		try {
+//			audience.add(auth.getHttpsAudience());
+//		} catch (SEPASecurityException e1) {
+//			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_https_audience",
+//					e1.getMessage());
+//		}
+//		try {
+//			audience.add(auth.getWssAudience());
+//		} catch (SEPASecurityException e1) {
+//			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "invalid_wss_audience",
+//					e1.getMessage());
+//		}
+//		claimsSetBuilder.audience(audience);
 
 		/*
 		 * 4.1.4. "exp" (Expiration Time) Claim
@@ -561,7 +555,7 @@ class SecurityManager {
 		 * value is a case- sensitive string. Use of this claim is OPTIONAL.
 		 */
 
-		claimsSetBuilder.jwtID(id);
+		//claimsSetBuilder.jwtID(id);
 
 		JWTClaimsSet jwtClaims = claimsSetBuilder.build();
 
@@ -659,7 +653,7 @@ class SecurityManager {
 	 * 
 	 * </pre>
 	 * 
-	 * @param accessToken the JWT token to be validate according to points 4-9
+	 * @param accessToken the JWT token to be validate according to points 4-6
 	 */
 	public synchronized AuthorizationResponse validateToken(String accessToken) {
 		logger.trace("Validate token");
@@ -718,14 +712,17 @@ class SecurityManager {
 			return new AuthorizationResponse("invalid_grant","Token can not be used before: " + claimsSet.getNotBeforeTime());
 		}
 		
-		String jwt = claimsSet.getJWTID();
+		// Get client credentials for accessing the SPARQL endpoint
+		String id = claimsSet.getSubject();
+		
+		logger.debug("Get credentials for uid: "+id);
 		
 		Credentials cred = null;
 		try {
-			cred = auth.getEndpointCredentials(jwt);
+			cred = auth.getEndpointCredentials(id);
 		} catch (SEPASecurityException e) {
-			logger.error("Failed to retrieve credentials ("+jwt+")");
-			return new AuthorizationResponse("invalid_grant","Failed to get credentials ("+jwt+")");
+			logger.error("Failed to retrieve credentials ("+id+")");
+			return new AuthorizationResponse("invalid_grant","Failed to get credentials ("+id+")");
 		}
 
 		return new AuthorizationResponse(cred);

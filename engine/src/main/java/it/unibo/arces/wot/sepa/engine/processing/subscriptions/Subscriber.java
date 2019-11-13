@@ -20,21 +20,22 @@ package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.util.UUID;
 
-import it.unibo.arces.wot.sepa.engine.core.EventHandler;
-import it.unibo.arces.wot.sepa.engine.gates.Gate;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.response.Notification;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 
 public class Subscriber {
 	private final SPU spu;
-	private final EventHandler handler;
+	private final InternalSubscribeRequest sub;
 	
 	// Subscriber Identifier
 	private final String sid;
 	
 	private int sequence = 0;
 	
-	public Subscriber(SPU spu,EventHandler handler) {
+	public Subscriber(SPU spu,InternalSubscribeRequest sub) {
 		this.spu = spu;
-		this.handler = handler;
+		this.sub = sub;
 		
 		sid = "sepa://subscription/" + UUID.randomUUID().toString();
 	}
@@ -44,20 +45,28 @@ public class Subscriber {
 		return sequence;
 	}
 	
-	public EventHandler getHandler() {
-		return handler;
-	}
+//	public EventHandler getHandler() {
+//		return handler;
+//	}
 	
 	public String getSID() {
 		return sid;
 	}
 	
-	public String getGID() {
-		return ((Gate)handler).getGID();
-	}
+//	public String getGID() {
+//		return ((Gate)handler).getGID();
+//	}
 	
 	public SPU getSPU() {
 		return spu;
+	}
+
+	public void notifyEvent(Notification event) throws SEPAProtocolException {
+		sub.notifyEvent(event);
+	}
+
+	public String getGID() {
+		return sub.getGID();
 	}
 	
 }

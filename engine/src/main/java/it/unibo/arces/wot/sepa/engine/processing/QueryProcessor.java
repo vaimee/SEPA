@@ -46,20 +46,11 @@ public class QueryProcessor implements QueryProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public Response process(InternalQueryRequest req,int nRetry) {
+	public Response process(InternalQueryRequest req,int nRetry) throws SEPASecurityException {
 		long start = Timings.getTime();
 
 		// TODO: to implement other authentication mechanisms (Digest, Bearer, ...)
-		String authorizationHeader = null;
-		if (req.getCredentials() != null) {
-			try {
-				// Basic authorization access to the endpoint
-				authorizationHeader = req.getCredentials().getBasicAuthorizationHeader();
-			} catch (SEPASecurityException e) {
-				logger.error(e.getMessage());
-				return new ErrorResponse(401,"unauthorized_client","Basic Authorization Header exception");
-			}
-		}
+		String authorizationHeader = req.getBasicAuthorizationHeader();
 
 		// Build the request
 		Response ret;

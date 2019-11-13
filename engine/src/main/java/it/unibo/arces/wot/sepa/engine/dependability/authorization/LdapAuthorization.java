@@ -571,123 +571,123 @@ public class LdapAuthorization implements IAuthorization {
 		}
 	}
 
-	@Override
-	public String getHttpsAudience() throws SEPASecurityException {
-		logger.debug("getHttpsAudience");
-		
-		bind();
-		
-		try {
-			cursor = ldap.search("uid=httpsAudience,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
-			if (!cursor.next())
-				throw new SEPASecurityException("uid=httpsAudience,ou=jwt," + ldapRoot + " NOT FOUND");
-			if (cursor.get().get("host") == null)
-				throw new SEPASecurityException("httpsAudience host not found");
-
-			return cursor.get().get("host").getString();
-		} catch (LdapException | CursorException e) {
-			logger.error("getHttpsAudience exception "+e.getMessage());
-			throw new SEPASecurityException("getHttpsAudience exception "+e.getMessage());
-		} finally {
-			unbind();
-
-		}
-	}
-
-	@Override
-	public void setHttpsAudience(String audience) throws SEPASecurityException {
-		logger.debug("setHttpsAudience "+audience);
-		
-		bind();
-		
-		try {
-			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
-			ldap.modify("uid=httpsAudience,ou=jwt," + ldapRoot, replaceGn);
-		} catch (LdapException e) {
-			logger.error("setHttpsAudience exception "+e.getMessage());
-			throw new SEPASecurityException("setHttpsAudience exception "+e.getMessage());
-		} finally {
-			unbind();
-		}
-	}
-
-	@Override
-	public String getWssAudience() throws SEPASecurityException {
-		logger.debug("getWssAudience");
-		
-		bind();
-		
-		try {
-			cursor = ldap.search("uid=wssAudience,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
-			if (!cursor.next())
-				throw new SEPASecurityException("uid=wssAudience,ou=jwt," + ldapRoot + " NOT FOUND");
-			if (cursor.get().get("host") == null)
-				throw new SEPASecurityException("uid=wssAudience,ou=jwt," + ldapRoot + " host NOT FOUND");
-
-			return cursor.get().get("host").getString();
-		} catch (LdapException | CursorException e) {
-			logger.error("getWssAudience exception "+e.getMessage());
-			throw new SEPASecurityException("getWssAudience exception "+e.getMessage());
-		} finally {
-			unbind();
-		}
-	}
-
-	@Override
-	public void setWssAudience(String audience) throws SEPASecurityException {
-		logger.debug("setWssAudience "+audience);
-		
-		bind();
-		
-		try {
-			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
-			ldap.modify("uid=wssAudience,ou=jwt," + ldapRoot, replaceGn);
-		} catch (LdapException e) {
-			logger.error("setWssAudience exception "+e.getMessage());
-			throw new SEPASecurityException("setWssAudience exception "+e.getMessage());
-		} finally {
-			unbind();
-		}
-	}
-
-	@Override
-	public String getSubject() throws SEPASecurityException {
-		logger.debug("getSubject");
-		
-		bind();
-		
-		try {
-			cursor = ldap.search("uid=subject,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
-			if (!cursor.next())
-				throw new SEPASecurityException("uid=subject,ou=jwt," + ldapRoot + " NOT FOUND");
-			if (cursor.get().get("host") == null)
-				throw new SEPASecurityException("uid=subject,ou=jwt," + ldapRoot + " host NOT FOUND");
-
-			return cursor.get().get("host").getString();
-		} catch (LdapException | CursorException e) {
-			logger.error("getSubject exception "+e.getMessage());
-			throw new SEPASecurityException("getSubject exception "+e.getMessage());
-		} finally {
-			unbind();
-		}
-	}
-
-	@Override
-	public void setSubject(String subject) throws SEPASecurityException {
-		logger.debug("setSubject "+subject);
-		
-		bind();
-		
-		try {
-			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", subject);
-			ldap.modify("uid=subject,ou=jwt," + ldapRoot, replaceGn);
-		} catch (LdapException e) {
-			logger.error("setSubject exception "+e.getMessage());
-			throw new SEPASecurityException("setSubject exception "+e.getMessage());
-		} finally {
-			unbind();
-		}
-	}
+//	@Override
+//	public String getHttpsAudience() throws SEPASecurityException {
+//		logger.debug("getHttpsAudience");
+//		
+//		bind();
+//		
+//		try {
+//			cursor = ldap.search("uid=httpsAudience,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
+//			if (!cursor.next())
+//				throw new SEPASecurityException("uid=httpsAudience,ou=jwt," + ldapRoot + " NOT FOUND");
+//			if (cursor.get().get("host") == null)
+//				throw new SEPASecurityException("httpsAudience host not found");
+//
+//			return cursor.get().get("host").getString();
+//		} catch (LdapException | CursorException e) {
+//			logger.error("getHttpsAudience exception "+e.getMessage());
+//			throw new SEPASecurityException("getHttpsAudience exception "+e.getMessage());
+//		} finally {
+//			unbind();
+//
+//		}
+//	}
+//
+//	@Override
+//	public void setHttpsAudience(String audience) throws SEPASecurityException {
+//		logger.debug("setHttpsAudience "+audience);
+//		
+//		bind();
+//		
+//		try {
+//			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
+//			ldap.modify("uid=httpsAudience,ou=jwt," + ldapRoot, replaceGn);
+//		} catch (LdapException e) {
+//			logger.error("setHttpsAudience exception "+e.getMessage());
+//			throw new SEPASecurityException("setHttpsAudience exception "+e.getMessage());
+//		} finally {
+//			unbind();
+//		}
+//	}
+//
+//	@Override
+//	public String getWssAudience() throws SEPASecurityException {
+//		logger.debug("getWssAudience");
+//		
+//		bind();
+//		
+//		try {
+//			cursor = ldap.search("uid=wssAudience,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
+//			if (!cursor.next())
+//				throw new SEPASecurityException("uid=wssAudience,ou=jwt," + ldapRoot + " NOT FOUND");
+//			if (cursor.get().get("host") == null)
+//				throw new SEPASecurityException("uid=wssAudience,ou=jwt," + ldapRoot + " host NOT FOUND");
+//
+//			return cursor.get().get("host").getString();
+//		} catch (LdapException | CursorException e) {
+//			logger.error("getWssAudience exception "+e.getMessage());
+//			throw new SEPASecurityException("getWssAudience exception "+e.getMessage());
+//		} finally {
+//			unbind();
+//		}
+//	}
+//
+//	@Override
+//	public void setWssAudience(String audience) throws SEPASecurityException {
+//		logger.debug("setWssAudience "+audience);
+//		
+//		bind();
+//		
+//		try {
+//			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
+//			ldap.modify("uid=wssAudience,ou=jwt," + ldapRoot, replaceGn);
+//		} catch (LdapException e) {
+//			logger.error("setWssAudience exception "+e.getMessage());
+//			throw new SEPASecurityException("setWssAudience exception "+e.getMessage());
+//		} finally {
+//			unbind();
+//		}
+//	}
+//
+//	@Override
+//	public String getSubject() throws SEPASecurityException {
+//		logger.debug("getSubject");
+//		
+//		bind();
+//		
+//		try {
+//			cursor = ldap.search("uid=subject,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
+//			if (!cursor.next())
+//				throw new SEPASecurityException("uid=subject,ou=jwt," + ldapRoot + " NOT FOUND");
+//			if (cursor.get().get("host") == null)
+//				throw new SEPASecurityException("uid=subject,ou=jwt," + ldapRoot + " host NOT FOUND");
+//
+//			return cursor.get().get("host").getString();
+//		} catch (LdapException | CursorException e) {
+//			logger.error("getSubject exception "+e.getMessage());
+//			throw new SEPASecurityException("getSubject exception "+e.getMessage());
+//		} finally {
+//			unbind();
+//		}
+//	}
+//
+//	@Override
+//	public void setSubject(String subject) throws SEPASecurityException {
+//		logger.debug("setSubject "+subject);
+//		
+//		bind();
+//		
+//		try {
+//			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", subject);
+//			ldap.modify("uid=subject,ou=jwt," + ldapRoot, replaceGn);
+//		} catch (LdapException e) {
+//			logger.error("setSubject exception "+e.getMessage());
+//			throw new SEPASecurityException("setSubject exception "+e.getMessage());
+//		} finally {
+//			unbind();
+//		}
+//	}
 
 	@Override
 	public boolean isAuthorized(String uid) throws SEPASecurityException {

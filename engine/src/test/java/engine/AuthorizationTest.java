@@ -117,28 +117,30 @@ public class AuthorizationTest {
 	@Test
 	public void jwtClaims() throws SEPASecurityException {
 		String issuer = auth.getIssuer();
-		String httpsAudience = auth.getHttpsAudience();
-		String wssAudience = auth.getWssAudience();
-		String subject = auth.getSubject();
+//		String httpsAudience = auth.getHttpsAudience();
+//		String wssAudience = auth.getWssAudience();
+//		String subject = auth.getSubject();
 
 		String uid = UUID.randomUUID().toString();
 
 		auth.setIssuer(uid);
 		assertFalse("Failed to set issuer",!auth.getIssuer().equals(uid));
 		
-		auth.setHttpsAudience(uid);
-		assertFalse("Failed to set https audience",!auth.getHttpsAudience().equals(uid));
-		
-		auth.setWssAudience(uid);
-		assertFalse("Failed to set wss audience",!auth.getWssAudience().equals(uid));
-		
-		auth.setSubject(uid);
-		assertFalse("Failed to set subject",!auth.getSubject().equals(uid));
-
 		auth.setIssuer(issuer);
-		auth.setHttpsAudience(httpsAudience);
-		auth.setWssAudience(wssAudience);
-		auth.setSubject(subject);
+//		
+//		auth.setHttpsAudience(uid);
+//		assertFalse("Failed to set https audience",!auth.getHttpsAudience().equals(uid));
+//		
+//		auth.setWssAudience(uid);
+//		assertFalse("Failed to set wss audience",!auth.getWssAudience().equals(uid));
+//		
+//		auth.setSubject(uid);
+//		assertFalse("Failed to set subject",!auth.getSubject().equals(uid));
+//
+
+//		auth.setHttpsAudience(httpsAudience);
+//		auth.setWssAudience(wssAudience);
+//		auth.setSubject(subject);
 	}
 
 	@Test

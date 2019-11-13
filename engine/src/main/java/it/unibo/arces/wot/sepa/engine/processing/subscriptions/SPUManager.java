@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPANotExistsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -223,27 +224,37 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		SPUManagerBeans.subscribeRequest();
 
-		// Set the SPU Manager as event handler
-		String sparql = req.getSparql();
-		String alias = req.getAlias();
-		String defaultGraph = req.getDefaultGraphUri();
-		String namedGraph = req.getNamedGraphUri();
-		InternalSubscribeRequest wrappedRequest = new InternalSubscribeRequest(sparql, alias, defaultGraph, namedGraph,
-				this, req.getCredentials());
+//		// Set the SPU Manager as event handler
+//		req.setEventHandler(this);
+//		String sparql = req.getSparql();
+//		String alias = req.getAlias();
+//		String defaultGraph = req.getDefaultGraphUri();
+//		String namedGraph = req.getNamedGraphUri();
+//		
+//		InternalSubscribeRequest wrappedRequest = new InternalSubscribeRequest(sparql, alias, defaultGraph, namedGraph,
+//				this, req.getCredentials());
 
 		// Create or link to an existing SPU
 		SPU spu;
 		if (Subscriptions.contains(req)) {
 			spu = Subscriptions.getSPU(req);
 		} else {
-			spu = createSPU(wrappedRequest, this);
+			spu = createSPU(req, this);
 
 			// Initialize SPU
-			Response init = spu.init();
+			Response init;
+			try {
+				init = spu.init();
+			} catch (SEPASecurityException e) {
+				logger.error(e.getMessage());
+				if (logger.isTraceEnabled()) e.printStackTrace();
+				init = new ErrorResponse(401,"SEPASecurityException",e.getMessage());
+			}
+			
 			if (init.isError()) {
 				logger.error("@subscribe SPU initialization failed: " + init);
-				if (alias != null) {
-					((ErrorResponse) init).setAlias(alias);
+				if (req.getAlias() != null) {
+					((ErrorResponse) init).setAlias(req.getAlias());
 				}
 
 				processingMutex.release();

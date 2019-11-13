@@ -134,9 +134,9 @@ public class InMemoryAuthorization implements IAuthorization {
 	private final HashMap<String,AuthorizedIdentity> identities = new HashMap<String,AuthorizedIdentity>();
 
 	private String issuer = "https://wot.arces.unibo.it:8443/oauth/token";
-	private String httpsAudience = "https://wot.arces.unibo.it:8443/sparql";
-	private String wssAudience = "wss://wot.arces.unibo.it:9443/sparql";
-	private String subject = "SEPATest";
+//	private String httpsAudience = "https://wot.arces.unibo.it:8443/sparql";
+//	private String wssAudience = "wss://wot.arces.unibo.it:9443/sparql";
+//	private String subject = "SEPATest";
 
 	private long deviceExpiringTime = 3600;
 	private long applicationExpiringTime = 43200;
@@ -259,30 +259,30 @@ public class InMemoryAuthorization implements IAuthorization {
 	public void setIssuer(String is) {
 		issuer = is;
 	}
-	@Override
-	public String getHttpsAudience() {
-		return httpsAudience;
-	}
-	@Override
-	public void setHttpsAudience(String audience) {
-		httpsAudience = audience;
-	}
-	@Override
-	public String getWssAudience() {
-		return wssAudience;
-	}
-	@Override
-	public void setWssAudience(String audience) {
-		wssAudience = audience;
-	}
-	@Override
-	public String getSubject() {
-		return subject;
-	}
-	@Override
-	public void setSubject(String sub) {
-		subject = sub;
-	}
+//	@Override
+//	public String getHttpsAudience() {
+//		return httpsAudience;
+//	}
+//	@Override
+//	public void setHttpsAudience(String audience) {
+//		httpsAudience = audience;
+//	}
+//	@Override
+//	public String getWssAudience() {
+//		return wssAudience;
+//	}
+//	@Override
+//	public void setWssAudience(String audience) {
+//		wssAudience = audience;
+//	}
+//	@Override
+//	public String getSubject() {
+//		return subject;
+//	}
+//	@Override
+//	public void setSubject(String sub) {
+//		subject = sub;
+//	}
 	@Override
 	public void setDeviceExpiringPeriod(long period) throws SEPASecurityException {
 		deviceExpiringTime = period;

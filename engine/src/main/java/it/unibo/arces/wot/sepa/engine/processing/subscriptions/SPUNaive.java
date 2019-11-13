@@ -22,7 +22,7 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -52,13 +52,13 @@ class SPUNaive extends SPU {
 	}
 
 	@Override
-	public Response init() {
+	public Response init() throws SEPASecurityException {
 		logger.debug("PROCESS " + subscribe);
 
 		// Process the SPARQL query
 		Response ret = manager.getQueryProcessor().process(subscribe,QueryProcessorBeans.getTimeoutNRetry());
 
-		if (ret.getClass().equals(ErrorResponse.class)) {
+		if (ret.isError()) {
 			logger.error("Not initialized");
 			return ret;
 		}
@@ -76,14 +76,14 @@ class SPUNaive extends SPU {
 	}
 
 	@Override
-	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException {
+	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException, SEPASecurityException {
 		logger.debug("* PROCESSING *" + subscribe);
 		Response ret;
 
 		// Query the SPARQL processing service
 		ret = manager.getQueryProcessor().process(subscribe,QueryProcessorBeans.getTimeoutNRetry());
 
-		if (ret.getClass().equals(ErrorResponse.class)) {
+		if (ret.isError()) {
 			throw new SEPAProcessingException(ret.toString());
 		}
 

@@ -18,12 +18,19 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 class QueryProcessingThread extends Thread{
+	protected final Logger logger = LogManager.getLogger();
+	
 	private final Processor processor;
 	
 	public QueryProcessingThread(Processor processor) {
@@ -41,7 +48,15 @@ class QueryProcessingThread extends Thread{
 			}
 			
 			InternalQueryRequest query = (InternalQueryRequest) request.getRequest();
-			Response ret = processor.getQueryProcessor().process(query,QueryProcessorBeans.getTimeoutNRetry());
+			
+			Response ret;
+			try {
+				ret = processor.getQueryProcessor().process(query,QueryProcessorBeans.getTimeoutNRetry());
+			} catch (SEPASecurityException e) {
+				logger.error(e.getMessage());
+				if (logger.isTraceEnabled()) e.printStackTrace();
+				ret = new ErrorResponse(401,"SEPASecurityException",e.getMessage());
+			}
 			
 			processor.addResponse(request.getToken(),ret);
 		}
