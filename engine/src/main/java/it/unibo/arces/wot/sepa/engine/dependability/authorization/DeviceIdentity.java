@@ -32,5 +32,9 @@ public class DeviceIdentity extends DigitalIdentity {
 	public String getObjectClass() {
 		return "device";
 	}
+	
+	public String toString() {
+		return "Device Identity "+ super.toString();
+	}
 
 }

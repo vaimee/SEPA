@@ -18,14 +18,14 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 
 public class InternalUnsubscribeRequest extends InternalRequest {
 	protected String sid;
 	protected String gid;
 	
-	public InternalUnsubscribeRequest(String gid,String sid,Credentials credentials) {
-		super(credentials);
+	public InternalUnsubscribeRequest(String gid,String sid,ClientAuthorization auth) {
+		super(auth);
 		
 		this.sid = sid;
 		this.gid = gid;

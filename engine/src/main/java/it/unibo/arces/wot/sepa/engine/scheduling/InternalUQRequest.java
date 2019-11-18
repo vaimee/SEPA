@@ -18,15 +18,15 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 
 public abstract class InternalUQRequest extends InternalRequest {
 	protected String sparql;
 	protected String defaultGraphUri;
 	protected String namedGraphUri;
 	
-	public InternalUQRequest(String sparql,String defaultGraphUri,String namedGraphUri,Credentials credentials) {
-		super(credentials);
+	public InternalUQRequest(String sparql,String defaultGraphUri,String namedGraphUri,ClientAuthorization auth) {
+		super(auth);
 		
 		if (sparql == null) throw new IllegalArgumentException("SPARQL is null");
 		

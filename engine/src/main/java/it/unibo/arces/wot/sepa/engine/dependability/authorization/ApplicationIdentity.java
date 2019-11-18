@@ -32,5 +32,9 @@ public class ApplicationIdentity extends DigitalIdentity{
 	public String getObjectClass() {
 		return "applicationProcess";
 	}
+	
+	public String toString() {
+		return "Application Identity "+ super.toString();
+	}
 
 }

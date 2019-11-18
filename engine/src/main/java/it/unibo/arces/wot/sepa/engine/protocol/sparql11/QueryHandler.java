@@ -29,8 +29,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
@@ -52,7 +51,7 @@ public class QueryHandler extends SPARQL11Handler {
 	}
 
 	@Override
-	protected InternalUQRequest parse(HttpAsyncExchange exchange,Credentials credentials) throws SPARQL11ProtocolException {
+	protected InternalUQRequest parse(HttpAsyncExchange exchange,ClientAuthorization auth) throws SPARQL11ProtocolException {
 		switch (exchange.getRequest().getRequestLine().getMethod().toUpperCase()) {
 		case "GET":
 			 /* <pre>
@@ -96,12 +95,12 @@ public class QueryHandler extends SPARQL11Handler {
 				String graphUri = params.get("default-graph-uri");
 				String namedGraphUri = params.get("named-graph-uri");
 
-				return new InternalQueryRequest(sparql, graphUri, namedGraphUri,credentials);
+				return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth);
 			} catch (Exception e) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}
 		case "POST":
-			return parsePost(exchange,"query",credentials);
+			return parsePost(exchange,"query",auth);
 		}
 
 		logger.error("UNSUPPORTED METHOD: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());
@@ -110,7 +109,7 @@ public class QueryHandler extends SPARQL11Handler {
 	}
 
 	@Override
-	protected AuthorizationResponse authorize(HttpRequest request) throws SEPASecurityException {
-		return new AuthorizationResponse();
+	protected ClientAuthorization authorize(HttpRequest request) throws SEPASecurityException {
+		return new ClientAuthorization();
 	}
 }

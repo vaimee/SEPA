@@ -38,8 +38,7 @@ import it.unibo.arces.wot.sepa.engine.bean.GateBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 
 public abstract class Gate implements ResponseHandler, EventHandler {
 	private static final Logger logger = LogManager.getLogger();
@@ -118,7 +117,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 
 	public final void onMessage(String message) throws SEPAProtocolException, SEPASecurityException {
 		// Authorize the request
-		AuthorizationResponse auth = authorize(message);
+		ClientAuthorization auth = authorize(message);
 		if (!auth.isAuthorized()) {
 			ErrorResponse error = new ErrorResponse(401, auth.getError(), auth.getDescription());
 			setAliasIfPresent(error, message);
@@ -127,7 +126,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		}
 
 		// Parse the request
-		InternalRequest req = parseRequest(message, auth.getClientCredentials());
+		InternalRequest req = parseRequest(message, auth);
 		if (req instanceof InternalDiscardRequest) {
 			logger.error("@onMessage " + getGID() + " failed to parse message: " + message);
 			setAliasIfPresent(((InternalDiscardRequest) req).getError(), message);
@@ -204,9 +203,9 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	 * </pre>
 	 * @throws SEPASecurityException 
 	 */
-	protected final AuthorizationResponse authorize(String message) throws SEPASecurityException {
+	protected final ClientAuthorization authorize(String message) throws SEPASecurityException {
 		if (!authorizationRequired)
-			return new AuthorizationResponse();
+			return new ClientAuthorization();
 
 		JsonObject request;
 
@@ -214,7 +213,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			request = new JsonParser().parse(message).getAsJsonObject();	
 		} catch (Exception e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("invalid_request","Failed to parse JSON message: "+message);
+			return new ClientAuthorization("invalid_request","Failed to parse JSON message: "+message);
 		}
 
 		String bearer = null;
@@ -227,35 +226,35 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 
 		if (subUnsub == null) {
 			logger.error("Neither subscribe or unsuscribe found");
-			return new AuthorizationResponse("invalid_request","Neither subscribe or unsuscribe found");
+			return new ClientAuthorization("invalid_request","Neither subscribe or unsuscribe found");
 		}
 
 		if (!subUnsub.has("authorization")) {
 			logger.error("authorization member is missing");
-			return new AuthorizationResponse("invalid_request","authorization member is missing");
+			return new ClientAuthorization("invalid_request","authorization member is missing");
 		}
 
 		try {
 			bearer = subUnsub.get("authorization").getAsString();
 		} catch (Exception e) {
 			logger.error("Authorization member is not a string");
-			return new AuthorizationResponse("invalid_request","authorization member is not a string");
+			return new ClientAuthorization("invalid_request","authorization member is not a string");
 		}
 
 		if (!bearer.startsWith("Bearer ")) {
 			logger.error("Authorization value MUST be of type Bearer");
-			return new AuthorizationResponse("unsupported_grant_type","Authorization value MUST be of type Bearer");
+			return new ClientAuthorization("unsupported_grant_type","Authorization value MUST be of type Bearer");
 		}
 
 		String jwt = bearer.substring(7);
 
 		if (jwt == null) {
 			logger.error("Token is null");
-			return new AuthorizationResponse("invalid_request","Token is null");
+			return new ClientAuthorization("invalid_request","Token is null");
 		}
 		if (jwt.equals("")) {
 			logger.error("Token is empty");
-			return new AuthorizationResponse("invalid_request","Token is empty");
+			return new ClientAuthorization("invalid_request","Token is empty");
 		}
 
 		// Token validation
@@ -282,18 +281,18 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	 * 
 	 * @throws SEPAProtocolException
 	 */
-	protected final InternalRequest parseRequest(String request, Credentials credentials)
+	protected final InternalRequest parseRequest(String request, ClientAuthorization auth)
 			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException,
 			SEPAProtocolException {
 		JsonObject req;
 		ErrorResponse error;
-		// TODO: Aggiungere new InternalDiscardRequest(request,(ErrorResponse) ret);
+		
 		try {
 			req = new JsonParser().parse(request).getAsJsonObject();
 		} catch (JsonParseException e) {
 			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException",
 					"JsonParseException: " + request);
-			return new InternalDiscardRequest(request, error, credentials);
+			return new InternalDiscardRequest(request, error, auth);
 		}
 
 		if (req.has("subscribe")) {
@@ -307,7 +306,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			} catch (Exception e) {
 				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception",
 						"sparql member not found: " + request);
-				return new InternalDiscardRequest(request, error, credentials);
+				return new InternalDiscardRequest(request, error, auth);
 			}
 
 			try {
@@ -325,21 +324,21 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			} catch (Exception e) {
 			}
 
-			return new InternalSubscribeRequest(sparql, alias, defaultGraphUri, namedGraphUri, this, credentials);
+			return new InternalSubscribeRequest(sparql, alias, defaultGraphUri, namedGraphUri, this, auth);
 		} else if (req.has("unsubscribe")) {
 			String spuid;
 			try {
 				spuid = req.get("unsubscribe").getAsJsonObject().get("spuid").getAsString();
 			} catch (Exception e) {
 				error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "Exception", "spuid member not found: " + request);
-				return new InternalDiscardRequest(request, error, credentials);
+				return new InternalDiscardRequest(request, error, auth);
 			}
 
-			return new InternalUnsubscribeRequest(gid, spuid, credentials);
+			return new InternalUnsubscribeRequest(gid, spuid, auth);
 		}
 
 		error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unsupported", "Bad request: " + request);
-		return new InternalDiscardRequest(request, error, credentials);
+		return new InternalDiscardRequest(request, error, auth);
 	}
 
 }

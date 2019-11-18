@@ -45,8 +45,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
@@ -78,7 +77,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		return true;
 	}
 
-	protected abstract AuthorizationResponse authorize(HttpRequest request) throws SEPASecurityException;
+	protected abstract ClientAuthorization authorize(HttpRequest request) throws SEPASecurityException;
 
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
 		if (!Dependability.processCORSRequest(exchange)) {
@@ -96,7 +95,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		return true;
 	}
 
-	protected abstract InternalUQRequest parse(HttpAsyncExchange exchange,Credentials credentials);
+	protected abstract InternalUQRequest parse(HttpAsyncExchange exchange,ClientAuthorization auth);
 
 	/**
 	 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
@@ -124,7 +123,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	 * </pre>
 	 * 
 	 */
-	protected InternalUQRequest parsePost(HttpAsyncExchange exchange, String type, Credentials credentials) {
+	protected InternalUQRequest parsePost(HttpAsyncExchange exchange, String type, ClientAuthorization auth) {
 		String contentTypePost = "application/sparql-query";
 		String defGraph = "default-graph-uri";
 		String namedGraph = "named-graph-uri";
@@ -186,9 +185,9 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		}
 		
 		if (type.equals("query"))
-			return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri,credentials);
+			return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri,auth);
 		else
-			return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri,credentials);
+			return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri,auth);
 	}
 
 	@Override
@@ -208,7 +207,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		}
 		
 		// Authorize
-		AuthorizationResponse oauth = null;
+		ClientAuthorization oauth = null;
 		try {
 			oauth = authorize(httpExchange.getRequest());
 		} catch (SEPASecurityException e1) {
@@ -228,7 +227,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 
 		try {
 			// Parsing SPARQL 1.1 request and attach a token
-			sepaRequest = parse(httpExchange,oauth.getClientCredentials());
+			sepaRequest = parse(httpExchange,oauth);
 		} catch (SPARQL11ProtocolException e) {
 			logger.error("Parsing failed: " + httpExchange.getRequest());
 			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SPARQL11ProtocolException","Parsing failed: " + e.getBody()));

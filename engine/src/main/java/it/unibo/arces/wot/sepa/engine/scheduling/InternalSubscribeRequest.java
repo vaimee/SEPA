@@ -20,7 +20,7 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 
 public class InternalSubscribeRequest extends InternalQueryRequest {
@@ -28,8 +28,8 @@ public class InternalSubscribeRequest extends InternalQueryRequest {
 	private String alias = null;
 	private EventHandler gate;
 	
-	public InternalSubscribeRequest(String sparql, String alias,String defaultGraphUri, String namedGraphUri,EventHandler gate,Credentials credentials) {
-		super(sparql, defaultGraphUri, namedGraphUri,credentials);
+	public InternalSubscribeRequest(String sparql, String alias,String defaultGraphUri, String namedGraphUri,EventHandler gate,ClientAuthorization auth) {
+		super(sparql, defaultGraphUri, namedGraphUri,auth);
 		
 		this.alias = alias;
 		this.gate = gate;

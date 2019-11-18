@@ -217,6 +217,13 @@ public class LdapAuthorization implements IAuthorization {
 		ldapRoot = base;
 	}
 
+	public LdapAuthorization() {
+		ldap = new LdapNetworkConnection("localhost",10389);
+		this.user = null;
+		this.pwd = null;
+		ldapRoot = "dc=example,dc=com";
+	}
+
 	private void bind() throws SEPASecurityException {
 		if (user != null)
 			try {
@@ -266,7 +273,10 @@ public class LdapAuthorization implements IAuthorization {
 				
 				if(attr != null) {
 					byte[] cred = attr.getBytes();
-					return Credentials.deserialize(cred);
+					Credentials auth = Credentials.deserialize(cred);
+					// TODO: WARNING. PRINTING CREDENTIALS just for debugging purposes
+					logger.debug(auth);
+					return auth;
 				}				
 			}
 		}
@@ -359,7 +369,8 @@ public class LdapAuthorization implements IAuthorization {
 				Modification cred = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
 						"javaSerializedData", identity.getEndpointCredentials().serialize());
 				
-				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,pwd,cred);
+				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,pwd);
+				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,cred);
 
 			}
 		} catch (LdapException | CursorException e) {
@@ -820,8 +831,9 @@ public class LdapAuthorization implements IAuthorization {
 			if (!cursor.next())
 				throw new SEPASecurityException("uid=" + uid + ",ou=authorizedIndentities," + ldapRoot + " NOT FOUND");
 
+			// Credentials for SPARQL endpoint are stored as Java Serialized Object
 			Credentials credentials = null;
-			if (cursor.get().contains("objectClass", "javaSerializedData")) {
+			if (cursor.get().contains("objectClass", "javaSerializedObject")) {
 				credentials = Credentials.deserialize(cursor.get().get("javaSerializedData").getBytes());
 			}
 						

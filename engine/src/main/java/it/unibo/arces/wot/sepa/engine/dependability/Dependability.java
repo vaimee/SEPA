@@ -26,7 +26,7 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
@@ -55,7 +55,7 @@ public class Dependability {
 		SubscriptionManager.setProcessor(p);
 	}
 	
-	public static AuthorizationResponse validateToken(String jwt) throws SEPASecurityException {
+	public static ClientAuthorization validateToken(String jwt) throws SEPASecurityException {
 		return authManager.validateToken(jwt);
 	}
 

@@ -23,7 +23,7 @@ import org.apache.http.HttpRequest;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SecureQueryHandler extends QueryHandler implements SecureQueryHandlerMBean {
@@ -90,7 +90,7 @@ According to RFC6749, the error member can assume the following values: invalid_
 	 * @throws SEPASecurityException 
 	 */
 	@Override
-	protected AuthorizationResponse authorize(HttpRequest request) throws SEPASecurityException {
+	protected ClientAuthorization authorize(HttpRequest request) throws SEPASecurityException {
 		// Extract Bearer authorization
 		Header[] bearer = request.getHeaders("Authorization");
 
@@ -98,13 +98,13 @@ According to RFC6749, the error member can assume the following values: invalid_
 			logger.error("Authorization header is missing or multiple");
 //			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_request",
 //					"Authorization header must be a single one");
-			return new AuthorizationResponse("invalid_request","Authorization header must be a single one");
+			return new ClientAuthorization("invalid_request","Authorization header must be a single one");
 		}
 		if (!bearer[0].getValue().startsWith("Bearer ")) {
 			logger.error("Authorization must be ***Bearer JWT***");
 //			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_request",
 //					"Authorization header must be ***Bearer JWT***");
-			return new AuthorizationResponse("unsupported_grant_type","Authorization header must be ***Bearer JWT***");
+			return new ClientAuthorization("unsupported_grant_type","Authorization header must be ***Bearer JWT***");
 		}
 
 		// ******************
