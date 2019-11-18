@@ -45,6 +45,10 @@ public class Credentials implements Serializable  {
 		this.user = user;
 		this.password = password;
 	}
+	
+	public String toString() {
+		return "Credentials "+user+":"+password;
+	}
 
 	public String user() {
 		return user;

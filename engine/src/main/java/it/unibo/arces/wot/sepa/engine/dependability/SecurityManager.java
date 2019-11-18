@@ -70,7 +70,7 @@ import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.ApplicationIdentity;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.AuthorizationResponse;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.InMemoryAuthorization;
@@ -139,7 +139,7 @@ class SecurityManager {
 				logger.debug("Access token: " + ((JWTResponse) response).getAccessToken());
 
 				// Validate token
-				AuthorizationResponse authRet = validateToken(((JWTResponse) response).getAccessToken());
+				ClientAuthorization authRet = validateToken(((JWTResponse) response).getAccessToken());
 				if (authRet.isAuthorized()) {
 					auth.removeCredentials(new ApplicationIdentity(ret.getClientId()));
 					auth.removeToken(ret.getClientId());
@@ -655,7 +655,7 @@ class SecurityManager {
 	 * 
 	 * @param accessToken the JWT token to be validate according to points 4-6
 	 */
-	public synchronized AuthorizationResponse validateToken(String accessToken) {
+	public synchronized ClientAuthorization validateToken(String accessToken) {
 		logger.trace("Validate token");
 
 		// Parse token
@@ -664,18 +664,18 @@ class SecurityManager {
 			signedJWT = SignedJWT.parse(accessToken);
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("invalid_request","ParseException: " + e.getMessage());
+			return new ClientAuthorization("invalid_request","ParseException: " + e.getMessage());
 		}
 
 		// Verify token
 		try {
 			if (!signedJWT.verify(verifier)) {
 				logger.error("Signed JWT not verified");
-				return new AuthorizationResponse("invalid_grant","Signed JWT not verified");
+				return new ClientAuthorization("invalid_grant","Signed JWT not verified");
 			}
 
 		} catch (JOSEException e) {
-			return new AuthorizationResponse("invalid_grant","JOSEException: " + e.getMessage());
+			return new ClientAuthorization("invalid_grant","JOSEException: " + e.getMessage());
 		}
 
 		// Process token (validate)
@@ -684,13 +684,13 @@ class SecurityManager {
 			claimsSet = jwtProcessor.process(accessToken, new SEPASecurityContext());
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("invalid_grant","ParseException. " + e.getMessage());
+			return new ClientAuthorization("invalid_grant","ParseException. " + e.getMessage());
 		} catch (BadJOSEException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("invalid_grant","BadJOSEException. " + e.getMessage());
+			return new ClientAuthorization("invalid_grant","BadJOSEException. " + e.getMessage());
 		} catch (JOSEException e) {
 			logger.error(e.getMessage());
-			return new AuthorizationResponse("invalid_grant","JOSEException. " + e.getMessage());
+			return new ClientAuthorization("invalid_grant","JOSEException. " + e.getMessage());
 		}
 
 		// Check token expiration (an "invalid_grant" error is raised if the token is expired)
@@ -703,13 +703,13 @@ class SecurityManager {
 			logger.warn("Token is expired: " + sdf.format(claimsSet.getExpirationTime()) + " < "
 					+ sdf.format(new Date(nowUnixSeconds)));
 			
-			return new AuthorizationResponse("invalid_grant","Token issued at "+sdf.format(claimsSet.getIssueTime())+" is expired: " + sdf.format(claimsSet.getExpirationTime())
+			return new ClientAuthorization("invalid_grant","Token issued at "+sdf.format(claimsSet.getIssueTime())+" is expired: " + sdf.format(claimsSet.getExpirationTime())
 					+ " < " + sdf.format(now));
 		}
 
 		if (notBefore != null && nowUnixSeconds < notBefore.getTime()) {
 			logger.warn("Token can not be used before: " + claimsSet.getNotBeforeTime());
-			return new AuthorizationResponse("invalid_grant","Token can not be used before: " + claimsSet.getNotBeforeTime());
+			return new ClientAuthorization("invalid_grant","Token can not be used before: " + claimsSet.getNotBeforeTime());
 		}
 		
 		// Get client credentials for accessing the SPARQL endpoint
@@ -722,10 +722,10 @@ class SecurityManager {
 			cred = auth.getEndpointCredentials(id);
 		} catch (SEPASecurityException e) {
 			logger.error("Failed to retrieve credentials ("+id+")");
-			return new AuthorizationResponse("invalid_grant","Failed to get credentials ("+id+")");
+			return new ClientAuthorization("invalid_grant","Failed to get credentials ("+id+")");
 		}
 
-		return new AuthorizationResponse(cred);
+		return new ClientAuthorization(cred);
 	}
 
 	public SSLContext getSSLContext() throws SEPASecurityException {

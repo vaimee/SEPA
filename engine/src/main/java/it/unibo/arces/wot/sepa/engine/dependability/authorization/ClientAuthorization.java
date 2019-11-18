@@ -18,7 +18,9 @@
 
 package it.unibo.arces.wot.sepa.engine.dependability.authorization;
 
-public class AuthorizationResponse {
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+
+public class ClientAuthorization {
 
 	private boolean authorized = true;
 	
@@ -27,25 +29,23 @@ public class AuthorizationResponse {
 	
 	private Credentials credentials = null;
 	
-	public AuthorizationResponse() {
-	}
-	
-	public AuthorizationResponse(String error,String description) {
+	public ClientAuthorization(String error,String description) {
 		this.authorized = false;
 		this.error = error;
 		this.description = description;
 	}
 	
-	public AuthorizationResponse(Credentials credentials) {
+	public ClientAuthorization(Credentials credentials) {
 		this.credentials = credentials;
 	}
-	
+
+	// No authorization required
+	public ClientAuthorization() {
+
+	}
+
 	public boolean isAuthorized() {
 		return authorized;
-	}
-	
-	public Credentials getClientCredentials() {
-		return credentials;
 	}
 	
 	public String getError() {
@@ -54,6 +54,11 @@ public class AuthorizationResponse {
 	
 	public String getDescription() {
 		return description;
+	}
+	
+	public String getBasicAuthorizationHeader() throws SEPASecurityException {
+		if (credentials == null) return null;
+		return credentials.getBasicAuthorizationHeader();
 	}
 
 }

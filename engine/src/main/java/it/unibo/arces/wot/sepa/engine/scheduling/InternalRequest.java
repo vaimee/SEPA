@@ -18,13 +18,13 @@
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 
 public abstract class InternalRequest {
-	protected Credentials credentials;
+	private ClientAuthorization auth;
 	
-	public InternalRequest(Credentials credentials) {
-		this.credentials = credentials;
+	public InternalRequest(ClientAuthorization auth) {
+		this.auth = auth;
 	}
 	
 	public boolean isQueryRequest() {
@@ -44,7 +44,6 @@ public abstract class InternalRequest {
 	}
 	
 	public String getBasicAuthorizationHeader() throws SEPASecurityException {
-		if (credentials == null) return null;
-		return credentials.getBasicAuthorizationHeader();
+		return auth.getBasicAuthorizationHeader();
 	}
 }

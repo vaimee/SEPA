@@ -41,4 +41,8 @@ public abstract class DigitalIdentity {
 	public Credentials getEndpointCredentials() {
 		return endpointCredentials;
 	}
+	
+	public String toString() {
+		return "UID: "+uid+" "+endpointCredentials;
+	}
 }
