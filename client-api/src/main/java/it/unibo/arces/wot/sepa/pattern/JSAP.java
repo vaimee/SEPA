@@ -1230,7 +1230,7 @@ public class JSAP extends SPARQL11SEProperties {
 				}
 
 				if (uri != null) {
-					if (uri.getSchemeSpecificPart().startsWith("/"))
+					if (uri.getSchemeSpecificPart().startsWith("/") || uri.getScheme().equals("urn"))
 						value = "<" + value + ">";
 				}
 			} else {
