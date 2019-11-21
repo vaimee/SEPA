@@ -42,6 +42,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
@@ -150,7 +151,15 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		// *****************************************
 		// Register client and retrieve credentials
 		// *****************************************
-		Response cred = Dependability.register(name);
+		Response cred = null;
+		try {
+			cred = Dependability.register(name);
+		} catch (SEPASecurityException e) {
+			if (logger.isTraceEnabled()) e.printStackTrace();
+			logger.error(e.getMessage());
+			HttpUtilities.sendFailureResponse(exchange,new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "dependability_not_configured",e.getMessage()));
+			return;
+		}
 
 		if (cred.getClass().equals(ErrorResponse.class)) {
 			ErrorResponse error = (ErrorResponse) cred;

@@ -52,8 +52,8 @@ public class ITSPARQL11SEProtocol {
 
 		if (properties.isSecure()) {
 			ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
-			File keyFile = new File(classLoader.getResource("sepa.jks").getFile());
-			sm = new SEPASecurityManager(keyFile.getPath(), "sepa2017", "sepa2017",
+			File keyFile = new File(classLoader.getResource("certs.jks").getFile());
+			sm = new SEPASecurityManager(keyFile.getPath(), "sepastore", "sepastore",
 					new AuthenticationProperties(properties.getFileName()));
 
 			// Registration
@@ -148,10 +148,10 @@ public class ITSPARQL11SEProtocol {
 				new Thread(threadGroup,null,"TokenThread-"+n) {
 					public void run() {
 						ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
-						File keyFile = new File(classLoader.getResource("sepa.jks").getFile());
+						File keyFile = new File(classLoader.getResource("certs.jks").getFile());
 						SEPASecurityManager sm = null;
 						try {
-							sm = new SEPASecurityManager(keyFile.getPath(), "sepa2017", "sepa2017",
+							sm = new SEPASecurityManager(keyFile.getPath(), "sepastore", "sepastore",
 									new AuthenticationProperties(properties.getFileName()));
 						} catch (SEPASecurityException | SEPAPropertiesException e1) {
 							assertFalse(e1.getMessage(),true);

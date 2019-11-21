@@ -45,6 +45,7 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
  * <pre>
 	"oauth": {
 		"enable" : true,
+		"ssl" : "TLSv1.2",
 		"register": "https://localhost:8443/oauth/register",
 		"tokenRequest": "https://localhost:8443/oauth/token",
 		"client_id": "jaJBrmgtqgW9jTLHeVbzSCH6ZIN1Qaf3XthmwLxjhw3WuXtt7VELmfibRNvOdKLs",
@@ -77,6 +78,8 @@ public class AuthenticationProperties {
 	private String jwt = null;
 	private long expires = -1;
 	private String type = null;
+	
+	private String ssl = null;
 
 	public AuthenticationProperties(String jsapFileName, byte[] secret) throws SEPAPropertiesException, SEPASecurityException {
 		propertiesFile = new File(jsapFileName);
@@ -101,6 +104,7 @@ public class AuthenticationProperties {
 
 		if (jsap.has("oauth")) {
 			JsonObject oauthJsonObject = jsap.getAsJsonObject("oauth");
+			
 			if (oauthJsonObject.has("enable"))
 				enabled = oauthJsonObject.get("enable").getAsBoolean();
 			else {
@@ -110,6 +114,7 @@ public class AuthenticationProperties {
 			if (enabled) {
 				registrationURL = oauthJsonObject.get("register").getAsString();
 				tokenRequestURL = oauthJsonObject.get("tokenRequest").getAsString();
+				ssl = oauthJsonObject.get("ssl").getAsString();
 
 				if (oauthJsonObject.has("client_id"))
 					clientId = encryption.decrypt(oauthJsonObject.get("client_id").getAsString());
@@ -258,7 +263,10 @@ public class AuthenticationProperties {
 
 			jsap.add("oauth", new JsonObject());
 			jsap.getAsJsonObject("oauth").add("enable", new JsonPrimitive(enabled));
-
+			
+			if (ssl != null) {
+				jsap.getAsJsonObject("oauth").add("ssl", new JsonPrimitive(ssl));
+			}
 			if (registrationURL != null)
 				jsap.getAsJsonObject("oauth").add("register", new JsonPrimitive(registrationURL));
 			if (tokenRequestURL != null)
@@ -286,5 +294,9 @@ public class AuthenticationProperties {
 
 	public String getClientId() {
 		return clientId;
+	}
+
+	public String getSSLProtocol() {
+		return ssl;
 	}
 }
