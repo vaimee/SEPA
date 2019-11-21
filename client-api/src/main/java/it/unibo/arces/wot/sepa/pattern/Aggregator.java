@@ -30,7 +30,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public abstract class Aggregator extends Consumer implements IConsumer, IProducer {
 	protected static final Logger logger = LogManager.getLogger();
@@ -39,7 +39,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 	protected String SPARQL_ID = "";
 	protected Bindings updateForcedBindings;
 
-	public Aggregator(JSAP appProfile, String subscribeID, String updateID, SEPASecurityManager sm)
+	public Aggregator(JSAP appProfile, String subscribeID, String updateID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile, subscribeID, sm);
 

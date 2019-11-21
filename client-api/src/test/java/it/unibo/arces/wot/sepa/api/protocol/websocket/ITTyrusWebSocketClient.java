@@ -20,7 +20,7 @@ import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import static org.junit.Assert.assertFalse;
@@ -32,7 +32,7 @@ public class ITTyrusWebSocketClient {
 	protected static String url = null;
 	protected final Sync sync = new Sync();
 	
-	protected static SEPASecurityManager sm = null;
+	protected static ClientSecurityManager sm = null;
 
 	@BeforeClass
 	public static void init() {

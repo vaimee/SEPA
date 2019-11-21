@@ -89,10 +89,10 @@ class SecurityManager {
 	private IAuthorization auth;
 	private SSLContext ssl;
 	
-	public SecurityManager(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd) throws SEPASecurityException {
+	public SecurityManager(String keystoreFileName, String keystorePwd, String keyAlias) throws SEPASecurityException {
 		auth = new InMemoryAuthorization();
 		
-		initJWT(keystoreFileName, keystorePwd, keyAlias, keyPwd);
+		initJWT(keystoreFileName, keystorePwd, keyAlias);
 	}
 	
 	public void enableLDAP(String host, int port, String base, String uid, String pwd) throws SEPASecurityException {
@@ -108,12 +108,12 @@ class SecurityManager {
 		return ssl;
 	}
 	
-	public void setSSLContextFromPEM(String pem,String pwd) throws SEPASecurityException {
-		ssl = new SSLManager().getSSLContextFromLetsEncrypt(pem,pwd);
+	public void setSSLContextFromPEM(String path,String cert,String pwd) throws SEPASecurityException {
+		ssl = new SSLManager().getSSLContextFromLetsEncrypt(path,cert,pwd);
 	}
 	
-	public void setSSLContextFromJKS(String jksName, String jksPassword,String  keyPassword) throws SEPASecurityException {
-		ssl = new SSLManager().getSSLContextFromJKS(jksName, jksPassword, keyPassword);
+	public void setSSLContextFromJKS(String jksName, String jksPassword) throws SEPASecurityException {
+		ssl = new SSLManager().getSSLContextFromJKS(jksName, jksPassword);
 	}
 
 	private void securityCheck(String identity) throws SEPASecurityException {
@@ -159,7 +159,7 @@ class SecurityManager {
 		System.out.println("");
 	}
 
-	private void initJWT(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd) throws SEPASecurityException {
+	private void initJWT(String keystoreFileName, String keystorePwd, String keyAlias) throws SEPASecurityException {
 		try {
 			KeyStore keystore = KeyStore.getInstance("JKS");
 			keystore.load(new FileInputStream(keystoreFileName), keystorePwd.toCharArray());

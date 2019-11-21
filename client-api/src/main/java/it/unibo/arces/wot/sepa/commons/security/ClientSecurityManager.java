@@ -55,7 +55,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 
-public class SEPASecurityManager {
+public class ClientSecurityManager {
 
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
@@ -64,142 +64,43 @@ public class SEPASecurityManager {
 
 	private final String jksName;
 	private final String jksPassword;
-	private final String keyPassword;
 
-	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
-			AuthenticationProperties oauthProp) throws SEPASecurityException {
+	public ClientSecurityManager(AuthenticationProperties oauthProp)  throws SEPASecurityException {
+		this.jksName = null;
+		this.jksPassword = null;
+		
+		oauthProperties = oauthProp;
+		
+		if (!oauthProperties.trustAll()) throw new SEPASecurityException("Missing JKS parameters");
+	}
+	
+	public ClientSecurityManager(AuthenticationProperties oauthProp, String jksName, String jksPassword) throws SEPASecurityException {		
+		oauthProperties = oauthProp;
+		
+		if (oauthProperties.trustAll()) throw new SEPASecurityException("Wrong constructor. Trust all. JKS parameters not used");
+		
 		// Arguments check
-		if (jksName == null || jksPassword == null || keyPassword == null)
+		if (jksName == null || jksPassword == null ) //|| keyPassword == null)
 			throw new SEPASecurityException("JKS name or passwords are null");
 
 		// Initialize SSL context
 		File f = new File(jksName);
 		if (!f.exists() || f.isDirectory())
 			throw new SEPASecurityException(jksName + " not found");
-//
-//		ssl = new SSLManager(jksName,jksPassword,keyPassword,oauthProp.getSSLProtocol());
 
 		this.jksName = jksName;
-		this.jksPassword = jksPassword;
-		this.keyPassword = keyPassword;
-		
-		oauthProperties = oauthProp;
+		this.jksPassword = jksPassword;			
 	}
 	
 	public SSLContext getSSLContext() throws SEPASecurityException {
-		return new SSLManager().getSSLContextFromJKS(jksName, jksPassword, keyPassword);
+		if (!oauthProperties.trustAll()) return new SSLManager().getSSLContextFromJKS(jksName, jksPassword);
+		return new SSLManager().getSSLContextTrustAllCa(oauthProperties.getSSLProtocol());
 	}
 	
 	public CloseableHttpClient getSSLHttpClient() throws SEPASecurityException {
-		return new SSLManager().getSSLHttpClient(jksName, jksPassword);
+		if (!oauthProperties.trustAll()) return new SSLManager().getSSLHttpClient(jksName, jksPassword);
+		return new SSLManager().getSSLHttpClientTrustAllCa(oauthProperties.getSSLProtocol());
 	}
-
-//	
-//	/**
-//	 * Instantiates a new Security Manager.
-//	 *
-//	 * @param protocol    the protocol
-//	 * @param jksName     the jks name
-//	 * @param jksPassword the jks password
-//	 * @param keyPassword the key password
-//	 * @throws SEPASecurityException
-//	 */
-//	public SEPASecurityManager(String jksName, String jksPassword, String keyPassword,
-//			AuthenticationProperties oauthProp) throws SEPASecurityException {
-//		// Arguments check
-//		if (jksName == null || jksPassword == null || keyPassword == null)
-//			throw new SEPASecurityException("JKS name or passwords are null");
-//
-//		// Initialize SSL context
-//		File f = new File(jksName);
-//		if (!f.exists() || f.isDirectory())
-//			throw new SEPASecurityException(jksName + " not found");
-//
-//		try {
-//			keystore = KeyStore.getInstance("JKS");
-//			keystore.load(new FileInputStream(jksName), jksPassword.toCharArray());
-//
-//			kmfactory = KeyManagerFactory.getInstance("SunX509");
-//			kmfactory.init(keystore, keyPassword.toCharArray());
-//
-//			tmf = TrustManagerFactory.getInstance("SunX509");
-//			tmf.init(keystore);
-//
-//			// Trust own CA and all self-signed certificates and allow TLSv1 protocol only
-//			sslsf = new SSLConnectionSocketFactory(SSLContexts.custom()
-//					.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(), new TrustSelfSignedStrategy())
-//					.build(), protocolStrings, null, this);
-//		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
-//				| UnrecoverableKeyException | KeyManagementException e) {
-//			throw new SEPASecurityException(e.getMessage());
-//		}	
-//
-//		oauthProperties = oauthProp;
-//	}
-	
-//	public static SSLContext(String protocol) {
-//		
-//	}
-
-//	static TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-//		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-//			return new X509Certificate[0];
-//		}
-//
-//		public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-//		}
-//
-//		public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-//		}
-//	} };
-//
-//	public static SSLContext getSSLContextTrustAllCa(String protocol) throws SEPASecurityException {
-//		SSLContext sc = null;
-//		try {
-//			sc = SSLContext.getInstance(protocol);
-//			sc.init(null, trustAllCerts, new java.security.SecureRandom());
-//		} catch (NoSuchAlgorithmException | KeyManagementException e) {
-//			throw new SEPASecurityException(e);
-//		}
-//
-//		return sc;
-//	}
-//
-//	public static SSLContext getSSLContext(String protocol, String caCertFile) throws SEPASecurityException {
-//		try {
-//			// Load certificates from caCertFile into the keystore
-//			KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
-//			caKs.load(null, null);
-//
-//			FileInputStream fis = new FileInputStream(caCertFile);
-//			BufferedInputStream bis = new BufferedInputStream(fis);
-//			CertificateFactory cf;
-//			cf = CertificateFactory.getInstance("X.509");
-//			while (bis.available() > 0) {
-//				X509Certificate caCert = (X509Certificate) cf.generateCertificate(bis);
-//				caKs.setCertificateEntry(caCert.getIssuerX500Principal().getName(), caCert);
-//			}
-//
-//			// Trust manager
-//			TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-//			tmf.init(caKs);
-//
-//			// Create SSL context
-//			SSLContext sslContext = SSLContext.getInstance(protocol);
-//			sslContext.init(null, tmf.getTrustManagers(), null);
-//
-//			return sslContext;
-//		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
-//				| KeyManagementException e) {
-//			e.printStackTrace();
-//			throw new SEPASecurityException(e);
-//		}
-//	}
-//
-
-//	public KeyStore getKeyStore() {
-//		return keystore;
-//	}
 
 	/**
 	 * Register the identity and store the credentials into the Authentication
@@ -294,47 +195,6 @@ public class SEPASecurityManager {
 		return refreshToken(5000);
 	}
 
-//	/**
-//	 * It is used to request a new token using the "Basic" credentials stored in the
-//	 * AuthenticationProperties. When retrieved, the token is stored within the
-//	 * AuthenticationProperties.
-//	 * 
-//	 * @return In case of success, it returns an JWTResponse. Otherwise an
-//	 *         ErrorResponse is returned as specified in RFC6749
-//	 * @throws SEPASecurityException
-//	 * @throws SEPAPropertiesException
-//	 * @see ErrorResponse
-//	 * @see JWTResponse
-//	 * @see AuthenticationProperties
-//	 */
-//	private void requestToken() throws SEPASecurityException, SEPAPropertiesException {
-//		Response ret = requestToken(oauthProperties.getTokenRequestUrl(),
-//				oauthProperties.getBasicAuthorizationHeader());
-//
-//		if (ret.isJWTResponse()) {
-//			JWTResponse jwt = (JWTResponse) ret;
-//
-//			logger.debug(jwt);
-//
-//			oauthProperties.setJWT(jwt);
-//		} else {
-//			logger.error("requestToken@ " + new Date() + " Response: " + ret);
-//		}
-//	}
-
-//	/**
-//	 * Returns true if the token is expired or not available. If the token is
-//	 * expired, the client MUST request a new token to renew the authorization
-//	 * header.
-//	 * 
-//	 * @throws SEPAPropertiesException
-//	 * 
-//	 * @see AuthenticationProperties
-//	 */
-//	private boolean isTokenExpired() {
-//		return oauthProperties.isTokenExpired();
-//	}
-
 	private Response register(String url, String identity, int timeout) {
 		logger.info("REGISTER " + identity);
 
@@ -358,7 +218,9 @@ public class SEPASecurityManager {
 			logger.trace(httpRequest);
 
 			try {
-				response = new SSLManager().getSSLHttpClient(jksName, jksPassword).execute(httpRequest);
+				if (!oauthProperties.trustAll()) response = new SSLManager().getSSLHttpClient(jksName, jksPassword).execute(httpRequest);
+				else response = new SSLManager().getSSLHttpClientTrustAllCa(oauthProperties.getSSLProtocol()).execute(httpRequest);
+//				response = new SSLManager().getSSLHttpClient(jksName, jksPassword).execute(httpRequest);
 			} catch (IOException | SEPASecurityException e) {
 				logger.error("HTTP EXECUTE: " + e.getMessage());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());

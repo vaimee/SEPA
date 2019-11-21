@@ -6,14 +6,14 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public class ITAggregator extends Aggregator {
 	protected static boolean notificationReceived = false;
 	
-	public ITAggregator(JSAP appProfile, String subscribeID, String updateID, SEPASecurityManager sm)
+	public ITAggregator(JSAP appProfile, String subscribeID, String updateID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile, subscribeID, updateID, sm);
 	}

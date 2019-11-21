@@ -33,7 +33,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class Producer extends Client implements IProducer {
 	private static final Logger logger = LogManager.getLogger();
@@ -44,7 +44,7 @@ public class Producer extends Client implements IProducer {
 
 	private SPARQL11Protocol client;
 
-	public Producer(JSAP appProfile, String updateID, SEPASecurityManager sm)
+	public Producer(JSAP appProfile, String updateID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		super(appProfile, sm);
 

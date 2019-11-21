@@ -42,7 +42,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 /**
  * The Class GenericClient.
@@ -168,7 +168,7 @@ public class GenericClient extends Client {
 	 * @param sm         the security manager (needed for secure connections)
 	 * @throws SEPAProtocolException the SEPA protocol exception
 	 */
-	public GenericClient(JSAP appProfile, SEPASecurityManager sm) throws SEPAProtocolException {
+	public GenericClient(JSAP appProfile, ClientSecurityManager sm) throws SEPAProtocolException {
 		super(appProfile, sm);
 	}
 
@@ -571,10 +571,11 @@ public class GenericClient extends Client {
 	 * @throws SEPAPropertiesException the SEPA properties exception
 	 */
 	// Registration to the Authorization Server (AS)
-	public Response register(String jksFile, String storePwd, String keyPwd, String identity)
+	public Response register(String jksFile, String storePwd, String identity)
 			throws SEPASecurityException, SEPAPropertiesException {
-		SEPASecurityManager security = new SEPASecurityManager(jksFile, storePwd, keyPwd,
-				appProfile.getAuthenticationProperties());
+		ClientSecurityManager security;
+		if (appProfile.getAuthenticationProperties().trustAll()) security = new ClientSecurityManager(appProfile.getAuthenticationProperties());
+		else security = new ClientSecurityManager(appProfile.getAuthenticationProperties(),jksFile, storePwd);
 
 		Response ret = security.register(identity);
 

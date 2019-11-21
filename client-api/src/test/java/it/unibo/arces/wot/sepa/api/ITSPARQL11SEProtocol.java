@@ -10,8 +10,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
@@ -22,7 +21,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -35,7 +33,7 @@ public class ITSPARQL11SEProtocol {
 	private static JSAP properties = null;
 	private static ConfigurationProvider provider;
 
-	private static SEPASecurityManager sm;
+	private static ClientSecurityManager sm;
 	private final static String VALID_ID = "SEPATest";
 	private final static String NOT_VALID_ID = "RegisterMePlease";
 
@@ -51,11 +49,8 @@ public class ITSPARQL11SEProtocol {
 		properties = provider.getJsap();
 
 		if (properties.isSecure()) {
-			ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
-			File keyFile = new File(classLoader.getResource("certs.jks").getFile());
-			sm = new SEPASecurityManager(keyFile.getPath(), "sepastore", "sepastore",
-					new AuthenticationProperties(properties.getFileName()));
-
+			sm = provider.buildSecurityManager();
+			
 			// Registration
 			Response response = sm.register(VALID_ID);
 			assertFalse(response.toString(), response.isError());
@@ -123,6 +118,12 @@ public class ITSPARQL11SEProtocol {
 		// Delete all triples
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
 		logger.debug(ret);
+		if (ret.isError()) {
+			ErrorResponse err = (ErrorResponse) ret;
+			if (err.isTokenExpiredError()) sm.refreshToken();
+			else assertFalse(String.valueOf(ret), ret.isError());
+			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
+		}
 		assertFalse(String.valueOf(ret), ret.isError());
 
 		// Evaluate if the store is empty
@@ -147,12 +148,9 @@ public class ITSPARQL11SEProtocol {
 			for (int n = 0; n < 10; n++) {
 				new Thread(threadGroup,null,"TokenThread-"+n) {
 					public void run() {
-						ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
-						File keyFile = new File(classLoader.getResource("certs.jks").getFile());
-						SEPASecurityManager sm = null;
+						ClientSecurityManager sm = null;
 						try {
-							sm = new SEPASecurityManager(keyFile.getPath(), "sepastore", "sepastore",
-									new AuthenticationProperties(properties.getFileName()));
+							sm = provider.buildSecurityManager();
 						} catch (SEPASecurityException | SEPAPropertiesException e1) {
 							assertFalse(e1.getMessage(),true);
 						}

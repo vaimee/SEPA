@@ -86,15 +86,12 @@ public class Engine implements EngineMBean {
 	// JKS defaults
 	private String storeName = "certs.jks";
 	private String storePassword = "sepastore";	
-	
-	// JWT defaults
-	private String jwtAlias = "jwt";
-	private String jwtPassword = "jwtpass";
+	private String alias = "jwt";
 	
 	// CA defaults (using PEM certificate provided by Let's Encrypt or a key within the JKS)
-	private boolean enablePem = false;
-	private String caPath = "./certs";
-	private String caPassword = "caPassword";
+	private String caCertificate = null;
+	private String caPath = null;
+	private String caPassword = null;
 
 	// LDAP
 	private String ldapHost = "localhost";
@@ -146,13 +143,12 @@ public class Engine implements EngineMBean {
 		System.out.println("JKS OPTIONS:");
 		System.out.println("-keystore <name> : file name of the JKS      (default: certs.jks)");
 		System.out.println("-storepass <pwd> : password of the JKS       (default: sepastore)");
-		System.out.println("-jwtkey <jwt> : alias for the JWT key        (default: jwt)");
-		System.out.println("-jwtpwd <pwd> : password of the JWT key      (default: jwtpass)");
+		System.out.println("-alias <jwt> : alias for the JWT key         (default: jwt)");
 		
 		System.out.println("SSL OPTIONS:");
-		System.out.println("-capwd <pwd> : password of certificate                      (default: caPassword)");
-		System.out.println("-pem : if present, the certificates in <capath> are used");
-		System.out.println("-capath <capath> : path to the Let's Encrypt certificates   (default: ./certs)");
+		System.out.println("-cacertificate : if present, the certificates in <capath> are used");
+		System.out.println("-capwd <pwd> : password of certificate                      (REQUIRED)");		
+		System.out.println("-capath <capath> : path to the Let's Encrypt certificates   (REQUIRED)");
 		
 		System.out.println("LDAP OPTIONS:");
 		System.out.println("-ldaphost <name> : host     		         (default: localhost)");
@@ -173,8 +169,8 @@ public class Engine implements EngineMBean {
 			case "-capwd":
 				caPassword = args[i+1];
 				break;
-			case "-pem":
-				enablePem = true;
+			case "-cacertificate":
+				caCertificate = args[i+1];
 				break;
 			case "-capath":
 				caPath = args[i+1];
@@ -187,10 +183,7 @@ public class Engine implements EngineMBean {
 				storePassword = args[i+1];
 				break;
 			case "-alias":
-				jwtAlias = args[i+1];
-				break;
-			case "-jwtpwd":
-				jwtPassword = args[i+1];
+				alias = args[i+1];
 				break;
 			
 			case "-engine":
@@ -227,12 +220,11 @@ public class Engine implements EngineMBean {
 
 		logger.debug("--- JKS ---");
 		logger.debug("-keystore: " + storeName);
-		logger.debug("-storepwd: " + storePassword);
-		logger.debug("-jwtalias: " + jwtAlias);
-		logger.debug("-jwtpwd: " + jwtPassword);
+		logger.debug("-storepass: " + storePassword);
+		logger.debug("-alias: " + alias);
 
 		logger.debug("--- SSL ---");
-		logger.debug("-pem: " + enablePem);
+		logger.debug("-cacertificate: " + caCertificate);
 		logger.debug("-capwd: " + caPassword);
 		logger.debug("-capath: " + caPath);
 		
@@ -296,11 +288,17 @@ public class Engine implements EngineMBean {
 
 			// OAUTH 2.0 Authorization Manager
 			if (properties.isSecure()) {
-				Dependability.enableSecurity(storeName, storePassword,jwtAlias, jwtPassword);
+				Dependability.enableSecurity(storeName, storePassword,alias);
 				if (properties.isLDAPEnabled()) Dependability.enableLDAP(ldapHost, ldapPort, ldapDn, ldapUser, ldapPwd);
 				
-				if (properties.getSecurityCertificateType().equals("jks")) Dependability.useJKSCertificate(caPassword);
-				else if (properties.getSecurityCertificateType().equals("pem")) Dependability.usePEMCertificate(caPath, caPassword);
+				if (caCertificate != null) {
+					if(caPath == null || caPassword == null) {
+						System.err.println("Path and password of CA certificate are REQUIRED");
+						System.exit(1);
+					}
+					
+					Dependability.useCACertificate(caPath,caCertificate,caPassword);
+				}
 				
 				// Check that SSL has been properly configured
 				Dependability.getSSLContext();

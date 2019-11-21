@@ -6,7 +6,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
@@ -14,7 +14,7 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 public class ITConsumer extends Consumer {
 	protected static boolean notificationReceived = false;
 	
-	public ITConsumer(JSAP appProfile, String subscribeID, SEPASecurityManager sm)
+	public ITConsumer(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile, subscribeID, sm);
 	}

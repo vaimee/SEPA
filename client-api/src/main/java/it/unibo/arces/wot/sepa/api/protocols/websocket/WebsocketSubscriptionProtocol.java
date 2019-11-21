@@ -47,7 +47,7 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class WebsocketSubscriptionProtocol extends Endpoint implements SubscriptionProtocol {
 	protected final Logger logger = LogManager.getLogger();
@@ -57,7 +57,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 	protected final String path;
 
 	protected ISubscriptionHandler handler = null;
-	protected SEPASecurityManager sm = null;
+	protected ClientSecurityManager sm = null;
 
 	protected final ClientManager client;
 	protected Session session;
@@ -169,7 +169,7 @@ public class WebsocketSubscriptionProtocol extends Endpoint implements Subscript
 	}
 
 	@Override
-	public void enableSecurity(SEPASecurityManager sm) throws SEPASecurityException {
+	public void enableSecurity(ClientSecurityManager sm) throws SEPASecurityException {
 		if (sm == null)
 			throw new IllegalArgumentException("Security manager is null");
 

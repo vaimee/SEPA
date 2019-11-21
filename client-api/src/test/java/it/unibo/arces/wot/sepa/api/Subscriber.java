@@ -17,12 +17,12 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
-	private final SEPASecurityManager sm;
+	private final ClientSecurityManager sm;
 	private final SPARQL11SEProtocol client;
 	private final String id;
 	private final Sync sync;

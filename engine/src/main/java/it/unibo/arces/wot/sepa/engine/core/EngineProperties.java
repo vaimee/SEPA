@@ -50,7 +50,7 @@ import org.apache.logging.log4j.LogManager;
 		"gates": {
 			"security": {
 				"enabled" : false,
-				"certificate" : "jks|pem"
+				"ldap" : false
 			},
 			"paths": {
 				"securePath": "/secure",
@@ -233,39 +233,39 @@ public class EngineProperties {
 			throw new SEPAPropertiesException("gates-security-enabled is missing");
 		}
 
-		if (properties.getAsJsonObject("gates").getAsJsonObject("security").get("enabled").getAsBoolean()) {
-			try {
-				properties.getAsJsonObject("gates").getAsJsonObject("security").get("certificate").getAsString();
-			} catch (Exception e) {
-				logger.error("gates-security-certificate is missing");
-				throw new SEPAPropertiesException("gates-security-certificate is missing");
-			}
-			
-			try {
-				properties.getAsJsonObject("gates").getAsJsonObject("security").get("ldap").getAsBoolean();
-			} catch (Exception e) {
-				logger.error("gates-security-ldap is missing");
-				throw new SEPAPropertiesException("gates-security-certificate is missing");
-			}
-//			
-//			if (!properties.getAsJsonObject("gates").getAsJsonObject("security").get("type").getAsString().equals("jks") && !properties.getAsJsonObject("gates").getAsJsonObject("security").get("type").getAsString().equals("pem")) {
-//				throw new SEPAPropertiesException("gates-security-type MUST be jks or pem");
+//		if (properties.getAsJsonObject("gates").getAsJsonObject("security").get("enabled").getAsBoolean()) {
+//			try {
+//				properties.getAsJsonObject("gates").getAsJsonObject("security").get("cacertificate");
+//			} catch (Exception e) {
+//				logger.error("gates-security-certificate is missing");
+//				throw new SEPAPropertiesException("gates-security-certificate is missing");
 //			}
 //			
 //			try {
-//				properties.getAsJsonObject("gates").getAsJsonObject("security").get("path").getAsString();
+//				properties.getAsJsonObject("gates").getAsJsonObject("security").get("ldap").getAsBoolean();
 //			} catch (Exception e) {
-//				logger.error("gates-security-pwd is missing");
-//				throw new SEPAPropertiesException("gates-security-pwd is missing");
+//				logger.error("gates-security-ldap is missing");
+//				throw new SEPAPropertiesException("gates-security-certificate is missing");
 //			}
-//
-//			try {
-//				properties.getAsJsonObject("gates").getAsJsonObject("security").get("pwd").getAsString();
-//			} catch (Exception e) {
-//				logger.error("gates-security-pwd is missing");
-//				throw new SEPAPropertiesException("gates-security-pwd is missing");
-//			}
-		}
+////			
+////			if (!properties.getAsJsonObject("gates").getAsJsonObject("security").get("type").getAsString().equals("jks") && !properties.getAsJsonObject("gates").getAsJsonObject("security").get("type").getAsString().equals("pem")) {
+////				throw new SEPAPropertiesException("gates-security-type MUST be jks or pem");
+////			}
+////			
+////			try {
+////				properties.getAsJsonObject("gates").getAsJsonObject("security").get("path").getAsString();
+////			} catch (Exception e) {
+////				logger.error("gates-security-pwd is missing");
+////				throw new SEPAPropertiesException("gates-security-pwd is missing");
+////			}
+////
+////			try {
+////				properties.getAsJsonObject("gates").getAsJsonObject("security").get("pwd").getAsString();
+////			} catch (Exception e) {
+////				logger.error("gates-security-pwd is missing");
+////				throw new SEPAPropertiesException("gates-security-pwd is missing");
+////			}
+//		}
 
 		try {
 			properties.getAsJsonObject("gates").getAsJsonObject("ports").get("http").getAsInt();
@@ -485,14 +485,6 @@ public class EngineProperties {
 			return properties.getAsJsonObject("scheduler").get("timeout").getAsInt();
 		} catch (Exception e) {
 			return 60000;
-		}
-	}
-
-	public String getSecurityCertificateType() {
-		try {
-			return properties.getAsJsonObject("gates").getAsJsonObject("security").get("certificate").getAsString();
-		} catch (Exception e) {
-			return null;
 		}
 	}
 	

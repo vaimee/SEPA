@@ -38,7 +38,7 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public abstract class Consumer extends Client implements IConsumer {
 	protected static final Logger logger = LogManager.getLogger();
@@ -51,7 +51,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	
 	protected SPARQL11SEProtocol client;
 
-	public Consumer(JSAP appProfile, String subscribeID, SEPASecurityManager sm)
+	public Consumer(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile,sm);
 

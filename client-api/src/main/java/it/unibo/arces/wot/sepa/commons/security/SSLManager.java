@@ -43,7 +43,8 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 
-/** <pre>
+/**
+ * <pre>
 * The Class SSLManager
 * 
 * ### Key and Certificate Storage ###
@@ -118,16 +119,16 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 * protocols:
 * 
 * SSLv3 TLSv1 TLSv1.1 TLSv1.2
-* 
-* </pre>
-* 
-* @see HostnameVerifier
-*/
+ * 
+ * </pre>
+ * 
+ * @see HostnameVerifier
+ */
 public class SSLManager implements HostnameVerifier {
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
 
-	private static final String[] protocolStrings = { "TLSv1.2" };
+	private static final String[] protocols = { "TLSv1.2" };
 
 	@Override
 	public boolean verify(String hostname, SSLSession session) {
@@ -137,14 +138,35 @@ public class SSLManager implements HostnameVerifier {
 
 		return true;
 	}
-	
-	public CloseableHttpClient getSSLHttpClient(String jksName,String jksPassword) throws SEPASecurityException {
-		// Trust own CA and all self-signed certificates and allow TLSv1 protocol only
+
+	public CloseableHttpClient getSSLHttpClientTrustAllCa(String protocol) throws SEPASecurityException  {
+		// Trust own CA and all self-signed certificates and allow the specified
+		// protocols
 		LayeredConnectionSocketFactory sslsf = null;
 		try {
-			sslsf = new SSLConnectionSocketFactory(SSLContexts.custom()
+			SSLContext ctx = SSLContext.getInstance(protocol);
+			ctx.init(null, trustAllCerts, new java.security.SecureRandom());
+			sslsf = new SSLConnectionSocketFactory(ctx, protocols, null, this);
+		} catch (KeyManagementException | NoSuchAlgorithmException e) {
+			logger.error(e.getMessage());
+			if (logger.isTraceEnabled())
+				e.printStackTrace();
+			throw new SEPASecurityException(e.getMessage());
+		}
+		HttpClientBuilder clientFactory = HttpClients.custom().setSSLSocketFactory(sslsf);
+
+		return clientFactory.build();
+	}
+
+	public CloseableHttpClient getSSLHttpClient(String jksName, String jksPassword) throws SEPASecurityException {
+		// Trust own CA and all self-signed certificates and allow the specified
+		// protocols
+		LayeredConnectionSocketFactory sslsf = null;
+		try {
+			SSLContext ctx = SSLContexts.custom()
 					.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(), new TrustSelfSignedStrategy())
-					.build(), protocolStrings, null, this);
+					.build();
+			sslsf = new SSLConnectionSocketFactory(ctx, protocols, null, this);
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException
 				| IOException e) {
 			logger.error(e.getMessage());
@@ -156,7 +178,7 @@ public class SSLManager implements HostnameVerifier {
 
 		return clientFactory.build();
 	}
-	
+
 	static TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
 		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
 			logger.debug("getAcceptedIssuers");
@@ -171,7 +193,7 @@ public class SSLManager implements HostnameVerifier {
 			logger.debug("checkServerTrusted");
 		}
 	} };
-	
+
 	public SSLContext getSSLContextTrustAllCa(String protocol) throws SEPASecurityException {
 		SSLContext sc = null;
 		try {
@@ -184,10 +206,9 @@ public class SSLManager implements HostnameVerifier {
 		return sc;
 	}
 
-	public SSLContext getSSLContextFromJKS(String jksName, String jksPassword, String keyPassword)
-			throws SEPASecurityException {
+	public SSLContext getSSLContextFromJKS(String jksName, String jksPassword) throws SEPASecurityException {
 		// Arguments check
-		if (jksName == null || jksPassword == null || keyPassword == null)
+		if (jksName == null || jksPassword == null) // || keyPassword == null)
 			throw new SEPASecurityException("JKS name or passwords are null");
 
 		// Initialize SSL context
@@ -217,7 +238,7 @@ public class SSLManager implements HostnameVerifier {
 			throw new SEPASecurityException(e1.getMessage());
 		}
 	}
-	
+
 	/**
 	 * Method which returns a SSLContext from a Let's encrypt or
 	 * IllegalArgumentException on error
@@ -225,19 +246,16 @@ public class SSLManager implements HostnameVerifier {
 	 * @return a valid SSLContext
 	 * @throws IllegalArgumentException when some exception occurred
 	 */
-	public SSLContext getSSLContextFromLetsEncrypt(String pathTo, String keyPassword) {
+	public SSLContext getSSLContextFromLetsEncrypt(String path, String certFile, String keyPassword) {
 		SSLContext context;
-//	    String pathTo = "/etc/letsencrypt/live/sepa.vaimee.it";
-//	    String keyPassword = "Vaimee@Deda2019!";
 
 		try {
 			context = SSLContext.getInstance("TLS");
 
-			byte[] certBytes = parseDERFromPEM(
-					Files.readAllBytes(new File(pathTo + File.separator + "cert.pem").toPath()),
+			byte[] certBytes = parseDERFromPEM(Files.readAllBytes(new File(path + File.separator + certFile).toPath()),
 					"-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
 			byte[] keyBytes = parseDERFromPEM(
-					Files.readAllBytes(new File(pathTo + File.separator + "privkey.pem").toPath()),
+					Files.readAllBytes(new File(path + File.separator + "privkey.pem").toPath()),
 					"-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----");
 
 			X509Certificate cert = generateCertificateFromDER(certBytes);
@@ -256,42 +274,43 @@ public class SSLManager implements HostnameVerifier {
 			context.init(km, null, null);
 		} catch (IOException | KeyManagementException | KeyStoreException | InvalidKeySpecException
 				| UnrecoverableKeyException | NoSuchAlgorithmException | CertificateException e) {
-			throw new IllegalArgumentException();
+			logger.error(e.getMessage());
+			throw new IllegalArgumentException(e);
 		}
 		return context;
 	}
-	
+
 	public SSLContext getSSLContextFromCertFile(String protocol, String caCertFile) throws SEPASecurityException {
-	try {
-		// Load certificates from caCertFile into the keystore
-		KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
-		caKs.load(null, null);
+		try {
+			// Load certificates from caCertFile into the keystore
+			KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
+			caKs.load(null, null);
 
-		FileInputStream fis = new FileInputStream(caCertFile);
-		BufferedInputStream bis = new BufferedInputStream(fis);
-		CertificateFactory cf;
-		cf = CertificateFactory.getInstance("X.509");
-		while (bis.available() > 0) {
-			X509Certificate caCert = (X509Certificate) cf.generateCertificate(bis);
-			caKs.setCertificateEntry(caCert.getIssuerX500Principal().getName(), caCert);
+			FileInputStream fis = new FileInputStream(caCertFile);
+			BufferedInputStream bis = new BufferedInputStream(fis);
+			CertificateFactory cf;
+			cf = CertificateFactory.getInstance("X.509");
+			while (bis.available() > 0) {
+				X509Certificate caCert = (X509Certificate) cf.generateCertificate(bis);
+				caKs.setCertificateEntry(caCert.getIssuerX500Principal().getName(), caCert);
+			}
+
+			// Trust manager
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
+			tmf.init(caKs);
+
+			// Create SSL context
+			SSLContext sslContext = SSLContext.getInstance(protocol);
+			sslContext.init(null, tmf.getTrustManagers(), null);
+
+			return sslContext;
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
+				| KeyManagementException e) {
+			e.printStackTrace();
+			throw new SEPASecurityException(e);
 		}
-
-		// Trust manager
-		TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-		tmf.init(caKs);
-
-		// Create SSL context
-		SSLContext sslContext = SSLContext.getInstance(protocol);
-		sslContext.init(null, tmf.getTrustManagers(), null);
-
-		return sslContext;
-	} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
-			| KeyManagementException e) {
-		e.printStackTrace();
-		throw new SEPASecurityException(e);
 	}
-}
-	
+
 	protected static byte[] parseDERFromPEM(byte[] pem, String beginDelimiter, String endDelimiter) {
 		String data = new String(pem);
 		String[] tokens = data.split(beginDelimiter);
@@ -311,122 +330,5 @@ public class SSLManager implements HostnameVerifier {
 
 		return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certBytes));
 	}
-
-//	public SSLManager(String jksName, String jksPassword, String keyPassword, String protocol)
-//			throws SEPASecurityException {
-//		// Arguments check
-//		if (jksName == null || jksPassword == null || keyPassword == null)
-//			throw new SEPASecurityException("JKS name or passwords are null");
-//
-//		// Initialize SSL context
-//		File f = new File(jksName);
-//		if (!f.exists() || f.isDirectory())
-//			throw new SEPASecurityException(jksName + " not found");
-//
-//		// Create the key store
-//		KeyStore keystore;
-//		try {
-//			keystore = KeyStore.getInstance("JKS");
-//		} catch (KeyStoreException e1) {
-//			logger.error(e1.getMessage());
-//			if (logger.isTraceEnabled())
-//				e1.printStackTrace();
-//			throw new SEPASecurityException(e1.getMessage());
-//		}
-//
-//		// Load the key store
-//		try {
-//			keystore.load(new FileInputStream(jksName), jksPassword.toCharArray());
-//		} catch (NoSuchAlgorithmException | CertificateException | IOException e1) {
-//			logger.error(e1.getMessage());
-//			if (logger.isTraceEnabled())
-//				e1.printStackTrace();
-//			throw new SEPASecurityException(e1.getMessage());
-//		}
-//
-//		// Create the key manager
-//		KeyManagerFactory kmfactory;
-//		try {
-//			kmfactory = KeyManagerFactory.getInstance("SunX509");
-//		} catch (NoSuchAlgorithmException e1) {
-//			logger.error(e1.getMessage());
-//			if (logger.isTraceEnabled())
-//				e1.printStackTrace();
-//			throw new SEPASecurityException(e1.getMessage());
-//		}
-//
-//		// Init the key manager
-//		try {
-//			kmfactory.init(keystore, keyPassword.toCharArray());
-//		} catch (UnrecoverableKeyException | KeyStoreException | NoSuchAlgorithmException e1) {
-//			logger.error(e1.getMessage());
-//			if (logger.isTraceEnabled())
-//				e1.printStackTrace();
-//			throw new SEPASecurityException(e1.getMessage());
-//		}
-//
-//		// Create the trust manager
-//		TrustManagerFactory tmf;
-//		try {
-//			tmf = TrustManagerFactory.getInstance("SunX509");
-//		} catch (NoSuchAlgorithmException e1) {
-//			logger.error(e1.getMessage());
-//			if (logger.isTraceEnabled())
-//				e1.printStackTrace();
-//			throw new SEPASecurityException(e1.getMessage());
-//		}
-//
-//		// Init the trust manager
-//		try {
-//			tmf.init(keystore);
-//		} catch (KeyStoreException e1) {
-//			logger.error(e1.getMessage());
-//			if (logger.isTraceEnabled())
-//				e1.printStackTrace();
-//			throw new SEPASecurityException(e1.getMessage());
-//		}
-//
-//		// Get SSL protocol instance
-//		try {
-//			sslContext = SSLContext.getInstance("TLS");
-//		} catch (NoSuchAlgorithmException e) {
-//			logger.error(e.getMessage());
-//			if (logger.isTraceEnabled())
-//				e.printStackTrace();
-//			throw new SEPASecurityException(e.getMessage());
-//		}
-//
-//		// Init SSL
-//		try {
-//			sslContext.init(kmfactory.getKeyManagers(), trustAllCerts, null);
-//
-//			// sslContext.init(kmfactory.getKeyManagers(),tmf.getTrustManagers(),null);
-//		} catch (KeyManagementException e) {
-//			logger.error(e.getMessage());
-//			if (logger.isTraceEnabled())
-//				e.printStackTrace();
-//			throw new SEPASecurityException(e.getMessage());
-//		}
-//
-//		// Trust own CA and all self-signed certificates and allow TLSv1 protocol only
-//		LayeredConnectionSocketFactory sslsf = null;
-//		try {
-//			sslsf = new SSLConnectionSocketFactory(SSLContexts.custom()
-//					.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(), new TrustSelfSignedStrategy())
-//					.build(), protocolStrings, null, this);
-//		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException
-//				| IOException e) {
-//			logger.error(e.getMessage());
-//			if (logger.isTraceEnabled())
-//				e.printStackTrace();
-//			throw new SEPASecurityException(e.getMessage());
-//		}
-//		clientFactory = HttpClients.custom().setSSLSocketFactory(sslsf);
-//	}
-
-//	public SSLContext getSSLContext(){
-//		return sslContext;
-////		return getSSLContextFromLetsEncrypt();
-//	}
 
 }
