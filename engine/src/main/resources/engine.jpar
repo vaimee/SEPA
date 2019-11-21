@@ -13,7 +13,9 @@
 			"timeout": 2000
 		},
 		"gates": {
-			"secure": false,
+			"security": {
+				"enabled" : false
+			},
 			"ports": {
 				"http": 8000,
 				"ws": 9000,
