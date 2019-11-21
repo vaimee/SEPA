@@ -12,7 +12,7 @@ import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProt
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 class Subscriber extends Thread implements Closeable {
 	private final WebsocketSubscriptionProtocol client;
@@ -21,7 +21,7 @@ class Subscriber extends Thread implements Closeable {
 	private static ConfigurationProvider provider;
 
 	protected final Logger logger = LogManager.getLogger();
-	protected SEPASecurityManager sm = null;
+	protected ClientSecurityManager sm = null;
 
 	public Subscriber(int n, ISubscriptionHandler handler) throws SEPASecurityException, SEPAPropertiesException {
 		provider = new ConfigurationProvider();

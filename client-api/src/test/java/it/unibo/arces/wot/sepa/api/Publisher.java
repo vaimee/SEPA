@@ -14,12 +14,12 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 class Publisher extends Thread implements Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
-	private final SEPASecurityManager sm;
+	private final ClientSecurityManager sm;
 	private final SPARQL11Protocol client;
 	private final String id;
 

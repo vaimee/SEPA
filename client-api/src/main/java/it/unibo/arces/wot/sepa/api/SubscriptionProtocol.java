@@ -25,12 +25,12 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public interface SubscriptionProtocol extends Closeable {
 	public void setHandler(ISubscriptionHandler handler);
 	
-	public void enableSecurity(SEPASecurityManager sm) throws SEPASecurityException;
+	public void enableSecurity(ClientSecurityManager sm) throws SEPASecurityException;
 
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException;
 

@@ -7,7 +7,7 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import java.io.File;
@@ -59,7 +59,7 @@ public class ConfigurationProvider {
 		return prefixes + " " +appProfile.getSPARQLQuery(id);
 	}
 	
-	public UpdateRequest buildUpdateRequest(String id, long timeout,SEPASecurityManager sm) {
+	public UpdateRequest buildUpdateRequest(String id, long timeout,ClientSecurityManager sm) {
 		String authorization = null;
 
 		if (sm != null)
@@ -79,7 +79,7 @@ public class ConfigurationProvider {
 				authorization, timeout);
 	}
 
-	public QueryRequest buildQueryRequest(String id, long timeout,SEPASecurityManager sm) {
+	public QueryRequest buildQueryRequest(String id, long timeout,ClientSecurityManager sm) {
 		String authorization = null;
 
 		if (sm != null)
@@ -106,7 +106,7 @@ public class ConfigurationProvider {
 				authToken, timeout);
 	}
 
-	public SubscribeRequest buildSubscribeRequest(String id, long timeout,SEPASecurityManager sm) {
+	public SubscribeRequest buildSubscribeRequest(String id, long timeout,ClientSecurityManager sm) {
 		String authorization = null;		
 		if (sm != null)
 			try {
@@ -123,7 +123,7 @@ public class ConfigurationProvider {
 				appProfile.getNamedGraphURI(id), authorization, timeout);
 	}
 
-	public UnsubscribeRequest buildUnsubscribeRequest(String spuid, long timeout,SEPASecurityManager sm) {
+	public UnsubscribeRequest buildUnsubscribeRequest(String spuid, long timeout,ClientSecurityManager sm) {
 		String authorization = null;		
 		if (sm != null)
 			try {
@@ -139,15 +139,23 @@ public class ConfigurationProvider {
 		return new UnsubscribeRequest(spuid, authorization, timeout);
 	}
 
-	public SEPASecurityManager buildSecurityManager() throws SEPASecurityException, SEPAPropertiesException {
-		String path = getClass().getClassLoader().getResource("certs.jks").getPath();
-		File f = new File(path);
-		if (!f.exists()) {
-			logger.error("File not found: " + path);
-			throw new SEPASecurityException("File not found: "+path);
+	public ClientSecurityManager buildSecurityManager() throws SEPASecurityException, SEPAPropertiesException {
+		AuthenticationProperties auth = new AuthenticationProperties(jsapPath);
+		
+		ClientSecurityManager security;
+		if (auth.trustAll()) security = new ClientSecurityManager(auth);
+		else {
+			String path = getClass().getClassLoader().getResource("vaimee.jks").getPath();
+			File f = new File(path);
+			if (!f.exists()) {
+				logger.error("File not found: " + path);
+				throw new SEPASecurityException("File not found: "+path);
+			}
+			
+			security = new ClientSecurityManager(auth,f.getPath(), "vaimeepass");
 		}
-				
-		return new SEPASecurityManager(f.getPath(), "sepastore", "sepastore",new AuthenticationProperties(jsapPath));
+		
+		return security;
 	}
 	
 	public JSAP getJsap() {

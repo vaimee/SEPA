@@ -12,7 +12,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
@@ -24,7 +24,7 @@ public class ITPattern {
 
 	protected final Logger logger = LogManager.getLogger();
 	protected static JSAP app = null;
-	protected static SEPASecurityManager sm = null;
+	protected static ClientSecurityManager sm = null;
 
 	protected static ITConsumer consumerAll;
 	protected static Producer randomProducer;

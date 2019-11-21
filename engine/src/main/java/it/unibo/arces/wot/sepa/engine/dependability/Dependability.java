@@ -49,25 +49,21 @@ public class Dependability {
 		authManager.enableLDAP(host, port, base, uid, pwd);
 	}
 	
-	public static void enableSecurity(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd) throws SEPASecurityException {
-		authManager = new SecurityManager(keystoreFileName,keystorePwd,keyAlias,keyPwd);
+	public static void enableSecurity(String keystoreFileName,String keystorePwd,String keyAlias) throws SEPASecurityException {
+		authManager = new SecurityManager(keystoreFileName,keystorePwd,keyAlias);
 		
 		isSecure = true;
 		
 		keystore = keystoreFileName;
 		keypass = keystorePwd;
+		
+		authManager.setSSLContextFromJKS(keystore, keypass);
 	}
 	
-	public static void useJKSCertificate(String password) throws SEPASecurityException {
+	public static void useCACertificate(String path,String cert,String password) throws SEPASecurityException {
 		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
 		
-		authManager.setSSLContextFromJKS(keystore, keypass, password);
-	}
-	
-	public static void usePEMCertificate(String path,String password) throws SEPASecurityException {
-		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
-		
-		authManager.setSSLContextFromPEM(path, password);
+		authManager.setSSLContextFromPEM(path, cert,password);
 	}
 	
 	public static SSLContext getSSLContext() throws SEPASecurityException {

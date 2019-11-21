@@ -24,7 +24,7 @@ import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
@@ -33,7 +33,7 @@ public abstract class Client implements java.io.Closeable {
 	protected final Logger logger = LogManager.getLogger();
 	
 	protected JSAP appProfile;
-	protected SEPASecurityManager sm = null;
+	protected ClientSecurityManager sm = null;
 	
 	public final boolean isSecure() {return appProfile.isSecure();}
 
@@ -41,7 +41,7 @@ public abstract class Client implements java.io.Closeable {
 		return appProfile;
 	}
 
-	public Client(JSAP appProfile,SEPASecurityManager sm) throws SEPAProtocolException {
+	public Client(JSAP appProfile,ClientSecurityManager sm) throws SEPAProtocolException {
 		if (appProfile == null) {
 			logger.fatal("Application profile is null. Client cannot be initialized");
 			throw new SEPAProtocolException(new IllegalArgumentException("Application profile is null"));

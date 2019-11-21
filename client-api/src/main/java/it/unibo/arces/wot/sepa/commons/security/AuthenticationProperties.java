@@ -79,7 +79,8 @@ public class AuthenticationProperties {
 	private long expires = -1;
 	private String type = null;
 	
-	private String ssl = null;
+	private String ssl = "TLS";
+	private boolean trustAll = false;
 
 	public AuthenticationProperties(String jsapFileName, byte[] secret) throws SEPAPropertiesException, SEPASecurityException {
 		propertiesFile = new File(jsapFileName);
@@ -110,6 +111,14 @@ public class AuthenticationProperties {
 			else {
 				enabled = false;
 			}
+			
+			if (oauthJsonObject.has("trustall"))
+				trustAll = oauthJsonObject.get("trustall").getAsBoolean();
+			else {
+				trustAll = false;
+			}
+			
+			if (oauthJsonObject.has("ssl")) ssl = oauthJsonObject.get("ssl").getAsString();
 
 			if (enabled) {
 				registrationURL = oauthJsonObject.get("register").getAsString();
@@ -267,6 +276,10 @@ public class AuthenticationProperties {
 			if (ssl != null) {
 				jsap.getAsJsonObject("oauth").add("ssl", new JsonPrimitive(ssl));
 			}
+
+			jsap.getAsJsonObject("oauth").add("trustall", new JsonPrimitive(trustAll));
+			
+			
 			if (registrationURL != null)
 				jsap.getAsJsonObject("oauth").add("register", new JsonPrimitive(registrationURL));
 			if (tokenRequestURL != null)
@@ -298,5 +311,9 @@ public class AuthenticationProperties {
 
 	public String getSSLProtocol() {
 		return ssl;
+	}
+
+	public boolean trustAll() {
+		return trustAll;
 	}
 }
