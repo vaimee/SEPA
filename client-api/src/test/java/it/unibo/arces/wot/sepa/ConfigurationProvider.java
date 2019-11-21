@@ -140,14 +140,14 @@ public class ConfigurationProvider {
 	}
 
 	public SEPASecurityManager buildSecurityManager() throws SEPASecurityException, SEPAPropertiesException {
-		String path = getClass().getClassLoader().getResource("sepa.jks").getPath();
+		String path = getClass().getClassLoader().getResource("certs.jks").getPath();
 		File f = new File(path);
 		if (!f.exists()) {
 			logger.error("File not found: " + path);
 			throw new SEPASecurityException("File not found: "+path);
 		}
 				
-		return new SEPASecurityManager(f.getPath(), "sepa2017", "sepa2017",new AuthenticationProperties(jsapPath));
+		return new SEPASecurityManager(f.getPath(), "sepastore", "sepastore",new AuthenticationProperties(jsapPath));
 	}
 	
 	public JSAP getJsap() {

@@ -32,6 +32,7 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
@@ -118,7 +119,15 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		// *************
 		// Get token
 		// *************
-		Response token = Dependability.getToken(basic.split(" ")[1]);
+		Response token = null;
+		try {
+			token = Dependability.getToken(basic.split(" ")[1]);
+		} catch (SEPASecurityException e) {
+			logger.error(e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
+			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"dependability_not_configured", e.getMessage()));
+			return;		
+		}
 
 		if (token.getClass().equals(ErrorResponse.class)) {
 			ErrorResponse error = (ErrorResponse) token;

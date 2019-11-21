@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
@@ -47,13 +48,13 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 	private final SubscriptionProtocol subscriptionProtocol;
 	
-	public SPARQL11SEProtocol(SubscriptionProtocol protocol) throws SEPAProtocolException {
+	public SPARQL11SEProtocol(SubscriptionProtocol protocol) throws SEPAProtocolException, SEPASecurityException {
 		super(null);
 		
 		this.subscriptionProtocol = protocol;
 	}
 	
-	public SPARQL11SEProtocol(SubscriptionProtocol protocol,SEPASecurityManager sm) throws SEPAProtocolException {
+	public SPARQL11SEProtocol(SubscriptionProtocol protocol,SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException {
 		super(sm);
 		
 		this.subscriptionProtocol = protocol;

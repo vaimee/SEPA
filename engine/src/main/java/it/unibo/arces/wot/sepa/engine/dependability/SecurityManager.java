@@ -18,13 +18,11 @@
 
 package it.unibo.arces.wot.sepa.engine.dependability;
 
-import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -68,7 +66,8 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.SSLManager;
+//import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.ApplicationIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
@@ -86,35 +85,35 @@ class SecurityManager {
 	private RSASSAVerifier verifier;
 	private JsonElement jwkPublicKey;
 	private ConfigurableJWTProcessor<SEPASecurityContext> jwtProcessor;
-	private SEPASecurityManager sManager;
+	
 	private IAuthorization auth;
-
-	public SecurityManager(String host, int port, String base, String uid, String pwd,String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate) throws SEPASecurityException {
+	private SSLContext ssl;
+	
+	public SecurityManager(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd) throws SEPASecurityException {
+		auth = new InMemoryAuthorization();
+		
+		initJWT(keystoreFileName, keystorePwd, keyAlias, keyPwd);
+	}
+	
+	public void enableLDAP(String host, int port, String base, String uid, String pwd) throws SEPASecurityException {
 		try {
-			logger.debug("Create LDAP authorization: "+host+":"+port+" DN: "+base+" UID: "+uid+" PWD: "+pwd);
+			logger.info("Create LDAP authorization: "+host+":"+port+" DN: "+base+" UID: "+uid+" PWD: "+pwd);
 			auth = new LdapAuthorization(host, port, base, uid, pwd);
 		} catch (LdapException e1) {
 			throw new SEPASecurityException(e1);
 		}
-		
-		try {
-			logger.debug("Init JKS: "+keystoreFileName+" PWD: "+keystorePwd+" key alias: "+keyAlias+" key pwd: "+keyPwd+" certificate: "+certificate);
-			init(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
-		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
-				| CertificateException | IOException | JOSEException | SEPASecurityException e) {
-			throw new SEPASecurityException(e);
-		}
 	}
 	
-	public SecurityManager(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate) throws SEPASecurityException {
-		auth = new InMemoryAuthorization();
-		
-		try {
-			init(keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
-		} catch (UnrecoverableKeyException | KeyManagementException | KeyStoreException | NoSuchAlgorithmException
-				| CertificateException | IOException | JOSEException | SEPASecurityException e) {
-			throw new SEPASecurityException(e);
-		}
+	public SSLContext getSSLContext() {
+		return ssl;
+	}
+	
+	public void setSSLContextFromPEM(String pem,String pwd) throws SEPASecurityException {
+		ssl = new SSLManager().getSSLContextFromLetsEncrypt(pem,pwd);
+	}
+	
+	public void setSSLContextFromJKS(String jksName, String jksPassword,String  keyPassword) throws SEPASecurityException {
+		ssl = new SSLManager().getSSLContextFromJKS(jksName, jksPassword, keyPassword);
 	}
 
 	private void securityCheck(String identity) throws SEPASecurityException {
@@ -123,12 +122,10 @@ class SecurityManager {
 		auth.addIdentity(new ApplicationIdentity(identity));
 
 		// Register
-		logger.debug("Register: " + identity);
 		Response response = register(identity);
 		if (response.getClass().equals(RegistrationResponse.class)) {
 			RegistrationResponse ret = (RegistrationResponse) response;
 			String basicAuth = ret.getClientId() + ":" + ret.getClientSecret();
-			logger.debug("ID:SECRET=" + auth);
 
 			// Get token
 			String encodedCredentials = Base64.getEncoder().encodeToString(basicAuth.getBytes());
@@ -162,44 +159,46 @@ class SecurityManager {
 		System.out.println("");
 	}
 
-	private void initStore(KeyStore keyStore, String keyAlias, String keyPwd) throws KeyStoreException, JOSEException {
-		// Load the key from the key store
-		RSAKey jwk = RSAKey.load(keyStore, keyAlias, keyPwd.toCharArray());
+	private void initJWT(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd) throws SEPASecurityException {
+		try {
+			KeyStore keystore = KeyStore.getInstance("JKS");
+			keystore.load(new FileInputStream(keystoreFileName), keystorePwd.toCharArray());
+			
+			RSAKey jwk = RSAKey.load(keystore, keyAlias, keystorePwd.toCharArray());
+			
+			// Get the private and public keys to sign and verify
+			RSAPrivateKey privateKey = jwk.toRSAPrivateKey();
+			RSAPublicKey publicKey = jwk.toRSAPublicKey();
+			
+			// Create RSA-signer with the private key
+			signer = new RSASSASigner(privateKey);
 
-		// Get the private and public keys to sign and verify
-		RSAPrivateKey privateKey;
-		RSAPublicKey publicKey;
+			// Create RSA-verifier with the public key
+			verifier = new RSASSAVerifier(publicKey);
 
-		privateKey = jwk.toRSAPrivateKey();
-		publicKey = jwk.toRSAPublicKey();
+			// Serialize the public key to be deliverer during registration
+			jwkPublicKey = new JsonParser().parse(jwk.toPublicJWK().toJSONString());
 
-		// Create RSA-signer with the private key
-		signer = new RSASSASigner(privateKey);
+			// Set up a JWT processor to parse the tokens and then check their signature
+			// and validity time window (bounded by the "iat", "nbf" and "exp" claims)
+			jwtProcessor = new DefaultJWTProcessor<SEPASecurityContext>();
+			JWKSet jws = new JWKSet(jwk);
+			JWKSource<SEPASecurityContext> keySource = new ImmutableJWKSet<SEPASecurityContext>(jws);
+			JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
+			JWSKeySelector<SEPASecurityContext> keySelector = new JWSVerificationKeySelector<SEPASecurityContext>(
+					expectedJWSAlg, keySource);
+			jwtProcessor.setJWSKeySelector(keySelector);
+			
+			securityCheck(UUID.randomUUID().toString());
+			
+		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | JOSEException e) {
+			logger.error(e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
+			throw new SEPASecurityException(e.getMessage());
+		}
+		
 
-		// Create RSA-verifier with the public key
-		verifier = new RSASSAVerifier(publicKey);
 
-		// Serialize the public key to be deliverer during registration
-		jwkPublicKey = new JsonParser().parse(jwk.toPublicJWK().toJSONString());
-
-		// Set up a JWT processor to parse the tokens and then check their signature
-		// and validity time window (bounded by the "iat", "nbf" and "exp" claims)
-		jwtProcessor = new DefaultJWTProcessor<SEPASecurityContext>();
-		JWKSet jws = new JWKSet(jwk);
-		JWKSource<SEPASecurityContext> keySource = new ImmutableJWKSet<SEPASecurityContext>(jws);
-		JWSAlgorithm expectedJWSAlg = JWSAlgorithm.RS256;
-		JWSKeySelector<SEPASecurityContext> keySelector = new JWSVerificationKeySelector<SEPASecurityContext>(
-				expectedJWSAlg, keySource);
-		jwtProcessor.setJWSKeySelector(keySelector);
-	}
-
-	private void init(String keystoreFileName, String keystorePwd, String keyAlias, String keyPwd, String certificate)
-			throws UnrecoverableKeyException, KeyManagementException, KeyStoreException, NoSuchAlgorithmException,
-			CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {
-		sManager = new SEPASecurityManager(keystoreFileName, keystorePwd, keyPwd, null);
-		initStore(sManager.getKeyStore(), keyAlias, keyPwd);
-
-		securityCheck(UUID.randomUUID().toString());
 	}
 
 	/**
@@ -355,7 +354,7 @@ class SecurityManager {
 	 */
 
 	public synchronized Response getToken(String encodedCredentials) {
-		logger.debug("Get token");
+		logger.debug("GET TOKEN");
 
 		// Decode credentials
 		byte[] decoded = null;
@@ -656,7 +655,7 @@ class SecurityManager {
 	 * @param accessToken the JWT token to be validate according to points 4-6
 	 */
 	public synchronized ClientAuthorization validateToken(String accessToken) {
-		logger.trace("Validate token");
+		logger.debug("VALIDATE TOKEN");
 
 		// Parse token
 		SignedJWT signedJWT = null;
@@ -726,9 +725,5 @@ class SecurityManager {
 		}
 
 		return new ClientAuthorization(cred);
-	}
-
-	public SSLContext getSSLContext() throws SEPASecurityException {
-		return sManager.getSSLContext("TLSv1");
 	}
 }

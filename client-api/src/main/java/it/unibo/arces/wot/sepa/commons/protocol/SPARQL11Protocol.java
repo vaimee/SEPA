@@ -44,6 +44,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
@@ -81,7 +82,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	/** The security manager */
 	protected final SEPASecurityManager sm;
 
-	public SPARQL11Protocol(SEPASecurityManager sm) {
+	public SPARQL11Protocol(SEPASecurityManager sm) throws SEPASecurityException {
 		this.sm = sm;
 		if (sm == null)
 			httpClient = HttpClients.createDefault();

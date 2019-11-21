@@ -83,12 +83,18 @@ public class Engine implements EngineMBean {
 	// Secure option
 	private Optional<Boolean> secure = Optional.empty();
 
-	// JKS default credentials
-	private String storeName = "sepa.jks";
-	private String storePassword = "sepa2017";
-	private String jwtAlias = "sepakey";
-	private String jwtPassword = "sepa2017";
-	private String serverCertificate = "sepacert";
+	// JKS defaults
+	private String storeName = "certs.jks";
+	private String storePassword = "sepastore";	
+	
+	// JWT defaults
+	private String jwtAlias = "jwt";
+	private String jwtPassword = "jwtpass";
+	
+	// CA defaults (using PEM certificate provided by Let's Encrypt or a key within the JKS)
+	private boolean enablePem = false;
+	private String caPath = "./certs";
+	private String caPassword = "caPassword";
 
 	// LDAP
 	private String ldapHost = "localhost";
@@ -128,23 +134,31 @@ public class Engine implements EngineMBean {
 		System.out.println("JMX:");
 		System.out.println("-Dcom.sun.management.config.file=jmx.properties : to enable JMX remote managment");
 		System.out.println("");
+		
 		System.out.println("JVM:");
 		System.out.println("-XX:+UseG1GC");
 		System.out.println("");
+		
 		System.out.println("LOG4J");
 		System.out.println("-Dlog4j.configurationFile=path/to/log4j2.xml");
 		System.out.println("");
+		
 		System.out.println("JKS OPTIONS:");
-		System.out.println("-storename <name> : file name of the JKS     (default: sepa.jks)");
-		System.out.println("-storepwd <pwd> : password of the JKS        (default: sepa2017)");
-		System.out.println("-alias <jwt> : alias for the JWT key         (default: sepakey)");
-		System.out.println("-aliaspwd <pwd> : password of the JWT key    (default: sepa2017)");
-		System.out.println("-certificate <crt> : name of the certificate (default: sepacert)");
+		System.out.println("-keystore <name> : file name of the JKS      (default: certs.jks)");
+		System.out.println("-storepass <pwd> : password of the JKS       (default: sepastore)");
+		System.out.println("-jwtkey <jwt> : alias for the JWT key        (default: jwt)");
+		System.out.println("-jwtpwd <pwd> : password of the JWT key      (default: jwtpass)");
+		
+		System.out.println("SSL OPTIONS:");
+		System.out.println("-capwd <pwd> : password of certificate                      (default: caPassword)");
+		System.out.println("-pem : if present, the certificates in <capath> are used");
+		System.out.println("-capath <capath> : path to the Let's Encrypt certificates   (default: ./certs)");
+		
 		System.out.println("LDAP OPTIONS:");
 		System.out.println("-ldaphost <name> : host     		         (default: localhost)");
 		System.out.println("-ldapport <port> : port                      (default: 10389)");
 		System.out.println("-ldapdn <dn> : domain                        (default: dc=example,dc=com)");
-		System.out.println("-ldapuser <usr> : username                    (default: null)");
+		System.out.println("-ldapuser <usr> : username                   (default: null)");
 		System.out.println("-ldappwd <pwd> : password                    (default: null)");
 	}
 
@@ -156,30 +170,40 @@ public class Engine implements EngineMBean {
 			}
 
 			switch (args[i]) {
-			case "-storename":
+			case "-capwd":
+				caPassword = args[i+1];
+				break;
+			case "-pem":
+				enablePem = true;
+				break;
+			case "-capath":
+				caPath = args[i+1];
+				break;
+				
+			case "-keystore":
 				storeName = args[i+1];
 				break;
-			case "-storepwd":
+			case "-storepass":
 				storePassword = args[i+1];
 				break;
 			case "-alias":
 				jwtAlias = args[i+1];
 				break;
-			case "-aliaspwd":
+			case "-jwtpwd":
 				jwtPassword = args[i+1];
 				break;
-			case "-certificate":
-				serverCertificate = args[i+1];
-				break;
+			
 			case "-engine":
 				engineJpar = args[i+1];
 				break;
 			case "-endpoint":
 				endpointJpar = args[i+1];
 				break;
+			
 			case "-secure":
 				secure = Optional.of(Boolean.parseBoolean(args[i+1]));
 				break;
+			
 			case "-ldaphost":
 				ldapHost = args[i+1];
 				break;
@@ -202,12 +226,16 @@ public class Engine implements EngineMBean {
 		}
 
 		logger.debug("--- JKS ---");
-		logger.debug("-storename: " + storeName);
+		logger.debug("-keystore: " + storeName);
 		logger.debug("-storepwd: " + storePassword);
-		logger.debug("-alias: " + jwtAlias);
-		logger.debug("-aliaspwd: " + jwtPassword);
-		logger.debug("-certificate: " + serverCertificate);
+		logger.debug("-jwtalias: " + jwtAlias);
+		logger.debug("-jwtpwd: " + jwtPassword);
 
+		logger.debug("--- SSL ---");
+		logger.debug("-pem: " + enablePem);
+		logger.debug("-capwd: " + caPassword);
+		logger.debug("-capath: " + caPath);
+		
 		logger.debug("--- Engine/endpoint ---");
 		logger.debug("-engine: " + engineJpar);
 		logger.debug("-endpoint: " + endpointJpar);
@@ -268,8 +296,14 @@ public class Engine implements EngineMBean {
 
 			// OAUTH 2.0 Authorization Manager
 			if (properties.isSecure()) {
-				Dependability.enableSecurity(ldapHost, ldapPort, ldapDn, ldapUser, ldapPwd, storeName, storePassword,
-						jwtAlias, jwtPassword, serverCertificate);
+				Dependability.enableSecurity(storeName, storePassword,jwtAlias, jwtPassword);
+				if (properties.isLDAPEnabled()) Dependability.enableLDAP(ldapHost, ldapPort, ldapDn, ldapUser, ldapPwd);
+				
+				if (properties.getSecurityCertificateType().equals("jks")) Dependability.useJKSCertificate(caPassword);
+				else if (properties.getSecurityCertificateType().equals("pem")) Dependability.usePEMCertificate(caPath, caPassword);
+				
+				// Check that SSL has been properly configured
+				Dependability.getSSLContext();
 			}
 
 			// SPARQL 1.1 SE request scheduler

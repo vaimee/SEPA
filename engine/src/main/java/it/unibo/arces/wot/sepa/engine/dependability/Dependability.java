@@ -34,31 +34,70 @@ public class Dependability {
 	protected static Logger logger = LogManager.getLogger();
 	
 	private static boolean isSecure = false;
-
-	private static SecurityManager authManager;
+	private static SecurityManager authManager = null;
+		
+	private static String keystore = null;
+	private static String keypass = null;
 	
 	public static boolean isSecure() {
 		return isSecure;
 	}
-	
-	public static void enableSecurity(String host, int port, String base, String uid, String pwd,String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws SEPASecurityException {
-		authManager = new SecurityManager(host,port,base,uid,pwd,keystoreFileName, keystorePwd, keyAlias, keyPwd, certificate);
-		isSecure = true;
+		
+	public static void enableLDAP(String host, int port, String base, String uid, String pwd) throws SEPASecurityException {
+		if (authManager == null) throw new SEPASecurityException("Authorization manager is null");
+		
+		authManager.enableLDAP(host, port, base, uid, pwd);
 	}
 	
-	public static void enableSecurity(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd,String certificate) throws SEPASecurityException {
-		authManager = new SecurityManager(keystoreFileName,keystorePwd,keyAlias,keyPwd, certificate);
+	public static void enableSecurity(String keystoreFileName,String keystorePwd,String keyAlias,String keyPwd) throws SEPASecurityException {
+		authManager = new SecurityManager(keystoreFileName,keystorePwd,keyAlias,keyPwd);
+		
 		isSecure = true;
+		
+		keystore = keystoreFileName;
+		keypass = keystorePwd;
+	}
+	
+	public static void useJKSCertificate(String password) throws SEPASecurityException {
+		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+		
+		authManager.setSSLContextFromJKS(keystore, keypass, password);
+	}
+	
+	public static void usePEMCertificate(String path,String password) throws SEPASecurityException {
+		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+		
+		authManager.setSSLContextFromPEM(path, password);
+	}
+	
+	public static SSLContext getSSLContext() throws SEPASecurityException {
+		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+		
+		return authManager.getSSLContext();
+	}
+	
+	public static Response getToken(String encodedCredentials) throws SEPASecurityException {
+		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+		
+		return authManager.getToken(encodedCredentials);
+	}
+
+	public static Response register(String identity) throws SEPASecurityException {
+		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+		
+		return authManager.register(identity);
+	}
+
+	public static ClientAuthorization validateToken(String jwt) throws SEPASecurityException {
+		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+		
+		return authManager.validateToken(jwt);
 	}
 	
 	public static void setProcessor(Processor p) {
 		SubscriptionManager.setProcessor(p);
 	}
 	
-	public static ClientAuthorization validateToken(String jwt) throws SEPASecurityException {
-		return authManager.validateToken(jwt);
-	}
-
 	public static void onCloseGate(String gid) throws InterruptedException {
 		SubscriptionManager.onClose(gid);
 	}
@@ -81,18 +120,6 @@ public class Dependability {
 
 	public static void onUnsubscribe(String gid, String sid) {
 		SubscriptionManager.onUnsubscribe(gid, sid);
-	}
-
-	public static SSLContext getSSLContext() throws SEPASecurityException {
-		return authManager.getSSLContext();
-	}
-
-	public static Response getToken(String encodedCredentials) {
-		return authManager.getToken(encodedCredentials);
-	}
-
-	public static Response register(String identity){
-		return authManager.register(identity);
 	}
 
 	public static boolean processCORSRequest(HttpAsyncExchange exchange) {
