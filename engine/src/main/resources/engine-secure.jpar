@@ -13,7 +13,11 @@
 			"timeout": 2000
 		},
 		"gates": {
-			"secure": true,
+			"security": {
+				"enabled" : true,
+				"certificate" : "jks",
+				"ldap" : true
+			},
 			"ports": {
 				"http": 8000,
 				"ws": 9000,

@@ -44,7 +44,7 @@
 							<outputDirectory>${basedir}/target</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/defaults</directory>
+									<directory>${basedir}/src/main/resources</directory>
 								</resource>
 							</resources>
 						</configuration>
