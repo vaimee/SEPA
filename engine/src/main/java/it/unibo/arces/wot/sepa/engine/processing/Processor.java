@@ -129,15 +129,15 @@ public class Processor implements ProcessorMBean {
 		return spuManager.unsubscribe(sid, gid);
 	}
 
-	public void postProcessingSubscriptions(Response ret) throws InterruptedException {
-		spuManager.postUpdateProcessing(ret);
-	}
+//	public void postProcessingSubscriptions(Response ret) throws InterruptedException {
+//		spuManager.postUpdateProcessing(ret);
+//	}
 
-	public void preProcessingSubscriptions(InternalUpdateRequest update) throws InterruptedException {
-		spuManager.preUpdateProcessing(update);		
-	}
+//	public void preProcessingSubscriptions(InternalUpdateRequest update) throws InterruptedException {
+//		spuManager.preUpdateProcessing(update);		
+//	}
 	
-	public boolean isUpdateReilable() {
+	public boolean isUpdateReliable() {
 		return UpdateProcessorBeans.getReilable();
 	}
 
@@ -193,5 +193,9 @@ public class Processor implements ProcessorMBean {
 
 	public Response processUpdate(InternalUpdateRequest preRequest, int timeoutNRetry) throws SEPASecurityException {
 		return updateProcessor.process(preRequest, timeoutNRetry);
+	}
+
+	public Response processUpdate(InternalUpdateRequest update) {
+		return spuManager.update(update);
 	}
 }
