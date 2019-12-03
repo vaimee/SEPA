@@ -18,6 +18,9 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 
 public abstract class InternalUQRequest extends InternalRequest {
@@ -30,7 +33,7 @@ public abstract class InternalUQRequest extends InternalRequest {
 		
 		if (sparql == null) throw new IllegalArgumentException("SPARQL is null");
 		
-		this.sparql = sparql;
+		this.sparql = evaluateFunctions(sparql);
 		this.defaultGraphUri = defaultGraphUri;
 		this.namedGraphUri = namedGraphUri;
 	}
@@ -55,5 +58,15 @@ public abstract class InternalUQRequest extends InternalRequest {
 	@Override
 	public boolean equals(Object obj) {
 		return sparql.equals(((InternalUQRequest)obj).sparql);
+	}
+	
+	// Override the SPARQL now() function to return the UTC time
+	private String evaluateFunctions(String sparql) {
+		OffsetDateTime utc = OffsetDateTime.now(ZoneOffset.UTC);
+		String timestamp = "'" + utc.toString() + "'^^xsd:dateTime";
+		
+		String temp = sparql.replace("now()", timestamp);
+		
+		return temp;		
 	}
 }
