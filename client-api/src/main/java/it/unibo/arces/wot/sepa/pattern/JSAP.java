@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -169,12 +170,16 @@ public class JSAP extends SPARQL11SEProperties {
 
 	protected String prefixes = "";
 
+	protected HashMap<String,String> namespaces = new HashMap<String,String>();
+	
 	protected final AuthenticationProperties oauth;
 
 	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
 		super(propertiesFile);
 
 		defaultNamespaces();
+		readNamespaces();
+		buildSPARQLPrefixes();
 
 		oauth = new AuthenticationProperties(propertiesFile);
 	}
@@ -183,7 +188,9 @@ public class JSAP extends SPARQL11SEProperties {
 		super();
 
 		defaultNamespaces();
-
+		readNamespaces();
+		buildSPARQLPrefixes();
+		
 		oauth = new AuthenticationProperties();
 	}
 
@@ -197,7 +204,11 @@ public class JSAP extends SPARQL11SEProperties {
 	public void read(String filename, boolean replace) throws FileNotFoundException, IOException {
 		final FileReader in = new FileReader(filename);
 		JsonObject temp = new JsonParser().parse(in).getAsJsonObject();
+		
 		merge(temp, jsap, replace);
+		
+		readNamespaces();
+		buildSPARQLPrefixes();
 	}
 
 	private JsonObject merge(JsonObject temp, JsonObject jsap, boolean replace) {
@@ -228,14 +239,7 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	private void defaultNamespaces() {
-		if (!jsap.has("namespaces"))
-			jsap.add("namespaces", new JsonObject());
-
-		jsap.getAsJsonObject("namespaces").add("rdf", new JsonPrimitive("http://www.w3.org/1999/02/22-rdf-syntax-ns#"));
-		jsap.getAsJsonObject("namespaces").add("rdfs", new JsonPrimitive("http://www.w3.org/2000/01/rdf-schema#"));
-		jsap.getAsJsonObject("namespaces").add("owl", new JsonPrimitive("http://www.w3.org/2002/07/owl#"));
-		jsap.getAsJsonObject("namespaces").add("xsd", new JsonPrimitive("http://www.w3.org/2001/XMLSchema#"));
-
+		// Numbers or boolean
 		numbersOrBoolean.add("xsd:integer");
 		numbersOrBoolean.add("xsd:decimal");
 		numbersOrBoolean.add("xsd:double");
@@ -245,11 +249,54 @@ public class JSAP extends SPARQL11SEProperties {
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#decimal");
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#double");
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#boolean");
-
-		// Prefixes and namespaces
-		Set<String> appPrefixes = getPrefixes();
-		for (String prefix : appPrefixes) {
-			prefixes += "PREFIX " + prefix + ":<" + getNamespaceURI(prefix) + "> ";
+		
+		// Default namespaces
+		namespaces.put("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
+		namespaces.put("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
+		namespaces.put("owl", "http://www.w3.org/2002/07/owl#");
+		namespaces.put("xsd", "http://www.w3.org/2001/XMLSchema#");
+	}
+	
+//	/**
+//	 * <pre>
+//	 * "namespaces" : { 
+//	 	"iot":"http://www.arces.unibo.it/iot#",
+//	 	"rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"},
+//	 * </pre>
+//	 */
+//
+	public String getPrefixes() {
+		return prefixes;
+	}
+//
+//	public String getNamespaceURI(String prefix) {
+//		try {
+//			return jsap.getAsJsonObject("namespaces").get(prefix).getAsString();
+//		} catch (Exception e) {
+//			logger.error(e.getMessage());
+//			return null;
+//		}
+//	}
+	
+	public HashMap<String,String> getNamespaces() {
+		return namespaces;
+	}
+	
+	private void buildSPARQLPrefixes() {
+		prefixes = "";
+		for (String prefix : namespaces.keySet()) {
+			prefixes += "PREFIX " + prefix + ":<" + namespaces.get(prefix) + "> ";
+		}	
+	}
+	
+	private void readNamespaces() {
+		if (!jsap.has("namespaces")) return;
+			
+		try {
+			for (Entry<String, JsonElement> ns : jsap.getAsJsonObject("namespaces").entrySet())
+				namespaces.put(ns.getKey(), ns.getValue().getAsString());
+		} catch (Exception e) {
+			logger.error("getPrefixes exception: "+e.getMessage());
 		}
 	}
 
@@ -1018,35 +1065,6 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 
 		return ret;
-	}
-
-	/**
-	 * <pre>
-	 * "namespaces" : { 
-	 	"iot":"http://www.arces.unibo.it/iot#",
-	 	"rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"},
-	 * </pre>
-	 */
-
-	public Set<String> getPrefixes() {
-		HashSet<String> ret = new HashSet<String>();
-
-		try {
-			for (Entry<String, JsonElement> key : jsap.getAsJsonObject("namespaces").entrySet())
-				ret.add(key.getKey());
-		} catch (Exception e) {
-			logger.error("getPrefixes exception: "+e.getMessage());
-		}
-		return ret;
-	}
-
-	public String getNamespaceURI(String prefix) {
-		try {
-			return jsap.getAsJsonObject("namespaces").get(prefix).getAsString();
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			return null;
-		}
 	}
 
 	public String getFileName() {

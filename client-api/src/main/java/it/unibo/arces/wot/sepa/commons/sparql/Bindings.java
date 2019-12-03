@@ -54,7 +54,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 
 public class Bindings {	
 	/** The solution. */
-	private JsonObject solution;
+	private final JsonObject solution;
 
 	/**
 	 * Instantiates a new bindings.
@@ -90,16 +90,16 @@ public class Bindings {
 		if (!solution.has(variable)) throw new SEPABindingsException(String.format("Variable not found: %s",variable));
 		
 		try {
-			String type = solution.getAsJsonObject(variable).get("type").getAsString();
-			String value = solution.getAsJsonObject(variable).get("value").getAsString();
+			String type = getType(variable);
+			String value = getValue(variable);
 			
 			switch(type) {
 			case "uri":
 				return new RDFTermURI(value);
 			case "literal":
 			case "typed-literal":
-				if(solution.getAsJsonObject(variable).get("datatype") == null) return new RDFTermLiteral(value);
-				return new RDFTermLiteral(value,solution.getAsJsonObject(variable).get("datatype").getAsString());				
+				if(getDatatype(variable) == null) return new RDFTermLiteral(value);
+				return new RDFTermLiteral(value,getDatatype(variable));				
 			case "bnode":
 				return new RDFTermBNode(value);
 			}
@@ -140,12 +140,12 @@ public class Bindings {
 		if (variable == null || value == null) throw new SEPABindingsException("One or more arguments are null");
 			
 		try {
-			if (solution.getAsJsonObject(variable).get("type").getAsString().equals("literal") || solution.getAsJsonObject(variable).get("type").getAsString().equals("typed-literal")) {
-				if(!value.getClass().equals(RDFTermLiteral.class)) throw new SEPABindingsException("Value of ariable: "+variable+" must be a literal");
+			if (isLiteral(variable)) {
+				if(!value.getClass().equals(RDFTermLiteral.class)) throw new SEPABindingsException("Value of variable: "+variable+" must be a literal");
 				if (((RDFTermLiteral) value).getDatatype() != null) solution.getAsJsonObject(variable).add("datatype", new JsonPrimitive(((RDFTermLiteral) value).getDatatype()));
 			}
-			if (solution.getAsJsonObject(variable).get("type").getAsString().equals("uri") && !value.getClass().equals(RDFTermURI.class))throw new SEPABindingsException("Value of ariable: "+variable+" must be an URI");
-			if (solution.getAsJsonObject(variable).get("type").getAsString().equals("bnode")  && !value.getClass().equals(RDFTermBNode.class)) throw new SEPABindingsException("Value of ariable: "+variable+" must be a b-node");
+			if (isURI(variable) && !value.getClass().equals(RDFTermURI.class))throw new SEPABindingsException("Value of variable: "+variable+" must be an URI");
+			if (isBNode(variable)  && !value.getClass().equals(RDFTermBNode.class)) throw new SEPABindingsException("Value of variable: "+variable+" must be a b-node");
 			
 			solution.getAsJsonObject(variable).add("value", new JsonPrimitive(value.getValue()));
 		}
@@ -186,6 +186,15 @@ public class Bindings {
 			return null;
 		}
 	}
+	
+	private String getType(String variable) {
+		try {
+			return solution.getAsJsonObject(variable).get("type").getAsString();
+		}
+		catch(Exception e) {
+			return null;
+		}
+	}
 
 	/**
 	 * Gets the language.
@@ -215,7 +224,7 @@ public class Bindings {
 		if (!solution.has(variable))
 			throw new SEPABindingsException("Variable not found "+variable);
 
-		return (solution.getAsJsonObject(variable).get("type").getAsString().equals("literal") || solution.getAsJsonObject(variable).get("type").getAsString().equals("typed-literal"));
+		return (getType(variable).equals("literal") || getType(variable).equals("typed-literal"));
 	}
 
 	/**
