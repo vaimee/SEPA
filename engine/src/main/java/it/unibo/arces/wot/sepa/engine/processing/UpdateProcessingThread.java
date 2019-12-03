@@ -53,54 +53,13 @@ class UpdateProcessingThread extends Thread {
 			InternalUpdateRequest update = (InternalUpdateRequest)request.getRequest();
 			
 			// Notify update (not reliable)
-			if (!processor.isUpdateReilable()) processor.addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
-						
-			// PRE-processing update request
-			InternalUpdateRequest preRequest;
-			try {
-				preRequest = processor.preProcessUpdate(update);
-			} catch (SEPAProcessingException e) {
-				logger.error("*** PRE-UPDATE PROCESSING FAILED *** "+e.getMessage());
-				ErrorResponse errorResponse = new ErrorResponse(500, "pre_update_processing_failed","Update: "+update+ " Message: "+ e.getMessage());
-				if (processor.isUpdateReilable()) processor.addResponse(request.getToken(),errorResponse);
-				continue;
-			}
+			if (!processor.isUpdateReliable()) processor.addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
 			
-			// PRE-processing subscriptions (ENDPOINT not yet updated)
-			try {
-				processor.preProcessingSubscriptions(preRequest);
-			} catch (InterruptedException e) {
-				logger.error("*** PRE-SUBSCRIPTIONS PROCESSING FAILED *** "+e.getMessage());
-				ErrorResponse errorResponse = new ErrorResponse(500, "pre_update_processing_interrupted","Update: "+update+ " Message: "+ e.getMessage());
-				if (processor.isUpdateReilable()) processor.addResponse(request.getToken(),errorResponse);
-				continue;
-			}
+			// Process update
+			Response ret = processor.processUpdate(update);
 			
-			// Update the ENDPOINT
-			Response ret;
-			try {
-				ret = processor.processUpdate(preRequest,UpdateProcessorBeans.getTimeoutNRetry());
-			} catch (SEPASecurityException e1) {
-				logger.error(e1.getMessage());
-				if (logger.isTraceEnabled()) e1.printStackTrace();
-				ret = new ErrorResponse(401,"SEPASecurityException",e1.getMessage());
-			}
-			
-			if (ret.isError()) {
-				logger.error("*** UPDATE PROCESSING FAILED *** "+ret);
-//				if (processor.isUpdateReilable()) processor.getScheduler().addResponse(request.getToken(),ret);
-//				continue;
-			}
-
 			// Notify update result
-			if (processor.isUpdateReilable()) processor.addResponse(request.getToken(),ret);
-
-			// Subscription processing (post update)
-			try {
-				processor.postProcessingSubscriptions(ret);
-			} catch (InterruptedException e) {
-				logger.error("*** POST-SUBSCRIPTIONS PROCESSING FAILED *** "+e.getMessage());
-			}
+			if (processor.isUpdateReliable()) processor.addResponse(request.getToken(),ret);
 		}
 	}
 }
