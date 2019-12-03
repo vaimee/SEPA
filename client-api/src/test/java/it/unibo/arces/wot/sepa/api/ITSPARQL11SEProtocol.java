@@ -363,7 +363,7 @@ public class ITSPARQL11SEProtocol {
 				sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
 	}
 
-	@Test(timeout = 60000)
+	@Test (timeout = 60000)
 	public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
 			InterruptedException, SEPAPropertiesException, SEPASecurityException {
 
@@ -413,7 +413,7 @@ public class ITSPARQL11SEProtocol {
 			pub.join();
 	}
 
-	@Test (timeout = 120000)
+	@Test (timeout = 60000)
 	public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
 		int n = 15;
