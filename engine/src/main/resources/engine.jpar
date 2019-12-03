@@ -1,16 +1,16 @@
 {
 	"parameters": {
 		"scheduler": {
-			"queueSize": 100,
+			"queueSize": 1000,
 			"timeout": 3000
 		},
 		"processor": {
-			"updateTimeout": 5000,
-			"queryTimeout": 5000,
+			"updateTimeout": 100,
+			"queryTimeout": 500,
 			"maxConcurrentRequests": 5
 		},
 		"spu": {
-			"timeout": 2000
+			"timeout": 100
 		},
 		"gates": {
 			"security": {

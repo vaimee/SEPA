@@ -177,8 +177,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				ret = new JsonParser().parse(responseBody).getAsJsonObject();
 			} catch (Exception e) {
 				logger.error(e.getMessage());
-				return new ErrorResponse(responseCode, "JsonParsingException",
-						e.getMessage() + " Response body: " + responseBody);
+				return new ErrorResponse(responseCode, "sparql11_endpoint",responseBody);
 			}
 			logger.error(ret);
 			return new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),
