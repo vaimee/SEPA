@@ -11,7 +11,6 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import java.io.File;
-import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,10 +44,7 @@ public class ConfigurationProvider {
 		
 		appProfile = new JSAP(jsapPath);
 		
-		Set<String> appPrefixes = appProfile.getPrefixes();
-		for (String prefix : appPrefixes) {
-			prefixes += "PREFIX " + prefix + ":<" + appProfile.getNamespaceURI(prefix) + "> ";
-		}
+		prefixes = appProfile.getPrefixes();
 	}
 
 	private String getSPARQLUpdate(String id) {
