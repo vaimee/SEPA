@@ -73,6 +73,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
   	"sparql11seprotocol": {
   	    "host":"...", 	(optional)
 		"protocol": "ws",
+		"reconnect" : false, (optional)
 		"availableProtocols": {
 			"ws": {
 			    "host":"...", 	(optional)
@@ -310,6 +311,16 @@ public class JSAP extends SPARQL11SEProperties {
 		return oauth.isEnabled();
 	}
 
+	public boolean reconnect() {
+		try {
+			return jsap.getAsJsonObject("sparql11seprotocol").get("reconnect").getAsBoolean();
+		} catch (Exception e) {
+			logger.warn("sparql11seprotocol-reconnect not found. Default: false");
+		}
+
+		return false;	
+	}
+	
 	public JsonObject getExtendedData() {
 		try {
 			return jsap.getAsJsonObject("extended");

@@ -27,6 +27,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -35,10 +36,11 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 public abstract class Aggregator extends Consumer implements IConsumer, IProducer {
 	protected static final Logger logger = LogManager.getLogger();
 	
-	protected String sparqlUpdate = null;
-	protected String SPARQL_ID = "";
-	protected Bindings updateForcedBindings;
-
+	private final String sparqlUpdate;
+	private final String SPARQL_ID;
+	private final Bindings updateForcedBindings;
+	private final SPARQL11Protocol sparql11;
+	
 	public Aggregator(JSAP appProfile, String subscribeID, String updateID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile, subscribeID, sm);
@@ -58,6 +60,8 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
 
 		updateForcedBindings = appProfile.getUpdateBindings(updateID);
+		
+		sparql11 = new SPARQL11Protocol(sm);
 	}
 
 	public final Response update() throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
@@ -73,7 +77,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 					appProfile.getUpdatePath(SPARQL_ID), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,SPARQL_ID,false)),
 					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout);
 		 
-		 Response retResponse = client.update(req);
+		 Response retResponse = sparql11.update(req);
 		 
 		 while (isSecure() && retResponse.isError()) {
 				ErrorResponse errorResponse = (ErrorResponse) retResponse;
@@ -95,7 +99,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 						appProfile.getUpdatePath(SPARQL_ID), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,SPARQL_ID,false)),
 						appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout);
 
-				retResponse = client.update(req);
+				retResponse = sparql11.update(req);
 			}
 		 
 		 return retResponse;
