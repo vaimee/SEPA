@@ -35,7 +35,7 @@ import it.unibo.arces.wot.sepa.engine.dependability.authorization.DigitalIdentit
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapAuthorization;
 
-public class AuthorizationTest {
+public class ITAuthorizationTest {
 	private static IAuthorization auth;
 
 	private static SignedJWT generateToken(DigitalIdentity identity, String password) throws ParseException, KeyStoreException,
