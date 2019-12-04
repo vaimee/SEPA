@@ -43,13 +43,12 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 public abstract class Consumer extends Client implements IConsumer {
 	protected static final Logger logger = LogManager.getLogger();
 
-	protected String sparqlSubscribe = null;
-	protected String subID = "";
-	private Bindings forcedBindings;
-
+	private final String sparqlSubscribe;
+	private long timeout = 5000;
+	private final String subID;
+	private final Bindings forcedBindings;
 	private boolean subscribed = false;
-	
-	protected SPARQL11SEProtocol client;
+	private final SPARQL11SEProtocol client;
 
 	public Consumer(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
@@ -93,6 +92,8 @@ public abstract class Consumer extends Client implements IConsumer {
 
 	public final void subscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		String authorizationHeader = null;
+		
+		this.timeout = timeout;
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
@@ -144,11 +145,31 @@ public abstract class Consumer extends Client implements IConsumer {
 			onRemovedResults(removed);
 	}
 	
-	// TODO: implement auto-reconnection mechanism?
 	@Override
 	public void onBrokenConnection() {
 		logger.warn("onBrokenConnection");
-		subscribed = false;	
+		subscribed = false;
+		
+		// Auto reconnection mechanism
+		if (appProfile.reconnect()) {
+			while(!subscribed) {
+				try {
+					subscribe(timeout);
+				} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
+						| SEPABindingsException e) {
+					logger.error(e.getMessage());
+					if (logger.isTraceEnabled()) e.printStackTrace();
+				}
+				try {
+					synchronized (client) {
+						client.wait(timeout);	
+					}
+				} catch (InterruptedException e) {
+					logger.error(e.getMessage());
+					if (logger.isTraceEnabled()) e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	@Override
@@ -174,15 +195,16 @@ public abstract class Consumer extends Client implements IConsumer {
 	}
 
 	@Override
-	public final void onSubscribe(String spuid, String alias) {
-		synchronized(this) {
+	public void onSubscribe(String spuid, String alias) {
+		synchronized(client) {
 			logger.debug("onSubscribe");
 			subscribed = true;
+			client.notify();
 		}
 	}
 
 	@Override
-	public final void onUnsubscribe(String spuid) {
+	public void onUnsubscribe(String spuid) {
 		logger.debug("onUnsubscribe");
 		subscribed = false;		
 	}
@@ -190,7 +212,6 @@ public abstract class Consumer extends Client implements IConsumer {
 	@Override
 	public void onAddedResults(BindingsResults results) {
 		logger.debug("Added results "+results);
-		
 	}
 
 	@Override
