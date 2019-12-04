@@ -84,9 +84,9 @@ public class Engine implements EngineMBean {
 	private Optional<Boolean> secure = Optional.empty();
 
 	// JKS defaults
-	private String storeName = "certs.jks";
-	private String storePassword = "sepastore";	
-	private String alias = "jwt";
+	private String storeName = "sepa.jks";
+	private String storePassword = "sepa2017";
+	private String alias = "sepakey";
 	
 	// CA defaults (using PEM certificate provided by Let's Encrypt or a key within the JKS)
 	private String caCertificate = null;
@@ -144,11 +144,6 @@ public class Engine implements EngineMBean {
 		System.out.println("-keystore <name> : file name of the JKS      (default: certs.jks)");
 		System.out.println("-storepass <pwd> : password of the JKS       (default: sepastore)");
 		System.out.println("-alias <jwt> : alias for the JWT key         (default: jwt)");
-		
-		System.out.println("SSL OPTIONS:");
-		System.out.println("-cacertificate : if present, the certificates in <capath> are used");
-		System.out.println("-capwd <pwd> : password of certificate                      (REQUIRED)");		
-		System.out.println("-capath <capath> : path to the Let's Encrypt certificates   (REQUIRED)");
 		
 		System.out.println("LDAP OPTIONS:");
 		System.out.println("-ldaphost <name> : host     		         (default: localhost)");
@@ -291,15 +286,6 @@ public class Engine implements EngineMBean {
 				Dependability.enableSecurity(storeName, storePassword,alias);
 				if (properties.isLDAPEnabled()) Dependability.enableLDAP(ldapHost, ldapPort, ldapDn, ldapUser, ldapPwd);
 				
-				if (caCertificate != null) {
-					if(caPath == null || caPassword == null) {
-						System.err.println("Path and password of CA certificate are REQUIRED");
-						System.exit(1);
-					}
-					
-					Dependability.useCACertificate(caPath,caCertificate,caPassword);
-				}
-				
 				// Check that SSL has been properly configured
 				Dependability.getSSLContext();
 			}
@@ -397,9 +383,11 @@ public class Engine implements EngineMBean {
 					"*****************************************************************************************");
 
 		} catch (SEPAPropertiesException | SEPASecurityException | IllegalArgumentException | SEPAProtocolException
-				| InterruptedException e) {
+				e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 
 	}
