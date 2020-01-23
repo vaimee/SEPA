@@ -63,7 +63,8 @@ public class HttpsGate {
 					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),
 							new SecureUpdateHandler(scheduler))
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
-					.registerHandler("/echo", new EchoHandler()).create();
+					.registerHandler("/echo", new EchoHandler())
+					.registerHandler("", new EchoHandler()).create();
 		} catch (IllegalArgumentException e) {
 			throw new SEPASecurityException(e);
 		}

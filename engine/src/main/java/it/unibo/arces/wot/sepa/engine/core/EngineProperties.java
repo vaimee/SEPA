@@ -120,7 +120,8 @@ public class EngineProperties {
 
 	public EngineProperties(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		this(propertiesFile);
-		this.properties.get("gates").getAsJsonObject().addProperty("secure", secure);
+		this.properties.get("gates").getAsJsonObject()
+				.get("security").getAsJsonObject().addProperty("enabled", secure);
 	}
 
 	public String toString() {
