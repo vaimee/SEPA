@@ -207,109 +207,30 @@ public class SSLManager implements HostnameVerifier {
 	}
 
 	public SSLContext getSSLContextFromJKS(String jksName, String jksPassword) throws SEPASecurityException {
-		// Arguments check
-		if (jksName == null || jksPassword == null) // || keyPassword == null)
-			throw new SEPASecurityException("JKS name or passwords are null");
-
-		// Initialize SSL context
-		File f = new File(jksName);
-		if (!f.exists() || f.isDirectory())
-			throw new SEPASecurityException(jksName + " not found");
-
+		SSLContext sslContext = null;
 		try {
-			KeyStore keystore = KeyStore.getInstance("JKS");
-			keystore.load(new FileInputStream(jksName), jksPassword.toCharArray());
-
-			KeyManagerFactory kmfactory = KeyManagerFactory.getInstance("SunX509");
-			kmfactory.init(keystore, jksPassword.toCharArray());
-
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-			tmf.init(keystore);
-
-			SSLContext sslContext = SSLContext.getInstance("TLS");
-			sslContext.init(kmfactory.getKeyManagers(), tmf.getTrustManagers(), null);
-
-			return sslContext;
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
-				| UnrecoverableKeyException | KeyManagementException e1) {
-			logger.error(e1.getMessage());
-			if (logger.isTraceEnabled())
-				e1.printStackTrace();
-			throw new SEPASecurityException(e1.getMessage());
-		}
-	}
-
-	/**
-	 * Method which returns a SSLContext from a Let's encrypt or
-	 * IllegalArgumentException on error
-	 *
-	 * @return a valid SSLContext
-	 * @throws IllegalArgumentException when some exception occurred
-	 */
-	public SSLContext getSSLContextFromLetsEncrypt(String path, String certFile, String keyPassword) {
-		SSLContext context;
-
-		try {
-			context = SSLContext.getInstance("TLS");
-
-			byte[] certBytes = parseDERFromPEM(Files.readAllBytes(new File(path + File.separator + certFile).toPath()),
-					"-----BEGIN CERTIFICATE-----", "-----END CERTIFICATE-----");
-			byte[] keyBytes = parseDERFromPEM(
-					Files.readAllBytes(new File(path + File.separator + "privkey.pem").toPath()),
-					"-----BEGIN PRIVATE KEY-----", "-----END PRIVATE KEY-----");
-
-			X509Certificate cert = generateCertificateFromDER(certBytes);
-			RSAPrivateKey key = generatePrivateKeyFromDER(keyBytes);
-
-			KeyStore keystore = KeyStore.getInstance("JKS");
-			keystore.load(null);
-			keystore.setCertificateEntry("cert-alias", cert);
-			keystore.setKeyEntry("key-alias", key, keyPassword.toCharArray(), new Certificate[] { cert });
-
-			KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-			kmf.init(keystore, keyPassword.toCharArray());
-
-			KeyManager[] km = kmf.getKeyManagers();
-
-			context.init(km, null, null);
-		} catch (IOException | KeyManagementException | KeyStoreException | InvalidKeySpecException
-				| UnrecoverableKeyException | NoSuchAlgorithmException | CertificateException e) {
-			logger.error(e.getMessage());
-			throw new IllegalArgumentException(e);
-		}
-		return context;
-	}
-
-	public SSLContext getSSLContextFromCertFile(String protocol, String caCertFile) throws SEPASecurityException {
-		try {
-			// Load certificates from caCertFile into the keystore
-			KeyStore caKs = KeyStore.getInstance(KeyStore.getDefaultType());
-			caKs.load(null, null);
-
-			FileInputStream fis = new FileInputStream(caCertFile);
-			BufferedInputStream bis = new BufferedInputStream(fis);
-			CertificateFactory cf;
-			cf = CertificateFactory.getInstance("X.509");
-			while (bis.available() > 0) {
-				X509Certificate caCert = (X509Certificate) cf.generateCertificate(bis);
-				caKs.setCertificateEntry(caCert.getIssuerX500Principal().getName(), caCert);
-			}
-
-			// Trust manager
-			TrustManagerFactory tmf = TrustManagerFactory.getInstance("X509");
-			tmf.init(caKs);
-
-			// Create SSL context
-			SSLContext sslContext = SSLContext.getInstance(protocol);
-			sslContext.init(null, tmf.getTrustManagers(), null);
-
-			return sslContext;
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
-				| KeyManagementException e) {
+			sslContext = SSLContexts
+					.custom()
+					.loadKeyMaterial(new File(jksName), jksPassword.toCharArray(), jksPassword.toCharArray())
+					.useProtocol("TLS")
+					.build();
+		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
-			throw new SEPASecurityException(e);
+		} catch (KeyManagementException e) {
+			e.printStackTrace();
+		} catch (KeyStoreException e) {
+			e.printStackTrace();
+		} catch (CertificateException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (UnrecoverableKeyException e) {
+			e.printStackTrace();
 		}
+		return sslContext;
 	}
+
+
 
 	protected static byte[] parseDERFromPEM(byte[] pem, String beginDelimiter, String endDelimiter) {
 		String data = new String(pem);

@@ -60,12 +60,6 @@ public class Dependability {
 		authManager.setSSLContextFromJKS(keystore, keypass);
 	}
 	
-	public static void useCACertificate(String path,String cert,String password) throws SEPASecurityException {
-		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
-		
-		authManager.setSSLContextFromPEM(path, cert,password);
-	}
-	
 	public static SSLContext getSSLContext() throws SEPASecurityException {
 		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
 		

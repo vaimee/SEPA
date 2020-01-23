@@ -58,6 +58,27 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	@Override
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
+		if(corsHandling(httpExchange)) {
+			handleTokenRequest(request, httpExchange);
+		}
+	}
+
+	protected boolean corsHandling(HttpAsyncExchange exchange) {
+		if (!Dependability.processCORSRequest(exchange)) {
+			logger.error("CORS origin not allowed");
+			HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error","CORS origin not allowed"));
+			return false;
+		}
+
+		if (Dependability.isPreFlightRequest(exchange)) {
+			logger.warn("Preflight request");
+			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
+			return false;
+		}
+
+		return true;
+	}
+	private void handleTokenRequest(HttpRequest request, HttpAsyncExchange httpExchange) {
 		logger.info(">> REQUEST TOKEN");
 
 		Header[] headers;
@@ -126,7 +147,7 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			logger.error(e.getMessage());
 			if (logger.isTraceEnabled()) e.printStackTrace();
 			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"dependability_not_configured", e.getMessage()));
-			return;		
+			return;
 		}
 
 		if (token.getClass().equals(ErrorResponse.class)) {
@@ -135,6 +156,6 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			HttpUtilities.sendFailureResponse(httpExchange, error);
 		} else {
 			HttpUtilities.sendResponse(httpExchange, HttpStatus.SC_CREATED, token.toString());
-		}	
+		}
 	}
 }
