@@ -318,7 +318,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		try {
 			Subscriber sub = Subscriptions.getSubscriber(sid);
 			String spuid = sub.getSPU().getSPUID();
-
+			
 			if (Subscriptions.removeSubscriber(sub)) {
 				// If it is the last handler: kill SPU
 				spus.get(spuid).finish();
