@@ -69,9 +69,12 @@ public class Subscriptions {
 
 		return sub;
 	}
-
-	public synchronized static Subscriber getSubscriber(String sid) {
-		return subscribers.get(sid);
+	
+	public synchronized static Subscriber getSubscriber(String sid) throws SEPANotExistsException {
+		Subscriber sub = subscribers.get(sid);
+		
+		if (sub == null) throw new SEPANotExistsException("Subscriber "+sid+" does not exists");
+		return sub;
 	}
 
 	public synchronized static boolean removeSubscriber(Subscriber sub) throws SEPANotExistsException {
