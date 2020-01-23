@@ -5,12 +5,12 @@
 			"timeout": 3000
 		},
 		"processor": {
-			"updateTimeout": 100,
-			"queryTimeout": 500,
+			"updateTimeout": 5000,
+			"queryTimeout": 10000,
 			"maxConcurrentRequests": 5
 		},
 		"spu": {
-			"timeout": 100
+			"timeout": 5000
 		},
 		"gates": {
 			"security": {
