@@ -53,11 +53,17 @@ class CORSManager {
 			String allowOrigin = null;
 			
 			Header[] origins = exchange.getRequest().getHeaders("Origin");
-			if (origins.length != 1) return false;
+			if (origins.length != 1) {
+				logger.debug("Origin header is not present. Number of origin headers: "+origins.length);
+				return false;
+			}
 			
-			allowOrigin = origins[0].getValue();	
 			logger.debug("Check origin: "+allowOrigin);
-			if(!allowedOrigin(allowOrigin)) return false;
+			allowOrigin = origins[0].getValue();	
+			if(!allowedOrigin(allowOrigin)) {
+				logger.debug("Origin: "+allowOrigin+" is not allowed");
+				return false;
+			}
 			logger.debug("Origin: "+allowOrigin+ " ALLOWED");
 			
 			/*
@@ -66,13 +72,19 @@ class CORSManager {
 			 * The request is outside the scope of this specification.
 			 */
 			
+			logger.debug("Check method");
 			String allowMethod = null;
-			
 			Header[] methods = exchange.getRequest().getHeaders("Access-Control-Request-Method" );
-			if (methods.length != 1) return false;
+			if (methods.length != 1) {
+				logger.debug("Method not specified. Number of methods:"+methods.length);
+				return false;
+			}
 			
 			allowMethod = methods[0].getValue();		
-			if(!allowedMethod(allowMethod)) return false;
+			if(!allowedMethod(allowMethod)) {
+				logger.debug("Method: "+allowMethod+ " NOT allowed");
+				return false;
+			}
 			logger.debug("Method: "+allowMethod+ " ALLOWED");
 			
 			/*
@@ -116,10 +128,11 @@ class CORSManager {
 			/*
 			 * If the Origin header is not present terminate this set of steps. The request is outside the scope of this specification.
 			 */
+			logger.debug("Method: "+ exchange.getRequest().getRequestLine().getMethod().toUpperCase()+" should be OPTIONS");
 			
 			String allowOrigin = null;
 			
-			Header[] origins = exchange.getRequest().getHeaders("Origin" );
+			Header[] origins = exchange.getRequest().getHeaders("Origin");
 			if (origins.length == 0) return true;
 			if (origins.length > 1) return false;
 			
@@ -145,6 +158,7 @@ class CORSManager {
 	 */
 	private static boolean allowedMethod(String allowMethod) {
 		//TODO check method against a list of allowed methods
+		logger.debug("All methods are allowed");
 		return true;
 	}
 
@@ -153,6 +167,7 @@ class CORSManager {
 	 */
 	private static boolean allowedOrigin(String allowOrigin) {
 		//TODO check origin against a list of allowed origins
+		logger.debug("All origins are allowed");
 		return true;
 	}
 

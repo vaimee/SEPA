@@ -146,7 +146,7 @@ public class InMemoryAuthorization implements IAuthorization {
 	
 	public InMemoryAuthorization() {
 		// TODO: WARNING!!! JUST FOR TESTING
-		addIdentity(new ApplicationIdentity("SEPATest",new Credentials("SEPATest","SEPATest")));
+		addAuthorizedIdentity(new ApplicationIdentity("SEPATest",new Credentials("SEPATest","SEPATest")));
 	}
 	
 	@Override
@@ -159,12 +159,12 @@ public class InMemoryAuthorization implements IAuthorization {
 	}
 	
 	@Override
-	public void addIdentity(DigitalIdentity identity) {
+	public void addAuthorizedIdentity(DigitalIdentity identity) {
 		logger.debug("addIdentity "+identity.getUid());
 		identities.put(identity.getUid(),new AuthorizedIdentity(identity));
 	}
 	@Override
-	public void removeIdentity(String uid) {
+	public void removeAuthorizedIdentity(String uid) {
 		logger.debug("removeIdentity "+uid);
 		
 		if (uid.equals("SEPATest")) return;
@@ -174,9 +174,11 @@ public class InMemoryAuthorization implements IAuthorization {
 	
 	// Client credentials
 	@Override
-	public void storeCredentials(DigitalIdentity identity, String client_secret) {
+	public boolean storeCredentials(DigitalIdentity identity, String client_secret) {
 		logger.debug("storeCredentials "+identity.getUid()+" : "+client_secret);
 		identities.get(identity.getUid()).register(identity.getUid(),client_secret);
+		
+		return true;
 	}
 	
 	@Override

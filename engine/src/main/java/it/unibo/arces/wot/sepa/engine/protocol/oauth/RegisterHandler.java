@@ -63,12 +63,30 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			throws HttpException, IOException {
 		return new BasicAsyncRequestConsumer();
 	}
+	
+	protected boolean corsHandling(HttpAsyncExchange exchange) {
+		if (!Dependability.processCORSRequest(exchange)) {
+			logger.error("CORS origin not allowed");
+			HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error","CORS origin not allowed"));
+			return false;
+		}
+
+		if (Dependability.isPreFlightRequest(exchange)) {
+			logger.warn("Preflight request");
+			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
+			return false;
+		}
+
+		return true;
+	}
 
 	@Override
 	public void handle(HttpRequest data, HttpAsyncExchange exchange, HttpContext context)
 			throws HttpException, IOException {
 		logger.info(">> REGISTRATION");
 
+		if (!corsHandling(exchange)) return;
+		
 		String name = null;
 
 		// Parsing and validating request headers

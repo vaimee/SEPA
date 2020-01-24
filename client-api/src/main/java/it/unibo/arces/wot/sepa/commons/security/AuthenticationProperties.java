@@ -123,7 +123,7 @@ public class AuthenticationProperties {
 			if (enabled) {
 				registrationURL = oauthJsonObject.get("register").getAsString();
 				tokenRequestURL = oauthJsonObject.get("tokenRequest").getAsString();
-				ssl = oauthJsonObject.get("ssl").getAsString();
+				//ssl = oauthJsonObject.get("ssl").getAsString();
 
 				if (oauthJsonObject.has("client_id"))
 					clientId = encryption.decrypt(oauthJsonObject.get("client_id").getAsString());

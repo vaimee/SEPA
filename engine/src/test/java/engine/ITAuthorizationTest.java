@@ -104,12 +104,12 @@ public class ITAuthorizationTest {
 		} catch (SEPASecurityException e) {
 		}
 
-		auth.addIdentity(new DeviceIdentity(uid));
+		auth.addAuthorizedIdentity(new DeviceIdentity(uid));
 
 		assertFalse("Failed to authorized",!auth.isAuthorized(uid));
 		assertFalse("Failed to get identity",!auth.getIdentity(uid).getUid().equals(uid));
 
-		auth.removeIdentity(uid);
+		auth.removeAuthorizedIdentity(uid);
 
 		assertFalse(uid+" is not authorized",auth.isAuthorized(uid));
 	}
