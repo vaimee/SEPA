@@ -119,7 +119,7 @@ class SecurityManager {
 	private void securityCheck(String identity) throws SEPASecurityException {
 		logger.info("*** Security check ***");
 		// Add identity
-		auth.addIdentity(new ApplicationIdentity(identity));
+		auth.addAuthorizedIdentity(new ApplicationIdentity(identity));
 
 		// Register
 		Response response = register(identity);
@@ -154,7 +154,7 @@ class SecurityManager {
 			logger.debug(response.toString());
 			logger.info("*** FAILED ***");
 			// Remove identity
-			auth.removeIdentity(identity);
+			auth.removeAuthorizedIdentity(identity);
 		}
 		System.out.println("");
 	}
@@ -273,7 +273,7 @@ class SecurityManager {
 		// One time registration (not removed for testing purposes)
 		if (!forTesting)
 			try {
-				auth.removeIdentity(uid);
+				auth.removeAuthorizedIdentity(uid);
 			} catch (SEPASecurityException e) {
 				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "remove_identity",
 						"Exception on removing identity " + uid+ " "+e.getMessage());
@@ -367,20 +367,34 @@ class SecurityManager {
 
 		// Parse credentials
 		String decodedCredentials = new String(decoded);
-		String[] clientID = decodedCredentials.split(":");
-		if (clientID == null) {
+		
+		// BUG SOLVED. The clientID may contain ":"
+		// e.g., urn:epc:id:gid:0.1.410D23751450344850323220
+		int marker = decodedCredentials.lastIndexOf(":");
+		if (marker == -1) {
 			logger.error("Wrong Basic authorization");
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_client",
-					"Client id not found: " + decodedCredentials);
+					"Delimiter ':' is missing. Wrong credentials format: " + decodedCredentials);
 		}
-		if (clientID.length != 2) {
-			logger.error("Wrong Basic authorization");
-			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_client",
-					"Wrong credentials: " + decodedCredentials);
-		}
-
-		String id = decodedCredentials.split(":")[0];
-		String secret = decodedCredentials.split(":")[1];
+		
+//		String[] clientID = decodedCredentials.split(":");
+//		if (clientID == null) {
+//			logger.error("Wrong Basic authorization");
+//			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_client",
+//					"Client id not found: " + decodedCredentials);
+//		}
+//		if (clientID.length != 2) {
+//			logger.error("Wrong Basic authorization");
+//			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_client",
+//					"Wrong credentials: " + decodedCredentials);
+//		}
+//		String id = decodedCredentials.split(":")[0];
+//		String secret = decodedCredentials.split(":")[1];
+		
+		String id = decodedCredentials.substring(0, marker);
+		String secret = decodedCredentials.substring(marker+1);		
+		
+		
 		logger.debug("Credentials: " + id + " " + secret);
 
 		// Verify credentials

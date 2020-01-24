@@ -18,6 +18,9 @@
 
 package it.unibo.arces.wot.sepa.engine.dependability.authorization;
 
+/**
+ * A digital identity includes the credentials to get access to the SPARQL endpoint
+ * */
 public abstract class DigitalIdentity {
 	
 	private String uid;

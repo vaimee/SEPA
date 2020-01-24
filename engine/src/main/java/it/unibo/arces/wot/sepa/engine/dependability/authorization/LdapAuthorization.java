@@ -44,158 +44,176 @@ import com.nimbusds.jwt.SignedJWT;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 
 /**
- * The directory structure follows:
+ * The directory structure follows. Possible options are evidenced as "***"
  * 
  * <pre>
- * 
+ *
+ ### ROOT ###
 dn: dc=vaimee,dc=com
-objectclass: top
-objectclass: domain
-dc: vaimee
+|- objectclass: top
+|- objectclass: domain
+|- dc: vaimee
 
 dn: o=vaimee
-objectclass: extensibleObject
-objectclass: top
-objectclass: domain
-dc: vaimee
-o: vaimee
+|- objectclass: extensibleObject
+|- objectclass: top
+|- objectclass: domain
+|- dc: vaimee
+|- o: vaimee
 
 
-### Authorized identities ###
+### Authorized identities (for applications and devices) ###
 dn: ou=authorizedIdentities,o=vaimee
-objectClass: organizationalUnit
-objectClass: top
-ou: authorizedIdentities
+|- objectClass: organizationalUnit
+|- objectClass: top
+|- ou: authorizedIdentities
 
 dn: uid=SEPATest,ou=authorizedIdentities,o=vaimee
-objectClass: applicationProcess | device
-objectClass: uidObject
-objectClass: top
-cn: TEST
-uid: SEPATest
+|- *** objectClass: applicationProcess | device
+|- objectClass: uidObject
+|- objectClass: top
+|- cn: TEST
+|- uid: SEPATest
 
-### Credentials ###
+### Credentials (include users) ###
 dn: ou=credentials,o=vaimee
-objectClass: organizationalUnit
-objectClass: top
-ou: credentials
+|- objectClass: organizationalUnit
+|- objectClass: top
+|- ou: credentials
 
 dn: uid=SEPATest,ou=credentials,o=vaimee
-ObjectClass: applicationProcess
-ObjectClass: uidObject
-ObjectClass: javaSerializedObject
-ObjectClass: simpleSecurityObject
-ObjectClass: top
-ObjectClass: javaObject
-cn: Authorized Digital Identity SEPATest
-javaClassName: it.unibo.arces.wot.sepa.engine.dependability.authorization.Cr
- edentials
-javaSerializedData:: 77+977+9AAVzcgBGaXQudW5pYm8uYXJjZXMud290LnNlcGEuZW5naW5
- lLmRlcGVuZGFiaWxpdHkuYXV0aG9yaXphdGlvbi5DcmVkZW50aWFsc2dPZ++/vRo9160CAAJMAA
- hwYXNzd29yZHQAEkxqYXZhL2xhbmcvU3RyaW5nO0wABHVzZXJxAH4AAXhwdAAIU0VQQVRlc3RxA
- H4AAw==
-uid: SEPATest
-userPassword: {SSHA}/hybr9FEohB6Y6sxn2K+/V8HTzbpKxGa8RxxSQ==
+|- *** objectClass: applicationProcess | device
+|- uid: SEPATest
+|- userPassword: {SSHA}/hybr9FEohB6Y6sxn2K+/V8HTzbpKxGa8RxxSQ==
+|- ObjectClass: uidObject
+|- ObjectClass: javaSerializedObject
+|- ObjectClass: simpleSecurityObject
+|- ObjectClass: top
+|- ObjectClass: javaObject
+|- cn: Authorized Digital Identity SEPATest
+|- javaClassName: it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials
+|- javaSerializedData:: 77+977+9AAVzcgBGaXQudW5pYm8uYXJjZXMud290LnNlcGEuZW5naW5
+ 						lLmRlcGVuZGFiaWxpdHkuYXV0aG9yaXphdGlvbi5DcmVkZW50aWFsc2dPZ++/vRo9160CAAJMAA
+ 						hwYXNzd29yZHQAEkxqYXZhL2xhbmcvU3RyaW5nO0wABHVzZXJxAH4AAXhwdAAIU0VQQVRlc3RxA
+ 						H4AAw==
+
+dn: uid=luca.roffia@vaimee.it,ou=credentials,o=vaimee
+|- *** objectClass: inetOrgPerson
+|- *** cn: Luca
+|- *** sn: Roffia
+|- uid: luca.roffia@vaimee.it
+|- userPassword: {SSHA}/abvbr8FEohB6Y6sxn2K+/V8HTzbpKxGa8RxxXT==
+|- ObjectClass: uidObject
+|- ObjectClass: javaSerializedObject
+|- ObjectClass: simpleSecurityObject
+|- ObjectClass: top
+|- ObjectClass: javaObject
+|- javaClassName: it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials
+|- javaSerializedData:: 66+966+9BBVzcgBGBXQudp5pYm8uYXJjZXMud290LnNlcGEuZp5nBp5
+ 						lLmRlcGVuZGFiBpxpdHkuYXV0BG9yBXphdGlvbi5DcmVkZp50BpFsc2dPZ++/vRo9160CBBJMBB
+ 						hpYXNzd29yZHQBEkxqYXZhL2xhbmcvU3RyBp5nO0pBBHVzZXJxBH4BBXhpdBBIU0VQQVRlc3RxB
+ 						H4BBp==
+
 
 ### Tokens ###
-dn: ou=tokens,o=vaimee
-objectClass: organizationalUnit
-objectClass: top
-ou: tokens
+|- dn: ou=tokens,o=vaimee
+|- objectClass: organizationalUnit
+|- objectClass: top
+|- ou: tokens
 
 dn: uid=SEPATest,ou=tokens,o=vaimee
-objectclass: account
-objectclass: javaSerializedObject
-objectclass: top
-objectclass: javaObject
-javaclassname: com.nimbusds.jwt.SignedJWT
-javaSerializedData: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJodHRwOlwvXC9zdWJqZWN0Iiw
- iYXVkIjpbImh0dHBzOlwvXC9hdWRpZW5jZSIsImF1ZGllbmNlIl0sImlzcyI6Imh0dHA6XC9cL2
- lzc3VlciIsImV4cCI6MTU3MTY3MzQxNSwiaWF0IjoxNTcxNjczNDEwLCJqdGkiOiJTRVBBVGVzd
- CJ9.fPpCRUle3g49HMJIHWgzqEUDUEQ5ukg4ffp7y6yRT3hSMpp95MMgNRcOLPJFhlVvWAHxoag
- DW6g6hI85Ks7XFfL4yqIwogOt5cgprVYSCCvOKXk4j7VNrb2aaNcAq8Y3oD2LgX6BDzMG37VlJ3
- TXwKNZSsm6WlDMRIiiWooFeb_Ystmtt2x38ksIWO3oZ3K0se3sUiSqUD6M0BArOJXydX7TyfgIU
- Vy4zWRsqLUwTOl0f_ReWHi1lwMi8ex-gucj-byy7QCXHLYLYx6KfUP72XhFObpf2Asc0cUd2O_C
- 3DvtWlcHCbK0MV4YoEf0cQYyqmf6oDRpOlepijodi9tTDQ
-uid: SEPATest
+|- uid: SEPATest
+|- objectclass: account
+|- objectclass: javaSerializedObject
+|- objectclass: top
+|- objectclass: javaObject
+|- javaclassname: com.nimbusds.jwt.SignedJWT
+|- javaSerializedData: eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiJodHRwOlwvXC9zdWJqZWN0Iiw
+ 						iYXVkIjpbImh0dHBzOlwvXC9hdWRpZW5jZSIsImF1ZGllbmNlIl0sImlzcyI6Imh0dHA6XC9cL2
+ 						lzc3VlciIsImV4cCI6MTU3MTY3MzQxNSwiaWF0IjoxNTcxNjczNDEwLCJqdGkiOiJTRVBBVGVzd
+ 						CJ9.fPpCRUle3g49HMJIHWgzqEUDUEQ5ukg4ffp7y6yRT3hSMpp95MMgNRcOLPJFhlVvWAHxoag
+ 						DW6g6hI85Ks7XFfL4yqIwogOt5cgprVYSCCvOKXk4j7VNrb2aaNcAq8Y3oD2LgX6BDzMG37VlJ3
+ 						TXwKNZSsm6WlDMRIiiWooFeb_Ystmtt2x38ksIWO3oZ3K0se3sUiSqUD6M0BArOJXydX7TyfgIU
+ 						Vy4zWRsqLUwTOl0f_ReWHi1lwMi8ex-gucj-byy7QCXHLYLYx6KfUP72XhFObpf2Asc0cUd2O_C
+ 						3DvtWlcHCbK0MV4YoEf0cQYyqmf6oDRpOlepijodi9tTDQ
 
 ### JWT ###
 dn: ou=jwt,o=vaimee
-objectClass: organizationalUnit
-objectClass: top
-ou: jwt
+|- objectClass: organizationalUnit
+|- objectClass: top
+|- ou: jwt
 
 dn: uid=expiring,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-uid: expiring
+|- objectClass: account
+|- objectClass: top
+|- uid: expiring
 
 dn: uid=SEPATest,uid=expiring,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-objectClass: pwdPolicy
-pwdAttribute: userPassword
-uid: SEPATest
-pwdGraceExpire: 5
+|- objectClass: account
+|- objectClass: top
+|- objectClass: pwdPolicy
+|- pwdAttribute: userPassword
+|- uid: SEPATest
+|- pwdGraceExpire: 5
 
 dn: uid=device,uid=expiring,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-objectClass: pwdPolicy
-pwdAttribute: userPassword
-uid: device
-description: Default expiring time for devices (i.e., 1h)
-pwdGraceExpire: 3600
+|- objectClass: account
+|- objectClass: top
+|- objectClass: pwdPolicy
+|- pwdAttribute: userPassword
+|- uid: device
+|- description: Default expiring time for devices (i.e., 1h)
+|- pwdGraceExpire: 3600
 
 dn: uid=application,uid=expiring,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-objectClass: pwdPolicy
-pwdAttribute: userPassword
-uid: application
-description: Default expiring time for applications (i.e., 24h)
-pwdGraceExpire: 43200
+|- objectClass: account
+|- objectClass: top
+|- objectClass: pwdPolicy
+|- pwdAttribute: userPassword
+|- uid: application
+|- description: Default expiring time for applications (i.e., 24h)
+|- pwdGraceExpire: 43200
 
 dn: uid=default,uid=expiring,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-objectClass: pwdPolicy
-pwdAttribute: userPassword
-uid: default
-pwdGraceExpire: 5
+|- objectClass: account
+|- objectClass: top
+|- objectClass: pwdPolicy
+|- pwdAttribute: userPassword
+|- uid: default
+|- pwdGraceExpire: 5
 
 dn: uid=user,uid=expiring,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-objectClass: pwdPolicy
-pwdAttribute: userPassword
-uid: user
-description: Default expiring time for users (i.e., 5 minutes)
-pwdGraceExpire: 300
+|- objectClass: account
+|- objectClass: top
+|- objectClass: pwdPolicy
+|- pwdAttribute: userPassword
+|- uid: user
+|- description: Default expiring time for users (i.e., 5 minutes)
+|- pwdGraceExpire: 300
 
 dn: uid=subject,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-uid: subject
-host: http://subject
+|- objectClass: account
+|- objectClass: top
+|- uid: subject
+|- host: http://subject
 
 dn: uid=httpsAudience,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-uid: httpsAudience
-host: https://audience
+|- objectClass: account
+|- objectClass: top
+|- uid: httpsAudience
+|- host: https://audience
 
 dn: uid=wssAudience,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-uid: wssAudience
-host: audience
+|- objectClass: account
+|- objectClass: top
+|- uid: wssAudience
+|- host: audience
 
 dn: uid=issuer,ou=jwt,o=vaimee
-objectClass: account
-objectClass: top
-uid: issuer
-host: http://issuer
+|- objectClass: account
+|- objectClass: top
+|- uid: issuer
+|- host: http://issuer
  * </pre>
  * */
 public class LdapAuthorization implements IAuthorization {
@@ -291,7 +309,7 @@ public class LdapAuthorization implements IAuthorization {
 	}
 	
 	@Override
-	public void addIdentity(DigitalIdentity identity) throws SEPASecurityException {
+	public void addAuthorizedIdentity(DigitalIdentity identity) throws SEPASecurityException {
 		logger.debug("addIdentity uid="+identity.getUid()+" class: "+identity.getObjectClass());
 		
 		bind();	
@@ -311,7 +329,7 @@ public class LdapAuthorization implements IAuthorization {
 					
 			ldap.add(entry);						
 		} catch (LdapException e) {
-			logger.error("addIdentity exception: "+e.getMessage());
+			logger.error("addAuthorizedIdentity exception: "+e.getMessage());
 			throw new SEPASecurityException("addIdentity exception: "+e.getMessage());
 		} finally {
 			unbind();
@@ -319,7 +337,7 @@ public class LdapAuthorization implements IAuthorization {
 	}
 
 	@Override
-	public void removeIdentity(String id) throws SEPASecurityException {		
+	public void removeAuthorizedIdentity(String id) throws SEPASecurityException {		
 		logger.debug("removeIdentity "+id);
 		
 		bind();
@@ -327,7 +345,8 @@ public class LdapAuthorization implements IAuthorization {
 		try {
 			ldap.delete("uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
 		} catch (LdapException e) {
-			logger.error("Exception on removing identity: "+"uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
+			logger.error("Exception on removing identity: "+"uid=" + id + ",ou=authorizedIdentities," + ldapRoot+" "+e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
 			throw new SEPASecurityException("Exception on removing identity: "+"uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
 		} finally {
 			unbind();
@@ -335,7 +354,7 @@ public class LdapAuthorization implements IAuthorization {
 	}
 
 	@Override
-	public void storeCredentials(DigitalIdentity identity, String client_secret) throws SEPASecurityException {
+	public boolean storeCredentials(DigitalIdentity identity, String client_secret) throws SEPASecurityException {
 		logger.debug("storeCredentials "+identity+" secret: "+client_secret);
 		
 		byte[] password = PasswordUtil.createStoragePassword(client_secret.getBytes(),
@@ -355,7 +374,12 @@ public class LdapAuthorization implements IAuthorization {
 				entry.add("ObjectClass", "simpleSecurityObject");
 				entry.add("ObjectClass", "javaSerializedObject");
 				
-				entry.add("cn", "Authorized Digital Identity " + identity.getUid());
+				if (identity.getObjectClass().equals("inetOrgPerson")) {
+					entry.add("cn", ((UserIdentity) identity).getCommonName());
+					entry.add("sn", ((UserIdentity) identity).getSurname());
+				}
+				else entry.add("cn", "Authorized Digital Identity " + identity.getUid());
+				
 				entry.add("uid", identity.getUid());
 				entry.add("userPassword", password);
 
@@ -364,13 +388,14 @@ public class LdapAuthorization implements IAuthorization {
 				
 				ldap.add(entry);
 			} else {
-				Modification pwd = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
-						"userPassword", password);
-				Modification cred = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
-						"javaSerializedData", identity.getEndpointCredentials().serialize());
-				
-				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,pwd);
-				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,cred);
+//				Modification pwd = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
+//						"userPassword", password);
+//				Modification cred = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
+//						"javaSerializedData", identity.getEndpointCredentials().serialize());
+//				
+//				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,pwd);
+//				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,cred);
+				return false;
 
 			}
 		} catch (LdapException | CursorException e) {
@@ -379,6 +404,8 @@ public class LdapAuthorization implements IAuthorization {
 		} finally {
 			unbind();
 		}
+		
+		return true;
 	}
 
 	@Override
@@ -482,28 +509,35 @@ public class LdapAuthorization implements IAuthorization {
 
 				if (!entry.containsAttribute("pwdGraceExpire")) {
 					cursor.close();
-
+					
+					// APPLICATION
 					if (entry.hasObjectClass("applicationProcess")) {
 						cursor = ldap.search("uid=application,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
 								SearchScope.OBJECT, "*");
 
 						if (!cursor.next())
 							throw new LdapException("uid=application,uid=expiring,ou=jwt," + ldapRoot + " NOT FOUND");
-					} else if (entry.hasObjectClass("device")) {
+					} 
+					
+					// DEVICE
+					else if (entry.hasObjectClass("device")) {
 						cursor = ldap.search("uid=device,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
 								SearchScope.OBJECT, "*");
 
 						if (!cursor.next())
 							throw new LdapException("uid=device,uid=expiring,ou=jwt," + ldapRoot + " NOT FOUND");
-					} else if (entry.hasObjectClass("account")) {
-						cursor = ldap.search("uid=account,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
+					} 
+					
+					// USER
+					else if (entry.hasObjectClass("inetOrgPerson")) {
+						cursor = ldap.search("uid=user,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
 								SearchScope.OBJECT, "*");
 
 						if (!cursor.next())
-							throw new LdapException("uid=account,uid=expiring,ou=jwt," + ldapRoot + " NOT FOUND");
+							throw new LdapException("uid=user,uid=expiring,ou=jwt," + ldapRoot + " NOT FOUND");
 					} else
 						throw new LdapException("ClassObject for " + id
-								+ " MUST BE one of the following: device, applicationProcess, account");
+								+ " MUST BE one of the following: device, applicationProcess, inetOrgPerson");
 				}
 			}
 
@@ -581,124 +615,6 @@ public class LdapAuthorization implements IAuthorization {
 			unbind();
 		}
 	}
-
-//	@Override
-//	public String getHttpsAudience() throws SEPASecurityException {
-//		logger.debug("getHttpsAudience");
-//		
-//		bind();
-//		
-//		try {
-//			cursor = ldap.search("uid=httpsAudience,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
-//			if (!cursor.next())
-//				throw new SEPASecurityException("uid=httpsAudience,ou=jwt," + ldapRoot + " NOT FOUND");
-//			if (cursor.get().get("host") == null)
-//				throw new SEPASecurityException("httpsAudience host not found");
-//
-//			return cursor.get().get("host").getString();
-//		} catch (LdapException | CursorException e) {
-//			logger.error("getHttpsAudience exception "+e.getMessage());
-//			throw new SEPASecurityException("getHttpsAudience exception "+e.getMessage());
-//		} finally {
-//			unbind();
-//
-//		}
-//	}
-//
-//	@Override
-//	public void setHttpsAudience(String audience) throws SEPASecurityException {
-//		logger.debug("setHttpsAudience "+audience);
-//		
-//		bind();
-//		
-//		try {
-//			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
-//			ldap.modify("uid=httpsAudience,ou=jwt," + ldapRoot, replaceGn);
-//		} catch (LdapException e) {
-//			logger.error("setHttpsAudience exception "+e.getMessage());
-//			throw new SEPASecurityException("setHttpsAudience exception "+e.getMessage());
-//		} finally {
-//			unbind();
-//		}
-//	}
-//
-//	@Override
-//	public String getWssAudience() throws SEPASecurityException {
-//		logger.debug("getWssAudience");
-//		
-//		bind();
-//		
-//		try {
-//			cursor = ldap.search("uid=wssAudience,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
-//			if (!cursor.next())
-//				throw new SEPASecurityException("uid=wssAudience,ou=jwt," + ldapRoot + " NOT FOUND");
-//			if (cursor.get().get("host") == null)
-//				throw new SEPASecurityException("uid=wssAudience,ou=jwt," + ldapRoot + " host NOT FOUND");
-//
-//			return cursor.get().get("host").getString();
-//		} catch (LdapException | CursorException e) {
-//			logger.error("getWssAudience exception "+e.getMessage());
-//			throw new SEPASecurityException("getWssAudience exception "+e.getMessage());
-//		} finally {
-//			unbind();
-//		}
-//	}
-//
-//	@Override
-//	public void setWssAudience(String audience) throws SEPASecurityException {
-//		logger.debug("setWssAudience "+audience);
-//		
-//		bind();
-//		
-//		try {
-//			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", audience);
-//			ldap.modify("uid=wssAudience,ou=jwt," + ldapRoot, replaceGn);
-//		} catch (LdapException e) {
-//			logger.error("setWssAudience exception "+e.getMessage());
-//			throw new SEPASecurityException("setWssAudience exception "+e.getMessage());
-//		} finally {
-//			unbind();
-//		}
-//	}
-//
-//	@Override
-//	public String getSubject() throws SEPASecurityException {
-//		logger.debug("getSubject");
-//		
-//		bind();
-//		
-//		try {
-//			cursor = ldap.search("uid=subject,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
-//			if (!cursor.next())
-//				throw new SEPASecurityException("uid=subject,ou=jwt," + ldapRoot + " NOT FOUND");
-//			if (cursor.get().get("host") == null)
-//				throw new SEPASecurityException("uid=subject,ou=jwt," + ldapRoot + " host NOT FOUND");
-//
-//			return cursor.get().get("host").getString();
-//		} catch (LdapException | CursorException e) {
-//			logger.error("getSubject exception "+e.getMessage());
-//			throw new SEPASecurityException("getSubject exception "+e.getMessage());
-//		} finally {
-//			unbind();
-//		}
-//	}
-//
-//	@Override
-//	public void setSubject(String subject) throws SEPASecurityException {
-//		logger.debug("setSubject "+subject);
-//		
-//		bind();
-//		
-//		try {
-//			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", subject);
-//			ldap.modify("uid=subject,ou=jwt," + ldapRoot, replaceGn);
-//		} catch (LdapException e) {
-//			logger.error("setSubject exception "+e.getMessage());
-//			throw new SEPASecurityException("setSubject exception "+e.getMessage());
-//		} finally {
-//			unbind();
-//		}
-//	}
 
 	@Override
 	public boolean isAuthorized(String uid) throws SEPASecurityException {
@@ -831,7 +747,7 @@ public class LdapAuthorization implements IAuthorization {
 			if (!cursor.next())
 				throw new SEPASecurityException("uid=" + uid + ",ou=authorizedIndentities," + ldapRoot + " NOT FOUND");
 
-			// Credentials for SPARQL endpoint are stored as Java Serialized Object
+			// SPARQL endpoint credentials are stored as Java Serialized Object
 			Credentials credentials = null;
 			if (cursor.get().contains("objectClass", "javaSerializedObject")) {
 				credentials = Credentials.deserialize(cursor.get().get("javaSerializedData").getBytes());

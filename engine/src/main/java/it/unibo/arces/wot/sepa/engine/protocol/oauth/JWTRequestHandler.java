@@ -78,6 +78,7 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 
 		return true;
 	}
+	
 	private void handleTokenRequest(HttpRequest request, HttpAsyncExchange httpExchange) {
 		logger.info(">> REQUEST TOKEN");
 

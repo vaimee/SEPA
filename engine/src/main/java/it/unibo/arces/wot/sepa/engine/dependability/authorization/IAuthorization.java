@@ -26,14 +26,14 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 
 public interface IAuthorization {
 	// Identities
-	public void addIdentity(DigitalIdentity identity) throws SEPASecurityException;	
-	public void removeIdentity(String uid) throws SEPASecurityException;
+	public void addAuthorizedIdentity(DigitalIdentity identity) throws SEPASecurityException;	
+	public void removeAuthorizedIdentity(String uid) throws SEPASecurityException;
 	public DigitalIdentity getIdentity (String uid) throws SEPASecurityException;
 	public boolean isAuthorized(String identity) throws SEPASecurityException;
 	public boolean isForTesting(String identity) throws SEPASecurityException;
 	
 	// Credentials
-	void storeCredentials(DigitalIdentity identity,String secret) throws SEPASecurityException;
+	boolean storeCredentials(DigitalIdentity identity,String secret) throws SEPASecurityException;
 	void removeCredentials(DigitalIdentity identity) throws SEPASecurityException;	
 	boolean containsCredentials(String uid) throws SEPASecurityException;
 	boolean checkCredentials(String uid, String secret) throws SEPASecurityException;
