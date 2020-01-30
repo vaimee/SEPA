@@ -21,7 +21,7 @@
 				"http": 8000,
 				"ws": 9000,
 				"https": 8443,
-				"wss": 9443
+				"wss": 9090
 			},
 			"paths": {
 				"update": "/update",
