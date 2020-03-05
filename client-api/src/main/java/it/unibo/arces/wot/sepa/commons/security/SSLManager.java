@@ -125,8 +125,8 @@ public class SSLManager implements HostnameVerifier {
 	@Override
 	public boolean verify(String hostname, SSLSession session) {
 		// TODO IMPORTANT Verify X.509 certificate
-		logger.debug("Host verify DISABLED");
-		logger.debug("Hostname: " + hostname + " SSLSession: " + session);
+		//logger.debug("Host verify DISABLED");
+		logger.debug("*** Hostname always VERIFIED ***" + hostname + " SSLSession: " + session);
 
 		return true;
 	}

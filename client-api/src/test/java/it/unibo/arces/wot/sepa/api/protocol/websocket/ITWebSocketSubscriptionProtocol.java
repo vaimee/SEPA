@@ -52,7 +52,7 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	}
 
 	@Test (timeout = 5000)
-	public void MultipleSubscribes() throws IOException, SEPASecurityException, SEPAPropertiesException {
+	public void MultipleSubscribes() throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		int n = 10;
 
 		for (int i = 0; i < n; i++) {

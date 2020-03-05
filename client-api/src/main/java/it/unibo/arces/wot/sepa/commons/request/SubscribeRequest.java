@@ -40,6 +40,14 @@ public class SubscribeRequest extends Request {
 		this.default_graph_uri = defaultGraphURI;
 		this.named_graph_uri = namedGraphURI;
 	}
+	
+	public String getDefaultGraphUri() {
+		return default_graph_uri;
+	}
+	
+	public String getNamedGraphUri() {
+		return named_graph_uri;
+	}
 
 	@Override
 	public String toString() {
