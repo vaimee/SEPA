@@ -53,7 +53,7 @@ DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('nobody', 0);
 
 2) Set default permission of a user
 
-DB.DBA.RDF_DEFAULT_USER_PERMS_SET (USER, PREMS);
+DB.DBA.RDF_DEFAULT_USER_PERMS_SET (USER, PERMS);
 
 3) Set specific permission of a user on each graph
 

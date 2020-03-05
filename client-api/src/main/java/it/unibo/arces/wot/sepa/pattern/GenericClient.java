@@ -121,7 +121,7 @@ public class GenericClient extends Client {
 		 */
 		@Override
 		public void onSubscribe(String spuid, String alias) {
-			activeUrls.put(_url, _client);
+			activeClients.put(_url, _client);
 			subscriptions.put(spuid, _client);
 			if (_handler != null)
 				_handler.onSubscribe(spuid, alias);
@@ -145,10 +145,10 @@ public class GenericClient extends Client {
 
 	/** The active urls. */
 	// URL ==> client
-	private Hashtable<String, SPARQL11SEProtocol> activeUrls = new Hashtable<String, SPARQL11SEProtocol>();
+	private Hashtable<String, SPARQL11SEProtocol> activeClients = new Hashtable<String, SPARQL11SEProtocol>();
 
 	/** The subscriptions. */
-	// SPUID ==> URL
+	// SPUID ==> client
 	private Hashtable<String, SPARQL11SEProtocol> subscriptions = new Hashtable<String, SPARQL11SEProtocol>();
 
 	/**
@@ -495,30 +495,27 @@ public class GenericClient extends Client {
 			url = "ws_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
 					+ appProfile.getSubscribePath(ID);
 
-			if (!activeUrls.containsKey(url)) {
+			if (!activeClients.containsKey(url)) {
 				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
 						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID));
 				client = new SPARQL11SEProtocol(protocol);
-
 				protocol.setHandler(new Handler(url, client, handler));
 
 			} else
-				client = activeUrls.get(url);
+				client = activeClients.get(url);
 
 			break;
 		case WSS:
 			url = "wss_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
 					+ appProfile.getSubscribePath(ID);
 
-			if (!activeUrls.containsKey(url)) {
+			if (!activeClients.containsKey(url)) {
 				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
-						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID));
-				protocol.enableSecurity(sm);
+						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID),sm);
 				client = new SPARQL11SEProtocol(protocol);
-
 				protocol.setHandler(new Handler(url, client, handler));
 			} else
-				client = activeUrls.get(url);
+				client = activeClients.get(url);
 
 			try {
 				if (sm != null) auth = sm.getAuthorizationHeader();
@@ -555,7 +552,7 @@ public class GenericClient extends Client {
 	 */
 	@Override
 	public void close() throws IOException {
-		for (SPARQL11SEProtocol client : activeUrls.values())
+		for (SPARQL11SEProtocol client : activeClients.values())
 			client.close();
 	}
 

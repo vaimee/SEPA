@@ -23,28 +23,29 @@ class Subscriber extends Thread implements Closeable {
 	protected final Logger logger = LogManager.getLogger();
 	protected ClientSecurityManager sm = null;
 
-	public Subscriber(int n, ISubscriptionHandler handler) throws SEPASecurityException, SEPAPropertiesException {
+	public Subscriber(int n, ISubscriptionHandler handler) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		provider = new ConfigurationProvider();
 
 		if (provider.getJsap().isSecure())
 			sm = provider.buildSecurityManager();
 
-		client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath());
-
 		if (provider.getJsap().isSecure())
-			client.enableSecurity(sm);
-		
+			client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
+					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), sm);
+		else
+			client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
+					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath());
+
 		client.setHandler(handler);
 
 		this.n = n;
 	}
 
 	public void run() {
-		if(provider.getJsap().isSecure()){
+		if (provider.getJsap().isSecure()) {
 			try {
 				sm.register("SEPATest");
-			} catch (SEPASecurityException | SEPAPropertiesException  e) {
+			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e);
 			}
 		}
@@ -57,7 +58,7 @@ class Subscriber extends Thread implements Closeable {
 		}
 
 		try {
-			synchronized(this) {
+			synchronized (this) {
 				wait();
 			}
 		} catch (InterruptedException e1) {
@@ -73,7 +74,7 @@ class Subscriber extends Thread implements Closeable {
 	public void unsubscribe(String spuid) throws SEPAProtocolException {
 		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 500, sm));
 	}
-	
+
 	@Override
 	public void close() throws IOException {
 		n = 0;

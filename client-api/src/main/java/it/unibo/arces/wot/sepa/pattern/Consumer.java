@@ -79,9 +79,9 @@ public abstract class Consumer extends Client implements IConsumer {
 		// Subscription protocol
 		SubscriptionProtocol protocol = null;
 		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
-				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID));
-		protocol.setHandler(this);
-		if (appProfile.isSecure()) protocol.enableSecurity(sm);
+				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID),this,sm);
+//		protocol.setHandler(this);
+//		if (appProfile.isSecure()) protocol.enableSecurity(sm);
 
 		client = new SPARQL11SEProtocol(protocol,sm);
 	}

@@ -19,20 +19,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package it.unibo.arces.wot.sepa.api;
 
 import java.io.Closeable;
-//import java.io.IOException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
-public interface SubscriptionProtocol extends Closeable {
-	public void setHandler(ISubscriptionHandler handler);
+public abstract class SubscriptionProtocol implements Closeable {
+	protected ISubscriptionHandler handler;
+	protected final ClientSecurityManager sm;
 	
-	public void enableSecurity(ClientSecurityManager sm) throws SEPASecurityException;
+	public void setHandler(ISubscriptionHandler handler) {
+		this.handler = handler;
+	}
 
-	public void subscribe(SubscribeRequest request) throws SEPAProtocolException;
+	public SubscriptionProtocol() {
+		this.sm = null;
+		this.handler = null;
+	}
+	
+	public SubscriptionProtocol(ISubscriptionHandler handler) {
+		this.handler = handler;
+		this.sm = null;
+	}
+	
+	public SubscriptionProtocol(ISubscriptionHandler handler,ClientSecurityManager sm) {
+		this.handler = handler;
+		this.sm = sm;
+	}
+	
 
-	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException;
+	public abstract void subscribe(SubscribeRequest request) throws SEPAProtocolException;
+
+	public abstract void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException;
 }
