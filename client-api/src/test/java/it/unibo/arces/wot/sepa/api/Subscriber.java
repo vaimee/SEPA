@@ -36,18 +36,12 @@ class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 		
 		this.id = id;
 		this.sync = sync;
-
-		SubscriptionProtocol protocol;
-		if (provider.getJsap().isSecure()) {
-			sm = provider.buildSecurityManager();
-			protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(),sm);
-		} else {
-			sm = null;
-			protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath());
-		}
-		protocol.setHandler(this);
+		
+		if (provider.getJsap().isSecure()) sm = provider.buildSecurityManager();
+		else sm = null;
+		
+		SubscriptionProtocol protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
+					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(),this,sm);
 
 		client = new SPARQL11SEProtocol(protocol);
 	}

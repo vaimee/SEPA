@@ -71,7 +71,7 @@ public class ClientSecurityManager {
 		
 		oauthProperties = oauthProp;
 		
-		if (!oauthProperties.trustAll()) throw new SEPASecurityException("Missing JKS parameters");
+		if (!oauthProperties.trustAll()) throw new SEPASecurityException("Missing JKS file and password");
 	}
 	
 	public ClientSecurityManager(AuthenticationProperties oauthProp, String jksName, String jksPassword) throws SEPASecurityException {		
@@ -195,7 +195,9 @@ public class ClientSecurityManager {
 		return refreshToken(5000);
 	}
 
-	private Response register(String url, String identity, int timeout) {
+	private Response register(String url, String identity, int timeout) throws SEPASecurityException {
+		if (identity == null) throw new SEPASecurityException("Identity is null");
+			
 		logger.info("REGISTER " + identity);
 
 		CloseableHttpResponse response = null;

@@ -28,16 +28,12 @@ class Subscriber extends Thread implements Closeable {
 
 		if (provider.getJsap().isSecure())
 			sm = provider.buildSecurityManager();
-
-		if (provider.getJsap().isSecure())
-			client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), sm);
 		else
-			client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath());
-
-		client.setHandler(handler);
-
+			sm = null;
+		
+		client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
+				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), handler,sm);
+		
 		this.n = n;
 	}
 

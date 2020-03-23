@@ -171,8 +171,8 @@ public class JSAP extends SPARQL11SEProperties {
 
 	protected String prefixes = "";
 
-	protected HashMap<String,String> namespaces = new HashMap<String,String>();
-	
+	protected HashMap<String, String> namespaces = new HashMap<String, String>();
+
 	protected final AuthenticationProperties oauth;
 
 	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
@@ -191,7 +191,7 @@ public class JSAP extends SPARQL11SEProperties {
 		defaultNamespaces();
 		readNamespaces();
 		buildSPARQLPrefixes();
-		
+
 		oauth = new AuthenticationProperties();
 	}
 
@@ -201,13 +201,17 @@ public class JSAP extends SPARQL11SEProperties {
 	 * 
 	 * @throws IOException
 	 * @throws FileNotFoundException
+	 * @throws SEPAPropertiesException 
 	 */
-	public void read(String filename, boolean replace) throws FileNotFoundException, IOException {
+	public void read(String filename, boolean replace) throws FileNotFoundException, IOException, SEPAPropertiesException {
 		final FileReader in = new FileReader(filename);
 		JsonObject temp = new JsonParser().parse(in).getAsJsonObject();
-		
+
 		merge(temp, jsap, replace);
 		
+		// Validate the JSON elements
+		validate();
+
 		readNamespaces();
 		buildSPARQLPrefixes();
 	}
@@ -250,14 +254,14 @@ public class JSAP extends SPARQL11SEProperties {
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#decimal");
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#double");
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#boolean");
-		
+
 		// Default namespaces
 		namespaces.put("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 		namespaces.put("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
 		namespaces.put("owl", "http://www.w3.org/2002/07/owl#");
 		namespaces.put("xsd", "http://www.w3.org/2001/XMLSchema#");
 	}
-	
+
 //	/**
 //	 * <pre>
 //	 * "namespaces" : { 
@@ -278,26 +282,27 @@ public class JSAP extends SPARQL11SEProperties {
 //			return null;
 //		}
 //	}
-	
-	public HashMap<String,String> getNamespaces() {
+
+	public HashMap<String, String> getNamespaces() {
 		return namespaces;
 	}
-	
+
 	private void buildSPARQLPrefixes() {
 		prefixes = "";
 		for (String prefix : namespaces.keySet()) {
 			prefixes += "PREFIX " + prefix + ":<" + namespaces.get(prefix) + "> ";
-		}	
+		}
 	}
-	
+
 	private void readNamespaces() {
-		if (!jsap.has("namespaces")) return;
-			
+		if (!jsap.has("namespaces"))
+			return;
+
 		try {
 			for (Entry<String, JsonElement> ns : jsap.getAsJsonObject("namespaces").entrySet())
 				namespaces.put(ns.getKey(), ns.getValue().getAsString());
 		} catch (Exception e) {
-			logger.error("getPrefixes exception: "+e.getMessage());
+			logger.error("getPrefixes exception: " + e.getMessage());
 		}
 	}
 
@@ -311,6 +316,10 @@ public class JSAP extends SPARQL11SEProperties {
 		return oauth.isEnabled();
 	}
 
+	public boolean sslTrustAll() {
+		return oauth.trustAll();
+	}
+
 	public boolean reconnect() {
 		try {
 			return jsap.getAsJsonObject("sparql11seprotocol").get("reconnect").getAsBoolean();
@@ -318,9 +327,9 @@ public class JSAP extends SPARQL11SEProperties {
 			logger.warn("sparql11seprotocol-reconnect not found. Default: false");
 		}
 
-		return false;	
+		return false;
 	}
-	
+
 	public JsonObject getExtendedData() {
 		try {
 			return jsap.getAsJsonObject("extended");
@@ -359,7 +368,7 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("updates").getAsJsonObject(id).get("sparql").getAsString();
 		} catch (Exception e) {
-			logger.error("SPARQL Update "+id+"  not found");
+			logger.error("SPARQL Update " + id + "  not found");
 		}
 		return null;
 	}
@@ -387,7 +396,7 @@ public class JSAP extends SPARQL11SEProperties {
 			else
 				return "application/html";
 		} catch (Exception e) {
-			
+
 		}
 
 		return super.getUpdateAcceptHeader();
@@ -567,15 +576,15 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("queries").getAsJsonObject(id).get("sparql").getAsString();
 		} catch (Exception e) {
-			logger.fatal("SPARQL query "+id+" not found");
+			logger.fatal("SPARQL query " + id + " not found");
 		}
 		return null;
 	}
 
 	public String getQueryHost(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
-					.get("host").getAsString();
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("host")
+					.getAsString();
 		} catch (Exception e) {
 			try {
 				return jsap.getAsJsonObject("queries").getAsJsonObject(id).get("host").getAsString();
@@ -589,7 +598,8 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getQueryProtocolScheme(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("protocol").getAsString();
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
+					.get("protocol").getAsString();
 		} catch (Exception e) {
 		}
 
@@ -598,7 +608,8 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public int getQueryPort(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("port").getAsInt();
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("port")
+					.getAsInt();
 		} catch (Exception e) {
 		}
 
@@ -607,7 +618,8 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getQueryPath(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("path").getAsString();
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
+					.getAsJsonObject("query").get("path").getAsString();
 		} catch (Exception e) {
 		}
 
@@ -644,7 +656,7 @@ public class JSAP extends SPARQL11SEProperties {
 				return "application/sparql-results+json";
 			}
 		} catch (Exception e) {
-			
+
 		}
 
 		return super.getQueryAcceptHeader();
@@ -652,8 +664,8 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getNamedGraphURI(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs")
-					.get("named-graph-uri").getAsString();
+			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs").get("named-graph-uri")
+					.getAsString();
 		} catch (Exception e) {
 		}
 
@@ -841,7 +853,7 @@ public class JSAP extends SPARQL11SEProperties {
 			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
 					.getAsJsonObject("availableProtocols").getAsJsonObject(protocol).get("host").getAsString();
 		} catch (Exception e) {
-			
+
 		}
 
 		return super.getSubscribeHost();
@@ -922,8 +934,9 @@ public class JSAP extends SPARQL11SEProperties {
 	public Set<String> getUpdateIds() {
 		HashSet<String> ret = new HashSet<String>();
 
-		if (!jsap.has("updates")) return ret;
-		
+		if (!jsap.has("updates"))
+			return ret;
+
 		try {
 			for (Entry<String, JsonElement> key : jsap.getAsJsonObject("updates").entrySet()) {
 				ret.add(key.getKey());
@@ -938,8 +951,9 @@ public class JSAP extends SPARQL11SEProperties {
 	public Set<String> getQueryIds() {
 		HashSet<String> ret = new HashSet<String>();
 
-		if (!jsap.has("queries")) return ret;
-		
+		if (!jsap.has("queries"))
+			return ret;
+
 		try {
 			for (Entry<String, JsonElement> key : jsap.getAsJsonObject("queries").entrySet()) {
 				ret.add(key.getKey());
@@ -1022,7 +1036,7 @@ public class JSAP extends SPARQL11SEProperties {
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
-			logger.error("getUpdateBindings "+id+" exception: "+e.getMessage());
+			logger.error("getUpdateBindings " + id + " exception: " + e.getMessage());
 		}
 
 		return ret;
@@ -1072,7 +1086,7 @@ public class JSAP extends SPARQL11SEProperties {
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
-			logger.error("getQueryBindings "+id+" exception: "+e.getMessage());
+			logger.error("getQueryBindings " + id + " exception: " + e.getMessage());
 		}
 
 		return ret;
@@ -1131,7 +1145,7 @@ public class JSAP extends SPARQL11SEProperties {
 		return prefixes + replaceBindings(sparql, bindings);
 	}
 
-	//TODO: use Jena?
+	// TODO: use Jena?
 //	private final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 //		QuerySolutionMap initialBinding = new QuerySolutionMap();
 //		for (String var : bindings.getVariables()) {
@@ -1212,7 +1226,7 @@ public class JSAP extends SPARQL11SEProperties {
 					if (lang != null)
 						value += "@" + bindings.getLanguage(var);
 					else {
-						value = "'" + StringEscapeUtils.escapeJava(value) + "'";	
+						value = "'" + StringEscapeUtils.escapeJava(value).replace("'", " ") + "'";
 					}
 				} else if (!numbersOrBoolean.contains(datatype)) {
 					// Check if datatype is a qname or not
@@ -1228,7 +1242,7 @@ public class JSAP extends SPARQL11SEProperties {
 							datatype = "<" + datatype + ">";
 					}
 
-					value = "'" + StringEscapeUtils.escapeJava(value) + "'";
+					value = "'" + StringEscapeUtils.escapeJava(value).replace("'", " ") + "'";
 					value += "^^" + datatype;
 				}
 			} else if (bindings.isURI(var)) {
@@ -1283,16 +1297,23 @@ public class JSAP extends SPARQL11SEProperties {
 					index = replacedSparql.indexOf("$" + var, start);
 				if (index != -1) {
 					start = index + 1;
-					int unicode = replacedSparql.codePointAt(index + var.length() + 1);
-					if (!isValidVarChar(unicode)) {
-						replacedSparql = replacedSparql.substring(0, index) + value
-								+ replacedSparql.substring(index + var.length() + 1);
+					if (index + var.length() + 1 <= replacedSparql.length()-1) {
+						int unicode = replacedSparql.codePointAt(index + var.length() + 1);
+						if (!isValidVarChar(unicode)) {
+							replacedSparql = replacedSparql.substring(0, index) + value
+									+ replacedSparql.substring(index + var.length() + 1);
+						}
 					}
+					// END OF STRING
+					else {
+						replacedSparql = replacedSparql.substring(0, index) + value;
+					}
+
 				} else
 					start = index;
 			}
 
-			selectPattern = selectPattern.replace(" ?" + var+" ", "");
+			selectPattern = selectPattern.replace(" ?" + var + " ", "");
 		}
 
 		return selectPattern + replacedSparql;
