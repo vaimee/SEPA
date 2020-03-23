@@ -74,40 +74,40 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 		client = new WebsocketClientEndpoint(sm, this);
 	}
 	
-	public WebsocketSubscriptionProtocol(String host, int port, String path, 
-			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
-		this(host, port, path, null, sm);
-	}
-	
-	public WebsocketSubscriptionProtocol(String host, String path, 
-			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
-		this(host, -1, path, null, sm);
-	}
-	
-	public WebsocketSubscriptionProtocol(String host, String path) throws SEPASecurityException, SEPAProtocolException {
-		this(host, -1, path, null, null);
-	}
-
-
-	public WebsocketSubscriptionProtocol(String host, String path, ISubscriptionHandler handler,
-			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
-		this(host, -1, path, handler, sm);
-	}
-
-	public WebsocketSubscriptionProtocol(String host, String path, ISubscriptionHandler handler)
-			throws SEPASecurityException, SEPAProtocolException {
-		this(host, -1, path, handler, null);
-	}
-
-	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler)
-			throws SEPASecurityException, SEPAProtocolException {
-		this(host, port, path, handler, null);
-	}
-	
-	public WebsocketSubscriptionProtocol(String host, int port, String path)
-			throws SEPASecurityException, SEPAProtocolException {
-		this(host, port, path, null, null);
-	}
+//	public WebsocketSubscriptionProtocol(String host, int port, String path, 
+//			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
+//		this(host, port, path, null, sm);
+//	}
+//	
+//	public WebsocketSubscriptionProtocol(String host, String path, 
+//			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
+//		this(host, -1, path, null, sm);
+//	}
+//	
+//	public WebsocketSubscriptionProtocol(String host, String path) throws SEPASecurityException, SEPAProtocolException {
+//		this(host, -1, path, null, null);
+//	}
+//
+//
+//	public WebsocketSubscriptionProtocol(String host, String path, ISubscriptionHandler handler,
+//			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
+//		this(host, -1, path, handler, sm);
+//	}
+//
+//	public WebsocketSubscriptionProtocol(String host, String path, ISubscriptionHandler handler)
+//			throws SEPASecurityException, SEPAProtocolException {
+//		this(host, -1, path, handler, null);
+//	}
+//
+//	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler)
+//			throws SEPASecurityException, SEPAProtocolException {
+//		this(host, port, path, handler, null);
+//	}
+//	
+//	public WebsocketSubscriptionProtocol(String host, int port, String path)
+//			throws SEPASecurityException, SEPAProtocolException {
+//		this(host, port, path, null, null);
+//	}
 
 	@Override
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {

@@ -44,6 +44,10 @@ public abstract class Request {
 		this.sparql = sparql;
 		this.authorizationHeader = auth;
 	}
+	
+	public void setAuthorizationHeader(String auth) {
+		this.authorizationHeader = auth;
+	}
 
 	@Override
 	public int hashCode() {

@@ -76,7 +76,9 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
 					appProfile.getUpdatePath(SPARQL_ID), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,SPARQL_ID,false)),
 					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout);
-		 
+		
+		logger.debug("UPDATE "+req);
+		
 		 Response retResponse = sparql11.update(req);
 		 
 		 while (isSecure() && retResponse.isError()) {

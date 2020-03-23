@@ -151,6 +151,7 @@ public class SPARQL11Properties {
 	protected JsonObject jsap = new JsonObject();
 
 	public SPARQL11Properties(String propertiesFile) throws SEPAPropertiesException {
+		if (propertiesFile == null) throw new SEPAPropertiesException("JSAP file is null");
 		loadProperties(propertiesFile);
 	}
 	
