@@ -1171,12 +1171,12 @@ public class JSAP extends SPARQL11SEProperties {
 			return sparql;
 
 		String replacedSparql = String.format("%s", sparql);
-		String selectPattern = "";
-
-		if (sparql.toUpperCase().contains("SELECT")) {
-			selectPattern = replacedSparql.substring(0, sparql.indexOf('{'));
-			replacedSparql = replacedSparql.substring(sparql.indexOf('{'), replacedSparql.length());
-		}
+//		String selectPattern = "";
+//
+//		if (sparql.toUpperCase().contains("SELECT")) {
+//			selectPattern = replacedSparql.substring(0, sparql.indexOf('{'));
+//			replacedSparql = replacedSparql.substring(sparql.indexOf('{'), replacedSparql.length());
+//		}
 
 		for (String var : bindings.getVariables()) {
 			String value = bindings.getValue(var);
@@ -1313,10 +1313,11 @@ public class JSAP extends SPARQL11SEProperties {
 					start = index;
 			}
 
-			selectPattern = selectPattern.replace(" ?" + var + " ", "");
+//			selectPattern = selectPattern.replace(" ?" + var + " ", "");
 		}
 
-		return selectPattern + replacedSparql;
+		return replacedSparql;
+//		return selectPattern + replacedSparql;
 	}
 
 	private boolean isValidVarChar(int c) {
