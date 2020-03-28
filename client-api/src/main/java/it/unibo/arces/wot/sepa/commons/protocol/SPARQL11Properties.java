@@ -151,8 +151,12 @@ public class SPARQL11Properties {
 	protected JsonObject jsap = new JsonObject();
 
 	public SPARQL11Properties(String propertiesFile) throws SEPAPropertiesException {
+		this(propertiesFile,false);
+	}
+	
+	public SPARQL11Properties(String propertiesFile,boolean validate) throws SEPAPropertiesException {
 		if (propertiesFile == null) throw new SEPAPropertiesException("JSAP file is null");
-		loadProperties(propertiesFile);
+		loadProperties(propertiesFile,validate);
 	}
 	
 	public SPARQL11Properties() {
@@ -160,16 +164,17 @@ public class SPARQL11Properties {
 		this.propertiesFile = null;
 	}
 
-	private void loadProperties(String jsapFile) throws SEPAPropertiesException {
+	private void loadProperties(String jsapFile,boolean val) throws SEPAPropertiesException {
 		try (final FileReader in = new FileReader(jsapFile)) {
 			jsap = new JsonParser().parse(in).getAsJsonObject();
 
 			// Validate the JSON elements
-			validate();
+			if (val) validate();
+			
 			this.propertiesFile = jsapFile;
 		} catch (Exception e) {
 
-			logger.warn(e.getMessage());
+			logger.warn("jsapFile: "+ jsapFile+ " Exception: "+e.getMessage());
 
 			defaults();
 

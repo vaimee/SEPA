@@ -176,7 +176,11 @@ public class JSAP extends SPARQL11SEProperties {
 	protected final AuthenticationProperties oauth;
 
 	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
-		super(propertiesFile);
+		this(propertiesFile,false);
+	}
+	
+	public JSAP(String propertiesFile,boolean validate) throws SEPAPropertiesException, SEPASecurityException {
+		super(propertiesFile,validate);
 
 		defaultNamespaces();
 		readNamespaces();
@@ -203,17 +207,21 @@ public class JSAP extends SPARQL11SEProperties {
 	 * @throws FileNotFoundException
 	 * @throws SEPAPropertiesException 
 	 */
-	public void read(String filename, boolean replace) throws FileNotFoundException, IOException, SEPAPropertiesException {
+	public void read(String filename, boolean replace,boolean validate) throws FileNotFoundException, IOException, SEPAPropertiesException {
 		final FileReader in = new FileReader(filename);
 		JsonObject temp = new JsonParser().parse(in).getAsJsonObject();
 
 		merge(temp, jsap, replace);
 		
 		// Validate the JSON elements
-		validate();
+		if (validate) validate();
 
 		readNamespaces();
 		buildSPARQLPrefixes();
+	}
+	
+	public void read(String filename, boolean replace) throws FileNotFoundException, IOException, SEPAPropertiesException {
+		read(filename,replace,false);
 	}
 
 	private JsonObject merge(JsonObject temp, JsonObject jsap, boolean replace) {
