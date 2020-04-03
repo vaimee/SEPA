@@ -36,7 +36,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class Producer extends Client implements IProducer {
-	private static final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";

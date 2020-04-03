@@ -306,8 +306,6 @@ public class SPARQL11Properties {
 		jsap.add("host", new JsonPrimitive(host));
 	}
 	
-
-
 	/**
 	 * Gets the update port.
 	 *
@@ -329,7 +327,6 @@ public class SPARQL11Properties {
 	public void setPort(int port) {
 		jsap.getAsJsonObject("sparql11protocol").add("port",new JsonPrimitive(port));
 	}
-
 
 	/**
 	 * Gets the default graph URI.
