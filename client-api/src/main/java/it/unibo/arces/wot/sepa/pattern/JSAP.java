@@ -284,12 +284,12 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public void read(String filename, boolean replace)
-			throws FileNotFoundException, IOException, SEPAPropertiesException, SEPASecurityException {
+			throws SEPAPropertiesException, SEPASecurityException {
 		read(filename, replace, false);
 	}
 
 	public void read(String filename)
-			throws FileNotFoundException, IOException, SEPAPropertiesException, SEPASecurityException {
+			throws SEPAPropertiesException, SEPASecurityException {
 		read(filename, true, false);
 	}
 
