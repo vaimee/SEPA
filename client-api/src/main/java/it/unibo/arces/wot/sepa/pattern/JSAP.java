@@ -18,12 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -54,6 +54,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
  * 
  * <pre>
  * {
+ "#include" : ["file:///test1.jsap","file://localhost/test2.jsap","file:/test3.jsap",...]
  "host" : "...",
  "sparql11protocol": {
  		"host":"...", 	(optional)
@@ -167,36 +168,79 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
  * </pre>
  */
 public class JSAP extends SPARQL11SEProperties {
-	protected static ArrayList<String> numbersOrBoolean = new ArrayList<String>();
+	protected static Set<String> numbersOrBoolean = new HashSet<String>();
 
 	protected String prefixes = "";
 
 	protected HashMap<String, String> namespaces = new HashMap<String, String>();
 
-	protected final AuthenticationProperties oauth;
-
-	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
-		this(propertiesFile,false);
-	}
-	
-	public JSAP(String propertiesFile,boolean validate) throws SEPAPropertiesException, SEPASecurityException {
-		super(propertiesFile,validate);
-
-		defaultNamespaces();
-		readNamespaces();
-		buildSPARQLPrefixes();
-
-		oauth = new AuthenticationProperties(propertiesFile);
-	}
+	protected AuthenticationProperties oauth = new AuthenticationProperties();
 
 	public JSAP() {
 		super();
 
-		defaultNamespaces();
-		readNamespaces();
 		buildSPARQLPrefixes();
+	}
 
-		oauth = new AuthenticationProperties();
+	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
+		this(propertiesFile, false);
+	}
+
+	public JSAP(String propertiesFile, boolean validate) throws SEPAPropertiesException, SEPASecurityException {
+		super(propertiesFile, validate);
+
+		if (jsap.has("oauth"))
+			oauth = new AuthenticationProperties(propertiesFile);
+
+		if (jsap.has("#include"))
+			loadIncluded(jsap, validate, propertiesFile);
+
+		buildSPARQLPrefixes();
+	}
+
+	private void loadIncluded(JsonObject jsap, boolean validate, String parentFile) throws SEPAPropertiesException, SEPASecurityException {
+		File path = new File(parentFile);
+
+		HashSet<String> files = new HashSet<>();
+		for (JsonElement element : jsap.get("#include").getAsJsonArray())
+			files.add(element.getAsString());
+		jsap.remove("#include");
+
+		for (String uri : files) includeJsap(uri, path.getParent(),validate);
+		
+		if (jsap.has("#include")) loadIncluded(jsap, validate, parentFile);		
+	}
+
+	private void includeJsap(String uri, String dir,boolean validate )
+			throws SEPAPropertiesException, SEPASecurityException {
+		if (uri.startsWith("file:/")) {
+			loadFromFile(uri, dir,validate);
+		} else {
+			logger.warn("URI not supported: " + uri);
+		}
+	}
+
+	private void loadFromFile(String uri,  String dir,boolean validate)
+			throws SEPAPropertiesException, SEPASecurityException {
+		String path;
+		// String hostName;
+		if (uri.charAt(6) != '/') {
+			// file:/path
+			path = uri.substring(6);
+		} else if (uri.charAt(8) == '/') {
+			// file:///path
+			path = uri.substring(9);
+		} else {
+			// file://hostname/path
+			// hostName = uri.substring(7, uri.indexOf('/', 7)+1);
+			path = uri.substring(uri.indexOf('/', 7) + 1);
+		}
+
+		File file = new File(path);
+		if (file.getParent() == null && dir != null)
+			path = dir + File.separator + path;
+
+		read(path, true, validate);
 	}
 
 	/**
@@ -205,23 +249,48 @@ public class JSAP extends SPARQL11SEProperties {
 	 * 
 	 * @throws IOException
 	 * @throws FileNotFoundException
-	 * @throws SEPAPropertiesException 
+	 * @throws SEPAPropertiesException
+	 * @throws SEPASecurityException
 	 */
-	public void read(String filename, boolean replace,boolean validate) throws FileNotFoundException, IOException, SEPAPropertiesException {
-		final FileReader in = new FileReader(filename);
+	public void read(String filename, boolean replace, boolean validate)
+			throws SEPAPropertiesException, SEPASecurityException {
+		FileReader in;
+		try {
+			in = new FileReader(filename);
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e.getMessage());
+		}
+		
 		JsonObject temp = new JsonParser().parse(in).getAsJsonObject();
+		
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e.getMessage());
+		}
 
 		merge(temp, jsap, replace);
-		
-		// Validate the JSON elements
-		if (validate) validate();
 
-		readNamespaces();
+		// Validate the JSON elements
+		if (validate)
+			validate();
+
+		// OAuth
+		if (temp.has("oauth")) {
+			oauth = new AuthenticationProperties(filename);
+		}
+
 		buildSPARQLPrefixes();
 	}
-	
-	public void read(String filename, boolean replace) throws FileNotFoundException, IOException, SEPAPropertiesException {
-		read(filename,replace,false);
+
+	public void read(String filename, boolean replace)
+			throws FileNotFoundException, IOException, SEPAPropertiesException, SEPASecurityException {
+		read(filename, replace, false);
+	}
+
+	public void read(String filename)
+			throws FileNotFoundException, IOException, SEPAPropertiesException, SEPASecurityException {
+		read(filename, true, false);
 	}
 
 	private JsonObject merge(JsonObject temp, JsonObject jsap, boolean replace) {
@@ -270,32 +339,18 @@ public class JSAP extends SPARQL11SEProperties {
 		namespaces.put("xsd", "http://www.w3.org/2001/XMLSchema#");
 	}
 
-//	/**
-//	 * <pre>
-//	 * "namespaces" : { 
-//	 	"iot":"http://www.arces.unibo.it/iot#",
-//	 	"rdf":"http://www.w3.org/1999/02/22-rdf-syntax-ns#"},
-//	 * </pre>
-//	 */
-//
 	public String getPrefixes() {
 		return prefixes;
 	}
-//
-//	public String getNamespaceURI(String prefix) {
-//		try {
-//			return jsap.getAsJsonObject("namespaces").get(prefix).getAsString();
-//		} catch (Exception e) {
-//			logger.error(e.getMessage());
-//			return null;
-//		}
-//	}
 
 	public HashMap<String, String> getNamespaces() {
 		return namespaces;
 	}
 
 	private void buildSPARQLPrefixes() {
+		defaultNamespaces();
+		readNamespaces();
+
 		prefixes = "";
 		for (String prefix : namespaces.keySet()) {
 			prefixes += "PREFIX " + prefix + ":<" + namespaces.get(prefix) + "> ";
@@ -1305,7 +1360,7 @@ public class JSAP extends SPARQL11SEProperties {
 					index = replacedSparql.indexOf("$" + var, start);
 				if (index != -1) {
 					start = index + 1;
-					if (index + var.length() + 1 <= replacedSparql.length()-1) {
+					if (index + var.length() + 1 <= replacedSparql.length() - 1) {
 						int unicode = replacedSparql.codePointAt(index + var.length() + 1);
 						if (!isValidVarChar(unicode)) {
 							replacedSparql = replacedSparql.substring(0, index) + value

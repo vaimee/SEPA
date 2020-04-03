@@ -63,7 +63,7 @@ public class AuthenticationProperties {
 	private static final Logger logger = LogManager.getLogger();
 
 	/** The properties file. */
-	protected final File propertiesFile;
+//	protected final File propertiesFile;
 
 	private final Encryption encryption;
 
@@ -82,6 +82,8 @@ public class AuthenticationProperties {
 	private String ssl = "TLS";
 	private boolean trustAll = false;
 
+	private File propertiesFile;
+
 	public AuthenticationProperties(String jsapFileName, byte[] secret) throws SEPAPropertiesException, SEPASecurityException {
 		propertiesFile = new File(jsapFileName);
 
@@ -91,7 +93,9 @@ public class AuthenticationProperties {
 		} catch (FileNotFoundException e) {
 			throw new SEPAPropertiesException("FileNotFoundException. "+e.getMessage());
 		}
+		
 		JsonObject jsap = new JsonParser().parse(in).getAsJsonObject();
+		
 		try {
 			in.close();
 		} catch (IOException e) {
@@ -148,15 +152,14 @@ public class AuthenticationProperties {
 
 	}
 
-	public AuthenticationProperties(String jsapFileName) throws SEPAPropertiesException, SEPASecurityException {
-		this(jsapFileName, null);
+	public AuthenticationProperties(String jsap) throws SEPAPropertiesException, SEPASecurityException {
+		this(jsap, null);
 	}
 
 	public AuthenticationProperties() {
 		enabled = false;
 		registrationURL = null;
 		tokenRequestURL = null;
-		propertiesFile = null;
 		encryption = new Encryption();
 	}
 
