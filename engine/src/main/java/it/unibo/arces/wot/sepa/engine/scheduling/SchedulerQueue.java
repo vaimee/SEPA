@@ -40,7 +40,7 @@ class SchedulerQueue {
 	private final static LinkedBlockingQueue<ScheduledRequest> subscribesUnsubscribes = new LinkedBlockingQueue<ScheduledRequest>();
 	
 	// Broken subscriptions
-	private final static LinkedBlockingQueue<String> toBeKilled = new LinkedBlockingQueue<String>();
+//	private final static LinkedBlockingQueue<String> toBeKilled = new LinkedBlockingQueue<String>();
 	
 	// Responses
 	private final static LinkedBlockingQueue<ScheduledResponse> responses = new LinkedBlockingQueue<ScheduledResponse>();
@@ -125,13 +125,25 @@ class SchedulerQueue {
 	public void addResponse(int token,Response res) {
 		releaseToken(token);
 		responses.offer(new ScheduledResponse(token,res));
+	}
+
+	public long getPendingUpdates() {
+		return updates.size();
+	}
+
+	public long getPendingQueries() {
+		return queries.size();
+	}
+
+	public long getPendingSubscribes() {
+		return subscribesUnsubscribes.size();
 	}	
 
-	public void killSpuid(String spuid) {
-		toBeKilled.offer(spuid);
-	}
-
-	public String waitSpuid2Kill() throws InterruptedException {
-		return toBeKilled.take();
-	}
+//	public void killSpuid(String spuid) {
+//		toBeKilled.offer(spuid);
+//	}
+//
+//	public String waitSpuid2Kill() throws InterruptedException {
+//		return toBeKilled.take();
+//	}
 }
