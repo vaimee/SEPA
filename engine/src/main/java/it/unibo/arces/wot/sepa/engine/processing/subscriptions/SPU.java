@@ -19,9 +19,9 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
@@ -56,10 +56,6 @@ public abstract class SPU extends Thread implements ISPU {
 	// SPU identifier
 	protected String spuid;
 
-	// Update queue
-	private final LinkedBlockingQueue<InternalUpdateRequest> updateRequestQueue = new LinkedBlockingQueue<InternalUpdateRequest>();
-	private final LinkedBlockingQueue<Response> updateResponseQueue = new LinkedBlockingQueue<Response>();
-
 	// Thread loop
 	private final AtomicBoolean running = new AtomicBoolean(true);
 
@@ -67,6 +63,7 @@ public abstract class SPU extends Thread implements ISPU {
 	protected BindingsResults lastBindings = null;
 	
 	// Request and response
+	private final AtomicBoolean preProcessing = new AtomicBoolean();
 	protected InternalUpdateRequest request;
 	protected Response response;
 	protected final InternalSubscribeRequest subscribe;
@@ -109,119 +106,58 @@ public abstract class SPU extends Thread implements ISPU {
 
 	@Override
 	public final void postUpdateProcessing(Response res) {
-		try {
-			updateResponseQueue.put(res);
-		} catch (InterruptedException e) {
-			logger.error(e.getMessage());
-		}
+		response = res;
+		synchronized(preProcessing) {
+			preProcessing.set(false);
+			preProcessing.notify();
+		}	
 	}
 
 	@Override
-	public final void preUpdateProcessing(InternalUpdateRequest req) {
-		try {
-			updateRequestQueue.put(req);
-		} catch (InterruptedException e) {
-			logger.error(e.getMessage());
+	public final void preUpdateProcessing(InternalPreProcessedUpdateRequest req) {
+		request = req;
+		synchronized(preProcessing) {
+			preProcessing.set(true);
+			preProcessing.notify();
 		}
 	}
 
 	@Override
 	public void run() {
 		while (running.get()) {
-			// Wait update request
-			logger.debug("Wait update request...");
 			try {
-				request = updateRequestQueue.take();
-			} catch (InterruptedException e) {
+				synchronized(preProcessing) {
+					preProcessing.wait();
+				}
+			}
+			catch(InterruptedException e) {
+				logger.warn(e.getMessage());
 				return;
 			}
 			
-			// PRE processing
-			logger.debug("* PRE PROCESSING *");
 			try {
-				preUpdateInternalProcessing(request);
-			} catch (SEPAProcessingException e1) {
-				logger.error(e1.getMessage());
-				if (logger.isTraceEnabled()) e1.printStackTrace();
-			}
-			
-			// End of PRE processing
-			logger.debug("Notify SPU manager of EOP. Running: " + running);
-			manager.endOfProcessing(this);
-			
-			// Wait update response
-			logger.debug("Wait update response...");
-			try {
-				response = updateResponseQueue.take();
-			} catch (InterruptedException e) {
-				return;
-			}
-			
-			// POST processing and waiting for result
-			if (response.isError()) {
-				logger.error("Update failed. Skip POST PROCESSING. Error: "+response); 
-			}
-			else {
-				try {
+				if (preProcessing.get()) {
+					// PRE processing
+					logger.debug("* PRE PROCESSING *");
+					preUpdateInternalProcessing(request);
+				}
+				else {
+					// POST processing
 					logger.debug("* POST PROCESSING *");
 					Notification notify = postUpdateInternalProcessing((UpdateResponse) response);
 					
 					// NOTIFY event
 					if (notify != null) manager.notifyEvent(notify);
-				} catch (SEPAProcessingException | SEPASecurityException | SEPAProtocolException e) {
-					logger.error(e.getMessage());
-					if (logger.isTraceEnabled()) e.printStackTrace();
-				}				
-			}	
-//			
-//			
-//			try {
-//				// Wait update request
-//				logger.debug("Wait update request...");
-//				request = updateRequestQueue.take();
-//				
-//				// PRE processing
-//				logger.debug("* PRE PROCESSING *");
-//				preUpdateInternalProcessing(request);
-//				
-//				// End of PRE processing
-//				logger.debug("Notify SPU manager of EOP. Running: " + running);
-//				manager.endOfProcessing(this);
-//				
-//				// Wait update response
-//				logger.debug("Wait update response...");
-//				response = updateResponseQueue.take();
-//				
-//				// POST processing and waiting for result
-//				logger.debug("* POST PROCESSING *");
-//				Notification notify = null;
-//				if (response.isError()) {
-//					logger.error("Update failed. Error: "+response); 
-//				}
-//				else {
-//					notify = postUpdateInternalProcessing((UpdateResponse) response);
-//					
-//					// NOTIFY event
-//					if (notify != null) subscribe.getEventHandler().notifyEvent(notify);
-//				}			
-//			} catch (InterruptedException e1) {
-//				logger.warn("Interrupted exception: "+e1.getMessage());
-//				running.set(false);
-//				logger.warn("SPU interrupted. Exit");
-//				//manager.exceptionOnProcessing(this);
-//				break;
-//			} catch (SEPAProcessingException e2) {
-//				logger.error("SEPAProcessingException "+e2.getMessage());
-//				manager.exceptionOnProcessing(this);
-//				continue;
-//			} catch (SEPAProtocolException e3) {
-//				logger.error("SEPAProtocolException "+e3.getMessage());
-//				manager.exceptionOnProcessing(this);
-//				continue;
-//			}
+				}
+			}
+			catch(SEPAProcessingException | SEPASecurityException | SEPAProtocolException e) {
+				logger.error(e.getMessage());
+				if (logger.isTraceEnabled()) e.printStackTrace();
+			}
 			
-			// EOP
-			logger.debug("Notify SPU manager of EOP");
+									
+			// End of processing
+			logger.debug("Notify SPU manager of EOP. Running: " + running);
 			manager.endOfProcessing(this);
 		}
 	}

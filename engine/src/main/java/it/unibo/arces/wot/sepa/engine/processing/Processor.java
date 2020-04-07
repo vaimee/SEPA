@@ -31,6 +31,7 @@ import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
@@ -187,12 +188,12 @@ public class Processor implements ProcessorMBean {
 		return scheduler.waitUpdateRequest();
 	}
 
-	public InternalUpdateRequest preProcessUpdate(InternalUpdateRequest update) throws SEPAProcessingException {
+	public InternalPreProcessedUpdateRequest preProcessUpdate(InternalUpdateRequest update) throws SEPAProcessingException {
 		return updateProcessor.preProcess(update);
 	}
 
-	public Response processUpdate(InternalUpdateRequest preRequest, int timeoutNRetry) throws SEPASecurityException {
-		return updateProcessor.process(preRequest, timeoutNRetry);
+	public Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException {
+		return updateProcessor.process(preRequest);
 	}
 
 	public Response processUpdate(InternalUpdateRequest update) {

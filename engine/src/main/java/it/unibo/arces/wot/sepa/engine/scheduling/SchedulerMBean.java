@@ -26,6 +26,10 @@ public interface SchedulerMBean {
 	public long getErrors();
 
 	public long getRequests_pending();
+	
+	public long getPendingUpdates();
+	public long getPendingQueries();
+	public long getPendingSubscribes();
 
 	public long getRequests_max_pending();
 

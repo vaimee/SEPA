@@ -32,6 +32,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
@@ -48,13 +49,11 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized InternalUpdateRequest preProcess(InternalUpdateRequest update) throws SEPAProcessingException {
-		return update;
+	public synchronized InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update) throws SEPAProcessingException {
+		return new InternalPreProcessedUpdateRequest(update);
 	}
 
-	public synchronized Response process(InternalUpdateRequest req,int nRetry) throws SEPASecurityException {
-		long start = Timings.getTime();
-
+	public synchronized Response process(InternalUpdateRequest req) throws SEPASecurityException {
 		// TODO: to implement other authentication mechanisms (Digest, Bearer, ...)
 		String authorizationHeader = req.getBasicAuthorizationHeader();
 
@@ -65,29 +64,35 @@ class UpdateProcessor implements UpdateProcessorMBean {
 				req.getDefaultGraphUri(), req.getNamedGraphUri(), authorizationHeader,
 				UpdateProcessorBeans.getTimeout());
 		logger.trace(request);
-		
-		ret = endpoint.update(request);
 
-		long stop = Timings.getTime();
-		UpdateProcessorBeans.timings(start, stop);
+		int nRetry = UpdateProcessorBeans.getTimeoutNRetry();
 
-		logger.trace("Response: " + ret.toString());
-		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
+		do {
+			long start = Timings.getTime();
+			ret = endpoint.update(request);
+			long stop = Timings.getTime();
+			UpdateProcessorBeans.timings(start, stop);
 
-		if (ret.isError()) {
-			ErrorResponse err = (ErrorResponse) ret;
-			if (err.getStatusCode() == 401)
-				return new ErrorResponse(401, "unauthorized_client", err.getErrorDescription());
+			logger.trace("Response: " + ret.toString());
+			Timings.log("UPDATE_PROCESSING_TIME", start, stop);
 
-			// *** Timeout retry ***
-			if (err.getStatusCode() == 500 && err.getError().equals("IOException")
-					&& err.getErrorDescription().equals("Read timed out") && nRetry > 0) {
-				logger.warn("READ TIMED OUT. RETRY " + nRetry);
-				return process(req, nRetry - 1);
+			if (ret.isError()) {
+				ErrorResponse err = (ErrorResponse) ret;
+				if (err.getStatusCode() == 401)
+					return new ErrorResponse(401, "unauthorized_client", err.getErrorDescription());
+				
+				// *** Timeout retry ***
+				if (err.getStatusCode() == 500 && err.getError().equals("IOException")
+						&& err.getErrorDescription().equals("Read timed out") && nRetry > 0) {
+					logger.warn("READ TIMED OUT. RETRY " + nRetry);
+					nRetry = nRetry - 1;
+				}
+				else return ret;
 			}
-		}
-
-		return ret;
+			
+			return ret;
+			
+		} while (true);
 	}
 
 	@Override

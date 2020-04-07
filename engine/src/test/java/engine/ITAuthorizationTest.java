@@ -2,6 +2,7 @@ package engine;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -33,12 +34,17 @@ import it.unibo.arces.wot.sepa.engine.dependability.authorization.ApplicationIde
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.DeviceIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.DigitalIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IAuthorization;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapAuthorization;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.InMemoryAuthorization;
 
 public class ITAuthorizationTest {
 	private static IAuthorization auth;
-
-	private static SignedJWT generateToken(DigitalIdentity identity, String password) throws ParseException, KeyStoreException,
+	private final File jksFile;
+	
+	public ITAuthorizationTest() {
+		jksFile = new File(getClass().getClassLoader().getResource("sepa.jks").getFile());
+	}
+	
+	private SignedJWT generateToken(DigitalIdentity identity, String password) throws ParseException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {
 		// Prepare JWT with claims set
 		JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder();
@@ -76,7 +82,8 @@ public class ITAuthorizationTest {
 
 		// Load the key from the key store
 		KeyStore keystore = KeyStore.getInstance("JKS");
-		keystore.load(new FileInputStream( "sepa.jks"), "sepa2017".toCharArray());
+		
+		keystore.load(new FileInputStream(jksFile), "sepa2017".toCharArray());
 		RSAKey jwk = RSAKey.load(keystore, "sepakey", "sepa2017".toCharArray());
 
 		// Get the private and public keys to sign and verify
@@ -92,7 +99,8 @@ public class ITAuthorizationTest {
 
 	@BeforeClass
 	public static void init() throws LdapException {
-		auth = new LdapAuthorization("localhost", 10389, "o=vaimee",null,null);
+		//auth = new LdapAuthorization("localhost", 10389, "o=vaimee",null,null);
+		auth = new InMemoryAuthorization();
 	}
 
 	@Test

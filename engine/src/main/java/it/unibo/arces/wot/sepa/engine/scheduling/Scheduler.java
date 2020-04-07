@@ -195,4 +195,19 @@ public class Scheduler extends Thread implements SchedulerMBean {
 	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
 		return queue.waitUpdateRequest();
 	}
+
+	@Override
+	public long getPendingUpdates() {
+		return queue.getPendingUpdates();
+	}
+
+	@Override
+	public long getPendingQueries() {
+		return queue.getPendingQueries();
+	}
+
+	@Override
+	public long getPendingSubscribes() {
+		return queue.getPendingSubscribes();
+	}
 }

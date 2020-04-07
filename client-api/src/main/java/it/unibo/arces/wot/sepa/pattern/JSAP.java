@@ -1268,13 +1268,17 @@ public class JSAP extends SPARQL11SEProperties {
 			 * 
 			 * Examples of literal syntax in SPARQL include:
 			 * 
-			 * - "chat" - 'chat'@fr with language tag "fr" -
-			 * "xyz"^^<http://example.org/ns/userDatatype> - "abc"^^appNS:appDataType -
-			 * '''The librarian said, "Perhaps you would enjoy 'War and Peace'."''' - 1,
-			 * which is the same as "1"^^xsd:integer - 1.3, which is the same as
-			 * "1.3"^^xsd:decimal - 1.300, which is the same as "1.300"^^xsd:decimal -
-			 * 1.0e6, which is the same as "1.0e6"^^xsd:double - true, which is the same as
-			 * "true"^^xsd:boolean - false, which is the same as "false"^^xsd:boolean
+			 * - "chat" 
+			 * - 'chat'@fr with language tag "fr" 
+			 * - "xyz"^^<http://example.org/ns/userDatatype> 
+			 * - "abc"^^appNS:appDataType 
+			 * - '''The librarian said, "Perhaps you would enjoy 'War and Peace'."''' 
+			 * - 1, which is the same as "1"^^xsd:integer 
+			 * - 1.3, which is the same as "1.3"^^xsd:decimal 
+			 * - 1.300, which is the same as "1.300"^^xsd:decimal 
+			 * - 1.0e6, which is the same as "1.0e6"^^xsd:double 
+			 * - true, which is the same as "true"^^xsd:boolean 
+			 * - false, which is the same as "false"^^xsd:boolean
 			 * 
 			 * Tokens matching the productions INTEGER, DECIMAL, DOUBLE and BooleanLiteral
 			 * are equivalent to a typed literal with the lexical value of the token and the
@@ -1289,7 +1293,7 @@ public class JSAP extends SPARQL11SEProperties {
 					if (lang != null)
 						value += "@" + bindings.getLanguage(var);
 					else {
-						value = "'" + StringEscapeUtils.escapeJava(value).replace("'", " ") + "'";
+						value = "'''" + StringEscapeUtils.escapeJava(value) + "'''";
 					}
 				} else if (!numbersOrBoolean.contains(datatype)) {
 					// Check if datatype is a qname or not
@@ -1305,7 +1309,7 @@ public class JSAP extends SPARQL11SEProperties {
 							datatype = "<" + datatype + ">";
 					}
 
-					value = "'" + StringEscapeUtils.escapeJava(value).replace("'", " ") + "'";
+					value = "'''" + StringEscapeUtils.escapeJava(value) + "'''";
 					value += "^^" + datatype;
 				}
 			} else if (bindings.isURI(var)) {
@@ -1390,5 +1394,11 @@ public class JSAP extends SPARQL11SEProperties {
 				|| (0x0370 <= c && c <= 0x037D) || (0x037F <= c && c <= 0x1FFF) || (0x200C <= c && c <= 0x200D)
 				|| (0x2070 <= c && c <= 0x218F) || (0x2C00 <= c && c <= 0x2FEF) || (0x3001 <= c && c <= 0xD7FF)
 				|| (0xF900 <= c && c <= 0xFDCF) || (0xFDF0 <= c && c <= 0xFFFD) || (0x10000 <= c && c <= 0xEFFFF));
+	}
+	
+	public void setAutoReconnect(boolean b) {
+		if (jsap.has("sparql11seprotocol")) {
+			jsap.getAsJsonObject("sparql11seprotocol").add("reconnect", new JsonPrimitive(b));
+		}
 	}
 }

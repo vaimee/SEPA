@@ -29,11 +29,11 @@ import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
-import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
@@ -77,78 +77,78 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 	// TODO: filtering SPUs to be activated
 	protected Collection<SPU> filter(InternalUpdateRequest update) {
-//		Collection<SPU> ret = new ArrayList<SPU>();
-//
-//		synchronized (spus) {
-//			Collection<SPU> toBeRemoved = new ArrayList<SPU>();
-//			for (SPU spu : spus.values()) {
-//				if (Subscriptions.isZombieSpu(spu.getSPUID())) {
-//					spu.finish();
-//					spu.interrupt();
-//					toBeRemoved.add(spu);
-//				} else {
-//					ret.add(spu);
-//				}
-//			}
-//			for (SPU spu : toBeRemoved) {
-//				spus.remove(spu.getSPUID());
-//			}	
-//		}
-//
-//		return ret;
 		return spus.values();
 	}
 
 	public synchronized Response update(InternalUpdateRequest update) {
-		// PRE-processing update request
-		InternalUpdateRequest preRequest;
+		logger.debug("*** UPDATE PROCESSING BEGIN *** ");
 		try {
-			preRequest = processor.preProcessUpdate(update);
-		} catch (SEPAProcessingException e) {
-			logger.error("*** PRE-UPDATE PROCESSING FAILED *** " + e.getMessage());
-			return new ErrorResponse(500, "pre_update_processing_failed",
+			// PRE-processing update request
+			InternalPreProcessedUpdateRequest preRequest = processor.preProcessUpdate(update);
+			
+			// STOP processing if pre-processing fails
+			if (preRequest.preProcessingFailed()) {
+				logger.error("*** UPDATE PRE-PROCESSING FAILED *** " + preRequest.getErrorResponse());
+				return preRequest.getErrorResponse();
+			}
+
+			// PRE-processing subscriptions (ENDPOINT not yet updated)
+			preUpdateSubscriptionsProcessing(preRequest);
+			
+			// Update the ENDPOINT
+			Response ret = processor.updateEndpoint(preRequest);
+
+			// STOP processing if endpoint processing fails
+			if (ret.isError()) {
+				logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
+				return ret;
+			}
+			
+			// POST-processing subscriptions (ENDPOINT not yet updated)
+			postUpdateSubscriptionsProcessing(ret);
+			
+			logger.debug("*** UPDATE PROCESSING END *** ");
+			
+			return ret;
+			
+		} catch (SEPAProcessingException | SEPASecurityException e) {
+			logger.error("*** SUBSCRIPTION PROCESSING EXCEPTION *** " + e.getMessage());
+			return new ErrorResponse(500, "update_processing_failed",
 					"Update: " + update + " Message: " + e.getMessage());
 		}
-
-		// PRE-processing subscriptions (ENDPOINT not yet updated)
-		try {
-			preProcessing(preRequest);
-		} catch (SEPAProcessingException e) {
-			logger.error("*** PRE-SUBSCRIPTIONS PROCESSING FAILED *** " + e.getMessage());
-			return new ErrorResponse(500, "timeout",
-					"Update: " + update + " Message: " + e.getMessage());
-		}
-
-		// Update the ENDPOINT
-		Response ret;
-		try {
-			ret = processor.processUpdate(preRequest, UpdateProcessorBeans.getTimeoutNRetry());
-		} catch (SEPASecurityException e1) {
-			logger.error(e1.getMessage());
-			if (logger.isTraceEnabled())
-				e1.printStackTrace();
-			ret = new ErrorResponse(401, "SEPASecurityException", e1.getMessage());
-		}
-
-		if (ret.isError()) {
-			logger.error("*** UPDATE PROCESSING FAILED *** " + ret);
+		
+//		// PRE-processing subscriptions (ENDPOINT not yet updated)
+//		try {
+//			preUpdateSubscriptionsProcessing(preRequest);
+//		} catch (SEPAProcessingException e) {
+//			logger.error("*** PRE-SUBSCRIPTIONS PROCESSING FAILED *** " + e.getMessage());
+//			return new ErrorResponse(500, "timeout",
+//					"Update: " + update + " Message: " + e.getMessage());
+//		}
+//
+//		// Update the ENDPOINT
+//		Response ret = processor.processUpdate(preRequest);
+//
+//		// STOP processing if endpoint processing fails
+//		if (ret.isError()) {
+//			logger.error("*** UPDATE PROCESSING FAILED *** " + ret);
 //			return ret;
-		}
+//		}
+//
+//		// Subscription processing (post update)
+//		try {
+//			postUpdateSubscriptionsProcessing(ret);
+//		} catch (SEPAProcessingException e) {
+//			logger.error("*** POST-PROCESSING SUBSCRIPTIONS FAILED *** " + e.getMessage());
+//			ret = new ErrorResponse(500, "timeout",
+//					"Update: " + update + " Message: " + e.getMessage());
+//		}
 
-		// Subscription processing (post update)
-		try {
-			postProcessing(ret);
-		} catch (SEPAProcessingException e) {
-			logger.error("*** POST-SUBSCRIPTIONS PROCESSING FAILED *** " + e.getMessage());
-			ret = new ErrorResponse(500, "timeout",
-					"Update: " + update + " Message: " + e.getMessage());
-		}
-
-		return ret;
+//		return ret;
 	}
 
-	private void preProcessing(InternalUpdateRequest update) throws SEPAProcessingException {
-		logger.debug("*** PRE PROCESSING SUBSCRIPTIONS BEGIN *** ");
+	private void preUpdateSubscriptionsProcessing(InternalPreProcessedUpdateRequest update) throws SEPAProcessingException {
+		logger.debug("*** PRE-PROCESSING SUBSCRIPTIONS BEGIN *** ");
 
 		// Get active SPUs (e.g., LUTT filtering)
 		long start = Timings.getTime();
@@ -196,11 +196,11 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		SPUManagerBeans.timings(start, stop);
 
-		logger.debug("*** PRE PROCESSING SUBSCRIPTIONS END *** ");
+		logger.debug("*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
-	private void postProcessing(Response ret) throws SEPAProcessingException {
-		logger.debug("*** POST PROCESSING SUBSCRIPTIONS BEGIN *** ");
+	private void postUpdateSubscriptionsProcessing(Response ret) throws SEPAProcessingException {
+		logger.debug("*** POST-PROCESSING SUBSCRIPTIONS BEGIN *** ");
 
 		long start = Timings.getTime();
 
@@ -239,7 +239,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		SPUManagerBeans.timings(start, stop);
 
-		logger.debug("*** POST PROCESSING SUBSCRIPTIONS END *** ");
+		logger.debug("*** POST-PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
 	public synchronized void endOfProcessing(SPU s) {
@@ -249,14 +249,14 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		if (processingPool.isEmpty()) notify();
 	}
 
-	public synchronized void exceptionOnProcessing(SPU s) {
-		logger.error("@exceptionOnProcessing  SPUID: " + s.getSPUID());
-
-		activeSpus.remove(s);
-
-		processingPool.remove(s);
-		if (processingPool.isEmpty()) notify();
-	}
+//	public synchronized void exceptionOnProcessing(SPU s) {
+//		logger.error("@exceptionOnProcessing  SPUID: " + s.getSPUID());
+//
+//		activeSpus.remove(s);
+//
+//		processingPool.remove(s);
+//		if (processingPool.isEmpty()) notify();
+//	}
 
 	public synchronized Response subscribe(InternalSubscribeRequest req) throws InterruptedException {
 
