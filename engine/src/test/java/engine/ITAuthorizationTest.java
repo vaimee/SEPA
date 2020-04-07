@@ -103,7 +103,7 @@ public class ITAuthorizationTest {
 		auth = new InMemoryAuthorization();
 	}
 
-	@Test
+	//@Test
 	public void entitiesAuthorization() throws SEPASecurityException {
 		String uid = UUID.randomUUID().toString();
 
@@ -122,7 +122,7 @@ public class ITAuthorizationTest {
 		assertFalse(uid+" is not authorized",auth.isAuthorized(uid));
 	}
 
-	@Test
+	//@Test
 	public void jwtClaims() throws SEPASecurityException {
 		String issuer = auth.getIssuer();
 //		String httpsAudience = auth.getHttpsAudience();
@@ -151,7 +151,7 @@ public class ITAuthorizationTest {
 //		auth.setSubject(subject);
 	}
 
-	@Test
+	//@Test
 	public void userCredentials() throws SEPASecurityException {
 		assertFalse(auth.containsCredentials("xyz"));
 
@@ -171,7 +171,7 @@ public class ITAuthorizationTest {
 		}
 	}
 	
-	@Test
+	//@Test
 	public void tokens() throws SEPASecurityException {	
 		String uid = UUID.randomUUID().toString();
 		
