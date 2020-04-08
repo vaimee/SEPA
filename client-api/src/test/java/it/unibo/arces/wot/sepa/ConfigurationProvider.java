@@ -24,7 +24,7 @@ public class ConfigurationProvider {
 
 	public ConfigurationProvider() throws SEPAPropertiesException, SEPASecurityException {
 		String jsapFileName = "sepatest.jsap";
-
+		
 		if (System.getProperty("testConfiguration") != null) {
 			jsapFileName = System.getProperty("testConfiguration");
 			logger.info("JSAP from property testConfiguration: " + jsapFileName);
@@ -141,14 +141,14 @@ public class ConfigurationProvider {
 		ClientSecurityManager security;
 		if (auth.trustAll()) security = new ClientSecurityManager(auth);
 		else {
-			String path = getClass().getClassLoader().getResource("vaimee.jks").getPath();
+			String path = getClass().getClassLoader().getResource("sepa.jks").getPath();
 			File f = new File(path);
 			if (!f.exists()) {
 				logger.error("File not found: " + path);
 				throw new SEPASecurityException("File not found: "+path);
 			}
 			
-			security = new ClientSecurityManager(auth,f.getPath(), "vaimeepass");
+			security = new ClientSecurityManager(auth,f.getPath(), "sepa2017");
 		}
 		
 		return security;

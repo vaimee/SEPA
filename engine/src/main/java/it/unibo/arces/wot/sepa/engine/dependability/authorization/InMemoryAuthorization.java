@@ -133,7 +133,7 @@ public class InMemoryAuthorization implements IAuthorization {
 	
 	private final HashMap<String,AuthorizedIdentity> identities = new HashMap<String,AuthorizedIdentity>();
 
-	private String issuer = "https://wot.arces.unibo.it:8443/oauth/token";
+	private String issuer = "https://localhost:8443/oauth/token";
 //	private String httpsAudience = "https://wot.arces.unibo.it:8443/sparql";
 //	private String wssAudience = "wss://wot.arces.unibo.it:9443/sparql";
 //	private String subject = "SEPATest";
@@ -153,14 +153,15 @@ public class InMemoryAuthorization implements IAuthorization {
 	public boolean isAuthorized(String uid) throws SEPASecurityException {
 		logger.debug("isAuthorized "+uid);
 		
-		if (identities.get(uid) == null) return false;
+		if (identities.containsKey(uid)) return identities.get(uid).isAuthorized();
 		
-		return identities.get(uid).isAuthorized();
+		return false;
 	}
 	
 	@Override
 	public void addAuthorizedIdentity(DigitalIdentity identity) {
 		logger.debug("addIdentity "+identity.getUid());
+		
 		identities.put(identity.getUid(),new AuthorizedIdentity(identity));
 	}
 	@Override
@@ -169,62 +170,74 @@ public class InMemoryAuthorization implements IAuthorization {
 		
 		if (uid.equals("SEPATest")) return;
 		
-		if (identities.get(uid) != null) identities.get(uid).removeIdentity();
+		if (identities.containsKey(uid)) identities.get(uid).removeIdentity();
 	}
 	
 	// Client credentials
 	@Override
 	public boolean storeCredentials(DigitalIdentity identity, String client_secret) {
 		logger.debug("storeCredentials "+identity.getUid()+" : "+client_secret);
+		
 		identities.put(identity.getUid(), new AuthorizedIdentity(identity));
 		identities.get(identity.getUid()).register(identity.getUid(),client_secret);
+		
 		return true;
 	}
 	
 	@Override
 	public void removeCredentials(DigitalIdentity identity) throws SEPASecurityException {
 		logger.debug("removeCredentials "+identity.getUid());
-		identities.get(identity.getUid()).unregister();
+		
+		if (identities.containsKey(identity.getUid())) identities.get(identity.getUid()).unregister();
 	}
 	@Override
 	public boolean containsCredentials(String id) {
 		logger.debug("containsCredentials "+id);
-		if (identities.get(id) == null) return false;
-		return identities.get(id).isRegistered();
+		
+		if (identities.containsKey(id)) return identities.get(id).isRegistered();
+		
+		return false;
 	}
 	
 	@Override
 	public boolean checkCredentials(String id, String secret) {
 		logger.debug("checkCredentials "+id+" : "+secret);
-		if (identities.get(id) == null) return false;
-		return identities.get(id).checkPassword(secret);
+		
+		if (identities.containsKey(id)) return identities.get(id).checkPassword(secret);
+		
+		return false;
 	}
 	
 	// Client claims
 	@Override
 	public boolean containsToken(String id) {
 		logger.debug("containsToken "+id);
-		if (identities.get(id) == null) return false;
-		return identities.get(id).containsToken();
+		
+		if (identities.containsKey(id)) return identities.get(id).containsToken();
+		
+		return false;
 	}
 	
 	@Override
 	public Date getTokenExpiringDate(String id) throws SEPASecurityException {
 		logger.debug("getTokenExpiringDate "+id);
-		if (identities.get(id) == null) return null;
-		return identities.get(id).getTokenExpiringDate();
+		
+		if (identities.containsKey(id)) return identities.get(id).getTokenExpiringDate();
+		
+		return null;
 	}
 	
 	@Override
 	public void addToken(String id, SignedJWT jwt) throws SEPASecurityException {
 		logger.debug("addToken "+id+" "+jwt.serialize());
-		if (identities.get(id) == null) return;
-		identities.get(id).addToken(jwt);
+		
+		if (identities.containsKey(id)) identities.get(id).addToken(jwt);
 	}
 	
 	@Override
 	public void removeToken(String id) throws SEPASecurityException {
 		logger.debug("removeToken "+id);
+		
 		if (identities.containsKey(id)) identities.get(id).removeToken();
 	}
 
@@ -232,35 +245,43 @@ public class InMemoryAuthorization implements IAuthorization {
 	@Override
 	public long getTokenExpiringPeriod(String id) throws SEPASecurityException {
 		logger.debug("getTokenExpiringPeriod "+id);
-		if (identities.get(id) == null) return 0;
-		return identities.get(id).getExpiringPeriod();
+		
+		if (identities.containsKey(id)) return identities.get(id).getExpiringPeriod();
+		
+		return -1;
 	}
 	
 	@Override
 	public void setTokenExpiringPeriod(String id, long period) {
 		logger.debug("setTokenExpiringPeriod "+id+" : "+period);
-		if (identities.get(id) == null) return ;
-		identities.get(id).setExpiringPeriod(period);
+		
+		if (identities.containsKey(id)) identities.get(id).setExpiringPeriod(period);
 	}
 	
 	@Override
 	public SignedJWT getToken(String id) {
 		logger.debug("getToken "+id);
-		if (identities.get(id) == null) return null;
-		return identities.get(id).getToken();
+		
+		if (identities.containsKey(id)) return identities.get(id).getToken();
+		
+		return null;
 	}
 	@Override
 	public DigitalIdentity getIdentity(String uid) throws SEPASecurityException {
 		logger.debug("getIdentity "+uid);
-		if (identities.get(uid) == null) return null;
-		return identities.get(uid).getIdentity();
+		
+		if (identities.containsKey(uid)) return identities.get(uid).getIdentity();
+		
+		return null;
 	}
 	
 	@Override
 	public Credentials getEndpointCredentials(String uid) throws SEPASecurityException {
 		logger.debug("getEndpointCredentials "+uid);
-		if (identities.get(uid) == null) return null;
-		return identities.get(uid).getIdentity().getEndpointCredentials();			
+		
+		if (identities.containsKey(uid)) return identities.get(uid).getIdentity().getEndpointCredentials();	
+		
+		return null;
 	}
 	
 	@Override

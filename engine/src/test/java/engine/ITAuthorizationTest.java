@@ -103,14 +103,11 @@ public class ITAuthorizationTest {
 		auth = new InMemoryAuthorization();
 	}
 
-	//@Test
+	@Test
 	public void entitiesAuthorization() throws SEPASecurityException {
 		String uid = UUID.randomUUID().toString();
 
-		try {
-			assertFalse("xyz is not authorized",auth.isAuthorized("xyz"));
-		} catch (SEPASecurityException e) {
-		}
+		assertFalse("xyz is not authorized",auth.isAuthorized("xyz"));
 
 		auth.addAuthorizedIdentity(new DeviceIdentity(uid));
 
@@ -119,10 +116,10 @@ public class ITAuthorizationTest {
 
 		auth.removeAuthorizedIdentity(uid);
 
-		assertFalse(uid+" is not authorized",auth.isAuthorized(uid));
+		assertFalse(uid+" should not be authorized",auth.isAuthorized(uid));
 	}
 
-	//@Test
+	@Test
 	public void jwtClaims() throws SEPASecurityException {
 		String issuer = auth.getIssuer();
 //		String httpsAudience = auth.getHttpsAudience();
@@ -151,7 +148,7 @@ public class ITAuthorizationTest {
 //		auth.setSubject(subject);
 	}
 
-	//@Test
+	@Test
 	public void userCredentials() throws SEPASecurityException {
 		assertFalse(auth.containsCredentials("xyz"));
 
@@ -164,30 +161,20 @@ public class ITAuthorizationTest {
 		assertFalse("Failed to check password",!auth.checkCredentials(uid, uid));
 
 		auth.removeCredentials(device);
-		try {
-			assertFalse("Identity removed: password check failed",auth.checkCredentials(uid, uid));
-		} catch (SEPASecurityException e) {
-
-		}
+		
+		assertFalse("Identity removed: password check failed",auth.checkCredentials(uid, uid));
 	}
 	
 	//@Test
-	public void tokens() throws SEPASecurityException {	
+	public void tokens() throws SEPASecurityException, KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, ParseException, IOException, JOSEException {	
 		String uid = UUID.randomUUID().toString();
 		
 		DigitalIdentity device =  new DeviceIdentity(uid);
 		
 		auth.storeCredentials(device, uid);
-		
-		SignedJWT token = null;
-		Date expirationDate = null;
-		try {
-			token = generateToken(device,uid);
-			expirationDate = token.getJWTClaimsSet().getExpirationTime();
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | ParseException | IOException
-				| JOSEException e) {
-			throw new SEPASecurityException(e);
-		}
+
+		SignedJWT token = generateToken(device,uid);
+		Date expirationDate = token.getJWTClaimsSet().getExpirationTime();
 		
 		auth.addToken(uid,token);
 		assertFalse("Failed to check token presence",!auth.containsToken(uid));
