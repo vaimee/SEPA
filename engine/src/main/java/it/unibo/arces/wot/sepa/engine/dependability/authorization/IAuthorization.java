@@ -60,11 +60,5 @@ public interface IAuthorization {
 	
 	// Token claims
 	String getIssuer() throws SEPASecurityException;
-	void setIssuer(String is) throws SEPASecurityException;
-//	String getHttpsAudience() throws SEPASecurityException;
-//	void setHttpsAudience(String audience) throws SEPASecurityException;
-//	String getWssAudience() throws SEPASecurityException;
-//	void setWssAudience(String audience) throws SEPASecurityException;
-//	String getSubject() throws SEPASecurityException;
-//	void setSubject(String sub) throws SEPASecurityException;		
+	void setIssuer(String is) throws SEPASecurityException;	
 }

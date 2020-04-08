@@ -30,9 +30,9 @@ System admin->User Accounts-->SPARQL-->Edit
 -------------------------------------------
 Give "SPARQL_UPDATE" role
 
-****************************************************************************
-* Configuring Virtuoso for basic auth on http://localhost:8890/sparql-auth *
-****************************************************************************
+*************************************************************************************
+* Configuring Virtuoso for BASIC AUTHORIZATION on http://localhost:8890/sparql-auth *
+*************************************************************************************
 PERMS bits are:
 1 = R
 2 = W
@@ -44,8 +44,8 @@ Note: If READ is not granted, the endpoint returns an empty list of results (not
 
 0) Create user
 
-DB.DBA.USER_CREATE ('SEPATest', 'SEPATest');
-GRANT SPARQL_UPDATE TO "SEPATest";
+DB.DBA.USER_CREATE ('USER', 'PASSWORD');
+GRANT SPARQL_UPDATE TO 'USER';
 
 1) Remembering that some graphs within are supposed to be confidential, the whole quad store is first set to confidential.
 
@@ -53,9 +53,20 @@ DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('nobody', 0);
 
 2) Set default permission of a user
 
-DB.DBA.RDF_DEFAULT_USER_PERMS_SET (USER, PERMS);
+DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('USER', PERMS);
 
 3) Set specific permission of a user on each graph
 
-DB.DBA.RDF_GRAPH_USER_PERMS_SET (GRAPH_URI, USER, PERMS);
+DB.DBA.RDF_GRAPH_USER_PERMS_SET ('GRAPH_URI', 'USER', PERMS);
+
+*** TESTING SEPA SECURITY ***
+DB.DBA.USER_CREATE ('SEPATest', 'SEPATest');
+GRANT SPARQL_UPDATE TO "SEPATest";
+DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('SEPATest', 3);
+DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://sepatest/', 'SEPATest', 3);
+
+*** CONDUCTOR ***
+Set BASIC authorization:
+- Web Application Server --> Hosted Domains and Virtual Directories --> Interface 0.0.0.0 : 8890 --> /sparql_auth --> "Edit"
+- Authentication options --> Method = "Basic"
 
