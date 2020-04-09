@@ -1,0 +1,5 @@
+DB.DBA.USER_CREATE ('SEPATest', 'SEPATest');
+GRANT SPARQL_UPDATE TO "SEPATest";
+DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('SEPATest', 3);
+DB.DBA.RDF_GRAPH_USER_PERMS_SET ('http://sepatest/', 'SEPATest', 3);
+update DB.DBA.HTTP_PATH e set HP_SECURITY = 'basic' where HP_LPATH = '/sparql-auth';
