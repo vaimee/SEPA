@@ -33,6 +33,8 @@ public class QueryRequest extends SPARQL11Request {
 	 * @param sparql the <a href="https://www.w3.org/TR/sparql11-query/">SPARQL 1.1 Query</a>
 	 */
 	
+	private String acceptHeader = "application/sparql-results+json";
+	
 	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,String default_graph_uri,String named_graph_uri,String authorization,long timeout) {
 		super(sparql,authorization,default_graph_uri,named_graph_uri,timeout);
 		
@@ -43,9 +45,15 @@ public class QueryRequest extends SPARQL11Request {
 		this.timeout = timeout;
 		this.scheme = scheme;
 	}
+	
+	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,String default_graph_uri,String named_graph_uri,String authorization,long timeout,String accept) {
+		this( method, scheme, host,  port,  path, sparql, default_graph_uri, named_graph_uri, authorization, timeout);
+		
+		this.acceptHeader = accept;
+	}
 
 	public String getAcceptHeader() {
-		return "application/sparql-results+json";
+		return acceptHeader;
 	}
 	
 	/**

@@ -21,12 +21,16 @@ package it.unibo.arces.wot.sepa.engine.protocol.sparql11;
 import java.net.URLDecoder;
 import java.util.Map;
 
+import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.appender.rolling.action.IfAccumulatedFileCount;
+
+//import com.nimbusds.jose.Header;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
@@ -95,7 +99,9 @@ public class QueryHandler extends SPARQL11Handler {
 				String graphUri = params.get("default-graph-uri");
 				String namedGraphUri = params.get("named-graph-uri");
 
-				return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth);
+				Header[] headers = exchange.getRequest().getHeaders("Accept");
+				if (headers.length != 1) return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth);
+				else return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth,headers[0].getValue());
 			} catch (Exception e) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}

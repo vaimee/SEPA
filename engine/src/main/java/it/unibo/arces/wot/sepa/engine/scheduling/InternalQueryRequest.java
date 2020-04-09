@@ -21,11 +21,22 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 
 public class InternalQueryRequest extends InternalUQRequest {
-
+	private String internetMediaType = "application/sparql-results+json";
+	
 	public InternalQueryRequest(String sparql, String defaultGraphUri, String namedGraphUri,ClientAuthorization auth) {
 		super(sparql, defaultGraphUri, namedGraphUri,auth);
 	}
+	
+	public InternalQueryRequest(String sparql, String defaultGraphUri, String namedGraphUri,ClientAuthorization auth,String mediaType) {
+		super(sparql, defaultGraphUri, namedGraphUri,auth);
+		
+		internetMediaType = mediaType;
+	}
 
+	public String getInternetMediaType() {
+		return internetMediaType;
+	}
+	
 	@Override
 	public String toString() {
 		return "*QUERY* "+sparql + " DEFAULT GRAPH URI: <"+defaultGraphUri + "> NAMED GRAPH URI: <" + namedGraphUri+">";
