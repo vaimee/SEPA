@@ -59,7 +59,6 @@ import it.unibo.arces.wot.sepa.timing.Timings;
 import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import org.apache.logging.log4j.LogManager;
@@ -170,32 +169,25 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			responseEntity = null;
 		}
 
-		JsonObject ret = null;
 		if (responseCode >= 400) {
-			// SPARQL 1.1 protocol does not recommend any format, while SPARQL 1.1 SE suggests to use a JSON format: http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
+			// SPARQL 1.1 protocol does not recommend any format, while SPARQL 1.1 SE suggests to use a JSON format
+			// http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
 			try {
-				ret = new JsonParser().parse(responseBody).getAsJsonObject();
+				JsonObject ret = new JsonParser().parse(responseBody).getAsJsonObject();
+				logger.error(ret);
+				return new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),
+						ret.get("error_description").getAsString());
 			} catch (Exception e) {
 				logger.error(e.getMessage());
 				if (responseBody.equals("")) responseBody = httpResponse.toString();
 				return new ErrorResponse(responseCode, "sparql11_endpoint",responseBody);
-			}
-			logger.error(ret);
-			return new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),
-					ret.get("error_description").getAsString());
+			}			
 		}
 
 		if (request.getClass().equals(UpdateRequest.class))
 			return new UpdateResponse(responseBody);
-
-		try {
-			ret = new JsonParser().parse(responseBody).getAsJsonObject();
-		} catch (JsonParseException e) {
-			logger.error(e.getMessage());
-			return new ErrorResponse(HttpStatus.SC_UNPROCESSABLE_ENTITY, "JsonParsingException",
-					e.getMessage() + " Response body: " + responseBody);
-		}
-		return new QueryResponse(ret);
+		
+		return new QueryResponse(responseBody);
 	}
 
 	/**

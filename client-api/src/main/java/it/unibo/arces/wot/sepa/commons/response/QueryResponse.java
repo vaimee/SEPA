@@ -17,9 +17,9 @@
 */
 package it.unibo.arces.wot.sepa.commons.response;
 
-import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
+import com.google.gson.JsonParser;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 /**
@@ -30,12 +30,21 @@ public class QueryResponse extends Response {
 	/**
 	 * Instantiates a new query response.
 	 *
-	 * @param body
-	 *            the body
+	 * @param body the body
 	 */
-	public QueryResponse(JsonObject bindingResultsJSON) {
+
+	private String responseBody;
+
+	public QueryResponse(String responseBody) {
 		super();
-		json = bindingResultsJSON;
+
+		try {
+			json = new JsonParser().parse(responseBody).getAsJsonObject();
+		} catch (JsonParseException e) {
+			json = null;
+		}
+
+		this.responseBody = responseBody;
 	}
 
 	/**
@@ -43,16 +52,15 @@ public class QueryResponse extends Response {
 	 *
 	 * @return the bindings results
 	 */
-	public BindingsResults getBindingsResults() {	
-		if (json == null) return null;
-		
+	public BindingsResults getBindingsResults() {
+		if (json == null)
+			return null;
+
 		return new BindingsResults(json.getAsJsonObject());
 	}
-	
-	public boolean getAskResult() throws SEPABindingsException {
-		if (json == null) throw new SEPABindingsException("Response is null");
-		if (!json.has("boolean")) throw new SEPABindingsException("Response format do not conform with ASK");
-		
-		return json.get("boolean").getAsBoolean();
+
+	@Override
+	public String toString() {
+		return responseBody;
 	}
 }

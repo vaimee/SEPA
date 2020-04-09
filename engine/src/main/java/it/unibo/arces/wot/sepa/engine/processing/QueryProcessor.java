@@ -58,7 +58,7 @@ public class QueryProcessor implements QueryProcessorMBean {
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getQueryPath(),
 				req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
-				authorizationHeader,QueryProcessorBeans.getTimeout());
+				authorizationHeader,QueryProcessorBeans.getTimeout(),req.getInternetMediaType());
 
 		ret = endpoint.query(request);
 
