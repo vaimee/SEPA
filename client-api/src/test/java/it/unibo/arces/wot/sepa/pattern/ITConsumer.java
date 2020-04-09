@@ -9,7 +9,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class ITConsumer extends Consumer {
 	protected static boolean notificationReceived = false;
