@@ -26,7 +26,7 @@ jobs:
     - sleep 30
     - cd ../..
     script:
-    - mvn verify
+    - mvn verify -e
     after_failure:
     - "cat engine/target/log.txt"
   - stage: integrationSecure
