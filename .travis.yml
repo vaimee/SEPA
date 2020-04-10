@@ -19,6 +19,7 @@ jobs:
     - mvn package
     - cd engine/target
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
+    - cat endpoint.jpar
     - echo launching engine with this configuration
     - cat engine.jpar
     - java -jar engine-0-SNAPSHOT.jar -engine=engine.jpar > log.txt &
