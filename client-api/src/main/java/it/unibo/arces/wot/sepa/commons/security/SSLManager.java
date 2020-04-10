@@ -122,10 +122,24 @@ public class SSLManager implements HostnameVerifier {
 
 	private static final String[] protocols = { "TLSv1.2" };
 	
+	static TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+			logger.debug("getAcceptedIssuers");
+			return new X509Certificate[0];
+		}
+
+		public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			logger.debug("checkClientTrusted");
+		}
+
+		public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
+			logger.debug("checkServerTrusted");
+		}
+	} };
+	
 	@Override
 	public boolean verify(String hostname, SSLSession session) {
 		// TODO IMPORTANT Verify X.509 certificate
-		//logger.debug("Host verify DISABLED");
 		logger.debug("*** Hostname always VERIFIED ***" + hostname + " SSLSession: " + session);
 
 		return true;
@@ -171,21 +185,6 @@ public class SSLManager implements HostnameVerifier {
 		return clientFactory.build();
 	}
 
-	static TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-			logger.debug("getAcceptedIssuers");
-			return new X509Certificate[0];
-		}
-
-		public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			logger.debug("checkClientTrusted");
-		}
-
-		public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			logger.debug("checkServerTrusted");
-		}
-	} };
-
 	public SSLContext getSSLContextTrustAllCa(String protocol) throws SEPASecurityException {
 		SSLContext sc = null;
 		try {
@@ -221,8 +220,6 @@ public class SSLManager implements HostnameVerifier {
 		}
 		return sslContext;
 	}
-
-
 
 	protected static byte[] parseDERFromPEM(byte[] pem, String beginDelimiter, String endDelimiter) {
 		String data = new String(pem);

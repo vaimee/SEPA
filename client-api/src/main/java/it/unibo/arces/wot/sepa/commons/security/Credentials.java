@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.dependability.authorization;
+package it.unibo.arces.wot.sepa.commons.security;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
