@@ -19,8 +19,8 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
+import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 
 public class InternalSubscribeRequest extends InternalQueryRequest {

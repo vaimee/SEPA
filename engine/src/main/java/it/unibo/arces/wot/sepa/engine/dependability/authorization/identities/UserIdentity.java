@@ -1,4 +1,6 @@
-package it.unibo.arces.wot.sepa.engine.dependability.authorization;
+package it.unibo.arces.wot.sepa.engine.dependability.authorization.identities;
+
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
 
 public class UserIdentity extends DigitalIdentity {
 

@@ -29,6 +29,10 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DeviceIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DigitalIdentity;
 
 public class InMemoryAuthorization implements IAuthorization {
 	private static final Logger logger = LogManager.getLogger();

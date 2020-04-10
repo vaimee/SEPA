@@ -21,7 +21,7 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
+import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 
 public abstract class InternalUQRequest extends InternalRequest {
 	protected String sparql;

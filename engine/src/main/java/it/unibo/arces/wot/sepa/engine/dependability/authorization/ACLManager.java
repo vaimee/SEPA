@@ -6,6 +6,11 @@ import java.util.Scanner;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DeviceIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DigitalIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.UserIdentity;
 
 public class ACLManager {
 	static String host = "sepa.vaimee.it";
