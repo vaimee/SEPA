@@ -1,4 +1,4 @@
-/* The class represents an application identity
+/* The class represents a device identity
  * 
  * Author: Luca Roffia (luca.roffia@unibo.it)
 
@@ -16,25 +16,27 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.dependability.authorization;
+package it.unibo.arces.wot.sepa.engine.dependability.authorization.identities;
 
-public class ApplicationIdentity extends DigitalIdentity{
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
 
-	public ApplicationIdentity(String uid) {
+public class DeviceIdentity extends DigitalIdentity {
+
+	public DeviceIdentity(String uid) {
 		super(uid);
 	}
-	
-	public ApplicationIdentity(String uid,Credentials cred) {
+
+	public DeviceIdentity(String uid,Credentials cred) {
 		super(uid,cred);
 	}
-
+	
 	@Override
 	public String getObjectClass() {
-		return "applicationProcess";
+		return "device";
 	}
 	
 	public String toString() {
-		return "Application Identity "+ super.toString();
+		return "Device Identity "+ super.toString();
 	}
 
 }

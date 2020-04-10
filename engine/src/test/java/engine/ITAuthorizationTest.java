@@ -30,11 +30,11 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.ApplicationIdentity;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.DeviceIdentity;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.DigitalIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.InMemoryAuthorization;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DeviceIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DigitalIdentity;
 
 public class ITAuthorizationTest {
 	private static IAuthorization auth;

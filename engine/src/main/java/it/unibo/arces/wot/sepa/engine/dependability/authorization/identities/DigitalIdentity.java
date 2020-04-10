@@ -16,7 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.dependability.authorization;
+package it.unibo.arces.wot.sepa.engine.dependability.authorization.identities;
+
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
 
 /**
  * A digital identity includes the credentials to get access to the SPARQL endpoint

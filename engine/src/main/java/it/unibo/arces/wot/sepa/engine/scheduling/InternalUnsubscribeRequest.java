@@ -18,7 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
+import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 
 public class InternalUnsubscribeRequest extends InternalRequest {
 	protected String sid;

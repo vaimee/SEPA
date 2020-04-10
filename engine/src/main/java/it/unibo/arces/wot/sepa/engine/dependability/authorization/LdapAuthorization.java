@@ -42,6 +42,11 @@ import org.apache.logging.log4j.Logger;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DeviceIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DigitalIdentity;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.UserIdentity;
 
 /**
  * The directory structure follows. Possible options are evidenced as "***"

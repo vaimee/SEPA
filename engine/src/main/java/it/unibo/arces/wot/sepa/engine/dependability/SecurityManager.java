@@ -66,14 +66,13 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
 import it.unibo.arces.wot.sepa.commons.security.SSLManager;
-//import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.ApplicationIdentity;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.ClientAuthorization;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.Credentials;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.InMemoryAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapAuthorization;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
 
 class SecurityManager {
 	private static final Logger logger = LogManager.getLogger();

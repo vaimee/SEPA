@@ -23,6 +23,8 @@ import java.util.Date;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DigitalIdentity;
 
 public interface IAuthorization {
 	// Identities
