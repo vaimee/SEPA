@@ -71,12 +71,12 @@ public class ITSPARQL11SEProtocol {
 		subscribers.clear();
 		publishers.clear();
 
-		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
+		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 20000, sm));
 		
 		if (ret.isError()) {
 			ErrorResponse error = (ErrorResponse) ret;
 			if (error.isTokenExpiredError() && properties.isSecure()) sm.refreshToken();
-			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
+			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 20000, sm));
 		}
 		
 		logger.debug(ret);
@@ -363,7 +363,7 @@ public class ITSPARQL11SEProtocol {
 				sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
 	}
 
-	@Test (timeout = 60000)
+	@Test (timeout = 200000)
 	public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
 			InterruptedException, SEPAPropertiesException, SEPASecurityException {
 
@@ -395,7 +395,7 @@ public class ITSPARQL11SEProtocol {
 						+ subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2));
 	}
 
-	@Test(timeout = 60000)
+	@Test(timeout = 200000)
 	public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
 		int n = 5;
 
@@ -413,7 +413,7 @@ public class ITSPARQL11SEProtocol {
 			pub.join();
 	}
 
-	@Test (timeout = 60000)
+	@Test (timeout = 200000)
 	public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
 		int n = 15;
