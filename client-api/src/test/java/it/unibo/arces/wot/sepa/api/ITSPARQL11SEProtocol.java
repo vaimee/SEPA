@@ -333,7 +333,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse("Events:" + sync.getEvents() + "(1)", sync.getEvents() != 1);
 	}
 
-	@Test(timeout = 60000)	
+	@Test(timeout = 120000)
 	public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
 
