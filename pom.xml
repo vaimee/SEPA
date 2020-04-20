@@ -84,6 +84,7 @@
                 <configuration>
                     <excludes>
                         <exclude>**/IT*.java</exclude>
+                        <exclude>**/Stress*.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>
