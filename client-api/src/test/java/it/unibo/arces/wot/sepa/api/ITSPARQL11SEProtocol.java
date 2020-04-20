@@ -219,29 +219,6 @@ public class ITSPARQL11SEProtocol {
 				sync.getEvents() != subscribers.size());
 	}
 
-	@Test(timeout = 30000)
-	public void Subscribe3xN()
-			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
-		int n = 5;
-
-		for (int i = 0; i < n; i++) {
-			subscribers.add(new Subscriber("ALL", sync));
-			subscribers.add(new Subscriber("RANDOM", sync));
-			subscribers.add(new Subscriber("RANDOM1", sync));
-		}
-
-		for (Subscriber sub : subscribers)
-			sub.start();
-
-		sync.waitSubscribes(subscribers.size());
-		sync.waitEvents(subscribers.size());
-
-		assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-				sync.getSubscribes() != subscribers.size());
-		assertFalse("Events:" + sync.getEvents() + "(" + subscribers.size() + ")",
-				sync.getEvents() != subscribers.size());
-	}
-
 	@Test(timeout = 5000)
 	public void Unsubscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
