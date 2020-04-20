@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.api;
+package it.unibo.arces.wot.sepa;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -16,7 +16,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
-class Publisher extends Thread implements Closeable {
+public class Publisher extends Thread implements Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
 	private final ClientSecurityManager sm;

@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.pattern;
+package it.unibo.arces.wot.sepa;
 
 import java.io.IOException;
 
@@ -9,33 +9,22 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.pattern.Consumer;
+import it.unibo.arces.wot.sepa.pattern.JSAP;
 
-public class ITAggregator extends Aggregator {
+public class ITConsumer extends Consumer {
 	protected static boolean notificationReceived = false;
 	
-	public ITAggregator(JSAP appProfile, String subscribeID, String updateID, ClientSecurityManager sm)
+	public ITConsumer(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile, subscribeID, updateID, sm);
+		super(appProfile, subscribeID, sm);
 	}
 
-	@Override
-	public void onResults(ARBindingsResults results) {
-		synchronized(this) {
-			notificationReceived = true;
-			notify();
-		}
-		
-		try {
-			update();
-		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
-			logger.error(e);
-		}
-		
-	}
-	
 	public void subscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("subscribe");
+		
 		super.subscribe(5000);
+		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
 			logger.debug("subscribed");
@@ -50,6 +39,15 @@ public class ITAggregator extends Aggregator {
 			logger.debug("notify!");
 		}
 	}
+	
+	@Override
+	public void onResults(ARBindingsResults results) {
+		synchronized(this) {
+			logger.debug("onResults");
+			notificationReceived = true;
+			notify();
+		}
+	}
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
@@ -59,4 +57,5 @@ public class ITAggregator extends Aggregator {
 			notify();
 		}	
 	}
+
 }
