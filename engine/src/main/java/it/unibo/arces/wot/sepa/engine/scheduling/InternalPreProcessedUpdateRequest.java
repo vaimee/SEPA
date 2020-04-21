@@ -3,7 +3,6 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 public class InternalPreProcessedUpdateRequest extends InternalUpdateRequest{
-
 	ErrorResponse retErrorResponse = null;
 	
 	public InternalPreProcessedUpdateRequest(ErrorResponse errorResponse) {

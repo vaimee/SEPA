@@ -99,7 +99,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			logger.debug("@onOpen (sockets: " + gates.size()+") GID: " + gate.getGID() + " socket: "+conn);
 		}
 	}
-
+	
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		synchronized (gates) {

@@ -27,7 +27,7 @@ public class SPARQL11ProtocolException extends RuntimeException {
 	private final int code;
     private final String body;
 
-    SPARQL11ProtocolException(int code, String body){
+    public SPARQL11ProtocolException(int code, String body){
         this.code = code;
         this.body = body;
     }

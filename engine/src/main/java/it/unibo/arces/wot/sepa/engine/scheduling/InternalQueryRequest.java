@@ -18,17 +18,28 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryParseException;
+import org.apache.jena.sparql.lang.ParserSPARQL11;
+import org.apache.jena.sparql.syntax.Element;
+import org.apache.jena.sparql.syntax.ElementGroup;
+import org.apache.jena.sparql.syntax.ElementNamedGraph;
+
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 
 public class InternalQueryRequest extends InternalUQRequest {
 	private String internetMediaType = "application/sparql-results+json";
 	
-	public InternalQueryRequest(String sparql, String defaultGraphUri, String namedGraphUri,ClientAuthorization auth) {
+	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,ClientAuthorization auth) {
 		super(sparql, defaultGraphUri, namedGraphUri,auth);
 	}
 	
-	public InternalQueryRequest(String sparql, String defaultGraphUri, String namedGraphUri,ClientAuthorization auth,String mediaType) {
-		super(sparql, defaultGraphUri, namedGraphUri,auth);
+	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,ClientAuthorization auth,String mediaType) {
+		this(sparql, defaultGraphUri, namedGraphUri,auth);
 		
 		internetMediaType = mediaType;
 	}
@@ -39,6 +50,50 @@ public class InternalQueryRequest extends InternalUQRequest {
 	
 	@Override
 	public String toString() {
-		return "*QUERY* "+sparql + " DEFAULT GRAPH URI: <"+defaultGraphUri + "> NAMED GRAPH URI: <" + namedGraphUri+">";
+		return "*QUERY* RDF DATA SET: {"+rdfDataSet +" USING GRAPHS: "+ defaultGraphUri + " NAMED GRAPHS: " + namedGraphUri+"} SPARQL: " +sparql ;
+	}
+	
+	protected Set<String> getGraphURIs(String sparql) throws QueryParseException {
+		Set<String> ret = new HashSet<>();
+		
+		ParserSPARQL11 parser = new ParserSPARQL11();		
+		Query q = new Query();
+		q = parser.parse(q, sparql);
+		
+		if (q.hasDatasetDescription()) {
+			for (String gr : q.getDatasetDescription().getDefaultGraphURIs()) {
+				ret.add(gr);
+			}
+			for (String gr : q.getDatasetDescription().getNamedGraphURIs()) {
+				ret.add(gr);
+			}
+		}
+		
+		List<String> graphs = q.getGraphURIs();		
+		List<String> namedGraphs = q.getNamedGraphURIs();
+		
+		ret.addAll(extractGraphs(q.getQueryPattern()));		
+		ret.addAll(graphs);
+		ret.addAll(namedGraphs);
+		
+		return ret;
+	}
+	
+	private Set<String> extractGraphs(Element e){
+		Set<String> ret = new HashSet<String>();
+		
+		if (e.getClass().equals(ElementGroup.class)) {
+			ElementGroup group = (ElementGroup) e;
+			for(Element element : group.getElements()) {
+				ret.addAll(extractGraphs(element));
+			}
+		} else if (e.getClass().equals(ElementNamedGraph.class)) {
+			ElementNamedGraph namedGraph = (ElementNamedGraph) e;
+			if (namedGraph.getGraphNameNode().isURI()) ret.add(namedGraph.getGraphNameNode().getURI());
+			// TODO: comment if variables can be only NAMED graphs
+			else ret.add("*");
+		}
+		
+		return ret;
 	}
 }

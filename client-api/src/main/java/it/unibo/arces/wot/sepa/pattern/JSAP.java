@@ -33,6 +33,7 @@ import org.apache.logging.log4j.Logger;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -94,10 +95,10 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 		"tokenRequest": "https://localhost:8443/oauth/token"
 	},
 	"graphs": {
-		"default-graph-uri ": "...",
-		"named-graph-uri": "...",
-		"using-graph-uri": "...",
-		"using-named-graph-uri": "..."
+		"default-graph-uri ": ["..."],
+		"named-graph-uri": ["..."],
+		"using-graph-uri": ["..."],
+		"using-named-graph-uri": ["..."]
 	},	
 	"extended" :{<Application specific extended data>},
 	"namespaces" : {
@@ -513,20 +514,26 @@ public class JSAP extends SPARQL11SEProperties {
 		return super.getPort();
 	}
 
-	public String getUsingGraphURI(String id) {
+	public Set<String> getUsingGraphURI(String id) {
 		try {
-			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("graphs").get("using-graph-uri")
-					.getAsString();
+			JsonArray array = jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("graphs")
+					.get("using-graph-uri").getAsJsonArray();
+			HashSet<String> ret = new HashSet<>();
+			for (JsonElement e : array) ret.add(e.getAsString());
+			return ret;
 		} catch (Exception e) {
 		}
 
 		return super.getUsingGraphURI();
 	}
 
-	public String getUsingNamedGraphURI(String id) {
+	public Set<String> getUsingNamedGraphURI(String id) {
 		try {
-			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("graphs")
-					.get("using-named-graph-uri").getAsString();
+			JsonArray array = jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("graphs")
+					.get("using-named-graph-uri").getAsJsonArray();
+			HashSet<String> ret = new HashSet<>();
+			for (JsonElement e : array) ret.add(e.getAsString());
+			return ret;
 		} catch (Exception e) {
 		}
 
@@ -615,21 +622,26 @@ public class JSAP extends SPARQL11SEProperties {
 		temp.add("port", new JsonPrimitive(port));
 	}
 
-	public void setUsingNamedGraphUri(String id, String graph) {
+	public void setUsingNamedGraphUri(String id, Set<String> graph) {
 		if (!jsap.has("updates"))
 			jsap.add("updates", new JsonObject());
 		if (!jsap.getAsJsonObject("updates").has("graphs"))
 			jsap.getAsJsonObject("updates").add("graphs", new JsonObject());
-		jsap.getAsJsonObject("updates").getAsJsonObject("graphs").add("using-named-graph-uri",
-				new JsonPrimitive(graph));
+		
+		JsonArray array = new JsonArray();
+		for(String s: graph) array.add(s);
+		jsap.getAsJsonObject("updates").getAsJsonObject("graphs").add("using-named-graph-uri",array);
 	}
 
-	public void setUsingGraphURI(String id, String graph) {
+	public void setUsingGraphURI(String id, Set<String> graph) {
 		if (!jsap.has("updates"))
 			jsap.add("updates", new JsonObject());
 		if (!jsap.getAsJsonObject("updates").has("graphs"))
 			jsap.getAsJsonObject("updates").add("graphs", new JsonObject());
-		jsap.getAsJsonObject("updates").getAsJsonObject("graphs").add("using-graph-uri", new JsonPrimitive(graph));
+		
+		JsonArray array = new JsonArray();
+		for(String s: graph) array.add(s);
+		jsap.getAsJsonObject("updates").getAsJsonObject("graphs").add("using-graph-uri", array);
 	}
 
 	/*
@@ -725,20 +737,26 @@ public class JSAP extends SPARQL11SEProperties {
 		return super.getQueryAcceptHeader();
 	}
 
-	public String getNamedGraphURI(String id) {
+	public Set<String> getNamedGraphURI(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs").get("named-graph-uri")
-					.getAsString();
+			JsonArray array = jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs")
+					.get("named-graph-uri").getAsJsonArray();
+			HashSet<String> ret = new HashSet<>();
+			for (JsonElement e : array) ret.add(e.getAsString());
+			return ret;
 		} catch (Exception e) {
 		}
 
 		return super.getNamedGraphURI();
 	}
 
-	public String getDefaultGraphURI(String id) {
+	public Set<String> getDefaultGraphURI(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs")
-					.get("default-graph-uri").getAsString();
+			JsonArray array = jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs")
+					.get("default-graph-uri").getAsJsonArray();
+			HashSet<String> ret = new HashSet<>();
+			for (JsonElement e : array) ret.add(e.getAsString());
+			return ret;
 		} catch (Exception e) {
 		}
 
@@ -829,20 +847,26 @@ public class JSAP extends SPARQL11SEProperties {
 		temp.add("port", new JsonPrimitive(port));
 	}
 
-	public void setNamedGraphUri(String id, String graph) {
+	public void setNamedGraphUri(String id, Set<String> graph) {
 		if (!jsap.has("queries"))
 			jsap.add("queries", new JsonObject());
 		if (!jsap.getAsJsonObject("queries").has("graphs"))
 			jsap.getAsJsonObject("queries").add("graphs", new JsonObject());
-		jsap.getAsJsonObject("queries").getAsJsonObject("graphs").add("named-graph-uri", new JsonPrimitive(graph));
+		
+		JsonArray array = new JsonArray();
+		for(String s: graph) array.add(s);
+		jsap.getAsJsonObject("queries").getAsJsonObject("graphs").add("named-graph-uri", array);
 	}
 
-	public void setDefaultGraphURI(String id, String graph) {
+	public void setDefaultGraphURI(String id, Set<String> graph) {
 		if (!jsap.has("queries"))
 			jsap.add("queries", new JsonObject());
 		if (!jsap.getAsJsonObject("queries").has("graphs"))
 			jsap.getAsJsonObject("queries").add("graphs", new JsonObject());
-		jsap.getAsJsonObject("queries").getAsJsonObject("graphs").add("default-graph-uri", new JsonPrimitive(graph));
+		
+		JsonArray array = new JsonArray();
+		for(String s: graph) array.add(s);
+		jsap.getAsJsonObject("queries").getAsJsonObject("graphs").add("default-graph-uri", array);
 	}
 
 	/*

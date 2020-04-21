@@ -18,6 +18,8 @@
 
 package it.unibo.arces.wot.sepa.commons.request;
 
+import java.util.Set;
+
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 
 /**
@@ -35,7 +37,7 @@ public class QueryRequest extends SPARQL11Request {
 	
 	private String acceptHeader = "application/sparql-results+json";
 	
-	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,String default_graph_uri,String named_graph_uri,String authorization,long timeout) {
+	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization,long timeout) {
 		super(sparql,authorization,default_graph_uri,named_graph_uri,timeout);
 		
 		this.method = method;
@@ -46,7 +48,7 @@ public class QueryRequest extends SPARQL11Request {
 		this.scheme = scheme;
 	}
 	
-	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,String default_graph_uri,String named_graph_uri,String authorization,long timeout,String accept) {
+	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization,long timeout,String accept) {
 		this( method, scheme, host,  port,  path, sparql, default_graph_uri, named_graph_uri, authorization, timeout);
 		
 		this.acceptHeader = accept;

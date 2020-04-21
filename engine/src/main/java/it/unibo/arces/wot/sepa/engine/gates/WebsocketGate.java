@@ -41,7 +41,7 @@ public class WebsocketGate extends Gate {
 	public void send(Response ret) throws SEPAProtocolException {
 		try{
 			socket.send(ret.toString());
-			logger.debug("Sent: "+ret);
+			logger.trace("Sent: "+ret);
 		}
 		catch(WebsocketNotConnectedException e){
 			if (ret.isNotification()) {

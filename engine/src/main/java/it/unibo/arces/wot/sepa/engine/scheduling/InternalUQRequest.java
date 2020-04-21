@@ -20,34 +20,63 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.http.HttpStatus;
+import org.apache.jena.query.QueryParseException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 
 public abstract class InternalUQRequest extends InternalRequest {
-	protected String sparql;
-	protected String defaultGraphUri;
-	protected String namedGraphUri;
+	protected String arqDefaultGraphNodeUri = "urn:x-arq:DefaultGraphNode";
 	
-	public InternalUQRequest(String sparql,String defaultGraphUri,String namedGraphUri,ClientAuthorization auth) {
+	protected final Logger logger = LogManager.getLogger();
+	
+	protected String sparql;
+	
+	protected Set<String> defaultGraphUri = new HashSet<String>();
+	protected Set<String> namedGraphUri = new HashSet<String>();
+	protected Set<String> rdfDataSet = new HashSet<String>();
+	
+	public InternalUQRequest(String sparql,Set<String> defaultGraphUri,Set<String> namedGraphUri,ClientAuthorization auth) {
 		super(auth);
 		
 		if (sparql == null) throw new IllegalArgumentException("SPARQL is null");
 		
 		this.sparql = evaluateFunctions(sparql);
-		this.defaultGraphUri = defaultGraphUri;
-		this.namedGraphUri = namedGraphUri;
+		
+		rdfDataSet = getGraphURIs(sparql);
+		
+		if (defaultGraphUri != null) this.defaultGraphUri = defaultGraphUri;
+		if (namedGraphUri != null) this.namedGraphUri = namedGraphUri;
+		
+		if(!this.defaultGraphUri.isEmpty() && !rdfDataSet.isEmpty()) throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"using-graph-uri conflicts with USING, USING NAMED or WITH");
+		if(!this.namedGraphUri.isEmpty() && !rdfDataSet.isEmpty()) throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"using-named-graph-uri conflicts with USING, USING NAMED or WITH");
+	
+		rdfDataSet.addAll(this.defaultGraphUri);
+		rdfDataSet.addAll(this.namedGraphUri);
 	}
+	
+	protected abstract Set<String> getGraphURIs(String sparql) throws QueryParseException;
 	
 	public String getSparql() {
 		return sparql;
 	}
 	
-	public String getDefaultGraphUri() {
+	public Set<String> getDefaultGraphUri() {
 		return defaultGraphUri;
 	}
 	
-	public String getNamedGraphUri() {
+	public Set<String> getNamedGraphUri() {
 		return namedGraphUri;
+	}
+	
+	public Set<String> getRdfDataSet() {
+		return rdfDataSet;
 	}
 	
 	@Override

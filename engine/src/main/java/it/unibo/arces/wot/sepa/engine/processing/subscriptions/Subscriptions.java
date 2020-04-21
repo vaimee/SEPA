@@ -18,8 +18,10 @@
 
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,6 +32,7 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
 public class Subscriptions {
 	private static final Logger logger = LogManager.getLogger();
@@ -43,6 +46,32 @@ public class Subscriptions {
 	// Request ==> SPU
 	private static final HashMap<InternalSubscribeRequest, SPU> requests = new HashMap<InternalSubscribeRequest, SPU>();
 
+	public synchronized static SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
+		try {
+			return new SPUNaive(req, manager);
+		} catch (SEPAProtocolException e) {
+			return null;
+		}
+	}
+	
+	public synchronized static Collection<SPU> filter(InternalUpdateRequest update) {
+		// First level filter: RDF data set
+		Collection<SPU> ret = new HashSet<>();
+		Set<String> target = update.getRdfDataSet();
+		
+		for(InternalSubscribeRequest sub : requests.keySet()) {
+			Set<String> context = sub.getRdfDataSet();
+			for (String graph: target) {
+				if (context.contains(graph)) {
+					ret.add(requests.get(sub));
+					break;
+				}
+			}
+		}
+		
+		return ret;
+	}
+	
 	public synchronized static boolean contains(InternalSubscribeRequest req) {
 		return requests.containsKey(req);
 	}

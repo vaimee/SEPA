@@ -33,7 +33,7 @@ public class ScheduledRequest {
 	
 	@Override
 	public String toString() {
-		return "REQUEST #"+token+" : "+request.toString();
+		return "REQUEST #"+token;
 	}
 	
 	public int getToken() {

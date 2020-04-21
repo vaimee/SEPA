@@ -17,6 +17,9 @@
 */
 package it.unibo.arces.wot.sepa.commons.request;
 
+import java.util.Set;
+
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
@@ -29,10 +32,10 @@ public class SubscribeRequest extends Request {
 	/** The alias. */
 	private String alias = null;
 
-	protected String default_graph_uri = null;
-	protected String named_graph_uri = null;
+	protected Set<String> default_graph_uri = null;
+	protected Set<String> named_graph_uri = null;
 	
-	public SubscribeRequest(String sparql, String alias, String defaultGraphURI, String namedGraphURI,
+	public SubscribeRequest(String sparql, String alias, Set<String> defaultGraphURI, Set<String> namedGraphURI,
 			String authorization,long timeout) {
 		super(sparql, authorization,timeout);
 		
@@ -41,11 +44,11 @@ public class SubscribeRequest extends Request {
 		this.named_graph_uri = namedGraphURI;
 	}
 	
-	public String getDefaultGraphUri() {
+	public Set<String> getDefaultGraphUri() {
 		return default_graph_uri;
 	}
 	
-	public String getNamedGraphUri() {
+	public Set<String> getNamedGraphUri() {
 		return named_graph_uri;
 	}
 
@@ -60,10 +63,14 @@ public class SubscribeRequest extends Request {
 		if (getAlias() != null)
 			body.add("alias", new JsonPrimitive(getAlias()));
 		if (default_graph_uri != null) {
-			body.add("default-graph-uri", new JsonPrimitive(default_graph_uri));
+			JsonArray array = new JsonArray();
+			for (String s: default_graph_uri) array.add(s);
+			body.add("default-graph-uri", array);
 		}
 		if (named_graph_uri != null) {
-			body.add("named-graph-uri", new JsonPrimitive(named_graph_uri));
+			JsonArray array = new JsonArray();
+			for (String s: named_graph_uri) array.add(s);
+			body.add("named-graph-uri", array);
 		}
 		body.add("timeout", new JsonPrimitive(getTimeout()));
 		

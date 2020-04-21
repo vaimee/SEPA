@@ -157,7 +157,7 @@ public abstract class SPU extends Thread implements ISPU {
 			
 									
 			// End of processing
-			logger.debug("Notify SPU manager of EOP. Running: " + running);
+			logger.trace("Notify SPU manager of EOP. Running: " + running);
 			manager.endOfProcessing(this);
 		}
 	}

@@ -374,40 +374,24 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		// Create POST request
 		try {
+			for (String g : req.getDefaultGraphUri()) {
+				if (graphs == null) graphs = "using-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+				else graphs += "&using-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+			}
+			for (String g: req.getNamedGraphUri()) {
+				if (graphs == null) graphs = "using-named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+				else graphs += "&using-named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+			}
+			
 			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
-				if (req.getDefaultGraphUri() != null) {
-					graphs = "using-graph-uri=" + req.getDefaultGraphUri();
-					if (req.getNamedGraphUri() != null) {
-						graphs += "&using-named-graph-uri=" + req.getNamedGraphUri();
-					}
-				} else if (req.getNamedGraphUri() != null) {
-					graphs = "using-named-graph-uri=" + req.getNamedGraphUri();
-				}
-
 				post = new HttpPost(new URI(scheme, null, host, port, updatePath, graphs, null));
 				post.setHeader("Content-Type", "application/sparql-update");
 
 				// Body
 				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 			} else {
-				post = new HttpPost(new URI(scheme, null, host, port, updatePath, null, null));
+				post = new HttpPost(new URI(scheme, null, host, port, updatePath, null, null));				
 				post.setHeader("Content-Type", "application/x-www-form-urlencoded");
-
-				// Graphs
-				try {
-					if (req.getDefaultGraphUri() != null) {
-						graphs = "using-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
-						if (req.getNamedGraphUri() != null) {
-							graphs += "&using-named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
-						}
-					} else if (req.getNamedGraphUri() != null) {
-						graphs = "using-named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
-					}
-				} catch (UnsupportedEncodingException e) {
-					logger.error(e.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",
-							e.getMessage());
-				}
 
 				// Body
 				if (graphs != null)
@@ -468,18 +452,16 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		String queryPath = req.getPath();
 
 		try {
+			for (String g : req.getDefaultGraphUri()) {
+				if (graphs == null) graphs = "default-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+				else graphs += "&default-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+			}
+			for (String g: req.getNamedGraphUri()) {
+				if (graphs == null) graphs = "named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+				else graphs += "&named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+			}
+			
 			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
-				if (req.getDefaultGraphUri() != null) {
-
-					graphs = "default-graph-uri=" + req.getDefaultGraphUri();
-
-					if (req.getNamedGraphUri() != null) {
-						graphs += "&named-graph-uri=" + req.getNamedGraphUri();
-					}
-				} else if (req.getNamedGraphUri() != null) {
-					graphs = "named-graph-uri=" + req.getNamedGraphUri();
-				}
-
 				post = new HttpPost(new URI(scheme, null, host, port, queryPath, graphs, null));
 				post.setHeader("Content-Type", "application/sparql-query");
 
@@ -488,23 +470,6 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			} else {
 				post = new HttpPost(new URI(scheme, null, host, port, queryPath, null, null));
 				post.setHeader("Content-Type", "application/x-www-form-urlencoded");
-
-				try {
-					if (req.getDefaultGraphUri() != null) {
-
-						graphs = "default-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
-
-						if (req.getNamedGraphUri() != null) {
-							graphs += "&named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
-						}
-					} else if (req.getNamedGraphUri() != null) {
-						graphs = "named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
-					}
-				} catch (UnsupportedEncodingException e) {
-					logger.error(e.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",
-							e.getMessage());
-				}
 
 				// Body
 				if (graphs != null)
@@ -554,17 +519,15 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					e1.getMessage());
 		}
 
-		String graphs = "";
+		String graphs = null;
 		try {
-			if (req.getDefaultGraphUri() != null) {
-
-				graphs += "default-graph-uri=" + URLEncoder.encode(req.getDefaultGraphUri(), "UTF-8");
-
-				if (req.getNamedGraphUri() != null) {
-					graphs += "&named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
-				}
-			} else if (req.getNamedGraphUri() != null) {
-				graphs += "named-graph-uri=" + URLEncoder.encode(req.getNamedGraphUri(), "UTF-8");
+			for (String g : req.getDefaultGraphUri()) {
+				if (graphs == null) graphs = "default-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+				else graphs += "&default-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+			}
+			for (String g: req.getNamedGraphUri()) {
+				if (graphs == null) graphs = "named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+				else graphs += "&named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());
@@ -572,7 +535,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					e.getMessage());
 		}
 
-		if (!graphs.equals(""))
+		if (graphs != null)
 			query += "&" + graphs;
 
 		String url;

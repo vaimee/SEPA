@@ -19,10 +19,14 @@
 package it.unibo.arces.wot.sepa.commons.protocol;
 
 import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -130,7 +134,7 @@ public class SPARQL11Properties {
 		/** The json. */
 		JSON
 	};
-	
+
 	/**
 	 * The Enum UpdateResultsFormat (HTTP,HTTPS).
 	 */
@@ -151,30 +155,32 @@ public class SPARQL11Properties {
 	protected JsonObject jsap = new JsonObject();
 
 	public SPARQL11Properties(String propertiesFile) throws SEPAPropertiesException {
-		this(propertiesFile,false);
+		this(propertiesFile, false);
 	}
-	
-	public SPARQL11Properties(String propertiesFile,boolean validate) throws SEPAPropertiesException {
-		if (propertiesFile == null) throw new SEPAPropertiesException("JSAP file is null");
-		loadProperties(propertiesFile,validate);
+
+	public SPARQL11Properties(String propertiesFile, boolean validate) throws SEPAPropertiesException {
+		if (propertiesFile == null)
+			throw new SEPAPropertiesException("JSAP file is null");
+		loadProperties(propertiesFile, validate);
 	}
-	
+
 	public SPARQL11Properties() {
 		defaults();
 		this.propertiesFile = null;
 	}
 
-	private void loadProperties(String jsapFile,boolean val) throws SEPAPropertiesException {
+	private void loadProperties(String jsapFile, boolean val) throws SEPAPropertiesException {
 		try (final FileReader in = new FileReader(jsapFile)) {
 			jsap = new JsonParser().parse(in).getAsJsonObject();
 
 			// Validate the JSON elements
-			if (val) validate();
-			
+			if (val)
+				validate();
+
 			this.propertiesFile = jsapFile;
 		} catch (Exception e) {
 
-			logger.warn("jsapFile: "+ jsapFile+ " Exception: "+e.getMessage());
+			logger.warn("jsapFile: " + jsapFile + " Exception: " + e.getMessage());
 
 			defaults();
 
@@ -263,11 +269,9 @@ public class SPARQL11Properties {
 	/**
 	 * Store properties.
 	 *
-	 * @param propertiesFile
-	 *            the properties file
+	 * @param propertiesFile the properties file
 	 * @throws SEPAPropertiesException
-	 * @throws IOException
-	 *             Signals that an I/O exception has occurred.
+	 * @throws IOException             Signals that an I/O exception has occurred.
 	 */
 	protected void storeProperties(String propertiesFile) throws SEPAPropertiesException {
 		FileWriter out;
@@ -297,7 +301,7 @@ public class SPARQL11Properties {
 			}
 		}
 	}
-	
+
 	/**
 	 * Sets the host.
 	 *
@@ -305,7 +309,7 @@ public class SPARQL11Properties {
 	public void setHost(String host) {
 		jsap.add("host", new JsonPrimitive(host));
 	}
-	
+
 	/**
 	 * Gets the update port.
 	 *
@@ -318,14 +322,14 @@ public class SPARQL11Properties {
 			return -1;
 		}
 	}
-	
+
 	/**
 	 * Sets the update port.
 	 *
 	 * @return the update port
 	 */
 	public void setPort(int port) {
-		jsap.getAsJsonObject("sparql11protocol").add("port",new JsonPrimitive(port));
+		jsap.getAsJsonObject("sparql11protocol").add("port", new JsonPrimitive(port));
 	}
 
 	/**
@@ -333,25 +337,32 @@ public class SPARQL11Properties {
 	 * 
 	 * <pre>
 	"graphs": { 
-		"default-graph-uri": "http://default", 
-		"named-graph-uri": "http://default", 
-		"using-graph-uri": "http://default",
-		"using-named-graph-uri": "http://default"
+		"default-graph-uri": ["http://default"], 
+		"named-graph-uri": ["http://default"], 
+		"using-graph-uri": ["http://default"],
+		"using-named-graph-uri": ["http://default"]
 	}
 	 * </pre>
 	 * 
 	 * @return the default graph URI
 	 */
-	public String getDefaultGraphURI() {
+	public Set<String> getDefaultGraphURI() {
+		HashSet<String> ret = new HashSet<>();
+
 		try {
-			return jsap.getAsJsonObject("graphs").get("default-graph-uri").getAsString();
+			JsonArray array = jsap.getAsJsonObject("graphs").get("default-graph-uri").getAsJsonArray();
+			for (JsonElement element : array) ret.add(element.getAsString());
 		} catch (Exception e) {
-			return null;
 		}
+
+		return ret;
 	}
-	
-	public void setDefaultGraphURI(String graph) {
-		jsap.getAsJsonObject("graphs").add("default-graph-uri", new JsonPrimitive(graph));
+
+	public void setDefaultGraphURI(Set<String> graph) {
+		JsonArray array = new JsonArray();
+		for (String s : graph) array.add(s);
+		if (!jsap.has("graphs")) jsap.add("graphs", new JsonObject());
+		jsap.getAsJsonObject("graphs").add("default-graph-uri", array);
 	}
 
 	/**
@@ -368,16 +379,23 @@ public class SPARQL11Properties {
 	 * 
 	 * @return the default graph URI
 	 */
-	public String getNamedGraphURI() {
+	public Set<String> getNamedGraphURI() {
+		HashSet<String> ret = new HashSet<>();
+		
 		try {
-			return jsap.getAsJsonObject("graphs").get("named-graph-uri").getAsString();
+			JsonArray array = jsap.getAsJsonObject("graphs").get("named-graph-uri").getAsJsonArray();		
+			for (JsonElement element : array) ret.add(element.getAsString());
 		} catch (Exception e) {
-			return null;
 		}
+		
+		return ret;
 	}
-	
-	public void setNamedGraphURI(String graph) {
-		jsap.getAsJsonObject("graphs").add("named-graph-uri", new JsonPrimitive(graph));
+
+	public void setNamedGraphURI(Set<String> graph) {
+		JsonArray array = new JsonArray();
+		for (String s : graph) array.add(s);
+		if (!jsap.has("graphs")) jsap.add("graphs", new JsonObject());
+		jsap.getAsJsonObject("graphs").add("named-graph-uri", array);
 	}
 
 	/**
@@ -394,16 +412,24 @@ public class SPARQL11Properties {
 	 * 
 	 * @return the default graph URI
 	 */
-	public String getUsingGraphURI() {
+	public Set<String> getUsingGraphURI() {
+		HashSet<String> ret = new HashSet<>();
+
 		try {
-			return jsap.getAsJsonObject("graphs").get("using-graph-uri").getAsString();
+			JsonArray array = jsap.getAsJsonObject("graphs").get("using-graph-uri").getAsJsonArray();
+			for (JsonElement element : array) ret.add(element.getAsString());
 		} catch (Exception e) {
-			return null;
+
 		}
+
+		return ret;
 	}
-	
-	public void setUsingGraphURI(String graph) {
-		jsap.getAsJsonObject("graphs").add("using-graph-uri", new JsonPrimitive(graph));
+
+	public void setUsingGraphURI(Set<String> graph) {
+		JsonArray array = new JsonArray();
+		for (String s : graph) array.add(s);
+		if (!jsap.has("graphs")) jsap.add("graphs", new JsonObject());
+		jsap.getAsJsonObject("graphs").add("using-graph-uri", array);
 	}
 
 	/**
@@ -420,16 +446,23 @@ public class SPARQL11Properties {
 	 * 
 	 * @return the default graph URI
 	 */
-	public String getUsingNamedGraphURI() {
+	public Set<String> getUsingNamedGraphURI() {
+		HashSet<String> ret = new HashSet<>();
+		
 		try {
-			return jsap.getAsJsonObject("graphs").get("using-named-graph-uri").getAsString();
+			JsonArray array = jsap.getAsJsonObject("graphs").get("using-named-graph-uri").getAsJsonArray();			
+			for (JsonElement element : array) ret.add(element.getAsString());
 		} catch (Exception e) {
-			return null;
 		}
+		
+		return ret;
 	}
-	
-	public void setUsingNamedGraphURI(String graph) {
-		jsap.getAsJsonObject("graphs").add("using-named-graph-uri", new JsonPrimitive(graph));
+
+	public void setUsingNamedGraphURI(Set<String> graph) {
+		JsonArray array = new JsonArray();
+		for (String s : graph) array.add(s);
+		if (!jsap.has("graphs")) jsap.add("graphs", new JsonObject());
+		jsap.getAsJsonObject("graphs").add("using-named-graph-uri", array);
 	}
 
 	/**
@@ -440,9 +473,9 @@ public class SPARQL11Properties {
 	public String getUpdatePath() {
 		return jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("path").getAsString();
 	}
-	
+
 	public void setUpdatePath(String path) {
-		jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("path",new JsonPrimitive(path));
+		jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("path", new JsonPrimitive(path));
 	}
 
 	/**
@@ -453,8 +486,7 @@ public class SPARQL11Properties {
 	 * @see HTTPMethod
 	 */
 	public HTTPMethod getUpdateMethod() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("method")
-				.getAsString()) {
+		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("method").getAsString()) {
 		case "POST":
 			return HTTPMethod.POST;
 		case "URL_ENCODED_POST":
@@ -463,14 +495,15 @@ public class SPARQL11Properties {
 			return HTTPMethod.GET;
 		}
 	}
-	
+
 	public void setUpdateMethod(HTTPMethod method) {
-		switch(method) {
+		switch (method) {
 		case POST:
 			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("method", new JsonPrimitive("POST"));
 			break;
 		case URL_ENCODED_POST:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("method", new JsonPrimitive("URL_ENCODED_POST"));
+			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("method",
+					new JsonPrimitive("URL_ENCODED_POST"));
 			break;
 		case GET:
 			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("method", new JsonPrimitive("GET"));
@@ -484,8 +517,7 @@ public class SPARQL11Properties {
 	 * @return the update HTTP Accept header string
 	 */
 	public String getUpdateAcceptHeader() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("format")
-				.getAsString()) {
+		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("format").getAsString()) {
 		case "JSON":
 			return "application/json";
 		case "HTML":
@@ -494,14 +526,16 @@ public class SPARQL11Properties {
 			return "application/json";
 		}
 	}
-	
+
 	public void setUpdateAcceptHeader(UpdateResultsFormat format) {
-		switch(format) {
+		switch (format) {
 		case JSON:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("format", new JsonPrimitive("application/json"));
+			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("format",
+					new JsonPrimitive("application/json"));
 			break;
 		case HTML:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("format", new JsonPrimitive("application/html"));
+			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("format",
+					new JsonPrimitive("application/html"));
 			break;
 		}
 	}
@@ -514,7 +548,7 @@ public class SPARQL11Properties {
 	public String getQueryPath() {
 		return jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("path").getAsString();
 	}
-	
+
 	public void setQueryPath(String path) {
 		jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("path", new JsonPrimitive(path));
 	}
@@ -527,8 +561,7 @@ public class SPARQL11Properties {
 	 * @see HTTPMethod
 	 */
 	public HTTPMethod getQueryMethod() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("method")
-				.getAsString()) {
+		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("method").getAsString()) {
 		case "POST":
 			return HTTPMethod.POST;
 		case "GET":
@@ -539,14 +572,15 @@ public class SPARQL11Properties {
 			return HTTPMethod.POST;
 		}
 	}
-	
+
 	public void setQueryMethod(HTTPMethod method) {
-		switch(method) {
+		switch (method) {
 		case POST:
 			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("method", new JsonPrimitive("POST"));
 			break;
 		case URL_ENCODED_POST:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("method", new JsonPrimitive("URL_ENCODED_POST"));
+			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("method",
+					new JsonPrimitive("URL_ENCODED_POST"));
 			break;
 		case GET:
 			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("method", new JsonPrimitive("GET"));
@@ -561,8 +595,7 @@ public class SPARQL11Properties {
 	 * 
 	 */
 	public String getQueryAcceptHeader() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("format")
-				.getAsString()) {
+		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("format").getAsString()) {
 		case "JSON":
 			return "application/sparql-results+json";
 		case "XML":
@@ -573,25 +606,27 @@ public class SPARQL11Properties {
 			return "application/sparql-results+json";
 		}
 	}
-	
+
 	public void setQueryAcceptHeader(QueryResultsFormat format) {
-		switch(format) {
+		switch (format) {
 		case JSON:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("format", new JsonPrimitive("application/sparql-results+json"));
+			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("format",
+					new JsonPrimitive("application/sparql-results+json"));
 			break;
 		case XML:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("format", new JsonPrimitive("application/sparql-results+xml"));
+			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("format",
+					new JsonPrimitive("application/sparql-results+xml"));
 			break;
 		case CSV:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("format", new JsonPrimitive("text/csv"));
+			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("format",
+					new JsonPrimitive("text/csv"));
 			break;
 		}
-		
+
 	}
 
 	public String getUpdateContentTypeHeader() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("method")
-				.getAsString()) {
+		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("method").getAsString()) {
 		case "POST":
 			return "application/sparql-update";
 		case "URL_ENCODED_POST":
@@ -602,8 +637,7 @@ public class SPARQL11Properties {
 	}
 
 	public String getQueryContentTypeHeader() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("method")
-				.getAsString()) {
+		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("method").getAsString()) {
 		case "POST":
 			return "application/sparql-query";
 		case "URL_ENCODED_POST":
@@ -616,15 +650,15 @@ public class SPARQL11Properties {
 	public String getProtocolScheme() {
 		return jsap.getAsJsonObject("sparql11protocol").get("protocol").getAsString();
 	}
-	
+
 	public void setProtocolScheme(ProtocolScheme scheme) {
-		switch(scheme) {
+		switch (scheme) {
 		case HTTP:
-			jsap.getAsJsonObject("sparql11protocol").add("protocol",new JsonPrimitive("http"));
+			jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive("http"));
 			break;
 		case HTTPS:
-			jsap.getAsJsonObject("sparql11protocol").add("protocol",new JsonPrimitive("https"));
+			jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive("https"));
 			break;
-		}		
+		}
 	}
 }

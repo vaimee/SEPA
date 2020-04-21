@@ -39,6 +39,6 @@ public class ScheduledResponse {
 	
 	@Override
 	public String toString() {
-		return "RESPONSE #"+token+" : "+response.toString();
+		return "RESPONSE #"+token;
 	}
 }
