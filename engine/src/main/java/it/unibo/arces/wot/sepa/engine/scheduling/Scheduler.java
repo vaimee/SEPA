@@ -82,7 +82,8 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			}
 
 			logger.info(">> " + scheduled);
-
+			logger.debug(scheduled.getRequest());
+			
 			Timings.log(request);
 
 			SchedulerBeans.newRequest(request, true);
@@ -106,6 +107,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				// Wait for response
 				ScheduledResponse response = queue.waitResponse();
 				logger.info("<< " + response);
+				logger.trace(response.getResponse());
 
 				// The token
 				int token = response.getToken();

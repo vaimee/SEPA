@@ -17,6 +17,8 @@
 */
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import java.util.Set;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
@@ -28,7 +30,7 @@ public class InternalSubscribeRequest extends InternalQueryRequest {
 	private String alias = null;
 	private EventHandler gate;
 	
-	public InternalSubscribeRequest(String sparql, String alias,String defaultGraphUri, String namedGraphUri,EventHandler gate,ClientAuthorization auth) {
+	public InternalSubscribeRequest(String sparql, String alias,Set<String> defaultGraphUri, Set<String> namedGraphUri,EventHandler gate,ClientAuthorization auth) {
 		super(sparql, defaultGraphUri, namedGraphUri,auth);
 		
 		this.alias = alias;
@@ -47,10 +49,6 @@ public class InternalSubscribeRequest extends InternalQueryRequest {
 	public void setEventHandler(EventHandler gate) {
 		this.gate = gate;
 	}
-	
-//	public EventHandler getEventHandler() {
-//		return gate;
-//	}
 
 	public void notifyEvent(Notification notify) throws SEPAProtocolException {
 		if (gate != null) gate.notifyEvent(notify);	

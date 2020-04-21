@@ -40,7 +40,7 @@ class UpdateProcessingThread extends Thread {
 		while (processor.isRunning()) {
 			ScheduledRequest request;
 			try {
-				logger.debug("Wait for update requests...");
+				logger.trace("Wait for update requests...");
 				request = processor.waitUpdateRequest();
 			} catch (InterruptedException e) {
 				return;
@@ -51,18 +51,18 @@ class UpdateProcessingThread extends Thread {
 			
 			// Notify update (not reliable)
 			if (!processor.isUpdateReliable()) {
-				logger.debug("Notify client of update processing (not reliable)");
+				logger.trace("Notify client of update processing (not reliable)");
 				processor.addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
 			}
 			
 			// Process update
-			logger.debug("Start processing update...");
+			logger.trace("Start processing update...");
 			Response ret = processor.processUpdate(update);
-			logger.debug("Update processing COMPLETED");
+			logger.trace("Update processing COMPLETED");
 			
 			// Notify update result
 			if (processor.isUpdateReliable()) {
-				logger.debug("Notify client of update processing (reliable)");
+				logger.trace("Notify client of update processing (reliable)");
 				processor.addResponse(request.getToken(),ret);
 			}
 		}

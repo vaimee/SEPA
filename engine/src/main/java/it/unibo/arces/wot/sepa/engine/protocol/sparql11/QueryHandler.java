@@ -18,8 +18,8 @@
 
 package it.unibo.arces.wot.sepa.engine.protocol.sparql11;
 
-import java.net.URLDecoder;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
@@ -28,8 +28,6 @@ import org.apache.http.nio.protocol.HttpAsyncExchange;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-//import com.nimbusds.jose.Header;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
@@ -87,16 +85,16 @@ public class QueryHandler extends SPARQL11Handler {
 				}
 
 				String queryParameters = requestUri.substring(requestUri.indexOf('?') + 1);
-				Map<String, String> params = HttpUtilities.splitQuery(queryParameters);
+				Map<String, Set<String>> params = HttpUtilities.splitQuery(queryParameters);
 
 				if (params.get("query") == null) {
 					throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,
 							"Wrong request uri: 'query=' not found in " + queryParameters);
 				}
 
-				String sparql = URLDecoder.decode(params.get("query"), "UTF-8");
-				String graphUri = params.get("default-graph-uri");
-				String namedGraphUri = params.get("named-graph-uri");
+				String sparql = params.get("query").iterator().next();
+				Set<String> graphUri = params.get("default-graph-uri");
+				Set<String> namedGraphUri = params.get("named-graph-uri");
 
 				Header[] headers = exchange.getRequest().getHeaders("Accept");
 				if (headers.length != 1) return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth);

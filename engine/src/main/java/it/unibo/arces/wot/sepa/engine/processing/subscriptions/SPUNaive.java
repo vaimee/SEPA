@@ -77,7 +77,7 @@ class SPUNaive extends SPU {
 
 	@Override
 	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException, SEPASecurityException {
-		logger.debug("* PROCESSING *" + subscribe);
+		logger.trace("* PROCESSING *" + subscribe);
 		Response ret;
 
 		// Query the SPARQL processing service
@@ -99,8 +99,8 @@ class SPUNaive extends SPU {
 		if (lastBindings == null)
 			lastBindings = new BindingsResults(null, null);
 
-		logger.debug("Current bindings: " + currentBindings);
-		logger.debug("Last bindings: " + lastBindings);
+		logger.trace("Current bindings: " + currentBindings);
+		logger.trace("Last bindings: " + lastBindings);
 
 		// Find removed bindings
 		long start = System.nanoTime();
@@ -111,7 +111,7 @@ class SPUNaive extends SPU {
 				results.remove(solution);
 		}
 		long stop = System.nanoTime();
-		logger.debug("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
+		logger.trace("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
 
 		// Find added bindings
 		start = System.nanoTime();
@@ -120,7 +120,7 @@ class SPUNaive extends SPU {
 				added.add(solution);
 		}
 		stop = System.nanoTime();
-		logger.debug("Added bindings: " + added + " found in " + (stop - start) + " ns");
+		logger.trace("Added bindings: " + added + " found in " + (stop - start) + " ns");
 
 		// Update the last bindings with the current ones
 		lastBindings = currentBindings;

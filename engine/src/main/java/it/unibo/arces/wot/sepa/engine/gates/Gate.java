@@ -17,6 +17,8 @@
 */
 package it.unibo.arces.wot.sepa.engine.gates;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.*;
@@ -24,6 +26,8 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
@@ -79,7 +83,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 
 	@Override
 	public final void notifyEvent(Notification notify) throws SEPAProtocolException {
-		logger.debug("@notifyEvent: " + notify);
+		logger.trace("@notifyEvent: " + notify);
 		send(notify);
 		
 		GateBeans.notification();
@@ -87,7 +91,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 
 	@Override
 	public final void sendResponse(Response response) throws SEPAProtocolException {
-		logger.debug("@sendResponse: " + response);
+		logger.trace("@sendResponse: " + response);
 		send(response);
 
 		// JMX
@@ -135,7 +139,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		}
 
 		// Schedule the request
-		logger.debug("@onMessage: " + getGID() + " schedule request: " + req);
+		logger.trace("@onMessage: " + getGID() + " schedule request: " + req);
 		ScheduledRequest request = scheduler.schedule(req, this);
 
 		// Request not scheduled
@@ -298,8 +302,8 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		if (req.has("subscribe")) {
 			String sparql = null;
 			String alias = null;
-			String defaultGraphUri = null;
-			String namedGraphUri = null;
+			Set<String> defaultGraphUri = new HashSet<String>();
+			Set<String> namedGraphUri = new HashSet<String>();
 
 			try {
 				sparql = req.get("subscribe").getAsJsonObject().get("sparql").getAsString();
@@ -315,12 +319,14 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			}
 
 			try {
-				defaultGraphUri = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsString();
+				JsonArray array = req.get("subscribe").getAsJsonObject().get("default-graph-uri").getAsJsonArray();
+				for (JsonElement element : array) defaultGraphUri.add(element.getAsString());
 			} catch (Exception e) {
 			}
 
 			try {
-				namedGraphUri = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsString();
+				JsonArray array = req.get("subscribe").getAsJsonObject().get("named-graph-uri").getAsJsonArray();
+				for (JsonElement element : array) namedGraphUri.add(element.getAsString());
 			} catch (Exception e) {
 			}
 
