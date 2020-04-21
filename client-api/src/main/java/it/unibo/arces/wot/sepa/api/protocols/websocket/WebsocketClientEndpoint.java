@@ -179,8 +179,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 	}
 
 	public void connect(URI url) throws SEPAProtocolException {
-		// Attempt up to X times to connect
-		int retries = 5;
+		// Attempt to connect
 		while (true) {
 			try {
 				logger.debug("Connect to: " + url);
@@ -188,13 +187,10 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 				return;
 
 			} catch (DeploymentException | IOException e) {
-				logger.error(e.getMessage() + " Retries: " + retries);
-				retries--;
-				if (retries == 0)
-					throw new SEPAProtocolException(e);
+				logger.error(e.getMessage());
 
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(5000);
 				} catch (InterruptedException e1) {
 					throw new SEPAProtocolException(e1);
 				}
