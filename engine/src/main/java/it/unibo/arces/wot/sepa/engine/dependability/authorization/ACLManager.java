@@ -13,11 +13,11 @@ import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.Dig
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.UserIdentity;
 
 public class ACLManager {
-	static String host = "sepa.vaimee.it";
+	static String host = "localhost";
 	static int port = 10389;
-	static String base = "dc=vaimee,dc=com";
+	static String base = "dc=sepatest,dc=com";
 	static String user = "uid=admin,ou=system";
-	static String pwd = null;
+	static String pwd = "secret";
 
 	public static void main(String[] args) {
 		Console console = System.console();
@@ -30,30 +30,30 @@ public class ACLManager {
 		LdapAuthorization ldap;
 		String line;
 		while (true) {
-			System.out.print("Host (default: sepa.vaimee.it): ");
+			System.out.print("Host (return for default: localhost): ");
 			line = in.nextLine();
 			if (!line.equals(""))
 				host = line;
 
-			System.out.print("Port (default: 10389): ");
+			System.out.print("Port (return for default: 10389): ");
 			line = in.nextLine();
 			if (!line.equals(""))
 				port = Integer.parseInt(line);
 
-			System.out.print("Base (default: dc=vaimee,dc=com): ");
+			System.out.print("Base (return for default: dc=sepatest,dc=com): ");
 			line = in.nextLine();
 			if (!line.equals(""))
 				base = line;
 
-			System.out.print("User (default: uid=admin,ou=system): ");
+			System.out.print("User (return for default: uid=admin,ou=system): ");
 			line = in.nextLine();
 			if (!line.equals(""))
 				user = line;
 
 			if (console != null)
-				pwd = new String(console.readPassword("Password: "));
+				pwd = new String(console.readPassword("Password (default: secret):"));
 			else {
-				System.out.print("Password: ");
+				System.out.print("Password (default: secret):");
 				line = in.nextLine();
 				if (!line.equals(""))
 					pwd = line;
@@ -70,13 +70,15 @@ public class ACLManager {
 		System.out.println("Connected to LDAP!");
 
 		System.out.println("Set SPARQL endpoint credentials");
-		System.out.print("User: ");
-		String user = in.nextLine();
+		System.out.print("User (return for default: SEPATest):");
+		line = in.nextLine();
+		String user = "SEPATest";
+		if (!line.equals("")) user = line;
 
 		if (console != null)
-			pwd = new String(console.readPassword("Password: "));
+			pwd = new String(console.readPassword("Password (default: SEPATest):"));
 		else {
-			System.out.print("Password: ");
+			System.out.print("Password (default: SEPATest):");
 			line = in.nextLine();
 			pwd = line;
 		}

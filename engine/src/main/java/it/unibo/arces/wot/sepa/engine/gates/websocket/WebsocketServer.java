@@ -22,7 +22,6 @@ import java.net.BindException;
 import java.net.Inet4Address;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 
 import org.apache.http.HttpStatus;
@@ -30,7 +29,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import org.java_websocket.WebSocket;
-import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
@@ -161,28 +159,29 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	 * opcode of 0x0 and a FIN bit that is set.
 	 */
 
-	@Override
-	public void onFragment(WebSocket conn, Framedata fragment) {
-		logger.debug("@onFragment WebSocket: <" + conn + "> Fragment data:<" + fragment + ">");
-
-		if (!conn.getResourceDescriptor().equals(path))
-			return;
-
-		if (fragmentedMessages.get(conn) == null)
-			fragmentedMessages.put(conn, new String(fragment.getPayloadData().array(), Charset.forName("UTF-8")));
-		else
-			fragmentedMessages.put(conn, fragmentedMessages.get(conn)
-					+ new String(fragment.getPayloadData().array(), Charset.forName("UTF-8")));
-
-		logger.debug("Fragmented message: " + fragmentedMessages.get(conn));
-
-		if (fragment.isFin()) {
-			GateBeans.onFragmentedMessage();
-
-			onMessage(conn, fragmentedMessages.get(conn));
-			fragmentedMessages.put(conn, null);
-		}
-	}
+	// NOT IMPLEMENTED IN VERSION 1.5.5
+//	@Override
+//	public void onFragment(WebSocket conn, Framedata fragment) {
+//		logger.debug("@onFragment WebSocket: <" + conn + "> Fragment data:<" + fragment + ">");
+//
+//		if (!conn.getResourceDescriptor().equals(path))
+//			return;
+//
+//		if (fragmentedMessages.get(conn) == null)
+//			fragmentedMessages.put(conn, new String(fragment.getPayloadData().array(), Charset.forName("UTF-8")));
+//		else
+//			fragmentedMessages.put(conn, fragmentedMessages.get(conn)
+//					+ new String(fragment.getPayloadData().array(), Charset.forName("UTF-8")));
+//
+//		logger.debug("Fragmented message: " + fragmentedMessages.get(conn));
+//
+//		if (fragment.isFin()) {
+//			GateBeans.onFragmentedMessage();
+//
+//			onMessage(conn, fragmentedMessages.get(conn));
+//			fragmentedMessages.put(conn, null);
+//		}
+//	}
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {

@@ -220,7 +220,7 @@ dn: uid=issuer,ou=jwt,o=vaimee
 |- uid: issuer
 |- host: http://issuer
  * </pre>
- * */
+ */
 public class LdapAuthorization implements IAuthorization {
 	protected static Logger logger = LogManager.getLogger();
 
@@ -230,7 +230,7 @@ public class LdapAuthorization implements IAuthorization {
 	private final String user;
 
 	EntryCursor cursor = null;
-	
+
 	public LdapAuthorization(String host, int port, String base, String user, String pwd) throws LdapException {
 		if (user != null && pwd == null)
 			throw new LdapException("Password is null for user: " + user);
@@ -241,7 +241,7 @@ public class LdapAuthorization implements IAuthorization {
 	}
 
 	public LdapAuthorization() {
-		ldap = new LdapNetworkConnection("localhost",10389);
+		ldap = new LdapNetworkConnection("localhost", 10389);
 		this.user = null;
 		this.pwd = null;
 		ldapRoot = "dc=example,dc=com";
@@ -252,73 +252,71 @@ public class LdapAuthorization implements IAuthorization {
 			try {
 				ldap.bind(user, pwd);
 			} catch (LdapException e) {
-				logger.error("Exception on LDAP binding: "+e.getMessage());
-				throw new SEPASecurityException("Exception on LDAP binding: "+e.getMessage());
+				logger.error("[LDAP] Exception on binding: " + e.getMessage());
+				throw new SEPASecurityException("Exception on LDAP binding: " + e.getMessage());
 			}
 		else
 			try {
 				ldap.bind();
 			} catch (LdapException e) {
-				logger.error("Exception on LDAP binding: "+e.getMessage());
-				throw new SEPASecurityException("Exception on LDAP binding: "+e.getMessage());
+				logger.error("[LDAP] Exception on binding: " + e.getMessage());
+				throw new SEPASecurityException("Exception on LDAP binding: " + e.getMessage());
 			}
 	}
-	
-	private void unbind() throws SEPASecurityException {		
+
+	private void unbind() throws SEPASecurityException {
 		try {
-			if (cursor != null) cursor.close();
+			if (cursor != null)
+				cursor.close();
 			ldap.unBind();
 		} catch (IOException e) {
-			logger.error("IOException: "+e.getMessage());
+			logger.error("[LDAP] IOException: " + e.getMessage());
 			throw new SEPASecurityException(e.getMessage());
 		} catch (LdapException e) {
-			logger.error("LdapException: "+e.getMessage());
+			logger.error("[LDAP] LdapException: " + e.getMessage());
 			throw new SEPASecurityException(e.getMessage());
 		} finally {
 			cursor = null;
 		}
-	} 
+	}
 
 	@Override
 	public Credentials getEndpointCredentials(String uid) throws SEPASecurityException {
-		logger.debug("getEndpointCredentials "+uid);
-		
 		bind();
-		
-		try {
-			logger.debug("getEndpointCredentials Base DN: "+"uid=" + uid + ",ou=credentials," + ldapRoot);
 
-			cursor = ldap.search("uid=" + uid + ",ou=credentials," + ldapRoot, "(objectclass=*)",
-					SearchScope.OBJECT, "*");
+		try {
+			logger.debug("[LDAP] getEndpointCredentials Base DN: " + "uid=" + uid + ",ou=credentials," + ldapRoot);
+
+			cursor = ldap.search("uid=" + uid + ",ou=credentials," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
+					"*");
 
 			if (cursor.next()) {
 				Attribute attr = cursor.get().get("javaSerializedData");
-				
-				if(attr != null) {
+
+				if (attr != null) {
 					byte[] cred = attr.getBytes();
 					Credentials auth = Credentials.deserialize(cred);
 					// TODO: WARNING. PRINTING CREDENTIALS just for debugging purposes
-					logger.debug(auth);
+					logger.debug("[LDAP] " + auth);
 					return auth;
-				}				
+				}
 			}
-		}
-		catch(LdapException | CursorException e) {
-			logger.error("LdapException|CursorException : "+e.getMessage());
+		} catch (LdapException | CursorException e) {
+			logger.error("[LDAP] LdapException|CursorException : " + e.getMessage());
 			throw new SEPASecurityException(e.getMessage());
-		}finally {
+		} finally {
 			unbind();
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public void addAuthorizedIdentity(DigitalIdentity identity) throws SEPASecurityException {
-		logger.debug("addIdentity uid="+identity.getUid()+" class: "+identity.getObjectClass());
-		
-		bind();	
-		
+		logger.debug("[LDAP] addIdentity uid=" + identity.getUid() + " class: " + identity.getObjectClass());
+
+		bind();
+
 		try {
 			Entry entry = new DefaultEntry("uid=" + identity.getUid() + ",ou=authorizedIdentities," + ldapRoot);
 			entry.add("ObjectClass", "uidObject");
@@ -331,28 +329,31 @@ public class LdapAuthorization implements IAuthorization {
 
 			entry.add("javaClassName", identity.getEndpointCredentials().getClass().getName());
 			entry.add("javaSerializedData", identity.getEndpointCredentials().serialize());
-					
-			ldap.add(entry);						
+
+			ldap.add(entry);
 		} catch (LdapException e) {
-			logger.error("addAuthorizedIdentity exception: "+e.getMessage());
-			throw new SEPASecurityException("addIdentity exception: "+e.getMessage());
+			logger.error("[LDAP] addAuthorizedIdentity exception: " + e.getMessage());
+			throw new SEPASecurityException("addIdentity exception: " + e.getMessage());
 		} finally {
 			unbind();
 		}
 	}
 
 	@Override
-	public void removeAuthorizedIdentity(String id) throws SEPASecurityException {		
-		logger.debug("removeIdentity "+id);
-		
+	public void removeAuthorizedIdentity(String id) throws SEPASecurityException {
+		logger.debug("[LDAP] removeIdentity " + "uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
+
 		bind();
-		
+
 		try {
 			ldap.delete("uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
 		} catch (LdapException e) {
-			logger.error("Exception on removing identity: "+"uid=" + id + ",ou=authorizedIdentities," + ldapRoot+" "+e.getMessage());
-			if (logger.isTraceEnabled()) e.printStackTrace();
-			throw new SEPASecurityException("Exception on removing identity: "+"uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
+			logger.error("[LDAP] Exception on removing identity: " + "uid=" + id + ",ou=authorizedIdentities,"
+					+ ldapRoot + " " + e.getMessage());
+			if (logger.isTraceEnabled())
+				e.printStackTrace();
+			throw new SEPASecurityException(
+					"Exception on removing identity: " + "uid=" + id + ",ou=authorizedIdentities," + ldapRoot);
 		} finally {
 			unbind();
 		}
@@ -360,66 +361,60 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public boolean storeCredentials(DigitalIdentity identity, String client_secret) throws SEPASecurityException {
-		logger.debug("storeCredentials "+identity+" secret: "+client_secret);
-		
+		logger.debug("[LDAP] storeCredentials " + identity + " secret: " + client_secret);
+
 		byte[] password = PasswordUtil.createStoragePassword(client_secret.getBytes(),
 				LdapSecurityConstants.HASH_METHOD_SSHA);
 
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
 
-			if (!cursor.next()) {
-				Entry entry = new DefaultEntry("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot);
-				entry.add("ObjectClass", "top");
-				entry.add("ObjectClass", identity.getObjectClass());
-				entry.add("ObjectClass", "uidObject");
-				entry.add("ObjectClass", "simpleSecurityObject");
-				entry.add("ObjectClass", "javaSerializedObject");
-				
-				if (identity.getObjectClass().equals("inetOrgPerson")) {
-					entry.add("cn", ((UserIdentity) identity).getCommonName());
-					entry.add("sn", ((UserIdentity) identity).getSurname());
-				}
-				else entry.add("cn", "Authorized Digital Identity " + identity.getUid());
-				
-				entry.add("uid", identity.getUid());
-				entry.add("userPassword", password);
+			if (cursor.next())
+				removeCredentials(identity);
 
-				entry.add("javaClassName", identity.getEndpointCredentials().getClass().getName());
-				entry.add("javaSerializedData", identity.getEndpointCredentials().serialize());
-				
-				ldap.add(entry);
-			} else {
-//				Modification pwd = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
-//						"userPassword", password);
-//				Modification cred = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
-//						"javaSerializedData", identity.getEndpointCredentials().serialize());
-//				
-//				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,pwd);
-//				ldap.modify("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot,cred);
-				return false;
+			Entry entry = new DefaultEntry("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot);
+			entry.add("ObjectClass", "top");
+			entry.add("ObjectClass", identity.getObjectClass());
+			entry.add("ObjectClass", "uidObject");
+			entry.add("ObjectClass", "simpleSecurityObject");
+			entry.add("ObjectClass", "javaSerializedObject");
 
-			}
+			if (identity.getObjectClass().equals("inetOrgPerson")) {
+				entry.add("cn", ((UserIdentity) identity).getCommonName());
+				entry.add("sn", ((UserIdentity) identity).getSurname());
+			} else
+				entry.add("cn", "Authorized Digital Identity " + identity.getUid());
+
+			entry.add("uid", identity.getUid());
+			entry.add("userPassword", password);
+
+			entry.add("javaClassName", identity.getEndpointCredentials().getClass().getName());
+			entry.add("javaSerializedData", identity.getEndpointCredentials().serialize());
+
+			ldap.add(entry);
+
 		} catch (LdapException | CursorException e) {
-			logger.error("storeCredentials exception "+e.getMessage());
-			throw new SEPASecurityException("storeCredentials exception "+e.getMessage());
+			logger.error("[LDAP] storeCredentials exception " + e.getMessage());
+			throw new SEPASecurityException("storeCredentials exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
-		
+
 		return true;
 	}
 
 	@Override
 	public boolean checkCredentials(String uid, String secret) throws SEPASecurityException {
-		logger.debug("checkCredentials "+uid+" secret: "+secret);
-		
+		logger.debug(
+				"[LDAP] checkCredentials " + uid + " secret: " + secret + " uid=" + uid + ",ou=credentials," + ldapRoot,
+				"(objectclass=*)");
+
 		bind();
 
-		try {			
+		try {
 			cursor = ldap.search("uid=" + uid + ",ou=credentials," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
 			if (cursor.next()) {
@@ -428,8 +423,8 @@ public class LdapAuthorization implements IAuthorization {
 			} else
 				return false;
 		} catch (LdapException | CursorException e) {
-			logger.error("checkCredentials exception "+e.getMessage());
-			throw new SEPASecurityException("checkCredentials exception "+e.getMessage());
+			logger.error("[LDAP] checkCredentials exception " + e.getMessage());
+			throw new SEPASecurityException("checkCredentials exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -437,31 +432,31 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public void removeCredentials(DigitalIdentity identity) throws SEPASecurityException {
-		logger.debug("removeCredentials "+identity);
-		
+		logger.debug("[LDAP] removeCredentials " + "uid=" + identity.getUid() + ",ou=credentials," + ldapRoot);
+
 		bind();
-		
-		try {	
+
+		try {
 			ldap.delete("uid=" + identity.getUid() + ",ou=credentials," + ldapRoot);
 		} catch (LdapException e) {
-			logger.error("checkCredentials exception "+e.getMessage());
-			throw new SEPASecurityException("checkCredentials exception "+e.getMessage());
+			logger.error("[LDAP] checkCredentials exception " + e.getMessage());
+			throw new SEPASecurityException("checkCredentials exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
 	}
-	
+
 	@Override
 	public void removeToken(String uid) throws SEPASecurityException {
-		logger.debug("removeToken "+uid);
-		
+		logger.debug("[LDAP] removeToken " + "uid=" + uid + ",ou=tokens," + ldapRoot);
+
 		bind();
-		
-		try {	
+
+		try {
 			ldap.delete("uid=" + uid + ",ou=tokens," + ldapRoot);
 		} catch (LdapException e) {
-			logger.error("removeToken exception "+e.getMessage());
-			throw new SEPASecurityException("removeToken exception "+e.getMessage());
+			logger.error("[LDAP] removeToken exception " + e.getMessage());
+			throw new SEPASecurityException("removeToken exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -469,17 +464,17 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public boolean containsCredentials(String uid) throws SEPASecurityException {
-		logger.debug("containsCredentials "+uid);
-		
+		logger.debug("[LDAP] containsCredentials " + "uid=" + uid + ",ou=credentials," + ldapRoot, "(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=credentials," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
 			return cursor.next();
 		} catch (LdapException | CursorException e) {
-			logger.error("checkCredentials exception "+e.getMessage());
-			throw new SEPASecurityException("checkCredentials exception "+e.getMessage());
+			logger.error("[LDAP] checkCredentials exception " + e.getMessage());
+			throw new SEPASecurityException("checkCredentials exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -487,12 +482,13 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public long getTokenExpiringPeriod(String id) throws SEPASecurityException {
-		logger.debug("getTokenExpiringPeriod "+id);
-		
 		bind();
 
 		try {
 			if (id == null) {
+				logger.debug("[LDAP] getTokenExpiringPeriod " + "uid=default,uid=expiring,ou=jwt," + ldapRoot,
+						"(objectclass=*)");
+
 				cursor = ldap.search("uid=default,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
 						SearchScope.OBJECT, "*");
 				if (!cursor.next())
@@ -500,13 +496,18 @@ public class LdapAuthorization implements IAuthorization {
 
 			} else {
 				if (id.equals("SEPATest")) {
-					cursor = ldap.search("uid=" + id + ",uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
-							"*");	
-				}
-				else
-					cursor = ldap.search("uid=" + id + ",ou=credentials," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
-						"*");
+					logger.debug("[LDAP] getTokenExpiringPeriod " + "uid=" + id + ",uid=expiring,ou=jwt," + ldapRoot,
+							"(objectclass=*)");
 
+					cursor = ldap.search("uid=" + id + ",uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
+							SearchScope.OBJECT, "*");
+				} else {
+					logger.debug("[LDAP] getTokenExpiringPeriod " + "uid=" + id + ",ou=credentials," + ldapRoot,
+							"(objectclass=*)");
+
+					cursor = ldap.search("uid=" + id + ",ou=credentials," + ldapRoot, "(objectclass=*)",
+							SearchScope.OBJECT, "*");
+				}
 				if (!cursor.next())
 					throw new LdapException("uid=" + id + ",ou=credentials," + ldapRoot + " NOT FOUND");
 
@@ -514,7 +515,7 @@ public class LdapAuthorization implements IAuthorization {
 
 				if (!entry.containsAttribute("pwdGraceExpire")) {
 					cursor.close();
-					
+
 					// APPLICATION
 					if (entry.hasObjectClass("applicationProcess")) {
 						cursor = ldap.search("uid=application,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
@@ -522,8 +523,8 @@ public class LdapAuthorization implements IAuthorization {
 
 						if (!cursor.next())
 							throw new LdapException("uid=application,uid=expiring,ou=jwt," + ldapRoot + " NOT FOUND");
-					} 
-					
+					}
+
 					// DEVICE
 					else if (entry.hasObjectClass("device")) {
 						cursor = ldap.search("uid=device,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
@@ -531,8 +532,8 @@ public class LdapAuthorization implements IAuthorization {
 
 						if (!cursor.next())
 							throw new LdapException("uid=device,uid=expiring,ou=jwt," + ldapRoot + " NOT FOUND");
-					} 
-					
+					}
+
 					// USER
 					else if (entry.hasObjectClass("inetOrgPerson")) {
 						cursor = ldap.search("uid=user,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
@@ -550,8 +551,8 @@ public class LdapAuthorization implements IAuthorization {
 			Attribute attr = entry.get("pwdGraceExpire");
 			return Long.parseLong(attr.get().getString());
 		} catch (LdapException | CursorException | IOException e) {
-			logger.error("getTokenExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("getTokenExpiringPeriod exception "+e.getMessage());
+			logger.error("[LDAP] getTokenExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("getTokenExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -560,10 +561,11 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public void setTokenExpiringPeriod(String uid, long period) throws SEPASecurityException {
-		logger.debug("setTokenExpiringPeriod "+uid+ " period: "+period);
-		
+		logger.debug("[LDAP] setTokenExpiringPeriod " + uid + " period: " + period + " uid=" + uid + ",ou=credentials,"
+				+ ldapRoot);
+
 		bind();
-		
+
 		try {
 			Modification pwdGraceExpire = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
 					"pwdGraceExpire", String.format("%d", period));
@@ -571,12 +573,12 @@ public class LdapAuthorization implements IAuthorization {
 					"pwdPolicy");
 			Modification pwdAttribute = new DefaultModification(ModificationOperation.ADD_ATTRIBUTE, "pwdAttribute",
 					"userPassword");
-			
+
 			ldap.modify("uid=" + uid + ",ou=credentials," + ldapRoot, pwdGraceExpire, pwdPolicy, pwdAttribute);
-			
+
 		} catch (LdapException e) {
-			logger.error("setTokenExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("setTokenExpiringPeriod exception "+e.getMessage());
+			logger.error("[LDAP] setTokenExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("setTokenExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -584,10 +586,10 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public String getIssuer() throws SEPASecurityException {
-		logger.debug("getIssuer");
-		
+		logger.debug("[LDAP] getIssuer " + "uid=issuer,ou=jwt," + ldapRoot, "(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=issuer,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next())
@@ -597,8 +599,8 @@ public class LdapAuthorization implements IAuthorization {
 
 			return cursor.get().get("host").getString();
 		} catch (LdapException | CursorException e) {
-			logger.error("getIssuer exception "+e.getMessage());
-			throw new SEPASecurityException("getIssuer exception "+e.getMessage());
+			logger.error("[LDAP] getIssuer exception " + e.getMessage());
+			throw new SEPASecurityException("getIssuer exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -606,16 +608,16 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public void setIssuer(String issuer) throws SEPASecurityException {
-		logger.debug("setIssuer "+issuer);
-		
+		logger.debug("[LDAP] setIssuer " + issuer + " uid=issuer,ou=jwt," + ldapRoot);
+
 		bind();
-		
+
 		try {
-			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", issuer);	
+			Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "host", issuer);
 			ldap.modify("uid=issuer,ou=jwt," + ldapRoot, replaceGn);
 		} catch (LdapException e) {
-			logger.error("setIssuer exception "+e.getMessage());
-			throw new SEPASecurityException("setIssuer exception "+e.getMessage());
+			logger.error("[LDAP] setIssuer exception " + e.getMessage());
+			throw new SEPASecurityException("setIssuer exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -623,36 +625,46 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public boolean isAuthorized(String uid) throws SEPASecurityException {
-		logger.debug("isAuthorized "+uid);
-		
+		logger.debug("[LDAP] isAuthorized " + uid + " uid=" + uid + ",ou=authorizedIdentities," + ldapRoot,
+				"(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=authorizedIdentities," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
 			return cursor.next();
 		} catch (LdapException | CursorException e) {
-			logger.error("isAuthorized exception "+e.getMessage());
-			throw new SEPASecurityException("isAuthorized exception "+e.getMessage());
+			logger.error("[LDAP] isAuthorized exception " + e.getMessage());
+			throw new SEPASecurityException("isAuthorized exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
 	}
-	
+
+	/*
+	 * An identity is defined for testing if cn = TEST This entity should be used
+	 * only for debugging. A testing identity is not deleted after registration:
+	 * avoid in production!
+	 * 
+	 * uid: uid ou: authorizedIdentities cn: SEPATest
+	 */
 	@Override
 	public boolean isForTesting(String uid) throws SEPASecurityException {
-		logger.debug("isForTesting "+uid);
-		
+		logger.debug("[LDAP] isForTesting " + uid + " uid=" + uid + ",ou=authorizedIdentities," + ldapRoot,
+				"(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=authorizedIdentities," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
-			if (!cursor.next()) return false;
-			return cursor.get().get("cn").getString().equals("TEST");
+			if (!cursor.next())
+				return false;
+			return cursor.get().get("cn").getString().equals("SEPATest");
 		} catch (LdapException | CursorException e) {
-			logger.error("isAuthorized exception "+e.getMessage());
-			throw new SEPASecurityException("isAuthorized exception "+e.getMessage());
+			logger.error("[LDAP] isAuthorized exception " + e.getMessage());
+			throw new SEPASecurityException("isAuthorized exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -660,25 +672,25 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public void addToken(String uid, SignedJWT token) throws SEPASecurityException {
-		logger.debug("addToken "+uid);
-		
+		logger.debug("[LDAP] addToken " + uid + " uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next()) {
 				ldap.add(new DefaultEntry("uid=" + uid + ",ou=tokens," + ldapRoot, "ObjectClass: top",
-						"ObjectClass: account", "ObjectClass: javaSerializedObject", "javaClassName: "+ token.getClass().getName(),
-						"javaSerializedData: " + token.serialize()));
+						"ObjectClass: account", "ObjectClass: javaSerializedObject",
+						"javaClassName: " + token.getClass().getName(), "javaSerializedData: " + token.serialize()));
 			} else {
 				Modification replaceGn = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE,
 						"javaSerializedData", token.serialize());
-				
+
 				ldap.modify("uid=" + uid + ",ou=tokens," + ldapRoot, replaceGn);
 			}
 		} catch (LdapException | CursorException e) {
-			logger.error("addToken exception "+e.getMessage());
-			throw new SEPASecurityException("addToken exception "+e.getMessage());
+			logger.error("[LDAP] addToken exception " + e.getMessage());
+			throw new SEPASecurityException("addToken exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -686,16 +698,16 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public boolean containsToken(String uid) throws SEPASecurityException {
-		logger.debug("containsToken "+uid);
-		
+		logger.debug("[LDAP] containsToken " + uid + " uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			return cursor.next();
 		} catch (LdapException | CursorException e) {
-			logger.error("containsToken exception "+e.getMessage());
-			throw new SEPASecurityException("containsToken exception "+e.getMessage());
+			logger.error("[LDAP] containsToken exception " + e.getMessage());
+			throw new SEPASecurityException("containsToken exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -703,10 +715,11 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public Date getTokenExpiringDate(String uid) throws SEPASecurityException {
-		logger.debug("getTokenExpiringDate "+uid);
-		
+		logger.debug("[LDAP] getTokenExpiringDate " + uid + " uid=" + uid + ",ou=tokens," + ldapRoot,
+				"(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next())
@@ -714,8 +727,8 @@ public class LdapAuthorization implements IAuthorization {
 			SignedJWT jwt = SignedJWT.parse(cursor.get().get("javaSerializedData").getString());
 			return jwt.getJWTClaimsSet().getExpirationTime();
 		} catch (LdapException | CursorException | ParseException e) {
-			logger.error("getTokenExpiringDate exception "+e.getMessage());
-			throw new SEPASecurityException("getTokenExpiringDate exception "+e.getMessage());
+			logger.error("[LDAP] getTokenExpiringDate exception " + e.getMessage());
+			throw new SEPASecurityException("getTokenExpiringDate exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -723,18 +736,18 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public SignedJWT getToken(String uid) throws SEPASecurityException {
-		logger.debug("getToken "+uid);
-		
+		logger.debug("[LDAP] getToken " + uid + " uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=tokens," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT, "*");
 			if (!cursor.next())
 				throw new SEPASecurityException("uid=" + uid + ",ou=tokens," + ldapRoot + " NOT FOUND");
 			return SignedJWT.parse(cursor.get().get("javaSerializedData").getString());
 		} catch (LdapException | CursorException | ParseException e) {
-			logger.error("getToken exception "+e.getMessage());
-			throw new SEPASecurityException("getToken exception "+e.getMessage());
+			logger.error("[LDAP] getToken exception " + e.getMessage());
+			throw new SEPASecurityException("getToken exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -742,10 +755,11 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public DigitalIdentity getIdentity(String uid) throws SEPASecurityException {
-		logger.debug("getIdentity "+uid);
-		
+		logger.debug("[LDAP] getIdentity " + uid + " uid=" + uid + ",ou=authorizedIdentities," + ldapRoot,
+				"(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=" + uid + ",ou=authorizedIdentities," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
@@ -757,16 +771,16 @@ public class LdapAuthorization implements IAuthorization {
 			if (cursor.get().contains("objectClass", "javaSerializedObject")) {
 				credentials = Credentials.deserialize(cursor.get().get("javaSerializedData").getBytes());
 			}
-						
+
 			if (cursor.get().contains("objectClass", "device"))
-				return new DeviceIdentity(uid,credentials);
+				return new DeviceIdentity(uid, credentials);
 			else if (cursor.get().contains("objectClass", "applicationProcess"))
-				return new ApplicationIdentity(uid,credentials);
+				return new ApplicationIdentity(uid, credentials);
 			else
 				throw new SEPASecurityException("Digital identity class NOT FOUND");
 		} catch (LdapException | CursorException e) {
-			logger.error("getIdentity exception "+e.getMessage());
-			throw new SEPASecurityException("getIdentity exception "+e.getMessage());
+			logger.error("[LDAP] getIdentity exception " + e.getMessage());
+			throw new SEPASecurityException("getIdentity exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -774,17 +788,17 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public void setDeviceExpiringPeriod(long period) throws SEPASecurityException {
-		logger.debug("setDeviceExpiringPeriod "+period);
-		
+		logger.debug("[LDAP] setDeviceExpiringPeriod " + period + " uid=device,uid=expiring,ou=jwt," + ldapRoot);
+
 		bind();
-		
+
 		try {
 			Modification expiring = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "pwdGraceExpire");
 			ldap.modify("uid=device,uid=expiring,ou=jwt," + ldapRoot, expiring);
 
 		} catch (LdapException e) {
-			logger.error("setDeviceExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("setDeviceExpiringPeriod exception "+e.getMessage());
+			logger.error("setDeviceExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("setDeviceExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -792,11 +806,12 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public long getDeviceExpiringPeriod() throws SEPASecurityException {
-		logger.debug("getDeviceExpiringPeriod");
-		
+		logger.debug("[LDAP] getDeviceExpiringPeriod " + "uid=device,uid=expiring,ou=jwt," + ldapRoot,
+				"(objectclass=*)");
+
 		bind();
-		
-		try {	
+
+		try {
 			cursor = ldap.search("uid=device,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
 			if (!cursor.next())
@@ -807,8 +822,8 @@ public class LdapAuthorization implements IAuthorization {
 
 			return Long.parseLong(cursor.get().get("pwdGraceExpire").getString());
 		} catch (LdapException | CursorException e) {
-			logger.error("getDeviceExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("getDeviceExpiringPeriod exception "+e.getMessage());
+			logger.error("getDeviceExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("getDeviceExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -816,16 +831,17 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public void setApplicationExpiringPeriod(long period) throws SEPASecurityException {
-		logger.debug("setApplicationExpiringPeriod "+period);
-		
+		logger.debug(
+				"[LDAP] setApplicationExpiringPeriod " + period + " uid=application,uid=expiring,ou=jwt," + ldapRoot);
+
 		bind();
-		
+
 		try {
 			Modification expiring = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "pwdGraceExpire");
 			ldap.modify("uid=application,uid=expiring,ou=jwt," + ldapRoot, expiring);
 		} catch (LdapException e) {
-			logger.error("setApplicationExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("setApplicationExpiringPeriod exception "+e.getMessage());
+			logger.error("setApplicationExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("setApplicationExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -833,11 +849,11 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public long getApplicationExpiringPeriod() throws SEPASecurityException {
-		logger.debug("getApplicationExpiringPeriod");
-		
+		logger.debug("[LDAP] getApplicationExpiringPeriod " + "uid=application,uid=expiring,ou=jwt," + ldapRoot);
+
 		bind();
-		
-		try {	
+
+		try {
 			cursor = ldap.search("uid=application,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)",
 					SearchScope.OBJECT, "*");
 			if (!cursor.next())
@@ -848,8 +864,8 @@ public class LdapAuthorization implements IAuthorization {
 
 			return Long.parseLong(cursor.get().get("pwdGraceExpire").getString());
 		} catch (LdapException | CursorException e) {
-			logger.error("getApplicationExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("getApplicationExpiringPeriod exception "+e.getMessage());
+			logger.error("getApplicationExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("getApplicationExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -857,16 +873,16 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public void setUserExpiringPeriod(long period) throws SEPASecurityException {
-		logger.debug("setUserExpiringPeriod "+period);
-		
+		logger.debug("[LDAP] setUserExpiringPeriod " + period + " uid=user,uid=expiring,ou=jwt," + ldapRoot);
+
 		bind();
-		
+
 		try {
 			Modification expiring = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "pwdGraceExpire");
 			ldap.modify("uid=user,uid=expiring,ou=jwt," + ldapRoot, expiring);
 		} catch (LdapException e) {
-			logger.error("setUserExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("setUserExpiringPeriod exception "+e.getMessage());
+			logger.error("setUserExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("setUserExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -875,11 +891,11 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public long getUserExpiringPeriod() throws SEPASecurityException {
-		logger.debug("getUserExpiringPeriod");
-		
+		logger.debug("[LDAP] getUserExpiringPeriod " + "uid=user,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)");
+
 		bind();
-		
-		try {	
+
+		try {
 			cursor = ldap.search("uid=user,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
 			if (!cursor.next())
@@ -890,8 +906,8 @@ public class LdapAuthorization implements IAuthorization {
 
 			return Long.parseLong(cursor.get().get("pwdGraceExpire").getString());
 		} catch (LdapException | CursorException e) {
-			logger.error("getUserExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("getUserExpiringPeriod exception "+e.getMessage());
+			logger.error("getUserExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("getUserExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -899,16 +915,16 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public void setDefaultExpiringPeriod(long period) throws SEPASecurityException {
-		logger.debug("setDefaultExpiringPeriod "+period);
-		
+		logger.debug("[LDAP] setDefaultExpiringPeriod " + period + " uid=default,uid=expiring,ou=jwt," + ldapRoot);
+
 		bind();
-		
+
 		try {
 			Modification expiring = new DefaultModification(ModificationOperation.REPLACE_ATTRIBUTE, "pwdGraceExpire");
 			ldap.modify("uid=default,uid=expiring,ou=jwt," + ldapRoot, expiring);
 		} catch (LdapException e) {
-			logger.error("setDefaultExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("setDefaultExpiringPeriod exception "+e.getMessage());
+			logger.error("setDefaultExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("setDefaultExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
@@ -916,10 +932,11 @@ public class LdapAuthorization implements IAuthorization {
 
 	@Override
 	public long getDefaultExpiringPeriod() throws SEPASecurityException {
-		logger.debug("getDefaultExpiringPeriod");
-		
+		logger.debug("[LDAP] getDefaultExpiringPeriod " + "uid=default,uid=expiring,ou=jwt," + ldapRoot,
+				"(objectclass=*)");
+
 		bind();
-		
+
 		try {
 			cursor = ldap.search("uid=default,uid=expiring,ou=jwt," + ldapRoot, "(objectclass=*)", SearchScope.OBJECT,
 					"*");
@@ -932,8 +949,8 @@ public class LdapAuthorization implements IAuthorization {
 			Attribute attr = cursor.get().get("pwdGraceExpire");
 			return Long.parseLong(attr.getString());
 		} catch (LdapException | CursorException e) {
-			logger.error("getDefaultExpiringPeriod exception "+e.getMessage());
-			throw new SEPASecurityException("getDefaultExpiringPeriod exception "+e.getMessage());
+			logger.error("getDefaultExpiringPeriod exception " + e.getMessage());
+			throw new SEPASecurityException("getDefaultExpiringPeriod exception " + e.getMessage());
 		} finally {
 			unbind();
 		}
