@@ -340,6 +340,7 @@ public class JSAP extends SPARQL11SEProperties {
 		namespaces.put("xsd", "http://www.w3.org/2001/XMLSchema#");
 	}
 
+	// TODO: add the query as parameter and get just the namespaces required
 	public String getPrefixes() {
 		return prefixes;
 	}

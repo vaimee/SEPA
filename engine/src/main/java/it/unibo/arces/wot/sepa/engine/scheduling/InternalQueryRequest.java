@@ -23,8 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryParseException;
-import org.apache.jena.sparql.lang.ParserSPARQL11;
+import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.syntax.Element;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementNamedGraph;
@@ -33,67 +32,99 @@ import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 
 public class InternalQueryRequest extends InternalUQRequest {
 	private String internetMediaType = "application/sparql-results+json";
-	
-	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,ClientAuthorization auth) {
-		super(sparql, defaultGraphUri, namedGraphUri,auth);
+
+	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
+			ClientAuthorization auth) {
+		super(sparql, defaultGraphUri, namedGraphUri, auth);
 	}
-	
-	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,ClientAuthorization auth,String mediaType) {
-		this(sparql, defaultGraphUri, namedGraphUri,auth);
-		
+
+	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
+			ClientAuthorization auth, String mediaType) {
+		this(sparql, defaultGraphUri, namedGraphUri, auth);
+
 		internetMediaType = mediaType;
 	}
 
 	public String getInternetMediaType() {
 		return internetMediaType;
 	}
-	
+
 	@Override
 	public String toString() {
-		return "*QUERY* RDF DATA SET: {"+rdfDataSet +" USING GRAPHS: "+ defaultGraphUri + " NAMED GRAPHS: " + namedGraphUri+"} SPARQL: " +sparql ;
+		return "*QUERY* RDF DATA SET: {" + rdfDataSet + " USING GRAPHS: " + defaultGraphUri + " NAMED GRAPHS: "
+				+ namedGraphUri + "} SPARQL: " + sparql;
 	}
-	
-	protected Set<String> getGraphURIs(String sparql) throws QueryParseException {
+
+	protected Set<String> getGraphURIs(String sparql) {
 		Set<String> ret = new HashSet<>();
-		
-		ParserSPARQL11 parser = new ParserSPARQL11();		
-		Query q = new Query();
-		q = parser.parse(q, sparql);
-		
+
+		if (sparql == null)
+			return ret;
+
+		Query q = null;
+		logger.debug("Parsing query: " + sparql);
+		try {
+			q = QueryFactory.create(sparql);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+//		logger.debug("Create parse...");
+//		ParserSPARQL11 parser = new ParserSPARQL11();
+//		logger.debug("Create query...");
+		// Query q = new Query();
+
+//		try {
+//			q = parser.parse(q, sparql);
+//		} catch (Exception e) {
+//			logger.error("[JENA] exception on parsing query: "+e.getMessage());
+//			return ret;
+//		}
+
+		logger.debug("Get dataset descriptiors");
 		if (q.hasDatasetDescription()) {
+			logger.debug("Get default graph URIs");
 			for (String gr : q.getDatasetDescription().getDefaultGraphURIs()) {
 				ret.add(gr);
 			}
+			logger.debug("Get named graph URIs");
 			for (String gr : q.getDatasetDescription().getNamedGraphURIs()) {
 				ret.add(gr);
 			}
 		}
-		
-		List<String> graphs = q.getGraphURIs();		
+
+		logger.debug("Get graph URIs");
+		List<String> graphs = q.getGraphURIs();
+		logger.debug("Get named graph URIs");
 		List<String> namedGraphs = q.getNamedGraphURIs();
-		
-		ret.addAll(extractGraphs(q.getQueryPattern()));		
+
+		ret.addAll(extractGraphs(q.getQueryPattern()));
 		ret.addAll(graphs);
 		ret.addAll(namedGraphs);
-		
+
 		return ret;
 	}
-	
-	private Set<String> extractGraphs(Element e){
+
+	private Set<String> extractGraphs(Element e) {
 		Set<String> ret = new HashSet<String>();
-		
+
+		if (e == null)
+			return ret;
+
+		logger.debug("Extract graphs " + e);
 		if (e.getClass().equals(ElementGroup.class)) {
 			ElementGroup group = (ElementGroup) e;
-			for(Element element : group.getElements()) {
+			for (Element element : group.getElements()) {
 				ret.addAll(extractGraphs(element));
 			}
 		} else if (e.getClass().equals(ElementNamedGraph.class)) {
 			ElementNamedGraph namedGraph = (ElementNamedGraph) e;
-			if (namedGraph.getGraphNameNode().isURI()) ret.add(namedGraph.getGraphNameNode().getURI());
+			if (namedGraph.getGraphNameNode().isURI())
+				ret.add(namedGraph.getGraphNameNode().getURI());
 			// TODO: comment if variables can be only NAMED graphs
-			else ret.add("*");
+			else
+				ret.add("*");
 		}
-		
+
 		return ret;
 	}
 }

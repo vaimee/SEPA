@@ -186,6 +186,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		try {
 			if (type.equals("query")) {
 				Header[] headers = exchange.getRequest().getHeaders("Accept");
+				logger.debug("query Accept headers: "+ headers.length);
 				if (headers.length != 1)
 					return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri, auth);
 				else
