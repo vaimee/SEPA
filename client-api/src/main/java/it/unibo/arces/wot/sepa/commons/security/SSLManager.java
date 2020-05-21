@@ -206,17 +206,23 @@ public class SSLManager implements HostnameVerifier {
 					.useProtocol("TLS")
 					.build();
 		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
+			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
 		} catch (KeyManagementException e) {
-			e.printStackTrace();
+			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
 		} catch (KeyStoreException e) {
-			e.printStackTrace();
+			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
 		} catch (CertificateException e) {
-			e.printStackTrace();
+			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
 		} catch (IOException e) {
-			e.printStackTrace();
+			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
 		} catch (UnrecoverableKeyException e) {
-			e.printStackTrace();
+			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
 		}
 		return sslContext;
 	}

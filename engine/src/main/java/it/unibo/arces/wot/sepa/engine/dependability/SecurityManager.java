@@ -259,11 +259,15 @@ class SecurityManager {
 			
 					"Exception on for test checking " + uid+ " "+e1.getMessage());
 		}
-		if (forTesting) client_secret = "SEPATest";
+		if (forTesting) client_secret = uid;
 		
 		// Store credentials
 		 try {
-			auth.storeCredentials(auth.getIdentity(uid), client_secret);
+			boolean res =auth.storeCredentials(auth.getIdentity(uid), client_secret);
+			if (!res) {
+				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "storing_credentials",
+						"Failed to store credentials for uid:"+uid);
+			}
 		} catch (SEPASecurityException e) {
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "storing_credentials",
 					"Exception on storing credentials " + uid+ " "+e.getMessage());
@@ -409,7 +413,7 @@ class SecurityManager {
 		try {
 			if (!auth.checkCredentials(id, secret)) {
 				logger.error("Wrong secret: " + secret + " for client id: " + id);
-				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Client identity " + id + " not authorized");
+				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Wrong credentials for identity " + id);
 			}
 		} catch (SEPASecurityException e2) {
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", e2.getMessage());

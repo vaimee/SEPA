@@ -49,7 +49,7 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 /**
  * The Class GenericClient.
  */
-public class GenericClient extends Client implements ISubscriptionHandler {
+public final class GenericClient extends Client implements ISubscriptionHandler {
 	private ISubscriptionHandler handler;
 
 	// Subscription request handling

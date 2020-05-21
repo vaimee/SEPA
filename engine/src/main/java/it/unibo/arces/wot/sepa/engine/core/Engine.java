@@ -96,7 +96,7 @@ public class Engine implements EngineMBean {
 	// LDAP
 	private String ldapHost = "localhost";
 	private int ldapPort = 10389;
-	private String ldapDn = "dc=example,dc=com";
+	private String ldapDn = "dc=sepatest,dc=com";
 	private String ldapUser = null;
 	private String ldapPwd = null;
 
@@ -148,7 +148,7 @@ public class Engine implements EngineMBean {
 		System.out.println("LDAP OPTIONS:");
 		System.out.println("-ldaphost <name> : host     		         (default: localhost)");
 		System.out.println("-ldapport <port> : port                      (default: 10389)");
-		System.out.println("-ldapdn <dn> : domain                        (default: dc=example,dc=com)");
+		System.out.println("-ldapdn <dn> : domain                        (default: dc=sepatest,dc=com)");
 		System.out.println("-ldapuser <usr> : username                   (default: null)");
 		System.out.println("-ldappwd <pwd> : password                    (default: null)");
 	}

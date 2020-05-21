@@ -15,7 +15,7 @@
 		"gates": {
 			"security": {
 				"enabled" : true,
-				"ldap" : false
+				"ldap" : true
 			},
 			"ports": {
 				"http": 8000,
