@@ -49,7 +49,9 @@ public abstract class InternalUQRequest extends InternalRequest {
 		
 		this.sparql = evaluateFunctions(sparql);
 		
+		logger.debug("getGraphURIs");
 		rdfDataSet = getGraphURIs(sparql);
+		logger.debug("Graphs: "+ rdfDataSet);
 		
 		if (defaultGraphUri != null) this.defaultGraphUri = defaultGraphUri;
 		if (namedGraphUri != null) this.namedGraphUri = namedGraphUri;
