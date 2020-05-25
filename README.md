@@ -38,8 +38,8 @@
 - [History](#history)
 - [Credits](#credits)
 
-## Introduction SPARQL Event Processing Architecture
-SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refere to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm).
+## Introduction
+SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refere to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm).
 
 If you just cannot wait to try SEPA go to [SEPA Playground](http://mml.arces.unibo.it/apps/dashboard?mode=playground) and use Update and Subscribe tab with the example provided.
 
@@ -141,7 +141,7 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
 ### Logging
 SEPA uses [log4j2](http://logging.apache.org/log4j/2.x/) by Apache. A default configuration is stored in the file log4j2.xml provided with the distribution. If the file resides in the engine folder, but it is not used, add the following JVM directive to force using it:
 
-jav `-Dlog4j.configurationFile=./log4j2.xml` -jar engine-x.y.z.jar
+java `-Dlog4j.configurationFile=./log4j2.xml` -jar engine-x.y.z.jar
 
 ### Security
 
