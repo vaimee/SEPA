@@ -21,7 +21,6 @@ package it.unibo.arces.wot.sepa.pattern;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -38,7 +37,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 	
 	private final String sparqlUpdate;
 	private final String SPARQL_ID;
-	private final Bindings updateForcedBindings;
+	private final ForcedBindings updateForcedBindings;
 	private final SPARQL11Protocol sparql11;
 	
 	public Aggregator(JSAP appProfile, String subscribeID, String updateID, ClientSecurityManager sm)
@@ -59,7 +58,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 
 		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
 
-		updateForcedBindings = appProfile.getUpdateBindings(updateID);
+		updateForcedBindings = (ForcedBindings) appProfile.getUpdateBindings(updateID);
 		
 		sparql11 = new SPARQL11Protocol(sm);
 	}

@@ -24,7 +24,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
-import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
@@ -46,7 +45,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	private final String sparqlSubscribe;
 	private long timeout = 5000;
 	private final String subID;
-	private final Bindings forcedBindings;
+	private final ForcedBindings forcedBindings;
 	private boolean subscribed = false;
 	private final SPARQL11SEProtocol client;
 
@@ -69,7 +68,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		
 		sparqlSubscribe = appProfile.getSPARQLQuery(subscribeID);
 
-		forcedBindings = appProfile.getQueryBindings(subscribeID);
+		forcedBindings = (ForcedBindings) appProfile.getQueryBindings(subscribeID);
 
 		if (sparqlSubscribe == null) {
 			logger.fatal("SPARQL subscribe is null");

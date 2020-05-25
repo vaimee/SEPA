@@ -23,7 +23,6 @@ import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -40,7 +39,7 @@ public class Producer extends Client implements IProducer {
 
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
-	private Bindings forcedBindings;
+	private ForcedBindings forcedBindings;
 
 	private SPARQL11Protocol client;
 
@@ -57,7 +56,7 @@ public class Producer extends Client implements IProducer {
 
 		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
 
-		forcedBindings = appProfile.getUpdateBindings(updateID);
+		forcedBindings = (ForcedBindings) appProfile.getUpdateBindings(updateID);
 
 		client = new SPARQL11Protocol(sm);
 	}
