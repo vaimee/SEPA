@@ -138,6 +138,10 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
   }
 }
 ```
+### Logging
+SEPA uses [log4j2](http://logging.apache.org/log4j/2.x/) by Apache. A default configuration is stored in the file log4j2.xml provided with the distribution. If the file resides in the engine folder, but it is not used, use the following to force using it:
+
+`java -Dlog4j.configurationFile=./log4j2.xml`
 
 ### Security
 
