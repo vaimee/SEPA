@@ -116,7 +116,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				synchronized (responders) {
 					ResponseHandler handler = responders.get(token);
 					if (handler == null) {
-						logger.error("Response handler is null (token #" + token + ")");
+						logger.warn("Response handler is null (token #" + token + "). Timeout already expired?");
 
 					} else {
 						logger.trace("Handler: " + handler + " response: " + response);
@@ -186,12 +186,16 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		return queue.waitQueryRequest();
 	}
 
-	public void addResponse(int token, Response ret) {
-		queue.addResponse(token, ret);
+	public boolean addResponse(int token, Response ret) {
+		return queue.addResponse(token, ret);
 	}
 
-	public ScheduledRequest waitSubscribeUnsubscribeRequest() throws InterruptedException {
-		return queue.waitSubscribeUnsubscribeRequest();
+	public ScheduledRequest waitSubscribeRequest() throws InterruptedException {
+		return queue.waitSubscribeRequest();
+	}
+	
+	public ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
+		return queue.waitUnsubscribeRequest();
 	}
 
 	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
@@ -212,4 +216,29 @@ public class Scheduler extends Thread implements SchedulerMBean {
 	public long getPendingSubscribes() {
 		return queue.getPendingSubscribes();
 	}
+
+	@Override
+	public long getPendingUnsubscribes() {
+		return queue.getPendingUnsubscribes();
+	}
+	
+	@Override
+	public long getTimedoutUpdates() {
+		return SchedulerBeans.getTimedoutUpdates();
+	}
+
+	@Override
+	public long getTimedoutQueries() {
+		return SchedulerBeans.getTimedoutQueries();
+	}
+
+	@Override
+	public long getTimedoutSubscribes() {
+		return SchedulerBeans.getTimedoutSubscribes();
+	}
+
+	@Override
+	public long getTimedoutUnsubscribes() {
+		return SchedulerBeans.getTimedoutUnsubscribes();
+	}	
 }

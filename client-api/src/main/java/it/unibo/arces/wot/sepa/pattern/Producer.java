@@ -56,14 +56,14 @@ public class Producer extends Client implements IProducer {
 
 		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
 
-		forcedBindings = (ForcedBindings) appProfile.getUpdateBindings(updateID);
+		forcedBindings = appProfile.getUpdateBindings(updateID);
 
 		client = new SPARQL11Protocol(sm);
 	}
 
 	public final Response update()
 			throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
-		return update(0);
+		return update(5000);
 	}
 
 	public final Response update(int timeout)

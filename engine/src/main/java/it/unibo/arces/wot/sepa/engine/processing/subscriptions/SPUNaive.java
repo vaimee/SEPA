@@ -56,7 +56,7 @@ class SPUNaive extends SPU {
 		logger.debug("PROCESS " + subscribe);
 
 		// Process the SPARQL query
-		Response ret = manager.getQueryProcessor().process(subscribe,QueryProcessorBeans.getTimeoutNRetry());
+		Response ret = manager.processQuery(subscribe,QueryProcessorBeans.getTimeoutNRetry());
 
 		if (ret.isError()) {
 			logger.error("Not initialized");
@@ -81,7 +81,7 @@ class SPUNaive extends SPU {
 		Response ret;
 
 		// Query the SPARQL processing service
-		ret = manager.getQueryProcessor().process(subscribe,QueryProcessorBeans.getTimeoutNRetry());
+		ret = manager.processQuery(subscribe,QueryProcessorBeans.getTimeoutNRetry());
 
 		if (ret.isError()) {
 			throw new SEPAProcessingException(ret.toString());

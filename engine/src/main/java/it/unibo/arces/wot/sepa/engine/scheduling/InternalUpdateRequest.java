@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.query.QueryException;
 import org.apache.jena.query.QueryParseException;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.lang.ParserSPARQL11Update;
@@ -39,7 +40,7 @@ import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 
 public class InternalUpdateRequest extends InternalUQRequest {
-	public InternalUpdateRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,ClientAuthorization auth) throws SPARQL11ProtocolException {
+	public InternalUpdateRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,ClientAuthorization auth) throws QueryException, SPARQL11ProtocolException {
 		super(sparql, defaultGraphUri, namedGraphUri,auth);
 	}
 

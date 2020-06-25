@@ -30,7 +30,8 @@ public interface SchedulerMBean {
 	public long getPendingUpdates();
 	public long getPendingQueries();
 	public long getPendingSubscribes();
-
+	public long getPendingUnsubscribes();
+	
 	public long getRequests_max_pending();
 
 	public long getRequests_rejected();
@@ -42,4 +43,9 @@ public interface SchedulerMBean {
 	public int getTimeout();
 	
 	public void setTimeout(int timeout);
+	
+	public long getTimedoutUpdates();
+	public long getTimedoutQueries();
+	public long getTimedoutSubscribes();
+	public long getTimedoutUnsubscribes();
 }

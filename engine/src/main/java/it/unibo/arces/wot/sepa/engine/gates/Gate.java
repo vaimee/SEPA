@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.*;
 import org.apache.http.HttpStatus;
+import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -119,7 +120,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			error.setAlias(subUnsub.get("alias").getAsString());
 	}
 
-	public final void onMessage(String message) throws SEPAProtocolException, SEPASecurityException {
+	public final void onMessage(String message) throws SEPAProtocolException, SEPASecurityException, QueryException {
 		// Authorize the request
 		ClientAuthorization auth = authorize(message);
 		if (!auth.isAuthorized()) {
@@ -287,7 +288,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	 */
 	protected final InternalRequest parseRequest(String request, ClientAuthorization auth)
 			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException,
-			SEPAProtocolException {
+			SEPAProtocolException, QueryException {
 		JsonObject req;
 		ErrorResponse error;
 		

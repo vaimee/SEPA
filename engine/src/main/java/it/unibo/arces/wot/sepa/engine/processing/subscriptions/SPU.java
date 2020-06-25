@@ -131,7 +131,7 @@ public abstract class SPU extends Thread implements ISPU {
 				}
 			}
 			catch(InterruptedException e) {
-				logger.warn(e.getMessage());
+				logger.warn("SPU interrupted. Exit. "+e.getMessage());
 				return;
 			}
 			

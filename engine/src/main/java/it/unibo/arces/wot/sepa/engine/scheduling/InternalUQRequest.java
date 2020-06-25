@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.HttpStatus;
+import org.apache.jena.query.QueryException;
 import org.apache.jena.query.QueryParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -42,7 +43,7 @@ public abstract class InternalUQRequest extends InternalRequest {
 	protected Set<String> namedGraphUri = new HashSet<String>();
 	protected Set<String> rdfDataSet = new HashSet<String>();
 	
-	public InternalUQRequest(String sparql,Set<String> defaultGraphUri,Set<String> namedGraphUri,ClientAuthorization auth) {
+	public InternalUQRequest(String sparql,Set<String> defaultGraphUri,Set<String> namedGraphUri,ClientAuthorization auth) throws QueryException {
 		super(auth);
 		
 		if (sparql == null) throw new IllegalArgumentException("SPARQL is null");

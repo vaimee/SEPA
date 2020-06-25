@@ -58,7 +58,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 
 		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
 
-		updateForcedBindings = (ForcedBindings) appProfile.getUpdateBindings(updateID);
+		updateForcedBindings = appProfile.getUpdateBindings(updateID);
 		
 		sparql11 = new SPARQL11Protocol(sm);
 	}
