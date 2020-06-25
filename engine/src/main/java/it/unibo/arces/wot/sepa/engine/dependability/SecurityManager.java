@@ -99,6 +99,7 @@ class SecurityManager {
 			logger.info("Create LDAP authorization: "+host+":"+port+" DN: "+base+" UID: "+uid+" PWD: "+pwd);
 			auth = new LdapAuthorization(host, port, base, uid, pwd);
 		} catch (LdapException e1) {
+			logger.error(e1.getMessage());
 			throw new SEPASecurityException(e1);
 		}
 	}
@@ -245,6 +246,7 @@ class SecurityManager {
 						"Client " + uid + " is not authorized");
 			}
 		} catch (SEPASecurityException e) {
+			logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "not_authorized_identity",
 					"Exception on authorizing client " + uid+ " "+e.getMessage());
 		}
@@ -255,6 +257,7 @@ class SecurityManager {
 		try {
 			forTesting = auth.isForTesting(uid);
 		} catch (SEPASecurityException e1) {
+			logger.error(e1.getMessage());
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "check_for_testing",
 			
 					"Exception on for test checking " + uid+ " "+e1.getMessage());
@@ -269,6 +272,7 @@ class SecurityManager {
 						"Failed to store credentials for uid:"+uid);
 			}
 		} catch (SEPASecurityException e) {
+			logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "storing_credentials",
 					"Exception on storing credentials " + uid+ " "+e.getMessage());
 		}
@@ -278,6 +282,7 @@ class SecurityManager {
 			try {
 				auth.removeAuthorizedIdentity(uid);
 			} catch (SEPASecurityException e) {
+				logger.error(e.getMessage());
 				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "remove_identity",
 						"Exception on removing identity " + uid+ " "+e.getMessage());
 			}
@@ -440,6 +445,7 @@ class SecurityManager {
 					try {
 						jwt = new JWTResponse(auth.getToken(id));
 					} catch (SEPASecurityException e) {
+						logger.error(e.getMessage());
 						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
 								"Failed to retrieve expiring period");
 					}
@@ -531,6 +537,7 @@ class SecurityManager {
 		try {
 			expires = new Date(now.getTime() + (auth.getTokenExpiringPeriod(id) * 1000));
 		} catch (SEPASecurityException e1) {
+			logger.error(e1.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
 					"Failed to retrieve expiring period");
 		}
@@ -596,6 +603,7 @@ class SecurityManager {
 		try {
 			auth.addToken(id, signedJWT);
 		} catch (SEPASecurityException e1) {
+			logger.error(e1.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
 					e1.getMessage());
 		}
@@ -604,6 +612,7 @@ class SecurityManager {
 		try {
 			jwt = new JWTResponse(signedJWT);
 		} catch (SEPASecurityException e) {
+			logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
 					"Failed to retrieve expiring period");
 		}
@@ -691,6 +700,7 @@ class SecurityManager {
 			}
 
 		} catch (JOSEException e) {
+			logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_grant","JOSEException: " + e.getMessage());
 		}
 

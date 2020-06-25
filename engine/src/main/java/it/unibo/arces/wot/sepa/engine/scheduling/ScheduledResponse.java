@@ -18,15 +18,19 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import java.util.Date;
+
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public class ScheduledResponse {
 	private int token = -1;
 	private Response response = null;
+	long timestamp;
 	
 	public ScheduledResponse(int token,Response response) {
 		this.token = token;
 		this.response = response;
+		this.timestamp = new Date().getTime();
 	}
 	
 	public Response getResponse() {
@@ -35,6 +39,10 @@ public class ScheduledResponse {
 	
 	public int getToken() {
 		return token;
+	}
+	
+	public long getTimestamp() {
+		return timestamp;
 	}
 	
 	@Override

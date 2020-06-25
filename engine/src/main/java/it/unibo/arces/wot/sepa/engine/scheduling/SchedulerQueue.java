@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import java.util.Date;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -37,10 +38,8 @@ class SchedulerQueue {
 	// Requests
 	private final static LinkedBlockingQueue<ScheduledRequest> updates = new LinkedBlockingQueue<ScheduledRequest>();
 	private final static LinkedBlockingQueue<ScheduledRequest> queries = new LinkedBlockingQueue<ScheduledRequest>();
-	private final static LinkedBlockingQueue<ScheduledRequest> subscribesUnsubscribes = new LinkedBlockingQueue<ScheduledRequest>();
-	
-	// Broken subscriptions
-//	private final static LinkedBlockingQueue<String> toBeKilled = new LinkedBlockingQueue<String>();
+	private final static LinkedBlockingQueue<ScheduledRequest> subscribes = new LinkedBlockingQueue<ScheduledRequest>();
+	private final static LinkedBlockingQueue<ScheduledRequest> unsubscribes = new LinkedBlockingQueue<ScheduledRequest>();
 	
 	// Responses
 	private final static LinkedBlockingQueue<ScheduledResponse> responses = new LinkedBlockingQueue<ScheduledResponse>();
@@ -49,6 +48,52 @@ class SchedulerQueue {
 		// Initialize token jar
 		for (int i = 0; i < size; i++)
 			tokens.addElement(i);
+		
+		// TIMEOUT
+		new Thread("SEPA-Scheduler-Timeout") {
+			public void run() {
+				while(true) {
+					try {
+						Thread.sleep(SchedulerBeans.getTimeout());
+					} catch (InterruptedException e) {
+						return;
+					}
+					
+					long now = new Date().getTime();
+					
+//					HashSet<ScheduledRequest> pool = new HashSet<ScheduledRequest>();
+					for (ScheduledRequest req : updates) if (now - req.getTimestamp() >= SchedulerBeans.getTimeout()) {
+						SchedulerBeans.updateTimeout();
+						logger.error(req);
+					}
+					for (ScheduledRequest req : queries) if (now - req.getTimestamp() >= SchedulerBeans.getTimeout()) {
+						SchedulerBeans.queryTimeout();
+						logger.error(req);
+					}
+					for (ScheduledRequest req : unsubscribes) if (now - req.getTimestamp() >= SchedulerBeans.getTimeout()) {
+						SchedulerBeans.unsubscribeTimeout();
+						logger.error(req);
+					}
+					for (ScheduledRequest req : subscribes) if (now - req.getTimestamp() >= SchedulerBeans.getTimeout()) {
+						SchedulerBeans.subscribeTimeout();
+						logger.error(req);
+					}
+					
+//					for (ScheduledRequest request : pool) {
+//						ErrorResponse ret = new ErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "timeout", request.toString());
+//						
+//						if (addResponse(request.getToken(), ret)) {
+//							if (request.isUpdateRequest()) SchedulerBeans.updateTimeout();
+//							else if (request.isQueryRequest()) SchedulerBeans.queryTimeout();
+//							else if (request.isSubscribeRequest()) SchedulerBeans.subscribeTimeout();
+//							else SchedulerBeans.unsubscribeTimeout();
+//							
+//							logger.error(ret);
+//						}	
+//					}					
+				}
+			}
+		}.start();		
 	}
 
 	/**
@@ -78,18 +123,21 @@ class SchedulerQueue {
 	 * @return true if success, false if the token to be released has not been
 	 *         acquired
 	 */
-	private synchronized void releaseToken(Integer token) {
+	private synchronized boolean releaseToken(Integer token) {
 		if (token == -1)
-			return;
+			return false;
 
 		if (tokens.contains(token)) {
-			logger.warn("Request to release a unused token: " + token + " (Available tokens: " + tokens.size() + ")");
+			logger.warn("Token #" + token + " is available (Available tokens: " + tokens.size() + ")");
+			return false;
 		} else {
 			tokens.insertElementAt(token, tokens.size());
 			logger.trace("Release token #" + token + " (Available: " + tokens.size() + ")");
 
 			SchedulerBeans.tokenLeft(tokens.size());
 		}
+		
+		return true;
 	}
 	
 	public ScheduledRequest addRequest(InternalRequest req,ResponseHandler handler) {
@@ -100,8 +148,8 @@ class SchedulerQueue {
 		
 		if (req.isUpdateRequest()) updates.add(request);
 		else if (req.isQueryRequest()) queries.add(request);
-		else if (req.isSubscribeRequest()) subscribesUnsubscribes.add(request);
-		else if (req.isUnsubscribeRequest())subscribesUnsubscribes.add(request);
+		else if (req.isSubscribeRequest()) subscribes.add(request);
+		else if (req.isUnsubscribeRequest())unsubscribes.add(request);
 		
 		return request;
 	}
@@ -114,17 +162,23 @@ class SchedulerQueue {
 		return queries.take();
 	}
 	
-	public ScheduledRequest waitSubscribeUnsubscribeRequest() throws InterruptedException {
-		return subscribesUnsubscribes.take();
+	public ScheduledRequest waitSubscribeRequest() throws InterruptedException {
+		return subscribes.take();
+	}
+	
+	public ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
+		return unsubscribes.take();
 	}
 	
 	public ScheduledResponse waitResponse() throws InterruptedException {
 		return responses.take();
 	}
 
-	public void addResponse(int token,Response res) {
-		releaseToken(token);
+	// Returns false if the corresponding token has not been released (e.g., a timeout has been triggered or the response received), true otherwise
+	public boolean addResponse(int token,Response res) {
+		if (!releaseToken(token)) return false;
 		responses.offer(new ScheduledResponse(token,res));
+		return true;
 	}
 
 	public long getPendingUpdates() {
@@ -136,14 +190,10 @@ class SchedulerQueue {
 	}
 
 	public long getPendingSubscribes() {
-		return subscribesUnsubscribes.size();
-	}	
-
-//	public void killSpuid(String spuid) {
-//		toBeKilled.offer(spuid);
-//	}
-//
-//	public String waitSpuid2Kill() throws InterruptedException {
-//		return toBeKilled.take();
-//	}
+		return subscribes.size();
+	}
+	
+	public long getPendingUnsubscribes() {
+		return unsubscribes.size();
+	}
 }

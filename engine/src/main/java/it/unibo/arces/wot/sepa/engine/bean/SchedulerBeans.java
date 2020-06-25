@@ -33,9 +33,14 @@ public class SchedulerBeans {
 	private static long totalSubscribeRequests = 0;
 	private static long totalUnsubscribeRequests = 0;
 	
-	private static int queueSize;
+	private static long timedoutUpdates = 0;
+	private static long timedoutQueries = 0;
+	private static long timedoutSubscribes = 0;
+	private static long timedoutUnsubscribes = 0;
+	
+	private static int queueSize = 100;
 
-	private static int timeout;
+	private static int timeout = 30000;
 	
 	public static long getErrors() {
 		return errors;
@@ -70,6 +75,11 @@ public class SchedulerBeans {
 		 totalQueryRequests = 0;
 		 totalSubscribeRequests = 0;
 		 totalUnsubscribeRequests = 0;
+		 
+		 timedoutUpdates = 0;
+		 timedoutQueries = 0;
+		 timedoutSubscribes = 0;
+		 timedoutUnsubscribes = 0;
 	}
 
 	public static void tokenLeft(int size) {
@@ -110,4 +120,38 @@ public class SchedulerBeans {
 	public static void setTimeout(int t) {
 		timeout = t;
 	}
+
+	public static long getTimedoutUpdates() {
+		return timedoutUpdates;
+	}
+
+	public static long getTimedoutQueries() {
+		return timedoutQueries;
+	}
+
+	public static long getTimedoutSubscribes() {
+		return timedoutSubscribes;
+	}
+	
+	public static long getTimedoutUnsubscribes() {
+		return timedoutUnsubscribes;
+	}
+
+	public static void queryTimeout() {
+		timedoutQueries++;
+	}
+	
+	public static void updateTimeout() {
+		timedoutUpdates++;
+	}
+	
+	public static void subscribeTimeout() {
+		timedoutSubscribes++;
+	}
+
+	public static void unsubscribeTimeout() {
+		timedoutUnsubscribes++;	
+	}
+
+	
 }

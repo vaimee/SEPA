@@ -20,7 +20,8 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
+import org.apache.jena.query.QueryException;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
@@ -32,6 +33,7 @@ import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
@@ -41,6 +43,7 @@ public class Processor implements ProcessorMBean {
 	// Processor threads
 	private final UpdateProcessingThread updateProcessingThread;
 	private final SubscribeProcessingThread subscribeProcessingThread;
+	private final UnsubscribeProcessingThread unsubscribeProcessingThread;
 	private final QueryProcessingThread queryProcessingThread;
 	
 	// SPARQL Processors
@@ -71,7 +74,8 @@ public class Processor implements ProcessorMBean {
 		
 		// Subscribe/Unsubscribe processing
 		subscribeProcessingThread = new SubscribeProcessingThread(this);
-
+		unsubscribeProcessingThread = new UnsubscribeProcessingThread(this);
+		
 		// Update processor
 		updateProcessingThread = new UpdateProcessingThread(this);
 		
@@ -79,12 +83,9 @@ public class Processor implements ProcessorMBean {
 		queryProcessingThread = new QueryProcessingThread(this);
 		
 		// JMX
-		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
-		
-		ProcessorBeans.setEndpoint(endpointProperties);
-		
-		QueryProcessorBeans.setTimeout(properties.getQueryTimeout());
-		
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);		
+		ProcessorBeans.setEndpoint(endpointProperties);		
+		QueryProcessorBeans.setTimeout(properties.getQueryTimeout());		
 		UpdateProcessorBeans.setTimeout(properties.getUpdateTimeout());
 		UpdateProcessorBeans.setReilable(properties.isUpdateReliable());
 	}
@@ -93,33 +94,31 @@ public class Processor implements ProcessorMBean {
 		return running.get();
 	}
 	
-//	public Scheduler getScheduler() {
-//		return scheduler;
+//	public QueryProcessor getQueryProcessor() {
+//		return queryProcessor;
 //	}
-	
-	public QueryProcessor getQueryProcessor() {
-		return queryProcessor;
-	}
-	
-	public UpdateProcessor getUpdateProcessor() {
-		return updateProcessor;
-	}
+//	
+//	public UpdateProcessor getUpdateProcessor() {
+//		return updateProcessor;
+//	}
 
 	public void start() {
 		running.set(true);
 		queryProcessingThread.start();
 		subscribeProcessingThread.start();
+		unsubscribeProcessingThread.start();
 		updateProcessingThread.start();
 	}
 
 	public void interrupt() {
 		running.set(false);
 		queryProcessingThread.interrupt();
+		unsubscribeProcessingThread.interrupt();
 		subscribeProcessingThread.interrupt();
 		updateProcessingThread.interrupt();
 	}
 	
-	public Response subscribe(InternalSubscribeRequest request) throws InterruptedException {
+	public Response processSubscribe(InternalSubscribeRequest request) throws InterruptedException {
 		return spuManager.subscribe(request);
 	}
 	public void killSubscription(String sid, String gid) throws InterruptedException {
@@ -129,14 +128,6 @@ public class Processor implements ProcessorMBean {
 	public Response unsubscribe(String sid, String gid) throws InterruptedException {
 		return spuManager.unsubscribe(sid, gid);
 	}
-
-//	public void postProcessingSubscriptions(Response ret) throws InterruptedException {
-//		spuManager.postUpdateProcessing(ret);
-//	}
-
-//	public void preProcessingSubscriptions(InternalUpdateRequest update) throws InterruptedException {
-//		spuManager.preUpdateProcessing(update);		
-//	}
 	
 	public boolean isUpdateReliable() {
 		return UpdateProcessorBeans.getReilable();
@@ -180,15 +171,15 @@ public class Processor implements ProcessorMBean {
 		scheduler.addResponse(token, ret);		
 	}
 
-	public ScheduledRequest waitSubscribeUnsubscribeRequest() throws InterruptedException {
-		return scheduler.waitSubscribeUnsubscribeRequest();
+	public ScheduledRequest waitSubscribeRequest() throws InterruptedException {
+		return scheduler.waitSubscribeRequest();
 	}
 
 	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
 		return scheduler.waitUpdateRequest();
 	}
 
-	public InternalPreProcessedUpdateRequest preProcessUpdate(InternalUpdateRequest update) throws SEPAProcessingException {
+	public InternalPreProcessedUpdateRequest preProcessUpdate(InternalUpdateRequest update) throws QueryException {
 		return updateProcessor.preProcess(update);
 	}
 
@@ -196,7 +187,15 @@ public class Processor implements ProcessorMBean {
 		return updateProcessor.process(preRequest);
 	}
 
-	public Response processUpdate(InternalUpdateRequest update) {
+	public Response processUpdate(InternalUpdateRequest update) throws QueryException {
 		return spuManager.update(update);
+	}
+
+	public ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
+		return scheduler.waitUnsubscribeRequest();
+	}
+
+	public Response processQuery(InternalQueryRequest query, int timeoutNRetry) throws SEPASecurityException {
+		return queryProcessor.process(query, timeoutNRetry);
 	}
 }

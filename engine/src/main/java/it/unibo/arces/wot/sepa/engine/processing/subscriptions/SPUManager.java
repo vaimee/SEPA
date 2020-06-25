@@ -32,7 +32,6 @@ import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
-import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
@@ -42,6 +41,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -66,37 +66,37 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized Response update(InternalUpdateRequest update) {
-		logger.debug("*** UPDATE PROCESSING BEGIN *** Total running SPUs: "+spus.size());
+	public synchronized Response update(InternalUpdateRequest update) throws QueryException {
+		logger.debug("*** UPDATE PROCESSING BEGIN *** Total running SPUs: " + spus.size());
 		try {
 			// PRE-processing update request
 			InternalPreProcessedUpdateRequest preRequest = processor.preProcessUpdate(update);
-			
-			// STOP processing if pre-processing fails
+
+			// STOP processing?
 			if (preRequest.preProcessingFailed()) {
 				logger.error("*** UPDATE PRE-PROCESSING FAILED *** " + preRequest.getErrorResponse());
 				return preRequest.getErrorResponse();
 			}
 
-			// PRE-processing subscriptions (ENDPOINT not yet updated)
+			// PRE-UPDATE subscriptions processing (ENDPOINT not yet updated)
 			preUpdateSubscriptionsProcessing(preRequest);
-			
-			// Update the ENDPOINT
+
+			// UPDATE the ENDPOINT
 			Response ret = processor.updateEndpoint(preRequest);
 
-			// STOP processing if endpoint processing fails
+			// STOP processing?
 			if (ret.isError()) {
 				logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
 				return ret;
 			}
-			
-			// POST-processing subscriptions (ENDPOINT not yet updated)
+
+			// POST-UPDATE subscriptions processing (ENDPOINT not yet updated)
 			postUpdateSubscriptionsProcessing(ret);
-			
+
 			logger.debug("*** UPDATE PROCESSING END *** ");
-			
+
 			return ret;
-			
+
 		} catch (SEPAProcessingException | SEPASecurityException e) {
 			logger.error("*** SUBSCRIPTION PROCESSING EXCEPTION *** " + e.getMessage());
 			return new ErrorResponse(500, "update_processing_failed",
@@ -104,7 +104,8 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		}
 	}
 
-	private void preUpdateSubscriptionsProcessing(InternalPreProcessedUpdateRequest update) throws SEPAProcessingException {
+	private void preUpdateSubscriptionsProcessing(InternalPreProcessedUpdateRequest update)
+			throws SEPAProcessingException {
 		logger.trace("*** PRE-PROCESSING SUBSCRIPTIONS BEGIN *** ");
 
 		// Get active SPUs (e.g., LUTT filtering)
@@ -129,23 +130,12 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		// Wait all SPUs to complete processing
 		if (!processingPool.isEmpty()) {
 			logger.debug(String.format("Wait (%d ms) for %d SPUs to complete processing...",
-					SPUManagerBeans.getSPUProcessingTimeout()*processingPool.size(), processingPool.size()));
+					SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size(), processingPool.size()));
 
 			try {
-				wait(SPUManagerBeans.getSPUProcessingTimeout()*processingPool.size());
-			} catch (InterruptedException e) {
-				logger.error(
-						"@preUpdateProcessing TIMEOUT on SPU processing. SPUs still running: " + processingPool.size());
-				for (SPU spu : processingPool) {
-					logger.error("@preUpdateProcessing spuid timed out: " + spu.getSPUID());
-				}
-				if (logger.isTraceEnabled()) e.printStackTrace();
-				
-				stop = Timings.getTime();
-
-				SPUManagerBeans.timings(start, stop);
-				
-				throw new SEPAProcessingException("@preUpdateProcessing TIMEOUT on SPU processing. SPUs still running: " + processingPool.size());
+				wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
+			} catch (Exception e) {
+				logger.error(e.getMessage());
 			}
 		}
 
@@ -154,6 +144,13 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		SPUManagerBeans.timings(start, stop);
 
 		logger.trace("*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
+
+		if (!processingPool.isEmpty()) {
+			logger.error(
+					"@preUpdateProcessing TIMEOUT on SPU processing. SPUs still running: " + processingPool.size());
+			throw new SEPAProcessingException(
+					"@preUpdateProcessing TIMEOUT on SPU processing. SPUs still running: " + processingPool.size());
+		}
 	}
 
 	private void postUpdateSubscriptionsProcessing(Response ret) throws SEPAProcessingException {
@@ -177,18 +174,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			try {
 				wait(SPUManagerBeans.getSPUProcessingTimeout());
 			} catch (InterruptedException e) {
-				logger.error(
-						"@postUpdateProcessing timeout on SPU processing. SPUs still running: " + processingPool.size());
-				for (SPU spu : processingPool) {
-					logger.error("@postUpdateProcessing spuid timed out: " + spu.getSPUID());
-				}
-				if (logger.isTraceEnabled()) e.printStackTrace();
-				
-				long stop = Timings.getTime();
-
-				SPUManagerBeans.timings(start, stop);
-				
-				throw new SEPAProcessingException("@postUpdateProcessing timeout on SPU processing. SPUs still running: " + processingPool.size());
+				logger.error(e.getMessage());
 			}
 		}
 
@@ -197,13 +183,22 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		SPUManagerBeans.timings(start, stop);
 
 		logger.trace("*** POST-PROCESSING SUBSCRIPTIONS END *** ");
+
+		if (!processingPool.isEmpty()) {
+			logger.error(
+					"@postUpdateProcessing timeout on SPU processing. SPUs still running: " + processingPool.size());
+			throw new SEPAProcessingException(
+					"@postUpdateProcessing timeout on SPU processing. SPUs still running: " + processingPool.size());
+
+		}
 	}
 
 	public synchronized void endOfProcessing(SPU s) {
 		logger.trace("@endOfProcessing  SPUID: " + s.getSPUID());
 
 		processingPool.remove(s);
-		if (processingPool.isEmpty()) notify();
+		if (processingPool.isEmpty())
+			notify();
 	}
 
 	public synchronized Response subscribe(InternalSubscribeRequest req) throws InterruptedException {
@@ -266,7 +261,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		try {
 			Subscriber sub = Subscriptions.getSubscriber(sid);
 			String spuid = sub.getSPU().getSPUID();
-			
+
 			if (Subscriptions.removeSubscriber(sub)) {
 				// If it is the last handler: kill SPU
 				spus.get(spuid).finish();
@@ -302,9 +297,9 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		}
 	}
 
-	public QueryProcessor getQueryProcessor() {
-		return processor.getQueryProcessor();
-	}
+//	public QueryProcessor getQueryProcessor() {
+//		return processor.getQueryProcessor();
+//	}
 
 	@Override
 	public long getUpdateRequests() {
@@ -414,5 +409,9 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	@Override
 	public float getFiltering_time_average() {
 		return SPUManagerBeans.getFiltering_time_average();
+	}
+
+	public Response processQuery(InternalSubscribeRequest subscribe, int timeoutNRetry) throws SEPASecurityException {
+		return processor.processQuery(subscribe, timeoutNRetry);
 	}
 }

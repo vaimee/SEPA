@@ -18,13 +18,12 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-//import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
@@ -49,7 +48,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update) throws SEPAProcessingException {
+	public synchronized InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update) throws QueryException {
 		return new InternalPreProcessedUpdateRequest(update);
 	}
 

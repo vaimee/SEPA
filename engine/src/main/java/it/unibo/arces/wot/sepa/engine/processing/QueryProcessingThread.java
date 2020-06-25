@@ -51,7 +51,7 @@ class QueryProcessingThread extends Thread{
 			
 			Response ret;
 			try {
-				ret = processor.getQueryProcessor().process(query,QueryProcessorBeans.getTimeoutNRetry());
+				ret = processor.processQuery(query,QueryProcessorBeans.getTimeoutNRetry());
 			} catch (SEPASecurityException e) {
 				logger.error(e.getMessage());
 				if (logger.isTraceEnabled()) e.printStackTrace();

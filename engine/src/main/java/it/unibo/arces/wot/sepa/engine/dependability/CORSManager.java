@@ -171,6 +171,10 @@ class CORSManager {
 		return true;
 	}
 
+	/*
+	 * A CORS preflight request is a CORS request that checks to see if the CORS protocol is understood and a server is aware using specific methods and headers.
+	 * It is an OPTIONS request, using three HTTP request headers: Access-Control-Request-Method, Access-Control-Request-Headers, and the Origin header.
+	 * */
 	public static boolean isPreFlightRequest(HttpAsyncExchange exchange) {
 		return exchange.getRequest().getRequestLine().getMethod().equalsIgnoreCase("OPTIONS");
 	}

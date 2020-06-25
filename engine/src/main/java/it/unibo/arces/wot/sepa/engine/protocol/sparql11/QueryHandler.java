@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.protocol.sparql11;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Set;
 
@@ -25,7 +26,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
-
+import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -99,7 +100,7 @@ public class QueryHandler extends SPARQL11Handler {
 				Header[] headers = exchange.getRequest().getHeaders("Accept");
 				if (headers.length != 1) return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth);
 				else return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth,headers[0].getValue());
-			} catch (Exception e) {
+			} catch (QueryException | UnsupportedEncodingException e) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}
 		case "POST":

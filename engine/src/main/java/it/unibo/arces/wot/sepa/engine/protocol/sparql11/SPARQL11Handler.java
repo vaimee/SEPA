@@ -38,6 +38,7 @@ import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -83,13 +84,14 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
 		if (!Dependability.processCORSRequest(exchange)) {
 			logger.error("CORS origin not allowed");
+			jmx.corsFailed();
 			HttpUtilities.sendFailureResponse(exchange,
 					new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error", "CORS origin not allowed"));
 			return false;
 		}
 
 		if (Dependability.isPreFlightRequest(exchange)) {
-			logger.warn("Preflight request");
+			logger.debug("Preflight request");
 			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
 			return false;
 		}
@@ -194,7 +196,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 							headers[0].getValue());
 			} else
 				return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri, auth);
-		} catch (Exception e) {
+		} catch (QueryException e) {
 			logger.error(e.getMessage());
 			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 		}
@@ -211,11 +213,8 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
 		// CORS
-		if (!corsHandling(httpExchange)) {
-			jmx.corsFailed();
-			return;
-		}
-
+		if (!corsHandling(httpExchange)) return;
+			
 		// Authorize
 		ClientAuthorization oauth = null;
 		try {
@@ -242,8 +241,8 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			sepaRequest = parse(httpExchange, oauth);
 		} catch (SPARQL11ProtocolException e) {
 			logger.error("Parsing failed: " + httpExchange.getRequest());
-			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,
-					"SPARQL11ProtocolException", "Parsing failed: " + e.getBody()));
+			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(e.getCode(),
+					"SPARQL11ProtocolException", "Parsing failed: " + e.getMessage()));
 			jmx.parsingFailed();
 			return;
 		}

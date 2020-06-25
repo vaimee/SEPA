@@ -18,9 +18,12 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import org.apache.http.HttpStatus;
+import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
@@ -55,16 +58,28 @@ class UpdateProcessingThread extends Thread {
 				processor.addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
 			}
 			
-			// Process update
-			logger.trace("Start processing update...");
-			Response ret = processor.processUpdate(update);
-			logger.trace("Update processing COMPLETED");
-			
-			// Notify update result
-			if (processor.isUpdateReliable()) {
-				logger.trace("Notify client of update processing (reliable)");
-				processor.addResponse(request.getToken(),ret);
+			try{
+				// Process update
+				logger.trace("Start processing update...");
+				Response ret = processor.processUpdate(update);
+				logger.trace("Update processing COMPLETED");
+				
+				// Notify update result
+				if (processor.isUpdateReliable()) {
+					logger.trace("Notify client of update processing (reliable)");
+					processor.addResponse(request.getToken(),ret);
+				}
 			}
+			catch(QueryException e) {
+				logger.trace("Update processing EXCEPTION");
+				logger.error(e.getMessage());
+				
+				// Notify update result
+				if (processor.isUpdateReliable()) {
+					processor.addResponse(request.getToken(),new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "parsing failed", e.getMessage()));
+				}
+			}
+			
 		}
 	}
 }

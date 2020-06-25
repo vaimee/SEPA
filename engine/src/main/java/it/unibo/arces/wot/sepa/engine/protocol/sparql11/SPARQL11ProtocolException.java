@@ -36,7 +36,8 @@ public class SPARQL11ProtocolException extends RuntimeException {
         return code;
     }
 
-    public String getBody() {
+    @Override
+    public String getMessage() {
         return body;
     }
 }

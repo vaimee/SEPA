@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryException;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.sparql.syntax.Element;
 import org.apache.jena.sparql.syntax.ElementGroup;
@@ -34,12 +35,12 @@ public class InternalQueryRequest extends InternalUQRequest {
 	private String internetMediaType = "application/sparql-results+json";
 
 	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
-			ClientAuthorization auth) {
+			ClientAuthorization auth) throws QueryException {
 		super(sparql, defaultGraphUri, namedGraphUri, auth);
 	}
 
 	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
-			ClientAuthorization auth, String mediaType) {
+			ClientAuthorization auth, String mediaType) throws QueryException {
 		this(sparql, defaultGraphUri, namedGraphUri, auth);
 
 		internetMediaType = mediaType;
@@ -55,7 +56,7 @@ public class InternalQueryRequest extends InternalUQRequest {
 				+ namedGraphUri + "} SPARQL: " + sparql;
 	}
 
-	protected Set<String> getGraphURIs(String sparql) {
+	protected Set<String> getGraphURIs(String sparql) throws QueryException {
 		Set<String> ret = new HashSet<>();
 
 		if (sparql == null)
@@ -63,22 +64,7 @@ public class InternalQueryRequest extends InternalUQRequest {
 
 		Query q = null;
 		logger.debug("Parsing query: " + sparql);
-		try {
-			q = QueryFactory.create(sparql);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-//		logger.debug("Create parse...");
-//		ParserSPARQL11 parser = new ParserSPARQL11();
-//		logger.debug("Create query...");
-		// Query q = new Query();
-
-//		try {
-//			q = parser.parse(q, sparql);
-//		} catch (Exception e) {
-//			logger.error("[JENA] exception on parsing query: "+e.getMessage());
-//			return ret;
-//		}
+		q = QueryFactory.create(sparql);
 
 		logger.debug("Get dataset descriptiors");
 		if (q.hasDatasetDescription()) {

@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.pattern;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -294,6 +295,22 @@ public class JSAP extends SPARQL11SEProperties {
 		read(filename, true, false);
 	}
 
+	public void write() throws SEPAPropertiesException {
+		write(getFileName());
+	}
+	
+	public void write(String fileName) throws SEPAPropertiesException {
+		FileWriter out;
+		try {
+			out = new FileWriter(fileName);
+			out.write(jsap.toString());
+			out.close();
+		} catch (IOException e) {
+			if (logger.isTraceEnabled()) e.printStackTrace();
+			throw new SEPAPropertiesException(e.getMessage());
+		}	
+	}
+	
 	private JsonObject merge(JsonObject temp, JsonObject jsap, boolean replace) {
 		for (Entry<String, JsonElement> entry : temp.entrySet()) {
 			JsonElement value = entry.getValue();
@@ -1075,11 +1092,11 @@ public class JSAP extends SPARQL11SEProperties {
 				}
 	 * </pre>
 	 */
-	public Bindings getUpdateBindings(String id) throws IllegalArgumentException {
+	public ForcedBindings getUpdateBindings(String id) throws IllegalArgumentException {
 		if (!jsap.get("updates").getAsJsonObject().has(id))
 			throw new IllegalArgumentException("Update ID not found: " + id);
 
-		Bindings ret = new Bindings();
+		ForcedBindings ret = new ForcedBindings();
 
 		if (!jsap.getAsJsonObject("updates").getAsJsonObject(id).has("forcedBindings"))
 			return ret;
@@ -1130,11 +1147,11 @@ public class JSAP extends SPARQL11SEProperties {
 		return ret;
 	}
 
-	public Bindings getQueryBindings(String id) throws IllegalArgumentException {
+	public ForcedBindings getQueryBindings(String id) throws IllegalArgumentException {
 		if (!jsap.get("queries").getAsJsonObject().has(id))
 			throw new IllegalArgumentException("Query ID not found");
 
-		Bindings ret = new Bindings();
+		ForcedBindings ret = new ForcedBindings();
 
 		if (!jsap.getAsJsonObject("queries").getAsJsonObject(id).has("forcedBindings"))
 			return ret;
@@ -1426,4 +1443,6 @@ public class JSAP extends SPARQL11SEProperties {
 			jsap.getAsJsonObject("sparql11seprotocol").add("reconnect", new JsonPrimitive(b));
 		}
 	}
+
+	
 }

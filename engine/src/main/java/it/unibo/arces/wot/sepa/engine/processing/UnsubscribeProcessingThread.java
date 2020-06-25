@@ -22,29 +22,31 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
-class SubscribeProcessingThread extends Thread {
+class UnsubscribeProcessingThread extends Thread {
 	private static final Logger logger = LogManager.getLogger();
 
 	private final Processor processor;
 
-	public SubscribeProcessingThread(Processor processor) {
+	public UnsubscribeProcessingThread(Processor processor) {
 		this.processor = processor;
 
-		setName("SEPA-Subscribe-Processor");
+		setName("SEPA-Unsubscribe-Processor");
 	}
 	
 	public void run() {
 		while (processor.isRunning()) {
 			try {
 				// Wait request...
-				ScheduledRequest request = processor.waitSubscribeRequest();
+				ScheduledRequest request = processor.waitUnsubscribeRequest();
 				logger.debug(">> " + request);
 
 				// Process request
-				Response response = processor.processSubscribe((InternalSubscribeRequest) request.getRequest());
+				String sid = ((InternalUnsubscribeRequest) request.getRequest()).getSID();
+				String gid = ((InternalUnsubscribeRequest) request.getRequest()).getGID();
+				Response response = processor.unsubscribe(sid,gid);
 				
 				logger.debug("<< " + response);
 

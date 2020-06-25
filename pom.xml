@@ -53,7 +53,7 @@
       <maven.compiler.source>1.8</maven.compiler.source>
       <maven.compiler.target>1.8</maven.compiler.target>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-      <revision>0.9.10</revision>
+      <revision>0.9.11</revision>
       <update>0</update>
   </properties>
     <distributionManagement>

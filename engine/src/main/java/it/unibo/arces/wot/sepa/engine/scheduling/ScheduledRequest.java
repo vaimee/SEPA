@@ -18,17 +18,21 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import java.util.Date;
+
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 
 public class ScheduledRequest {
 	private InternalRequest request = null;
 	private ResponseHandler handler = null;
 	private int token;
+	private long timestamp;
 	
 	public ScheduledRequest(int token,InternalRequest request,ResponseHandler handler) {
 		this.request = request;
 		this.handler = handler;
 		this.token = token;
+		this.timestamp = new Date().getTime();
 	}
 	
 	@Override
@@ -62,5 +66,9 @@ public class ScheduledRequest {
 	
 	public boolean isUnsubscribeRequest() {
 		return request.isUnsubscribeRequest();
+	}
+	
+	public long getTimestamp() {
+		return timestamp;
 	}
 }
