@@ -37,6 +37,4 @@ public interface SPARQL11HandlerMBean {
 	public long getErrors_CORSFailed();
 	
 	public long getErrors_ParsingFailed();
-	
-	public long getErrors_ValidatingFailed();
 }

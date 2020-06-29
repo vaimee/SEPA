@@ -247,15 +247,6 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			return;
 		}
 
-		// Validate SPARQL 1.1
-		if (!validate(sepaRequest.getSparql())) {
-			logger.error("Validation failed SPARQL: " + sepaRequest.getSparql());
-			HttpUtilities.sendFailureResponse(httpExchange,
-					new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "sparql_error", sepaRequest.getSparql()));
-			jmx.validatingFailed();
-			return;
-		}
-
 		// Schedule request
 		Timings.log(sepaRequest);
 		ScheduledRequest req = scheduler.schedule(sepaRequest, new SPARQL11ResponseHandler(httpExchange, jmx));
@@ -275,7 +266,6 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public void reset() {
 		jmx.reset();
-
 	}
 
 	@Override
@@ -311,10 +301,5 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public long getErrors_ParsingFailed() {
 		return jmx.getErrors_ParsingFailed();
-	}
-
-	@Override
-	public long getErrors_ValidatingFailed() {
-		return jmx.getErrors_ValidatingFailed();
 	}
 }
