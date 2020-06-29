@@ -28,7 +28,6 @@ public class HTTPHandlerBeans {
 	private long timeoutRequests = 0;
 	private long CORSFailedRequests = 0;
 	private long parsingFailedRequests = 0;
-	private long validatingFailedRequests = 0;
 	private long authorizingFailedRequests = 0;
 	
 	private long requestHandlingTime = -1;
@@ -45,7 +44,6 @@ public class HTTPHandlerBeans {
 		 timeoutRequests = 0;
 		 CORSFailedRequests = 0;
 		 parsingFailedRequests = 0;
-		 validatingFailedRequests = 0;
 		 authorizingFailedRequests = 0;
 		
 		 requestHandlingTime = -1;
@@ -143,10 +141,6 @@ public class HTTPHandlerBeans {
 		return parsingFailedRequests;
 	}
 	
-	public long getErrors_ValidatingFailed() {
-		return validatingFailedRequests;
-	}
-	
 	public long getErrors_AuthorizingFailed() {
 		return authorizingFailedRequests;
 	}
@@ -161,10 +155,6 @@ public class HTTPHandlerBeans {
 	
 	public void parsingFailed() {
 		parsingFailedRequests++;
-	}
-	
-	public void validatingFailed() {
-		validatingFailedRequests++;
 	}
 	
 	public void authorizingFailed() {

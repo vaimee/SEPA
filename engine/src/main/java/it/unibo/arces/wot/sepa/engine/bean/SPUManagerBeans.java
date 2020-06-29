@@ -122,6 +122,10 @@ public class SPUManagerBeans {
 		subscribers = 0;
 		subscribers_max = 0;
 		
+		filteringTime = -1;
+		filteringMinTime = -1;
+		filteringMaxTime = -1;
+		filteringAverageTime = -1;
 	}
 
 	public static float getSPUs_time() {
