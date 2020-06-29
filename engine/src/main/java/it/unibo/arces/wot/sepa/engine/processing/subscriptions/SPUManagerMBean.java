@@ -19,7 +19,8 @@
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
 public interface SPUManagerMBean {
-	public long getUpdateRequests();
+	public long getPreProcessingRequests();
+	public long getPostProcessingRequests();
 	public long getSubscribeRequests();
 	public long getUnsubscribeRequests();
 
@@ -28,11 +29,16 @@ public interface SPUManagerMBean {
 	public long getSubscribers();
 	public long getSubscribers_max();
 	
-	public float getSPUs_time();
-	public float getSPUs_time_min();
-	public float getSPUs_time_max();	
-	public float getSPUs_time_average();
+	public float getPreProcessing_SPUs_time();
+	public float getPreProcessing_SPUs_time_min();
+	public float getPreProcessing_SPUs_time_max();	
+	public float getPreProcessing_SPUs_time_average();
 
+	public float getPostProcessing_SPUs_time();
+	public float getPostProcessing_SPUs_time_min();
+	public float getPostProcessing_SPUs_time_max();	
+	public float getPostProcessing_SPUs_time_average();
+	
 	public float getFiltering_time();
 	public float getFiltering_time_min();
 	public float getFiltering_time_max();	
@@ -47,4 +53,8 @@ public interface SPUManagerMBean {
 	public void scale_us();
 	public void scale_ns();
 	public String getUnitScale();
+	
+	public long getPreProcessingExceptions();
+	public long getPostProcessingExceptions();
+	public long getNotifyExceptions();
 }

@@ -141,7 +141,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		stop = Timings.getTime();
 
-		SPUManagerBeans.timings(start, stop);
+		SPUManagerBeans.preProcessingTimings(start, stop);
 
 		logger.trace("*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
 
@@ -180,7 +180,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		long stop = Timings.getTime();
 
-		SPUManagerBeans.timings(start, stop);
+		SPUManagerBeans.postProcessingTimings(start, stop);
 
 		logger.trace("*** POST-PROCESSING SUBSCRIPTIONS END *** ");
 
@@ -297,15 +297,6 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		}
 	}
 
-//	public QueryProcessor getQueryProcessor() {
-//		return processor.getQueryProcessor();
-//	}
-
-	@Override
-	public long getUpdateRequests() {
-		return SPUManagerBeans.getUpdateRequests();
-	}
-
 	@Override
 	public long getSPUs_current() {
 		return SPUManagerBeans.getSPUs_current();
@@ -317,28 +308,8 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	}
 
 	@Override
-	public float getSPUs_time() {
-		return SPUManagerBeans.getSPUs_time();
-	}
-
-	@Override
 	public void reset() {
 		SPUManagerBeans.reset();
-	}
-
-	@Override
-	public float getSPUs_time_min() {
-		return SPUManagerBeans.getSPUs_time_min();
-	}
-
-	@Override
-	public float getSPUs_time_max() {
-		return SPUManagerBeans.getSPUs_time_max();
-	}
-
-	@Override
-	public float getSPUs_time_average() {
-		return SPUManagerBeans.getSPUs_time_average();
 	}
 
 	@Override
@@ -413,5 +384,70 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 	public Response processQuery(InternalSubscribeRequest subscribe, int timeoutNRetry) throws SEPASecurityException {
 		return processor.processQuery(subscribe, timeoutNRetry);
+	}
+
+	@Override
+	public long getPreProcessingRequests() {
+		return SPUManagerBeans.getPostProcessingUpdateRequests();
+	}
+
+	@Override
+	public long getPostProcessingRequests() {
+		return SPUManagerBeans.getPostProcessingUpdateRequests();
+	}
+
+	@Override
+	public float getPreProcessing_SPUs_time() {
+		return SPUManagerBeans.getPreProcessing_SPUs_time();
+	}
+
+	@Override
+	public float getPreProcessing_SPUs_time_min() {
+		return SPUManagerBeans.getPreProcessing_SPUs_time_min();
+	}
+
+	@Override
+	public float getPreProcessing_SPUs_time_max() {
+		return SPUManagerBeans.getPreProcessing_SPUs_time_max();
+	}
+
+	@Override
+	public float getPreProcessing_SPUs_time_average() {
+		return SPUManagerBeans.getPreProcessing_SPUs_time_average();
+	}
+
+	@Override
+	public float getPostProcessing_SPUs_time() {
+		return SPUManagerBeans.getPostProcessing_SPUs_time();
+	}
+
+	@Override
+	public float getPostProcessing_SPUs_time_min() {
+		return SPUManagerBeans.getPostProcessing_SPUs_time_min();
+	}
+
+	@Override
+	public float getPostProcessing_SPUs_time_max() {
+		return SPUManagerBeans.getPostProcessing_SPUs_time_max();
+	}
+
+	@Override
+	public float getPostProcessing_SPUs_time_average() {
+		return SPUManagerBeans.getPostProcessing_SPUs_time_average();
+	}
+
+	@Override
+	public long getPreProcessingExceptions() {
+		return SPUManagerBeans.getPreProcessingExceptions();
+	}
+
+	@Override
+	public long getPostProcessingExceptions() {
+		return SPUManagerBeans.getPostProcessingExceptions();
+	}
+
+	@Override
+	public long getNotifyExceptions() {
+		return SPUManagerBeans.getNotifyExceptions();
 	}
 }

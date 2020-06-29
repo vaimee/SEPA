@@ -26,6 +26,7 @@ import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class HTTPHandlerBeans {
 	private long timeoutRequests = 0;
+	
 	private long CORSFailedRequests = 0;
 	private long parsingFailedRequests = 0;
 	private long authorizingFailedRequests = 0;
@@ -42,6 +43,7 @@ public class HTTPHandlerBeans {
 	
 	public void reset() {
 		 timeoutRequests = 0;
+		 
 		 CORSFailedRequests = 0;
 		 parsingFailedRequests = 0;
 		 authorizingFailedRequests = 0;

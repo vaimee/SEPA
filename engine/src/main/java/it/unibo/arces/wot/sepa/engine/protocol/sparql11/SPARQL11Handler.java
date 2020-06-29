@@ -74,11 +74,6 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	protected boolean validate(String request) {
-		// TODO Validate SPARQL 1.1
-		return true;
-	}
-
 	protected abstract ClientAuthorization authorize(HttpRequest request) throws SEPASecurityException;
 
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
@@ -226,7 +221,6 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			return;
 		}
 		if (!oauth.isAuthorized()) {
-//			final Header header = httpExchange.getRequest().getLastHeader("Authorization");
 			logger.error("*** NOT AUTHORIZED *** " + oauth.getDescription());
 			HttpUtilities.sendFailureResponse(httpExchange,
 					new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, oauth.getError(), oauth.getDescription()));
