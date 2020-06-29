@@ -22,7 +22,7 @@ jobs:
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
     - echo launching engine with this configuration
     - cat engine.jpar
-    - java -jar engine-0-SNAPSHOT.jar -engine=engine.jpar > log.txt &
+    - java -jar engine-0.9.11.jar -engine=engine.jpar > log.txt &
     - sleep 30
     - cd ../..
     script:
@@ -37,7 +37,7 @@ jobs:
     - mvn package
     - cd engine/target
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
-    - java -jar engine-0-SNAPSHOT.jar -engine=engine-secure.jpar > log.txt &
+    - java -jar engine-0.9.11.jar -engine=engine-secure.jpar > log.txt &
     - cat engine-secure.jpar
     - sleep 30
     - cd ../..
@@ -53,7 +53,7 @@ jobs:
     - mvn package
     - cd engine/target
     - mv endpoints/endpoint-virtuoso.jpar endpoint.jpar
-    - java -jar engine-0-SNAPSHOT.jar -engine=engine.jpar > log.txt &
+    - java -jar engine-0.9.11.jar -engine=engine.jpar > log.txt &
     - sleep 30
     - cd ../..
     script:
