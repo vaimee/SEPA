@@ -112,15 +112,17 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 			long start = Timings.getTime();
 
-			try {
-				httpResponse = httpClient.execute(req);
-			} catch (ClientProtocolException e) {
-				logger.warn("ClientProtocolException: " + e.getMessage());
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ClientProtocolException", e.getMessage());
-			} catch (IOException e) {
-				logger.warn("IOException: " + e.getMessage());
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
-			} 
+			httpResponse = httpClient.execute(req);
+			
+//			try {
+//				
+//			} catch (ClientProtocolException e) {
+//				logger.warn("ClientProtocolException: " + e.getMessage());
+//				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ClientProtocolException", e.getMessage());
+//			} catch (IOException e) {
+//				logger.warn("IOException: " + e.getMessage());
+//				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
+//			} 
 
 			long stop = Timings.getTime();
 

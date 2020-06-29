@@ -19,12 +19,12 @@
 package it.unibo.arces.wot.sepa.engine.bean;
 
 public class SPUManagerBeans {
-	private static long requests = 0;
-
-	private static float minTime = -1;
-	private static float averageTime = -1;
-	private static float maxTime = -1;
-	private static float time = -1;
+	private static long[] updateRequests = {0,0};
+	
+	private static float[] minTime = {-1,-1};
+	private static float[] averageTime = {-1,-1};
+	private static float[] maxTime = {-1,-1};
+	private static float[] time = {-1,-1};
 
 	private static long activeSPUs = 0;
 	private static long maxActiveSPUs = 0;
@@ -42,10 +42,14 @@ public class SPUManagerBeans {
 
 	private static long filteringRequests = 0;
 	
-	private static long filteringTime;
-	private static long filteringMinTime;
-	private static long filteringMaxTime;
-	private static long filteringAverageTime;
+	private static float filteringTime;
+	private static float filteringMinTime;
+	private static float filteringMaxTime;
+	private static float filteringAverageTime;
+
+	private static long preProcessingExceptions;
+	private static long postProcessingExceptions;
+	private static long notifyExceptions;
 	
 	public static void scale_ms() {
 		unitScale = 1000000;
@@ -65,8 +69,12 @@ public class SPUManagerBeans {
 		return "ms";
 	}
 	
-	public static long getUpdateRequests() {
-		return requests;
+	public static long getPostProcessingUpdateRequests() {
+		return updateRequests[1];
+	}
+	
+	public static long getPreProcessingUpdateRequests() {
+		return updateRequests[0];
 	}
 	
 	public synchronized static long getSPUs_current() {
@@ -90,32 +98,70 @@ public class SPUManagerBeans {
 		unsubscribeRequests++;
 	}
 	
-	public synchronized static void timings(long start, long stop) {
-		requests++;
-		time = stop - start;
+	public static void preProcessingException() {
+		preProcessingExceptions++;
+	}
+	
+	public static void postProcessingException() {
+		postProcessingExceptions++;
+	}
+	
+	public static void notifyException() {
+		notifyExceptions++;
+	}
+	
+	public synchronized static void preProcessingTimings(long start, long stop) {
+		updateRequests[0]++;
+		time[0] = stop - start;
 
-		if (minTime == -1)
-			minTime = time;
-		else if (time < minTime)
-			minTime = time;
+		if (minTime[0] == -1)
+			minTime[0] = time[0];
+		else if (time[0] < minTime[0])
+			minTime[0] = time[0];
 
-		if (maxTime == -1)
-			maxTime = time;
-		else if (time > maxTime)
-			maxTime = time;
+		if (maxTime[0] == -1)
+			maxTime[0] = time[0];
+		else if (time[0] > maxTime[0])
+			maxTime[0] = time[0];
 
-		if (averageTime == -1)
-			averageTime = time;
+		if (averageTime[0] == -1)
+			averageTime[0] = time[0];
 		else
-			averageTime = ((averageTime * (requests - 1)) + time) / requests;
+			averageTime[0] = ((averageTime[0] * (updateRequests[0] - 1)) + time[0]) / updateRequests[0];
+	}
+	
+	public synchronized static void postProcessingTimings(long start, long stop) {
+		updateRequests[1]++;
+		time[1] = stop - start;
+
+		if (minTime[1] == -1)
+			minTime[1] = time[1];
+		else if (time[1] < minTime[1])
+			minTime[1] = time[1];
+
+		if (maxTime[1] == -1)
+			maxTime[1] = time[1];
+		else if (time[1] > maxTime[1])
+			maxTime[1] = time[1];
+
+		if (averageTime[1] == -1)
+			averageTime[1] = time[1];
+		else
+			averageTime[1] = ((averageTime[1] * (updateRequests[1] - 1)) + time[1]) / updateRequests[1];
 	}
 
 	public static void reset() {
-		requests = 0;
-		minTime = -1;
-		averageTime = -1;
-		maxTime = -1;
-		time = -1;
+		updateRequests[0] = 0;
+		updateRequests[1] = 0;
+		
+		minTime[0] = -1;
+		minTime[1] = -1;
+		averageTime[0] = -1;
+		averageTime[1] = -1;
+		maxTime[0] = -1;
+		maxTime[1] = -1;
+		time[0] = -1;
+		time[1] = -1;
 		
 		subscribeRequests = 0;
 		unsubscribeRequests = 0;
@@ -126,22 +172,41 @@ public class SPUManagerBeans {
 		filteringMinTime = -1;
 		filteringMaxTime = -1;
 		filteringAverageTime = -1;
+		
+		maxActiveSPUs = 0;
+		
 	}
 
-	public static float getSPUs_time() {
-		return time/unitScale;
+	public static float getPreProcessing_SPUs_time() {
+		return time[0]/unitScale;
 	}
 	
-	public static float getSPUs_time_min() {
-		return minTime/unitScale;
+	public static float getPreProcessing_SPUs_time_min() {
+		return minTime[0]/unitScale;
 	}
 
-	public static float getSPUs_time_max() {
-		return maxTime/unitScale;
+	public static float getPreProcessing_SPUs_time_max() {
+		return maxTime[0]/unitScale;
 	}
 
-	public static float getSPUs_time_average() {
-		return averageTime/unitScale;
+	public static float getPreProcessing_SPUs_time_average() {
+		return averageTime[0]/unitScale;
+	}
+	
+	public static float getPostProcessing_SPUs_time() {
+		return time[1]/unitScale;
+	}
+	
+	public static float getPostProcessing_SPUs_time_min() {
+		return minTime[1]/unitScale;
+	}
+
+	public static float getPostProcessing_SPUs_time_max() {
+		return maxTime[1]/unitScale;
+	}
+
+	public static float getPostProcessing_SPUs_time_average() {
+		return averageTime[1]/unitScale;
 	}
 
 	public static long getSubscribeRequests() {
@@ -177,8 +242,8 @@ public class SPUManagerBeans {
 		return subscribers_max;
 	}
 
-	public static void filteringTimings(long start, long stop) {
-		filteringRequests ++;
+	public synchronized static void filteringTimings(long start, long stop) {
+		filteringRequests++;
 		filteringTime = stop - start;
 
 		if (filteringMinTime == -1)
@@ -211,5 +276,17 @@ public class SPUManagerBeans {
 
 	public static float getFiltering_time_average() {
 		return filteringAverageTime/unitScale;
+	}
+
+	public static long getPreProcessingExceptions() {
+		return preProcessingExceptions;
+	}
+
+	public static long getPostProcessingExceptions() {
+		return postProcessingExceptions;
+	}
+
+	public static long getNotifyExceptions() {
+		return notifyExceptions;
 	}
 }

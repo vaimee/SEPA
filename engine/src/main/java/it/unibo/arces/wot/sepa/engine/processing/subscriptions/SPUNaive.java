@@ -76,12 +76,17 @@ class SPUNaive extends SPU {
 	}
 
 	@Override
-	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException, SEPASecurityException {
+	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException {
 		logger.trace("* PROCESSING *" + subscribe);
-		Response ret;
+		Response ret = null;
 
 		// Query the SPARQL processing service
-		ret = manager.processQuery(subscribe,QueryProcessorBeans.getTimeoutNRetry());
+		try {
+			ret = manager.processQuery(subscribe,QueryProcessorBeans.getTimeoutNRetry());
+		} catch (SEPASecurityException e) {
+			if (logger.isTraceEnabled()) e.printStackTrace();
+			throw new SEPAProcessingException(e.getMessage());
+		}
 
 		if (ret.isError()) {
 			throw new SEPAProcessingException(ret.toString());
