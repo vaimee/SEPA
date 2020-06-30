@@ -1,5 +1,8 @@
 package it.unibo.arces.wot.sepa.pattern;
 
+import it.unibo.arces.wot.sepa.ITAggregator;
+import it.unibo.arces.wot.sepa.ITConsumer;
+import it.unibo.arces.wot.sepa.ITGenericClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
@@ -71,47 +74,28 @@ public class ITPattern implements ISubscriptionHandler{
 		consumerRandom1.close();
 	}
 	
-	@Test(timeout = 10000)
+	@Test(timeout = 40000)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		Thread.sleep(6000);
 		consumerAll.subscribe();
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 20000)
 	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		Response ret = randomProducer.update();
 		
 		assertFalse(ret.isError());
 	}
-	
-	@Test(timeout = 10000)
-	public void produceX100() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
-			SEPAProtocolException, SEPABindingsException {
-		for (int i = 0; i < 100; i++) {
-			Response ret = randomProducer.update();
-			assertFalse("Failed on update: "+i,ret.isError());
-		}
-	}
-	
-	@Test(timeout = 60000)
-	public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
-			SEPAProtocolException, SEPABindingsException {
-		for (int i = 0; i < 1000; i++) {
-			Response ret = randomProducer.update();
-			assertFalse("Failed on update: "+i,ret.isError());
-		}
-	}
 
-	@Test(timeout = 10000)
+	@Test(timeout = 40000)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
 		consumerAll.waitNotification();
 	}
 
-	@Test(timeout = 5000)
+	@Test(timeout = 20000)
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll.subscribe();
@@ -122,7 +106,7 @@ public class ITPattern implements ISubscriptionHandler{
 		consumerAll.waitNotification();
 	}
 
-	@Test(timeout = 10000)
+	@Test(timeout = 40000)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerRandom1.subscribe();
@@ -136,42 +120,8 @@ public class ITPattern implements ISubscriptionHandler{
 		randomAggregator.waitNotification();
 		consumerRandom1.waitNotification();
 	}
-
-	@Test(timeout = 10000)
-	public void aggregationX10() throws InterruptedException, SEPASecurityException, IOException,
-			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-		consumerRandom1.subscribe();
-		consumerRandom1.waitNotification();
-
-		randomAggregator.subscribe();
-		randomAggregator.waitNotification();
-
-		for (int i = 0; i < 10; i++) {
-			randomProducer.update();
-
-			randomAggregator.waitNotification();
-			consumerRandom1.waitNotification();
-		}
-	}
 	
-	@Test(timeout = 60000)
-	public void aggregationX100() throws InterruptedException, SEPASecurityException, IOException,
-			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-		consumerRandom1.subscribe();
-		consumerRandom1.waitNotification();
-
-		randomAggregator.subscribe();
-		randomAggregator.waitNotification();
-
-		for (int i = 0; i < 100; i++) {
-			randomProducer.update();
-
-			randomAggregator.waitNotification();
-			consumerRandom1.waitNotification();
-		}
-	}
-	
-	@Test(timeout =  5000)
+	@Test(timeout =  20000)
 	public void genericClientSingleSubscribe() {
 		try {
 			genericClient.subscribe("ALL", null, 1000,"first");
@@ -207,7 +157,7 @@ public class ITPattern implements ISubscriptionHandler{
 		}
 	}
 	
-	@Test(timeout =  5000)
+	@Test(timeout =  20000)
 	public void genericClientDoubleSubscribe() {
 		try {
 			genericClient.subscribe("RANDOM", null, 1000,"first");
