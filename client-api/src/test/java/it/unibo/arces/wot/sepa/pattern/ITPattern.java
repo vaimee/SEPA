@@ -1,8 +1,7 @@
 package it.unibo.arces.wot.sepa.pattern;
 
-import it.unibo.arces.wot.sepa.ITAggregator;
-import it.unibo.arces.wot.sepa.ITConsumer;
-import it.unibo.arces.wot.sepa.ITGenericClient;
+import it.unibo.arces.wot.sepa.AggregatorTestUnit;
+import it.unibo.arces.wot.sepa.ConsumerTestUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
@@ -33,13 +32,36 @@ public class ITPattern implements ISubscriptionHandler{
 	protected static JSAP app = null;
 	protected static ClientSecurityManager sm = null;
 
-	protected static ITConsumer consumerAll;
+	protected static ConsumerTestUnit consumerAll;
 	protected static Producer randomProducer;
-	protected static ITAggregator randomAggregator;
-	protected static ITConsumer consumerRandom1;
+	protected static AggregatorTestUnit randomAggregator;
+	protected static ConsumerTestUnit consumerRandom1;
 	
-	protected static ITGenericClient genericClient;
+	protected static GenericClient genericClient;
 	protected static HashMap<String,String> subscriptions = new HashMap<>();
+	
+	private int genericClientNotifications;
+	private int genericClientSubscriptions;
+	
+	public void setOnSemanticEvent(String spuid) {
+		genericClientNotifications++;
+	}
+	
+	public int getNotificationsCount() {
+		return genericClientNotifications;
+	}
+
+	public void setOnSubscribe(String spuid, String alias) {
+		genericClientSubscriptions++;
+	}
+	
+	public int getSubscriptionsCount() {
+		return genericClientSubscriptions;
+	}
+
+	public void setOnUnsubscribe(String spuid) {
+		genericClientSubscriptions--;
+	}
 	
 	@BeforeClass
 	public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
@@ -59,11 +81,11 @@ public class ITPattern implements ISubscriptionHandler{
 	
 	@Before
 	public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		consumerAll = new ITConsumer(app, "ALL", sm);
+		consumerAll = new ConsumerTestUnit(app, "ALL", sm);
 		randomProducer = new Producer(app, "RANDOM", sm);
-		randomAggregator = new ITAggregator(app, "RANDOM", "RANDOM1", sm);
-		consumerRandom1 = new ITConsumer(app, "RANDOM1", sm);
-		genericClient = new ITGenericClient(app, sm, this);
+		randomAggregator = new AggregatorTestUnit(app, "RANDOM", "RANDOM1", sm);
+		consumerRandom1 = new ConsumerTestUnit(app, "RANDOM1", sm);
+		genericClient = new GenericClient(app, sm, this);
 	}
 
 	@After
@@ -126,29 +148,29 @@ public class ITPattern implements ISubscriptionHandler{
 		try {
 			genericClient.subscribe("ALL", null, 1000,"first");
 			
-			if (genericClient.getSubscriptionsCount() != 1) {
+			if (getSubscriptionsCount() != 1) {
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to subscribe",genericClient.getSubscriptionsCount()!=1);
+				assertFalse("Failed to subscribe",getSubscriptionsCount()!=1);
 			}
 			
 			genericClient.update("RANDOM", null, 1000);
 			
-			if (genericClient.getNotificationsCount() != 2) {
+			if (getNotificationsCount() != 2) {
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to notify",genericClient.getNotificationsCount()!=2);
+				assertFalse("Failed to notify",getNotificationsCount()!=2);
 			}
 			
 			genericClient.unsubscribe(subscriptions.get("first"), 1000);
 			
-			if (genericClient.getSubscriptionsCount() != 0) {
+			if (getSubscriptionsCount() != 0) {
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to unsubscribe",genericClient.getSubscriptionsCount()!=0);
+				assertFalse("Failed to unsubscribe",getSubscriptionsCount()!=0);
 			}
 		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | SEPABindingsException
 				| InterruptedException | IOException e) {
@@ -163,31 +185,31 @@ public class ITPattern implements ISubscriptionHandler{
 			genericClient.subscribe("RANDOM", null, 1000,"first");
 			genericClient.subscribe("RANDOM1", null, 1000,"second");
 			
-			if (genericClient.getSubscriptionsCount() != 2) {
+			if (getSubscriptionsCount() != 2) {
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to subscribe",genericClient.getSubscriptionsCount()!=2);
+				assertFalse("Failed to subscribe",getSubscriptionsCount()!=2);
 			}
 			
 			genericClient.update("RANDOM", null, 1000);
 			genericClient.update("RANDOM1", null, 1000);
 			
-			if (genericClient.getNotificationsCount() != 4) {
+			if (getNotificationsCount() != 4) {
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to notify",genericClient.getNotificationsCount()!=2);
+				assertFalse("Failed to notify",getNotificationsCount()!=2);
 			}
 			
 			genericClient.unsubscribe(subscriptions.get("first"), 1000);
 			genericClient.unsubscribe(subscriptions.get("second"), 1000);
 					
-			if (genericClient.getSubscriptionsCount() != 0) {
+			if (getSubscriptionsCount() != 0) {
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to unsubscribe",genericClient.getSubscriptionsCount()!=0);
+				assertFalse("Failed to unsubscribe",getSubscriptionsCount()!=0);
 			}
 		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | SEPABindingsException
 				| InterruptedException | IOException e) {
@@ -199,7 +221,7 @@ public class ITPattern implements ISubscriptionHandler{
 	@Override
 	public void onSemanticEvent(Notification notify) {
 		logger.debug(notify);
-		genericClient.setOnSemanticEvent(notify.getSpuid());
+		setOnSemanticEvent(notify.getSpuid());
 	}
 
 	@Override
@@ -216,12 +238,12 @@ public class ITPattern implements ISubscriptionHandler{
 	public void onSubscribe(String spuid, String alias) {
 		logger.debug("onSubscribe "+spuid+" "+alias);
 		subscriptions.put(alias, spuid);
-		genericClient.setOnSubscribe(spuid,alias);
+		setOnSubscribe(spuid,alias);
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
 		logger.debug("onUnsubscribe "+spuid);
-		genericClient.setOnUnsubscribe(spuid);
+		setOnUnsubscribe(spuid);
 	}
 }

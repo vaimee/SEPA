@@ -33,7 +33,6 @@ public class StressUsingSPARQLProtocol {
 
     private static ClientSecurityManager sm;
     private final static String VALID_ID = "SEPATest";
-    private final static String NOT_VALID_ID = "RegisterMePlease";
 
     private final static Sync sync = new Sync();
 

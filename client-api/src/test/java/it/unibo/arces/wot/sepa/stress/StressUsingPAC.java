@@ -1,8 +1,8 @@
 package it.unibo.arces.wot.sepa.stress;
 
-import it.unibo.arces.wot.sepa.ITAggregator;
-import it.unibo.arces.wot.sepa.ITConsumer;
-import it.unibo.arces.wot.sepa.ITGenericClient;
+import it.unibo.arces.wot.sepa.AggregatorTestUnit;
+import it.unibo.arces.wot.sepa.ConsumerTestUnit;
+import it.unibo.arces.wot.sepa.pattern.GenericClient;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 import org.apache.logging.log4j.LogManager;
@@ -28,8 +28,6 @@ import static org.junit.Assert.assertFalse;
 import java.io.IOException;
 import java.util.HashMap;
 
-import static org.junit.Assert.assertFalse;
-
 public class StressUsingPAC  implements ISubscriptionHandler{
 
     protected final Logger logger = LogManager.getLogger();
@@ -37,14 +35,37 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     protected static JSAP app = null;
     protected static ClientSecurityManager sm = null;
 
-    protected static ITConsumer consumerAll;
+    protected static ConsumerTestUnit consumerAll;
     protected static Producer randomProducer;
-    protected static ITAggregator randomAggregator;
-    protected static ITConsumer consumerRandom1;
+    protected static AggregatorTestUnit randomAggregator;
+    protected static ConsumerTestUnit consumerRandom1;
 
-    protected static ITGenericClient genericClient;
+    protected static GenericClient genericClient;
     protected static HashMap<String,String> subscriptions = new HashMap<>();
 
+	private int genericClientNotifications;
+	private int genericClientSubscriptions;
+	
+	public void setOnSemanticEvent(String spuid) {
+		genericClientNotifications++;
+	}
+	
+	public int getNotificationsCount() {
+		return genericClientNotifications;
+	}
+
+	public void setOnSubscribe(String spuid, String alias) {
+		genericClientSubscriptions++;
+	}
+	
+	public int getSubscriptionsCount() {
+		return genericClientSubscriptions;
+	}
+
+	public void setOnUnsubscribe(String spuid) {
+		genericClientSubscriptions--;
+	}
+	
     @BeforeClass
     public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
         try {
@@ -63,11 +84,11 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 
     @Before
     public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-        consumerAll = new ITConsumer(app, "ALL", sm);
+        consumerAll = new ConsumerTestUnit(app, "ALL", sm);
         randomProducer = new Producer(app, "RANDOM", sm);
-        randomAggregator = new ITAggregator(app, "RANDOM", "RANDOM1", sm);
-        consumerRandom1 = new ITConsumer(app, "RANDOM1", sm);
-        genericClient = new ITGenericClient(app, sm, this);
+        randomAggregator = new AggregatorTestUnit(app, "RANDOM", "RANDOM1", sm);
+        consumerRandom1 = new ConsumerTestUnit(app, "RANDOM1", sm);
+        genericClient = new GenericClient(app, sm, this);
     }
 
     @After
@@ -132,7 +153,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     @Override
     public void onSemanticEvent(Notification notify) {
         logger.debug(notify);
-        genericClient.setOnSemanticEvent(notify.getSpuid());
+        setOnSemanticEvent(notify.getSpuid());
     }
 
     @Override
@@ -149,12 +170,12 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     public void onSubscribe(String spuid, String alias) {
         logger.debug("onSubscribe "+spuid+" "+alias);
         subscriptions.put(alias, spuid);
-        genericClient.setOnSubscribe(spuid,alias);
+        setOnSubscribe(spuid,alias);
     }
 
     @Override
     public void onUnsubscribe(String spuid) {
         logger.debug("onUnsubscribe "+spuid);
-        genericClient.setOnUnsubscribe(spuid);
+        setOnUnsubscribe(spuid);
     }
 }
