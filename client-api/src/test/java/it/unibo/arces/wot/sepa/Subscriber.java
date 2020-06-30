@@ -1,8 +1,10 @@
-package it.unibo.arces.wot.sepa.api;
+package it.unibo.arces.wot.sepa;
 
 import java.io.Closeable;
 import java.io.IOException;
 
+import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
+import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -17,7 +19,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
-class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
+public class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
 	private final ClientSecurityManager sm;

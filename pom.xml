@@ -1,145 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>it.unibo.arces.wot</groupId>
-	<artifactId>sepa</artifactId>
-	<version>${revision}</version>
-	<packaging>pom</packaging>
-	<description>The project aims at developing a SPARQL Event Processing Architecture using JAVA technologies, including APIs and tools</description>
-	<modules>
-		<module>client-api</module>
-		<module>engine</module>
-	</modules>
-	<name>SEPA Project</name>
-	<url>https://github.com/arces-wot/sepa.git</url>
-	<licenses>
-		<license>
-			<name>GNU Lesser General Public License v3.0</name>
-			<url>https://www.gnu.org/licenses/lgpl-3.0.en.html</url>
-		</license>
-	</licenses>
-	<developers>
-		<developer>
-			<name>Luca Roffia</name>
-			<email>luca.roffia@unibo.it</email>
-			<organization>Web of Things research group of ARCES</organization>
-			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
-		</developer>
-		<developer>
-			<name>Fabio Viola</name>
-			<email>fabio.viola@unibo.it</email>
-			<organization>Web of Things research group of ARCES</organization>
-			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
-		</developer>
-		<developer>
-			<name>Francesco Antoniazzi</name>
-			<email>francesco.antoniazzi@unibo.it</email>
-			<organization>Web of Things research group of ARCES</organization>
-			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
-		</developer>
-		<developer>
-			<name>Cristiano Aguzzi</name>
-			<email>cristiano.aguzzi@studio.unibo.it</email>
-			<organization>Web of Things research group of ARCES</organization>
-			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
-		</developer>
-	</developers>
-	<scm>
-		<connection>scm:git:git://github.com/arces-wot/sepa.git</connection>
-		<developerConnection>scm:git:ssh://github.com/arces-wot/sepa.git</developerConnection>
-		<url>https://github.com/arces-wot/SEPA</url>
-	</scm>
-	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>0-SNAPSHOT</revision>
-		<update>0</update>
-	</properties>
-	<distributionManagement>
-		<repository>
-			<id>bintray-arces-wot-sepa-java-libs</id>
-			<name>arces-wot-sepa-java-libs</name>
-			<url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/${project.artifactId}/;publish=1;override=${update}</url>
-		</repository>
-	</distributionManagement>
-	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-failsafe-plugin -->
-		<dependency>
-			<groupId>org.apache.maven.plugins</groupId>
-			<artifactId>maven-failsafe-plugin</artifactId>
-			<version>3.0.0-M5</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>com.hbakkum.maven.plugins</groupId>
-				<artifactId>resolve-parent-version-maven-plugin</artifactId>
-				<version>0.7</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>resolve-parent-version</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.18</version>
-				<configuration>
-					<excludes>
-						<exclude>**/IT*.java</exclude>
-					</excludes>
-				</configuration>
-			</plugin>
-		</plugins>
-		<pluginManagement>
-			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings 
-					only. It has no influence on the Maven build itself. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											com.hbakkum.maven.plugins
-										</groupId>
-										<artifactId>
-											resolve-parent-version-maven-plugin
-										</artifactId>
-										<versionRange>
-											[0.7,)
-										</versionRange>
-										<goals>
-											<goal>
-												resolve-parent-version
-											</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
-	<organization>
-		<name>Web of Things Research Group @ ARCES</name>
-		<url>https://http://wot.arces.unibo.it/</url>
-	</organization>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>it.unibo.arces.wot</groupId>
+  <artifactId>sepa</artifactId>
+    <version>${revision}</version>
+  <packaging>pom</packaging>
+  <description>The project aims at developing a SPARQL Event Processing Architecture using JAVA technologies, including APIs and tools</description>
+    <modules>
+        <module>client-api</module>
+        <module>engine</module>
+  </modules>
+  <name>SEPA Project</name>
+  <url>https://github.com/arces-wot/sepa.git</url>
+  <licenses>
+      <license>
+          <name>GNU Lesser General Public License v3.0</name>
+          <url>https://www.gnu.org/licenses/lgpl-3.0.en.html</url>
+      </license>
+  </licenses>
+  <developers>
+      <developer>
+          <name>Luca Roffia</name>
+          <email>luca.roffia@unibo.it</email>
+          <organization>Web of Things research group of ARCES</organization>
+          <organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+      </developer>
+      <developer>
+          <name>Fabio Viola</name>
+          <email>fabio.viola@unibo.it</email>
+          <organization>Web of Things research group of ARCES</organization>
+          <organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+      </developer>
+      <developer>
+          <name>Francesco Antoniazzi</name>
+          <email>francesco.antoniazzi@unibo.it</email>
+          <organization>Web of Things research group of ARCES</organization>
+          <organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+      </developer>
+      <developer>
+          <name>Cristiano Aguzzi</name>
+          <email>cristiano.aguzzi@studio.unibo.it</email>
+          <organization>Web of Things research group of ARCES</organization>
+          <organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+      </developer>
+  </developers>
+  <scm>
+      <connection>scm:git:git://github.com/arces-wot/sepa.git</connection>
+      <developerConnection>scm:git:ssh://github.com/arces-wot/sepa.git</developerConnection>
+      <url>https://github.com/arces-wot/SEPA</url>
+  </scm>
+  <properties>
+      <maven.compiler.source>1.8</maven.compiler.source>
+      <maven.compiler.target>1.8</maven.compiler.target>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <revision>0-SNAPSHOT</revision>
+      <update>0</update>
+  </properties>
+    <distributionManagement>
+        <repository>
+            <id>bintray-arces-wot-sepa-java-libs</id>
+            <name>arces-wot-sepa-java-libs</name>
+            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/${project.artifactId}/;publish=1;override=${update}</url>
+        </repository>
+    </distributionManagement>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.hbakkum.maven.plugins</groupId>
+                <artifactId>resolve-parent-version-maven-plugin</artifactId>
+                <version>0.7</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>resolve-parent-version</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M4</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/IT*.java</exclude>
+                        <exclude>**/Stress*.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.0.0-M1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+        	<plugins>
+        		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        		<plugin>
+        			<groupId>org.eclipse.m2e</groupId>
+        			<artifactId>lifecycle-mapping</artifactId>
+        			<version>1.0.0</version>
+        			<configuration>
+        				<lifecycleMappingMetadata>
+        					<pluginExecutions>
+        						<pluginExecution>
+        							<pluginExecutionFilter>
+        								<groupId>
+        									com.hbakkum.maven.plugins
+        								</groupId>
+        								<artifactId>
+        									resolve-parent-version-maven-plugin
+        								</artifactId>
+        								<versionRange>
+        									[0.7,)
+        								</versionRange>
+        								<goals>
+        									<goal>
+        										resolve-parent-version
+        									</goal>
+        								</goals>
+        							</pluginExecutionFilter>
+        							<action>
+        								<ignore></ignore>
+        							</action>
+        						</pluginExecution>
+        					</pluginExecutions>
+        				</lifecycleMappingMetadata>
+        			</configuration>
+        		</plugin>
+        	</plugins>
+        </pluginManagement>
+    </build>
+    <organization>
+    	<name>Web of Things Research Group @ ARCES</name>
+    	<url>https://http://wot.arces.unibo.it/</url>
+    </organization>
 </project>
