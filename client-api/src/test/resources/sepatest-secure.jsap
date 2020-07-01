@@ -29,7 +29,7 @@
 				"path": "/subscribe"
 			},
 			"wss": {
-				"port": 9090,
+				"port": 9443,
 				"path": "/secure/subscribe"
 			}
 		}
