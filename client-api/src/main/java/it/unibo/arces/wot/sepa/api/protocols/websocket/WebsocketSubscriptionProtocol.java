@@ -73,41 +73,6 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 		client = new WebsocketClientEndpoint(sm, this);
 	}
-	
-//	public WebsocketSubscriptionProtocol(String host, int port, String path, 
-//			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
-//		this(host, port, path, null, sm);
-//	}
-//	
-//	public WebsocketSubscriptionProtocol(String host, String path, 
-//			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
-//		this(host, -1, path, null, sm);
-//	}
-//	
-//	public WebsocketSubscriptionProtocol(String host, String path) throws SEPASecurityException, SEPAProtocolException {
-//		this(host, -1, path, null, null);
-//	}
-//
-//
-//	public WebsocketSubscriptionProtocol(String host, String path, ISubscriptionHandler handler,
-//			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
-//		this(host, -1, path, handler, sm);
-//	}
-//
-//	public WebsocketSubscriptionProtocol(String host, String path, ISubscriptionHandler handler)
-//			throws SEPASecurityException, SEPAProtocolException {
-//		this(host, -1, path, handler, null);
-//	}
-//
-//	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler)
-//			throws SEPASecurityException, SEPAProtocolException {
-//		this(host, port, path, handler, null);
-//	}
-//	
-//	public WebsocketSubscriptionProtocol(String host, int port, String path)
-//			throws SEPASecurityException, SEPAProtocolException {
-//		this(host, port, path, null, null);
-//	}
 
 	@Override
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
@@ -184,17 +149,17 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			
 			if (client.isConnected())
 				try {
-					if (lastRequest.isSubscribeRequest()) {
-						SubscribeRequest subReq= (SubscribeRequest) lastRequest;
-						lastRequest = new SubscribeRequest(subReq.getSPARQL(),subReq.getAlias(), subReq.getDefaultGraphUri(),subReq.getNamedGraphUri(),
-								sm.getAuthorizationHeader(),subReq.getTimeout());
-					}
-					else {
-						UnsubscribeRequest unsubReq= (UnsubscribeRequest) lastRequest;
-						lastRequest = new UnsubscribeRequest(unsubReq.getSubscribeUUID(),sm.getAuthorizationHeader(),unsubReq.getTimeout());
-					}
+//					if (lastRequest.isSubscribeRequest()) {
+//						SubscribeRequest subReq= (SubscribeRequest) lastRequest;
+//						lastRequest = new SubscribeRequest(subReq.getSPARQL(),subReq.getAlias(), subReq.getDefaultGraphUri(),subReq.getNamedGraphUri(),
+//								sm.getAuthorizationHeader(),subReq.getTimeout(),subReq.getNRetry());
+//					}
+//					else {
+//						UnsubscribeRequest unsubReq= (UnsubscribeRequest) lastRequest;
+//						lastRequest = new UnsubscribeRequest(unsubReq.getSubscribeUUID(),sm.getAuthorizationHeader(),unsubReq.getTimeout());
+//					}
 					client.send(lastRequest.toString());
-				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
+				} catch (SEPAProtocolException  e) {
 					logger.error(e.getMessage());
 					if (logger.isTraceEnabled())
 						e.printStackTrace();

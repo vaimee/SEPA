@@ -195,7 +195,7 @@ public class Processor implements ProcessorMBean {
 		return scheduler.waitUnsubscribeRequest();
 	}
 
-	public Response processQuery(InternalQueryRequest query, int timeoutNRetry) throws SEPASecurityException {
-		return queryProcessor.process(query, timeoutNRetry);
+	public Response processQuery(InternalQueryRequest query) throws SEPASecurityException {
+		return queryProcessor.process(query);
 	}
 }

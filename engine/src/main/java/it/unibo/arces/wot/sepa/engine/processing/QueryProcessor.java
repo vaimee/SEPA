@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,9 +27,11 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
@@ -45,38 +48,39 @@ public class QueryProcessor implements QueryProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public Response process(InternalQueryRequest req,int nRetry) throws SEPASecurityException {
-		long start = Timings.getTime();
-
-		// TODO: to implement other authentication mechanisms (Digest, Bearer, ...)
-		String authorizationHeader = req.getBasicAuthorizationHeader();
-
+	public Response process(InternalQueryRequest req) throws SEPASecurityException {
 		// Build the request
-		Response ret;
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getQueryPath(),
 				req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
-				authorizationHeader,QueryProcessorBeans.getTimeout(),req.getInternetMediaType());
+				req.getBasicAuthorizationHeader(),req.getInternetMediaType(),QueryProcessorBeans.getTimeout(),0);
 
-		ret = endpoint.query(request);
-
-		long stop = Timings.getTime();
+		Response ret;
+		int n = 0;
+		do {
+			long start = Timings.getTime();
+			ret = endpoint.query(request);
+			long stop = Timings.getTime();
+			
+			UpdateProcessorBeans.timings(start, stop);
+			logger.trace("Response: " + ret.toString());
+			Timings.log("QUERY_PROCESSING_TIME", start, stop);
+			
+			n++;
+			
+			if (ret.isTimeoutError()) {
+				QueryProcessorBeans.timedOutRequest();
+				logger.error(req);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					return new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "InterruptedException", e.getMessage());
+				}
+			}
+		} while(ret.isTimeoutError() && n < QueryProcessorBeans.getTimeoutNRetry());
 		
-		logger.trace("Response: " + ret.toString());
-		Timings.log("QUERY_PROCESSING_TIME", start, stop);
-		QueryProcessorBeans.timings(start, stop);
-
-//		if (ret.isError()) {
-//			ErrorResponse err = (ErrorResponse) ret;
-//			if (err.getStatusCode() == 401) return new ErrorResponse(401,"unauthorized_client",err.getErrorDescription());
-//			
-//			// *** Timeout retry ***
-//			if (err.getStatusCode() == 500 && err.getError().equals("IOException") && err.getErrorDescription().equals("Read timed out") && nRetry > 0) {
-//				logger.warn("READ TIMED OUT. RETRY "+nRetry);
-//				return process(req,nRetry-1);
-//			}
-//		}
+		if (ret.isTimeoutError()) QueryProcessorBeans.abortedRequest();
 		
 		return ret;
 	}
@@ -150,5 +154,15 @@ public class QueryProcessor implements QueryProcessorMBean {
 	@Override
 	public void setTimeoutNRetry(int n) {
 		QueryProcessorBeans.setTimeoutNRetry(n);
+	}
+
+	@Override
+	public long getTimedOutRequests() {
+		return QueryProcessorBeans.getTimedOutRequests();
+	}
+
+	@Override
+	public long getAbortedRequests() {
+		return QueryProcessorBeans.getAbortedRequests();
 	}
 }

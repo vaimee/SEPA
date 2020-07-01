@@ -58,7 +58,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
-		SchedulerBeans.setTimeout(properties.getSchedulerTimeout());
+//		SchedulerBeans.setTimeout(properties.getSchedulerTimeout());
 
 		setName("SEPA-Scheduler");
 	}
@@ -141,9 +141,9 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		return SchedulerBeans.getStatistics();
 	}
 
-	public long getErrors() {
-		return SchedulerBeans.getErrors();
-	}
+//	public long getErrors() {
+//		return SchedulerBeans.getErrors();
+//	}
 
 	public long getRequests_pending() {
 		return SchedulerBeans.getQueue_Pending();
@@ -172,15 +172,15 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		return SchedulerBeans.getQueueSize();
 	}
 
-	@Override
-	public int getTimeout() {
-		return SchedulerBeans.getTimeout();
-	}
-
-	@Override
-	public void setTimeout(int timeout) {
-		SchedulerBeans.setTimeout(timeout);
-	}
+//	@Override
+//	public int getTimeout() {
+//		return SchedulerBeans.getTimeout();
+//	}
+//
+//	@Override
+//	public void setTimeout(int timeout) {
+//		SchedulerBeans.setTimeout(timeout);
+//	}
 
 	public ScheduledRequest waitQueryRequest() throws InterruptedException {
 		return queue.waitQueryRequest();
@@ -221,24 +221,24 @@ public class Scheduler extends Thread implements SchedulerMBean {
 	public long getPendingUnsubscribes() {
 		return queue.getPendingUnsubscribes();
 	}
-	
-	@Override
-	public long getTimedoutUpdates() {
-		return SchedulerBeans.getTimedoutUpdates();
-	}
-
-	@Override
-	public long getTimedoutQueries() {
-		return SchedulerBeans.getTimedoutQueries();
-	}
-
-	@Override
-	public long getTimedoutSubscribes() {
-		return SchedulerBeans.getTimedoutSubscribes();
-	}
-
-	@Override
-	public long getTimedoutUnsubscribes() {
-		return SchedulerBeans.getTimedoutUnsubscribes();
-	}	
+//	
+//	@Override
+//	public long getTimedoutUpdates() {
+//		return SchedulerBeans.getTimedoutUpdates();
+//	}
+//
+//	@Override
+//	public long getTimedoutQueries() {
+//		return SchedulerBeans.getTimedoutQueries();
+//	}
+//
+//	@Override
+//	public long getTimedoutSubscribes() {
+//		return SchedulerBeans.getTimedoutSubscribes();
+//	}
+//
+//	@Override
+//	public long getTimedoutUnsubscribes() {
+//		return SchedulerBeans.getTimedoutUnsubscribes();
+//	}	
 }

@@ -72,11 +72,11 @@ public class Subscriber extends Thread implements ISubscriptionHandler, Closeabl
 	}
 
 	private void subscribe() throws SEPAProtocolException, InterruptedException {
-		client.subscribe(provider.buildSubscribeRequest(id, 5000, sm));
+		client.subscribe(provider.buildSubscribeRequest(id, sm, 5000, 0));
 	}
 
 	public void unsubscribe(String spuid) throws SEPAProtocolException, InterruptedException {
-		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 5000, sm));
+		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, sm, 5000, 0));
 	}
 
 	@Override

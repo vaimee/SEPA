@@ -37,6 +37,9 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 public class Producer extends Client implements IProducer {
 	protected static final Logger logger = LogManager.getLogger();
 
+	private final long TIMEOUT = 60000;
+	private final long NRETRY = 0;
+	
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
 	private ForcedBindings forcedBindings;
@@ -63,10 +66,10 @@ public class Producer extends Client implements IProducer {
 
 	public final Response update()
 			throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
-		return update(5000);
+		return update(TIMEOUT,NRETRY);
 	}
 
-	public final Response update(int timeout)
+	public final Response update(long timeout,long nRetry)
 			throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
 		String authorizationHeader = null;
 
@@ -81,7 +84,7 @@ public class Producer extends Client implements IProducer {
 				appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
 						addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
 				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
-				authorizationHeader, timeout);
+				authorizationHeader, timeout,nRetry);
 
 		logger.debug(req);
 		
@@ -114,7 +117,7 @@ public class Producer extends Client implements IProducer {
 					appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
 							addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
 					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
-					authorizationHeader, timeout);
+					authorizationHeader, timeout,nRetry);
 
 			retResponse = client.update(req);
 		}

@@ -20,10 +20,10 @@ public class ConsumerTestUnit extends Consumer {
 		super(appProfile, subscribeID, sm);
 	}
 
-	public void subscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+	public void syncSubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("subscribe");
 		
-		super.subscribe(5000);
+		super.subscribe(5000,0);
 		
 		synchronized(this) {
 			while (!isSubscribed()) wait();

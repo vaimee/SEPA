@@ -33,8 +33,8 @@ public abstract class SPARQL11Request extends Request {
 	protected Set<String> default_graph_uri = new HashSet<>();
 	protected Set<String> named_graph_uri = new HashSet<>();
 	
-	public SPARQL11Request(String sparql, String auth,Set<String> defaultGraphUri,Set<String> namedGraphUri,long timeout) {
-		super(sparql, auth,timeout);
+	public SPARQL11Request(String sparql, String auth,Set<String> defaultGraphUri,Set<String> namedGraphUri,long timeout,long nRetry) {
+		super(sparql, auth,timeout,nRetry);
 		
 		if (defaultGraphUri != null) this.default_graph_uri = defaultGraphUri;
 		if (namedGraphUri != null) this.named_graph_uri = namedGraphUri;

@@ -35,9 +35,9 @@ public class AggregatorTestUnit extends Aggregator {
 		
 	}
 	
-	public void subscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+	public void syncCubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("subscribe");
-		super.subscribe(5000);
+		super.subscribe();
 		synchronized(this) {
 			while (!isSubscribed()) wait();
 			logger.debug("subscribed");

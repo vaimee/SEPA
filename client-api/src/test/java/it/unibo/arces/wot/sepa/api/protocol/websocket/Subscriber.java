@@ -22,7 +22,7 @@ class Subscriber extends Thread implements Closeable {
 
 	protected final Logger logger = LogManager.getLogger();
 	protected ClientSecurityManager sm = null;
-
+	
 	public Subscriber(int n, ISubscriptionHandler handler) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		provider = new ConfigurationProvider();
 
@@ -47,7 +47,7 @@ class Subscriber extends Thread implements Closeable {
 		}
 		for (int j = 0; j < n; j++) {
 			try {
-				client.subscribe(provider.buildSubscribeRequest("RANDOM", 500, sm));
+				client.subscribe(provider.buildSubscribeRequest("RANDOM", sm, provider.getTimeout(), provider.getNRetry()));
 			} catch (SEPAProtocolException e) {
 				logger.error(e.getMessage());
 			}
@@ -68,7 +68,7 @@ class Subscriber extends Thread implements Closeable {
 	}
 
 	public void unsubscribe(String spuid) throws SEPAProtocolException {
-		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, 500, sm));
+		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, sm, provider.getTimeout(), provider.getNRetry()));
 	}
 
 	@Override

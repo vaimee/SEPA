@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.commons.protocol;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -42,6 +43,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.execchain.RequestAbortedException;
 import org.apache.http.util.EntityUtils;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -85,6 +87,8 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		this.sm = sm;
 		if (sm == null)
 			httpClient = HttpClients.createDefault();
+		// httpClient = HttpClients.custom().setRetryHandler(new
+		// SPARQL11RetryHandler()).build();
 		else
 			httpClient = sm.getSSLHttpClient();
 	}
@@ -99,6 +103,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		HttpEntity responseEntity = null;
 		int responseCode = 0;
 		String responseBody = null;
+		ErrorResponse errorResponse = null;
 
 		// Add "Authorization" header if required
 		String authorizationHeader = request.getAuthorizationHeader();
@@ -113,16 +118,6 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			long start = Timings.getTime();
 
 			httpResponse = httpClient.execute(req);
-			
-//			try {
-//				
-//			} catch (ClientProtocolException e) {
-//				logger.warn("ClientProtocolException: " + e.getMessage());
-//				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ClientProtocolException", e.getMessage());
-//			} catch (IOException e) {
-//				logger.warn("IOException: " + e.getMessage());
-//				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
-//			} 
 
 			long stop = Timings.getTime();
 
@@ -140,25 +135,51 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			logger.trace(String.format("Response code: %d", responseCode));
 			EntityUtils.consume(responseEntity);
 
-			// http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.html#d5e279
+			/*
+			 * http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.
+			 * html#d5e279
+			 * 
+			 * 1.5. Exception handling
+			 * 
+			 * HTTP protocol processors can throw two types of exceptions:
+			 * 
+			 * 1) java.io.IOException in case of an I/O failure such as socket timeout or an
+			 * socket reset 2) HttpException that signals an HTTP failure such as a
+			 * violation of the HTTP protocol.
+			 * 
+			 * Usually I/O errors are considered non-fatal and recoverable, whereas HTTP
+			 * protocol errors are considered fatal and cannot be automatically recovered
+			 * from. Please note that HttpClient implementations re-throw HttpExceptions as
+			 * ClientProtocolException, which is a subclass of java.io.IOException. This
+			 * enables the users of HttpClient to handle both I/O errors and protocol
+			 * violations from a single catch clause.
+			 */
+			
 		} catch (IOException e) {
-			logger.error(e.getMessage());
 			if (e instanceof InterruptedIOException) {
-				return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "InterruptedIOException", e.getMessage());
-			}
-			if (e instanceof UnknownHostException) {
-				return new ErrorResponse(HttpStatus.SC_NOT_FOUND, "UnknownHostException", e.getMessage());
-			}
-			if (e instanceof ConnectTimeoutException) {
-				return new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "ConnectTimeoutException", e.getMessage());
-			}
-			if (e instanceof SSLException) {
-				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "SSLException", e.getMessage());
-			}
-			if (e instanceof ClientProtocolException) {
-				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "ClientProtocolException", e.getMessage());
-			}
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
+				if (e instanceof SocketTimeoutException)
+					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "SocketTimeoutException",
+							e.getMessage() + " timeout: " + request.getTimeout());
+				else if (e instanceof RequestAbortedException)
+					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "RequestAbortedException",
+							e.getMessage() + " timeout: " + request.getTimeout());
+				else {
+					e.printStackTrace();
+					errorResponse = new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "InterruptedIOException",
+							e.getMessage());
+				}
+			} else if (e instanceof UnknownHostException) {
+				errorResponse = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "UnknownHostException", e.getMessage());
+			} else if (e instanceof ConnectTimeoutException) {
+				errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "ConnectTimeoutException",
+						e.getMessage());
+			} else if (e instanceof SSLException) {
+				errorResponse = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "SSLException", e.getMessage());
+			} else if (e instanceof ClientProtocolException) {
+				errorResponse = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "ClientProtocolException",
+						e.getMessage());
+			} else
+				errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 		} finally {
 			try {
 				if (httpResponse != null)
@@ -172,24 +193,35 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		}
 
 		if (responseCode >= 400) {
-			// SPARQL 1.1 protocol does not recommend any format, while SPARQL 1.1 SE suggests to use a JSON format
+			// SPARQL 1.1 protocol does not recommend any format, while SPARQL 1.1 SE
+			// suggests to use a JSON format
 			// http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
 			try {
 				JsonObject ret = new JsonParser().parse(responseBody).getAsJsonObject();
-				logger.error(ret);
-				return new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),
+				errorResponse = new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),
 						ret.get("error_description").getAsString());
 			} catch (Exception e) {
-				logger.error(e.getMessage());
-				if (responseBody.equals("")) responseBody = httpResponse.toString();
-				return new ErrorResponse(responseCode, "sparql11_endpoint",responseBody);
-			}			
+				logger.error(e.getMessage() + " response code:" + responseCode + " response body: " + responseBody);
+				if (responseBody.equals(""))
+					responseBody = httpResponse.toString();
+				errorResponse = new ErrorResponse(responseCode, "sparql11_endpoint", responseBody);
+			}
 		}
 
-		if (request.getClass().equals(UpdateRequest.class))
-			return new UpdateResponse(responseBody);
-		
-		return new QueryResponse(responseBody);
+		// ERRORS: if timeout retry...
+		if (errorResponse != null) {
+			logger.error(errorResponse);
+			
+			if (errorResponse.getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT && request.getNRetry() > 0) {
+				request.retry();
+				return executeRequest(req, request);		
+			}
+			
+			return errorResponse;
+		}
+
+		return (request.getClass().equals(UpdateRequest.class) ? new UpdateResponse(responseBody)
+				: new QueryResponse(responseBody));
 	}
 
 	/**
@@ -377,14 +409,18 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		// Create POST request
 		try {
 			for (String g : req.getDefaultGraphUri()) {
-				if (graphs == null) graphs = "using-graph-uri=" + URLEncoder.encode(g,"UTF-8");
-				else graphs += "&using-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+				if (graphs == null)
+					graphs = "using-graph-uri=" + URLEncoder.encode(g, "UTF-8");
+				else
+					graphs += "&using-graph-uri=" + URLEncoder.encode(g, "UTF-8");
 			}
-			for (String g: req.getNamedGraphUri()) {
-				if (graphs == null) graphs = "using-named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
-				else graphs += "&using-named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+			for (String g : req.getNamedGraphUri()) {
+				if (graphs == null)
+					graphs = "using-named-graph-uri=" + URLEncoder.encode(g, "UTF-8");
+				else
+					graphs += "&using-named-graph-uri=" + URLEncoder.encode(g, "UTF-8");
 			}
-			
+
 			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
 				post = new HttpPost(new URI(scheme, null, host, port, updatePath, graphs, null));
 				post.setHeader("Content-Type", "application/sparql-update");
@@ -392,7 +428,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				// Body
 				requestEntity = new StringEntity(req.getSPARQL(), Consts.UTF_8);
 			} else {
-				post = new HttpPost(new URI(scheme, null, host, port, updatePath, null, null));				
+				post = new HttpPost(new URI(scheme, null, host, port, updatePath, null, null));
 				post.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
 				// Body
@@ -455,14 +491,18 @@ public class SPARQL11Protocol implements java.io.Closeable {
 
 		try {
 			for (String g : req.getDefaultGraphUri()) {
-				if (graphs == null) graphs = "default-graph-uri=" + URLEncoder.encode(g,"UTF-8");
-				else graphs += "&default-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+				if (graphs == null)
+					graphs = "default-graph-uri=" + URLEncoder.encode(g, "UTF-8");
+				else
+					graphs += "&default-graph-uri=" + URLEncoder.encode(g, "UTF-8");
 			}
-			for (String g: req.getNamedGraphUri()) {
-				if (graphs == null) graphs = "named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
-				else graphs += "&named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+			for (String g : req.getNamedGraphUri()) {
+				if (graphs == null)
+					graphs = "named-graph-uri=" + URLEncoder.encode(g, "UTF-8");
+				else
+					graphs += "&named-graph-uri=" + URLEncoder.encode(g, "UTF-8");
 			}
-			
+
 			if (req.getHttpMethod().equals(HTTPMethod.POST)) {
 				post = new HttpPost(new URI(scheme, null, host, port, queryPath, graphs, null));
 				post.setHeader("Content-Type", "application/sparql-query");
@@ -524,12 +564,16 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		String graphs = null;
 		try {
 			for (String g : req.getDefaultGraphUri()) {
-				if (graphs == null) graphs = "default-graph-uri=" + URLEncoder.encode(g,"UTF-8");
-				else graphs += "&default-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+				if (graphs == null)
+					graphs = "default-graph-uri=" + URLEncoder.encode(g, "UTF-8");
+				else
+					graphs += "&default-graph-uri=" + URLEncoder.encode(g, "UTF-8");
 			}
-			for (String g: req.getNamedGraphUri()) {
-				if (graphs == null) graphs = "named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
-				else graphs += "&named-graph-uri=" + URLEncoder.encode(g,"UTF-8");
+			for (String g : req.getNamedGraphUri()) {
+				if (graphs == null)
+					graphs = "named-graph-uri=" + URLEncoder.encode(g, "UTF-8");
+				else
+					graphs += "&named-graph-uri=" + URLEncoder.encode(g, "UTF-8");
 			}
 		} catch (UnsupportedEncodingException e) {
 			logger.error(e.getMessage());

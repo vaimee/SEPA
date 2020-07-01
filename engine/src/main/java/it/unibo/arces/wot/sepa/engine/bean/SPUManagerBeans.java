@@ -175,6 +175,9 @@ public class SPUManagerBeans {
 		
 		maxActiveSPUs = 0;
 		
+		preProcessingExceptions = 0;
+		postProcessingExceptions = 0;
+		notifyExceptions = 0;
 	}
 
 	public static float getPreProcessing_SPUs_time() {

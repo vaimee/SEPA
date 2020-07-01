@@ -31,7 +31,6 @@ import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
@@ -56,7 +55,7 @@ class SPUNaive extends SPU {
 		logger.debug("PROCESS " + subscribe);
 
 		// Process the SPARQL query
-		Response ret = manager.processQuery(subscribe,QueryProcessorBeans.getTimeoutNRetry());
+		Response ret = manager.processQuery(subscribe);
 
 		if (ret.isError()) {
 			logger.error("Not initialized");
@@ -82,7 +81,7 @@ class SPUNaive extends SPU {
 
 		// Query the SPARQL processing service
 		try {
-			ret = manager.processQuery(subscribe,QueryProcessorBeans.getTimeoutNRetry());
+			ret = manager.processQuery(subscribe);
 		} catch (SEPASecurityException e) {
 			if (logger.isTraceEnabled()) e.printStackTrace();
 			throw new SEPAProcessingException(e.getMessage());

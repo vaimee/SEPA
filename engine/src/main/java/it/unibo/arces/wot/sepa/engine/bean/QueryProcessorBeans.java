@@ -29,6 +29,9 @@ public class QueryProcessorBeans {
 	private static int timeout = 5000;
 	private static int nRetry = 3;
 	
+	private static int timedOutRequests = 0;
+	private static int abortedRequests = 0;
+	
 	private static long unitScale = 1000000;
 	
 	public static void scale_ms() {
@@ -77,6 +80,9 @@ public class QueryProcessorBeans {
 		 average = -1;
 		 max = -1;
 		 current = -1;
+		 
+		timedOutRequests = 0;
+		abortedRequests = 0;
 	}
 	
 	public static float getCurrent() {
@@ -113,5 +119,21 @@ public class QueryProcessorBeans {
 
 	public static int getTimeoutNRetry() {
 		return nRetry;
+	}
+	
+	public static int getTimedOutRequests() {
+		return timedOutRequests;
+	}
+	
+	public static int getAbortedRequests() {
+		return abortedRequests;
+	}
+	
+	public static void timedOutRequest() {
+		timedOutRequests++;
+	}
+	
+	public static void abortedRequest() {
+		abortedRequests++;
 	}
 }
