@@ -35,6 +35,9 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 public abstract class Aggregator extends Consumer implements IConsumer, IProducer {
 	protected static final Logger logger = LogManager.getLogger();
 	
+	private long TIMEOUT = 60000;
+	private long NRETRY = 0;
+	
 	private final String sparqlUpdate;
 	private final String SPARQL_ID;
 	private final ForcedBindings updateForcedBindings;
@@ -62,19 +65,19 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		
 		sparql11 = new SPARQL11Protocol(sm);
 	}
-
+	
 	public final Response update() throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
-		return update(0);
+		return update(TIMEOUT,NRETRY);
 	}
 
-	public final Response update(int timeout) throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
+	public final Response update(long timeout,long nRetry) throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
 		String authorizationHeader = null;
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
 					appProfile.getUpdatePath(SPARQL_ID), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,SPARQL_ID,false)),
-					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout);
+					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout,nRetry);
 		
 		logger.debug("UPDATE "+req);
 		
@@ -98,7 +101,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 
 				req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
 						appProfile.getUpdatePath(SPARQL_ID), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,SPARQL_ID,false)),
-						appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout);
+						appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout,nRetry);
 
 				retResponse = sparql11.update(req);
 			}

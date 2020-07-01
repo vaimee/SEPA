@@ -382,8 +382,8 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		return SPUManagerBeans.getFiltering_time_average();
 	}
 
-	public Response processQuery(InternalSubscribeRequest subscribe, int timeoutNRetry) throws SEPASecurityException {
-		return processor.processQuery(subscribe, timeoutNRetry);
+	public Response processQuery(InternalSubscribeRequest subscribe) throws SEPASecurityException {
+		return processor.processQuery(subscribe);
 	}
 
 	@Override

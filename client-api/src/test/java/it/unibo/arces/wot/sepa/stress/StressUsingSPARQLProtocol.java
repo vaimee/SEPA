@@ -68,12 +68,12 @@ public class StressUsingSPARQLProtocol {
         subscribers.clear();
         publishers.clear();
 
-        Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 20000, sm));
+        Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", sm,provider.getTimeout(),provider.getNRetry()));
 
         if (ret.isError()) {
             ErrorResponse error = (ErrorResponse) ret;
             if (error.isTokenExpiredError() && properties.isSecure()) sm.refreshToken();
-            ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 20000, sm));
+            ret = client.update(provider.buildUpdateRequest("DELETE_ALL", sm,provider.getTimeout(),provider.getNRetry()));
         }
 
         logger.debug(ret);

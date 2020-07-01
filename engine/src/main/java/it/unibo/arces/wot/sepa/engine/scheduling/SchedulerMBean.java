@@ -23,7 +23,7 @@ public interface SchedulerMBean {
 
 	public long getRequests_scheduled();
 	
-	public long getErrors();
+//	public long getErrors();
 
 	public long getRequests_pending();
 	
@@ -40,12 +40,12 @@ public interface SchedulerMBean {
 	
 	public int getQueueSize();
 	
-	public int getTimeout();
+//	public int getTimeout();
+//	
+//	public void setTimeout(int timeout);
 	
-	public void setTimeout(int timeout);
-	
-	public long getTimedoutUpdates();
-	public long getTimedoutQueries();
-	public long getTimedoutSubscribes();
-	public long getTimedoutUnsubscribes();
+//	public long getTimedoutUpdates();
+//	public long getTimedoutQueries();
+//	public long getTimedoutSubscribes();
+//	public long getTimedoutUnsubscribes();
 }

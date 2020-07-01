@@ -18,7 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
-import java.util.Date;
+//import java.util.Date;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -47,53 +47,7 @@ class SchedulerQueue {
 	public SchedulerQueue(long size) {
 		// Initialize token jar
 		for (int i = 0; i < size; i++)
-			tokens.addElement(i);
-		
-		// TIMEOUT
-		new Thread("SEPA-Scheduler-Timeout") {
-			public void run() {
-				while(true) {
-					try {
-						Thread.sleep(SchedulerBeans.getTimeout());
-					} catch (InterruptedException e) {
-						return;
-					}
-					
-					long now = new Date().getTime();
-					
-//					HashSet<ScheduledRequest> pool = new HashSet<ScheduledRequest>();
-					for (ScheduledRequest req : updates) if (now - req.getTimestamp() >= SchedulerBeans.getTimeout()) {
-						SchedulerBeans.updateTimeout();
-						logger.error(req);
-					}
-					for (ScheduledRequest req : queries) if (now - req.getTimestamp() >= SchedulerBeans.getTimeout()) {
-						SchedulerBeans.queryTimeout();
-						logger.error(req);
-					}
-					for (ScheduledRequest req : unsubscribes) if (now - req.getTimestamp() >= SchedulerBeans.getTimeout()) {
-						SchedulerBeans.unsubscribeTimeout();
-						logger.error(req);
-					}
-					for (ScheduledRequest req : subscribes) if (now - req.getTimestamp() >= SchedulerBeans.getTimeout()) {
-						SchedulerBeans.subscribeTimeout();
-						logger.error(req);
-					}
-					
-//					for (ScheduledRequest request : pool) {
-//						ErrorResponse ret = new ErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "timeout", request.toString());
-//						
-//						if (addResponse(request.getToken(), ret)) {
-//							if (request.isUpdateRequest()) SchedulerBeans.updateTimeout();
-//							else if (request.isQueryRequest()) SchedulerBeans.queryTimeout();
-//							else if (request.isSubscribeRequest()) SchedulerBeans.subscribeTimeout();
-//							else SchedulerBeans.unsubscribeTimeout();
-//							
-//							logger.error(ret);
-//						}	
-//					}					
-				}
-			}
-		}.start();		
+			tokens.addElement(i);	
 	}
 
 	/**

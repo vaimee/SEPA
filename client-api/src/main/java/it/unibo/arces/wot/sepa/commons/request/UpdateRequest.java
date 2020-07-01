@@ -32,8 +32,8 @@ public class UpdateRequest extends SPARQL11Request {
 	 * that contains an operation that uses the USING, USING NAMED, or WITH clause.
 	 */
 	
-	public UpdateRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization,long timeout) {
-		super(sparql,authorization,default_graph_uri,named_graph_uri,timeout);
+	public UpdateRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization,long timeout,long nRetry) {
+		super(sparql,authorization,default_graph_uri,named_graph_uri,timeout,nRetry);
 		
 		this.method = method;
 		this.host = host;

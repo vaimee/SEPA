@@ -73,12 +73,12 @@ public class ITSPARQL11SEProtocol {
 		subscribers.clear();
 		publishers.clear();
 
-		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 20000, sm));
+		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", sm, provider.getTimeout(), provider.getNRetry()));
 		
 		if (ret.isError()) {
 			ErrorResponse error = (ErrorResponse) ret;
 			if (error.isTokenExpiredError() && properties.isSecure()) sm.refreshToken();
-			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 20000, sm));
+			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", sm,  provider.getTimeout(), provider.getNRetry()));
 		}
 		
 		logger.debug(ret);
@@ -118,18 +118,18 @@ public class ITSPARQL11SEProtocol {
 	@Test(timeout = 5000)
 	public void DeleteAllWithCheck() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		// Delete all triples
-		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
+		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", sm, provider.getTimeout(), provider.getNRetry()));
 		logger.debug(ret);
 		if (ret.isError()) {
 			ErrorResponse err = (ErrorResponse) ret;
 			if (err.isTokenExpiredError()) sm.refreshToken();
 			else assertFalse(String.valueOf(ret), ret.isError());
-			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", 5000, sm));
+			ret = client.update(provider.buildUpdateRequest("DELETE_ALL", sm,  provider.getTimeout(), provider.getNRetry()));
 		}
 		assertFalse(String.valueOf(ret), ret.isError());
 
 		// Evaluate if the store is empty
-		ret = client.query(provider.buildQueryRequest("COUNT", 5000, sm));
+		ret = client.query(provider.buildQueryRequest("COUNT", sm,  provider.getTimeout(), provider.getNRetry()));
 		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 
@@ -152,7 +152,7 @@ public class ITSPARQL11SEProtocol {
 
 			final long expiringTime = 5000;
 			Thread.sleep(expiringTime + 1000);
-			final Response tokenTest = client.query(provider.buildQueryRequest("ALL", 5000, authorization));
+			final Response tokenTest = client.query(provider.buildQueryRequest("ALL",authorization, provider.getTimeout(), provider.getNRetry()));
 			logger.debug(tokenTest);
 			assertTrue(tokenTest.toString(), tokenTest.isError());
 		}
@@ -160,7 +160,7 @@ public class ITSPARQL11SEProtocol {
 
 	@Test(timeout = 1000)
 	public void Update() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
-		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", 5000, sm));
+		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", sm ,  provider.getTimeout(), provider.getNRetry()));
 		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
@@ -168,14 +168,14 @@ public class ITSPARQL11SEProtocol {
 	@Test(timeout = 1000)
 	public void MalformedUpdate()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
-		Response ret = client.update(provider.buildUpdateRequest("WRONG", 5000, sm));
+		Response ret = client.update(provider.buildUpdateRequest("WRONG", sm,  provider.getTimeout(), provider.getNRetry()));
 		logger.debug(ret);
 		assertTrue(String.valueOf(ret), ret.isError());
 	}
 
 	@Test(timeout = 5000)
 	public void Query() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
-		Response ret = client.query(provider.buildQueryRequest("ALL", 5000, sm));
+		Response ret = client.query(provider.buildQueryRequest("ALL", sm,  provider.getTimeout(), provider.getNRetry()));
 		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 	}
@@ -183,7 +183,7 @@ public class ITSPARQL11SEProtocol {
 	@Test(timeout = 5000)
 	public void MalformedQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
-		Response ret = client.query(provider.buildQueryRequest("WRONG", 5000, sm));
+		Response ret = client.query(provider.buildQueryRequest("WRONG", sm,  provider.getTimeout(), provider.getNRetry()));
 		logger.debug(ret);
 		assertTrue(String.valueOf(ret), ret.isError());
 	}
@@ -191,11 +191,11 @@ public class ITSPARQL11SEProtocol {
 	@Test(timeout = 5000)
 	public void UpdateAndQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
-		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", 5000, sm));
+		Response ret = client.update(provider.buildUpdateRequest("VAIMEE", sm,  provider.getTimeout(), provider.getNRetry()));
 		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 
-		ret = client.query(provider.buildQueryRequest("VAIMEE", 5000, sm));
+		ret = client.query(provider.buildQueryRequest("VAIMEE",sm, provider.getTimeout(), provider.getNRetry()));
 		logger.debug(ret);
 		assertFalse(String.valueOf(ret), ret.isError());
 

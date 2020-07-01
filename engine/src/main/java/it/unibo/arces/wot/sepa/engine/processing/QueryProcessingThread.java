@@ -24,7 +24,6 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
@@ -51,7 +50,7 @@ class QueryProcessingThread extends Thread{
 			
 			Response ret;
 			try {
-				ret = processor.processQuery(query,QueryProcessorBeans.getTimeoutNRetry());
+				ret = processor.processQuery(query);
 			} catch (SEPASecurityException e) {
 				logger.error(e.getMessage());
 				if (logger.isTraceEnabled()) e.printStackTrace();

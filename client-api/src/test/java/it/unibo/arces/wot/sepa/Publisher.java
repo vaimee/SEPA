@@ -52,7 +52,7 @@ public class Publisher extends Thread implements Closeable {
 		}
 
 		while (running.get() > 0) {
-			Response ret = client.update(provider.buildUpdateRequest(id, 5000, sm));
+			Response ret = client.update(provider.buildUpdateRequest(id, sm, 5000, 0));
 
 			while (ret.isError()) {
 				ErrorResponse errorResponse = (ErrorResponse) ret;
@@ -69,7 +69,7 @@ public class Publisher extends Thread implements Closeable {
 					break;
 				}
 				
-				ret = client.update(provider.buildUpdateRequest(id, 5000, sm));
+				ret = client.update(provider.buildUpdateRequest(id, sm, 5000, 0));
 			}
 
 			running.set(running.get() - 1);

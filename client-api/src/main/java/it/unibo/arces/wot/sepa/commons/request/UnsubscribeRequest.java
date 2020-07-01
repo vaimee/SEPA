@@ -35,8 +35,8 @@ public class UnsubscribeRequest extends Request {
 	 * @param subId
 	 *            the sub id
 	 */
-	public UnsubscribeRequest(String subId,String authorization,long timeout) {
-		super(subId, authorization,timeout);
+	public UnsubscribeRequest(String subId,String authorization,long timeout,long nRetry) {
+		super(subId, authorization,timeout,nRetry);
 	}
 	
 	/**

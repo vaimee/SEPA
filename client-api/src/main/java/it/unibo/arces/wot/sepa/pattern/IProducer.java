@@ -25,5 +25,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public interface IProducer {
-	 public Response update(int timeout) throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException;
+	 public Response update(long timeout,long nRetry) throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException;
+	 public Response update() throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException;
 }

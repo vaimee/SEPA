@@ -22,6 +22,7 @@ import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 
 public abstract class InternalRequest {
 	private ClientAuthorization auth;
+
 	
 	public InternalRequest(ClientAuthorization auth) {
 		this.auth = auth;

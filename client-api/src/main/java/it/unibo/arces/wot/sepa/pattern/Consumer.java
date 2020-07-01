@@ -42,8 +42,10 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 public abstract class Consumer extends Client implements IConsumer {
 	protected static final Logger logger = LogManager.getLogger();
 
-	private final String sparqlSubscribe;
-	private long timeout = 5000;
+	private long TIMEOUT = 60000;
+	private long NRETRY = 0;
+	
+	private final String sparqlSubscribe;	
 	private final String subID;
 	private final ForcedBindings forcedBindings;
 	private boolean subscribed = false;
@@ -89,19 +91,28 @@ public abstract class Consumer extends Client implements IConsumer {
 		forcedBindings.setBindingValue(variable, value);
 	}
 
-	public final void subscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+	public final void subscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+		subscribe(TIMEOUT, NRETRY);
+	}
+	
+	public final void subscribe(long timeout,long nRetry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		String authorizationHeader = null;
 		
-		this.timeout = timeout;
+		this.TIMEOUT = timeout;
+		this.NRETRY = nRetry;
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
 		client.subscribe(new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparqlSubscribe, addDefaultDatatype(forcedBindings,subID,true)), null, appProfile.getDefaultGraphURI(subID),
 				appProfile.getNamedGraphURI(subID),
-				authorizationHeader,timeout));
+				authorizationHeader,timeout,nRetry));
 	}
 
-	public final void unsubscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
+	public final void unsubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
+		unsubscribe(TIMEOUT, NRETRY);
+	}
+	
+	public final void unsubscribe(long timeout,long nRetry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		logger.debug("UNSUBSCRIBE " + subID);
 
 		String authorizationHeader = null;
@@ -109,7 +120,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
 		client.unsubscribe(
-				new UnsubscribeRequest(subID, authorizationHeader,timeout));
+				new UnsubscribeRequest(subID, authorizationHeader,timeout,nRetry));
 	}
 
 	@Override
@@ -153,7 +164,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		if (appProfile.reconnect()) {
 			while(!subscribed) {
 				try {
-					subscribe(timeout);
+					subscribe(TIMEOUT,NRETRY);
 				} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
 						| SEPABindingsException e) {
 					logger.error(e.getMessage());
@@ -161,7 +172,7 @@ public abstract class Consumer extends Client implements IConsumer {
 				}
 				try {
 					synchronized (client) {
-						client.wait(timeout);	
+						client.wait(TIMEOUT);	
 					}
 				} catch (InterruptedException e) {
 					logger.error(e.getMessage());
@@ -185,7 +196,7 @@ public abstract class Consumer extends Client implements IConsumer {
 			
 			try {
 				logger.debug("subscribe");
-				subscribe(5000);
+				subscribe(TIMEOUT,0);
 			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
 					| SEPABindingsException e) {
 				logger.error("Failed to subscribe "+e.getMessage());

@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import org.apache.http.HttpStatus;
 import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,50 +49,47 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update) throws QueryException {
+	public synchronized InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update)
+			throws QueryException {
 		return new InternalPreProcessedUpdateRequest(update);
 	}
 
 	public synchronized Response process(InternalUpdateRequest req) throws SEPASecurityException {
-		// TODO: to implement other authentication mechanisms (Digest, Bearer, ...)
-		String authorizationHeader = req.getBasicAuthorizationHeader();
-
 		// ENDPOINT UPDATE
-		Response ret;
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
-				req.getDefaultGraphUri(), req.getNamedGraphUri(), authorizationHeader,
-				UpdateProcessorBeans.getTimeout());
+				req.getDefaultGraphUri(), req.getNamedGraphUri(), req.getBasicAuthorizationHeader(),
+				UpdateProcessorBeans.getTimeout(),0);
 		logger.trace(request);
 
-		int nRetry = UpdateProcessorBeans.getTimeoutNRetry();
-
+		Response ret;
+		int n = 0;
 		do {
 			long start = Timings.getTime();
 			ret = endpoint.update(request);
 			long stop = Timings.getTime();
+			
 			UpdateProcessorBeans.timings(start, stop);
-
+			
 			logger.trace("Response: " + ret.toString());
 			Timings.log("UPDATE_PROCESSING_TIME", start, stop);
-
-			if (ret.isError()) {
-				ErrorResponse err = (ErrorResponse) ret;
-				if (err.getStatusCode() == 401)
-					return new ErrorResponse(401, "unauthorized_client", err.getErrorDescription());
-				
-				// *** Timeout retry ***
-				if (err.getStatusCode() == 500 && err.getError().equals("IOException")
-						&& err.getErrorDescription().equals("Read timed out") && nRetry > 0) {
-					logger.warn("READ TIMED OUT. RETRY " + nRetry);
-					nRetry = nRetry - 1;
+			
+			n++;
+			
+			if (ret.isTimeoutError()) {
+				UpdateProcessorBeans.timedOutRequest();
+				logger.error(req);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					return new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "InterruptedException", e.getMessage());
 				}
-				else return ret;
 			}
-			
-			return ret;
-			
-		} while (true);
+		} while(ret.isTimeoutError() && n < UpdateProcessorBeans.getTimeoutNRetry());
+		
+		if (ret.isTimeoutError()) UpdateProcessorBeans.abortedRequest();
+		
+		return ret;
 	}
 
 	@Override
@@ -162,5 +160,15 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	@Override
 	public void setTimeoutNRetry(int n) {
 		UpdateProcessorBeans.setTimeoutNRetry(n);
+	}
+
+	@Override
+	public long getTimedOutRequests() {
+		return UpdateProcessorBeans.getTimedOutRequests();
+	}
+
+	@Override
+	public long getAbortedRequests() {
+		return UpdateProcessorBeans.getAbortedRequests();
 	}
 }

@@ -23,6 +23,8 @@ public interface QueryProcessorMBean {
 	public void reset();
 	
 	public long getRequests();
+	public long getTimedOutRequests();
+	public long getAbortedRequests();
 	
 	public float getTimingsCurrent();
 	public float getTimingsMin();
