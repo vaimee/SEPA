@@ -26,5 +26,9 @@ ALL					Integer.MAX_VALUE
 		<Root level="off">
 			<AppenderRef ref="Console" level="debug"/>
 		</Root>
+		<Root level="debug">
+			<appender-ref ref="Console" />
+		</Root>
 	</Loggers>
+
 </Configuration>
