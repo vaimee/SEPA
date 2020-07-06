@@ -133,16 +133,24 @@ public class ITPattern implements ISubscriptionHandler{
 	@Test(timeout = 40000)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
+		logger.debug("Aggregator");
 		consumerRandom1.subscribe();
 		consumerRandom1.waitNotification();
+
+		logger.debug("Aggregator first subscribe ok");
 
 		randomAggregator.subscribe();
 		randomAggregator.waitNotification();
 
+		logger.debug("Aggregator second subscribe ok");
+
+
 		randomProducer.update();
+		logger.debug("Aggregator Update Done");
 
 		randomAggregator.waitNotification();
 		consumerRandom1.waitNotification();
+		logger.debug("Aggregator stop");
 	}
 	
 	@Test(timeout =  20000)
