@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/arces-wot/SEPA">
-    <img width="300px" src="./logo.png">
+    <img width="300px" src="./doc/logo.png">
   </a>
   <br>
   <br>
