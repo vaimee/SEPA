@@ -31,6 +31,7 @@
 
 ## Table of Contents
 - [Introduction](#introduction-sparql-event-processing-architecture)
+- [Demo](#demo)
 - [Quick start](#quick-start)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -42,6 +43,10 @@
 SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refere to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm).
 
 If you just cannot wait to try SEPA go to [SEPA Playground](http://mml.arces.unibo.it/apps/dashboard?mode=playground) and use Update and Subscribe tab with the example provided.
+
+## Demo
+
+![Demo showing subscription and notifications](./doc/SEPADemo.gif)
 
 ## Quick start
 
