@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://github.com/webpack/webpack">
+  <a href="https://github.com/arces-wot/SEPA">
     <img width="300px" src="./logo.png">
   </a>
   <br>
