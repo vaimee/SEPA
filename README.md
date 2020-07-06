@@ -40,7 +40,7 @@
 - [Credits](#credits)
 
 ## Introduction SPARQL Event Processing Architecture
-SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refere to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm).
+SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refer to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm).
 
 If you just cannot wait to try SEPA go to [SEPA Playground](http://mml.arces.unibo.it/apps/dashboard?mode=playground) and use Update and Subscribe tab with the example provided.
 
@@ -57,8 +57,9 @@ If you just cannot wait to try SEPA go to [SEPA Playground](http://mml.arces.uni
 - Use the [SEPA Playground](http://mml.arces.unibo.it/apps/dashboard?mode=local) to check basic functionalities of the engine.
 
 ### For Hackers 💻👩‍💻👨‍💻
-
-[![asciicast](https://asciinema.org/a/251211.svg)](https://asciinema.org/a/251211)
+<a href="https://asciinema.org/a/251211">
+  <img width="300px" src="https://asciinema.org/a/251211.svg">
+</a>
 
 ## Configuration
 The SEPA engine can be used with different SPARQL endpoints which must support SPARQL 1.1 protocol. The endpoint can be configured using
