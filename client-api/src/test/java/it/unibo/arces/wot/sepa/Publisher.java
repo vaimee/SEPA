@@ -54,7 +54,8 @@ public class Publisher extends Thread implements Closeable {
 		while (running.get() > 0) {
 			Response ret = client.update(provider.buildUpdateRequest(id, sm, 5000, 0));
 
-			while (ret.isError()) {
+			int retryTimes = 0;
+			while (ret.isError() && retryTimes < 10) {
 				ErrorResponse errorResponse = (ErrorResponse) ret;
 
 				if (errorResponse.isTokenExpiredError()) {
@@ -66,10 +67,10 @@ public class Publisher extends Thread implements Closeable {
 				}
 				else {
 					logger.error(errorResponse);
-					break;
 				}
 				
 				ret = client.update(provider.buildUpdateRequest(id, sm, 5000, 0));
+				retryTimes++;
 			}
 
 			running.set(running.get() - 1);
