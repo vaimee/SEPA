@@ -120,11 +120,11 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     @Test(timeout = 40000)
     public void aggregationX10() throws InterruptedException, SEPASecurityException, IOException,
             SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-        consumerRandom1.subscribe();
-        consumerRandom1.waitNotification();
+        consumerRandom1.syncSubscribe();
+        consumerRandom1.waitFirstNotification();
 
-        randomAggregator.subscribe();
-        randomAggregator.waitNotification();
+        randomAggregator.syncSubscribe();
+        randomAggregator.waitFirstNotification();
 
         for (int i = 0; i < 10; i++) {
             randomProducer.update();
@@ -137,11 +137,11 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     @Test(timeout = 200000)
     public void aggregationX100() throws InterruptedException, SEPASecurityException, IOException,
             SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-        consumerRandom1.subscribe();
-        consumerRandom1.waitNotification();
+        consumerRandom1.syncSubscribe();
+        consumerRandom1.waitFirstNotification();
 
-        randomAggregator.subscribe();
-        randomAggregator.waitNotification();
+        randomAggregator.syncSubscribe();
+        randomAggregator.waitFirstNotification();
 
         for (int i = 0; i < 100; i++) {
             randomProducer.update();

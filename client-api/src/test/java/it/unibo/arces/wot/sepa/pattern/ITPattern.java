@@ -101,7 +101,7 @@ public class ITPattern implements ISubscriptionHandler{
 	@Test(timeout = 40000)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		consumerAll.subscribe();
+		consumerAll.syncSubscribe();
 	}
 
 	@Test(timeout = 20000)
@@ -115,15 +115,15 @@ public class ITPattern implements ISubscriptionHandler{
 	@Test(timeout = 40000)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-		consumerAll.subscribe();
-		consumerAll.waitNotification();
+		consumerAll.syncSubscribe();
+		consumerAll.waitFirstNotification();
 	}
 
 	@Test(timeout = 20000)
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		consumerAll.subscribe();
-		consumerAll.waitNotification();
+		consumerAll.syncSubscribe();
+//		consumerAll.waitNotification();
 
 		randomProducer.update();
 
@@ -134,16 +134,15 @@ public class ITPattern implements ISubscriptionHandler{
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		logger.debug("Aggregator");
-		consumerRandom1.subscribe();
-		consumerRandom1.waitNotification();
+		consumerRandom1.syncSubscribe();
+//		consumerRandom1.waitNotification();
 
 		logger.debug("Aggregator first subscribe ok");
 
-		randomAggregator.subscribe();
-		randomAggregator.waitNotification();
+		randomAggregator.syncSubscribe();
+//		randomAggregator.waitNotification();
 
 		logger.debug("Aggregator second subscribe ok");
-
 
 		randomProducer.update();
 		logger.debug("Aggregator Update Done");
