@@ -6,6 +6,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -28,7 +29,14 @@ public class AggregatorTestUnit extends Aggregator {
 		}
 		
 		try {
-			update();
+			Response ret = update();
+
+			int retryTimes = 0;
+			while (ret.isError() && retryTimes < 10){
+				ret = update();
+				retryTimes++;
+			}
+
 		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e);
 		}
