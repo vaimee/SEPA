@@ -14,6 +14,7 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class ConsumerTestUnit extends Consumer {
 	protected static boolean notificationReceived = false;
+	protected static boolean firstResultsReceived = false;
 	
 	public ConsumerTestUnit(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
@@ -23,7 +24,10 @@ public class ConsumerTestUnit extends Consumer {
 	public void syncSubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("subscribe");
 		
-		super.subscribe(5000,0);
+		notificationReceived = false;
+		firstResultsReceived = false;
+		
+		super.subscribe();
 		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
@@ -36,7 +40,16 @@ public class ConsumerTestUnit extends Consumer {
 			logger.debug("waitNotification");
 			while (!notificationReceived) wait();
 			notificationReceived = false;
-			logger.debug("notify!");
+			logger.debug("notification received");
+		}
+	}
+	
+	public void waitFirstNotification() throws InterruptedException {
+		synchronized(this) {
+			logger.debug("waitFirstNotification");
+			while (!firstResultsReceived) wait();
+			firstResultsReceived = false;
+			logger.debug("notification received");
 		}
 	}
 	
@@ -53,7 +66,7 @@ public class ConsumerTestUnit extends Consumer {
 	public void onFirstResults(BindingsResults results) {
 		synchronized(this) {
 			logger.debug("onFirstResults");
-			notificationReceived = true;
+			firstResultsReceived = true;
 			notify();
 		}	
 	}

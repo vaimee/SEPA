@@ -15,6 +15,7 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class AggregatorTestUnit extends Aggregator {
 	protected static boolean notificationReceived = false;
+	protected static boolean firstResultsReceived = false;
 	
 	public AggregatorTestUnit(JSAP appProfile, String subscribeID, String updateID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
@@ -43,9 +44,14 @@ public class AggregatorTestUnit extends Aggregator {
 		
 	}
 	
-	public void syncCubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+	public void syncSubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("subscribe");
+		
+		notificationReceived = false;
+		firstResultsReceived = false;
+		
 		super.subscribe();
+		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
 			logger.debug("subscribed");
@@ -60,12 +66,21 @@ public class AggregatorTestUnit extends Aggregator {
 			logger.debug("notify!");
 		}
 	}
+	
+	public void waitFirstNotification() throws InterruptedException {
+		synchronized(this) {
+			logger.debug("waitFirstNotification");
+			while (!firstResultsReceived) wait();
+			firstResultsReceived = false;
+			logger.debug("first results received");
+		}
+	}
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
 		synchronized(this) {
 			logger.debug("onFirstResults");
-			notificationReceived = true;
+			firstResultsReceived = true;
 			notify();
 		}	
 	}
