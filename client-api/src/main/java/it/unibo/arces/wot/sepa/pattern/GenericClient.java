@@ -76,9 +76,9 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	}
 
 	@Override
-	public void onBrokenConnection() {
+	public void onBrokenConnection(ErrorResponse errorResponse) {
 		if (handler != null)
-			handler.onBrokenConnection();
+			handler.onBrokenConnection(errorResponse);
 	}
 
 	@Override
