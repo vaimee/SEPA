@@ -59,6 +59,9 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	public WebsocketServer(int port, String path, Scheduler scheduler) throws SEPAProtocolException {
 		super(new InetSocketAddress(port));
 
+		// Connection lost timeout (0 = disabled)
+		setConnectionLostTimeout( 0 );
+
 		if (path == null || scheduler == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("One or more arguments are null"));
 
