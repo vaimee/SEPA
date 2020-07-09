@@ -88,8 +88,8 @@ public class Subscriber extends Thread implements ISubscriptionHandler, Closeabl
 	}
 
 	@Override
-	public void onBrokenConnection() {
-		logger.debug("@onBrokenConnection");
+	public void onBrokenConnection(ErrorResponse err) {
+		logger.debug("@onBrokenConnection "+err);
 	}
 
 	@Override

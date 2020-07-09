@@ -159,10 +159,10 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			if (e instanceof InterruptedIOException) {
 				if (e instanceof SocketTimeoutException)
 					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "SocketTimeoutException",
-							e.getMessage() + " timeout: " + request.getTimeout());
+							e.getMessage() + " [timeout: " + request.getTimeout()+" ms retry: "+request.getNRetry()+"]");
 				else if (e instanceof RequestAbortedException)
 					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "RequestAbortedException",
-							e.getMessage() + " timeout: " + request.getTimeout());
+							e.getMessage() + " [timeout: " + request.getTimeout()+" ms retry: "+request.getNRetry()+"]");
 				else {
 					e.printStackTrace();
 					errorResponse = new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "InterruptedIOException",
@@ -213,6 +213,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			logger.error(errorResponse);
 			
 			if (errorResponse.getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT && request.getNRetry() > 0) {
+				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
 				request.retry();
 				return executeRequest(req, request);		
 			}

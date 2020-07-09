@@ -156,7 +156,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	}
 	
 	@Override
-	public void onBrokenConnection() {
+	public void onBrokenConnection(ErrorResponse errorResponse) {
 		logger.warn("onBrokenConnection");
 		subscribed = false;
 		

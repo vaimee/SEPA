@@ -152,7 +152,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		logger.warn("onClose session: " + session + " reason: " + closeReason);
 
 		try {
-			handler.onBrokenConnection();
+			handler.onBrokenConnection(new ErrorResponse(closeReason.getCloseCode().getCode(), closeReason.getCloseCode().toString(), closeReason.getReasonPhrase()));
 		} catch (Exception e) {
 			logger.error(
 					"Exception on handling onBrokenConnection. Handler: " + handler + " Exception: " + e.getMessage());

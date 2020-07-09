@@ -126,8 +126,8 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 	}
 
 	@Override
-	public void onBrokenConnection() {
-		handler.onBrokenConnection();
+	public void onBrokenConnection(ErrorResponse errorResponse) {
+		handler.onBrokenConnection(errorResponse);
 	}
 
 	@Override

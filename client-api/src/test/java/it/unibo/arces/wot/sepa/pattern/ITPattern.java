@@ -234,8 +234,8 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 
 	@Override
-	public void onBrokenConnection() {
-		logger.debug("onBrokenConnection");
+	public void onBrokenConnection(ErrorResponse err) {
+		logger.debug("onBrokenConnection "+err);
 	}
 
 	@Override
