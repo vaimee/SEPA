@@ -18,7 +18,6 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,7 +26,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -55,9 +53,9 @@ public class QueryProcessor implements QueryProcessorMBean {
 				properties.getHost(), properties.getPort(), properties.getQueryPath(),
 				req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
 				req.getBasicAuthorizationHeader(),req.getInternetMediaType(),QueryProcessorBeans.getTimeout(),0);
-
-		Response ret;
+		
 		int n = 0;
+		Response ret;
 		do {
 			long start = Timings.getTime();
 			ret = endpoint.query(request);
@@ -71,16 +69,20 @@ public class QueryProcessor implements QueryProcessorMBean {
 			
 			if (ret.isTimeoutError()) {
 				QueryProcessorBeans.timedOutRequest();
-				logger.error(req);
+				logger.error("*** TIMEOUT *** ("+n+"/"+QueryProcessorBeans.getTimeoutNRetry()+") "+req);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					return new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "InterruptedException", e.getMessage());
+					logger.warn("Failed to sleep...");
 				}
 			}
 		} while(ret.isTimeoutError() && n < QueryProcessorBeans.getTimeoutNRetry());
 		
-		if (ret.isTimeoutError()) QueryProcessorBeans.abortedRequest();
+		// Request ABORTED
+		if (ret.isTimeoutError()) {
+			logger.error("*** REQUEST ABORTED *** "+request);
+			QueryProcessorBeans.abortedRequest();
+		}
 		
 		return ret;
 	}

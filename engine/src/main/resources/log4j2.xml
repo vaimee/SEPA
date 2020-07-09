@@ -17,14 +17,14 @@
 			<PatternLayout
 				pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
 		</Console>
-		<!-- <File name="Log" fileName="logs/engine.csv"> -->
-		<!-- <PatternLayout pattern="%m\n"/> -->
-		<!-- </File> -->
+		<File name="Log" fileName="sepa.engine.csv">
+		<PatternLayout pattern="%d{ISO8601}|[%-5level]|%t|(%F:%L)|%msg%n%throwable\n"/>
+		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="error">
+		<Root level="warn">
 			<AppenderRef ref="Console" level="debug" />
-<!-- 			<AppenderRef ref="Log" level="debug"/> -->
+			<AppenderRef ref="Log" level="error"/>
 		</Root>
 	</Loggers>
 </Configuration>

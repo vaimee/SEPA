@@ -18,7 +18,6 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import org.apache.http.HttpStatus;
 import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,7 +27,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
@@ -78,16 +76,19 @@ class UpdateProcessor implements UpdateProcessorMBean {
 			
 			if (ret.isTimeoutError()) {
 				UpdateProcessorBeans.timedOutRequest();
-				logger.error(req);
+				logger.error("*TIMEOUT* ("+n+"/"+UpdateProcessorBeans.getTimeoutNRetry()+") "+req);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					return new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "InterruptedException", e.getMessage());
+					logger.warn("Failed to sleep...");
 				}
 			}
 		} while(ret.isTimeoutError() && n < UpdateProcessorBeans.getTimeoutNRetry());
 		
-		if (ret.isTimeoutError()) UpdateProcessorBeans.abortedRequest();
+		if (ret.isTimeoutError()) {
+			logger.error("*** REQUEST ABORTED *** "+request);
+			UpdateProcessorBeans.abortedRequest();
+		}
 		
 		return ret;
 	}

@@ -264,7 +264,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 			if (Subscriptions.removeSubscriber(sub)) {
 				// If it is the last handler: kill SPU
-				spus.get(spuid).finish();
+//				spus.get(spuid).finish();
 				spus.get(spuid).interrupt();
 
 				// Clear

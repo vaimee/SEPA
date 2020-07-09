@@ -240,11 +240,15 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("##########################################################################################");
 		System.out
-				.println("# SPARQL Event Processing Architecture Broker                                            #");
+				.println("# SEPA(SPARQL Event Processing Architecture) Broker                                      #");
 		System.out
 				.println("# Dynamic Linked Data & Web of Things Research - University of Bologna (Italy)           #");
 		System.out
-				.println("# Copyright (C) 2016-2019                                                                #");
+				.println("#                                                                                        #");
+		System.out
+				.println("# Copyright (C) 2016-2020                                                                #");
+		System.out
+				.println("#                                                                                        #");
 		System.out
 				.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
 		System.out
