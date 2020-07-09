@@ -96,7 +96,8 @@ public class EngineBeans {
 		QueryProcessorBeans.reset();
 		UpdateProcessorBeans.reset();
 		SchedulerBeans.reset();
-		SPUManagerBeans.reset();
+		SPUManagerBeans.reset();		
+		GateBeans.reset();
 	}
 
 	public static String getHost() {
