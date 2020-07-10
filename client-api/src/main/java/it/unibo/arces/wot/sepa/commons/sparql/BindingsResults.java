@@ -167,7 +167,9 @@ public class BindingsResults {
 		JsonArray bindings = getBindingsArray();
 		if (bindings == null)
 			return true;
-
+		if (bindings.size() == 1) {
+			if (bindings.get(0).getAsJsonObject().entrySet().isEmpty()) return true;
+		}
 		return (bindings.size() == 0);
 	}
 
