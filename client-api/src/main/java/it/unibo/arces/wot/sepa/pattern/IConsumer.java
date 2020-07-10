@@ -27,8 +27,11 @@ import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
 public interface IConsumer extends ISubscriptionHandler {	
-	void subscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException ;
-	void unsubscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException;
+	void subscribe(long timeout,long nRetry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException ;
+	void unsubscribe(long timeout,long nRetry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException;
+	
+	void subscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException ;
+	void unsubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException;
 	
 	void onResults(ARBindingsResults results);
 	void onAddedResults(BindingsResults results);
