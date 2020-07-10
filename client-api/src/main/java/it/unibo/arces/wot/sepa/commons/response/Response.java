@@ -17,6 +17,9 @@
 */
 package it.unibo.arces.wot.sepa.commons.response;
 
+
+import org.apache.http.HttpStatus;
+
 import com.google.gson.JsonObject;
 
 /**
@@ -51,6 +54,12 @@ public abstract class Response {
 	}
 	public boolean isUpdateResponse() {
 		return this instanceof UpdateResponse;
+	}
+	public boolean isTimeoutError() {
+		if (this instanceof ErrorResponse) {
+			return ((ErrorResponse) this).getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT;
+		}
+		return false;
 	}
 	
 	/**

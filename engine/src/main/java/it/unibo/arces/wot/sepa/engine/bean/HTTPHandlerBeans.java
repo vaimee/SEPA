@@ -1,3 +1,21 @@
+/* This class belongs to the JMX classes used for the remote monitoring of the engine
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.bean;
 
 import java.util.HashMap;
@@ -8,9 +26,9 @@ import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class HTTPHandlerBeans {
 	private long timeoutRequests = 0;
+	
 	private long CORSFailedRequests = 0;
 	private long parsingFailedRequests = 0;
-	private long validatingFailedRequests = 0;
 	private long authorizingFailedRequests = 0;
 	
 	private long requestHandlingTime = -1;
@@ -25,9 +43,9 @@ public class HTTPHandlerBeans {
 	
 	public void reset() {
 		 timeoutRequests = 0;
+		 
 		 CORSFailedRequests = 0;
 		 parsingFailedRequests = 0;
-		 validatingFailedRequests = 0;
 		 authorizingFailedRequests = 0;
 		
 		 requestHandlingTime = -1;
@@ -125,10 +143,6 @@ public class HTTPHandlerBeans {
 		return parsingFailedRequests;
 	}
 	
-	public long getErrors_ValidatingFailed() {
-		return validatingFailedRequests;
-	}
-	
 	public long getErrors_AuthorizingFailed() {
 		return authorizingFailedRequests;
 	}
@@ -143,10 +157,6 @@ public class HTTPHandlerBeans {
 	
 	public void parsingFailed() {
 		parsingFailedRequests++;
-	}
-	
-	public void validatingFailed() {
-		validatingFailedRequests++;
 	}
 	
 	public void authorizingFailed() {

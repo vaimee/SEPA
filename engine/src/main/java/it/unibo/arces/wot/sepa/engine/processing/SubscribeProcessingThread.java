@@ -1,12 +1,28 @@
+/* Class for processing SPARQL 1.1 subscribe requests
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 class SubscribeProcessingThread extends Thread {
@@ -24,26 +40,17 @@ class SubscribeProcessingThread extends Thread {
 		while (processor.isRunning()) {
 			try {
 				// Wait request...
-				ScheduledRequest request = processor.getScheduler().waitSubscribeUnsubscribeRequest();
+				ScheduledRequest request = processor.waitSubscribeRequest();
 				logger.debug(">> " + request);
 
 				// Process request
-				Response response = null;
-				if (request.isSubscribeRequest()) {
-					response = processor.subscribe((InternalSubscribeRequest) request.getRequest());
-				}else if (request.isUnsubscribeRequest()) {
-					String sid = ((InternalUnsubscribeRequest) request.getRequest()).getSID();
-					String gid = ((InternalUnsubscribeRequest) request.getRequest()).getGID();
-					response = processor.unsubscribe(sid,gid);
-				}
+				Response response = processor.processSubscribe((InternalSubscribeRequest) request.getRequest());
+				
 				logger.debug("<< " + response);
 
 				// Send back response
-				processor.getScheduler().addResponse(request.getToken(), response);
+				processor.addResponse(request.getToken(), response);
 
-			} catch (SEPAProcessingException e) {
-				logger.warn(e.getMessage());
-				continue;
 			} catch (InterruptedException e) {
 				logger.warn(e.getMessage());
 				return;
