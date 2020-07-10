@@ -1,3 +1,21 @@
+/* HTTP handler for digital identities registration
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.protocol.oauth;
 
 import java.io.IOException;
@@ -24,11 +42,15 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
 
+/**
+ * HTTP handler for digital identities registration. Once registered, a digital identity would use the "client_credentials" grant to get/refresh a token
+ * */
 public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	private static final Logger logger = LogManager.getLogger();
 
@@ -41,12 +63,30 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			throws HttpException, IOException {
 		return new BasicAsyncRequestConsumer();
 	}
+	
+	protected boolean corsHandling(HttpAsyncExchange exchange) {
+		if (!Dependability.processCORSRequest(exchange)) {
+			logger.error("CORS origin not allowed");
+			HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error","CORS origin not allowed"));
+			return false;
+		}
+
+		if (Dependability.isPreFlightRequest(exchange)) {
+			logger.warn("Preflight request");
+			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
+			return false;
+		}
+
+		return true;
+	}
 
 	@Override
 	public void handle(HttpRequest data, HttpAsyncExchange exchange, HttpContext context)
 			throws HttpException, IOException {
 		logger.info(">> REGISTRATION");
 
+		if (!corsHandling(exchange)) return;
+		
 		String name = null;
 
 		// Parsing and validating request headers
@@ -129,7 +169,15 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		// *****************************************
 		// Register client and retrieve credentials
 		// *****************************************
-		Response cred = Dependability.register(name);
+		Response cred = null;
+		try {
+			cred = Dependability.register(name);
+		} catch (SEPASecurityException e) {
+			if (logger.isTraceEnabled()) e.printStackTrace();
+			logger.error(e.getMessage());
+			HttpUtilities.sendFailureResponse(exchange,new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "dependability_not_configured",e.getMessage()));
+			return;
+		}
 
 		if (cred.getClass().equals(ErrorResponse.class)) {
 			ErrorResponse error = (ErrorResponse) cred;

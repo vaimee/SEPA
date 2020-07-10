@@ -1,17 +1,37 @@
+/* HTTP handler for SPARQL 1.1 query
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.protocol.sparql11;
 
-import java.net.URLDecoder;
+import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.Set;
 
+import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
-
+import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
@@ -33,7 +53,7 @@ public class QueryHandler extends SPARQL11Handler {
 	}
 
 	@Override
-	protected InternalUQRequest parse(HttpAsyncExchange exchange) throws SPARQL11ProtocolException {
+	protected InternalUQRequest parse(HttpAsyncExchange exchange,ClientAuthorization auth) throws SPARQL11ProtocolException {
 		switch (exchange.getRequest().getRequestLine().getMethod().toUpperCase()) {
 		case "GET":
 			 /* <pre>
@@ -66,23 +86,25 @@ public class QueryHandler extends SPARQL11Handler {
 				}
 
 				String queryParameters = requestUri.substring(requestUri.indexOf('?') + 1);
-				Map<String, String> params = HttpUtilities.splitQuery(queryParameters);
+				Map<String, Set<String>> params = HttpUtilities.splitQuery(queryParameters);
 
 				if (params.get("query") == null) {
 					throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,
 							"Wrong request uri: 'query=' not found in " + queryParameters);
 				}
 
-				String sparql = URLDecoder.decode(params.get("query"), "UTF-8");
-				String graphUri = params.get("default-graph-uri");
-				String namedGraphUri = params.get("named-graph-uri");
+				String sparql = params.get("query").iterator().next();
+				Set<String> graphUri = params.get("default-graph-uri");
+				Set<String> namedGraphUri = params.get("named-graph-uri");
 
-				return new InternalQueryRequest(sparql, graphUri, namedGraphUri);
-			} catch (Exception e) {
+				Header[] headers = exchange.getRequest().getHeaders("Accept");
+				if (headers.length != 1) return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth);
+				else return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth,headers[0].getValue());
+			} catch (QueryException | UnsupportedEncodingException e) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}
 		case "POST":
-			return parsePost(exchange,"query");
+			return parsePost(exchange,"query",auth);
 		}
 
 		logger.error("UNSUPPORTED METHOD: " + exchange.getRequest().getRequestLine().getMethod().toUpperCase());
@@ -91,7 +113,7 @@ public class QueryHandler extends SPARQL11Handler {
 	}
 
 	@Override
-	protected Response authorize(HttpRequest request) {
-		return new JWTResponse("Unsecure request is always authorized","authorized",0);
+	protected ClientAuthorization authorize(HttpRequest request) throws SEPASecurityException {
+		return new ClientAuthorization();
 	}
 }

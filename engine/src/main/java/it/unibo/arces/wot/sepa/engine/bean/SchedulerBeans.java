@@ -1,3 +1,21 @@
+/* This class belongs to the JMX classes used for the remote monitoring of the engine
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.bean;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
@@ -8,20 +26,27 @@ public class SchedulerBeans {
 	private static long maxPendingsRequests = 0;
 	private static long pendingRequests = 0;
 
-	private static long errors = 0;
+	
 	private static long scheduledRequests = 0;
 	private static long totalUpdateRequests = 0;
 	private static long totalQueryRequests = 0;
 	private static long totalSubscribeRequests = 0;
 	private static long totalUnsubscribeRequests = 0;
 	
-	private static int queueSize;
-
-	private static int timeout;
+//	private static long errors = 0;
 	
-	public static long getErrors() {
-		return errors;
-	}
+	private static int queueSize = 100;
+
+//	private static int timeout = 30000;
+//	private static long timedoutUpdates = 0;
+//	private static long timedoutQueries = 0;
+//	private static long timedoutSubscribes = 0;
+//	private static long timedoutUnsubscribes = 0;
+	
+	
+//	public static long getErrors() {
+//		return errors;
+//	}
 
 	public static long getQueue_Pending() {
 		return pendingRequests;
@@ -46,12 +71,17 @@ public class SchedulerBeans {
 		 maxPendingsRequests = 0;
 		 pendingRequests = 0;
 
-		 errors = 0;
+//		 errors = 0;
 		 scheduledRequests = 0;
 		 totalUpdateRequests = 0;
 		 totalQueryRequests = 0;
 		 totalSubscribeRequests = 0;
 		 totalUnsubscribeRequests = 0;
+		 
+//		 timedoutUpdates = 0;
+//		 timedoutQueries = 0;
+//		 timedoutSubscribes = 0;
+//		 timedoutUnsubscribes = 0;
 	}
 
 	public static void tokenLeft(int size) {
@@ -85,11 +115,45 @@ public class SchedulerBeans {
 		return queueSize;	
 	}
 
-	public static int getTimeout() {
-		return timeout;
-	}
+//	public static int getTimeout() {
+//		return timeout;
+//	}
+//
+//	public static void setTimeout(int t) {
+//		timeout = t;
+//	}
+//
+//	public static long getTimedoutUpdates() {
+//		return timedoutUpdates;
+//	}
+//
+//	public static long getTimedoutQueries() {
+//		return timedoutQueries;
+//	}
+//
+//	public static long getTimedoutSubscribes() {
+//		return timedoutSubscribes;
+//	}
+//	
+//	public static long getTimedoutUnsubscribes() {
+//		return timedoutUnsubscribes;
+//	}
+//
+//	public static void queryTimeout() {
+//		timedoutQueries++;
+//	}
+//	
+//	public static void updateTimeout() {
+//		timedoutUpdates++;
+//	}
+//	
+//	public static void subscribeTimeout() {
+//		timedoutSubscribes++;
+//	}
+//
+//	public static void unsubscribeTimeout() {
+//		timedoutUnsubscribes++;	
+//	}
 
-	public static void setTimeout(int t) {
-		timeout = t;
-	}
+	
 }

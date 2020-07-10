@@ -1,79 +1,31 @@
+/* JMX monitoring of dependability parameters
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.dependability;
 
-import java.util.HashMap;
-
-import it.unibo.arces.wot.sepa.engine.bean.AuthorizationManagerBeans;
+//
+//import it.unibo.arces.wot.sepa.engine.bean.AuthorizationManagerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 
 public class DependabilityMonitor implements DependabilityMonitorMBean {
 	
 	public DependabilityMonitor() {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
-	}
-	
-	@Override
-	public long getTokenExpiringPeriod() {
-		return AuthorizationManagerBeans.getTokenExpiringPeriod();
-	}
-
-	@Override
-	public void setTokenExpiringPeriod(long period) {
-		AuthorizationManagerBeans.setTokenExpiringPeriod(period);
-	}
-
-	@Override
-	public void addAuthorizedIdentity(String id) {
-		AuthorizationManagerBeans.getAuthorizedIdentities().put(id, true);
-	}
-
-	@Override
-	public void removeAuthorizedIdentity(String id) {
-		AuthorizationManagerBeans.getAuthorizedIdentities().remove(id);
-	}
-
-	@Override
-	public HashMap<String, Boolean> getAuthorizedIdentities() {
-		return AuthorizationManagerBeans.getAuthorizedIdentities();
-	}
-
-	@Override
-	public String getIssuer() {
-		return AuthorizationManagerBeans.getIssuer();
-	}
-
-	@Override
-	public void setIssuer(String issuer) {
-		AuthorizationManagerBeans.setIssuer(issuer);
-	}
-
-	@Override
-	public String getHttpsAudience() {
-		return AuthorizationManagerBeans.getHttpsAudience();
-	}
-
-	@Override
-	public void setHttpsAudience(String audience) {
-		AuthorizationManagerBeans.setHttpsAudience(audience);
-	}
-
-	@Override
-	public String getWssAudience() {
-		return AuthorizationManagerBeans.getWssAudience();
-	}
-
-	@Override
-	public void setWssAudience(String audience) {
-		AuthorizationManagerBeans.setWssAudience(audience);
-	}
-
-	@Override
-	public String getSubject() {
-		return AuthorizationManagerBeans.getSubject();
-	}
-
-	@Override
-	public void setSubject(String sub) {
-		AuthorizationManagerBeans.setSubject(sub);
 	}
 
 	@Override
