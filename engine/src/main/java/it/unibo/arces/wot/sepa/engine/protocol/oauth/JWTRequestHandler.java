@@ -1,3 +1,21 @@
+/* HTTP handler for token requests
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.protocol.oauth;
 
 import java.io.IOException;
@@ -14,10 +32,15 @@ import org.apache.http.protocol.HttpContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
+
+/**
+ * The class implements the "client_credentials" OAuth 2.0 grant
+ * */
 
 public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	protected static final Logger logger = LogManager.getLogger();
@@ -35,6 +58,28 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	@Override
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
+		if(corsHandling(httpExchange)) {
+			handleTokenRequest(request, httpExchange);
+		}
+	}
+
+	protected boolean corsHandling(HttpAsyncExchange exchange) {
+		if (!Dependability.processCORSRequest(exchange)) {
+			logger.error("CORS origin not allowed");
+			HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error","CORS origin not allowed"));
+			return false;
+		}
+
+		if (Dependability.isPreFlightRequest(exchange)) {
+			logger.warn("Preflight request");
+			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
+			return false;
+		}
+
+		return true;
+	}
+	
+	private void handleTokenRequest(HttpRequest request, HttpAsyncExchange httpExchange) {
 		logger.info(">> REQUEST TOKEN");
 
 		Header[] headers;
@@ -96,7 +141,15 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		// *************
 		// Get token
 		// *************
-		Response token = Dependability.getToken(basic.split(" ")[1]);
+		Response token = null;
+		try {
+			token = Dependability.getToken(basic.split(" ")[1]);
+		} catch (SEPASecurityException e) {
+			logger.error(e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
+			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"dependability_not_configured", e.getMessage()));
+			return;
+		}
 
 		if (token.getClass().equals(ErrorResponse.class)) {
 			ErrorResponse error = (ErrorResponse) token;
@@ -104,6 +157,6 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 			HttpUtilities.sendFailureResponse(httpExchange, error);
 		} else {
 			HttpUtilities.sendResponse(httpExchange, HttpStatus.SC_CREATED, token.toString());
-		}	
+		}
 	}
 }

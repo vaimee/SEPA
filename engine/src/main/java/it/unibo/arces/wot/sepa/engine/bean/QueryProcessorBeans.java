@@ -1,3 +1,21 @@
+/* This class belongs to the JMX classes used for the remote monitoring of the engine
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.bean;
 
 public class QueryProcessorBeans {
@@ -8,7 +26,11 @@ public class QueryProcessorBeans {
 	private static float max = -1;
 	private static float current = -1;
 	
-	private static int timeout;
+	private static int timeout = 5000;
+	private static int nRetry = 3;
+	
+	private static int timedOutRequests = 0;
+	private static int abortedRequests = 0;
 	
 	private static long unitScale = 1000000;
 	
@@ -58,6 +80,9 @@ public class QueryProcessorBeans {
 		 average = -1;
 		 max = -1;
 		 current = -1;
+		 
+		timedOutRequests = 0;
+		abortedRequests = 0;
 	}
 	
 	public static float getCurrent() {
@@ -86,5 +111,29 @@ public class QueryProcessorBeans {
 
 	public static long getRequests() {
 		return requests;
+	}
+	
+	public static void setTimeoutNRetry(int n) {
+		nRetry = n;
+	}
+
+	public static int getTimeoutNRetry() {
+		return nRetry;
+	}
+	
+	public static int getTimedOutRequests() {
+		return timedOutRequests;
+	}
+	
+	public static int getAbortedRequests() {
+		return abortedRequests;
+	}
+	
+	public static void timedOutRequest() {
+		timedOutRequests++;
+	}
+	
+	public static void abortedRequest() {
+		abortedRequests++;
 	}
 }
