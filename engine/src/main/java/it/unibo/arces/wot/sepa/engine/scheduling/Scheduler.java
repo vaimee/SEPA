@@ -58,7 +58,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		SchedulerBeans.setQueueSize(properties.getSchedulingQueueSize());
-		SchedulerBeans.setTimeout(properties.getSchedulerTimeout());
+//		SchedulerBeans.setTimeout(properties.getSchedulerTimeout());
 
 		setName("SEPA-Scheduler");
 	}
@@ -82,13 +82,13 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			}
 
 			logger.info(">> " + scheduled);
-
+			logger.debug(scheduled.getRequest());
+			
 			Timings.log(request);
 
 			SchedulerBeans.newRequest(request, true);
 
 			// Register response handlers
-
 			logger.trace("Register handler: " + handler + " token: " + scheduled.getToken());
 			responders.put(scheduled.getToken(), handler);
 		}
@@ -107,6 +107,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				// Wait for response
 				ScheduledResponse response = queue.waitResponse();
 				logger.info("<< " + response);
+				logger.trace(response.getResponse());
 
 				// The token
 				int token = response.getToken();
@@ -115,7 +116,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				synchronized (responders) {
 					ResponseHandler handler = responders.get(token);
 					if (handler == null) {
-						logger.error("Response handler is null (token #" + token + ")");
+						logger.warn("Response handler is null (token #" + token + "). Timeout already expired?");
 
 					} else {
 						logger.trace("Handler: " + handler + " response: " + response);
@@ -140,9 +141,9 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		return SchedulerBeans.getStatistics();
 	}
 
-	public long getErrors() {
-		return SchedulerBeans.getErrors();
-	}
+//	public long getErrors() {
+//		return SchedulerBeans.getErrors();
+//	}
 
 	public long getRequests_pending() {
 		return SchedulerBeans.getQueue_Pending();
@@ -171,29 +172,73 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		return SchedulerBeans.getQueueSize();
 	}
 
-	@Override
-	public int getTimeout() {
-		return SchedulerBeans.getTimeout();
-	}
-
-	@Override
-	public void setTimeout(int timeout) {
-		SchedulerBeans.setTimeout(timeout);
-	}
+//	@Override
+//	public int getTimeout() {
+//		return SchedulerBeans.getTimeout();
+//	}
+//
+//	@Override
+//	public void setTimeout(int timeout) {
+//		SchedulerBeans.setTimeout(timeout);
+//	}
 
 	public ScheduledRequest waitQueryRequest() throws InterruptedException {
 		return queue.waitQueryRequest();
 	}
 
-	public void addResponse(int token, Response ret) {
-		queue.addResponse(token, ret);
+	public boolean addResponse(int token, Response ret) {
+		return queue.addResponse(token, ret);
 	}
 
-	public ScheduledRequest waitSubscribeUnsubscribeRequest() throws InterruptedException {
-		return queue.waitSubscribeUnsubscribeRequest();
+	public ScheduledRequest waitSubscribeRequest() throws InterruptedException {
+		return queue.waitSubscribeRequest();
+	}
+	
+	public ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
+		return queue.waitUnsubscribeRequest();
 	}
 
 	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
 		return queue.waitUpdateRequest();
 	}
+
+	@Override
+	public long getPendingUpdates() {
+		return queue.getPendingUpdates();
+	}
+
+	@Override
+	public long getPendingQueries() {
+		return queue.getPendingQueries();
+	}
+
+	@Override
+	public long getPendingSubscribes() {
+		return queue.getPendingSubscribes();
+	}
+
+	@Override
+	public long getPendingUnsubscribes() {
+		return queue.getPendingUnsubscribes();
+	}
+//	
+//	@Override
+//	public long getTimedoutUpdates() {
+//		return SchedulerBeans.getTimedoutUpdates();
+//	}
+//
+//	@Override
+//	public long getTimedoutQueries() {
+//		return SchedulerBeans.getTimedoutQueries();
+//	}
+//
+//	@Override
+//	public long getTimedoutSubscribes() {
+//		return SchedulerBeans.getTimedoutSubscribes();
+//	}
+//
+//	@Override
+//	public long getTimedoutUnsubscribes() {
+//		return SchedulerBeans.getTimedoutUnsubscribes();
+//	}	
 }

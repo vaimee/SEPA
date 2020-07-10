@@ -18,6 +18,8 @@
 
 package it.unibo.arces.wot.sepa.commons.request;
 
+import java.util.Set;
+
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 
 /**
@@ -33,8 +35,10 @@ public class QueryRequest extends SPARQL11Request {
 	 * @param sparql the <a href="https://www.w3.org/TR/sparql11-query/">SPARQL 1.1 Query</a>
 	 */
 	
-	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,String default_graph_uri,String named_graph_uri,String authorization,long timeout) {
-		super(sparql,authorization,default_graph_uri,named_graph_uri,timeout);
+	private String acceptHeader = "application/sparql-results+json";
+	
+	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization,long timeout,long nRetry) {
+		super(sparql,authorization,default_graph_uri,named_graph_uri,timeout,nRetry);
 		
 		this.method = method;
 		this.host = host;
@@ -43,9 +47,15 @@ public class QueryRequest extends SPARQL11Request {
 		this.timeout = timeout;
 		this.scheme = scheme;
 	}
+	
+	public QueryRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization,String accept,long timeout,long nRetry) {
+		this( method, scheme, host,  port,  path, sparql, default_graph_uri, named_graph_uri, authorization, timeout,nRetry);
+		
+		this.acceptHeader = accept;
+	}
 
 	public String getAcceptHeader() {
-		return "application/sparql-results+json";
+		return acceptHeader;
 	}
 	
 	/**

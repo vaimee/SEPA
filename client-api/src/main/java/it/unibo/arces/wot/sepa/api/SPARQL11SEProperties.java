@@ -83,8 +83,6 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		WS, WSS
 	}
 
-	private SubscriptionProtocol subscriptionProtocol;
-
 	/**
 	 * Instantiates a new SPARQL 11 SE properties.
 	 *
@@ -92,8 +90,12 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	 *            the properties file
 	 * @throws SEPAPropertiesException
 	 */
+	public SPARQL11SEProperties(String propertiesFile,boolean validate) throws SEPAPropertiesException {
+		super(propertiesFile,validate);
+	}
+	
 	public SPARQL11SEProperties(String propertiesFile) throws SEPAPropertiesException {
-		super(propertiesFile);
+		super(propertiesFile,false);
 	}
 
 	public SPARQL11SEProperties() {
@@ -139,12 +141,6 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		availableProtocols.add("wss", wss);
 		sparql11seprotocol.add("availableProtocols", availableProtocols);
 
-//		JsonObject security = new JsonObject();
-//		security.add("register", new JsonPrimitive("/oauth/register"));
-//		security.add("tokenRequest", new JsonPrimitive("/oauth/token"));
-//		security.add("securePath", new JsonPrimitive("/secure"));
-//		sparql11seprotocol.add("security", security);
-
 		jsap.add("sparql11seprotocol", sparql11seprotocol);
 	}
 
@@ -160,7 +156,6 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 			switch (protocol) {
 			case "ws":
-				subscriptionProtocol = SubscriptionProtocol.WS;
 				jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
 						.get(protocol).getAsJsonObject().get("port").getAsInt();
 				jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
@@ -168,21 +163,12 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 				break;
 			case "wss":
-				subscriptionProtocol = SubscriptionProtocol.WSS;
 				jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
 						.get(protocol).getAsJsonObject().get("port").getAsInt();
 				jsap.get("sparql11seprotocol").getAsJsonObject().get("availableProtocols").getAsJsonObject()
 						.get(protocol).getAsJsonObject().get("path").getAsString();
 				break;
 			}
-
-//			if (jsap.get("sparql11seprotocol").getAsJsonObject().get("security") != null) {
-//				jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("register")
-//						.getAsString();
-//				jsap.get("sparql11seprotocol").getAsJsonObject().get("security").getAsJsonObject().get("tokenRequest")
-//						.getAsString();
-//			}
-
 		} catch (Exception e) {
 			throw new SEPAPropertiesException(e);
 		}
@@ -233,17 +219,8 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 						.get(jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()).getAsJsonObject().add("port",new JsonPrimitive(port));
 	}
 
-//	public int getHttpsPort() {
-//		try {
-//			if (jsap.get("sparql11protocol").getAsJsonObject().get("protocol").getAsString().equals("https"))
-//				return jsap.get("sparql11protocol").getAsJsonObject().get("port").getAsInt();
-//		} catch (Exception e) {
-//			return -1;
-//		}
-//		return -1;
-//	}
-
 	public SubscriptionProtocol getSubscriptionProtocol() {
-		return subscriptionProtocol;
+		if(jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString().toUpperCase().equals("WSS")) return SubscriptionProtocol.WSS;
+		return SubscriptionProtocol.WS;
 	}
 }

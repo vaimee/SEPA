@@ -18,80 +18,78 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.util.concurrent.Semaphore;
-
+import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 class UpdateProcessor implements UpdateProcessorMBean {
-	private static final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 
 	private final SPARQL11Protocol endpoint;
-	private final Semaphore endpointSemaphore;
 	private final SPARQL11Properties properties;
 
-	public UpdateProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
+	public UpdateProcessor(SPARQL11Properties properties) throws SEPAProtocolException {
 		this.endpoint = new SPARQL11Protocol();
-		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized InternalUpdateRequest preProcess(InternalUpdateRequest update) throws SEPAProcessingException {
-		return update;
+	public synchronized InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update)
+			throws QueryException {
+		return new InternalPreProcessedUpdateRequest(update);
 	}
 
-	public synchronized Response process(InternalUpdateRequest req) throws InterruptedException {
-		long start = Timings.getTime();
-
-		if (endpointSemaphore != null)
-			// TODO: timeout
-			endpointSemaphore.acquire();
-
-		// Authorized access to the endpoint
-		String authorizationHeader = null;
-		try {
-			// TODO: to implement also bearer authentication
-			AuthenticationProperties oauth = new AuthenticationProperties(properties.getJSAPFilename());
-			if (oauth.isEnabled())
-				authorizationHeader = oauth.getBasicAuthorizationHeader();
-		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn("Authorization header " + e.getMessage());
-		}
-
-		// UPDATE the endpoint
-		Response ret;
+	public synchronized Response process(InternalUpdateRequest req) throws SEPASecurityException {
+		// ENDPOINT UPDATE
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
-				req.getDefaultGraphUri(), req.getNamedGraphUri(), authorizationHeader,
-				UpdateProcessorBeans.getTimeout());
+				req.getDefaultGraphUri(), req.getNamedGraphUri(), req.getBasicAuthorizationHeader(),
+				UpdateProcessorBeans.getTimeout(),0);
 		logger.trace(request);
-		ret = endpoint.update(request);
 
-		if (endpointSemaphore != null)
-			endpointSemaphore.release();
-
-		long stop = Timings.getTime();
-		UpdateProcessorBeans.timings(start, stop);
-
-		logger.trace("Response: " + ret.toString());
-		Timings.log("UPDATE_PROCESSING_TIME", start, stop);
-
+		Response ret;
+		int n = 0;
+		do {
+			long start = Timings.getTime();
+			ret = endpoint.update(request);
+			long stop = Timings.getTime();
+			
+			UpdateProcessorBeans.timings(start, stop);
+			
+			logger.trace("Response: " + ret.toString());
+			Timings.log("UPDATE_PROCESSING_TIME", start, stop);
+			
+			n++;
+			
+			if (ret.isTimeoutError()) {
+				UpdateProcessorBeans.timedOutRequest();
+				logger.error("*TIMEOUT* ("+n+"/"+UpdateProcessorBeans.getTimeoutNRetry()+") "+req);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					logger.warn("Failed to sleep...");
+				}
+			}
+		} while(ret.isTimeoutError() && n < UpdateProcessorBeans.getTimeoutNRetry());
+		
+		if (ret.isTimeoutError()) {
+			logger.error("*** REQUEST ABORTED *** "+request);
+			UpdateProcessorBeans.abortedRequest();
+		}
+		
 		return ret;
 	}
 
@@ -153,5 +151,25 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	@Override
 	public String getUnitScale() {
 		return UpdateProcessorBeans.getUnitScale();
+	}
+
+	@Override
+	public int getTimeoutNRetry() {
+		return UpdateProcessorBeans.getTimeoutNRetry();
+	}
+
+	@Override
+	public void setTimeoutNRetry(int n) {
+		UpdateProcessorBeans.setTimeoutNRetry(n);
+	}
+
+	@Override
+	public long getTimedOutRequests() {
+		return UpdateProcessorBeans.getTimedOutRequests();
+	}
+
+	@Override
+	public long getAbortedRequests() {
+		return UpdateProcessorBeans.getAbortedRequests();
 	}
 }

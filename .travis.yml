@@ -1,5 +1,5 @@
 language: java
-
+dist: trusty
 cache:
   directories:
   - "$HOME/.m2"
@@ -20,13 +20,14 @@ jobs:
     - mvn package
     - cd engine/target
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
+    - cat endpoint.jpar
     - echo launching engine with this configuration
     - cat engine.jpar
-    - java -jar engine-0-SNAPSHOT.jar -engine=engine.jpar > log.txt &
+    - java -jar engine-0-SNAPSHOT.jar -engine engine.jpar > log.txt &
     - sleep 30
     - cd ../..
     script:
-    - mvn verify
+    - mvn verify -e
     after_failure:
     - "cat engine/target/log.txt"
   - stage: integrationSecure
@@ -37,7 +38,7 @@ jobs:
     - mvn package
     - cd engine/target
     - mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
-    - java -jar engine-0-SNAPSHOT.jar -engine=engine-secure.jpar > log.txt &
+    - java -jar engine-0-SNAPSHOT.jar -engine engine-secure.jpar > log.txt &
     - cat engine-secure.jpar
     - sleep 30
     - cd ../..

@@ -24,6 +24,7 @@ package it.unibo.arces.wot.sepa.commons.request;
 
 public abstract class Request {
 	protected long timeout = 5000;
+	protected long nRetry = 5;
 	protected String authorizationHeader = null;
 	
 	/** The sparql. */
@@ -40,8 +41,14 @@ public abstract class Request {
 	 *            The 'Basic' HTTP Authentication Scheme, https://tools.ietf.org/html/rfc7617
 	 */
 
-	public Request(String sparql,String auth,long timeout) {
+	public Request(String sparql,String auth,long timeout,long nRetry) {
 		this.sparql = sparql;
+		this.authorizationHeader = auth;
+		this.timeout = timeout;
+		this.nRetry = nRetry;
+	}
+	
+	public void setAuthorizationHeader(String auth) {
 		this.authorizationHeader = auth;
 	}
 
@@ -85,5 +92,13 @@ public abstract class Request {
 	
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
+	}
+	
+	public long getNRetry() {
+		return nRetry;
+	}
+
+	public void retry() {
+		this.nRetry--;	
 	}
 }
