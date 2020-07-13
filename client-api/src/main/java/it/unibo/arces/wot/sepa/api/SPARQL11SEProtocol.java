@@ -24,6 +24,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
@@ -31,7 +32,7 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 /**
  * This class implements the SPARQL 1.1 Secure event protocol with SPARQL 1.1
@@ -47,13 +48,13 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 	private final SubscriptionProtocol subscriptionProtocol;
 	
-	public SPARQL11SEProtocol(SubscriptionProtocol protocol) throws SEPAProtocolException {
+	public SPARQL11SEProtocol(SubscriptionProtocol protocol) throws SEPAProtocolException, SEPASecurityException {
 		super(null);
 		
 		this.subscriptionProtocol = protocol;
 	}
 	
-	public SPARQL11SEProtocol(SubscriptionProtocol protocol,SEPASecurityManager sm) throws SEPAProtocolException {
+	public SPARQL11SEProtocol(SubscriptionProtocol protocol,ClientSecurityManager sm) throws SEPAProtocolException, SEPASecurityException {
 		super(sm);
 		
 		this.subscriptionProtocol = protocol;

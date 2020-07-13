@@ -20,7 +20,7 @@ import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import static org.junit.Assert.assertFalse;
@@ -32,7 +32,7 @@ public class ITTyrusWebSocketClient {
 	protected static String url = null;
 	protected final Sync sync = new Sync();
 	
-	protected static SEPASecurityManager sm = null;
+	protected static ClientSecurityManager sm = null;
 
 	@BeforeClass
 	public static void init() {
@@ -53,7 +53,7 @@ public class ITTyrusWebSocketClient {
 
 			try {
 				sm = provider.buildSecurityManager();
-			} catch (SEPASecurityException e) {
+			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				assertFalse("Security exception " + e.getMessage(), false);
 			}
 		} else {
@@ -75,7 +75,7 @@ public class ITTyrusWebSocketClient {
 		for (int i = 0; i < n; i++) {
 			ClientManager client = ClientManager.createClient();
 			if (properties.isSecure()) {
-				SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext("TLSv1"));
+				SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext());
 				config.setHostVerificationEnabled(false);
 				client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, config);	
 			}

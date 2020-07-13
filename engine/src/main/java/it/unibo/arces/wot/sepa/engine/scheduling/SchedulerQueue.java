@@ -1,5 +1,24 @@
+/* Scheduling queues
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+//import java.util.Date;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -19,10 +38,8 @@ class SchedulerQueue {
 	// Requests
 	private final static LinkedBlockingQueue<ScheduledRequest> updates = new LinkedBlockingQueue<ScheduledRequest>();
 	private final static LinkedBlockingQueue<ScheduledRequest> queries = new LinkedBlockingQueue<ScheduledRequest>();
-	private final static LinkedBlockingQueue<ScheduledRequest> subscribesUnsubscribes = new LinkedBlockingQueue<ScheduledRequest>();
-	
-	// Broken subscriptions
-	private final static LinkedBlockingQueue<String> toBeKilled = new LinkedBlockingQueue<String>();
+	private final static LinkedBlockingQueue<ScheduledRequest> subscribes = new LinkedBlockingQueue<ScheduledRequest>();
+	private final static LinkedBlockingQueue<ScheduledRequest> unsubscribes = new LinkedBlockingQueue<ScheduledRequest>();
 	
 	// Responses
 	private final static LinkedBlockingQueue<ScheduledResponse> responses = new LinkedBlockingQueue<ScheduledResponse>();
@@ -30,7 +47,7 @@ class SchedulerQueue {
 	public SchedulerQueue(long size) {
 		// Initialize token jar
 		for (int i = 0; i < size; i++)
-			tokens.addElement(i);
+			tokens.addElement(i);	
 	}
 
 	/**
@@ -60,18 +77,21 @@ class SchedulerQueue {
 	 * @return true if success, false if the token to be released has not been
 	 *         acquired
 	 */
-	private synchronized void releaseToken(Integer token) {
+	private synchronized boolean releaseToken(Integer token) {
 		if (token == -1)
-			return;
+			return false;
 
 		if (tokens.contains(token)) {
-			logger.warn("Request to release a unused token: " + token + " (Available tokens: " + tokens.size() + ")");
+			logger.warn("Token #" + token + " is available (Available tokens: " + tokens.size() + ")");
+			return false;
 		} else {
 			tokens.insertElementAt(token, tokens.size());
 			logger.trace("Release token #" + token + " (Available: " + tokens.size() + ")");
 
 			SchedulerBeans.tokenLeft(tokens.size());
 		}
+		
+		return true;
 	}
 	
 	public ScheduledRequest addRequest(InternalRequest req,ResponseHandler handler) {
@@ -82,8 +102,8 @@ class SchedulerQueue {
 		
 		if (req.isUpdateRequest()) updates.add(request);
 		else if (req.isQueryRequest()) queries.add(request);
-		else if (req.isSubscribeRequest()) subscribesUnsubscribes.add(request);
-		else if (req.isUnsubscribeRequest())subscribesUnsubscribes.add(request);
+		else if (req.isSubscribeRequest()) subscribes.add(request);
+		else if (req.isUnsubscribeRequest())unsubscribes.add(request);
 		
 		return request;
 	}
@@ -96,24 +116,38 @@ class SchedulerQueue {
 		return queries.take();
 	}
 	
-	public ScheduledRequest waitSubscribeUnsubscribeRequest() throws InterruptedException {
-		return subscribesUnsubscribes.take();
+	public ScheduledRequest waitSubscribeRequest() throws InterruptedException {
+		return subscribes.take();
+	}
+	
+	public ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
+		return unsubscribes.take();
 	}
 	
 	public ScheduledResponse waitResponse() throws InterruptedException {
 		return responses.take();
 	}
 
-	public void addResponse(int token,Response res) {
-		releaseToken(token);
+	// Returns false if the corresponding token has not been released (e.g., a timeout has been triggered or the response received), true otherwise
+	public boolean addResponse(int token,Response res) {
+		if (!releaseToken(token)) return false;
 		responses.offer(new ScheduledResponse(token,res));
-	}	
-
-	public void killSpuid(String spuid) {
-		toBeKilled.offer(spuid);
+		return true;
 	}
 
-	public String waitSpuid2Kill() throws InterruptedException {
-		return toBeKilled.take();
+	public long getPendingUpdates() {
+		return updates.size();
+	}
+
+	public long getPendingQueries() {
+		return queries.size();
+	}
+
+	public long getPendingSubscribes() {
+		return subscribes.size();
+	}
+	
+	public long getPendingUnsubscribes() {
+		return unsubscribes.size();
 	}
 }

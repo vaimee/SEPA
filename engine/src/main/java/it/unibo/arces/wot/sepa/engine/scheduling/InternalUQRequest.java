@@ -1,28 +1,85 @@
+/* The engine internal abstract representation of a update or query request
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.http.HttpStatus;
+import org.apache.jena.query.QueryException;
+import org.apache.jena.query.QueryParseException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
+
 public abstract class InternalUQRequest extends InternalRequest {
-	protected String sparql;
-	protected String defaultGraphUri;
-	protected String namedGraphUri;
+	protected String arqDefaultGraphNodeUri = "urn:x-arq:DefaultGraphNode";
 	
-	public InternalUQRequest(String sparql,String defaultGraphUri,String namedGraphUri) {
+	protected final Logger logger = LogManager.getLogger();
+	
+	protected String sparql;
+	
+	protected Set<String> defaultGraphUri = new HashSet<String>();
+	protected Set<String> namedGraphUri = new HashSet<String>();
+	protected Set<String> rdfDataSet = new HashSet<String>();
+	
+	public InternalUQRequest(String sparql,Set<String> defaultGraphUri,Set<String> namedGraphUri,ClientAuthorization auth) throws QueryException {
+		super(auth);
+		
 		if (sparql == null) throw new IllegalArgumentException("SPARQL is null");
 		
-		this.sparql = sparql;
-		this.defaultGraphUri = defaultGraphUri;
-		this.namedGraphUri = namedGraphUri;
+		this.sparql = evaluateFunctions(sparql);
+		
+		logger.debug("getGraphURIs");
+		rdfDataSet = getGraphURIs(sparql);
+		logger.debug("Graphs: "+ rdfDataSet);
+		
+		if (defaultGraphUri != null) this.defaultGraphUri = defaultGraphUri;
+		if (namedGraphUri != null) this.namedGraphUri = namedGraphUri;
+		
+		if(!this.defaultGraphUri.isEmpty() && !rdfDataSet.isEmpty()) throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"using-graph-uri conflicts with USING, USING NAMED or WITH");
+		if(!this.namedGraphUri.isEmpty() && !rdfDataSet.isEmpty()) throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"using-named-graph-uri conflicts with USING, USING NAMED or WITH");
+	
+		rdfDataSet.addAll(this.defaultGraphUri);
+		rdfDataSet.addAll(this.namedGraphUri);
 	}
+	
+	protected abstract Set<String> getGraphURIs(String sparql) throws QueryParseException;
 	
 	public String getSparql() {
 		return sparql;
 	}
 	
-	public String getDefaultGraphUri() {
+	public Set<String> getDefaultGraphUri() {
 		return defaultGraphUri;
 	}
 	
-	public String getNamedGraphUri() {
+	public Set<String> getNamedGraphUri() {
 		return namedGraphUri;
+	}
+	
+	public Set<String> getRdfDataSet() {
+		return rdfDataSet;
 	}
 	
 	@Override
@@ -33,5 +90,43 @@ public abstract class InternalUQRequest extends InternalRequest {
 	@Override
 	public boolean equals(Object obj) {
 		return sparql.equals(((InternalUQRequest)obj).sparql);
+	}
+	
+	/* Override the SPARQL now() function to return the current UTC time as xsd:dateTimeStamp
+	 
+	 https://www.w3.org/TR/sparql11-query/#func-now
+	 
+	 17.4.5.1 now
+ 		
+ 		xsd:dateTime  NOW ()
+
+		Returns an XSD dateTime value for the current query execution. 
+		All calls to this function in any one query execution must return the same value. 
+		The exact moment returned is not specified.
+
+		now()	"2011-01-10T14:45:13.815-05:00"^^xsd:dateTime
+		
+	https://www.w3.org/TR/xmlschema11-2/#dateTime
+	
+	3.3.7 dateTime
+
+		dateTime represents instants of time, optionally marked with a particular time zone offset.  
+		
+		Values representing the same instant but having different time zone offsets are equal but not identical.
+
+	https://www.w3.org/TR/xmlschema11-2/#dateTimeStamp
+
+	3.4.28 dateTimeStamp
+		[Definition:]   The dateTimeStamp datatype is ·derived· from dateTime by giving the value required to its explicitTimezone facet. 
+		The result is that all values of dateTimeStamp are required to have explicit time zone offsets and the datatype is totally ordered.
+
+	 * */
+	private String evaluateFunctions(String sparql) {
+		OffsetDateTime utc = OffsetDateTime.now(ZoneOffset.UTC);
+		String timestamp = "'" + utc.toString() + "'^^xsd:dateTimeStamp";
+		
+		String temp = sparql.replace("now()", timestamp);
+		
+		return temp;		
 	}
 }
