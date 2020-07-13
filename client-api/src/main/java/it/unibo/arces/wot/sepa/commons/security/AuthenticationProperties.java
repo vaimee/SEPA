@@ -1,6 +1,25 @@
+/* Authentication properties which includes the token for OAuth 2.0 authorization
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.commons.security;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -26,6 +45,7 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
  * <pre>
 	"oauth": {
 		"enable" : true,
+		"ssl" : "TLSv1.2",
 		"register": "https://localhost:8443/oauth/register",
 		"tokenRequest": "https://localhost:8443/oauth/token",
 		"client_id": "jaJBrmgtqgW9jTLHeVbzSCH6ZIN1Qaf3XthmwLxjhw3WuXtt7VELmfibRNvOdKLs",
@@ -43,7 +63,7 @@ public class AuthenticationProperties {
 	private static final Logger logger = LogManager.getLogger();
 
 	/** The properties file. */
-	protected final File propertiesFile;
+//	protected final File propertiesFile;
 
 	private final Encryption encryption;
 
@@ -58,66 +78,88 @@ public class AuthenticationProperties {
 	private String jwt = null;
 	private long expires = -1;
 	private String type = null;
+	
+	private String ssl = "TLS";
+	private boolean trustAll = false;
 
-	public AuthenticationProperties(String jsapFileName, byte[] secret) throws SEPAPropertiesException {
+	private File propertiesFile;
+
+	public AuthenticationProperties(String jsapFileName, byte[] secret) throws SEPAPropertiesException, SEPASecurityException {
 		propertiesFile = new File(jsapFileName);
 
+		FileReader in;
 		try {
-			FileReader in = new FileReader(propertiesFile);
-			JsonObject jsap = new JsonParser().parse(in).getAsJsonObject();
+			in = new FileReader(propertiesFile);
+		} catch (FileNotFoundException e) {
+			throw new SEPAPropertiesException("FileNotFoundException. "+e.getMessage());
+		}
+		
+		JsonObject jsap = new JsonParser().parse(in).getAsJsonObject();
+		
+		try {
 			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException("IOException. "+e.getMessage());
+		}
+
+		if (secret != null)
+			encryption = new Encryption(secret);
+		else
+			encryption = new Encryption();
+
+		if (jsap.has("oauth")) {
+			JsonObject oauthJsonObject = jsap.getAsJsonObject("oauth");
 			
-			if (secret != null)
-				encryption = new Encryption(secret);
-			else
-				encryption = new Encryption();
-
-			if (jsap.has("oauth")) {
-				JsonObject oauthJsonObject = jsap.getAsJsonObject("oauth");
-				if (oauthJsonObject.has("enable"))
-					enabled = oauthJsonObject.get("enable").getAsBoolean();
-				else {
-					enabled = false;
-				}
-
-				if (enabled) {
-					registrationURL = oauthJsonObject.get("register").getAsString();
-					tokenRequestURL = oauthJsonObject.get("tokenRequest").getAsString();
-
-					if (oauthJsonObject.has("client_id"))
-						clientId = encryption.decrypt(oauthJsonObject.get("client_id").getAsString());
-					if (oauthJsonObject.has("client_secret"))
-						clientSecret = encryption.decrypt(oauthJsonObject.get("client_secret").getAsString());
-					if (oauthJsonObject.has("jwt"))
-						jwt = encryption.decrypt(oauthJsonObject.get("jwt").getAsString());
-					if (oauthJsonObject.has("expires"))
-						expires = Long.decode(encryption.decrypt(oauthJsonObject.get("expires").getAsString()));
-					if (oauthJsonObject.has("type"))
-						type = encryption.decrypt(oauthJsonObject.get("type").getAsString());
-
-				} else {
-					registrationURL = null;
-					tokenRequestURL = null;
-				}
-			} else {
+			if (oauthJsonObject.has("enable"))
+				enabled = oauthJsonObject.get("enable").getAsBoolean();
+			else {
 				enabled = false;
+			}
+			
+			if (oauthJsonObject.has("trustall"))
+				trustAll = oauthJsonObject.get("trustall").getAsBoolean();
+			else {
+				trustAll = false;
+			}
+			
+			if (oauthJsonObject.has("ssl")) ssl = oauthJsonObject.get("ssl").getAsString();
+
+			if (enabled) {
+				registrationURL = oauthJsonObject.get("register").getAsString();
+				tokenRequestURL = oauthJsonObject.get("tokenRequest").getAsString();
+				//ssl = oauthJsonObject.get("ssl").getAsString();
+
+				if (oauthJsonObject.has("client_id"))
+					clientId = encryption.decrypt(oauthJsonObject.get("client_id").getAsString());
+				if (oauthJsonObject.has("client_secret"))
+					clientSecret = encryption.decrypt(oauthJsonObject.get("client_secret").getAsString());
+				if (oauthJsonObject.has("jwt"))
+					jwt = encryption.decrypt(oauthJsonObject.get("jwt").getAsString());
+				if (oauthJsonObject.has("expires"))
+					expires = Long.decode(encryption.decrypt(oauthJsonObject.get("expires").getAsString()));
+				if (oauthJsonObject.has("type"))
+					type = encryption.decrypt(oauthJsonObject.get("type").getAsString());
+
+			} else {
 				registrationURL = null;
 				tokenRequestURL = null;
 			}
-		} catch (Exception e) {
-			throw new SEPAPropertiesException(e.getMessage());
+		} else {
+			enabled = false;
+			registrationURL = null;
+			tokenRequestURL = null;
 		}
+
 	}
 
-	public AuthenticationProperties(String jsapFileName) throws SEPAPropertiesException, SEPASecurityException {
-		this(jsapFileName, null);
+	public AuthenticationProperties(String jsap) throws SEPAPropertiesException, SEPASecurityException {
+		this(jsap, null);
 	}
 
 	public AuthenticationProperties() {
 		enabled = false;
 		registrationURL = null;
 		tokenRequestURL = null;
-		propertiesFile = null;
 		encryption = new Encryption();
 	}
 
@@ -134,50 +176,18 @@ public class AuthenticationProperties {
 	}
 
 	/**
-	 * Checks if is token expired.
-	 *
-	 * @return true, if is token expired
-	 * @throws SEPASecurityException
-	 * @throws NumberFormatException
-	 */
-	public synchronized boolean isTokenExpired() {
-		return getExpiringTime() == 0;
-	}
-
-	/**
-	 * Gets the expiring seconds.
-	 *
-	 * @return the expiring seconds
-	 * @throws SEPASecurityException
-	 * @throws NumberFormatException
-	 */
-	public synchronized long getExpiringTime() {
-		try {
-			long now = new Date().getTime();
-
-			logger.trace("@getExpiringTime Diff:" + (expires - now) + " Now: " + now + " Expires: " + expires);
-
-			if (expires - now < 0)
-				return 0;
-			return expires - now;
-		} catch (Exception e) {
-			return 0;
-		}
-	}
-
-	/**
 	 * Gets the access token.
 	 *
 	 * @return the access token
 	 */
-	public synchronized String getBearerAuthorizationHeader() {
+	public String getBearerAuthorizationHeader() {
 		if (jwt != null)
 			return "Bearer " + jwt;
 		else
 			return null;
 	}
 
-	public synchronized String getToken() {
+	public String getToken() {
 		return jwt;
 	}
 
@@ -186,7 +196,7 @@ public class AuthenticationProperties {
 	 *
 	 * @return the token type
 	 */
-	public synchronized String getTokenType() {
+	public String getTokenType() {
 		return type;
 	}
 
@@ -196,7 +206,7 @@ public class AuthenticationProperties {
 	 * @return the basic authorization
 	 * @throws SEPASecurityException
 	 */
-	public synchronized String getBasicAuthorizationHeader() throws SEPASecurityException {
+	public String getBasicAuthorizationHeader() throws SEPASecurityException {
 		if (clientId != null && clientSecret != null) {
 			String plainString = clientId + ":" + clientSecret;
 			try {
@@ -214,12 +224,20 @@ public class AuthenticationProperties {
 	 * @param id     the username
 	 * @param secret the password
 	 */
-	public synchronized void setCredentials(String id, String secret)
-			throws SEPAPropertiesException, SEPASecurityException {
-		logger.debug("@setCredentials Id: " + id + " Secret:" + secret);
+	public void setCredentials(String id, String secret) throws SEPAPropertiesException, SEPASecurityException {
+		//logger.debug("@setCredentials Id: " + id + " Secret:" + secret);
 
 		clientId = id;
 		clientSecret = secret;
+	}
+	
+	public boolean isClientRegistered() {
+		return clientId != null && clientSecret != null;
+	}
+	
+	public boolean isTokenExpired() {
+		if (expires < 0 || jwt == null) return true;
+		return expires > new Date().getTime();
 	}
 
 	/**
@@ -247,16 +265,24 @@ public class AuthenticationProperties {
 	 * @throws IOException             Signals that an I/O exception has occurred.
 	 */
 	public void storeProperties() throws SEPAPropertiesException, SEPASecurityException {
-		if (propertiesFile == null) return;
-		
-		try {	
+		if (propertiesFile == null)
+			return;
+
+		try {
 			FileReader in = new FileReader(propertiesFile);
 			JsonObject jsap = new JsonParser().parse(in).getAsJsonObject();
 			in.close();
-			
+
 			jsap.add("oauth", new JsonObject());
 			jsap.getAsJsonObject("oauth").add("enable", new JsonPrimitive(enabled));
+			
+			if (ssl != null) {
+				jsap.getAsJsonObject("oauth").add("ssl", new JsonPrimitive(ssl));
+			}
 
+			jsap.getAsJsonObject("oauth").add("trustall", new JsonPrimitive(trustAll));
+			
+			
 			if (registrationURL != null)
 				jsap.getAsJsonObject("oauth").add("register", new JsonPrimitive(registrationURL));
 			if (tokenRequestURL != null)
@@ -280,5 +306,17 @@ public class AuthenticationProperties {
 		} catch (IOException e) {
 			throw new SEPAPropertiesException(e);
 		}
+	}
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public String getSSLProtocol() {
+		return ssl;
+	}
+
+	public boolean trustAll() {
+		return trustAll;
 	}
 }

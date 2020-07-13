@@ -1,3 +1,21 @@
+/* Websocket protocol implementation over SSL
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.gates.websocket;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
@@ -10,11 +28,9 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.gates.SecureWebsocketGate;
-import it.unibo.arces.wot.sepa.engine.gates.WebsocketGate;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class SecureWebsocketServer extends WebsocketServer {
-	//private final static Logger logger = LogManager.getLogger();
 
 	@Override
 	protected String getWelcomeMessage() {
@@ -42,7 +58,7 @@ public class SecureWebsocketServer extends WebsocketServer {
 
 		// Add new gate
 		synchronized (gates) {
-			WebsocketGate handler = new SecureWebsocketGate(conn, scheduler);
+			SecureWebsocketGate handler = new SecureWebsocketGate(conn, scheduler);
 			gates.put(conn, handler);
 
 			fragmentedMessages.put(conn, null);

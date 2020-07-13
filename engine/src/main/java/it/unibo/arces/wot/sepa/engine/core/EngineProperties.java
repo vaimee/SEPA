@@ -35,31 +35,34 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 	"parameters": {
 		"scheduler": {
 			"queueSize": 100,
-			"timeout" : 5000
+			"timeout": 3000
 		},
 		"processor": {
-			"updateTimeout": 60000,
-			"queryTimeout": 60000,
+			"updateTimeout": 5000,
+			"queryTimeout": 5000,
 			"maxConcurrentRequests": 5
 		},
 		"spu": {
-			"timeout": 5000
+			"timeout": 2000
 		},
 		"gates": {
-			"secure": false,
+			"security": {
+				"enabled" : true,
+				"ldap" : true
+			},
+			"ports": {
+				"http": 8000,
+				"ws": 9000,
+				"https": 8443,
+				"wss": 9443
+			},
 			"paths": {
-				"securePath": "/secure",
 				"update": "/update",
 				"query": "/query",
 				"subscribe": "/subscribe",
 				"register": "/oauth/register",
-				"tokenRequest": "/oauth/token"
-			},
-			"ports": {
-				"http": 8000,
-				"https": 8443,
-				"ws": 9000,
-				"wss": 9443
+				"tokenRequest": "/oauth/token",
+				"securePath": "/secure"
 			}
 		}
 	}
@@ -77,7 +80,7 @@ public class EngineProperties {
 
 	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		EngineProperties result = EngineProperties.load(propertiesFile);
-		result.parameters.gates.secure = secure;
+		result.parameters.gates.security.enabled = secure;
 		return result;
 	}
 
@@ -131,8 +134,9 @@ public class EngineProperties {
 		result.parameters.spu.timeout = 5000;
 
 		// Gates
-		result.parameters.gates.secure = false;
-
+		result.parameters.gates.security.enabled = false;
+		result.parameters.gates.security.ldap = false;
+		
 		// Gates -> Ports
 		result.parameters.gates.ports.http = 8000;
 		result.parameters.gates.ports.https = 8443;
@@ -157,9 +161,13 @@ public class EngineProperties {
 	}
 
 	public boolean isSecure() {
-		return this.parameters.gates.secure;
+		return this.parameters.gates.security.enabled;
 	}
-
+	
+	public boolean isLDAPEnabled() {
+		return this.parameters.gates.security.ldap;
+	}
+	
 	public int getMaxConcurrentRequests() {
 		return this.parameters.processor.maxConcurrentRequests;
 	}
@@ -231,20 +239,12 @@ public class EngineProperties {
 	public int getSchedulerTimeout() {
 		return this.parameters.scheduler.timeout;
 	}
-
+	
 	static private class Parameters {
 		public Scheduler scheduler = new Scheduler();
 		public Processor processor = new Processor();
 		public Spu spu = new Spu();
 		public Gates gates = new Gates();
-
-		public Parameters(){
-			scheduler = new Scheduler();
-			processor = new Processor();
-			spu = new Spu();
-			gates = new Gates();
-		}
-
 	}
 
 	static private class Scheduler {
@@ -278,12 +278,21 @@ public class EngineProperties {
 			timeout = 5000;
 		}
 	}
+	
+	static private class Security {
+		public boolean enabled;
+		public boolean ldap;
+		
+		public Security(){
+			enabled = false;
+			ldap = false;
+		}
+	}
 
 	static private class Gates {
-		public boolean secure;
+		public Security security = new Security();
 		public Paths paths = new Paths();
 		public Ports ports = new Ports();
-
 	}
 
 	static private class Paths {
@@ -319,5 +328,5 @@ public class EngineProperties {
 			wss   = 9443;
 		}
 	}
-
+	
 }

@@ -18,22 +18,18 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.util.concurrent.Semaphore;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
@@ -41,59 +37,53 @@ public class QueryProcessor implements QueryProcessorMBean {
 	protected static final Logger logger = LogManager.getLogger();
 
 	protected final SPARQL11Protocol endpoint;
-	protected final Semaphore endpointSemaphore;
 	protected final SPARQL11Properties properties;
 
-	public QueryProcessor(SPARQL11Properties properties, Semaphore endpointSemaphore) throws SEPAProtocolException {
+	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException {
 		this.endpoint = new SPARQL11Protocol();
-		//this.endpoint = new JenaSparql11Service();
-		this.endpointSemaphore = endpointSemaphore;
 		this.properties = properties;
 		
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public Response process(InternalQueryRequest req) {
-		long start = Timings.getTime();
-
-		if (endpointSemaphore != null)
-			try {
-				//TODO: timeout
-				endpointSemaphore.acquire();
-			} catch (InterruptedException e) {
-				return new ErrorResponse(500, "InterruptedException",e.getMessage());
-			}
-
-		// Authorized access to the endpoint
-		String authorizationHeader = null;
-		AuthenticationProperties oauth = null;
-		try {
-			// TODO: to implement also bearer authentication
-			oauth = new AuthenticationProperties(properties.getJSAPFilename());
-			if (oauth.isEnabled())
-				authorizationHeader = oauth.getBasicAuthorizationHeader();
-		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			logger.warn("Endpoint authorization: "+e.getMessage());
-		}
-
-		Response ret;
+	public Response process(InternalQueryRequest req) throws SEPASecurityException {
+		// Build the request
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getQueryPath(),
 				req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
-				authorizationHeader,QueryProcessorBeans.getTimeout());
-
-		ret = endpoint.query(request);
-
-		if (endpointSemaphore != null)
-			endpointSemaphore.release();
-
-		long stop = Timings.getTime();
+				req.getBasicAuthorizationHeader(),req.getInternetMediaType(),QueryProcessorBeans.getTimeout(),0);
 		
-		logger.trace("Response: " + ret.toString());
-		Timings.log("QUERY_PROCESSING_TIME", start, stop);
-		QueryProcessorBeans.timings(start, stop);
-
+		int n = 0;
+		Response ret;
+		do {
+			long start = Timings.getTime();
+			ret = endpoint.query(request);
+			long stop = Timings.getTime();
+			
+			UpdateProcessorBeans.timings(start, stop);
+			logger.trace("Response: " + ret.toString());
+			Timings.log("QUERY_PROCESSING_TIME", start, stop);
+			
+			n++;
+			
+			if (ret.isTimeoutError()) {
+				QueryProcessorBeans.timedOutRequest();
+				logger.error("*** TIMEOUT *** ("+n+"/"+QueryProcessorBeans.getTimeoutNRetry()+") "+req);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					logger.warn("Failed to sleep...");
+				}
+			}
+		} while(ret.isTimeoutError() && n < QueryProcessorBeans.getTimeoutNRetry());
+		
+		// Request ABORTED
+		if (ret.isTimeoutError()) {
+			logger.error("*** REQUEST ABORTED *** "+request);
+			QueryProcessorBeans.abortedRequest();
+		}
+		
 		return ret;
 	}
 
@@ -156,5 +146,25 @@ public class QueryProcessor implements QueryProcessorMBean {
 	@Override
 	public String getUnitScale() {
 		return QueryProcessorBeans.getUnitScale();
+	}
+
+	@Override
+	public int getTimeoutNRetry() {
+		return QueryProcessorBeans.getTimeoutNRetry();
+	}
+
+	@Override
+	public void setTimeoutNRetry(int n) {
+		QueryProcessorBeans.setTimeoutNRetry(n);
+	}
+
+	@Override
+	public long getTimedOutRequests() {
+		return QueryProcessorBeans.getTimedOutRequests();
+	}
+
+	@Override
+	public long getAbortedRequests() {
+		return QueryProcessorBeans.getAbortedRequests();
 	}
 }

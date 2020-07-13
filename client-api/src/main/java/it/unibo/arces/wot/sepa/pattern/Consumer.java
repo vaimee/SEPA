@@ -24,7 +24,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
-import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
@@ -36,19 +35,23 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public abstract class Consumer extends Client implements IConsumer {
-	private static final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 
-	protected String sparqlSubscribe = null;
-	protected String subID = "";
-	private Bindings forcedBindings;
+	private long TIMEOUT = 60000;
+	private long NRETRY = 0;
+	
+	private final String sparqlSubscribe;	
+	private final String subID;
+	private final ForcedBindings forcedBindings;
+	private boolean subscribed = false;
+	private final SPARQL11SEProtocol client;
 
-	protected SPARQL11SEProtocol client;
-
-	public Consumer(JSAP appProfile, String subscribeID, SEPASecurityManager sm)
+	public Consumer(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile,sm);
 
@@ -67,7 +70,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		
 		sparqlSubscribe = appProfile.getSPARQLQuery(subscribeID);
 
-		forcedBindings = appProfile.getQueryBindings(subscribeID);
+		forcedBindings = (ForcedBindings) appProfile.getQueryBindings(subscribeID);
 
 		if (sparqlSubscribe == null) {
 			logger.fatal("SPARQL subscribe is null");
@@ -77,9 +80,9 @@ public abstract class Consumer extends Client implements IConsumer {
 		// Subscription protocol
 		SubscriptionProtocol protocol = null;
 		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
-				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID));
-		protocol.setHandler(this);
-		if (appProfile.isSecure()) protocol.enableSecurity(sm);
+				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID),this,sm);
+//		protocol.setHandler(this);
+//		if (appProfile.isSecure()) protocol.enableSecurity(sm);
 
 		client = new SPARQL11SEProtocol(protocol,sm);
 	}
@@ -88,17 +91,28 @@ public abstract class Consumer extends Client implements IConsumer {
 		forcedBindings.setBindingValue(variable, value);
 	}
 
-	public final void subscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+	public final void subscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+		subscribe(TIMEOUT, NRETRY);
+	}
+	
+	public final void subscribe(long timeout,long nRetry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		String authorizationHeader = null;
+		
+		this.TIMEOUT = timeout;
+		this.NRETRY = nRetry;
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
 		client.subscribe(new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparqlSubscribe, addDefaultDatatype(forcedBindings,subID,true)), null, appProfile.getDefaultGraphURI(subID),
 				appProfile.getNamedGraphURI(subID),
-				authorizationHeader,timeout));
+				authorizationHeader,timeout,nRetry));
 	}
 
-	public final void unsubscribe(long timeout) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
+	public final void unsubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
+		unsubscribe(TIMEOUT, NRETRY);
+	}
+	
+	public final void unsubscribe(long timeout,long nRetry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		logger.debug("UNSUBSCRIBE " + subID);
 
 		String authorizationHeader = null;
@@ -106,7 +120,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
 		client.unsubscribe(
-				new UnsubscribeRequest(subID, authorizationHeader,timeout));
+				new UnsubscribeRequest(subID, authorizationHeader,timeout,nRetry));
 	}
 
 	@Override
@@ -114,8 +128,12 @@ public abstract class Consumer extends Client implements IConsumer {
 		client.close();
 	}
 
+	public boolean isSubscribed() {
+		return subscribed;
+	}
+	
 	@Override
-	public void onSemanticEvent(Notification notify) {		
+	public final void onSemanticEvent(Notification notify) {		
 		ARBindingsResults results = notify.getARBindingsResults();
 
 		BindingsResults added = results.getAddedBindings();
@@ -135,5 +153,89 @@ public abstract class Consumer extends Client implements IConsumer {
 			onAddedResults(added);
 		if (!removed.isEmpty())
 			onRemovedResults(removed);
+	}
+	
+	@Override
+	public void onBrokenConnection(ErrorResponse errorResponse) {
+		logger.warn("onBrokenConnection");
+		subscribed = false;
+		
+		// Auto reconnection mechanism
+		if (appProfile.reconnect()) {
+			while(!subscribed) {
+				try {
+					subscribe(TIMEOUT,NRETRY);
+				} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
+						| SEPABindingsException e) {
+					logger.error(e.getMessage());
+					if (logger.isTraceEnabled()) e.printStackTrace();
+				}
+				try {
+					synchronized (client) {
+						client.wait(TIMEOUT);	
+					}
+				} catch (InterruptedException e) {
+					logger.error(e.getMessage());
+					if (logger.isTraceEnabled()) e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	@Override
+	public void onError(ErrorResponse errorResponse) {
+		logger.error(errorResponse);
+		logger.error("Subscribed: "+subscribed+ " Token expired: "+errorResponse.isTokenExpiredError()+" SM: "+(sm != null));
+		if (!subscribed && errorResponse.isTokenExpiredError() && sm != null) {
+			try {
+				logger.info("refreshToken");
+				sm.refreshToken();
+			} catch (SEPAPropertiesException | SEPASecurityException e) {
+				logger.error("Failed to refresh token "+e.getMessage());
+			}
+			
+			try {
+				logger.debug("subscribe");
+				subscribe(TIMEOUT,0);
+			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
+					| SEPABindingsException e) {
+				logger.error("Failed to subscribe "+e.getMessage());
+			}
+		}
+	}
+
+	@Override
+	public void onSubscribe(String spuid, String alias) {
+		synchronized(client) {
+			logger.debug("onSubscribe");
+			subscribed = true;
+			client.notify();
+		}
+	}
+
+	@Override
+	public void onUnsubscribe(String spuid) {
+		logger.debug("onUnsubscribe");
+		subscribed = false;		
+	}
+	
+	@Override
+	public void onAddedResults(BindingsResults results) {
+		logger.debug("Added results "+results);
+	}
+
+	@Override
+	public void onRemovedResults(BindingsResults results) {
+		logger.debug("Removed results "+results);
+	}
+	
+	@Override
+	public void onResults(ARBindingsResults results) {
+		logger.debug("Results "+results);
+	}
+
+	@Override
+	public void onFirstResults(BindingsResults results) {
+		logger.debug("First results "+results);
 	}
 }
