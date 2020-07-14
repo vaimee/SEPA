@@ -35,6 +35,17 @@ public class ConsumerTestUnit extends Consumer {
 		}
 	}
 	
+	public void syncUnsubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
+		logger.debug("unsubscribe");
+		
+		super.unsubscribe();
+		
+		synchronized(this) {
+			while (isSubscribed()) wait();
+			logger.debug("ussubscribed");
+		}
+	}
+	
 	public void waitNotification() throws InterruptedException {
 		synchronized(this) {
 			logger.debug("waitNotification");

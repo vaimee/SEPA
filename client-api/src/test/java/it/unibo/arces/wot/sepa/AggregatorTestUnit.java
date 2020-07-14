@@ -58,6 +58,17 @@ public class AggregatorTestUnit extends Aggregator {
 		}
 	}
 	
+	public void syncUnsubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+		logger.debug("unsubscribe");
+		
+		super.unsubscribe();
+		
+		synchronized(this) {
+			while (isSubscribed()) wait();
+			logger.debug("unsubscribed");
+		}
+	}
+	
 	public void waitNotification() throws InterruptedException {
 		synchronized(this) {
 			logger.debug("waitNotification");

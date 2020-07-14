@@ -48,6 +48,11 @@ public abstract class Request {
 		this.nRetry = nRetry;
 	}
 	
+	public Request(String sparql,String auth) {
+		this.sparql = sparql;
+		this.authorizationHeader = auth;
+	}
+	
 	public void setAuthorizationHeader(String auth) {
 		this.authorizationHeader = auth;
 	}

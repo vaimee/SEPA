@@ -15,12 +15,10 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class Subscriber extends Thread implements ISubscriptionHandler, Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
-	private final ClientSecurityManager sm;
 	private final SPARQL11SEProtocol client;
 	private final String id;
 	private final Sync sync;
@@ -35,11 +33,8 @@ public class Subscriber extends Thread implements ISubscriptionHandler, Closeabl
 		this.id = id;
 		this.sync = sync;
 		
-		if (provider.getJsap().isSecure()) sm = provider.buildSecurityManager();
-		else sm = null;
-		
 		SubscriptionProtocol protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(),this,sm);
+					provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(),this,provider.getSecurityManager());
 
 		client = new SPARQL11SEProtocol(protocol);
 	}
@@ -47,7 +42,7 @@ public class Subscriber extends Thread implements ISubscriptionHandler, Closeabl
 	public void run() {
 		if(provider.getJsap().isSecure()){
 			try {
-				sm.register("SEPATest");
+				provider.getSecurityManager().register("SEPATest");
 			} catch (SEPASecurityException | SEPAPropertiesException  e) {
 				logger.error(e);
 			}
@@ -72,11 +67,11 @@ public class Subscriber extends Thread implements ISubscriptionHandler, Closeabl
 	}
 
 	private void subscribe() throws SEPAProtocolException, InterruptedException {
-		client.subscribe(provider.buildSubscribeRequest(id, sm, 5000, 0));
+		client.subscribe(provider.buildSubscribeRequest(id));
 	}
 
-	public void unsubscribe(String spuid) throws SEPAProtocolException, InterruptedException {
-		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, sm, 5000, 0));
+	public void unsubscribe() throws SEPAProtocolException, InterruptedException {
+		client.unsubscribe(provider.buildUnsubscribeRequest(sync.getSpuid()));
 	}
 
 	@Override
@@ -98,7 +93,7 @@ public class Subscriber extends Thread implements ISubscriptionHandler, Closeabl
 			// Expired token
 			try {
 				logger.error("Token expired. Refreshing token and subscribe again");
-				sm.refreshToken();
+				provider.getSecurityManager().refreshToken();
 				subscribe();
 			} catch (SEPAProtocolException | InterruptedException | SEPAPropertiesException | SEPASecurityException e) {
 				logger.error("Failed to subscribe after token expired "+e.getMessage());
