@@ -2,6 +2,7 @@ package it.unibo.arces.wot.sepa.api.protocol.websocket;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.HashSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,27 +13,28 @@ import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProt
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.Notification;
 
-class Subscriber extends Thread implements Closeable {
+class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
 	private final WebsocketSubscriptionProtocol client;
 	private int n;
 
 	private static ConfigurationProvider provider;
 
 	protected final Logger logger = LogManager.getLogger();
-	protected ClientSecurityManager sm = null;
+	
+	private ISubscriptionHandler handler;
+	
+	private HashSet<String> spuids = new HashSet<>();
 	
 	public Subscriber(int n, ISubscriptionHandler handler) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		provider = new ConfigurationProvider();
-
-		if (provider.getJsap().isSecure())
-			sm = provider.buildSecurityManager();
-		else
-			sm = null;
+		
+		this.handler = handler;
 		
 		client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), handler,sm);
+				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this,provider.getSecurityManager());
 		
 		this.n = n;
 	}
@@ -40,14 +42,15 @@ class Subscriber extends Thread implements Closeable {
 	public void run() {
 		if (provider.getJsap().isSecure()) {
 			try {
-				sm.register("SEPATest");
+				provider.getSecurityManager().register("SEPATest");
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e);
 			}
 		}
+		
 		for (int j = 0; j < n; j++) {
 			try {
-				client.subscribe(provider.buildSubscribeRequest("RANDOM", sm, provider.getTimeout(), provider.getNRetry()));
+				client.subscribe(provider.buildSubscribeRequest("RANDOM"));
 			} catch (SEPAProtocolException e) {
 				logger.error(e.getMessage());
 			}
@@ -67,13 +70,39 @@ class Subscriber extends Thread implements Closeable {
 		}
 	}
 
-	public void unsubscribe(String spuid) throws SEPAProtocolException {
-		client.unsubscribe(provider.buildUnsubscribeRequest(spuid, sm, provider.getTimeout(), provider.getNRetry()));
+	public void unsubscribe() throws SEPAProtocolException {
+		for (String spuid : spuids) client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
 	}
 
 	@Override
 	public void close() throws IOException {
 		n = 0;
 		interrupt();
+	}
+
+	@Override
+	public void onSemanticEvent(Notification notify) {
+		handler.onSemanticEvent(notify);	
+	}
+
+	@Override
+	public void onBrokenConnection(ErrorResponse errorResponse) {
+		handler.onBrokenConnection(errorResponse);
+	}
+
+	@Override
+	public void onError(ErrorResponse errorResponse) {
+		handler.onError(errorResponse);
+	}
+
+	@Override
+	public void onSubscribe(String spuid, String alias) {
+		handler.onSubscribe(spuid, alias);
+		spuids.add(spuid);
+	}
+
+	@Override
+	public void onUnsubscribe(String spuid) {
+		handler.onUnsubscribe(spuid);
 	}
 }

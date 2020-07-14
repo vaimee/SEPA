@@ -20,12 +20,11 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 
 public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	protected final Logger logger = LogManager.getLogger();
-	
+
 	private static Sync sync = new Sync();
-	private String spuid = null;
-	
+
 	private HashSet<Subscriber> subscribers = new HashSet<Subscriber>();
-	
+
 	@BeforeClass
 	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 
@@ -38,25 +37,27 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	}
 
 	@After
-	public void after() throws IOException {
-		for (Subscriber s : subscribers) s.close();
+	public void after() throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		for (Subscriber s : subscribers)
+			s.close();
 	}
 
-	@Test (timeout = 5000)
+	@Test(timeout = 5000)
 	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
-		Subscriber s = new Subscriber(1,this);
+		Subscriber s = new Subscriber(1, this);
 		subscribers.add(s);
 		s.start();
 
-		sync.waitSubscribes(1);	
+		sync.waitSubscribes(1);
 	}
 
-	@Test (timeout = 5000)
-	public void MultipleSubscribes() throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
+	@Test(timeout = 5000)
+	public void MultipleSubscribes()
+			throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		int n = 10;
 
 		for (int i = 0; i < n; i++) {
-			Subscriber s = new Subscriber(1,this);
+			Subscriber s = new Subscriber(1, this);
 			subscribers.add(s);
 			s.start();
 		}
@@ -64,31 +65,31 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 		sync.waitSubscribes(n);
 	}
 
-	@Test (timeout = 5000)
-	public void MultipleClientsAndMultipleSubscribes() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
+	@Test //(timeout = 10000)
+	public void MultipleClientsAndMultipleSubscribes()
+			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		int n = 5;
 		int m = 5;
 
 		for (int i = 0; i < m; i++) {
-			Subscriber s = new Subscriber(n,this);
+			Subscriber s = new Subscriber(n, this);
 			subscribers.add(s);
 			s.start();
 		}
 
-		sync.waitSubscribes(n*m);
+		sync.waitSubscribes(n * m);
 	}
 
-	@Test (timeout = 5000)
-	public void SubscribeAndUnsubscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
-		spuid = null;
-		
-		Subscriber s = new Subscriber(1,this);
+	@Test(timeout = 5000)
+	public void SubscribeAndUnsubscribe()
+			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
+		Subscriber s = new Subscriber(1, this);
 		subscribers.add(s);
 		s.start();
 
-		sync.waitSubscribes(1);	
-		
-		s.unsubscribe(spuid);
+		sync.waitSubscribes(1);
+
+		s.unsubscribe();
 
 		sync.waitUnsubscribes(1);
 	}
@@ -100,7 +101,7 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 	@Override
 	public void onBrokenConnection(ErrorResponse err) {
-		logger.debug("@onBrokenConnection "+err);
+		logger.debug("@onBrokenConnection " + err);
 	}
 
 	@Override
@@ -111,14 +112,12 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	@Override
 	public void onSubscribe(String spuid, String alias) {
 		logger.debug("@onSubscribe: " + spuid + " alias: " + alias);
-		this.spuid = spuid;
 		sync.subscribe(spuid, alias);
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
 		logger.debug("@onUnsubscribe " + spuid);
-		
 		sync.unsubscribe();
 	}
 }

@@ -39,7 +39,16 @@ public class UpdateRequest extends SPARQL11Request {
 		this.host = host;
 		this.port = port;
 		this.path = path;
-		this.timeout = timeout;
+		this.scheme = scheme;
+	}
+	
+	public UpdateRequest(HTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization) {
+		super(sparql,authorization,default_graph_uri,named_graph_uri);
+		
+		this.method = method;
+		this.host = host;
+		this.port = port;
+		this.path = path;
 		this.scheme = scheme;
 	}
 

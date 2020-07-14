@@ -39,6 +39,10 @@ public class UnsubscribeRequest extends Request {
 		super(subId, authorization,timeout,nRetry);
 	}
 	
+	public UnsubscribeRequest(String subId,String authorization) {
+		super(subId, authorization);
+	}
+	
 	/**
 	 * Gets the subscribe UUID.
 	 *

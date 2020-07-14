@@ -74,7 +74,7 @@ public class ITPattern implements ISubscriptionHandler{
 		}
 
 		if (app.isSecure()) {
-			sm = new ConfigurationProvider().buildSecurityManager();
+			sm = provider.getSecurityManager();
 			Response ret = sm.register("SEPATest");
 			ret = sm.refreshToken();
 			assertFalse(ret.isError());
@@ -91,11 +91,17 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 
 	@After
-	public void afterTest() throws IOException {
+	public void afterTest() throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
+		consumerAll.unsubscribe();
 		consumerAll.close();
-		randomProducer.close();
+		
+		randomAggregator.unsubscribe();
 		randomAggregator.close();
+		
+		consumerRandom1.unsubscribe();
 		consumerRandom1.close();
+		
+		randomProducer.close();
 	}
 	
 	@Test(timeout = 40000)
@@ -155,7 +161,7 @@ public class ITPattern implements ISubscriptionHandler{
 	@Test(timeout =  20000)
 	public void genericClientSingleSubscribe() {
 		try {
-			genericClient.subscribe("ALL", null, "first", provider.getTimeout(),provider.getNRetry());
+			genericClient.subscribe("ALL", null, "first");
 			
 			if (getSubscriptionsCount() != 1) {
 				synchronized(this) {
@@ -164,7 +170,7 @@ public class ITPattern implements ISubscriptionHandler{
 				assertFalse("Failed to subscribe",getSubscriptionsCount()!=1);
 			}
 			
-			genericClient.update("RANDOM", null, provider.getTimeout(),provider.getNRetry());
+			genericClient.update("RANDOM", null);
 			
 			if (getNotificationsCount() != 2) {
 				synchronized(this) {
@@ -173,7 +179,7 @@ public class ITPattern implements ISubscriptionHandler{
 				assertFalse("Failed to notify",getNotificationsCount()!=2);
 			}
 			
-			genericClient.unsubscribe(subscriptions.get("first"), provider.getTimeout(),provider.getNRetry());
+			genericClient.unsubscribe(subscriptions.get("first"));
 			
 			if (getSubscriptionsCount() != 0) {
 				synchronized(this) {
@@ -191,8 +197,8 @@ public class ITPattern implements ISubscriptionHandler{
 	@Test(timeout =  20000)
 	public void genericClientDoubleSubscribe() {
 		try {
-			genericClient.subscribe("RANDOM", null, "first",provider.getTimeout(),provider.getNRetry());
-			genericClient.subscribe("RANDOM1", null, "second",provider.getTimeout(),provider.getNRetry());
+			genericClient.subscribe("RANDOM", null, "first");
+			genericClient.subscribe("RANDOM1", null, "second");
 			
 			if (getSubscriptionsCount() != 2) {
 				synchronized(this) {
@@ -201,8 +207,8 @@ public class ITPattern implements ISubscriptionHandler{
 				assertFalse("Failed to subscribe",getSubscriptionsCount()!=2);
 			}
 			
-			genericClient.update("RANDOM", null, provider.getTimeout(),provider.getNRetry());
-			genericClient.update("RANDOM1", null, provider.getTimeout(),provider.getNRetry());
+			genericClient.update("RANDOM", null);
+			genericClient.update("RANDOM1", null);
 			
 			if (getNotificationsCount() != 4) {
 				synchronized(this) {
@@ -211,8 +217,8 @@ public class ITPattern implements ISubscriptionHandler{
 				assertFalse("Failed to notify",getNotificationsCount()!=2);
 			}
 			
-			genericClient.unsubscribe(subscriptions.get("first"), provider.getTimeout(),provider.getNRetry());
-			genericClient.unsubscribe(subscriptions.get("second"), provider.getTimeout(),provider.getNRetry());
+			genericClient.unsubscribe(subscriptions.get("first"));
+			genericClient.unsubscribe(subscriptions.get("second"));
 					
 			if (getSubscriptionsCount() != 0) {
 				synchronized(this) {

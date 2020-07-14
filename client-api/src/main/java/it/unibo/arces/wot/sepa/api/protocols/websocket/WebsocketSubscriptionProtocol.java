@@ -44,7 +44,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 	protected final URI url;
 
 	protected Request lastRequest = null;
-	private Object requestLock = new Object();
+	// private Object requestLock = new Object();
 
 	protected final WebsocketClientEndpoint client;
 
@@ -76,12 +76,12 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	@Override
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
-		logger.trace("@subscribe: " + request);
+		logger.trace("subscribe: " + request);
 
-		synchronized (requestLock) {
+		synchronized (client) {
 			if (lastRequest != null)
 				try {
-					requestLock.wait();
+					client.wait();
 				} catch (InterruptedException e) {
 					throw new SEPAProtocolException(e.getMessage());
 				}
@@ -97,12 +97,12 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	@Override
 	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException {
-		logger.debug("@unsubscribe: " + request);
+		logger.debug("unsubscribe: " + request);
 
-		synchronized (requestLock) {
+		synchronized (client) {
 			if (lastRequest != null)
 				try {
-					requestLock.wait();
+					client.wait();
 				} catch (InterruptedException e) {
 					throw new SEPAProtocolException(e.getMessage());
 				}
@@ -142,51 +142,51 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 				logger.error(e.getMessage());
 				if (logger.isTraceEnabled())
 					e.printStackTrace();
-				ErrorResponse err = new ErrorResponse(401, "invalid_grant", "Failed to refresh token. "+e.getMessage());
+				ErrorResponse err = new ErrorResponse(401, "invalid_grant",
+						"Failed to refresh token. " + e.getMessage());
 				handler.onError(err);
 				return;
 			}
-			
-			if (client.isConnected())
-				try {
-//					if (lastRequest.isSubscribeRequest()) {
-//						SubscribeRequest subReq= (SubscribeRequest) lastRequest;
-//						lastRequest = new SubscribeRequest(subReq.getSPARQL(),subReq.getAlias(), subReq.getDefaultGraphUri(),subReq.getNamedGraphUri(),
-//								sm.getAuthorizationHeader(),subReq.getTimeout(),subReq.getNRetry());
-//					}
-//					else {
-//						UnsubscribeRequest unsubReq= (UnsubscribeRequest) lastRequest;
-//						lastRequest = new UnsubscribeRequest(unsubReq.getSubscribeUUID(),sm.getAuthorizationHeader(),unsubReq.getTimeout());
-//					}
-					client.send(lastRequest.toString());
-				} catch (SEPAProtocolException  e) {
-					logger.error(e.getMessage());
-					if (logger.isTraceEnabled())
-						e.printStackTrace();
-					ErrorResponse err = new ErrorResponse(401, "invalid_grant", "Failed to send request after refreshing token. "+e.getMessage());
-					handler.onError(err);
-				}
-		}
-		else handler.onError(errorResponse);
 
+			// RETRY LAST REQUEST
+			synchronized (client) {
+				if (client.isConnected())
+					try {
+						if (lastRequest != null)
+							client.send(lastRequest.toString());
+					} catch (SEPAProtocolException e) {
+						logger.error(e.getMessage());
+						if (logger.isTraceEnabled())
+							e.printStackTrace();
+						ErrorResponse err = new ErrorResponse(401, "invalid_grant",
+								"Failed to send request after refreshing token. " + e.getMessage());
+						handler.onError(err);
+					}
+			}
+		} else
+			handler.onError(errorResponse);
 	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		synchronized (requestLock) {
+		logger.debug("@onSubscribe "+spuid+" alias: "+alias);
+		handler.onSubscribe(spuid, alias);
+
+		synchronized (client) {
 			lastRequest = null;
-			requestLock.notify();
-			handler.onSubscribe(spuid, alias);
+			client.notify();
 		}
 
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		synchronized (requestLock) {
+		logger.debug("@onUnsubscribe "+spuid);
+		handler.onUnsubscribe(spuid);
+
+		synchronized (client) {
 			lastRequest = null;
-			requestLock.notify();
-			handler.onUnsubscribe(spuid);
+			client.notify();
 		}
 	}
 

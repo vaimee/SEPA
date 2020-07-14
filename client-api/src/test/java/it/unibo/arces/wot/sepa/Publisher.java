@@ -12,12 +12,10 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class Publisher extends Thread implements Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
-	private final ClientSecurityManager sm;
 	private final SPARQL11Protocol client;
 	private final String id;
 
@@ -31,13 +29,7 @@ public class Publisher extends Thread implements Closeable {
 
 		this.id = id;
 
-		if (provider.getJsap().isSecure()) {
-			sm = provider.buildSecurityManager();
-			client = new SPARQL11Protocol(sm);
-		} else {
-			sm = null;
-			client = new SPARQL11Protocol();
-		}
+		client = new SPARQL11Protocol(provider.getSecurityManager());
 
 		running = new AtomicLong(n);
 	}
@@ -45,14 +37,14 @@ public class Publisher extends Thread implements Closeable {
 	public void run() {
 		if (provider.getJsap().isSecure()) {
 			try {
-				sm.register("SEPATest");
+				provider.getSecurityManager().register("SEPATest");
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e);
 			}
 		}
 
 		while (running.get() > 0) {
-			Response ret = client.update(provider.buildUpdateRequest(id, sm, 5000, 0));
+			Response ret = client.update(provider.buildUpdateRequest(id));
 
 			int retryTimes = 0;
 			while (ret.isError() && retryTimes < 10) {
@@ -60,7 +52,7 @@ public class Publisher extends Thread implements Closeable {
 
 				if (errorResponse.isTokenExpiredError()) {
 					try {
-						sm.refreshToken();
+						provider.getSecurityManager().refreshToken();
 					} catch (SEPAPropertiesException | SEPASecurityException e) {
 						logger.error("Failed to refresh token: "+e.getMessage());
 					}
@@ -69,7 +61,7 @@ public class Publisher extends Thread implements Closeable {
 					logger.error(errorResponse);
 				}
 				
-				ret = client.update(provider.buildUpdateRequest(id, sm, 5000, 0));
+				ret = client.update(provider.buildUpdateRequest(id));
 				retryTimes++;
 			}
 

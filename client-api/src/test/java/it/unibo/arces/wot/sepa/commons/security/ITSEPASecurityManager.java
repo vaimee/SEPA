@@ -22,11 +22,10 @@ public class ITSEPASecurityManager {
 	@BeforeClass
 	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		ConfigurationProvider provider = new ConfigurationProvider();
+		
 		app = provider.getJsap();
 		
-		if (app.isSecure()){
-			sm = provider.buildSecurityManager();
-		}
+		sm = provider.getSecurityManager();
 	}
 
 	@Test(timeout = 2000)

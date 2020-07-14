@@ -68,14 +68,15 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 	
     @BeforeClass
     public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-        try {
+        ConfigurationProvider provider = new ConfigurationProvider();
+    	try {   	
             app = new ConfigurationProvider().getJsap();
         } catch (SEPAPropertiesException | SEPASecurityException e) {
             assertFalse("Configuration not found", false);
         }
 
         if (app.isSecure()) {
-            sm = new ConfigurationProvider().buildSecurityManager();
+        	sm = provider.getSecurityManager();
             Response ret = sm.register("SEPATest");
             ret = sm.refreshToken();
             assertFalse(ret.isError());
