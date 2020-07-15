@@ -97,12 +97,13 @@ class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		handler.onSubscribe(spuid, alias);
 		spuids.add(spuid);
+		handler.onSubscribe(spuid, alias);
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
+		spuids.remove(spuid);
 		handler.onUnsubscribe(spuid);
 	}
 }
