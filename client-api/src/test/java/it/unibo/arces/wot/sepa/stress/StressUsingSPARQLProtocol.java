@@ -39,7 +39,7 @@ public class StressUsingSPARQLProtocol {
     public static void init() throws Exception {
         provider = new ConfigurationProvider();
         properties = provider.getJsap();
-        sync = new Sync(provider);
+        sync = new Sync();
         
         if (properties.isSecure()) {
             // Registration
@@ -81,6 +81,8 @@ public class StressUsingSPARQLProtocol {
 
         for (Publisher pub : publishers)
             pub.close();
+        
+        sync.close();
     }
 
     @Test(timeout = 15000)
@@ -148,7 +150,7 @@ public class StressUsingSPARQLProtocol {
                 sync.getEvents() != subscribers.size());
     }
 
-    @Test //(timeout = 200000)
+    @Test (timeout = 5000)
     public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
 
@@ -178,7 +180,7 @@ public class StressUsingSPARQLProtocol {
                 sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
     }
 
-    //@Test (timeout = 200000)
+    @Test (timeout = 200000)
     public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
             InterruptedException, SEPAPropertiesException, SEPASecurityException {
 
@@ -228,7 +230,7 @@ public class StressUsingSPARQLProtocol {
             pub.join();
     }
 
-    @Test (timeout = 200000)
+    @Test (timeout = 60000)
     public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
         int n = 15;

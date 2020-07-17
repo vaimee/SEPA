@@ -109,7 +109,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
         }
     }
 
-    @Test(timeout = 200000)
+    @Test(timeout = 60000)
     public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
             SEPAProtocolException, SEPABindingsException {
         for (int i = 0; i < 1000; i++) {
@@ -135,7 +135,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
         }
     }
 
-    @Test(timeout = 200000)
+    @Test(timeout = 60000)
     public void aggregationX100() throws InterruptedException, SEPASecurityException, IOException,
             SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
         consumerRandom1.syncSubscribe();
