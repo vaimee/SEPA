@@ -22,7 +22,7 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="trace">
+		<Root level="warn">
 			<AppenderRef ref="Console" level="trace" />
 			<AppenderRef ref="Log" level="off"/>
 		</Root>
