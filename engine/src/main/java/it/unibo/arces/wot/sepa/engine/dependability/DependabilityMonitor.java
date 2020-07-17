@@ -30,7 +30,7 @@ public class DependabilityMonitor implements DependabilityMonitorMBean {
 
 	@Override
 	public long getNumberOfGates() {
-		return SubscriptionManager.getNumberOfGates();
+		return GatesMonitor.getNumberOfGates();
 	}
 
 	@Override

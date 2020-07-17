@@ -42,10 +42,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 	protected final Logger logger = LogManager.getLogger();
 
 	protected final URI url;
-
 	protected Request lastRequest = null;
-	// private Object requestLock = new Object();
-
 	protected final WebsocketClientEndpoint client;
 
 	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler,
@@ -81,6 +78,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 		synchronized (client) {
 			if (lastRequest != null)
 				try {
+					logger.trace("WAIT");
 					client.wait();
 				} catch (InterruptedException e) {
 					throw new SEPAProtocolException(e.getMessage());
@@ -88,16 +86,19 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 			lastRequest = request;
 
-			if (!client.isConnected())
+			if (!client.isConnected()) {
+				logger.trace("CONNECT");
 				client.connect(url);
+			}
 
+			logger.trace("SEND "+lastRequest.toString());
 			client.send(lastRequest.toString());
 		}
 	}
 
 	@Override
 	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException {
-		logger.debug("unsubscribe: " + request);
+		logger.trace("unsubscribe: " + request);
 
 		synchronized (client) {
 			if (lastRequest != null)
@@ -135,9 +136,10 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 		// REFRESH TOKEN
 		if (sm != null && errorResponse.isTokenExpiredError()) {
 			try {
+				logger.trace("REFRESH TOKEN");
 				Response ret = sm.refreshToken();
 				sm.storeOAuthProperties();
-				logger.debug(ret);
+				logger.trace(ret);
 			} catch (SEPAPropertiesException | SEPASecurityException e) {
 				logger.error(e.getMessage());
 				if (logger.isTraceEnabled())
@@ -152,9 +154,12 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			synchronized (client) {
 				if (client.isConnected())
 					try {
-						if (lastRequest != null)
+						if (lastRequest != null) {
+							lastRequest.setAuthorizationHeader(sm.getAuthorizationHeader());
+							logger.trace("SEND LAST REQUEST WITH NEW TOKEN");
 							client.send(lastRequest.toString());
-					} catch (SEPAProtocolException e) {
+						}
+					} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
 						logger.error(e.getMessage());
 						if (logger.isTraceEnabled())
 							e.printStackTrace();
@@ -169,7 +174,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		logger.debug("@onSubscribe "+spuid+" alias: "+alias);
+		logger.trace("@onSubscribe "+spuid+" alias: "+alias);
 		handler.onSubscribe(spuid, alias);
 
 		synchronized (client) {
@@ -181,7 +186,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		logger.debug("@onUnsubscribe "+spuid);
+		logger.trace("@onUnsubscribe "+spuid);
 		handler.onUnsubscribe(spuid);
 
 		synchronized (client) {

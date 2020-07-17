@@ -21,9 +21,7 @@ class TyrusWebsocketClient extends Endpoint {
 	@Override
 	public void onOpen(Session session, EndpointConfig arg1) {
 		logger.info("onOpen session: "+session.getId());
-		
-		sync.event();
-
+		sync.onConnection();
 	}
 
 }

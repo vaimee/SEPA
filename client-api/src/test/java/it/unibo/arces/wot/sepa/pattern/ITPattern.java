@@ -129,7 +129,6 @@ public class ITPattern implements ISubscriptionHandler{
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe();
-//		consumerAll.waitNotification();
 
 		randomProducer.update();
 
@@ -141,12 +140,10 @@ public class ITPattern implements ISubscriptionHandler{
 			SEPAProtocolException, SEPABindingsException {
 		logger.debug("Aggregator");
 		consumerRandom1.syncSubscribe();
-//		consumerRandom1.waitNotification();
 
 		logger.debug("Aggregator first subscribe ok");
 
 		randomAggregator.syncSubscribe();
-//		randomAggregator.waitNotification();
 
 		logger.debug("Aggregator second subscribe ok");
 

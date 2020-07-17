@@ -1,6 +1,8 @@
 package it.unibo.arces.wot.sepa;
 
+import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
@@ -27,14 +29,6 @@ public class ConfigurationProvider {
 	
 	ClientSecurityManager sm = null;
 	
-//	public long getTimeout() {
-//		return TIMEOUT;
-//	}
-//	
-//	public long getNRetry() {
-//		return NRETRY;
-//	}
-	
 	public ConfigurationProvider() throws SEPAPropertiesException, SEPASecurityException {
 		String jsapFileName = "sepatest.jsap";
 		
@@ -44,7 +38,7 @@ public class ConfigurationProvider {
 		} else if (System.getProperty("secure") != null) {
 			jsapFileName = "sepatest-secure.jsap";
 			logger.info("JSAP secure default: " + jsapFileName);
-			sm = buildSecurityManager();
+			
 		}
 
 		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
@@ -59,6 +53,12 @@ public class ConfigurationProvider {
 		appProfile = new JSAP(jsapPath);
 		
 		prefixes = appProfile.getPrefixes();
+		
+		if (appProfile.isSecure()) sm = buildSecurityManager();
+	}
+	
+	public WebsocketSubscriptionProtocol getWebsocketClient() throws SEPASecurityException, SEPAProtocolException {
+		return new WebsocketSubscriptionProtocol(appProfile.getHost(), appProfile.getSubscribePort(), appProfile.getSubscribePath(), null, sm);
 	}
 
 	private String getSPARQLUpdate(String id) {

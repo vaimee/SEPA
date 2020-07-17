@@ -106,6 +106,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 							logger.trace("Subscribed: " + spuid + " alias: " + alias);
 							handler.onSubscribe(spuid, alias);
 						} catch (Exception e) {
+							e.printStackTrace();
 							logger.error("Exception on handling onSubscribe. Handler: " + handler + " Exception: "
 									+ e.getMessage());
 							return;
@@ -129,6 +130,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 					try {
 						handler.onError(error);
 					} catch (Exception e) {
+						e.printStackTrace();
 						logger.error(
 								"Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
 					}

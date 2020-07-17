@@ -19,17 +19,18 @@
 package it.unibo.arces.wot.sepa.engine.dependability;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.mina.util.ConcurrentHashSet;
 
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
-class SubscriptionManager {
+class GatesMonitor {
 	static {
 		Thread thread = new Thread() {
 			public void run() {
@@ -50,8 +51,8 @@ class SubscriptionManager {
 	private static final Logger logger = LogManager.getLogger();
 
 	// Active subscriptions and gates
-	private static final HashMap<String, ArrayList<String>> SUBSCRIPTIONS_HASH_MAP = new HashMap<String, ArrayList<String>>();
-	private static final Set<Gate> gates = new HashSet<Gate>();
+	private static final ConcurrentHashMap<String, ArrayList<String>> SUBSCRIPTIONS_HASH_MAP = new ConcurrentHashMap<String, ArrayList<String>>();
+	private static final Set<Gate> gates = new ConcurrentHashSet<Gate>();
 	
 	private static Processor processor = null;
 
@@ -59,7 +60,7 @@ class SubscriptionManager {
 		processor = p;
 	}
 	
-	private static synchronized void pingGates() {
+	private static void pingGates() {
 		Set<Gate> brokenGates = new HashSet<Gate>();
 		
 		for (Gate g : gates) {
@@ -77,15 +78,15 @@ class SubscriptionManager {
 		}
 	}
 	
-	public static synchronized void addGate(Gate g) {
+	public static void addGate(Gate g) {
 		gates.add(g);
 	}
 	
-	public static synchronized void removeGate(Gate g) {
+	public static void removeGate(Gate g) {
 		gates.remove(g);
 	}
 
-	public static synchronized void onSubscribe(String gid, String sid) {
+	public static void onSubscribe(String gid, String sid) {
 		if (gid == null) {
 			logger.error("@onSubscribe GID is null");
 			return;
@@ -108,7 +109,7 @@ class SubscriptionManager {
 		logger.trace("ADDED " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " " + SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 	}
 
-	public static synchronized void onUnsubscribe(String gid, String sid) {
+	public static void onUnsubscribe(String gid, String sid) {
 		if (gid == null) {
 			logger.error("@onUnsubscribe GID is null");
 			return;
@@ -124,11 +125,11 @@ class SubscriptionManager {
 		SUBSCRIPTIONS_HASH_MAP.get(gid).remove(sid);
 	}
 
-	public static synchronized void onClose(String gid) throws InterruptedException {
+	public static void onClose(String gid) throws InterruptedException {
 		onCloseInternal(gid);
 	}
 	
-	public static void onCloseInternal(String gid) throws InterruptedException {
+	private static void onCloseInternal(String gid) throws InterruptedException {
 		if (gid == null) {
 			logger.error("@onClose GID is null");
 			return;
@@ -155,7 +156,7 @@ class SubscriptionManager {
 		SUBSCRIPTIONS_HASH_MAP.remove(gid);
 	}
 
-	public static synchronized void onError(String gid, Exception e) {
+	public static void onError(String gid, Exception e) {
 		if (gid == null) {
 			logger.error("@onError GID is null");
 			return;

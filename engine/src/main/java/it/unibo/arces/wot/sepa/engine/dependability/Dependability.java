@@ -85,31 +85,31 @@ public class Dependability {
 	}
 	
 	public static void setProcessor(Processor p) {
-		SubscriptionManager.setProcessor(p);
+		GatesMonitor.setProcessor(p);
 	}
 	
 	public static void onCloseGate(String gid) throws InterruptedException {
-		SubscriptionManager.onClose(gid);
+		GatesMonitor.onClose(gid);
 	}
 
 	public static void addGate(Gate g)  {
-		SubscriptionManager.addGate(g);
+		GatesMonitor.addGate(g);
 	}
 	
 	public static void removeGate(Gate g)  {
-		SubscriptionManager.removeGate(g);
+		GatesMonitor.removeGate(g);
 	}
 	
 	public static void onGateError(String gid, Exception e) {
-		SubscriptionManager.onError(gid, e);
+		GatesMonitor.onError(gid, e);
 	}
 
 	public static void onSubscribe(String gid, String sid) {
-		SubscriptionManager.onSubscribe(gid, sid);
+		GatesMonitor.onSubscribe(gid, sid);
 	}
 
 	public static void onUnsubscribe(String gid, String sid) {
-		SubscriptionManager.onUnsubscribe(gid, sid);
+		GatesMonitor.onUnsubscribe(gid, sid);
 	}
 
 	public static boolean processCORSRequest(HttpAsyncExchange exchange) {

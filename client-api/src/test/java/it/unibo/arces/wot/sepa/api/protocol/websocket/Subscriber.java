@@ -17,13 +17,13 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 
 class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
+	protected final Logger logger = LogManager.getLogger();
+	
 	private final WebsocketSubscriptionProtocol client;
 	private int n;
 
 	private static ConfigurationProvider provider;
-
-	protected final Logger logger = LogManager.getLogger();
-	
+		
 	private ISubscriptionHandler handler;
 	
 	private HashSet<String> spuids = new HashSet<>();
@@ -76,7 +76,14 @@ class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
 
 	@Override
 	public void close() throws IOException {
-		n = 0;
+		HashSet<String> temp = new HashSet<>();
+		for (String spuid : spuids) temp.add(spuid);
+		for (String spuid : temp) 
+			try {
+				client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
+			} catch (SEPAProtocolException e) {
+				logger.error(e.getMessage());
+			}
 		interrupt();
 	}
 

@@ -1,7 +1,4 @@
-/* The SEPA core class for subscriptions management
- * 
- * Author: Luca Roffia (luca.roffia@unibo.it)
-
+/* 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -46,8 +43,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * SpuManager is a monitor class. It takes care of the SPU collection and it
- * encapsulates filtering algorithms based on the internal structure.
+ * The SEPA core class for subscriptions management. SpuManager is a monitor
+ * class. It takes care of the SPU collection and it encapsulates filtering
+ * algorithms based on the internal structure.
+ * 
+ * 
+ * @author Luca Roffia (luca.roffia@unibo.it)
+ * @version 0.9.12
  */
 public class SPUManager implements SPUManagerMBean, EventHandler {
 	private final Logger logger = LogManager.getLogger();
@@ -66,7 +68,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized Response update(InternalUpdateRequest update) throws QueryException {
+	public Response update(InternalUpdateRequest update) throws QueryException {
 		logger.debug("*** UPDATE PROCESSING BEGIN *** Total running SPUs: " + spus.size());
 		try {
 			// PRE-processing update request
@@ -117,39 +119,43 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		// Start processing
 		start = Timings.getTime();
 
-		// Copy active SPU pool
-		processingPool.clear();
+		synchronized (processingPool) {
+			// Copy active SPU pool
+			processingPool.clear();
 
-		for (SPU spu : activeSpus) {
-			processingPool.add(spu);
-			spu.preUpdateProcessing(update);
-		}
-
-		logger.debug("*** PRE-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
-
-		// Wait all SPUs to complete processing
-		if (!processingPool.isEmpty()) {
-			logger.debug(String.format("Wait (%d ms) for %d SPUs to complete processing...",
-					SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size(), processingPool.size()));
-
-			try {
-				wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
-			} catch (Exception e) {
-				logger.error(e.getMessage());
+			for (SPU spu : activeSpus) {
+				processingPool.add(spu);
+				spu.preUpdateProcessing(update);
 			}
-		}
 
-		stop = Timings.getTime();
+			logger.debug("*** PRE-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
 
-		SPUManagerBeans.preProcessingTimings(start, stop);
+			// Wait all SPUs to complete processing
+			if (!processingPool.isEmpty()) {
+				logger.debug(String.format("Wait (%d ms) for %d SPUs to complete processing...",
+						SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size(), processingPool.size()));
 
-		logger.trace("*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
+				try {
 
-		if (!processingPool.isEmpty()) {
-			logger.error(
-					"@preUpdateProcessing TIMEOUT on SPU processing. SPUs still running: " + processingPool.size());
-			throw new SEPAProcessingException(
-					"@preUpdateProcessing TIMEOUT on SPU processing. SPUs still running: " + processingPool.size());
+					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
+
+				} catch (Exception e) {
+					logger.error(e.getMessage());
+				}
+			}
+
+			stop = Timings.getTime();
+
+			SPUManagerBeans.preProcessingTimings(start, stop);
+
+			logger.trace("*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
+
+			if (!processingPool.isEmpty()) {
+				logger.error(
+						"@preUpdateProcessing TIMEOUT on SPU processing. SPUs still running: " + processingPool.size());
+				throw new SEPAProcessingException(
+						"@preUpdateProcessing TIMEOUT on SPU processing. SPUs still running: " + processingPool.size());
+			}
 		}
 	}
 
@@ -158,50 +164,57 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		long start = Timings.getTime();
 
-		processingPool.clear();
+		synchronized (processingPool) {
+			processingPool.clear();
 
-		for (SPU spu : activeSpus) {
-			processingPool.add(spu);
-			spu.postUpdateProcessing(ret);
-		}
+			for (SPU spu : activeSpus) {
+				processingPool.add(spu);
+				spu.postUpdateProcessing(ret);
+			}
 
-		logger.debug("*** POST-PROCESSING SUBSCRIPTIONS *** SPU processing pool size: " + processingPool.size());
+			logger.debug("*** POST-PROCESSING SUBSCRIPTIONS *** SPU processing pool size: " + processingPool.size());
 
-		if (!processingPool.isEmpty()) {
-			logger.debug(String.format("Wait (%d ms) for %d SPUs to complete processing...",
-					SPUManagerBeans.getSPUProcessingTimeout(), processingPool.size()));
+			if (!processingPool.isEmpty()) {
+				logger.debug(String.format("Wait (%d ms) for %d SPUs to complete processing...",
+						SPUManagerBeans.getSPUProcessingTimeout(), processingPool.size()));
 
-			try {
-				wait(SPUManagerBeans.getSPUProcessingTimeout());
-			} catch (InterruptedException e) {
-				logger.error(e.getMessage());
+				try {
+
+					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
+
+				} catch (InterruptedException e) {
+					logger.error(e.getMessage());
+				}
+			}
+
+			long stop = Timings.getTime();
+
+			SPUManagerBeans.postProcessingTimings(start, stop);
+
+			logger.trace("*** POST-PROCESSING SUBSCRIPTIONS END *** ");
+
+			if (!processingPool.isEmpty()) {
+				logger.error("@postUpdateProcessing timeout on SPU processing. SPUs still running: "
+						+ processingPool.size());
+				throw new SEPAProcessingException(
+						"@postUpdateProcessing timeout on SPU processing. SPUs still running: "
+								+ processingPool.size());
+
 			}
 		}
+	}
 
-		long stop = Timings.getTime();
+	public void endOfProcessing(SPU s) {
+		logger.trace("@endOfProcessing  SPUID: " + s.getSPUID());
 
-		SPUManagerBeans.postProcessingTimings(start, stop);
-
-		logger.trace("*** POST-PROCESSING SUBSCRIPTIONS END *** ");
-
-		if (!processingPool.isEmpty()) {
-			logger.error(
-					"@postUpdateProcessing timeout on SPU processing. SPUs still running: " + processingPool.size());
-			throw new SEPAProcessingException(
-					"@postUpdateProcessing timeout on SPU processing. SPUs still running: " + processingPool.size());
-
+		synchronized (processingPool) {
+			processingPool.remove(s);
+			if (processingPool.isEmpty())
+				processingPool.notify();
 		}
 	}
 
-	public synchronized void endOfProcessing(SPU s) {
-		logger.trace("@endOfProcessing  SPUID: " + s.getSPUID());
-
-		processingPool.remove(s);
-		if (processingPool.isEmpty())
-			notify();
-	}
-
-	public synchronized Response subscribe(InternalSubscribeRequest req) throws InterruptedException {
+	public Response subscribe(InternalSubscribeRequest req) throws InterruptedException {
 
 		SPUManagerBeans.subscribeRequest();
 
@@ -248,11 +261,11 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		return new SubscribeResponse(sub.getSID(), req.getAlias(), sub.getSPU().getLastBindings());
 	}
 
-	public synchronized Response unsubscribe(String sid, String gid) throws InterruptedException {
+	public Response unsubscribe(String sid, String gid) throws InterruptedException {
 		return internalUnsubscribe(sid, gid, true);
 	}
 
-	public synchronized void killSubscription(String sid, String gid) throws InterruptedException {
+	public void killSubscription(String sid, String gid) throws InterruptedException {
 		internalUnsubscribe(sid, gid, false);
 	}
 

@@ -1,7 +1,8 @@
-/* This class implements the processing of a SPARQL 1.1 UPDATE
- * 
- * Author: Luca Roffia (luca.roffia@unibo.it)
-
+/** This class implements the processing of a SPARQL 1.1 UPDATE
+* @author Luca Roffia (luca.roffia@unibo.it)
+* @version 0.9.12
+*/
+/*
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -47,12 +48,12 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update)
+	public InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update)
 			throws QueryException {
 		return new InternalPreProcessedUpdateRequest(update);
 	}
 
-	public synchronized Response process(InternalUpdateRequest req) throws SEPASecurityException {
+	public Response process(InternalUpdateRequest req) throws SEPASecurityException {
 		// ENDPOINT UPDATE
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
