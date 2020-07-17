@@ -22,30 +22,16 @@ public interface SchedulerMBean {
 	public String getStatistics();
 
 	public long getRequests_scheduled();
-	
-//	public long getErrors();
-
 	public long getRequests_pending();
+	public long getRequests_rejected();
+	public long getRequests_max_pending();
 	
 	public long getPendingUpdates();
 	public long getPendingQueries();
 	public long getPendingSubscribes();
 	public long getPendingUnsubscribes();
 	
-	public long getRequests_max_pending();
-
-	public long getRequests_rejected();
-
 	public void reset();
 	
 	public int getQueueSize();
-	
-//	public int getTimeout();
-//	
-//	public void setTimeout(int timeout);
-	
-//	public long getTimedoutUpdates();
-//	public long getTimedoutQueries();
-//	public long getTimedoutSubscribes();
-//	public long getTimedoutUnsubscribes();
 }

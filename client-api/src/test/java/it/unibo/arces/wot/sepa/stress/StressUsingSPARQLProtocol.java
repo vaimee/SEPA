@@ -29,12 +29,8 @@ public class StressUsingSPARQLProtocol {
 
     private static JSAP properties = null;
     private static ConfigurationProvider provider;
-
-//    private static ClientSecurityManager sm;
     private final static String VALID_ID = "SEPATest";
-
-    private final static Sync sync = new Sync();
-
+    private static Sync sync; 
     private static SPARQL11Protocol client;
     private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
     private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
@@ -43,7 +39,8 @@ public class StressUsingSPARQLProtocol {
     public static void init() throws Exception {
         provider = new ConfigurationProvider();
         properties = provider.getJsap();
-
+        sync = new Sync(provider);
+        
         if (properties.isSecure()) {
             // Registration
             Response response = provider.getSecurityManager().register(VALID_ID);
@@ -93,13 +90,6 @@ public class StressUsingSPARQLProtocol {
             for (int n = 0; n < 10; n++) {
                 new Thread(threadGroup,null,"TokenThread-"+n) {
                     public void run() {
-//                        ClientSecurityManager sm = null;
-//                        try {
-//                            sm = provider.buildSecurityManager();
-//                        } catch (SEPASecurityException | SEPAPropertiesException e1) {
-//                            assertFalse(e1.getMessage(),true);
-//                        }
-
                         // Registration
                         Response response = null;
                         try {
@@ -158,7 +148,7 @@ public class StressUsingSPARQLProtocol {
                 sync.getEvents() != subscribers.size());
     }
 
-    @Test(timeout = 200000)
+    @Test //(timeout = 200000)
     public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
 
@@ -188,7 +178,7 @@ public class StressUsingSPARQLProtocol {
                 sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
     }
 
-    @Test (timeout = 200000)
+    //@Test (timeout = 200000)
     public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
             InterruptedException, SEPAPropertiesException, SEPASecurityException {
 

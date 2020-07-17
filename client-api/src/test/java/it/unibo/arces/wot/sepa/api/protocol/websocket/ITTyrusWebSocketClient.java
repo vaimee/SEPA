@@ -19,6 +19,7 @@ import org.junit.Test;
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
@@ -29,17 +30,16 @@ public class ITTyrusWebSocketClient {
 	protected static JSAP properties = null;
 	
 	protected static String url = null;
-	protected final Sync sync = new Sync();
+	protected static Sync sync;
 	protected static ConfigurationProvider provider = null;
-	
-//	protected static ClientSecurityManager sm = null;
 
 	@BeforeClass
 	public static void init() {	 
 		try {
 			provider = new ConfigurationProvider();
 			properties = provider.getJsap();
-		} catch (SEPAPropertiesException | SEPASecurityException e) {
+			sync = new Sync(provider);
+		} catch (SEPAPropertiesException | SEPASecurityException | SEPAProtocolException e) {
 			assertFalse("Configuration not found", false);
 		}
 		if (properties.isSecure()) {
@@ -59,7 +59,7 @@ public class ITTyrusWebSocketClient {
 		}
 	}
 
-	@Test (timeout = 10000)
+	@Test (timeout = 5000)
 	public void Connect() throws URISyntaxException, SEPASecurityException, DeploymentException, IOException {
 		int n = 100;
 		
@@ -75,7 +75,7 @@ public class ITTyrusWebSocketClient {
 			client.connectToServer(new TyrusWebsocketClient(sync), new URI(url));
 		}
 
-		sync.waitEvents(n);
+		sync.waitConnections(n);
 	}
 
 }

@@ -37,7 +37,7 @@ public class ITSPARQL11SEProtocol {
 	private final static String VALID_ID = "SEPATest";
 	private final static String NOT_VALID_ID = "RegisterMePlease";
 
-	private final static Sync sync = new Sync();
+	private static Sync sync;
 
 	private static SPARQL11Protocol client;
 	private static Subscriber subscriber;
@@ -47,14 +47,7 @@ public class ITSPARQL11SEProtocol {
 	public static void init() throws Exception {
 		provider = new ConfigurationProvider();
 		properties = provider.getJsap();
-
-//		if (properties.isSecure()) {
-//			sm = provider.buildSecurityManager();
-//			
-//			// Registration
-//			Response response = sm.register(VALID_ID);
-//			assertFalse(response.toString(), response.isError());
-//		}
+		sync = new Sync();
 	}
 
 	@Before
@@ -85,6 +78,7 @@ public class ITSPARQL11SEProtocol {
 		subscriber.close();
 		publisher.close();		
 		client.close();
+		sync.close();
 	}
 
 	@Test(timeout = 5000)
@@ -192,23 +186,6 @@ public class ITSPARQL11SEProtocol {
 		assertFalse(String.valueOf(ret), ((QueryResponse) ret).getBindingsResults().size() != 1);
 	}
 
-	//@Test(timeout = 5000)
-//	public void Subscribe()
-//			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
-//		subscribers.add(new Subscriber("ALL", sync));
-//
-//		for (Subscriber sub : subscribers)
-//			sub.start();
-//
-//		sync.waitSubscribes(subscribers.size());
-//		sync.waitEvents(subscribers.size());
-//		
-//		assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-//				sync.getSubscribes() != subscribers.size());
-//		assertFalse("Events:" + sync.getEvents() + "(" + subscribers.size() + ")",
-//				sync.getEvents() != subscribers.size());
-//	}
-
 	@Test(timeout = 5000)
 	public void Subscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
@@ -217,16 +194,11 @@ public class ITSPARQL11SEProtocol {
 
 		sync.waitSubscribes(1);
 		sync.waitEvents(1);
-
-		subscriber.unsubscribe();
-		sync.waitUnsubscribes(1);
 		
 		assertFalse("Subscribes:" + sync.getSubscribes() + "(" + 1 + ")",
 				sync.getSubscribes() != 1);
 		assertFalse("Events:" + sync.getEvents() + "(" + 1 + ")",
-				sync.getEvents() != 1);
-		assertFalse("Unsubscribes:" + sync.getUnsubscribes() + "(" + 1 + ")",
-				sync.getUnsubscribes() != 1);		
+				sync.getEvents() != 1);	
 	}
 
 	@Test(timeout = 5000)
@@ -240,9 +212,6 @@ public class ITSPARQL11SEProtocol {
 		publisher.start();
 
 		sync.waitEvents(2);
-		
-		subscriber.unsubscribe();
-		sync.waitUnsubscribes(1);
 
 		assertFalse("Subscribes:" + sync.getSubscribes() + "(" + 1 + ")",
 				sync.getSubscribes() != 1);

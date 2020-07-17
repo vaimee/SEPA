@@ -172,16 +172,6 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		return SchedulerBeans.getQueueSize();
 	}
 
-//	@Override
-//	public int getTimeout() {
-//		return SchedulerBeans.getTimeout();
-//	}
-//
-//	@Override
-//	public void setTimeout(int timeout) {
-//		SchedulerBeans.setTimeout(timeout);
-//	}
-
 	public ScheduledRequest waitQueryRequest() throws InterruptedException {
 		return queue.waitQueryRequest();
 	}
@@ -221,24 +211,4 @@ public class Scheduler extends Thread implements SchedulerMBean {
 	public long getPendingUnsubscribes() {
 		return queue.getPendingUnsubscribes();
 	}
-//	
-//	@Override
-//	public long getTimedoutUpdates() {
-//		return SchedulerBeans.getTimedoutUpdates();
-//	}
-//
-//	@Override
-//	public long getTimedoutQueries() {
-//		return SchedulerBeans.getTimedoutQueries();
-//	}
-//
-//	@Override
-//	public long getTimedoutSubscribes() {
-//		return SchedulerBeans.getTimedoutSubscribes();
-//	}
-//
-//	@Override
-//	public long getTimedoutUnsubscribes() {
-//		return SchedulerBeans.getTimedoutUnsubscribes();
-//	}	
 }

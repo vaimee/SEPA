@@ -1,7 +1,4 @@
-/*  This class implements the processing of the requests coming form the scheduler
- * 
- * Author: Luca Roffia (luca.roffia@unibo.it)
-
+/*
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -14,7 +11,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * */
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
@@ -39,6 +36,13 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
+/**
+ * This class implements the processing of the requests coming form the scheduler
+ * 
+ * 
+ * @author Luca Roffia (luca.roffia@unibo.it)
+ * @version 0.9.12
+ */
 public class Processor implements ProcessorMBean {
 	// Processor threads
 	private final UpdateProcessingThread updateProcessingThread;
@@ -65,7 +69,6 @@ public class Processor implements ProcessorMBean {
 		this.scheduler = scheduler;
 		
 		// Processors
-		//queryProcessor = new QueryProcessor(endpointProperties,endpointSemaphore);
 		queryProcessor = new QueryProcessor(endpointProperties);
 		updateProcessor = new UpdateProcessor(endpointProperties);
 		
@@ -93,14 +96,6 @@ public class Processor implements ProcessorMBean {
 	public boolean isRunning() {
 		return running.get();
 	}
-	
-//	public QueryProcessor getQueryProcessor() {
-//		return queryProcessor;
-//	}
-//	
-//	public UpdateProcessor getUpdateProcessor() {
-//		return updateProcessor;
-//	}
 
 	public void start() {
 		running.set(true);
@@ -117,20 +112,58 @@ public class Processor implements ProcessorMBean {
 		subscribeProcessingThread.interrupt();
 		updateProcessingThread.interrupt();
 	}
-	
-	public Response processSubscribe(InternalSubscribeRequest request) throws InterruptedException {
+
+	// Processing primitives
+	public synchronized Response processSubscribe(InternalSubscribeRequest request) throws InterruptedException {
 		return spuManager.subscribe(request);
 	}
-	public void killSubscription(String sid, String gid) throws InterruptedException {
+
+	public synchronized void killSubscription(String sid, String gid) throws InterruptedException {
 		spuManager.killSubscription(sid, gid);
 	}
-
-	public Response unsubscribe(String sid, String gid) throws InterruptedException {
+	
+	public synchronized Response processUnsubscribe(String sid, String gid) throws InterruptedException {
 		return spuManager.unsubscribe(sid, gid);
 	}
+
+	public synchronized Response processUpdate(InternalUpdateRequest update) throws QueryException {
+		return spuManager.update(update);
+	}
 	
+	public InternalPreProcessedUpdateRequest preProcessUpdate(InternalUpdateRequest update) throws QueryException {
+		return updateProcessor.preProcess(update);
+	}
+	
+	public Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException {
+		return updateProcessor.process(preRequest);
+	}
+
+	public Response processQuery(InternalQueryRequest query) throws SEPASecurityException {
+		return queryProcessor.process(query);
+	}
+
 	public boolean isUpdateReliable() {
 		return UpdateProcessorBeans.getReilable();
+	}
+
+	public ScheduledRequest waitQueryRequest() throws InterruptedException {
+		return scheduler.waitQueryRequest();
+	}
+
+	public ScheduledRequest waitSubscribeRequest() throws InterruptedException {
+		return scheduler.waitSubscribeRequest();
+	}
+
+	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
+		return scheduler.waitUpdateRequest();
+	}
+
+	public ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
+		return scheduler.waitUnsubscribeRequest();
+	}
+	
+	public void addResponse(int token, Response ret) {
+		scheduler.addResponse(token, ret);		
 	}
 
 	@Override
@@ -161,41 +194,5 @@ public class Processor implements ProcessorMBean {
 	@Override
 	public String getEndpointQueryMethod() {
 		return ProcessorBeans.getEndpointQueryMethod();
-	}
-
-	public ScheduledRequest waitQueryRequest() throws InterruptedException {
-		return scheduler.waitQueryRequest();
-	}
-
-	public void addResponse(int token, Response ret) {
-		scheduler.addResponse(token, ret);		
-	}
-
-	public ScheduledRequest waitSubscribeRequest() throws InterruptedException {
-		return scheduler.waitSubscribeRequest();
-	}
-
-	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
-		return scheduler.waitUpdateRequest();
-	}
-
-	public InternalPreProcessedUpdateRequest preProcessUpdate(InternalUpdateRequest update) throws QueryException {
-		return updateProcessor.preProcess(update);
-	}
-
-	public Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException {
-		return updateProcessor.process(preRequest);
-	}
-
-	public Response processUpdate(InternalUpdateRequest update) throws QueryException {
-		return spuManager.update(update);
-	}
-
-	public ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
-		return scheduler.waitUnsubscribeRequest();
-	}
-
-	public Response processQuery(InternalQueryRequest query) throws SEPASecurityException {
-		return queryProcessor.process(query);
 	}
 }

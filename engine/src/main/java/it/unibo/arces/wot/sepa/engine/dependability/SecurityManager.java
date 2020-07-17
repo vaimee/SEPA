@@ -108,10 +108,6 @@ class SecurityManager {
 		return ssl;
 	}
 	
-//	public void setSSLContextFromPEM(String path,String cert,String pwd) throws SEPASecurityException {
-//		ssl = new SSLManager().getSSLContextFromLetsEncrypt(path,cert,pwd);
-//	}
-	
 	public void setSSLContextFromJKS(String jksName, String jksPassword) throws SEPASecurityException {
 		ssl = new SSLManager().getSSLContextFromJKS(jksName, jksPassword);
 	}

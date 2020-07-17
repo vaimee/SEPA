@@ -34,6 +34,13 @@ import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
+/**
+ * A monitor class for subscription management
+ * 
+ * 
+ * @author Luca Roffia (luca.roffia@unibo.it)
+ * @version 0.9.12
+ */
 public class Subscriptions {
 	private static final Logger logger = LogManager.getLogger();
 
@@ -46,7 +53,7 @@ public class Subscriptions {
 	// Request ==> SPU
 	private static final HashMap<InternalSubscribeRequest, SPU> requests = new HashMap<InternalSubscribeRequest, SPU>();
 
-	public synchronized static SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
+	public static SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
 		try {
 			return new SPUNaive(req, manager);
 		} catch (SEPAProtocolException e) {
@@ -54,7 +61,7 @@ public class Subscriptions {
 		}
 	}
 	
-	public synchronized static Collection<SPU> filter(InternalUpdateRequest update) {
+	public static Collection<SPU> filter(InternalUpdateRequest update) {
 		// First level filter: RDF data set
 		Collection<SPU> ret = new HashSet<>();
 		Set<String> target = update.getRdfDataSet();
@@ -72,11 +79,11 @@ public class Subscriptions {
 		return ret;
 	}
 	
-	public synchronized static boolean contains(InternalSubscribeRequest req) {
+	public static boolean contains(InternalSubscribeRequest req) {
 		return requests.containsKey(req);
 	}
 
-	public synchronized static void register(InternalSubscribeRequest req, SPU spu) {
+	public static void register(InternalSubscribeRequest req, SPU spu) {
 		handlers.put(spu.getSPUID(), new HashSet<Subscriber>());
 		requests.put(req, spu);
 
@@ -84,11 +91,11 @@ public class Subscriptions {
 		logger.debug("@subscribe SPU activated: " + spu.getSPUID() + " total (" + handlers.size() + ")");
 	}
 
-	public synchronized static SPU getSPU(InternalSubscribeRequest req) {
+	public static SPU getSPU(InternalSubscribeRequest req) {
 		return requests.get(req);
 	}
 
-	public synchronized static Subscriber addSubscriber(InternalSubscribeRequest req, SPU spu) {
+	public static Subscriber addSubscriber(InternalSubscribeRequest req, SPU spu) {
 		Subscriber sub = new Subscriber(spu, req);
 		handlers.get(spu.getSPUID()).add(sub);
 		subscribers.put(sub.getSID(), sub);
@@ -99,14 +106,14 @@ public class Subscriptions {
 		return sub;
 	}
 	
-	public synchronized static Subscriber getSubscriber(String sid) throws SEPANotExistsException {
+	public static Subscriber getSubscriber(String sid) throws SEPANotExistsException {
 		Subscriber sub = subscribers.get(sid);
 		
 		if (sub == null) throw new SEPANotExistsException("Subscriber "+sid+" does not exists");
 		return sub;
 	}
 
-	public synchronized static boolean removeSubscriber(Subscriber sub) throws SEPANotExistsException {
+	public static boolean removeSubscriber(Subscriber sub) throws SEPANotExistsException {
 		String sid = sub.getSID();
 		String spuid = sub.getSPU().getSPUID();
 
@@ -137,7 +144,7 @@ public class Subscriptions {
 		return false;
 	}
 
-	public synchronized static void notifySubscribers(String spuid, Notification notify) {
+	public static void notifySubscribers(String spuid, Notification notify) {
 		for (Subscriber client : handlers.get(spuid)) {
 			// Dispatching events
 			Notification event = new Notification(client.getSID(), notify.getARBindingsResults(),
