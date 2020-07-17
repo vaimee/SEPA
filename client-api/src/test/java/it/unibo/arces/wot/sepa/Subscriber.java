@@ -62,16 +62,21 @@ public class Subscriber extends Thread implements Closeable {
 		}
 	}
 	
-	public void unsubscribe(String id) {
+//	public void unsubscribe(String id) {
+//		try {
+//			client.unsubscribe(provider.buildUnsubscribeRequest(id));
+//		} catch (SEPAProtocolException e) {
+//			logger.error(e.getMessage());
+//		}	
+//	}
+
+	public void close() {
+		logger.debug("close");
 		try {
 			client.unsubscribe(provider.buildUnsubscribeRequest(id));
 		} catch (SEPAProtocolException e) {
 			logger.error(e.getMessage());
-		}	
-	}
-
-	public void close() {
-		logger.debug("close");
+		}
 		interrupt();
 	}
 }
