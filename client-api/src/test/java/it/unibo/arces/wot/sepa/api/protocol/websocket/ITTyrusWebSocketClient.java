@@ -19,7 +19,6 @@ import org.junit.Test;
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
@@ -38,8 +37,8 @@ public class ITTyrusWebSocketClient {
 		try {
 			provider = new ConfigurationProvider();
 			properties = provider.getJsap();
-			sync = new Sync(provider);
-		} catch (SEPAPropertiesException | SEPASecurityException | SEPAProtocolException e) {
+			sync = new Sync();
+		} catch (SEPAPropertiesException | SEPASecurityException  e) {
 			assertFalse("Configuration not found", false);
 		}
 		if (properties.isSecure()) {
@@ -59,7 +58,7 @@ public class ITTyrusWebSocketClient {
 		}
 	}
 
-	@Test (timeout = 5000)
+	@Test (timeout = 10000)
 	public void Connect() throws URISyntaxException, SEPASecurityException, DeploymentException, IOException {
 		int n = 100;
 		
