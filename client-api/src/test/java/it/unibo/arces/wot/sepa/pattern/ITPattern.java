@@ -4,10 +4,10 @@ import it.unibo.arces.wot.sepa.AggregatorTestUnit;
 import it.unibo.arces.wot.sepa.ConsumerTestUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
@@ -20,7 +20,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -64,13 +64,13 @@ public class ITPattern implements ISubscriptionHandler{
 		genericClientSubscriptions--;
 	}
 	
-	@BeforeClass
+	@BeforeAll
 	public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		try {
 			provider = new ConfigurationProvider();
 			app = provider.getJsap();
 		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			assertFalse("Configuration not found", false);
+			assertFalse(true,"Configuration not found");
 		}
 
 		if (app.isSecure()) {
@@ -81,7 +81,7 @@ public class ITPattern implements ISubscriptionHandler{
 		}
 	}
 	
-	@Before
+	@BeforeEach
 	public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		consumerAll = new ConsumerTestUnit(app, "ALL", sm);
 		randomProducer = new Producer(app, "RANDOM", sm);
@@ -90,7 +90,7 @@ public class ITPattern implements ISubscriptionHandler{
 		genericClient = new GenericClient(app, sm, this);
 	}
 
-	@After
+	@AfterEach
 	public void afterTest() throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		consumerAll.unsubscribe();
 		consumerAll.close();
@@ -104,13 +104,15 @@ public class ITPattern implements ISubscriptionHandler{
 		randomProducer.close();
 	}
 	
-	@Test(timeout = 40000)
+	@Test 
+	//(timeout = 1000)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe();
 	}
 
-	@Test(timeout = 20000)
+	@Test
+	//(timeout = 1000)
 	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		Response ret = randomProducer.update();
@@ -118,14 +120,16 @@ public class ITPattern implements ISubscriptionHandler{
 		assertFalse(ret.isError());
 	}
 
-	@Test(timeout = 40000)
+	@Test 
+	//(timeout = 1000)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe();
 		consumerAll.waitFirstNotification();
 	}
 
-	@Test(timeout = 20000)
+	@Test 
+	//(timeout = 1000)
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe();
@@ -134,10 +138,12 @@ public class ITPattern implements ISubscriptionHandler{
 
 		consumerAll.waitNotification();
 	}
-
-	@Test(timeout = 40000)
+	
+	@Test 
+	//(timeout = 1000)
+	//@RepeatedTest(value = 200)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
-			SEPAProtocolException, SEPABindingsException {
+			SEPAProtocolException, SEPABindingsException {		
 		logger.debug("Aggregator");
 		consumerRandom1.syncSubscribe();
 
@@ -155,7 +161,8 @@ public class ITPattern implements ISubscriptionHandler{
 		logger.debug("Aggregator stop");
 	}
 	
-	@Test(timeout =  20000)
+	@Test
+	//(timeout =  5000)
 	public void genericClientSingleSubscribe() {
 		try {
 			genericClient.subscribe("ALL", null, "first");
@@ -164,7 +171,7 @@ public class ITPattern implements ISubscriptionHandler{
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to subscribe",getSubscriptionsCount()!=1);
+				assertFalse(getSubscriptionsCount()!=1,"Failed to subscribe");
 			}
 			
 			genericClient.update("RANDOM", null);
@@ -173,7 +180,7 @@ public class ITPattern implements ISubscriptionHandler{
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to notify",getNotificationsCount()!=2);
+				assertFalse(getNotificationsCount()!=2,"Failed to notify");
 			}
 			
 			genericClient.unsubscribe(subscriptions.get("first"));
@@ -182,16 +189,17 @@ public class ITPattern implements ISubscriptionHandler{
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to unsubscribe",getSubscriptionsCount()!=0);
+				assertFalse(getSubscriptionsCount()!=0,"Failed to unsubscribe");
 			}
 		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | SEPABindingsException
 				| InterruptedException | IOException e) {
 			e.printStackTrace();
-			assertFalse(e.getMessage(),true);
+			assertFalse(true,e.getMessage());
 		}
 	}
 	
-	@Test(timeout =  20000)
+	@Test
+	//(timeout =  5000)
 	public void genericClientDoubleSubscribe() {
 		try {
 			genericClient.subscribe("RANDOM", null, "first");
@@ -201,7 +209,7 @@ public class ITPattern implements ISubscriptionHandler{
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to subscribe",getSubscriptionsCount()!=2);
+				assertFalse(getSubscriptionsCount()!=2,"Failed to subscribe");
 			}
 			
 			genericClient.update("RANDOM", null);
@@ -211,7 +219,7 @@ public class ITPattern implements ISubscriptionHandler{
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to notify",getNotificationsCount()!=2);
+				assertFalse(getNotificationsCount()!=2,"Failed to notify");
 			}
 			
 			genericClient.unsubscribe(subscriptions.get("first"));
@@ -221,12 +229,12 @@ public class ITPattern implements ISubscriptionHandler{
 				synchronized(this) {
 					wait(1000);
 				}
-				assertFalse("Failed to unsubscribe",getSubscriptionsCount()!=0);
+				assertFalse(getSubscriptionsCount()!=0,"Failed to unsubscribe");
 			}
 		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | SEPABindingsException
 				| InterruptedException | IOException e) {
 			e.printStackTrace();
-			assertFalse(e.getMessage(),true);
+			assertFalse(true,e.getMessage());
 		}
 	}
 

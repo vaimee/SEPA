@@ -1,5 +1,7 @@
 package it.unibo.arces.wot.sepa.api.protocol.websocket;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -13,16 +15,14 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
-
-import static org.junit.Assert.assertFalse;
 
 public class ITTyrusWebSocketClient {
 	protected final Logger logger = LogManager.getLogger();
@@ -32,14 +32,14 @@ public class ITTyrusWebSocketClient {
 	protected static Sync sync;
 	protected static ConfigurationProvider provider = null;
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() {	 
 		try {
 			provider = new ConfigurationProvider();
 			properties = provider.getJsap();
 			sync = new Sync();
 		} catch (SEPAPropertiesException | SEPASecurityException  e) {
-			assertFalse("Configuration not found", false);
+			assertFalse(true,"Configuration not found");
 		}
 		if (properties.isSecure()) {
 			int port = properties.getSubscribePort();
@@ -58,7 +58,8 @@ public class ITTyrusWebSocketClient {
 		}
 	}
 
-	@Test (timeout = 10000)
+	@Test
+	//(timeout = 5000)
 	public void Connect() throws URISyntaxException, SEPASecurityException, DeploymentException, IOException {
 		int n = 100;
 		
