@@ -34,7 +34,6 @@ import org.apache.directory.api.ldap.model.entry.ModificationOperation;
 import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.api.ldap.model.password.PasswordUtil;
-import org.apache.directory.ldap.client.api.LdapConnection;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -224,7 +223,7 @@ dn: uid=issuer,ou=jwt,o=vaimee
 public class LdapAuthorization implements IAuthorization {
 	protected static Logger logger = LogManager.getLogger();
 
-	private final LdapConnection ldap;
+	private final LdapNetworkConnection ldap;
 	private final String ldapRoot;
 	private final String pwd;
 	private final String user;
@@ -250,6 +249,7 @@ public class LdapAuthorization implements IAuthorization {
 	private void bind() throws SEPASecurityException {
 		if (user != null)
 			try {
+				ldap.startTls();
 				ldap.bind(user, pwd);
 			} catch (LdapException e) {
 				logger.error("[LDAP] Exception on binding: " + e.getMessage());
@@ -257,6 +257,7 @@ public class LdapAuthorization implements IAuthorization {
 			}
 		else
 			try {
+				ldap.startTls();
 				ldap.bind();
 			} catch (LdapException e) {
 				logger.error("[LDAP] Exception on binding: " + e.getMessage());
