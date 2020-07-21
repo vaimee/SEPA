@@ -1,4 +1,5 @@
 package it.unibo.arces.wot.sepa.stress;
+
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Publisher;
 import it.unibo.arces.wot.sepa.Subscriber;
@@ -12,17 +13,16 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-
-import static org.junit.Assert.*;
-
 
 public class StressUsingSPARQLProtocol {
     protected final Logger logger = LogManager.getLogger();
@@ -35,7 +35,7 @@ public class StressUsingSPARQLProtocol {
     private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
     private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
 
-    @BeforeClass
+    @BeforeAll
     public static void init() throws Exception {
         provider = new ConfigurationProvider();
         properties = provider.getJsap();
@@ -44,11 +44,11 @@ public class StressUsingSPARQLProtocol {
         if (properties.isSecure()) {
             // Registration
             Response response = provider.getSecurityManager().register(VALID_ID);
-            assertFalse(response.toString(), response.isError());
+            assertFalse(response.isError(),response.toString());
         }
     }
 
-    @Before
+    @BeforeEach
     public void beginTest() throws IOException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
             URISyntaxException, InterruptedException {
 
@@ -69,10 +69,10 @@ public class StressUsingSPARQLProtocol {
 
         logger.debug(ret);
 
-        assertFalse(String.valueOf(ret), ret.isError());
+        assertFalse(ret.isError(),String.valueOf(ret));
     }
 
-    @After
+    @AfterEach
     public void endTest() throws IOException, InterruptedException {
         client.close();
 
@@ -85,7 +85,8 @@ public class StressUsingSPARQLProtocol {
         sync.close();
     }
 
-    @Test(timeout = 15000)
+    @Test
+    //(timeout = 5000)
     public void RequestToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
         ThreadGroup threadGroup = new ThreadGroup("TokenRequestGroup");
         if (properties.isSecure()) {
@@ -98,9 +99,9 @@ public class StressUsingSPARQLProtocol {
                             response = provider.getSecurityManager().register(VALID_ID);
                             logger.debug(response);
                         } catch (SEPASecurityException | SEPAPropertiesException e1) {
-                            assertFalse(e1.getMessage(),true);
+                            assertFalse(true,e1.getMessage());
                         }
-                        assertFalse("Failed to register a valid ID", response.isError());
+                        assertFalse(response.isError(),"Failed to register a valid ID");
 
                         for (int i = 0; i < 100; i++) {
                             String authorization = null;
@@ -109,9 +110,9 @@ public class StressUsingSPARQLProtocol {
                                 if (authorization == null) provider.getSecurityManager().refreshToken();
                                 authorization = provider.getSecurityManager().getAuthorizationHeader();
                             } catch (SEPASecurityException | SEPAPropertiesException e1) {
-                                assertFalse(e1.getMessage(),true);
+                                assertFalse(true,e1.getMessage());
                             }
-                            assertFalse("Failed to get authorization header", authorization == null);
+                            assertFalse(authorization == null,"Failed to get authorization header");
                             try {
                                 Thread.sleep(100);
                             } catch (InterruptedException e) {
@@ -127,7 +128,8 @@ public class StressUsingSPARQLProtocol {
         }
     }
 
-    @Test(timeout = 10000)
+    @Test
+    //(timeout = 5000)
     public void Subscribe3xN()
             throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
         int n = 5;
@@ -144,13 +146,12 @@ public class StressUsingSPARQLProtocol {
         sync.waitSubscribes(subscribers.size());
         sync.waitEvents(subscribers.size());
 
-        assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-                sync.getSubscribes() != subscribers.size());
-        assertFalse("Events:" + sync.getEvents() + "(" + subscribers.size() + ")",
-                sync.getEvents() != subscribers.size());
+        assertFalse(sync.getSubscribes() != subscribers.size(),"Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")");
+        assertFalse(sync.getEvents() != subscribers.size(),"Events:" + sync.getEvents() + "(" + subscribers.size() + ")");
     }
 
-    @Test (timeout = 5000)
+    @Test 
+    //(timeout = 5000)
     public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
 
@@ -172,15 +173,14 @@ public class StressUsingSPARQLProtocol {
 
         sync.waitEvents(subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
 
-        assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-                sync.getSubscribes() != subscribers.size());
-        assertFalse(
+        assertFalse(sync.getSubscribes() != subscribers.size(),"Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")");
+        assertFalse(sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size(),
                 "Events:" + sync.getEvents() + "(" + subscribers.size()
-                        + subscribers.size() * publishers.size() * publishers.size() + ")",
-                sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
+                        + subscribers.size() * publishers.size() * publishers.size() + ")");
     }
 
-    @Test (timeout = 200000)
+    @Test 
+    //(timeout = 15000)
     public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
             InterruptedException, SEPAPropertiesException, SEPASecurityException {
 
@@ -203,16 +203,14 @@ public class StressUsingSPARQLProtocol {
 
         sync.waitEvents(subscribers.size() + subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2));
 
-        assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-                sync.getSubscribes() != subscribers.size());
-        assertFalse(
+        assertFalse(sync.getSubscribes() != subscribers.size(),"Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")");
+        assertFalse(sync.getEvents() != subscribers.size()+ subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2),
                 "Events:" + sync.getEvents() + "(" + subscribers.size()
-                        + subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2) + ")",
-                sync.getEvents() != subscribers.size()
-                        + subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2));
+                        + subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2) + ")");
     }
 
-    @Test(timeout = 200000)
+    @Test
+    //(timeout = 5000)
     public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
         int n = 5;
 
@@ -230,7 +228,8 @@ public class StressUsingSPARQLProtocol {
             pub.join();
     }
 
-    @Test (timeout = 60000)
+    @Test 
+    //(timeout = 60000)
     public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
         int n = 15;
@@ -257,8 +256,7 @@ public class StressUsingSPARQLProtocol {
 
         sync.waitEvents(events);
 
-        assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-                sync.getSubscribes() != subscribers.size());
-        assertFalse("Events:" + sync.getEvents() + "(" + events + ")", sync.getEvents() != events);
+        assertFalse(sync.getSubscribes() != subscribers.size(),"Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")");
+        assertFalse(sync.getEvents() != events,"Events:" + sync.getEvents() + "(" + events + ")");
     }
 }

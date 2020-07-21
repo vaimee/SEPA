@@ -5,10 +5,10 @@ import java.util.HashSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -22,25 +22,26 @@ public class ITWebSocketSubscriptionProtocol {
 
 	private HashSet<Subscriber> subscribers = new HashSet<Subscriber>();
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 
 	}
 
-	@Before
+	@BeforeEach
 	public void before() {
 		sync.reset();
 		subscribers.clear();
 	}
 
-	@After
+	@AfterEach
 	public void after() throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		for (Subscriber s : subscribers)
 			s.close();
 		sync.close();
 	}
 
-	@Test(timeout = 5000)
+	@Test
+	//(timeout = 5000)
 	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		Subscriber s = new Subscriber(1, sync);
 		subscribers.add(s);
@@ -49,7 +50,8 @@ public class ITWebSocketSubscriptionProtocol {
 		sync.waitSubscribes(1);
 	}
 
-	@Test(timeout = 5000)
+	@Test
+	//(timeout = 5000)
 	public void MultipleSubscribes()
 			throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		int n = 10;
@@ -63,7 +65,8 @@ public class ITWebSocketSubscriptionProtocol {
 		sync.waitSubscribes(n);
 	}
 
-	@Test (timeout = 10000)
+	@Test
+	//(timeout = 5000)
 	public void MultipleClientsAndMultipleSubscribes()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		int n = 5;
@@ -78,7 +81,8 @@ public class ITWebSocketSubscriptionProtocol {
 		sync.waitSubscribes(n * m);
 	}
 
-	@Test(timeout = 5000)
+	@Test
+	//(timeout = 5000)
 	public void SubscribeAndUnsubscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		Subscriber s = new Subscriber(1, sync);

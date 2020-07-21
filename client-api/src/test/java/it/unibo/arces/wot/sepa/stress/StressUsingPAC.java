@@ -7,10 +7,10 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
@@ -23,7 +23,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -66,13 +66,13 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 		genericClientSubscriptions--;
 	}
 	
-    @BeforeClass
+    @BeforeAll
     public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
         ConfigurationProvider provider = new ConfigurationProvider();
     	try {   	
             app = new ConfigurationProvider().getJsap();
         } catch (SEPAPropertiesException | SEPASecurityException e) {
-            assertFalse("Configuration not found", false);
+            assertFalse(true,"Configuration not found");
         }
 
         if (app.isSecure()) {
@@ -83,7 +83,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
         }
     }
 
-    @Before
+    @BeforeEach
     public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
         consumerAll = new ConsumerTestUnit(app, "ALL", sm);
         randomProducer = new Producer(app, "RANDOM", sm);
@@ -92,7 +92,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
         genericClient = new GenericClient(app, sm, this);
     }
 
-    @After
+    @AfterEach
     public void afterTest() throws IOException {
         consumerAll.close();
         randomProducer.close();
@@ -100,25 +100,28 @@ public class StressUsingPAC  implements ISubscriptionHandler{
         consumerRandom1.close();
     }
 
-    @Test(timeout = 40000)
+    @Test
+    //(timeout = 5000)
     public void produceX100() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
             SEPAProtocolException, SEPABindingsException {
         for (int i = 0; i < 100; i++) {
             Response ret = randomProducer.update();
-            assertFalse("Failed on update: "+i,ret.isError());
+            assertFalse(ret.isError(),"Failed on update: "+i);
         }
     }
 
-    @Test(timeout = 60000)
+    @Test
+    //(timeout = 30000)
     public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
             SEPAProtocolException, SEPABindingsException {
         for (int i = 0; i < 1000; i++) {
             Response ret = randomProducer.update();
-            assertFalse("Failed on update: "+i,ret.isError());
+            assertFalse(ret.isError(),"Failed on update: "+i);
         }
     }
 
-    @Test(timeout = 40000)
+    @Test
+    //(timeout = 5000)
     public void aggregationX10() throws InterruptedException, SEPASecurityException, IOException,
             SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
         consumerRandom1.syncSubscribe();
@@ -135,7 +138,8 @@ public class StressUsingPAC  implements ISubscriptionHandler{
         }
     }
 
-    @Test(timeout = 60000)
+    @Test
+    //(timeout = 10000)
     public void aggregationX100() throws InterruptedException, SEPASecurityException, IOException,
             SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
         consumerRandom1.syncSubscribe();
