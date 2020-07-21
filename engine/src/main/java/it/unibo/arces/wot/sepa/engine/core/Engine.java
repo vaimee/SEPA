@@ -58,7 +58,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.9.12";
+	private final static String version = "1.0.0";
 
 	private EngineProperties properties = null;
 
@@ -237,12 +237,14 @@ public class Engine implements EngineMBean {
 	}
 
 	public Engine(String[] args) {
-		System.out
-				.println("##########################################################################################");
-		System.out
-				.println("# SEPA(SPARQL Event Processing Architecture) Broker                                      #");
-		System.out
-				.println("# Dynamic Linked Data & Web of Things Research - University of Bologna (Italy)           #");
+		System.out.println("##########################################################################################");
+		System.out.println("#                           ____  _____ ____   _                                         #");    
+		System.out.println("#                          / ___|| ____|  _ \\ / \\                                        #");   
+		System.out.println("#                          \\___ \\|  _| | |_) / _ \\                                       #");  
+		System.out.println("#                           ___) | |___|  __/ ___ \\                                      #");
+		System.out.println("#                          |____/|_____|_| /_/   \\_\\                                     #");
+		System.out.println("#                                                                                        #");
+		System.out.println("# Dynamic Linked Data & Web of Things Research - University of Bologna (Italy)           #");
 		System.out
 				.println("#                                                                                        #");
 		System.out
@@ -262,7 +264,7 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("# WEB:    http://site.unibo.it/wot                                                       #");
 		System.out
-				.println("# WIKI:   https://github.com/arces-wot/SEPA/wiki                                         #");
+		.println("#                                                                                        #");
 		System.out
 				.println("##########################################################################################");
 
@@ -379,7 +381,7 @@ public class Engine implements EngineMBean {
 			System.out.println(
 					"*****************************************************************************************");
 			System.out.println("*                      SEPA Broker Ver " + version
-					+ " is up and running                         *");
+					+ " is up and running                          *");
 			System.out.println(
 					"*                                Let Things Talk!                                       *");
 			System.out.println(
