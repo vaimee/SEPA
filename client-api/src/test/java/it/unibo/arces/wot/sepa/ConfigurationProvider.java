@@ -26,7 +26,7 @@ public class ConfigurationProvider {
 
 	public final long TIMEOUT;
 	public final long NRETRY;
-	public static final int REPEATED_TEST = 10;
+	public static final int REPEATED_TEST = 1;
 	
 	ClientSecurityManager sm = null;
 	
@@ -87,11 +87,12 @@ public class ConfigurationProvider {
 
 		if (sm != null)
 			try {
+				sm.refreshToken();
 				authorization = sm.getAuthorizationHeader();
-				if (authorization == null) {
-					sm.refreshToken();
-					authorization = sm.getAuthorizationHeader();
-				}
+//				if (authorization == null) {
+//					sm.refreshToken();
+//					authorization = sm.getAuthorizationHeader();
+//				}
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
@@ -107,11 +108,12 @@ public class ConfigurationProvider {
 
 		if (sm != null)
 			try {
+				sm.refreshToken();
 				authorization = sm.getAuthorizationHeader();
-				if (authorization == null) {
-					sm.refreshToken();
-					authorization = sm.getAuthorizationHeader();
-				}
+//				if (authorization == null) {
+//					sm.refreshToken();
+//					authorization = sm.getAuthorizationHeader();
+//				}
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
@@ -133,11 +135,12 @@ public class ConfigurationProvider {
 		String authorization = null;		
 		if (sm != null)
 			try {
+				sm.refreshToken();
 				authorization = sm.getAuthorizationHeader();
-				if (authorization == null) {
-					sm.refreshToken();
-					authorization = sm.getAuthorizationHeader();
-				}
+//				if (authorization == null) {
+//					sm.refreshToken();
+//					authorization = sm.getAuthorizationHeader();
+//				}
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
@@ -150,11 +153,12 @@ public class ConfigurationProvider {
 		String authorization = null;		
 		if (sm != null)
 			try {
+				sm.refreshToken();
 				authorization = sm.getAuthorizationHeader();
-				if (authorization == null) {
-					sm.refreshToken();
-					authorization = sm.getAuthorizationHeader();
-				}
+//				if (authorization == null) {
+//					sm.refreshToken();
+//					authorization = sm.getAuthorizationHeader();
+//				}
 			} catch (SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Timeout;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
@@ -175,7 +176,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 	
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout =  5000)
+	@Timeout(5)
 	public void genericClientSingleSubscribe() {
 		try {
 			genericClient.subscribe("ALL", null, "first",provider.TIMEOUT,provider.NRETRY);
@@ -212,7 +213,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 	
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout =  5000)
+	@Timeout(5)
 	public void genericClientDoubleSubscribe() {
 		try {
 			genericClient.subscribe("RANDOM", null, "first",provider.TIMEOUT,provider.NRETRY);

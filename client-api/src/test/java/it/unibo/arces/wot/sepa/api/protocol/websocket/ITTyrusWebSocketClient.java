@@ -15,6 +15,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Timeout;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
@@ -74,6 +75,7 @@ public class ITTyrusWebSocketClient {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(5)
 	public void Connect() throws URISyntaxException, DeploymentException, IOException, SEPASecurityException {
 		int n = 100;
 		

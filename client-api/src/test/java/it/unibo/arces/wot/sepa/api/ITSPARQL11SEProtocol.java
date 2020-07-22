@@ -22,6 +22,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Timeout;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -62,10 +63,10 @@ public class ITSPARQL11SEProtocol {
 
 		sync.reset();
 
-		client = new SPARQL11Protocol(provider.getSecurityManager());
 		subscriber = new Subscriber("VAIMEE", sync);
 		publisher = new Publisher("VAIMEE", 1);
-
+		
+		client = new SPARQL11Protocol(provider.getSecurityManager());
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
 		
 		if (ret.isError()) {
@@ -88,7 +89,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 5000)
+	@Timeout(5)
 	public void RegisterNotAllowed() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
 			Response response = provider.getSecurityManager().register(NOT_VALID_ID);
@@ -98,7 +99,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 5000)
+	@Timeout(5)
 	public void Register() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
 			Response response = provider.getSecurityManager().register(VALID_ID);
@@ -108,7 +109,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void DeleteAllWithCheck() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		// Delete all triples
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
@@ -137,7 +138,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 15000)
+	@Timeout(10)
 	public void UseExpiredToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
 		if (properties.isSecure()) {
 			String authorization = provider.getSecurityManager().getAuthorizationHeader();
@@ -153,7 +154,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void Update() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE"));
 		logger.debug(ret);
@@ -170,7 +171,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void Query() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.query(provider.buildQueryRequest("ALL"));
 		logger.debug(ret);
@@ -178,7 +179,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void MalformedQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.query(provider.buildQueryRequest("WRONG"));
@@ -187,7 +188,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void UpdateAndQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE"));
@@ -202,7 +203,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 5000)
+	@Timeout(5)
 	public void Subscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
 
@@ -216,7 +217,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 5000)
+	@Timeout(5)
 	public void Notify() throws IOException, IllegalArgumentException, SEPAProtocolException, SEPAPropertiesException,
 			SEPASecurityException, InterruptedException {
 		

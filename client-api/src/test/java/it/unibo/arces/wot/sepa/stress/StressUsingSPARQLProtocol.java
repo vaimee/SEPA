@@ -35,8 +35,6 @@ public class StressUsingSPARQLProtocol {
     private static SPARQL11Protocol client;
     private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
     private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
-
-    private static final int N = 10;
     
     @BeforeAll
     public static void init() throws Exception {
@@ -93,7 +91,7 @@ public class StressUsingSPARQLProtocol {
         sync.close();
     }
 
-    @RepeatedTest(N)
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 5000)
     public void RequestToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
         ThreadGroup threadGroup = new ThreadGroup("TokenRequestGroup");
