@@ -37,7 +37,7 @@ public class Publisher extends Thread implements Closeable {
 	public void run() {
 		while (running.get() > 0) {
 			client.update(provider.buildUpdateRequest(id));
-
+			
 			running.set(running.get() - 1);
 		}
 	}

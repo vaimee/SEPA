@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Timeout;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -29,6 +30,7 @@ public class ITSEPASecurityManager {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(5)
 	public void Register() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException  {
 		if (sm == null && !app.isSecure()) return;
 		
@@ -40,6 +42,7 @@ public class ITSEPASecurityManager {
 	}
 	
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(20)
 	public void GetAuthorizationHeader() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
 		if (sm == null && !app.isSecure()) return;
 		

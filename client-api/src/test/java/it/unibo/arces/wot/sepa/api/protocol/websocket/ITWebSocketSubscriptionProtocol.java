@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Timeout;
 
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -49,7 +50,7 @@ public class ITWebSocketSubscriptionProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 5000)
+	@Timeout(5)
 	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		Subscriber s = new Subscriber(1, sync);
 		subscribers.add(s);
@@ -59,7 +60,7 @@ public class ITWebSocketSubscriptionProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 5000)
+	@Timeout(5)
 	public void MultipleSubscribes()
 			throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		int n = 10;
@@ -74,7 +75,7 @@ public class ITWebSocketSubscriptionProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 5000)
+	@Timeout(5)
 	public void MultipleClientsAndMultipleSubscribes()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		int n = 5;
@@ -90,7 +91,7 @@ public class ITWebSocketSubscriptionProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 5000)
+	@Timeout(5)
 	public void SubscribeAndUnsubscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		Subscriber s = new Subscriber(1, sync);

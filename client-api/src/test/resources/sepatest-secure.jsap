@@ -5,7 +5,12 @@
 		"ssl": "TLSv1.2",
 		"trustall": true,
 		"register": "https://localhost:8443/oauth/register",
-		"tokenRequest": "https://localhost:8443/oauth/token"
+		"tokenRequest": "https://localhost:8443/oauth/token",
+		"client_id": "Jxo4sYqGc0pGKES4V3YY/Q==",
+		"client_secret": "Jxo4sYqGc0pGKES4V3YY/Q==",
+		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+2/21lcu1mMrzLs8SMIZDluwqCeN1Pl+dUWEgnJvdw8AyB1RGKkJLQ86y747zPmXKVY0tvtQZOjT+zLr102oB9AymFjiDviHmUKT+OlPLCnZZrfYMLBuAydRtcbBVsAVtGQtNjZ2BFvp1DPwLct7Benhp4J0RNOMrRTFEyFA048+QoWf3OZl84pkgjBMwIkornROriCjk/kz3CGRcCcQeseRTE40JhJa7csEFBrcFxBYrBj+Fu33mGmysNWDSfMhr5UvSj4gGP+KRw6UVFMZwX4x1ruLJn+5tZt9gpVcuQ05WcpjD98i7PtY5Hy4KV4c7KlPybIH8Ud/Rq8mGg6B7J9FCrZqGdpEsySxhG36XEnTyRCuhgDOOvopF5tgA+FBc7tX8WlMQAOXhTOfyLEo0s9hSIrJQJI0al6EZYN9ANChWaBpEGTFab6ECv/uxJsQxZnvMenc/hXZ2x3PZJ6qsbuWz2wfQIsEHMQmoEt5FnTxop5uSiAFCNXoLzxh/D7EiRuukEN3Ywe6hHL63HOun57UmUcmDZsS9LpBdedIg0RiQ==",
+		"expires": "XwM7WPPbci9u206qh8a5pQ==",
+		"type": "XPrHEX2xHy+5IuXHPHigMw=="
 	},
 	"sparql11protocol": {
 		"protocol": "https",
