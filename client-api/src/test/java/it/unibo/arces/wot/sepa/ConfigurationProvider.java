@@ -26,7 +26,7 @@ public class ConfigurationProvider {
 
 	public final long TIMEOUT;
 	public final long NRETRY;
-	public static final int REPEATED_TEST = 1;
+	public static final int REPEATED_TEST = 5;
 	
 	ClientSecurityManager sm = null;
 	
