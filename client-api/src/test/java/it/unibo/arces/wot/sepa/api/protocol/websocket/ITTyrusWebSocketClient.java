@@ -12,8 +12,8 @@ import javax.websocket.DeploymentException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Timeout;
 
@@ -67,7 +67,7 @@ public class ITTyrusWebSocketClient {
 		logger.debug("end");	
 	}
 	
-	@BeforeEach
+	@AfterEach
 	public void endTest() throws IOException {		
 		for (TyrusWebsocketClient ws : websockets) {
 			ws.close();
@@ -75,7 +75,7 @@ public class ITTyrusWebSocketClient {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	@Timeout(15)
 	public void Connect() throws URISyntaxException, DeploymentException, IOException, SEPASecurityException {
 		int n = 100;
 		
