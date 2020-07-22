@@ -78,7 +78,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	protected static String mBeanName = "arces.unibo.SEPA.server:type=SPARQL11Protocol";
 
 	/** The http client. */
-	protected final CloseableHttpClient httpClient;
+	protected CloseableHttpClient httpClient;
 
 	/** The security manager */
 	protected final ClientSecurityManager sm;
@@ -178,8 +178,9 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			} else if (e instanceof ClientProtocolException) {
 				errorResponse = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "ClientProtocolException",
 						e.getMessage());
-			} else
-				errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
+			} else {
+				errorResponse = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "IOException", e.getMessage());
+			}
 		} finally {
 			try {
 				if (httpResponse != null)
@@ -212,10 +213,52 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		if (errorResponse != null) {
 			logger.error(errorResponse);
 			
-			if (errorResponse.getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT && request.getNRetry() > 0) {
+			if (errorResponse.isTimeout() && request.getNRetry() > 0) {
 				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
 				request.retry();
 				return executeRequest(req, request);		
+			}
+			
+			/*
+Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
+INFORMAZIONI: I/O exception (java.net.SocketException) caught when processing request to {}->http://localhost:8000: Bad file descriptor
+Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
+INFORMAZIONI: Retrying request to {}->http://localhost:8000
+
+Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
+INFORMAZIONI: I/O exception (java.net.SocketException) caught when processing request to {}->http://localhost:8000: Bad file descriptor
+Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
+INFORMAZIONI: Retrying request to {}->http://localhost:8000
+
+Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
+INFORMAZIONI: I/O exception (java.net.SocketException) caught when processing request to {}->http://localhost:8000: Bad file descriptor
+Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
+INFORMAZIONI: Retrying request to {}->http://localhost:8000
+			 * */
+			if (errorResponse.isBadFileDescriptor() && request.getNRetry() > 0) {
+				logger.warn("*** BAD FILE DESCRIPTOR RETRY "+request.getNRetry()+" ***");
+				
+				try {
+					httpClient.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					logger.error(e1.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "BadFileDescriptor", errorResponse.getErrorDescription()+" "+e1.getMessage());
+				}
+				
+				if (sm == null)
+					httpClient = HttpClients.createDefault();
+				else
+					try {
+						httpClient = sm.getSSLHttpClient();
+					} catch (SEPASecurityException e) {
+						logger.error(e.getMessage());
+						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "BadFileDescriptor", errorResponse.getErrorDescription()+" "+e.getMessage());
+					}
+							
+				request.retry();
+				return executeRequest(req, request);
 			}
 			
 			return errorResponse;

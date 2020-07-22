@@ -10,8 +10,6 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public class Publisher extends Thread implements Closeable {
 	protected final Logger logger = LogManager.getLogger();
@@ -32,50 +30,25 @@ public class Publisher extends Thread implements Closeable {
 		client = new SPARQL11Protocol(provider.getSecurityManager());
 
 		running = new AtomicLong(n);
+		
+		if (provider.getJsap().isSecure()) provider.getSecurityManager().register("SEPATest");
 	}
 
 	public void run() {
-		if (provider.getJsap().isSecure()) {
-			try {
-				provider.getSecurityManager().register("SEPATest");
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e);
-			}
-		}
-
 		while (running.get() > 0) {
-			Response ret = client.update(provider.buildUpdateRequest(id));
-
-			int retryTimes = 0;
-			while (ret.isError() && retryTimes < 10) {
-				ErrorResponse errorResponse = (ErrorResponse) ret;
-
-				if (errorResponse.isTokenExpiredError()) {
-					try {
-						provider.getSecurityManager().refreshToken();
-					} catch (SEPAPropertiesException | SEPASecurityException e) {
-						logger.error("Failed to refresh token: "+e.getMessage());
-					}
-				}
-				else {
-					logger.error(errorResponse);
-				}
-				
-				ret = client.update(provider.buildUpdateRequest(id));
-				retryTimes++;
-			}
+			client.update(provider.buildUpdateRequest(id));
 
 			running.set(running.get() - 1);
 		}
+	}
 
+	public void close() {
 		try {
 			client.close();
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
-	}
-
-	public void close() {
+		
 		running.set(0);
 	}
 }

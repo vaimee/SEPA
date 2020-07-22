@@ -21,13 +21,13 @@ public class ConsumerTestUnit extends Consumer {
 		super(appProfile, subscribeID, sm);
 	}
 
-	public void syncSubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("subscribe");
 		
 		notificationReceived = false;
 		firstResultsReceived = false;
 		
-		super.subscribe();
+		super.subscribe(timeout,nretry);
 		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
@@ -35,10 +35,10 @@ public class ConsumerTestUnit extends Consumer {
 		}
 	}
 	
-	public void syncUnsubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
+	public void syncUnsubscribe(long timeout,long nretry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
 		logger.debug("unsubscribe");
 		
-		super.unsubscribe();
+		super.unsubscribe(timeout,nretry);
 		
 		synchronized(this) {
 			while (isSubscribed()) wait();

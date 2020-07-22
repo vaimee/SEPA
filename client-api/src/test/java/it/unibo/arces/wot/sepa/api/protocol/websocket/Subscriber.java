@@ -63,11 +63,6 @@ class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
 		} catch (InterruptedException e1) {
 
 		}
-		try {
-			client.close();
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-		}
 	}
 
 	public void unsubscribe() throws SEPAProtocolException {
@@ -78,12 +73,16 @@ class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
 	public void close() throws IOException {
 		HashSet<String> temp = new HashSet<>();
 		for (String spuid : spuids) temp.add(spuid);
-		for (String spuid : temp) 
+		for (String spuid : temp) {
 			try {
 				client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
 			} catch (SEPAProtocolException e) {
 				logger.error(e.getMessage());
 			}
+		}
+		
+		client.close();
+		
 		interrupt();
 	}
 

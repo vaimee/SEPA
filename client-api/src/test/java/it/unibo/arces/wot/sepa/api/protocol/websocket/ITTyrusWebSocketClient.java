@@ -3,20 +3,18 @@ package it.unibo.arces.wot.sepa.api.protocol.websocket;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.websocket.DeploymentException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.ClientProperties;
-import org.glassfish.tyrus.client.SslEngineConfigurator;
-
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
@@ -25,15 +23,17 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class ITTyrusWebSocketClient {
-	protected final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 	protected static JSAP properties = null;
 	
 	protected static String url = null;
 	protected static Sync sync;
 	protected static ConfigurationProvider provider = null;
-
+	
+	protected static Set<TyrusWebsocketClient> websockets = new HashSet<TyrusWebsocketClient>();;
+	
 	@BeforeAll
-	public static void init() {	 
+	public static void init() throws SEPASecurityException {	 
 		try {
 			provider = new ConfigurationProvider();
 			properties = provider.getJsap();
@@ -41,6 +41,7 @@ public class ITTyrusWebSocketClient {
 		} catch (SEPAPropertiesException | SEPASecurityException  e) {
 			assertFalse(true,"Configuration not found");
 		}
+		
 		if (properties.isSecure()) {
 			int port = properties.getSubscribePort();
 			if (port == -1)
@@ -56,23 +57,32 @@ public class ITTyrusWebSocketClient {
 				url = "ws://" + properties.getSubscribeHost() + ":" + String.valueOf(port)
 						+ properties.getSubscribePath();
 		}
+		
+		
+	}
+	
+	@AfterAll
+	public static void close() {
+		logger.debug("end");	
+	}
+	
+	@BeforeEach
+	public void endTest() throws IOException {		
+		for (TyrusWebsocketClient ws : websockets) {
+			ws.close();
+		}
 	}
 
-	@Test
-	//(timeout = 5000)
-	public void Connect() throws URISyntaxException, SEPASecurityException, DeploymentException, IOException {
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	public void Connect() throws URISyntaxException, DeploymentException, IOException, SEPASecurityException {
 		int n = 100;
 		
 		sync.reset();
 
 		for (int i = 0; i < n; i++) {
-			ClientManager client = ClientManager.createClient();
-			if (properties.isSecure()) {
-				SslEngineConfigurator config = new SslEngineConfigurator(provider.getSecurityManager().getSSLContext());
-				config.setHostVerificationEnabled(false);
-				client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, config);	
-			}
-			client.connectToServer(new TyrusWebsocketClient(sync), new URI(url));
+			TyrusWebsocketClient ws = new TyrusWebsocketClient(sync,provider);
+			ws.connect(url);
+			websockets.add(ws);
 		}
 
 		sync.waitConnections(n);

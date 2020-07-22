@@ -31,26 +31,20 @@ public class AggregatorTestUnit extends Aggregator {
 		
 		try {
 			Response ret = update();
-
-			int retryTimes = 0;
-			while (ret.isError() && retryTimes < 10){
-				ret = update();
-				retryTimes++;
-			}
-
+			if (ret.isError()) logger.error(ret);
 		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e);
 		}
 		
 	}
 	
-	public void syncSubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("subscribe");
 		
 		notificationReceived = false;
 		firstResultsReceived = false;
 		
-		super.subscribe();
+		super.subscribe(timeout,nretry);
 		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
@@ -58,10 +52,10 @@ public class AggregatorTestUnit extends Aggregator {
 		}
 	}
 	
-	public void syncUnsubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+	public void syncUnsubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("unsubscribe");
 		
-		super.unsubscribe();
+		super.unsubscribe(timeout,nretry);
 		
 		synchronized(this) {
 			while (isSubscribed()) wait();

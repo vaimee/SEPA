@@ -4,10 +4,11 @@ import it.unibo.arces.wot.sepa.AggregatorTestUnit;
 import it.unibo.arces.wot.sepa.ConsumerTestUnit;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
@@ -27,7 +28,7 @@ import java.util.HashMap;
 
 public class ITPattern implements ISubscriptionHandler{
 
-	protected final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 	
 	protected static JSAP app = null;
 	protected static ConfigurationProvider provider;
@@ -81,79 +82,91 @@ public class ITPattern implements ISubscriptionHandler{
 		}
 	}
 	
+	@AfterAll
+	public static void end() {
+		logger.debug("end");
+	}
+	
 	@BeforeEach
 	public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		consumerAll = new ConsumerTestUnit(app, "ALL", sm);
 		randomProducer = new Producer(app, "RANDOM", sm);
 		randomAggregator = new AggregatorTestUnit(app, "RANDOM", "RANDOM1", sm);
 		consumerRandom1 = new ConsumerTestUnit(app, "RANDOM1", sm);
+		
 		genericClient = new GenericClient(app, sm, this);
+		
+		genericClientNotifications = 0;
+		genericClientSubscriptions = 0;
+		subscriptions = new HashMap<>();
 	}
 
 	@AfterEach
 	public void afterTest() throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
-		consumerAll.unsubscribe();
+		consumerAll.unsubscribe(provider.TIMEOUT,provider.NRETRY);
 		consumerAll.close();
 		
-		randomAggregator.unsubscribe();
+		randomAggregator.unsubscribe(provider.TIMEOUT,provider.NRETRY);
 		randomAggregator.close();
 		
-		consumerRandom1.unsubscribe();
+		consumerRandom1.unsubscribe(provider.TIMEOUT,provider.NRETRY);
 		consumerRandom1.close();
 		
 		randomProducer.close();
+		
+		genericClient.close();
 	}
 	
-	@Test 
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		consumerAll.syncSubscribe();
+		consumerAll.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		Response ret = randomProducer.update();
+		Response ret = randomProducer.update(provider.TIMEOUT,provider.NRETRY);
 		
 		assertFalse(ret.isError());
 	}
 
-	@Test 
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-		consumerAll.syncSubscribe();
+		consumerAll.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
 		consumerAll.waitFirstNotification();
 	}
 
-	@Test 
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		consumerAll.syncSubscribe();
+		consumerAll.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
 
-		randomProducer.update();
+		randomProducer.update(provider.TIMEOUT,provider.NRETRY);
 
 		consumerAll.waitNotification();
 	}
 	
-	@Test 
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	//@RepeatedTest(value = 200)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {		
 		logger.debug("Aggregator");
-		consumerRandom1.syncSubscribe();
+		consumerRandom1.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
 
 		logger.debug("Aggregator first subscribe ok");
 
-		randomAggregator.syncSubscribe();
+		randomAggregator.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
 
 		logger.debug("Aggregator second subscribe ok");
 
-		randomProducer.update();
+		randomProducer.update(provider.TIMEOUT,provider.NRETRY);
 		logger.debug("Aggregator Update Done");
 
 		randomAggregator.waitNotification();
@@ -161,11 +174,11 @@ public class ITPattern implements ISubscriptionHandler{
 		logger.debug("Aggregator stop");
 	}
 	
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout =  5000)
 	public void genericClientSingleSubscribe() {
 		try {
-			genericClient.subscribe("ALL", null, "first");
+			genericClient.subscribe("ALL", null, "first",provider.TIMEOUT,provider.NRETRY);
 			
 			if (getSubscriptionsCount() != 1) {
 				synchronized(this) {
@@ -174,7 +187,7 @@ public class ITPattern implements ISubscriptionHandler{
 				assertFalse(getSubscriptionsCount()!=1,"Failed to subscribe");
 			}
 			
-			genericClient.update("RANDOM", null);
+			genericClient.update("RANDOM", null,provider.TIMEOUT,provider.NRETRY);
 			
 			if (getNotificationsCount() != 2) {
 				synchronized(this) {
@@ -183,7 +196,7 @@ public class ITPattern implements ISubscriptionHandler{
 				assertFalse(getNotificationsCount()!=2,"Failed to notify");
 			}
 			
-			genericClient.unsubscribe(subscriptions.get("first"));
+			genericClient.unsubscribe(subscriptions.get("first"),provider.TIMEOUT,provider.NRETRY);
 			
 			if (getSubscriptionsCount() != 0) {
 				synchronized(this) {
@@ -198,12 +211,12 @@ public class ITPattern implements ISubscriptionHandler{
 		}
 	}
 	
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout =  5000)
 	public void genericClientDoubleSubscribe() {
 		try {
-			genericClient.subscribe("RANDOM", null, "first");
-			genericClient.subscribe("RANDOM1", null, "second");
+			genericClient.subscribe("RANDOM", null, "first",provider.TIMEOUT,provider.NRETRY);
+			genericClient.subscribe("RANDOM1", null, "second",provider.TIMEOUT,provider.NRETRY);
 			
 			if (getSubscriptionsCount() != 2) {
 				synchronized(this) {
@@ -212,8 +225,8 @@ public class ITPattern implements ISubscriptionHandler{
 				assertFalse(getSubscriptionsCount()!=2,"Failed to subscribe");
 			}
 			
-			genericClient.update("RANDOM", null);
-			genericClient.update("RANDOM1", null);
+			genericClient.update("RANDOM", null,provider.TIMEOUT,provider.NRETRY);
+			genericClient.update("RANDOM1", null,provider.TIMEOUT,provider.NRETRY);
 			
 			if (getNotificationsCount() != 4) {
 				synchronized(this) {
@@ -222,8 +235,8 @@ public class ITPattern implements ISubscriptionHandler{
 				assertFalse(getNotificationsCount()!=2,"Failed to notify");
 			}
 			
-			genericClient.unsubscribe(subscriptions.get("first"));
-			genericClient.unsubscribe(subscriptions.get("second"));
+			genericClient.unsubscribe(subscriptions.get("first"),provider.TIMEOUT,provider.NRETRY);
+			genericClient.unsubscribe(subscriptions.get("second"),provider.TIMEOUT,provider.NRETRY);
 					
 			if (getSubscriptionsCount() != 0) {
 				synchronized(this) {
