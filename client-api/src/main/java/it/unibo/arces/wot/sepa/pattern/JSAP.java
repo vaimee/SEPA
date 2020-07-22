@@ -414,12 +414,13 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public JsonObject getExtendedData() {
 		try {
-			return jsap.getAsJsonObject("extended");
+			if (jsap.has("extended")) return jsap.getAsJsonObject("extended");
+			
 		} catch (Exception e) {
 			logger.error("Extended data section not found");
 		}
-
-		return null;
+		
+		return new JsonObject();
 	}
 
 	private JsonObject checkAndCreate(String id, boolean update) {

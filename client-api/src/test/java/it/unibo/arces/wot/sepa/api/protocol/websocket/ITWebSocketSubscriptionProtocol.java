@@ -5,18 +5,21 @@ import java.util.HashSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 
+import it.unibo.arces.wot.sepa.ConfigurationProvider;
+
 public class ITWebSocketSubscriptionProtocol {
-	protected final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 
 	private static Sync sync = new Sync();
 
@@ -25,6 +28,11 @@ public class ITWebSocketSubscriptionProtocol {
 	@BeforeAll
 	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 
+	}
+	
+	@AfterAll
+	public static void end() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
+		logger.debug("end");
 	}
 
 	@BeforeEach
@@ -40,7 +48,7 @@ public class ITWebSocketSubscriptionProtocol {
 		sync.close();
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 5000)
 	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
 		Subscriber s = new Subscriber(1, sync);
@@ -50,7 +58,7 @@ public class ITWebSocketSubscriptionProtocol {
 		sync.waitSubscribes(1);
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 5000)
 	public void MultipleSubscribes()
 			throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
@@ -65,7 +73,7 @@ public class ITWebSocketSubscriptionProtocol {
 		sync.waitSubscribes(n);
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 5000)
 	public void MultipleClientsAndMultipleSubscribes()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
@@ -81,7 +89,7 @@ public class ITWebSocketSubscriptionProtocol {
 		sync.waitSubscribes(n * m);
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 5000)
 	public void SubscribeAndUnsubscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {

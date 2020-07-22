@@ -31,6 +31,7 @@ import javax.websocket.Session;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
@@ -67,6 +68,8 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 
 	@Override
 	public void close() throws IOException {
+		client.shutdown();
+		
 		logger.trace("Close");
 		if (session != null)
 			session.close();

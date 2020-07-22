@@ -13,10 +13,11 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -25,7 +26,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 public class StressUsingSPARQLProtocol {
-    protected final Logger logger = LogManager.getLogger();
+    protected static final Logger logger = LogManager.getLogger();
 
     private static JSAP properties = null;
     private static ConfigurationProvider provider;
@@ -35,6 +36,8 @@ public class StressUsingSPARQLProtocol {
     private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
     private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
 
+    private static final int N = 10;
+    
     @BeforeAll
     public static void init() throws Exception {
         provider = new ConfigurationProvider();
@@ -47,6 +50,11 @@ public class StressUsingSPARQLProtocol {
             assertFalse(response.isError(),response.toString());
         }
     }
+    
+    @AfterAll
+	public static void end() {
+		logger.debug("end");
+	}
 
     @BeforeEach
     public void beginTest() throws IOException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
@@ -85,7 +93,7 @@ public class StressUsingSPARQLProtocol {
         sync.close();
     }
 
-    @Test
+    @RepeatedTest(N)
     //(timeout = 5000)
     public void RequestToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
         ThreadGroup threadGroup = new ThreadGroup("TokenRequestGroup");
@@ -128,7 +136,7 @@ public class StressUsingSPARQLProtocol {
         }
     }
 
-    @Test
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 5000)
     public void Subscribe3xN()
             throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
@@ -150,7 +158,7 @@ public class StressUsingSPARQLProtocol {
         assertFalse(sync.getEvents() != subscribers.size(),"Events:" + sync.getEvents() + "(" + subscribers.size() + ")");
     }
 
-    @Test 
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 5000)
     public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
@@ -179,7 +187,7 @@ public class StressUsingSPARQLProtocol {
                         + subscribers.size() * publishers.size() * publishers.size() + ")");
     }
 
-    @Test 
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 15000)
     public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
             InterruptedException, SEPAPropertiesException, SEPASecurityException {
@@ -209,7 +217,7 @@ public class StressUsingSPARQLProtocol {
                         + subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2) + ")");
     }
 
-    @Test
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 5000)
     public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
         int n = 5;
@@ -228,7 +236,7 @@ public class StressUsingSPARQLProtocol {
             pub.join();
     }
 
-    @Test 
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 60000)
     public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {

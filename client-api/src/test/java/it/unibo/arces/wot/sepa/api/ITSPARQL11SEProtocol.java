@@ -17,11 +17,11 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,12 +30,11 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 
 public class ITSPARQL11SEProtocol {
-	protected final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 	
 	private static JSAP properties = null;
 	private static ConfigurationProvider provider;
 
-	//private static ClientSecurityManager sm;
 	private final static String VALID_ID = "SEPATest";
 	private final static String NOT_VALID_ID = "RegisterMePlease";
 
@@ -50,6 +49,11 @@ public class ITSPARQL11SEProtocol {
 		provider = new ConfigurationProvider();
 		properties = provider.getJsap();
 		sync = new Sync();
+	}
+	
+	@AfterAll
+	public static void end() {
+		logger.debug("end");
 	}
 
 	@BeforeEach
@@ -83,7 +87,7 @@ public class ITSPARQL11SEProtocol {
 		sync.close();
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 5000)
 	public void RegisterNotAllowed() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
@@ -93,7 +97,7 @@ public class ITSPARQL11SEProtocol {
 		}
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 5000)
 	public void Register() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
@@ -103,7 +107,7 @@ public class ITSPARQL11SEProtocol {
 		}
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void DeleteAllWithCheck() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		// Delete all triples
@@ -132,7 +136,7 @@ public class ITSPARQL11SEProtocol {
 		}
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 15000)
 	public void UseExpiredToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
 		if (properties.isSecure()) {
@@ -148,7 +152,7 @@ public class ITSPARQL11SEProtocol {
 		}
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void Update() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE"));
@@ -156,7 +160,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse(ret.isError(),String.valueOf(ret));
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void MalformedUpdate()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
@@ -165,7 +169,7 @@ public class ITSPARQL11SEProtocol {
 		assertTrue(ret.isError(),String.valueOf(ret));
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void Query() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.query(provider.buildQueryRequest("ALL"));
@@ -173,7 +177,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse(ret.isError(),String.valueOf(ret));
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void MalformedQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
@@ -182,7 +186,7 @@ public class ITSPARQL11SEProtocol {
 		assertTrue(ret.isError(),String.valueOf(ret));
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 1000)
 	public void UpdateAndQuery()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
@@ -197,7 +201,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse(((QueryResponse) ret).getBindingsResults().size() != 1,String.valueOf(ret));
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 5000)
 	public void Subscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
@@ -211,7 +215,7 @@ public class ITSPARQL11SEProtocol {
 		assertFalse(sync.getEvents() != 1,"Events:" + sync.getEvents() + "(" + 1 + ")");	
 	}
 
-	@Test
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	//(timeout = 5000)
 	public void Notify() throws IOException, IllegalArgumentException, SEPAProtocolException, SEPAPropertiesException,
 			SEPASecurityException, InterruptedException {

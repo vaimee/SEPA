@@ -7,10 +7,11 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
@@ -30,11 +31,12 @@ import java.util.HashMap;
 
 public class StressUsingPAC  implements ISubscriptionHandler{
 
-    protected final Logger logger = LogManager.getLogger();
+    protected static final Logger logger = LogManager.getLogger();
 
     protected static JSAP app = null;
     protected static ClientSecurityManager sm = null;
-
+    protected static ConfigurationProvider provider;
+    
     protected static ConsumerTestUnit consumerAll;
     protected static Producer randomProducer;
     protected static AggregatorTestUnit randomAggregator;
@@ -68,7 +70,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 	
     @BeforeAll
     public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-        ConfigurationProvider provider = new ConfigurationProvider();
+        provider = new ConfigurationProvider();
     	try {   	
             app = new ConfigurationProvider().getJsap();
         } catch (SEPAPropertiesException | SEPASecurityException e) {
@@ -82,6 +84,11 @@ public class StressUsingPAC  implements ISubscriptionHandler{
             assertFalse(ret.isError());
         }
     }
+    
+    @AfterAll
+	public static void end() {
+		logger.debug("end");
+	}
 
     @BeforeEach
     public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
@@ -100,56 +107,56 @@ public class StressUsingPAC  implements ISubscriptionHandler{
         consumerRandom1.close();
     }
 
-    @Test
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 5000)
     public void produceX100() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
             SEPAProtocolException, SEPABindingsException {
         for (int i = 0; i < 100; i++) {
-            Response ret = randomProducer.update();
+            Response ret = randomProducer.update(provider.TIMEOUT,provider.NRETRY);
             assertFalse(ret.isError(),"Failed on update: "+i);
         }
     }
 
-    @Test
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 30000)
     public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
             SEPAProtocolException, SEPABindingsException {
         for (int i = 0; i < 1000; i++) {
-            Response ret = randomProducer.update();
+            Response ret = randomProducer.update(provider.TIMEOUT,provider.NRETRY);
             assertFalse(ret.isError(),"Failed on update: "+i);
         }
     }
 
-    @Test
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 5000)
     public void aggregationX10() throws InterruptedException, SEPASecurityException, IOException,
             SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-        consumerRandom1.syncSubscribe();
+        consumerRandom1.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
         consumerRandom1.waitFirstNotification();
 
-        randomAggregator.syncSubscribe();
+        randomAggregator.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
         randomAggregator.waitFirstNotification();
 
         for (int i = 0; i < 10; i++) {
-            randomProducer.update();
+            randomProducer.update(provider.TIMEOUT,provider.NRETRY);
 
             randomAggregator.waitNotification();
             consumerRandom1.waitNotification();
         }
     }
 
-    @Test
+    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 10000)
     public void aggregationX100() throws InterruptedException, SEPASecurityException, IOException,
             SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-        consumerRandom1.syncSubscribe();
+        consumerRandom1.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
         consumerRandom1.waitFirstNotification();
 
-        randomAggregator.syncSubscribe();
+        randomAggregator.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
         randomAggregator.waitFirstNotification();
 
         for (int i = 0; i < 100; i++) {
-            randomProducer.update();
+            randomProducer.update(provider.TIMEOUT,provider.NRETRY);
 
             randomAggregator.waitNotification();
             consumerRandom1.waitNotification();

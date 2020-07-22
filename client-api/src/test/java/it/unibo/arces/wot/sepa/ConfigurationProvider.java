@@ -24,8 +24,9 @@ public class ConfigurationProvider {
 	private String prefixes = "";
 	private final String jsapPath; 
 
-	private final long TIMEOUT = 5000;
-	private final long NRETRY = 0;
+	public final long TIMEOUT;
+	public final long NRETRY;
+	public static final int REPEATED_TEST = 10;
 	
 	ClientSecurityManager sm = null;
 	
@@ -55,6 +56,18 @@ public class ConfigurationProvider {
 		prefixes = appProfile.getPrefixes();
 		
 		if (appProfile.isSecure()) sm = buildSecurityManager();
+		
+		if (appProfile.getExtendedData().has("timeout")) {
+			TIMEOUT = appProfile.getExtendedData().get("timeout").getAsLong();
+		}
+		else
+			TIMEOUT = 5000;
+		
+		if (appProfile.getExtendedData().has("nretry")) {
+			NRETRY = appProfile.getExtendedData().get("nretry").getAsLong();
+		}
+		else 
+			NRETRY = 5;
 	}
 	
 	public WebsocketSubscriptionProtocol getWebsocketClient() throws SEPASecurityException, SEPAProtocolException {
