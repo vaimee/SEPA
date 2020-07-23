@@ -63,14 +63,18 @@ public class ITTyrusWebSocketClient {
 	}
 	
 	@AfterAll
-	public static void close() {
+	public static void endAll() {
 		logger.debug("end");	
 	}
 	
 	@AfterEach
-	public void endTest() throws IOException {		
+	public void endTest() {		
 		for (TyrusWebsocketClient ws : websockets) {
-			ws.close();
+			try {
+				ws.close();
+			} catch (IOException e) {
+				logger.error(e.getMessage());
+			}
 		}
 	}
 

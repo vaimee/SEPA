@@ -48,9 +48,8 @@ class TyrusWebsocketClient extends Endpoint implements Closeable {
 
 	@Override
 	public void close() throws IOException {
-		session.close();
-	
 		client.shutdown();
+		session.close();
 	}
 	
 	public void connect(String url) throws DeploymentException, IOException, URISyntaxException {
