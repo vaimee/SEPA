@@ -151,7 +151,7 @@ public class Sync implements ISubscriptionHandler, Closeable {
 
 	@Override
 	public void onBrokenConnection(ErrorResponse errorResponse) {
-		logger.error(errorResponse);
+		//logger.error(errorResponse);
 	}
 
 	@Override
