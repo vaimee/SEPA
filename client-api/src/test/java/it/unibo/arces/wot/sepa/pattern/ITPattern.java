@@ -119,14 +119,14 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 	
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	@Timeout(10)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	@Timeout(10)
 	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		Response ret = randomProducer.update(provider.TIMEOUT,provider.NRETRY);
@@ -135,7 +135,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	@Timeout(10)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
@@ -143,7 +143,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	@Timeout(10)
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
@@ -154,7 +154,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 	
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	@Timeout(10)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {		
 		logger.debug("Aggregator");
@@ -175,7 +175,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 	
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	@Timeout(10)
 	public void genericClientSingleSubscribe() {
 		try {
 			genericClient.subscribe("ALL", null, "first",provider.TIMEOUT,provider.NRETRY);
@@ -212,7 +212,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 	
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	@Timeout(10)
 	public void genericClientDoubleSubscribe() {
 		try {
 			genericClient.subscribe("RANDOM", null, "first",provider.TIMEOUT,provider.NRETRY);
