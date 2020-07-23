@@ -216,6 +216,14 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			if (errorResponse.isTimeout() && request.getNRetry() > 0) {
 				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
 				request.retry();
+				if (sm == null)
+					httpClient = HttpClients.createDefault();
+				else
+					try {
+						httpClient = sm.getSSLHttpClient();
+					} catch (SEPASecurityException e) {
+						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SEPASecurityException", e.getMessage()+" while retrying exec "+errorResponse.getErrorDescription());
+					}
 				return executeRequest(req, request);		
 			}
 			
