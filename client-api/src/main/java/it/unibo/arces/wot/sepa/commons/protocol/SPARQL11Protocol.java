@@ -235,12 +235,12 @@ public class SPARQL11Protocol implements java.io.Closeable {
 //						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SEPASecurityException", e.getMessage()+" while retrying exec "+errorResponse.getErrorDescription());
 //					}
 //				
-//				try {
-//					Thread.sleep(500);
-//				} catch (InterruptedException e) {
-//					logger.warn("InterruptedException "+e.getMessage());
-//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException", errorResponse.getErrorDescription()+" "+e.getMessage());
-//				}
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					logger.warn("InterruptedException "+e.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException", errorResponse.getErrorDescription()+" "+e.getMessage());
+				}
 				
 				return executeRequest(req, request);		
 			}
