@@ -217,30 +217,30 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
 				request.retry();
 				
-				try {
-					httpClient.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-					logger.error(e1.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", errorResponse.getErrorDescription()+" "+e1.getMessage());
-				}
-				
-				if (sm == null)
-					httpClient = HttpClients.createDefault();
-				else
-					try {
-						httpClient = sm.getSSLHttpClient();
-					} catch (SEPASecurityException e) {
-						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SEPASecurityException", e.getMessage()+" while retrying exec "+errorResponse.getErrorDescription());
-					}
-				
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					logger.warn("InterruptedException "+e.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException", errorResponse.getErrorDescription()+" "+e.getMessage());
-				}
+//				try {
+//					httpClient.close();
+//				} catch (IOException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//					logger.error(e1.getMessage());
+//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", errorResponse.getErrorDescription()+" "+e1.getMessage());
+//				}
+//				
+//				if (sm == null)
+//					httpClient = HttpClients.createDefault();
+//				else
+//					try {
+//						httpClient = sm.getSSLHttpClient();
+//					} catch (SEPASecurityException e) {
+//						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SEPASecurityException", e.getMessage()+" while retrying exec "+errorResponse.getErrorDescription());
+//					}
+//				
+//				try {
+//					Thread.sleep(500);
+//				} catch (InterruptedException e) {
+//					logger.warn("InterruptedException "+e.getMessage());
+//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException", errorResponse.getErrorDescription()+" "+e.getMessage());
+//				}
 				
 				return executeRequest(req, request);		
 			}
