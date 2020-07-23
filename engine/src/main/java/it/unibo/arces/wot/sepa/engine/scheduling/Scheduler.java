@@ -123,7 +123,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 						try {
 							handler.sendResponse(response.getResponse());
 						} catch (SEPAProtocolException e) {
-							logger.error("Failed to send response: " + e.getMessage());
+							logger.warn(e.getMessage());
 						}
 					}
 

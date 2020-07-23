@@ -119,14 +119,14 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 	
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		Response ret = randomProducer.update(provider.TIMEOUT,provider.NRETRY);
@@ -135,7 +135,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
@@ -143,7 +143,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
@@ -154,8 +154,7 @@ public class ITPattern implements ISubscriptionHandler{
 	}
 	
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
-	//@RepeatedTest(value = 200)
+	@Timeout(5)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {		
 		logger.debug("Aggregator");
