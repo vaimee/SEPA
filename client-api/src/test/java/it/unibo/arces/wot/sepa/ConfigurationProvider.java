@@ -61,7 +61,7 @@ public class ConfigurationProvider {
 			TIMEOUT = appProfile.getExtendedData().get("timeout").getAsLong();
 		}
 		else
-			TIMEOUT = 5000;
+			TIMEOUT = 1000;
 		
 		if (appProfile.getExtendedData().has("nretry")) {
 			NRETRY = appProfile.getExtendedData().get("nretry").getAsLong();
