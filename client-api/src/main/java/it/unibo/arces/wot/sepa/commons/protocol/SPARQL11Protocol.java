@@ -161,7 +161,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "SocketTimeoutException",
 							e.getMessage() + " [timeout: " + request.getTimeout()+" ms retry: "+request.getNRetry()+"]");
 				else if (e instanceof RequestAbortedException)
-					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "RequestAbortedException",
+					errorResponse = new ErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "RequestAbortedException",
 							e.getMessage() + " [timeout: " + request.getTimeout()+" ms retry: "+request.getNRetry()+"]");
 				else {
 					e.printStackTrace();
@@ -216,6 +216,16 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			if (errorResponse.isTimeout() && request.getNRetry() > 0) {
 				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
 				request.retry();
+				
+				try {
+					httpClient.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					logger.error(e1.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", errorResponse.getErrorDescription()+" "+e1.getMessage());
+				}
+				
 				if (sm == null)
 					httpClient = HttpClients.createDefault();
 				else
@@ -224,6 +234,14 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					} catch (SEPASecurityException e) {
 						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SEPASecurityException", e.getMessage()+" while retrying exec "+errorResponse.getErrorDescription());
 					}
+				
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					logger.warn("InterruptedException "+e.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException", errorResponse.getErrorDescription()+" "+e.getMessage());
+				}
+				
 				return executeRequest(req, request);		
 			}
 			
