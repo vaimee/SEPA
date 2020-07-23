@@ -198,7 +198,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
-		logger.error("@onError: " + conn + " Exception: " + ex);
+		logger.error("@onError "+ conn.getResourceDescriptor() + " remote: " + conn.getRemoteSocketAddress() + " " +ex.getClass().getCanonicalName()+" "+ ex.getMessage());
 
 		GateBeans.onError();
 
