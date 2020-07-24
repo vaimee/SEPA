@@ -217,30 +217,32 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
 				request.retry();
 				
-//				try {
-//					httpClient.close();
-//				} catch (IOException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//					logger.error(e1.getMessage());
-//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", errorResponse.getErrorDescription()+" "+e1.getMessage());
-//				}
-//				
-//				if (sm == null)
-//					httpClient = HttpClients.createDefault();
-//				else
-//					try {
-//						httpClient = sm.getSSLHttpClient();
-//					} catch (SEPASecurityException e) {
-//						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SEPASecurityException", e.getMessage()+" while retrying exec "+errorResponse.getErrorDescription());
-//					}
-//				
 				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException e) {
-					logger.warn("InterruptedException "+e.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException", errorResponse.getErrorDescription()+" "+e.getMessage());
+					httpClient.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+					logger.error(e1.getMessage());
+					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException",
+							errorResponse.getErrorDescription() + " " + e1.getMessage());
 				}
+
+				if (sm == null)
+					httpClient = HttpClients.createDefault();
+				else
+					try {
+						httpClient = sm.getSSLHttpClient();
+					} catch (SEPASecurityException e) {
+						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SEPASecurityException",
+								e.getMessage() + " while retrying exec " + errorResponse.getErrorDescription());
+					}
+//				
+//				try {
+//					Thread.sleep(1000);
+//				} catch (InterruptedException e) {
+//					logger.warn("InterruptedException "+e.getMessage());
+//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException", errorResponse.getErrorDescription()+" "+e.getMessage());
+//				}
 				
 				return executeRequest(req, request);		
 			}
@@ -261,31 +263,31 @@ INFORMAZIONI: I/O exception (java.net.SocketException) caught when processing re
 Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
 INFORMAZIONI: Retrying request to {}->http://localhost:8000
 			 * */
-			if (errorResponse.isBadFileDescriptor() && request.getNRetry() > 0) {
-				logger.warn("*** BAD FILE DESCRIPTOR RETRY "+request.getNRetry()+" ***");
-				
-				try {
-					httpClient.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-					logger.error(e1.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "BadFileDescriptor", errorResponse.getErrorDescription()+" "+e1.getMessage());
-				}
-				
-				if (sm == null)
-					httpClient = HttpClients.createDefault();
-				else
-					try {
-						httpClient = sm.getSSLHttpClient();
-					} catch (SEPASecurityException e) {
-						logger.error(e.getMessage());
-						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "BadFileDescriptor", errorResponse.getErrorDescription()+" "+e.getMessage());
-					}
-							
-				request.retry();
-				return executeRequest(req, request);
-			}
+//			if (errorResponse.isBadFileDescriptor() && request.getNRetry() > 0) {
+//				logger.warn("*** BAD FILE DESCRIPTOR RETRY "+request.getNRetry()+" ***");
+//				
+//				try {
+//					httpClient.close();
+//				} catch (IOException e1) {
+//					// TODO Auto-generated catch block
+//					e1.printStackTrace();
+//					logger.error(e1.getMessage());
+//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "BadFileDescriptor", errorResponse.getErrorDescription()+" "+e1.getMessage());
+//				}
+//				
+//				if (sm == null)
+//					httpClient = HttpClients.createDefault();
+//				else
+//					try {
+//						httpClient = sm.getSSLHttpClient();
+//					} catch (SEPASecurityException e) {
+//						logger.error(e.getMessage());
+//						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "BadFileDescriptor", errorResponse.getErrorDescription()+" "+e.getMessage());
+//					}
+//							
+//				request.retry();
+//				return executeRequest(req, request);
+//			}
 			
 			return errorResponse;
 		}
