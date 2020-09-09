@@ -30,7 +30,7 @@
 </div>
 
 ## Table of Contents
-- [Introduction](#introduction-sparql-event-processing-architecture)
+- [Introduction](#introduction)
 - [Demo](#demo)
 - [Quick start](#quick-start)
 - [Configuration](#configuration)

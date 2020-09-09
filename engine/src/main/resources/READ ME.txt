@@ -1,7 +1,0 @@
-1) sudo certbot renew
-
-2) openssl pkcs12 -export  -in /etc/letsencrypt/live/sepa.vaimee.it/cert.pem  -inkey /etc/letsencrypt/live/sepa.vaimee.it/privkey.pem -chain  -out /tmp/sepa.vaimee.it.p12  -name sepa.vaimee.it  -CAfile /etc/letsencrypt/live/sepa.vaimee.it/fullchain.pem  -caname "Let's Encrypt Authority X3"  -password pass:sepa2017
-
-keytool -genkey -keyalg RSA -alias jwt -keystore /tmp/vaimee.jks -storepass sepa2020 -validity 360 -keysize 2048
-
-keytool -importkeystore -srckeystore  /tmp/sepa.vaimee.it.p12  -srcstoretype pkcs12 -destkeystore  /tmp/vaimee.jks -deststoretype jks 

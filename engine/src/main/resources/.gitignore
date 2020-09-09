@@ -1,3 +1,9 @@
 /init.ldif
 /vaimee.ldif
 /sepa.engine.csv
+/keycloak.rsa
+/keycloak.cer
+/command.sql
+/keycloak.readme
+/keycloak.jks
+/keycloak.pem

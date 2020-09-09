@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.dependability;
+package it.unibo.arces.wot.sepa.engine.dependability.authorization;
 
 import com.nimbusds.jose.proc.SecurityContext;
 
