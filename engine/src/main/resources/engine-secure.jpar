@@ -15,7 +15,7 @@
 		"gates": {
 			"security": {
 				"enabled" : true,
-				"ldap" : false
+				"type" : "keycloak"
 			},
 			"ports": {
 				"http": 8000,
