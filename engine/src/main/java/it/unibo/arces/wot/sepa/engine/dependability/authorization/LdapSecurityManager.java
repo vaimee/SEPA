@@ -222,7 +222,7 @@ public class LdapSecurityManager extends SecurityManager {
 	}
 	
 	public LdapSecurityManager(SSLContext ssl, RSAKey key) throws SEPASecurityException {
-		this(ssl, key, new LdapProperties("localhost", 10389, "dc=example,dc=com", "ou=admin,ou=system", "secret", false));
+		this(ssl, key, new LdapProperties("localhost", 10389, "dc=example,dc=com", "","ou=admin,ou=system", "secret", false));
 	}
 
 	private void bind() throws SEPASecurityException {

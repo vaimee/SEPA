@@ -64,7 +64,7 @@ public class Processor implements ProcessorMBean {
 	private final AtomicBoolean running = new AtomicBoolean(true);
 	
 	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties,
-			Scheduler scheduler) throws IllegalArgumentException, SEPAProtocolException {		
+			Scheduler scheduler) throws IllegalArgumentException, SEPAProtocolException, SEPASecurityException {		
 		
 		this.scheduler = scheduler;
 		

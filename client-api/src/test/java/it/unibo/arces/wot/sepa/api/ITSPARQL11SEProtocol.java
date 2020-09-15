@@ -1,17 +1,16 @@
 package it.unibo.arces.wot.sepa.api;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
-import it.unibo.arces.wot.sepa.Publisher;
-import it.unibo.arces.wot.sepa.Subscriber;
 import it.unibo.arces.wot.sepa.Sync;
+import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
@@ -35,44 +34,45 @@ public class ITSPARQL11SEProtocol {
 	
 	private static JSAP properties = null;
 	private static ConfigurationProvider provider;
+	private static ClientSecurityManager sm;
+	private static Sync handler;
 
-	private final static String VALID_ID = "SEPATest";
 	private final static String NOT_VALID_ID = "RegisterMePlease";
 
-	private static Sync sync;
-
-	private static SPARQL11Protocol client;
-	private static Subscriber subscriber;
-	private static Publisher publisher;
+	private static SPARQL11SEProtocol client;
 	
 	@BeforeAll
 	public static void init() throws Exception {
 		provider = new ConfigurationProvider();
 		properties = provider.getJsap();
-		sync = new Sync();
+		sm = provider.getSecurityManager();
+		handler = new Sync(sm);
+		
 	}
 	
 	@AfterAll
-	public static void end() {
+	public static void end() throws IOException {
 		logger.debug("end");
+		//client.close();
 	}
 
 	@BeforeEach
 	public void beginTest() throws IOException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
 			URISyntaxException, InterruptedException {
-
-		sync.reset();
-
-		subscriber = new Subscriber("VAIMEE", sync);
-		publisher = new Publisher("VAIMEE", 1);
 		
-		client = new SPARQL11Protocol(provider.getSecurityManager());
+		client = new SPARQL11SEProtocol(new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
+				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(),handler,
+				sm),sm);
+		
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
 		
 		if (ret.isError()) {
 			ErrorResponse error = (ErrorResponse) ret;
-			if (error.isTokenExpiredError() && properties.isSecure()) provider.getSecurityManager().refreshToken();
-			ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
+			if (error.isTokenExpiredError() && properties.isSecure()) {
+				provider.getSecurityManager().refreshToken();
+				ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
+				if (ret.isError()) assertFalse(true,ret.toString());
+			}
 		}
 		
 		logger.debug(ret);
@@ -81,30 +81,43 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@AfterEach
-	public void endTest() throws IOException, InterruptedException, SEPAProtocolException {	
-		subscriber.close();
-		publisher.close();		
+	public void endTest() throws IOException, InterruptedException, SEPAProtocolException {		
 		client.close();
-		sync.close();
 	}
 
-	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	//@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	//@Timeout(5)
 	public void RegisterNotAllowed() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
-			Response response = provider.getSecurityManager().register(NOT_VALID_ID);
+			Response response = sm.register(NOT_VALID_ID);
 			logger.debug(response);
 			assertFalse(!response.isError(),response.toString());
 		}
 	}
 
-	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	//@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	//@Timeout(5)
 	public void Register() throws SEPASecurityException, SEPAPropertiesException {
 		if (properties.isSecure()) {
-			Response response = provider.getSecurityManager().register(VALID_ID);
+			Response response = sm.register(provider.getClientId());
 			logger.debug(response);
 			assertFalse(response.isError(),response.toString());
+		}
+	}
+	
+	//@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	//@Timeout(10)
+	public void UseExpiredToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
+		if (properties.isSecure()) {
+			String authorization = sm.getAuthorizationHeader();
+
+			assertFalse(authorization == null,"Failed to get authorization header" );
+
+			final long expiringTime = 5000;
+			Thread.sleep(expiringTime + 1000);
+			final Response tokenTest = client.query(provider.buildQueryRequest("ALL",authorization));
+			logger.debug(tokenTest);
+			assertTrue(tokenTest.isError(),tokenTest.toString());
 		}
 	}
 
@@ -138,22 +151,6 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(10)
-	public void UseExpiredToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
-		if (properties.isSecure()) {
-			String authorization = provider.getSecurityManager().getAuthorizationHeader();
-
-			assertFalse(authorization == null,"Failed to get authorization header" );
-
-			final long expiringTime = 5000;
-			Thread.sleep(expiringTime + 1000);
-			final Response tokenTest = client.query(provider.buildQueryRequest("ALL",authorization));
-			logger.debug(tokenTest);
-			assertTrue(tokenTest.isError(),tokenTest.toString());
-		}
-	}
-
-	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(5)
 	public void Update() throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("VAIMEE"));
@@ -162,7 +159,7 @@ public class ITSPARQL11SEProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	//(timeout = 1000)
+	@Timeout(5)
 	public void MalformedUpdate()
 			throws IOException, SEPAPropertiesException, SEPASecurityException, InterruptedException {
 		Response ret = client.update(provider.buildUpdateRequest("WRONG"));
@@ -205,31 +202,38 @@ public class ITSPARQL11SEProtocol {
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(5)
 	public void Subscribe()
-			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
-
-		subscriber.start();
-
-		sync.waitSubscribes(1);
-		sync.waitEvents(1);
+			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException, IOException {
+		handler.reset();
+		assertFalse(handler.getSubscribes() != 0,"Subscribes:" + handler.getSubscribes() + "(" + 0 + ")");
+		assertFalse(handler.getEvents() != 0,"Events:" + handler.getEvents() + "(" + 0 + ")");
 		
-		assertFalse(sync.getSubscribes() != 1,"Subscribes:" + sync.getSubscribes() + "(" + 1 + ")");
-		assertFalse(sync.getEvents() != 1,"Events:" + sync.getEvents() + "(" + 1 + ")");	
+		client.subscribe(provider.buildSubscribeRequest("VAIMEE"));
+
+		handler.waitSubscribes(1);
+		handler.waitEvents(1);
+		
+		assertFalse(handler.getSubscribes() != 1,"Subscribes:" + handler.getSubscribes() + "(" + 1 + ")");
+		assertFalse(handler.getEvents() != 1,"Events:" + handler.getEvents() + "(" + 1 + ")");
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(5)
 	public void Notify() throws IOException, IllegalArgumentException, SEPAProtocolException, SEPAPropertiesException,
 			SEPASecurityException, InterruptedException {
+		handler.reset();
+		assertFalse(handler.getSubscribes() != 0,"Subscribes:" + handler.getSubscribes() + "(" + 0 + ")");
+		assertFalse(handler.getEvents() != 0,"Events:" + handler.getEvents() + "(" + 0 + ")");
 		
-		subscriber.start();
+		client.subscribe(provider.buildSubscribeRequest("VAIMEE"));
 
-		sync.waitSubscribes(1);
+		handler.waitSubscribes(1);
+		handler.waitEvents(1);
 		
-		publisher.start();
+		client.update(provider.buildUpdateRequest("VAIMEE"));
 
-		sync.waitEvents(2);
+		handler.waitEvents(2);
 
-		assertFalse(sync.getSubscribes() != 1,"Subscribes:" + sync.getSubscribes() + "(" + 1 + ")");
-		assertFalse(sync.getEvents() != 2,"Events:" + sync.getEvents() + "(2)");
+		assertFalse(handler.getEvents() != 2,"Events:" + handler.getEvents() + "(2)");
+		assertFalse(handler.getSubscribes() != 1,"Subscribes:" + handler.getSubscribes() + "(1)");
 	}
 }

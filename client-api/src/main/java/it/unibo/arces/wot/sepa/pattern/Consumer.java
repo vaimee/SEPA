@@ -50,6 +50,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	private final ForcedBindings forcedBindings;
 	private boolean subscribed = false;
 	private final SPARQL11SEProtocol client;
+	private String spuid = null;
 
 	public Consumer(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
@@ -113,14 +114,14 @@ public abstract class Consumer extends Client implements IConsumer {
 	}
 	
 	public final void unsubscribe(long timeout,long nRetry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
-		logger.debug("UNSUBSCRIBE " + subID);
+		logger.debug("UNSUBSCRIBE " + spuid);
 
 		String authorizationHeader = null;
 		
 		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
 		
 		client.unsubscribe(
-				new UnsubscribeRequest(subID, authorizationHeader,timeout,nRetry));
+				new UnsubscribeRequest(spuid, authorizationHeader,timeout,nRetry));
 	}
 
 	@Override
@@ -186,10 +187,13 @@ public abstract class Consumer extends Client implements IConsumer {
 	public void onError(ErrorResponse errorResponse) {
 		logger.error(errorResponse);
 		logger.error("Subscribed: "+subscribed+ " Token expired: "+errorResponse.isTokenExpiredError()+" SM: "+(sm != null));
+		
 		if (!subscribed && errorResponse.isTokenExpiredError() && sm != null) {
 			try {
 				logger.info("refreshToken");
+				
 				sm.refreshToken();
+				
 			} catch (SEPAPropertiesException | SEPASecurityException e) {
 				logger.error("Failed to refresh token "+e.getMessage());
 			}
@@ -209,6 +213,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		synchronized(client) {
 			logger.debug("onSubscribe");
 			subscribed = true;
+			this.spuid = spuid;
 			client.notify();
 		}
 	}

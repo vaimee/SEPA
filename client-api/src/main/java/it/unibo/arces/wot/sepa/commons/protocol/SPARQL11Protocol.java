@@ -93,9 +93,8 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			httpClient = sm.getSSLHttpClient();
 	}
 
-	public SPARQL11Protocol() {
-		this.sm = null;
-		httpClient = HttpClients.createDefault();
+	public SPARQL11Protocol() throws SEPASecurityException {
+		this(null);
 	}
 
 	private Response executeRequest(HttpUriRequest req, Request request) {
@@ -116,7 +115,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			logger.trace(req.toString() + " " + request.toString() + " (timeout: " + request.getTimeout() + " ms) ");
 
 			long start = Timings.getTime();
-
+			
 			httpResponse = httpClient.execute(req);
 
 			long stop = Timings.getTime();
@@ -132,9 +131,11 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			// Body
 			responseEntity = httpResponse.getEntity();
 			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
+			
 			logger.trace(String.format("Response code: %d", responseCode));
-			EntityUtils.consume(responseEntity);
 
+			EntityUtils.consume(responseEntity);
+			
 			/*
 			 * http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.
 			 * html#d5e279
@@ -213,81 +214,13 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		if (errorResponse != null) {
 			logger.error(errorResponse);
 			
-			if (errorResponse.isTimeout() && request.getNRetry() > 0) {
-				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
-				request.retry();
-				
-				try {
-					httpClient.close();
-				} catch (IOException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-					logger.error(e1.getMessage());
-					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException",
-							errorResponse.getErrorDescription() + " " + e1.getMessage());
-				}
-
-				if (sm == null)
-					httpClient = HttpClients.createDefault();
-				else
-					try {
-						httpClient = sm.getSSLHttpClient();
-					} catch (SEPASecurityException e) {
-						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SEPASecurityException",
-								e.getMessage() + " while retrying exec " + errorResponse.getErrorDescription());
-					}
-//				
-//				try {
-//					Thread.sleep(1000);
-//				} catch (InterruptedException e) {
-//					logger.warn("InterruptedException "+e.getMessage());
-//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedException", errorResponse.getErrorDescription()+" "+e.getMessage());
-//				}
-				
-				return executeRequest(req, request);		
-			}
-			
-			/*
-Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
-INFORMAZIONI: I/O exception (java.net.SocketException) caught when processing request to {}->http://localhost:8000: Bad file descriptor
-Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
-INFORMAZIONI: Retrying request to {}->http://localhost:8000
-
-Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
-INFORMAZIONI: I/O exception (java.net.SocketException) caught when processing request to {}->http://localhost:8000: Bad file descriptor
-Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
-INFORMAZIONI: Retrying request to {}->http://localhost:8000
-
-Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
-INFORMAZIONI: I/O exception (java.net.SocketException) caught when processing request to {}->http://localhost:8000: Bad file descriptor
-Jul 22, 2020 10:29:05 AM org.apache.http.impl.execchain.RetryExec execute
-INFORMAZIONI: Retrying request to {}->http://localhost:8000
-			 * */
-//			if (errorResponse.isBadFileDescriptor() && request.getNRetry() > 0) {
-//				logger.warn("*** BAD FILE DESCRIPTOR RETRY "+request.getNRetry()+" ***");
-//				
-//				try {
-//					httpClient.close();
-//				} catch (IOException e1) {
-//					// TODO Auto-generated catch block
-//					e1.printStackTrace();
-//					logger.error(e1.getMessage());
-//					return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "BadFileDescriptor", errorResponse.getErrorDescription()+" "+e1.getMessage());
-//				}
-//				
-//				if (sm == null)
-//					httpClient = HttpClients.createDefault();
-//				else
-//					try {
-//						httpClient = sm.getSSLHttpClient();
-//					} catch (SEPASecurityException e) {
-//						logger.error(e.getMessage());
-//						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "BadFileDescriptor", errorResponse.getErrorDescription()+" "+e.getMessage());
-//					}
-//							
+//			if (errorResponse.isTimeout() && request.getNRetry() > 0) {
+//				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
 //				request.retry();
-//				return executeRequest(req, request);
+//				
+//				return executeRequest(req, request);		
 //			}
+			
 			
 			return errorResponse;
 		}
@@ -684,11 +617,11 @@ INFORMAZIONI: Retrying request to {}->http://localhost:8000
 
 	@Override
 	public void close() throws IOException {
-		try {
-			httpClient.close();
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-			throw e;
-		}
+//		try {
+//			httpClient.close();
+//		} catch (IOException e) {
+//			logger.error(e.getMessage());
+//			throw e;
+//		}
 	}
 }

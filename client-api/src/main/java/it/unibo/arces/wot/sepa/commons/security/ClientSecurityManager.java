@@ -18,42 +18,21 @@
 
 package it.unibo.arces.wot.sepa.commons.security;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-
 import java.util.Date;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpStatus;
-import org.apache.http.ParseException;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.request.RegistrationRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.timing.Timings;
-
+import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties.OAUTH_PROVIDER;
 
 public class ClientSecurityManager {
 
@@ -61,45 +40,26 @@ public class ClientSecurityManager {
 	private static final Logger logger = LogManager.getLogger();
 
 	private final AuthenticationProperties oauthProperties;
-
-	private final String jksName;
-	private final String jksPassword;
+	
+	private final AuthenticationService oauth;
 
 	public ClientSecurityManager(AuthenticationProperties oauthProp)  throws SEPASecurityException {
-		this.jksName = null;
-		this.jksPassword = null;
-		
-		oauthProperties = oauthProp;
-		
-		if (!oauthProperties.trustAll()) throw new SEPASecurityException("Missing JKS file and password");
+		this(oauthProp, null, null);
 	}
 	
 	public ClientSecurityManager(AuthenticationProperties oauthProp, String jksName, String jksPassword) throws SEPASecurityException {		
 		oauthProperties = oauthProp;
 		
-		if (oauthProperties.trustAll()) throw new SEPASecurityException("Wrong constructor. Trust all. JKS parameters not used");
-		
-		// Arguments check
-		if (jksName == null || jksPassword == null ) //|| keyPassword == null)
-			throw new SEPASecurityException("JKS name or passwords are null");
-
-		// Initialize SSL context
-		File f = new File(jksName);
-		if (!f.exists() || f.isDirectory())
-			throw new SEPASecurityException(jksName + " not found");
-
-		this.jksName = jksName;
-		this.jksPassword = jksPassword;			
+		if (oauthProperties.getProvider().equals(OAUTH_PROVIDER.SEPA)) oauth = new DefaultAuthenticationService(oauthProp, jksName, jksPassword);
+		else oauth = new KeycloakAuthenticationService(oauthProp, jksName, jksPassword);
 	}
 	
 	public SSLContext getSSLContext() throws SEPASecurityException {
-		if (!oauthProperties.trustAll()) return new SSLManager().getSSLContextFromJKS(jksName, jksPassword);
-		return new SSLManager().getSSLContextTrustAllCa(oauthProperties.getSSLProtocol());
+		return oauth.getSSLContext();
 	}
 	
-	public CloseableHttpClient getSSLHttpClient() throws SEPASecurityException {
-		if (!oauthProperties.trustAll()) return new SSLManager().getSSLHttpClient(jksName, jksPassword);
-		return new SSLManager().getSSLHttpClientTrustAllCa(oauthProperties.getSSLProtocol());
+	public CloseableHttpClient getSSLHttpClient() {
+		return oauth.getSSLHttpClient();
 	}
 
 	/**
@@ -119,7 +79,7 @@ public class ClientSecurityManager {
 		if (oauthProperties == null)
 			throw new SEPAPropertiesException("Authorization properties are null");
 
-		Response ret = register(oauthProperties.getRegisterUrl(), identity, timeout);
+		Response ret = oauth.register(identity, timeout);
 
 		if (ret.isRegistrationResponse()) {
 			RegistrationResponse reg = (RegistrationResponse) ret;
@@ -164,7 +124,7 @@ public class ClientSecurityManager {
 	public boolean isClientRegistered() {
 		return oauthProperties.isClientRegistered();
 	}
-
+	
 	public void setClientCredentials(String username, String password)
 			throws SEPAPropertiesException, SEPASecurityException {
 		oauthProperties.setCredentials(username, password);
@@ -175,8 +135,7 @@ public class ClientSecurityManager {
 			return new ErrorResponse(401, "invalid_client", "Client is not registered");
 		}
 
-		Response ret = requestToken(oauthProperties.getTokenRequestUrl(),
-				oauthProperties.getBasicAuthorizationHeader(),timeout);
+		Response ret = oauth.requestToken(oauthProperties.getBasicAuthorizationHeader(),timeout);
 
 		if (ret.isJWTResponse()) {
 			JWTResponse jwt = (JWTResponse) ret;
@@ -193,157 +152,5 @@ public class ClientSecurityManager {
 	
 	public Response refreshToken() throws SEPAPropertiesException, SEPASecurityException {
 		return refreshToken(5000);
-	}
-
-	private Response register(String url, String identity, int timeout) throws SEPASecurityException {
-		if (identity == null) throw new SEPASecurityException("Identity is null");
-			
-		logger.info("REGISTER " + identity);
-
-		CloseableHttpResponse response = null;
-		long start = Timings.getTime();
-
-		try {
-			URI uri = new URI(url);
-			ByteArrayEntity body = new ByteArrayEntity(new RegistrationRequest(identity).toString().getBytes("UTF-8"));
-
-			HttpPost httpRequest = new HttpPost(uri);
-			httpRequest.setHeader("Content-Type", "application/json");
-			httpRequest.setHeader("Accept", "application/json");
-			httpRequest.setEntity(body);
-
-			// Set timeout
-			RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout)
-					.build();
-			httpRequest.setConfig(requestConfig);
-
-			logger.trace(httpRequest);
-
-			try {
-				if (!oauthProperties.trustAll()) response = new SSLManager().getSSLHttpClient(jksName, jksPassword).execute(httpRequest);
-				else response = new SSLManager().getSSLHttpClientTrustAllCa(oauthProperties.getSSLProtocol()).execute(httpRequest);
-//				response = new SSLManager().getSSLHttpClient(jksName, jksPassword).execute(httpRequest);
-			} catch (IOException | SEPASecurityException e) {
-				logger.error("HTTP EXECUTE: " + e.getMessage());
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
-			}
-
-			logger.debug("Response: " + response);
-			HttpEntity entity = response.getEntity();
-			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
-
-			EntityUtils.consume(entity);
-
-			JsonObject json = new JsonParser().parse(jsonResponse).getAsJsonObject();
-
-			if (json.has("error")) {
-				int code = json.get("status_code").getAsInt();
-				String error = json.get("error").getAsString();
-				String description = json.get("error_description").getAsString();
-
-				ErrorResponse ret = new ErrorResponse(code, error, description);
-				logger.error(ret);
-
-				return ret;
-			}
-
-			String id = json.get("credentials").getAsJsonObject().get("client_id").getAsString();
-			String secret = json.get("credentials").getAsJsonObject().get("client_secret").getAsString();
-			JsonElement signature = json.get("credentials").getAsJsonObject().get("signature");
-
-			Timings.log("REGISTER", start, Timings.getTime());
-
-			return new RegistrationResponse(id, secret, signature);
-
-		} catch (URISyntaxException e) {
-			logger.error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "URISyntaxException", e.getMessage());
-		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",
-					e.getMessage());
-		} catch (ParseException e) {
-			logger.error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ParseException", e.getMessage());
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
-		} finally {
-			try {
-				if (response != null)
-					response.close();
-			} catch (IOException e) {
-				logger.error(e.getMessage());
-				Timings.log("REGISTER_ERROR", start, Timings.getTime());
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
-			}
-		}
-	}
-
-	private Response requestToken(String url, String authorization,int timeout) {
-		logger.info("TOKEN_REQUEST: " + authorization);
-
-		CloseableHttpResponse response = null;
-		long start = Timings.getTime();
-
-		try {
-			URI uri = new URI(url);
-
-			HttpPost httpRequest = new HttpPost(uri);
-			httpRequest.setHeader("Content-Type", "application/json");
-			httpRequest.setHeader("Accept", "application/json");
-			httpRequest.setHeader("Authorization", authorization);
-
-			// Set timeout
-			RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(timeout).setConnectTimeout(timeout)
-					.build();
-			httpRequest.setConfig(requestConfig);
-
-			try {
-				response = getSSLHttpClient().execute(httpRequest);
-				// break;
-			} catch (IOException e) {
-				logger.error("HTTP EXECUTE: " + e.getMessage());
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
-			}
-
-			logger.debug("Response: " + response);
-			HttpEntity entity = response.getEntity();
-			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
-			EntityUtils.consume(entity);
-
-			// Parse response
-			JsonObject json = new JsonParser().parse(jsonResponse).getAsJsonObject();
-
-			if (json.has("error")) {
-				Timings.log("TOKEN_REQUEST", start, Timings.getTime());
-				ErrorResponse error = new ErrorResponse(json.get("status_code").getAsInt(),
-						json.get("error").getAsString(), json.get("error_description").getAsString());
-				return error;
-			}
-
-			return new JWTResponse(json);
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			Timings.log("TOKEN_REQUEST", start, Timings.getTime());
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Exception", e.getMessage());
-		} finally {
-			try {
-				if (response != null)
-					response.close();
-			} catch (IOException e) {
-				logger.error(e.getMessage());
-				Timings.log("TOKEN_REQUEST", start, Timings.getTime());
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
-			}
-		}
-	}
-
-	public String getClientId() {
-		return oauthProperties.getClientId();
 	}
 }

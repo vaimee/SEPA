@@ -123,6 +123,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	public final void onMessage(String message) throws SEPAProtocolException, SEPASecurityException, QueryException {
 		// Authorize the request
 		ClientAuthorization auth = authorize(message);
+		
 		if (!auth.isAuthorized()) {
 			ErrorResponse error = new ErrorResponse(401, auth.getError(), auth.getDescription());
 			setAliasIfPresent(error, message);

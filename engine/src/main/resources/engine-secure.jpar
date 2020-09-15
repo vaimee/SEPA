@@ -18,10 +18,10 @@
 				"type" : "keycloak"
 			},
 			"ports": {
-				"http": 8000,
-				"ws": 9000,
-				"https": 8443,
-				"wss": 9443
+				"http": 9001,
+				"ws": 9002,
+				"https": 9001,
+				"wss": 9002
 			},
 			"paths": {
 				"update": "/update",

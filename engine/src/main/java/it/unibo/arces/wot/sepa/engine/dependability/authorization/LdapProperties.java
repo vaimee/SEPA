@@ -9,8 +9,9 @@ public class LdapProperties {
 	private final String base;
 	private final String user;
 	private final String pass;
+	private final String usersDNsuffix;
 	
-	public LdapProperties(String host, int port, String base, String user, String pass,boolean tls) throws SEPASecurityException {
+	public LdapProperties(String host, int port, String base, String usersDNsuffix, String user, String pass,boolean tls) throws SEPASecurityException {
 		if (host == null)  throw new SEPASecurityException("Host is null");
 		if (base == null)  throw new SEPASecurityException("Base is null");
 		if (user != null && pass == null)  throw new SEPASecurityException("Password is null");
@@ -21,6 +22,7 @@ public class LdapProperties {
 		this.user = user;
 		this.tls = tls;
 		this.base = base;
+		this.usersDNsuffix = usersDNsuffix;
 	}
 	
 	public String getHost() {
@@ -35,6 +37,11 @@ public class LdapProperties {
 	public String getBase() {
 		return base;
 	}
+	
+	public String getUsersDN() {
+		return usersDNsuffix;
+	}
+	
 	public String getUser() {
 		return user;
 	}

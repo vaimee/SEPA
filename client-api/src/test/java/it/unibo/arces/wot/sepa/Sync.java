@@ -1,21 +1,20 @@
 package it.unibo.arces.wot.sepa;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.util.Map.Entry;
+
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
-import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
-public class Sync implements ISubscriptionHandler, Closeable {
+public class Sync implements ISubscriptionHandler {
 	protected final Logger logger = LogManager.getLogger();
 
 	private static long events = 0;
@@ -28,55 +27,36 @@ public class Sync implements ISubscriptionHandler, Closeable {
 	private static Object unsubscribesMutex = new Object();
 	private static Object connectionsMutex = new Object();
 
-	private static ConcurrentHashMap<String, String> spuid;
+	private static ConcurrentHashMap<String, String> spuid = new ConcurrentHashMap<String, String>();
 
-	private WebsocketSubscriptionProtocol client = null;
-	private ConfigurationProvider provider = null;
+	private ClientSecurityManager sm;
 
-	public Sync(ConfigurationProvider provider) throws SEPASecurityException, SEPAProtocolException {
-		this.provider = provider;
-		this.client = provider.getWebsocketClient();
-	}
-	
-	public Sync()  {
-
+	public Sync(ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
+		this.sm = sm;
 	}
 
-	public void reset() {
-		logger.trace("reset");
+	public synchronized void reset() {
+		logger.trace("ISubscriptionHandler reset");
 		subscribes = 0;
 		events = 0;
 		unsubscribes = 0;
 		connections = 0;
-		spuid = new ConcurrentHashMap<String, String>();
+		spuid.clear();
+	}
+	
+	public synchronized String getSpuid(String alias) {
+		return spuid.get(alias);
 	}
 
-	public void close() {
-		if (client != null) {
-			for (Entry<String, String> id : spuid.entrySet()) {
-				try {
-					client.unsubscribe(provider.buildUnsubscribeRequest(id.getKey()));
-				} catch (SEPAProtocolException e) {
-					logger.error(e.getMessage());
-				}
-			}
-			try {
-				client.close();
-			} catch (IOException e) {
-				logger.error(e.getMessage());
-			}
-		}
-	}
-
-	public long getSubscribes() {
+	public synchronized long getSubscribes() {
 		return subscribes;
 	}
 
-	public long getEvents() {
+	public synchronized long getEvents() {
 		return events;
 	}
 
-	public long getUnsubscribes() {
+	public synchronized long getUnsubscribes() {
 		return unsubscribes;
 	}
 
@@ -85,7 +65,7 @@ public class Sync implements ISubscriptionHandler, Closeable {
 			while (subscribes < total) {
 				try {
 					logger.trace("waitSubscribes");
-					subscribesMutex.wait(1000);
+					subscribesMutex.wait();
 				} catch (InterruptedException e) {
 					break;
 				}
@@ -106,7 +86,7 @@ public class Sync implements ISubscriptionHandler, Closeable {
 			while (connections < total) {
 				try {
 					logger.trace("waitEvents");
-					connectionsMutex.wait(1000);
+					connectionsMutex.wait();
 				} catch (InterruptedException e) {
 					break;
 				}
@@ -119,7 +99,7 @@ public class Sync implements ISubscriptionHandler, Closeable {
 			while (events < total) {
 				try {
 					logger.trace("waitEvents");
-					eventsMutex.wait(1000);
+					eventsMutex.wait();
 				} catch (InterruptedException e) {
 					break;
 				}
@@ -132,7 +112,7 @@ public class Sync implements ISubscriptionHandler, Closeable {
 			while (unsubscribes < total) {
 				try {
 					logger.trace("waitUnsubscribes");
-					unsubscribesMutex.wait(1000);
+					unsubscribesMutex.wait();
 				} catch (InterruptedException e) {
 					break;
 				}
@@ -151,19 +131,25 @@ public class Sync implements ISubscriptionHandler, Closeable {
 
 	@Override
 	public void onBrokenConnection(ErrorResponse errorResponse) {
-		//logger.error(errorResponse);
+		logger.error(errorResponse);
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		logger.error(errorResponse);
+		if (errorResponse.isTokenExpiredError())
+			try {
+				sm.refreshToken();
+			} catch (SEPAPropertiesException | SEPASecurityException e) {
+				logger.error("Failed to refresh token. "+e.getMessage());
+			}
 	}
 
 	@Override
 	public void onSubscribe(String id, String alias) {
 		synchronized (subscribesMutex) {
 			logger.trace("onSubscribe");
-			spuid.put(id, alias);
+			spuid.put(alias, id);
 			subscribes++;
 			subscribesMutex.notify();
 		}

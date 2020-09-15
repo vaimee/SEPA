@@ -108,6 +108,7 @@ public class Engine implements EngineMBean {
 	private String ldapHost = "localhost";
 	private int ldapPort = 10389;
 	private String ldapDn = "dc=example,dc=com";
+	private String ldapUsersDn = null;
 	private String ldapUser = null;
 	private String ldapPwd = null;
 	
@@ -169,6 +170,7 @@ public class Engine implements EngineMBean {
 		System.out.println("-ldaphost <name> : host     		         (default: localhost)");
 		System.out.println("-ldapport <port> : port                      (default: 10389)");
 		System.out.println("-ldapdn <dn> : domain                        (default: dc=sepatest,dc=com)");
+		System.out.println("-ldapusersdn <dn> : domain                   (default: null)");
 		System.out.println("-ldapuser <usr> : username                   (default: null)");
 		System.out.println("-ldappwd <pwd> : password                    (default: null)");
 		
@@ -235,6 +237,9 @@ public class Engine implements EngineMBean {
 			case "-ldapdn":
 				ldapDn = args[i+1];
 				break;
+			case "-ldapusersdn":
+				ldapUsersDn = args[i+1];
+				break;
 			case "-ldapuser":
 				ldapUser = args[i+1];
 				break;
@@ -281,6 +286,7 @@ public class Engine implements EngineMBean {
 		logger.debug("-ldaphost: " + ldapHost);
 		logger.debug("-ldapport: " + ldapPort);
 		logger.debug("-ldapdn: " + ldapDn);
+		logger.debug("-ldapusersdn: " + ldapUsersDn);
 		logger.debug("-ldapuser: " + ldapUser);
 		logger.debug("-ldappwd: " + ldapPwd);
 		
@@ -340,7 +346,7 @@ public class Engine implements EngineMBean {
 			if (properties.isSecure()) {
 				SSLContext ssl = JKSUtil.getSSLContext(sslStoreName, sslStorePass);
 				RSAKey jwt = JKSUtil.getRSAKey(jwtKeyStore, jwtKeyStorePass, jwtKeyAlias, jwtKeyAliasPass);
-				LdapProperties ldap = new LdapProperties(ldapHost, ldapPort, ldapDn, ldapUser, ldapPwd, properties.isTls());
+				LdapProperties ldap = new LdapProperties(ldapHost, ldapPort, ldapDn, ldapUsersDn,ldapUser, ldapPwd, properties.isTls());
 				IsqlProperties isql = new IsqlProperties(isqlPath,isqlHost,isqlUser,isqlPass);
 				if (properties.isLocalEnabled()) Dependability.enableLocalSecurity(ssl, jwt);
 				else if (properties.isLDAPEnabled()) {					

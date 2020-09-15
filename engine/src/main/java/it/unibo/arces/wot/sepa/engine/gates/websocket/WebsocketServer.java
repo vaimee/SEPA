@@ -198,6 +198,11 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
+		if (conn == null) {
+			logger.fatal("Failed to start. Cannot bind port. Exit");
+			System.exit(-1);
+		}
+		
 		logger.error("@onError "+ conn.getResourceDescriptor() + " remote: " + conn.getRemoteSocketAddress() + " " +ex.getClass().getCanonicalName()+" "+ ex.getMessage());
 
 		GateBeans.onError();

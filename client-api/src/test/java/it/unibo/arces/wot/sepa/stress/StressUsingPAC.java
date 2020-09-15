@@ -3,7 +3,6 @@ package it.unibo.arces.wot.sepa.stress;
 import it.unibo.arces.wot.sepa.AggregatorTestUnit;
 import it.unibo.arces.wot.sepa.ConsumerTestUnit;
 import it.unibo.arces.wot.sepa.pattern.GenericClient;
-import it.unibo.arces.wot.sepa.pattern.JSAP;
 import it.unibo.arces.wot.sepa.pattern.Producer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,7 +18,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -33,9 +31,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 
     protected static final Logger logger = LogManager.getLogger();
 
-    protected static JSAP app = null;
-    protected static ClientSecurityManager sm = null;
-    protected static ConfigurationProvider provider;
+    static ConfigurationProvider provider;
     
     protected static ConsumerTestUnit consumerAll;
     protected static Producer randomProducer;
@@ -71,18 +67,6 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     @BeforeAll
     public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
         provider = new ConfigurationProvider();
-    	try {   	
-            app = new ConfigurationProvider().getJsap();
-        } catch (SEPAPropertiesException | SEPASecurityException e) {
-            assertFalse(true,"Configuration not found");
-        }
-
-        if (app.isSecure()) {
-        	sm = provider.getSecurityManager();
-            Response ret = sm.register("SEPATest");
-            ret = sm.refreshToken();
-            assertFalse(ret.isError());
-        }
     }
     
     @AfterAll
@@ -92,11 +76,11 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 
     @BeforeEach
     public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-        consumerAll = new ConsumerTestUnit(app, "ALL", sm);
-        randomProducer = new Producer(app, "RANDOM", sm);
-        randomAggregator = new AggregatorTestUnit(app, "RANDOM", "RANDOM1", sm);
-        consumerRandom1 = new ConsumerTestUnit(app, "RANDOM1", sm);
-        genericClient = new GenericClient(app, sm, this);
+        consumerAll = new ConsumerTestUnit(provider, "ALL");
+        randomProducer = new Producer(provider.getJsap(), "RANDOM", provider.getSecurityManager());
+        randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1");
+        consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
+        genericClient = new GenericClient(provider.getJsap(), provider.getSecurityManager(), this);
     }
 
     @AfterEach

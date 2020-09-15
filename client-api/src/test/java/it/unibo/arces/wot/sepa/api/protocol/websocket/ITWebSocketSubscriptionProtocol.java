@@ -22,13 +22,14 @@ import it.unibo.arces.wot.sepa.ConfigurationProvider;
 public class ITWebSocketSubscriptionProtocol {
 	protected static final Logger logger = LogManager.getLogger();
 
-	private static Sync sync = new Sync();
-
+	private static Sync sync;
 	private HashSet<Subscriber> subscribers = new HashSet<Subscriber>();
-
+	private static ConfigurationProvider provider;
+	
 	@BeforeAll
-	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
-
+	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException, SEPAProtocolException {
+		provider = new ConfigurationProvider();
+		sync = new Sync(provider.getSecurityManager());
 	}
 	
 	@AfterAll
@@ -46,13 +47,12 @@ public class ITWebSocketSubscriptionProtocol {
 	public void after() throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		for (Subscriber s : subscribers)
 			s.close();
-		sync.close();
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(5)
 	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
-		Subscriber s = new Subscriber(1, sync);
+		Subscriber s = new Subscriber(provider,1, sync);
 		subscribers.add(s);
 		s.start();
 
@@ -60,13 +60,13 @@ public class ITWebSocketSubscriptionProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(5)
+	@Timeout(10)
 	public void MultipleSubscribes()
 			throws IOException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
 		int n = 10;
 
 		for (int i = 0; i < n; i++) {
-			Subscriber s = new Subscriber(1, sync);
+			Subscriber s = new Subscriber(provider,1, sync);
 			subscribers.add(s);
 			s.start();
 		}
@@ -82,7 +82,7 @@ public class ITWebSocketSubscriptionProtocol {
 		int m = 5;
 
 		for (int i = 0; i < m; i++) {
-			Subscriber s = new Subscriber(n, sync);
+			Subscriber s = new Subscriber(provider,n, sync);
 			subscribers.add(s);
 			s.start();
 		}
@@ -94,7 +94,7 @@ public class ITWebSocketSubscriptionProtocol {
 	@Timeout(5)
 	public void SubscribeAndUnsubscribe()
 			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
-		Subscriber s = new Subscriber(1, sync);
+		Subscriber s = new Subscriber(provider,1, sync);
 		subscribers.add(s);
 		s.start();
 

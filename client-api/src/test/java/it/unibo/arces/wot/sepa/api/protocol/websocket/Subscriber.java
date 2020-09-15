@@ -22,15 +22,14 @@ class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
 	private final WebsocketSubscriptionProtocol client;
 	private int n;
 
-	private static ConfigurationProvider provider;
+	private ConfigurationProvider provider;
 		
 	private ISubscriptionHandler handler;
 	
 	private HashSet<String> spuids = new HashSet<>();
 	
-	public Subscriber(int n, ISubscriptionHandler handler) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
-		provider = new ConfigurationProvider();
-		
+	public Subscriber(ConfigurationProvider provider,int n, ISubscriptionHandler handler) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
+		this.provider = provider;		
 		this.handler = handler;
 		
 		client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
@@ -39,19 +38,11 @@ class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
 		this.n = n;
 	}
 
-	public void run() {
-		if (provider.getJsap().isSecure()) {
-			try {
-				provider.getSecurityManager().register("SEPATest");
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e);
-			}
-		}
-		
+	public void run() {		
 		for (int j = 0; j < n; j++) {
 			try {
 				client.subscribe(provider.buildSubscribeRequest("RANDOM"));
-			} catch (SEPAProtocolException e) {
+			} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
 		}
@@ -65,7 +56,7 @@ class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
 		}
 	}
 
-	public void unsubscribe() throws SEPAProtocolException {
+	public void unsubscribe() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		for (String spuid : spuids) client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
 	}
 
@@ -76,7 +67,7 @@ class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
 		for (String spuid : temp) {
 			try {
 				client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
-			} catch (SEPAProtocolException e) {
+			} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 			}
 		}
