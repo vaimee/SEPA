@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Timeout;
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
@@ -34,11 +35,11 @@ public class ITTyrusWebSocketClient {
 	protected static Set<TyrusWebsocketClient> websockets = new HashSet<TyrusWebsocketClient>();;
 	
 	@BeforeAll
-	public static void init() throws SEPASecurityException {	 
+	public static void init() throws SEPASecurityException, SEPAProtocolException {	 
 		try {
 			provider = new ConfigurationProvider();
 			properties = provider.getJsap();
-			sync = new Sync();
+			sync = new Sync(provider.getSecurityManager());
 		} catch (SEPAPropertiesException | SEPASecurityException  e) {
 			assertFalse(true,"Configuration not found");
 		}

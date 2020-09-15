@@ -138,7 +138,11 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			try {
 				logger.trace("REFRESH TOKEN");
 				Response ret = sm.refreshToken();
-				sm.storeOAuthProperties();
+				
+				if (!ret.isError()) {
+					sm.storeOAuthProperties();	
+				}
+				
 				logger.trace(ret);
 			} catch (SEPAPropertiesException | SEPASecurityException e) {
 				logger.error(e.getMessage());

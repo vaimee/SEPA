@@ -63,24 +63,24 @@ public class InternalQueryRequest extends InternalUQRequest {
 			return ret;
 
 		Query q = null;
-		logger.debug("Parsing query: " + sparql);
+		logger.trace("Parsing query: " + sparql);
 		q = QueryFactory.create(sparql);
 
-		logger.debug("Get dataset descriptiors");
+		logger.trace("Get dataset descriptiors");
 		if (q.hasDatasetDescription()) {
-			logger.debug("Get default graph URIs");
+			logger.trace("Get default graph URIs");
 			for (String gr : q.getDatasetDescription().getDefaultGraphURIs()) {
 				ret.add(gr);
 			}
-			logger.debug("Get named graph URIs");
+			logger.trace("Get named graph URIs");
 			for (String gr : q.getDatasetDescription().getNamedGraphURIs()) {
 				ret.add(gr);
 			}
 		}
 
-		logger.debug("Get graph URIs");
+		logger.trace("Get graph URIs");
 		List<String> graphs = q.getGraphURIs();
-		logger.debug("Get named graph URIs");
+		logger.trace("Get named graph URIs");
 		List<String> namedGraphs = q.getNamedGraphURIs();
 
 		ret.addAll(extractGraphs(q.getQueryPattern()));
@@ -96,7 +96,7 @@ public class InternalQueryRequest extends InternalUQRequest {
 		if (e == null)
 			return ret;
 
-		logger.debug("Extract graphs " + e);
+		logger.trace("Extract graphs " + e);
 		if (e.getClass().equals(ElementGroup.class)) {
 			ElementGroup group = (ElementGroup) e;
 			for (Element element : group.getElements()) {

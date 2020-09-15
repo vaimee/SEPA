@@ -23,12 +23,19 @@ public class SyncLdap implements IUsersSync {
 	
 	private EntryCursor cursor = null;
 	private final String endpointPassword;
+	private final String endpointPasswordUid;
+	private final String usersUid;
 	
 	public SyncLdap(LdapProperties prop) throws SEPASecurityException {
-		this.prop = prop;
-		
+		this.prop = prop;	
 		this.ldap = new LdapNetworkConnection(prop.getHost(), prop.getPort());
-
+		
+		endpointPasswordUid = "uid=endpointUsersPassword," +prop.getUsersDN()+","+prop.getBase();
+		usersUid = "ou=users," + (prop.getUsersDN() == null ? "" : prop.getUsersDN()+",") + prop.getBase();
+		
+		logger.debug("endpointPasswordUid: "+endpointPasswordUid);
+		logger.debug("usersUid: "+usersUid);
+		
 		endpointPassword = retrievePassword();
 		
 		new Thread() {
@@ -41,10 +48,6 @@ public class SyncLdap implements IUsersSync {
 			}
 		}.start();
 	}
-
-	public SyncLdap() throws SEPASecurityException {
-		this(new LdapProperties("localhost", 10389,"dc=example,dc=com", "admin", "admin",false));
-	}
 	
 	public String getEndpointUsersPassword() {
 		return endpointPassword;
@@ -56,16 +59,16 @@ public class SyncLdap implements IUsersSync {
 		try {
 			bind();
 			
-			logger.trace("[LDAP] Sync LDAP "+ldap.getConfig().getLdapHost()+":"+ldap.getConfig().getLdapPort()+" Base DN: uid=endpointUsersPassword," + prop.getBase());
+			logger.trace("[LDAP] Sync LDAP "+ldap.getConfig().getLdapHost()+":"+ldap.getConfig().getLdapPort()+" Base DN: " + endpointPasswordUid);
 
-			EntryCursor cursor = ldap.search("uid=endpointUsersPassword," + prop.getBase(), "(objectclass=simpleSecurityObject)", SearchScope.OBJECT);
+			EntryCursor cursor = ldap.search(endpointPasswordUid, "(objectclass=simpleSecurityObject)", SearchScope.OBJECT);
 			
 			if (cursor.next()) {
 				// Password has to be store as "plain text"
 				ret = new String(cursor.get().get("userPassword").get().getBytes());
 				logger.trace("userPassword: "+ret);				
 			}
-			else throw new SEPASecurityException("endpointUsersPassword is missing in LDAP");
+			else throw new SEPASecurityException(endpointPasswordUid+" not found in LDAP");
 		} catch (LdapException | CursorException  e) {
 			throw new SEPASecurityException(e.getMessage());
 		} finally {
@@ -81,9 +84,9 @@ public class SyncLdap implements IUsersSync {
 		try {
 			bind();
 			
-			logger.trace("[LDAP] Sync LDAP "+ldap.getConfig().getLdapHost()+":"+ldap.getConfig().getLdapPort()+" Base DN: ou=users," + prop.getBase());
+			logger.trace("[LDAP] Sync LDAP "+ldap.getConfig().getLdapHost()+":"+ldap.getConfig().getLdapPort()+" Base DN: " + usersUid);
 
-			EntryCursor cursor = ldap.search("ou=users," + prop.getBase(), "(objectclass=inetOrgPerson)", SearchScope.ONELEVEL);
+			EntryCursor cursor = ldap.search(usersUid, "(objectclass=inetOrgPerson)", SearchScope.ONELEVEL);
 			
 			for (org.apache.directory.api.ldap.model.entry.Entry entry: cursor) {
 				logger.trace(entry.toString("--"));

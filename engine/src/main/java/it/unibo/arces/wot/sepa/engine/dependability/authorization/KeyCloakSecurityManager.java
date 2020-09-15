@@ -92,7 +92,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 			claimsSet = signedJWT.getJWTClaimsSet();
 			logger.debug(claimsSet);
 			// Get client credentials for accessing the SPARQL endpoint
-			uid = claimsSet.getStringClaim("preferred_username");
+			uid = claimsSet.getStringClaim("username");
 			logger.debug("Subject: "+claimsSet.getSubject());
 			logger.debug("Issuer: "+claimsSet.getIssuer());
 			logger.debug("Username: "+uid);

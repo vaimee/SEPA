@@ -719,6 +719,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		Credentials cred = null;
 		try {
 			cred = getEndpointCredentials(id);
+			logger.trace(cred);
 		} catch (SEPASecurityException e) {
 			logger.error("Failed to retrieve credentials ("+id+")");
 			return new ClientAuthorization("invalid_grant","Failed to get credentials ("+id+")");

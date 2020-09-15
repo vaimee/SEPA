@@ -30,23 +30,16 @@ public class StressUsingSPARQLProtocol {
 
     private static JSAP properties = null;
     private static ConfigurationProvider provider;
-    private final static String VALID_ID = "SEPATest";
     private static Sync sync; 
     private static SPARQL11Protocol client;
     private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
     private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
     
     @BeforeAll
-    public static void init() throws Exception {
+    public static void init() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
         provider = new ConfigurationProvider();
         properties = provider.getJsap();
-        sync = new Sync();
-        
-        if (properties.isSecure()) {
-            // Registration
-            Response response = provider.getSecurityManager().register(VALID_ID);
-            assertFalse(response.isError(),response.toString());
-        }
+        sync = new Sync(provider.getSecurityManager());
     }
     
     @AfterAll
@@ -69,8 +62,11 @@ public class StressUsingSPARQLProtocol {
 
         if (ret.isError()) {
             ErrorResponse error = (ErrorResponse) ret;
-            if (error.isTokenExpiredError() && properties.isSecure()) provider.getSecurityManager().refreshToken();
-            ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
+            if (error.isTokenExpiredError() && properties.isSecure()) {
+            	provider.getSecurityManager().refreshToken();
+            	ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
+                assertFalse(ret.isError(),ret.toString());
+            }
         }
 
         logger.debug(ret);
@@ -87,11 +83,9 @@ public class StressUsingSPARQLProtocol {
 
         for (Publisher pub : publishers)
             pub.close();
-        
-        sync.close();
     }
 
-    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+    //@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     //(timeout = 5000)
     public void RequestToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
         ThreadGroup threadGroup = new ThreadGroup("TokenRequestGroup");
@@ -99,31 +93,18 @@ public class StressUsingSPARQLProtocol {
             for (int n = 0; n < 10; n++) {
                 new Thread(threadGroup,null,"TokenThread-"+n) {
                     public void run() {
-                        // Registration
-                        Response response = null;
-                        try {
-                            response = provider.getSecurityManager().register(VALID_ID);
-                            logger.debug(response);
-                        } catch (SEPASecurityException | SEPAPropertiesException e1) {
-                            assertFalse(true,e1.getMessage());
-                        }
-                        assertFalse(response.isError(),"Failed to register a valid ID");
-
                         for (int i = 0; i < 100; i++) {
-                            String authorization = null;
-                            try {
-                                authorization = provider.getSecurityManager().getAuthorizationHeader();
-                                if (authorization == null) provider.getSecurityManager().refreshToken();
-                                authorization = provider.getSecurityManager().getAuthorizationHeader();
-                            } catch (SEPASecurityException | SEPAPropertiesException e1) {
-                                assertFalse(true,e1.getMessage());
-                            }
-                            assertFalse(authorization == null,"Failed to get authorization header");
-                            try {
-                                Thread.sleep(100);
-                            } catch (InterruptedException e) {
-                                return;
-                            }
+                        	try {
+								Response ret = provider.getSecurityManager().refreshToken();
+								assertFalse(ret.isError(),ret.toString());
+	                            try {
+	                                Thread.sleep(100);
+	                            } catch (InterruptedException e) {
+	                                return;
+	                            }
+							} catch (SEPAPropertiesException | SEPASecurityException e2) {
+								assertFalse(true,e2.getMessage());
+							}                    
                         }
                     }
                 }.start();
@@ -141,9 +122,9 @@ public class StressUsingSPARQLProtocol {
         int n = 5;
 
         for (int i = 0; i < n; i++) {
-            subscribers.add(new Subscriber("ALL", sync));
-            subscribers.add(new Subscriber("RANDOM", sync));
-            subscribers.add(new Subscriber("RANDOM1", sync));
+            subscribers.add(new Subscriber(provider,"ALL", sync));
+            subscribers.add(new Subscriber(provider,"RANDOM", sync));
+            subscribers.add(new Subscriber(provider,"RANDOM1", sync));
         }
 
         for (Subscriber sub : subscribers)
@@ -164,8 +145,8 @@ public class StressUsingSPARQLProtocol {
         int n = 5;
 
         for (int i = 0; i < n; i++) {
-            subscribers.add(new Subscriber("RANDOM", sync));
-            publishers.add(new Publisher("RANDOM", n));
+            subscribers.add(new Subscriber(provider,"RANDOM", sync));
+            publishers.add(new Publisher(provider,"RANDOM", n));
         }
 
         for (Subscriber sub : subscribers)
@@ -193,9 +174,9 @@ public class StressUsingSPARQLProtocol {
         int n = 10;
 
         for (int i = 0; i < n; i++) {
-            subscribers.add(new Subscriber("RANDOM", sync));
-            publishers.add(new Publisher("RANDOM", n));
-            publishers.add(new Publisher("WRONG", n));
+            subscribers.add(new Subscriber(provider,"RANDOM", sync));
+            publishers.add(new Publisher(provider,"RANDOM", n));
+            publishers.add(new Publisher(provider,"WRONG", n));
         }
 
         for (Subscriber sub : subscribers)
@@ -221,9 +202,9 @@ public class StressUsingSPARQLProtocol {
         int n = 5;
 
         for (int i = 0; i < n; i++) {
-            publishers.add(new Publisher("RANDOM", n));
-            publishers.add(new Publisher("RANDOM1", n));
-            publishers.add(new Publisher("VAIMEE", n));
+            publishers.add(new Publisher(provider,"RANDOM", n));
+            publishers.add(new Publisher(provider,"RANDOM1", n));
+            publishers.add(new Publisher(provider,"VAIMEE", n));
         }
 
         for (Publisher pub : publishers)
@@ -241,12 +222,12 @@ public class StressUsingSPARQLProtocol {
         int n = 15;
 
         for (int i = 0; i < n; i++) {
-            subscribers.add(new Subscriber("ALL", sync));
-            subscribers.add(new Subscriber("RANDOM", sync));
-            subscribers.add(new Subscriber("RANDOM1", sync));
+            subscribers.add(new Subscriber(provider,"ALL", sync));
+            subscribers.add(new Subscriber(provider,"RANDOM", sync));
+            subscribers.add(new Subscriber(provider,"RANDOM1", sync));
 
-            publishers.add(new Publisher("RANDOM", n));
-            publishers.add(new Publisher("RANDOM1", n));
+            publishers.add(new Publisher(provider,"RANDOM", n));
+            publishers.add(new Publisher(provider,"RANDOM1", n));
         }
 
         int events = 4 * n * n * n + subscribers.size();

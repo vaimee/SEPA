@@ -53,6 +53,7 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfvx34vSSnhpkfcdYbZ+7KDaK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkfP7DEKe7LScGYaT4RcuIfNmywI4fAWabAI4zqedYbd5lXmYhbSmXviPTOQPKxhmZptZ6F5Q178nfK6Bik4/0PwUlgMsC6oVFeJtyPWvjfEP0nx9tGMOt+z9Rvbd7enGWRFspUQJS2zzmGlHW1m5QNFdtOCfTLUOKkyZV4JUQxI1CaP+QbIyIihuQDvIMbmNgbvDNBkj9VQOzg1WB7mj4nn4w7T8I9MpOxAXxnaPUvDk8QnL/5leQcUiFVTa1zlzambQ8xr/BojFB52fIz8LsrDRW/+/0CJJVTFYD6OZ/gepFyLK4yOu/rOiTLT5CF9H2NZQd7bi85zSmi50RHFa3358LvL50c4G84Gz7mkDTBV9JxBhlWVNvD5VR58rPcgESwlGEL2YmOQCZzYGWjTc5cyI/50ZX83sTlTbfs+Tab3pBlsRQu36iNznleeKPj6uVvql+3uvcjMEBqqXvj8TKxMi9tCfHA1vt9RijOap8ROHtnIe4iMovPzkOCMiHJPcwbnyi+6jHbrPI18WGghceZQT23qKHDUYQo2NiehLQG9MQZA1Ncx2w4evBTBX8lkBS4aLoCUoTZTlNFSDOohUHJCbeig9eV77JbLo0a4+PNH9bgM/icSnIG5TidBGyJpEkVtD7+/KphwM89izJam3OT",
 		"expires": "04/5tRBT5n/VJ0XQASgs/w==",
 		"type": "XPrHEX2xHy+5IuXHPHigMw=="
+		"initialAccessToken" : "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4Y2E2ZGNiNC1jZmY5LTQzNGUtODNhNi05NTk4MzQ1NjUxZGMifQ.eyJleHAiOjAsImlhdCI6MTU5OTY3MDIxNywianRpIjoiYWM1OGQ4YTItMjNlZi00M2E1LWJjNjEtZDI2YzlmOTEwNjlkIiwiaXNzIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwiYXVkIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwidHlwIjoiSW5pdGlhbEFjY2Vzc1Rva2VuIn0.WdEiEZxbi9KuvDdYitGXHOdb2W4gGB9cRZC4mT1NLnc"
 	}
 }
  * </pre>
@@ -69,6 +70,10 @@ public class AuthenticationProperties {
 	private final String registrationURL;
 	private final String tokenRequestURL;
 
+	private final String initialAccessToken;
+	private final String username;
+//	private final String clientname;
+	
 	private String clientId = null;
 	private String clientSecret = null;
 
@@ -78,9 +83,17 @@ public class AuthenticationProperties {
 
 	private String ssl = "TLS";
 	private boolean trustAll = false;
-
+	
 	private JsonObject jsap;
 	private File propertiesFile;
+	private JsonObject oauthJsonObject;
+	
+	public enum OAUTH_PROVIDER{SEPA,KEYCLOAK};
+	private OAUTH_PROVIDER provider = OAUTH_PROVIDER.SEPA;
+	
+	public OAUTH_PROVIDER getProvider() {
+		return provider;
+	}
 	
 	public AuthenticationProperties(String jsapFileName, byte[] secret)
 			throws SEPAPropertiesException, SEPASecurityException {
@@ -101,13 +114,14 @@ public class AuthenticationProperties {
 			throw new SEPAPropertiesException("IOException. " + e.getMessage());
 		}
 
+		try {
 		if (secret != null)
 			encryption = new Encryption(secret);
 		else
 			encryption = new Encryption();
 
 		if (jsap.has("oauth")) {
-			JsonObject oauthJsonObject = jsap.getAsJsonObject("oauth");
+			oauthJsonObject = jsap.getAsJsonObject("oauth");
 
 			if (oauthJsonObject.has("enable"))
 				enabled = oauthJsonObject.get("enable").getAsBoolean();
@@ -125,29 +139,60 @@ public class AuthenticationProperties {
 				ssl = oauthJsonObject.get("ssl").getAsString();
 
 			if (enabled) {
-				registrationURL = oauthJsonObject.get("register").getAsString();
-				tokenRequestURL = oauthJsonObject.get("tokenRequest").getAsString();
-				// ssl = oauthJsonObject.get("ssl").getAsString();
-
-				if (oauthJsonObject.has("client_id"))
-					clientId = encryption.decrypt(oauthJsonObject.get("client_id").getAsString());
-				if (oauthJsonObject.has("client_secret"))
-					clientSecret = encryption.decrypt(oauthJsonObject.get("client_secret").getAsString());
-				if (oauthJsonObject.has("jwt"))
-					jwt = encryption.decrypt(oauthJsonObject.get("jwt").getAsString());
-				if (oauthJsonObject.has("expires"))
-					expires = Long.decode(encryption.decrypt(oauthJsonObject.get("expires").getAsString()));
-				if (oauthJsonObject.has("type"))
-					type = encryption.decrypt(oauthJsonObject.get("type").getAsString());
-
+				if (!oauthJsonObject.has("provider")) throw new SEPASecurityException("Provider is missing");
+				String p = oauthJsonObject.get("provider").getAsString();
+				if (p.equals("keycloak")) provider = OAUTH_PROVIDER.KEYCLOAK;
+				else if (p.equals("sepa")) provider = OAUTH_PROVIDER.SEPA;
+				else throw new SEPASecurityException("Provider must have one of the following values: [sepa|keycloak]");
+				
+				
+				JsonObject auth = oauthJsonObject.getAsJsonObject("authentication");
+				tokenRequestURL = auth.get("endpoint").getAsString();
+				
+				if (auth.has("client_id"))
+					clientId = encryption.decrypt(auth.get("client_id").getAsString());
+				if (auth.has("client_secret"))
+					clientSecret = encryption.decrypt(auth.get("client_secret").getAsString());
+				if (auth.has("jwt"))
+					jwt = encryption.decrypt(auth.get("jwt").getAsString());
+				if (auth.has("expires"))
+					expires = Long.decode(encryption.decrypt(auth.get("expires").getAsString()));
+				if (auth.has("type"))
+					type = encryption.decrypt(auth.get("type").getAsString());
+				
+				// Keycloak
+				if (oauthJsonObject.has("registration")) {
+					JsonObject reg = oauthJsonObject.getAsJsonObject("registration");
+					initialAccessToken = reg.get("initialAccessToken").getAsString();
+					registrationURL = reg.get("endpoint").getAsString();
+					username = reg.get("username").getAsString();
+//					clientname = reg.get("clientname").getAsString();
+				}
+				else {
+					registrationURL = null;
+					initialAccessToken = null;
+					username = null;
+//					clientname = null;
+				}
+				
 			} else {
 				registrationURL = null;
 				tokenRequestURL = null;
+				initialAccessToken = null;
+				username = null;
+//				clientname = null;
 			}
 		} else {
 			enabled = false;
 			registrationURL = null;
 			tokenRequestURL = null;
+			initialAccessToken = null;
+			username = null;
+//			clientname = null;
+		}
+		} catch(Exception e) {
+			logger.error(e.getMessage());
+			throw new SEPAPropertiesException(e.getMessage());
 		}
 
 	}
@@ -161,6 +206,9 @@ public class AuthenticationProperties {
 		registrationURL = null;
 		tokenRequestURL = null;
 		encryption = new Encryption();
+		initialAccessToken = null;
+//		clientname = null;
+		username = null;
 	}
 
 	public boolean isEnabled() {
@@ -275,23 +323,40 @@ public class AuthenticationProperties {
 
 		jsap.getAsJsonObject("oauth").add("trustall", new JsonPrimitive(trustAll));
 
-		if (registrationURL != null)
-			jsap.getAsJsonObject("oauth").add("register", new JsonPrimitive(registrationURL));
-		if (tokenRequestURL != null)
-			jsap.getAsJsonObject("oauth").add("tokenRequest", new JsonPrimitive(tokenRequestURL));
-		if (clientId != null)
-			jsap.getAsJsonObject("oauth").add("client_id", new JsonPrimitive(encryption.encrypt(clientId)));
-		if (clientSecret != null)
-			jsap.getAsJsonObject("oauth").add("client_secret", new JsonPrimitive(encryption.encrypt(clientSecret)));
+		if (registrationURL != null) {
+			JsonObject reg = new JsonObject();
+			reg.add("endpoint", new JsonPrimitive(registrationURL));
+			reg.add("initialAccessToken", new JsonPrimitive(initialAccessToken));
+			reg.add("username", new JsonPrimitive(username));
+			jsap.getAsJsonObject("oauth").add("registration", reg);
+		}
+		
+		if (tokenRequestURL != null) {
+			JsonObject auth = new JsonObject();
+			
+			auth.add("endpoint", new JsonPrimitive(tokenRequestURL));
+			if (clientId != null)
+				auth.add("client_id", new JsonPrimitive(encryption.encrypt(clientId)));
+			
+			if (clientSecret != null)
+				auth.add("client_secret", new JsonPrimitive(encryption.encrypt(clientSecret)));
 
-		if (jwt != null)
-			jsap.getAsJsonObject("oauth").add("jwt", new JsonPrimitive(encryption.encrypt(jwt)));
-		if (expires != -1)
-			jsap.getAsJsonObject("oauth").add("expires",
-					new JsonPrimitive(encryption.encrypt(String.format("%d", expires))));
-		if (type != null)
-			jsap.getAsJsonObject("oauth").add("type", new JsonPrimitive(encryption.encrypt(type)));
-
+			if (jwt != null)
+				auth.add("jwt", new JsonPrimitive(encryption.encrypt(jwt)));
+			if (expires != -1)
+				auth.add("expires",
+						new JsonPrimitive(encryption.encrypt(String.format("%d", expires))));
+			if (type != null)
+				auth.add("type", new JsonPrimitive(encryption.encrypt(type)));
+			jsap.getAsJsonObject("oauth").add("authentication", auth);
+		}
+		
+		if (provider.equals(OAUTH_PROVIDER.SEPA)) {
+			jsap.getAsJsonObject("oauth").add("provider", new JsonPrimitive("sepa"));
+		} else if (provider.equals(OAUTH_PROVIDER.KEYCLOAK)) {
+			jsap.getAsJsonObject("oauth").add("provider", new JsonPrimitive("keycloak"));
+		}
+			
 		FileWriter out;
 		try {
 			out = new FileWriter(propertiesFile);
@@ -313,5 +378,13 @@ public class AuthenticationProperties {
 
 	public boolean trustAll() {
 		return trustAll;
+	}
+
+	public String getInitialAccessToken() {
+		return initialAccessToken;
+	}
+
+	public String getUsername() {
+		return username;
 	}
 }

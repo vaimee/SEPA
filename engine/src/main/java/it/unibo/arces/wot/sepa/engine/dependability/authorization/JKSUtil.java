@@ -23,7 +23,6 @@ public class JKSUtil {
 	
 	public static SSLContext getSSLContext(String keystore,String storepass) throws SEPASecurityException {
 		SSLContext ctx = new SSLManager().getSSLContextFromJKS(keystore, storepass);
-		logger.debug(ctx);
 		return ctx;
 	}
 	

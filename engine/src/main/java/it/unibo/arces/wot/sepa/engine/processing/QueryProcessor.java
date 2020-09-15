@@ -39,7 +39,7 @@ public class QueryProcessor implements QueryProcessorMBean {
 	protected final SPARQL11Protocol endpoint;
 	protected final SPARQL11Properties properties;
 
-	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException {
+	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
 		this.endpoint = new SPARQL11Protocol();
 		this.properties = properties;
 		

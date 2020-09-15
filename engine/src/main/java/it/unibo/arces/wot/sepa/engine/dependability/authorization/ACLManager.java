@@ -58,7 +58,7 @@ public class ACLManager {
 			}
 
 			try {
-				ldap = new LdapSecurityManager(JKSUtil.getSSLContext("sepa.jks", "sepa2020"),JKSUtil.getRSAKey("sepa.jks", "sepa2020","jwt","sepa2020"),new LdapProperties(host, port, base, user, pwd, false));
+				ldap = new LdapSecurityManager(JKSUtil.getSSLContext("sepa.jks", "sepa2020"),JKSUtil.getRSAKey("sepa.jks", "sepa2020","jwt","sepa2020"),new LdapProperties(host, port, base, null,user, pwd, false));
 			} catch (SEPASecurityException e2) {
 				System.out.println(e2.getMessage());
 				continue;
