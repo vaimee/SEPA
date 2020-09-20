@@ -1,27 +1,22 @@
 {
-	"host": "sepa.vaimee.it",
+	"host": "localhost",
 	"oauth": {
 		"enable": true,
 		"ssl": "TLSv1.2",
 		"trustall": true,
 		"registration": {
-			"endpoint": "https://sepa.vaimee.it:8443/auth/realms/MONAS/clients-registrations/default",
+			"endpoint": "https://localhost:8443/oauth/register",
 			"initialAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4Y2E2ZGNiNC1jZmY5LTQzNGUtODNhNi05NTk4MzQ1NjUxZGMifQ.eyJleHAiOjE2MDI3NjI5ODgsImlhdCI6MTYwMDE3MDk4OCwianRpIjoiMTE5MDQ0MTYtODEzNC00OWRkLWEwODItNTRlZWE1NWM1YmQ0IiwiaXNzIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwiYXVkIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwidHlwIjoiSW5pdGlhbEFjY2Vzc1Rva2VuIn0.3cC8SMLX_sBBbI_U2t9XyiLVQv0z8ukIlsAj9ySrMUw",
-			"username": "sepatest"
+			"username": "SEPATest"
 		},
 		"authentication": {
-			"endpoint": "https://sepa.vaimee.it:8443/auth/realms/MONAS/protocol/openid-connect/token",
-			"client_id": "/Lg6Fyf6v5YIbF9pcUksIC19FzxxHdg9eDahb6f2Bhw=",
-			"client_secret": "nFuUShMzWaTXkjedbxx/qfhaX4PdWoAJWb+mZGCdp07Zfprs394WZ+HnsAtFwSMZ",
-			"jwt": "xabtQWoH8RJJk1FyKJ78J3jaFqpRDQjXEwGovBZ5+1k3fauyBMvMa0G6pVNKIgd36MpqN5zlo3QiVsjNa5vsH5Tmgm6w/VCfzwEAOmOnff+yNId5+9GjERaipUo0YIE+HYixcqzD7fTnx928LeYM3/sfs2+tst3XYUeKH4VnDHp/Y3t5objAJGUreTGfddzP13hWeRhjHBwKNRrsXnRuHb427KOjpqJxdRuVjoIXwRdneNIP13h1UjWFKZ+ZlNfTvHHOFIp5PN0/E2twEZ+aa0KDhhN73RS9SUn+PAFdKN4WxXDaVlg8NyVHFIQr3PbkDzuEEbs7/uK6SPHsoAeOqcQYhixNMEzPxbkJYMVk82DikRj3Ydx66ZZqaAuqDDEBZWh+fXL7SKqT60HmzX3agZ41CdOeVzR/ArG3dAvcg1xKB7fx4nMuXyCVQNQBzv0Tx6y5Z2QNUsAAnzAGSzD7ZQK+0eap6doZKmeSE+qKgoxDXktq0c8Mznyio+CP22/bKFILH/Eye0imaE0056JZK4o2mY7F1nSx7jWCUvZUUtiN+O8u7X8NXbsy/UmAs1efJO52TMH22/SlM0R8RUt5aaBAfgbTUfg1Y7WDM5Y8jj98NSNb/14VG5u1+ttjDztqZp42/Q+izYlQ3OzLlOAipEg+X7tDssgIFYUKx5Ui0ewZXaoo+wqlnpdSlKp0qBWudyXxiRHe1JafuAkp4RLDNbU/GItn5VtgJjpjxCGkx7N2xDc5VsARgRZccxpFJzW98M0Y1+w9JUrqVi0Q/8N52a+M5/Rf0LpIlFtBXljYlQZzX1l2TTUBzTdSLdDadKbJTv7vaPd24ENpS/fOYznWB5EHTiCLY2Kthrz7gZm79bGUC4g1cSwal7oO2oERN50uBtSAZBmif9GMd+qvidY5ylbGHljb4uf5klZ2dtW6zyIuIGAT0kMn/cKakO975LynGIt34sLK0tTTXOkymefALDZ0ABGg0E0zhN4cBe4HE2GeuUYGZMe4xTHrmAT2skxWaT+wd0Trd/f6iCUZo9gHbx14N+CoszcB/zhxnXSLObxuTCnvAxcJ9BNW+8MFaYxv2FkZBvC6DWHrGZKB/ZFf4qJeTNDzQeV7S+C1UyHKJjV+UR+xDMdR4yo88RaR5DIH6dPJ6+y4JJmkJ/v0Rp76v7Qcl0xM8/fppRK/Nx5V+YkjFgBIurSUimLWxtJIJA2FwagtXcr7HoLE8+tDyr5zLPAvofyhsuCVexjsQyJFr+JAnlyvdABhhKULsq8ej4Jgrg7urRqTrqd1lJ+BpQl0fZLsBqSDQ8RW9dfActHDF2ulWyFuhAtppHeJlJIODrsx1lVau8UtGmn7ddyjRypnvCrVf81dHcYYtASw8CSpmdPpSu8QIEX1wf/3PPZclwkvzx63etIqXfn9z+Fc4nWchQH33+5mgYF8pmnPpPiaZIHywemiwxnDsZTzP6+IyykMD/oCSmZL8EptvbGbFM+G1MBt9/fIQLpfTuJyhNbX4YuuaKaRfqwFllZRYJYEdZQDR2uRFDOUraVIIq4Qok3nf+D+3bW89o42fshx7+Rp8Pl80t8LqYXEhV9Iwtt6iVnadfZ76kivMFuwr+b3OuHe5RyB4QeIkelT7s/vpA6I51Yrr6Iz0X6pXXwQyEsqSR+mnDjs8yAWBYk7oLAr3JEwtCPrPCV4Ch4T3kzKS9p5mih54GT38LW8jt7696OQF9buBeUV7zlEIHMu5y3CMcOEPQ==",
-			"expires": "2ZFnnf2uX2Lv6k1KYs63yA==",
-			"type": "XPrHEX2xHy+5IuXHPHigMw=="
+			"endpoint": "https://localhost:8443/oauth/token"
 		},
-		"provider": "keycloak"
+		"provider": "sepa"
 	},
 	"sparql11protocol": {
 		"protocol": "https",
-		"port": 9001,
+		"port": 8443,
 		"query": {
 			"path": "/secure/query",
 			"method": "POST",
@@ -41,7 +36,7 @@
 				"path": "/subscribe"
 			},
 			"wss": {
-				"port": 9002,
+				"port": 9443,
 				"path": "/secure/subscribe"
 			}
 		}

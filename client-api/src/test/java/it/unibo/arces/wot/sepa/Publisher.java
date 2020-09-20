@@ -52,7 +52,7 @@ public class Publisher extends Thread implements Closeable {
 					if (err.isTokenExpiredError()) {
 						provider.getSecurityManager().refreshToken();
 						ret = client.update(provider.buildUpdateRequest(id));
-						assertFalse(ret.isError(),ret.toString());
+						//assertFalse(ret.isError(),ret.toString());
 					}
 					//else assertFalse(true,err.toString());
 				}

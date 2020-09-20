@@ -52,9 +52,6 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 public final class GenericClient extends Client implements ISubscriptionHandler {
 	private ISubscriptionHandler handler;
 
-	private final long TIMEOUT = 60000;
-	private final long NRETRY = 0;
-
 	// Subscription request handling
 	private Request req = null;
 	private Object subLock = new Object();

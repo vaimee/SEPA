@@ -1,15 +1,5 @@
 {
 	"host": "localhost",
-	"oauth": {
-		"enable": false,
-		"register": "https://localhost:8443/oauth/register",
-		"tokenRequest": "https://localhost:8443/oauth/token",
-		"client_id": "",
-		"client_secret": "",
-		"jwt": "",
-		"expires": "",
-		"type": ""
-	},
 	"graphs": {
 		"default-graph-uri": "http://default",
 		"named-graph-uri": "http://default",

@@ -35,9 +35,6 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 public abstract class Aggregator extends Consumer implements IConsumer, IProducer {
 	protected static final Logger logger = LogManager.getLogger();
 	
-	private long TIMEOUT = 60000;
-	private long NRETRY = 0;
-	
 	private final String sparqlUpdate;
 	private final String SPARQL_ID;
 	private final ForcedBindings updateForcedBindings;

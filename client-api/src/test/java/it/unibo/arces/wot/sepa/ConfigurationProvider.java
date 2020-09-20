@@ -8,6 +8,8 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties.OAUTH_PROVIDER;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
@@ -56,7 +58,17 @@ public class ConfigurationProvider {
 		
 		prefixes = appProfile.getPrefixes();
 		
-		if (appProfile.isSecure()) sm = buildSecurityManager();
+		if (appProfile.isSecure()) {
+			sm = buildSecurityManager();
+			
+			// FOR TESTING WITH SEPA BASED OAUTH
+			if (appProfile.getAuthenticationProperties().getProvider().equals(OAUTH_PROVIDER.SEPA)) {
+				Response ret = sm.register(getClientId());
+				if (ret.isError()) throw new SEPASecurityException(getClientId()+" registration failed");
+				RegistrationResponse reg = (RegistrationResponse) ret;
+				sm.setClientCredentials(reg.getClientId(), reg.getClientSecret());
+			}
+		}
 		else sm = null;
 		
 		if (appProfile.getExtendedData().has("timeout")) {
