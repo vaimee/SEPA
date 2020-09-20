@@ -162,25 +162,27 @@ public class SPARQL11Protocol implements java.io.Closeable {
 					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "SocketTimeoutException",
 							e.getMessage() + " [timeout: " + request.getTimeout()+" ms retry: "+request.getNRetry()+"]");
 				else if (e instanceof RequestAbortedException)
-					errorResponse = new ErrorResponse(HttpStatus.SC_GATEWAY_TIMEOUT, "RequestAbortedException",
+					errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "RequestAbortedException",
 							e.getMessage() + " [timeout: " + request.getTimeout()+" ms retry: "+request.getNRetry()+"]");
+				else if (e instanceof ConnectTimeoutException) {
+					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "ConnectTimeoutException",
+							e.getMessage());
+				} 
 				else {
 					e.printStackTrace();
-					errorResponse = new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "InterruptedIOException",
+					errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "InterruptedIOException",
 							e.getMessage());
 				}
 			} else if (e instanceof UnknownHostException) {
 				errorResponse = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "UnknownHostException", e.getMessage());
-			} else if (e instanceof ConnectTimeoutException) {
-				errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "ConnectTimeoutException",
-						e.getMessage());
 			} else if (e instanceof SSLException) {
 				errorResponse = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "SSLException", e.getMessage());
 			} else if (e instanceof ClientProtocolException) {
-				errorResponse = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "ClientProtocolException",
+				errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ClientProtocolException",
 						e.getMessage());
 			} else {
-				errorResponse = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "IOException", e.getMessage());
+				e.printStackTrace();
+				errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
 		} finally {
 			try {
@@ -214,12 +216,12 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		if (errorResponse != null) {
 			logger.error(errorResponse);
 			
-//			if (errorResponse.isTimeout() && request.getNRetry() > 0) {
-//				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
-//				request.retry();
-//				
-//				return executeRequest(req, request);		
-//			}
+			if (errorResponse.isTimeout() && request.getNRetry() > 0) {
+				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
+				request.retry();
+				
+				return executeRequest(req, request);		
+			}
 			
 			
 			return errorResponse;

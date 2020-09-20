@@ -36,9 +36,6 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class Producer extends Client implements IProducer {
 	protected static final Logger logger = LogManager.getLogger();
-
-	private final long TIMEOUT = 60000;
-	private final long NRETRY = 0;
 	
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";

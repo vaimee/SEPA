@@ -15,7 +15,7 @@
 		"gates": {
 			"security": {
 				"enabled" : true,
-				"type" : "keycloak"
+				"type" : "local"
 			},
 			"ports": {
 				"http": 9001,

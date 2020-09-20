@@ -32,6 +32,9 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 public abstract class Client implements java.io.Closeable {
 	protected final Logger logger = LogManager.getLogger();
 	
+	protected long TIMEOUT = 60000;
+	protected long NRETRY = 3;
+	
 	protected JSAP appProfile;
 	protected ClientSecurityManager sm = null;
 	

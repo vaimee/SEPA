@@ -41,9 +41,6 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public abstract class Consumer extends Client implements IConsumer {
 	protected static final Logger logger = LogManager.getLogger();
-
-	private long TIMEOUT = 60000;
-	private long NRETRY = 0;
 	
 	private final String sparqlSubscribe;	
 	private final String subID;

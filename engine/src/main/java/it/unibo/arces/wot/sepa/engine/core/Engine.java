@@ -91,13 +91,13 @@ public class Engine implements EngineMBean {
 	private Optional<Boolean> secure = Optional.empty();
 
 	// JKS defaults
-	private String sslStoreName = "ssl.jks";
-	private String sslStorePass = "sepastore";
+	private String sslStoreName = "sepa.jks";
+	private String sslStorePass = "sepa2020";
 	
 	private String jwtKeyAlias = "jwt";
-	private String jwtKeyStore = "jwt.jks";
-	private String jwtKeyStorePass = "sepakey";
-	private String jwtKeyAliasPass = "sepakey";
+	private String jwtKeyStore = "sepa.jks";
+	private String jwtKeyStorePass = "sepa2020";
+	private String jwtKeyAliasPass = "sepa2020";
 	
 	// CA defaults (using PEM certificate provided by Let's Encrypt or a key within the JKS)
 	private String caCertificate = null;
