@@ -34,7 +34,7 @@ class GatesMonitor {
 	static {
 		Thread thread = new Thread() {
 			public void run() {
-				while(true) {
+				while (true) {
 					try {
 						Thread.sleep(5000);
 					} catch (InterruptedException e) {
@@ -45,43 +45,44 @@ class GatesMonitor {
 			}
 		};
 		thread.setName("SEPA-Gates-Ping");
-		thread.start();	
+		thread.start();
 	}
-	
+
 	private static final Logger logger = LogManager.getLogger();
 
 	// Active subscriptions and gates
 	private static final ConcurrentHashMap<String, ArrayList<String>> SUBSCRIPTIONS_HASH_MAP = new ConcurrentHashMap<String, ArrayList<String>>();
 	private static final Set<Gate> gates = new ConcurrentHashSet<Gate>();
-	
+
 	private static Processor processor = null;
 
 	public static void setProcessor(Processor p) {
 		processor = p;
 	}
-	
+
 	private static void pingGates() {
 		Set<Gate> brokenGates = new HashSet<Gate>();
-		
+
 		for (Gate g : gates) {
-			if(g.ping()) continue;
+			if (g.ping())
+				continue;
 			brokenGates.add(g);
 		}
-		
-		for (Gate g: brokenGates) {
+
+		for (Gate g : brokenGates) {
 			try {
 				onCloseInternal(g.getGID());
 			} catch (InterruptedException e) {
-				logger.warn("Exception on closing gate: "+g.getGID()+" exception: "+e.getMessage());
+				logger.warn("Exception on closing gate: " + g.getGID() + " exception: " + e.getMessage());
 			}
 			gates.remove(g);
 		}
 	}
-	
+
 	public static void addGate(Gate g) {
 		gates.add(g);
 	}
-	
+
 	public static void removeGate(Gate g) {
 		gates.remove(g);
 	}
@@ -105,8 +106,9 @@ class GatesMonitor {
 
 		// Add subscription
 		SUBSCRIPTIONS_HASH_MAP.get(gid).add(sid);
-		
-		logger.trace("ADDED " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " " + SUBSCRIPTIONS_HASH_MAP.get(gid).size());
+
+		logger.trace("ADDED " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " "
+				+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 	}
 
 	public static void onUnsubscribe(String gid, String sid) {
@@ -119,16 +121,22 @@ class GatesMonitor {
 			return;
 		}
 
-		logger.trace("REMOVE " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " " + SUBSCRIPTIONS_HASH_MAP.get(gid).size());
+		if (SUBSCRIPTIONS_HASH_MAP.containsKey(gid)) {
+			logger.trace("REMOVE " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " "
+					+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 
-		// Remove subscription
-		SUBSCRIPTIONS_HASH_MAP.get(gid).remove(sid);
+			// Remove subscription
+			SUBSCRIPTIONS_HASH_MAP.get(gid).remove(sid);
+		}
+		else {
+			logger.warn("@onUnsubscribe "+gid+" NOT FOUND");
+		}
 	}
 
 	public static void onClose(String gid) throws InterruptedException {
 		onCloseInternal(gid);
 	}
-	
+
 	private static void onCloseInternal(String gid) throws InterruptedException {
 		if (gid == null) {
 			logger.error("@onClose GID is null");
@@ -145,7 +153,8 @@ class GatesMonitor {
 			return;
 		}
 
-		logger.trace("CLOSE " + gid + " --- " + SUBSCRIPTIONS_HASH_MAP.size() + " " + SUBSCRIPTIONS_HASH_MAP.get(gid).size());
+		logger.trace("CLOSE " + gid + " --- " + SUBSCRIPTIONS_HASH_MAP.size() + " "
+				+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 
 		// Kill all active subscriptions
 		for (String sid : SUBSCRIPTIONS_HASH_MAP.get(gid)) {
@@ -167,6 +176,6 @@ class GatesMonitor {
 
 	public static long getNumberOfGates() {
 		return SUBSCRIPTIONS_HASH_MAP.size();
-		
+
 	}
 }
