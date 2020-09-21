@@ -65,18 +65,6 @@ public class ITSPARQL11SEProtocol {
 				sm),sm);
 		
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
-		
-		if (ret.isError()) {
-			ErrorResponse error = (ErrorResponse) ret;
-			if (error.isTokenExpiredError() && properties.isSecure()) {
-				provider.getSecurityManager().refreshToken();
-				ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
-				if (ret.isError()) assertFalse(true,ret.toString());
-			}
-		}
-		
-		logger.debug(ret);
-
 		assertFalse(ret.isError(),String.valueOf(ret));
 	}
 
@@ -127,12 +115,6 @@ public class ITSPARQL11SEProtocol {
 		// Delete all triples
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
 		logger.debug(ret);
-		if (ret.isError()) {
-			ErrorResponse err = (ErrorResponse) ret;
-			if (err.isTokenExpiredError()) provider.getSecurityManager().refreshToken();
-			else assertFalse(ret.isError(),String.valueOf(ret) );
-			ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
-		}
 		assertFalse(ret.isError(),String.valueOf(ret));
 
 		// Evaluate if the store is empty
@@ -229,8 +211,9 @@ public class ITSPARQL11SEProtocol {
 		handler.waitSubscribes(1);
 		handler.waitEvents(1);
 		
-		client.update(provider.buildUpdateRequest("VAIMEE"));
-
+		Response ret = client.update(provider.buildUpdateRequest("VAIMEE"));
+		assertFalse(ret.isError(),ret.toString());
+		
 		handler.waitEvents(2);
 
 		assertFalse(handler.getEvents() != 2,"Events:" + handler.getEvents() + "(2)");

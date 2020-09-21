@@ -102,10 +102,8 @@ public class ITPattern {
 	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		randomProducer = new Producer(provider.getJsap(), "RANDOM", provider.getSecurityManager());
-
 		Response ret = randomProducer.update(provider.TIMEOUT, provider.NRETRY);
-
-		assertFalse(ret.isError());
+		assertFalse(ret.isError(),ret.toString());
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
@@ -126,8 +124,9 @@ public class ITPattern {
 		consumerAll.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
 
 		randomProducer = new Producer(provider.getJsap(), "RANDOM", provider.getSecurityManager());
-		randomProducer.update(provider.TIMEOUT, provider.NRETRY);
-
+		Response ret =randomProducer.update(provider.TIMEOUT, provider.NRETRY);
+		assertFalse(ret.isError(),ret.toString());
+		
 		consumerAll.waitNotification();
 	}
 
@@ -138,16 +137,15 @@ public class ITPattern {
 		logger.debug("Aggregator");
 		consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
 		consumerRandom1.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
-
 		logger.debug("Aggregator first subscribe ok");
 
 		randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1");
 		randomAggregator.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
-
 		logger.debug("Aggregator second subscribe ok");
 
 		randomProducer = new Producer(provider.getJsap(), "RANDOM", provider.getSecurityManager());
-		randomProducer.update(provider.TIMEOUT, provider.NRETRY);
+		Response ret = randomProducer.update(provider.TIMEOUT, provider.NRETRY);
+		assertFalse(ret.isError(),ret.toString());
 		logger.debug("Aggregator Update Done");
 
 		randomAggregator.waitNotification();
@@ -164,8 +162,9 @@ public class ITPattern {
 
 			handler.waitSubscribes(1);
 
-			genericClient.update("RANDOM", null, provider.TIMEOUT, provider.NRETRY);
-
+			Response ret = genericClient.update("RANDOM", null, provider.TIMEOUT, provider.NRETRY);
+			assertFalse(ret.isError(),ret.toString());
+			
 			handler.waitEvents(2);
 
 			genericClient.unsubscribe(handler.getSpuid("first"), provider.TIMEOUT, provider.NRETRY);
@@ -188,9 +187,11 @@ public class ITPattern {
 
 			handler.waitSubscribes(2);
 
-			genericClient.update("RANDOM", null, provider.TIMEOUT, provider.NRETRY);
-			genericClient.update("RANDOM1", null, provider.TIMEOUT, provider.NRETRY);
-
+			Response ret = genericClient.update("RANDOM", null, provider.TIMEOUT, provider.NRETRY);
+			assertFalse(ret.isError(),ret.toString());
+			ret =  genericClient.update("RANDOM1", null, provider.TIMEOUT, provider.NRETRY);
+			assertFalse(ret.isError(),ret.toString());
+			
 			handler.waitEvents(4);
 
 			genericClient.unsubscribe(handler.getSpuid("first"), provider.TIMEOUT, provider.NRETRY);
