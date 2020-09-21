@@ -75,13 +75,13 @@ public class ConfigurationProvider {
 			TIMEOUT = appProfile.getExtendedData().get("timeout").getAsLong();
 		}
 		else
-			TIMEOUT = 5000;
+			TIMEOUT = 15000;
 		
 		if (appProfile.getExtendedData().has("nretry")) {
 			NRETRY = appProfile.getExtendedData().get("nretry").getAsLong();
 		}
 		else 
-			NRETRY = 5;
+			NRETRY = 3;
 	}
 	
 	public WebsocketSubscriptionProtocol getWebsocketClient() throws SEPASecurityException, SEPAProtocolException {
