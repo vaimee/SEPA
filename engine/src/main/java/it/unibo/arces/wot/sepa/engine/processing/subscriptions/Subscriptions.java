@@ -60,25 +60,30 @@ public class Subscriptions {
 			return null;
 		}
 	}
-	
+
 	public static Collection<SPU> filter(InternalUpdateRequest update) {
 		// First level filter: RDF data set
 		Collection<SPU> ret = new HashSet<>();
 		Set<String> target = update.getRdfDataSet();
-		
-		for(InternalSubscribeRequest sub : requests.keySet()) {
+
+		for (InternalSubscribeRequest sub : requests.keySet()) {
 			Set<String> context = sub.getRdfDataSet();
-			for (String graph: target) {
-				if (context.contains(graph)) {
-					ret.add(requests.get(sub));
-					break;
+
+			// All graphs: NO FILTER
+			if (context.contains("*") || target.contains("*")) {
+				ret.add(requests.get(sub));
+			} else
+				for (String graph : target) {
+					if (context.contains(graph)) {
+						ret.add(requests.get(sub));
+						break;
+					}
 				}
-			}
 		}
-		
+
 		return ret;
 	}
-	
+
 	public static boolean contains(InternalSubscribeRequest req) {
 		return requests.containsKey(req);
 	}
@@ -105,11 +110,12 @@ public class Subscriptions {
 
 		return sub;
 	}
-	
+
 	public static Subscriber getSubscriber(String sid) throws SEPANotExistsException {
 		Subscriber sub = subscribers.get(sid);
-		
-		if (sub == null) throw new SEPANotExistsException("Subscriber "+sid+" does not exists");
+
+		if (sub == null)
+			throw new SEPANotExistsException("Subscriber " + sid + " does not exists");
 		return sub;
 	}
 
@@ -153,7 +159,8 @@ public class Subscriptions {
 				client.notifyEvent(event);
 			} catch (SEPAProtocolException e) {
 				logger.error(e.getMessage());
-				if (logger.isTraceEnabled()) e.printStackTrace();
+				if (logger.isTraceEnabled())
+					e.printStackTrace();
 			}
 		}
 	}
