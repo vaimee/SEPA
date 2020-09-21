@@ -96,24 +96,27 @@ public class ConfigurationProvider {
 		return prefixes + " " +appProfile.getSPARQLQuery(id);
 	}
 	
-	public UpdateRequest buildUpdateRequest(String id) throws SEPASecurityException, SEPAPropertiesException { //, ClientSecurityManager sm,long timeout,long nRetry) {
+	private String getAuthorizationHeader() throws SEPASecurityException, SEPAPropertiesException {
 		String authorization = null;
-		if (sm != null) authorization = sm.getAuthorizationHeader();
-
+		if (sm != null) {
+			if (sm.isTokenExpired()) sm.refreshToken();
+			authorization = sm.getAuthorizationHeader();
+		}
+		return authorization;
+	}
+	
+	public UpdateRequest buildUpdateRequest(String id) throws SEPASecurityException, SEPAPropertiesException { //, ClientSecurityManager sm,long timeout,long nRetry) {		
 		return new UpdateRequest(appProfile.getUpdateMethod(id), appProfile.getUpdateProtocolScheme(id),
 				appProfile.getUpdateHost(id), appProfile.getUpdatePort(id), appProfile.getUpdatePath(id),
 				getSPARQLUpdate(id), appProfile.getUsingGraphURI(id), appProfile.getUsingNamedGraphURI(id),
-				authorization, TIMEOUT,NRETRY);
+				getAuthorizationHeader(), TIMEOUT,NRETRY);
 	}
 
 	public QueryRequest buildQueryRequest(String id) throws SEPASecurityException, SEPAPropertiesException {//, ClientSecurityManager sm,long timeout,long nRetry) {
-		String authorization = null;
-		if (sm != null) authorization = sm.getAuthorizationHeader();
-
 		return new QueryRequest(appProfile.getQueryMethod(id), appProfile.getQueryProtocolScheme(id),
 				appProfile.getQueryHost(id), appProfile.getQueryPort(id), appProfile.getQueryPath(id),
 				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id),
-				authorization, TIMEOUT,NRETRY);
+				getAuthorizationHeader(), TIMEOUT,NRETRY);
 	}
 
 	public QueryRequest buildQueryRequest(String id, String authToken) {
@@ -124,18 +127,12 @@ public class ConfigurationProvider {
 	}
 
 	public SubscribeRequest buildSubscribeRequest(String id) throws SEPASecurityException, SEPAPropertiesException { //), ClientSecurityManager sm) {
-		String authorization = null;		
-		if (sm != null) authorization = sm.getAuthorizationHeader();
-		
 		return new SubscribeRequest(getSPARQLQuery(id), id, appProfile.getDefaultGraphURI(id),
-				appProfile.getNamedGraphURI(id), authorization);
+				appProfile.getNamedGraphURI(id), getAuthorizationHeader());
 	}
 
 	public UnsubscribeRequest buildUnsubscribeRequest(String spuid) throws SEPASecurityException, SEPAPropertiesException { //, ClientSecurityManager sm) {
-		String authorization = null;		
-		if (sm != null) authorization = sm.getAuthorizationHeader();
-
-		return new UnsubscribeRequest(spuid, authorization);
+		return new UnsubscribeRequest(spuid, getAuthorizationHeader());
 	}
 
 	public ClientSecurityManager getSecurityManager() {
