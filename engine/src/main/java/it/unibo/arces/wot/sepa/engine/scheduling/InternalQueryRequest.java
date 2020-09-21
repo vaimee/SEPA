@@ -35,12 +35,12 @@ public class InternalQueryRequest extends InternalUQRequest {
 	private String internetMediaType = "application/sparql-results+json";
 
 	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
-			ClientAuthorization auth) throws QueryException {
+			ClientAuthorization auth) {
 		super(sparql, defaultGraphUri, namedGraphUri, auth);
 	}
 
 	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
-			ClientAuthorization auth, String mediaType) throws QueryException {
+			ClientAuthorization auth, String mediaType) {
 		this(sparql, defaultGraphUri, namedGraphUri, auth);
 
 		internetMediaType = mediaType;
@@ -56,7 +56,7 @@ public class InternalQueryRequest extends InternalUQRequest {
 				+ namedGraphUri + "} SPARQL: " + sparql;
 	}
 
-	protected Set<String> getGraphURIs(String sparql) throws QueryException {
+	protected Set<String> getGraphURIs(String sparql) {
 		Set<String> ret = new HashSet<>();
 
 		if (sparql == null)
@@ -64,7 +64,14 @@ public class InternalQueryRequest extends InternalUQRequest {
 
 		Query q = null;
 		logger.trace("Parsing query: " + sparql);
-		q = QueryFactory.create(sparql);
+		try{
+			q = QueryFactory.create(sparql);
+		}
+		catch(QueryException e) {
+			logger.error("FAILED TO CREATE QUERY WITH JENA "+e.getMessage()+" Query "+sparql);
+			ret.add("*");
+			return ret;
+		}
 
 		logger.trace("Get dataset descriptiors");
 		if (q.hasDatasetDescription()) {
