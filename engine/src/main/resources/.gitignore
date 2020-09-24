@@ -7,3 +7,11 @@
 /keycloak.readme
 /keycloak.jks
 /keycloak.pem
+/engine-secure-vaimee.jpar
+/engine-secure-keycloak.jpar
+/engine-secure-ldap.jpar
+/engine-secure-local.jpar
+/endpoint-virtuoso-vaimee.jpar
+/vaimee.jks
+/endpoint-virtuoso.jpar
+/endpoint.jpar
