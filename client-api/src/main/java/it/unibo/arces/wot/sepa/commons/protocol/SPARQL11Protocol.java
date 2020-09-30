@@ -40,6 +40,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.ConnectTimeoutException;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -156,6 +157,15 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			 * violations from a single catch clause.
 			 */
 			
+			/* {"error":"IOException","status_code":500,"error_description":"Connect to mml.arces.unibo.it:8666 [mml.arces.unibo.it/137.204.143.19] failed: Operation timed out"}
+			 * 
+			 * extended by java.io.IOException
+              		extended by java.net.SocketException
+                  		extended by java.net.ConnectException
+                      		extended by org.apache.http.conn.HttpHostConnectException
+			 * 
+			 * */
+			
 		} catch (IOException e) {
 			if (e instanceof InterruptedIOException) {
 				if (e instanceof SocketTimeoutException)
@@ -180,7 +190,11 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			} else if (e instanceof ClientProtocolException) {
 				errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ClientProtocolException",
 						e.getMessage());
-			} else {
+			}  else if (e instanceof HttpHostConnectException) {
+				errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "HttpHostConnectException",
+						e.getMessage());
+			}
+			else {
 				e.printStackTrace();
 				errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
@@ -196,7 +210,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			responseEntity = null;
 		}
 
-		if (responseCode >= 400) {
+		if (responseCode >= 400 && errorResponse == null) {
 			// SPARQL 1.1 protocol does not recommend any format, while SPARQL 1.1 SE
 			// suggests to use a JSON format
 			// http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
@@ -213,16 +227,22 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		}
 
 		// ERRORS: if timeout retry...
-		if (errorResponse != null) {
-			logger.error(errorResponse);
-			
+		if (errorResponse != null) {		
 			if (errorResponse.isTimeout() && request.getNRetry() > 0) {
+				logger.warn(errorResponse);
 				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
+				
 				request.retry();
+				
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					return errorResponse;
+				}
 				
 				return executeRequest(req, request);		
 			}
-			
+			else logger.error(errorResponse);
 			
 			return errorResponse;
 		}

@@ -63,16 +63,15 @@ public class AuthenticationProperties {
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
 
-	private final Encryption encryption;
+	private Encryption encryption = new Encryption();
 
-	private final boolean enabled;
+	private boolean enabled = false;
 
-	private final String registrationURL;
-	private final String tokenRequestURL;
+	private String registrationURL = null;
+	private String tokenRequestURL = null;
 
-	private final String initialAccessToken;
-	private final String username;
-//	private final String clientname;
+	private String initialAccessToken;
+	private String username = null;
 	
 	private String clientId = null;
 	private String clientSecret = null;
@@ -115,81 +114,50 @@ public class AuthenticationProperties {
 		}
 
 		try {
-		if (secret != null)
-			encryption = new Encryption(secret);
-		else
-			encryption = new Encryption();
+		
+		if (secret != null) encryption = new Encryption(secret);
 
 		if (jsap.has("oauth")) {
 			oauthJsonObject = jsap.getAsJsonObject("oauth");
 
-			if (oauthJsonObject.has("enable"))
-				enabled = oauthJsonObject.get("enable").getAsBoolean();
-			else {
-				enabled = false;
-			}
-
-			if (oauthJsonObject.has("trustall"))
-				trustAll = oauthJsonObject.get("trustall").getAsBoolean();
-			else {
-				trustAll = false;
-			}
-
-			if (oauthJsonObject.has("ssl"))
-				ssl = oauthJsonObject.get("ssl").getAsString();
+			if (oauthJsonObject.has("enable")) enabled = oauthJsonObject.get("enable").getAsBoolean();
+			if (oauthJsonObject.has("trustall")) trustAll = oauthJsonObject.get("trustall").getAsBoolean();
+			if (oauthJsonObject.has("ssl")) ssl = oauthJsonObject.get("ssl").getAsString();
 
 			if (enabled) {
-				if (!oauthJsonObject.has("provider")) throw new SEPASecurityException("Provider is missing");
-				String p = oauthJsonObject.get("provider").getAsString();
-				if (p.equals("keycloak")) provider = OAUTH_PROVIDER.KEYCLOAK;
-				else if (p.equals("sepa")) provider = OAUTH_PROVIDER.SEPA;
-				else throw new SEPASecurityException("Provider must have one of the following values: [sepa|keycloak]");
+				if (oauthJsonObject.has("provider")) {
+					String p = oauthJsonObject.get("provider").getAsString();
+					if (p.equals("keycloak")) provider = OAUTH_PROVIDER.KEYCLOAK;
+					else if (p.equals("sepa")) provider = OAUTH_PROVIDER.SEPA;
+					else throw new SEPASecurityException("Provider must have one of the following values: [sepa|keycloak]");	
+				}
 				
-				
-				JsonObject auth = oauthJsonObject.getAsJsonObject("authentication");
-				tokenRequestURL = auth.get("endpoint").getAsString();
-				
-				if (auth.has("client_id"))
-					clientId = encryption.decrypt(auth.get("client_id").getAsString());
-				if (auth.has("client_secret"))
-					clientSecret = encryption.decrypt(auth.get("client_secret").getAsString());
-				if (auth.has("jwt"))
-					jwt = encryption.decrypt(auth.get("jwt").getAsString());
-				if (auth.has("expires"))
-					expires = Long.decode(encryption.decrypt(auth.get("expires").getAsString()));
-				if (auth.has("type"))
-					type = encryption.decrypt(auth.get("type").getAsString());
-				
-				// Keycloak
+				if (oauthJsonObject.has("authentication")) {
+					JsonObject auth = oauthJsonObject.getAsJsonObject("authentication");
+					
+					if (auth.has("endpoint"))
+						tokenRequestURL = auth.get("endpoint").getAsString();
+					if (auth.has("client_id"))
+						clientId = encryption.decrypt(auth.get("client_id").getAsString());
+					if (auth.has("client_secret"))
+						clientSecret = encryption.decrypt(auth.get("client_secret").getAsString());
+					if (auth.has("jwt"))
+						jwt = encryption.decrypt(auth.get("jwt").getAsString());
+					if (auth.has("expires"))
+						expires = Long.decode(encryption.decrypt(auth.get("expires").getAsString()));
+					if (auth.has("type"))
+						type = encryption.decrypt(auth.get("type").getAsString());	
+				}
+											
+				// Initial access token registration
 				if (oauthJsonObject.has("registration")) {
 					JsonObject reg = oauthJsonObject.getAsJsonObject("registration");
 					initialAccessToken = reg.get("initialAccessToken").getAsString();
 					registrationURL = reg.get("endpoint").getAsString();
-					username = reg.get("username").getAsString();
-//					clientname = reg.get("clientname").getAsString();
-				}
-				else {
-					registrationURL = null;
-					initialAccessToken = null;
-					username = null;
-//					clientname = null;
-				}
-				
-			} else {
-				registrationURL = null;
-				tokenRequestURL = null;
-				initialAccessToken = null;
-				username = null;
-//				clientname = null;
-			}
-		} else {
-			enabled = false;
-			registrationURL = null;
-			tokenRequestURL = null;
-			initialAccessToken = null;
-			username = null;
-//			clientname = null;
-		}
+					username = reg.get("username").getAsString();					
+				}								
+			} 
+		} 
 		} catch(Exception e) {
 			logger.error(e.getMessage());
 			throw new SEPAPropertiesException(e.getMessage());
@@ -201,15 +169,7 @@ public class AuthenticationProperties {
 		this(jsap, null);
 	}
 
-	public AuthenticationProperties() {
-		enabled = false;
-		registrationURL = null;
-		tokenRequestURL = null;
-		encryption = new Encryption();
-		initialAccessToken = null;
-//		clientname = null;
-		username = null;
-	}
+	public AuthenticationProperties() {}
 
 	public boolean isEnabled() {
 		return enabled;
