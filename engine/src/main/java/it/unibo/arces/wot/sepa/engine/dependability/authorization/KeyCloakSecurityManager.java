@@ -93,6 +93,15 @@ public class KeyCloakSecurityManager extends SecurityManager {
 			logger.debug(claimsSet);
 			// Get client credentials for accessing the SPARQL endpoint
 			uid = claimsSet.getStringClaim("username");
+			if (uid == null) {
+				logger.debug("<username> claim is null. Look for <preferred_username>");
+				uid = claimsSet.getStringClaim("preferred_username");
+				if (uid == null) {
+					logger.error("USER ID not found...");
+					return new ClientAuthorization("invalid_grant", "Username claim not found");
+				}
+			}
+			
 			logger.debug("Subject: "+claimsSet.getSubject());
 			logger.debug("Issuer: "+claimsSet.getIssuer());
 			logger.debug("Username: "+uid);
