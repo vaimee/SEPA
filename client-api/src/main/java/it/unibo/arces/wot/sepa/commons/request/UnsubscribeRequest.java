@@ -20,8 +20,6 @@ package it.unibo.arces.wot.sepa.commons.request;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import it.unibo.arces.wot.sepa.commons.request.Request;
-
 /**
  * The Class UnsubscribeRequest.
  */
