@@ -20,8 +20,6 @@ package it.unibo.arces.wot.sepa.commons.response;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import it.unibo.arces.wot.sepa.commons.response.Response;
-
 // TODO: Auto-generated Javadoc
 /**
  * This class represents the response to a SPARQL 1.1 Unsubscribe (see SPARQL
