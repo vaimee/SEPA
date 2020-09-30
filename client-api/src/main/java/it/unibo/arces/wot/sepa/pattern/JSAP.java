@@ -182,6 +182,8 @@ public class JSAP extends SPARQL11SEProperties {
 		super();
 
 		buildSPARQLPrefixes();
+		
+		jsap.add("extended", new JsonObject());
 	}
 
 	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
@@ -1150,7 +1152,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public ForcedBindings getQueryBindings(String id) throws IllegalArgumentException {
 		if (!jsap.get("queries").getAsJsonObject().has(id))
-			throw new IllegalArgumentException("Query ID not found");
+			throw new IllegalArgumentException("Query ID not found: "+id);
 
 		ForcedBindings ret = new ForcedBindings();
 

@@ -89,35 +89,44 @@ public class Producer extends Client implements IProducer {
 
 		logger.debug(retResponse);
 		
-		while (isSecure() && retResponse.isError()) {
-
+		if (retResponse.isError()) {
 			ErrorResponse errorResponse = (ErrorResponse) retResponse;
-
 			if (errorResponse.isTokenExpiredError()) {
-				try {
-					sm.refreshToken();
-				} catch (SEPAPropertiesException | SEPASecurityException e) {
-					logger.error("Failed to refresh token: " + e.getMessage());
-				}
-			} else {
-				logger.error(errorResponse);
-				return errorResponse;
-			}
-
-			authorizationHeader = sm.getAuthorizationHeader();
-			
-			logger.debug("Authorization header: "+authorizationHeader);
-
-			req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
-					appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
-					appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
-					appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
-							addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
-					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
-					authorizationHeader, timeout,nRetry);
-
-			retResponse = client.update(req);
+				sm.refreshToken();
+				req.setAuthorizationHeader(sm.getAuthorizationHeader());
+				retResponse = client.update(req);
+			} 
 		}
+		
+//		while (isSecure() && retResponse.isError()) {
+//
+//			ErrorResponse errorResponse = (ErrorResponse) retResponse;
+//
+//			if (errorResponse.isTokenExpiredError()) {
+//				try {
+//					sm.refreshToken();
+//				} catch (SEPAPropertiesException | SEPASecurityException e) {
+//					logger.error("Failed to refresh token: " + e.getMessage());
+//				}
+//			} else {
+//				logger.error(errorResponse);
+//				return errorResponse;
+//			}
+//
+//			authorizationHeader = sm.getAuthorizationHeader();
+//			
+//			logger.debug("Authorization header: "+authorizationHeader);
+//
+//			req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
+//					appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
+//					appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
+//					appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
+//							addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
+//					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
+//					authorizationHeader, timeout,nRetry);
+//
+//			retResponse = client.update(req);
+//		}
 
 		return retResponse;
 	}
