@@ -96,7 +96,7 @@ public class SyncLdap implements IUsersSync {
 					continue;
 				}
 				if (entry.get("description") == null) {
-					logger.warn("Missing *description*");
+					logger.warn("Missing *description* "+entry.get("uid"));
 					continue;
 				}
 				String uid = entry.get("uid").getString();

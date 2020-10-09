@@ -35,7 +35,6 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implements ISubscriptionHandler {
@@ -43,11 +42,15 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	protected final URI url;
 	protected Request lastRequest = null;
-	protected final WebsocketClientEndpoint client;
+	protected WebsocketClientEndpoint client;
+
+	private final Object mutex;
 
 	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler,
 			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
 		super(handler, sm);
+
+		mutex = new Object();
 
 		// Connect
 		String scheme = "ws://";
@@ -69,55 +72,66 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			}
 
 		client = new WebsocketClientEndpoint(sm, this);
+		
+		while (!client.isConnected()) {
+			try {
+				client.connect(url);
+			} catch (SEPAProtocolException e) {
+				//logger.error(e.getMessage());
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e1) {
+					return;
+				}
+				try {
+					client.close();
+				} catch (IOException e1) {
+					logger.error(e1.getMessage());
+				}
+				client = new WebsocketClientEndpoint(sm, this);
+			}
+		}
 	}
 
 	@Override
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
 		logger.trace("subscribe: " + request);
 
-		synchronized (client) {
+		synchronized (mutex) {
 			if (lastRequest != null)
 				try {
-					logger.trace("WAIT");
-					client.wait();
+					logger.debug("wait. last request: "+lastRequest);
+					mutex.wait();
 				} catch (InterruptedException e) {
 					throw new SEPAProtocolException(e.getMessage());
 				}
 
 			lastRequest = request;
-
-			if (!client.isConnected()) {
-				logger.trace("CONNECT");
-				client.connect(url);
-			}
-
-			logger.trace("SEND "+lastRequest.toString());
-			client.send(lastRequest.toString());
 		}
+
+		client.send(lastRequest.toString());
 	}
 
 	@Override
 	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException {
 		logger.trace("unsubscribe: " + request);
 
-		synchronized (client) {
+		synchronized (mutex) {
 			if (lastRequest != null)
 				try {
-					client.wait();
+					logger.debug("wait. last request: "+lastRequest);
+					mutex.wait();
 				} catch (InterruptedException e) {
 					throw new SEPAProtocolException(e.getMessage());
 				}
 			lastRequest = request;
-
-			if (client.isConnected())
-				client.send(lastRequest.toString());
 		}
+
+		client.send(lastRequest.toString());
 	}
 
 	@Override
 	public void close() throws IOException {
-		logger.trace("Close");
-
 		client.close();
 	}
 
@@ -136,41 +150,33 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 		// REFRESH TOKEN
 		if (sm != null && errorResponse.isTokenExpiredError()) {
 			try {
-				logger.trace("REFRESH TOKEN");
-				Response ret = sm.refreshToken();
-				
-				if (!ret.isError()) {
-					sm.storeOAuthProperties();	
+				sm.refreshToken();
+				sm.storeOAuthProperties();
+			} catch (SEPAPropertiesException | SEPASecurityException e1) {
+				logger.error(e1.getMessage());
+				handler.onError(errorResponse);
+				return;
+			}
+
+			synchronized (mutex) {
+				if (lastRequest == null) {
+					handler.onError(errorResponse);
+					return;
 				}
+			}
+
+			try {
+				lastRequest.setAuthorizationHeader(sm.getAuthorizationHeader());
+				logger.trace("SEND LAST REQUEST WITH NEW TOKEN");
 				
-				logger.trace(ret);
-			} catch (SEPAPropertiesException | SEPASecurityException e) {
+				client.send(lastRequest.toString());
+			} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
 				logger.error(e.getMessage());
 				if (logger.isTraceEnabled())
 					e.printStackTrace();
 				ErrorResponse err = new ErrorResponse(401, "invalid_grant",
-						"Failed to refresh token. " + e.getMessage());
+						"Failed to send request after refreshing token. " + e.getMessage());
 				handler.onError(err);
-				return;
-			}
-
-			// RETRY LAST REQUEST
-			synchronized (client) {
-				if (client.isConnected())
-					try {
-						if (lastRequest != null) {
-							lastRequest.setAuthorizationHeader(sm.getAuthorizationHeader());
-							logger.trace("SEND LAST REQUEST WITH NEW TOKEN");
-							client.send(lastRequest.toString());
-						}
-					} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
-						logger.error(e.getMessage());
-						if (logger.isTraceEnabled())
-							e.printStackTrace();
-						ErrorResponse err = new ErrorResponse(401, "invalid_grant",
-								"Failed to send request after refreshing token. " + e.getMessage());
-						handler.onError(err);
-					}
 			}
 		} else
 			handler.onError(errorResponse);
@@ -178,24 +184,24 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		logger.trace("@onSubscribe "+spuid+" alias: "+alias);
+		logger.trace("@onSubscribe " + spuid + " alias: " + alias);
 		handler.onSubscribe(spuid, alias);
 
-		synchronized (client) {
+		synchronized (mutex) {
 			lastRequest = null;
-			client.notify();
+			mutex.notify();
 		}
 
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		logger.trace("@onUnsubscribe "+spuid);
+		logger.trace("@onUnsubscribe " + spuid);
 		handler.onUnsubscribe(spuid);
 
-		synchronized (client) {
+		synchronized (mutex) {
 			lastRequest = null;
-			client.notify();
+			mutex.notify();
 		}
 	}
 

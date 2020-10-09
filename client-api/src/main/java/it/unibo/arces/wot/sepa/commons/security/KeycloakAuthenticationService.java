@@ -194,9 +194,10 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 			try {
 				response = httpClient.execute(httpRequest);
 				// break;
-			} catch (IOException e) {
-				logger.error("HTTP EXECUTE: " + e.getMessage());
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
+			} catch (Exception e) {
+				ErrorResponse err = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getClass().getName(), e.getMessage());
+				logger.error(err);
+				return err;
 			}
 
 			logger.debug("Response: " + response);

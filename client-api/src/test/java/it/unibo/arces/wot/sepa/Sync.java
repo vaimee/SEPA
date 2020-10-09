@@ -131,7 +131,8 @@ public class Sync implements ISubscriptionHandler {
 
 	@Override
 	public void onBrokenConnection(ErrorResponse errorResponse) {
-		logger.error(errorResponse);
+		if (errorResponse.getStatusCode() != 1000) logger.error(errorResponse);
+		else logger.warn(errorResponse);
 	}
 
 	@Override

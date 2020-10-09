@@ -15,59 +15,67 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
-public class Subscriber extends Thread implements Closeable,ISubscriptionHandler {
+public class Subscriber extends Thread implements Closeable, ISubscriptionHandler {
 	protected final Logger logger = LogManager.getLogger();
 
-	private final SPARQL11SEProtocol client;
+	private SPARQL11SEProtocol client;
 	private final String id;
 	private ConfigurationProvider provider;
 	private ISubscriptionHandler handler;
 	private String spuid = null;
-	
-	public Subscriber(ConfigurationProvider provider,String id, ISubscriptionHandler sync)
+	private ClientSecurityManager sm;
+	private SubscriptionProtocol protocol;
+
+	public Subscriber(ConfigurationProvider provider, String id, ISubscriptionHandler sync)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 
 		this.setName("Subscriber-" + id + "-" + this.getId());
 		this.provider = provider;
 		this.id = id;
 		this.handler = sync;
+		this.sm = provider.buildSecurityManager();
+		
+		protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
+				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, sm);
 
-		SubscriptionProtocol protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this,
-				provider.getSecurityManager());
-
-		this.client = new SPARQL11SEProtocol(protocol);
+		client = new SPARQL11SEProtocol(protocol);
 	}
 
 	public void run() {
-		synchronized (this) {
+		try {
+			sm.refreshToken();
+			client.subscribe(provider.buildSubscribeRequest(id, sm));
+			sm.close();
+		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException e2) {
+			logger.error(e2.getMessage());
+			return;
+		}
+
+		synchronized(client) {
 			try {
-				logger.debug("subscribe");
-				client.subscribe(provider.buildSubscribeRequest(id));
-
-				logger.debug("wait");
-				wait();
-			} catch (SEPAProtocolException | InterruptedException | SEPASecurityException | SEPAPropertiesException e) {
-
+				client.wait();
+			} catch (InterruptedException e) {
+				
 			}
 		}
 	}
 
-	public void close() {
-		logger.debug("close");
-		try {
-			if (spuid != null) client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
-		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
-			logger.error(e.getMessage());
-		}
-		try {
+	@Override
+	public void close() throws IOException {
+		synchronized(client) {
+			if (spuid != null)
+				try {
+					client.unsubscribe(provider.buildUnsubscribeRequest(spuid, sm));
+				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
+					logger.error(e.getMessage());
+				}
+			client.notify();
 			client.close();
-		} catch (IOException e) {
-			logger.error(e.getMessage());
 		}
 
-		interrupt();
+		protocol.close();
 	}
 
 	@Override
@@ -78,32 +86,29 @@ public class Subscriber extends Thread implements Closeable,ISubscriptionHandler
 
 	@Override
 	public void onBrokenConnection(ErrorResponse errorResponse) {
-		logger.error(errorResponse);
+		if (errorResponse.getStatusCode() != 1000)
+			logger.error(errorResponse);
+		else
+			logger.warn(errorResponse);
 		handler.onBrokenConnection(errorResponse);
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		logger.error(errorResponse);
-		if (errorResponse.isTokenExpiredError())
-			try {
-				provider.getSecurityManager().refreshToken();
-			} catch (SEPAPropertiesException | SEPASecurityException e) {
-				logger.error("Failed to refresh token." +e.getMessage());
-			}
 		handler.onError(errorResponse);
 	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		logger.debug("onSubscribe: "+spuid+" alias: "+alias);
+		logger.debug("onSubscribe: " + spuid + " alias: " + alias);
 		this.spuid = spuid;
-		handler.onSubscribe(spuid, alias);	
+		handler.onSubscribe(spuid, alias);
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		logger.debug("onUnsubscribe: "+spuid);
+		logger.debug("onUnsubscribe: " + spuid);
 		handler.onUnsubscribe(spuid);
 	}
 }

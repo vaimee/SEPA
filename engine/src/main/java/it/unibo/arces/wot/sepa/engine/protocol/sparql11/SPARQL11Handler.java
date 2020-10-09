@@ -39,6 +39,7 @@ import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.jena.query.QueryException;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -200,6 +201,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public HttpAsyncRequestConsumer<HttpRequest> processRequest(HttpRequest request, HttpContext context)
 			throws HttpException, IOException {
+		logger.log(Level.getLevel("http"),"@processRequest "+request+" "+context);
 		// Buffer request content in memory for simplicity
 		return new BasicAsyncRequestConsumer();
 	}
@@ -207,6 +209,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
+		logger.log(Level.getLevel("http"),"@handle "+request+" "+context);
 		// CORS
 		if (!corsHandling(httpExchange)) return;
 			

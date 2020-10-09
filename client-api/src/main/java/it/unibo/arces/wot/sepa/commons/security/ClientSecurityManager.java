@@ -18,6 +18,8 @@
 
 package it.unibo.arces.wot.sepa.commons.security;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Date;
 
 import javax.net.ssl.SSLContext;
@@ -34,7 +36,7 @@ import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties.OAUTH_PROVIDER;
 
-public class ClientSecurityManager {
+public class ClientSecurityManager implements Closeable {
 
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
@@ -152,5 +154,10 @@ public class ClientSecurityManager {
 	
 	public Response refreshToken() throws SEPAPropertiesException, SEPASecurityException {
 		return refreshToken(5000);
+	}
+
+	@Override
+	public void close() throws IOException {
+		oauth.close();
 	}
 }
