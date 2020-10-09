@@ -10,6 +10,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Timeout;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -30,41 +32,43 @@ public class StressUsingSPARQLProtocol {
 
     private static JSAP properties = null;
     private static ConfigurationProvider provider;
+   
     private static Sync sync; 
+    
     private static SPARQL11Protocol client;
+    
     private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
     private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
+    
+    private static ClientSecurityManager sm;
     
     @BeforeAll
     public static void init() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException {
         provider = new ConfigurationProvider();
         properties = provider.getJsap();
-        sync = new Sync(provider.getSecurityManager());
+        
+        sm = provider.buildSecurityManager();
+        sync = new Sync(sm);
+        client = new SPARQL11Protocol(sm);
     }
     
     @AfterAll
-	public static void end() {
-		logger.debug("end");
+	public static void end() throws IOException {
+    	 client.close();       
+         sm.close();  
 	}
 
     @BeforeEach
     public void beginTest() throws IOException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
             URISyntaxException, InterruptedException {
 
-        sync.reset();
-
-        client = new SPARQL11Protocol(provider.getSecurityManager());
-
-        subscribers.clear();
-        publishers.clear();
-
-        Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
+        Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL",sm));
 
         if (ret.isError()) {
             ErrorResponse error = (ErrorResponse) ret;
             if (error.isTokenExpiredError() && properties.isSecure()) {
-            	provider.getSecurityManager().refreshToken();
-            	ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
+            	sm.refreshToken();
+            	ret = client.update(provider.buildUpdateRequest("DELETE_ALL",sm));
                 assertFalse(ret.isError(),ret.toString());
             }
         }
@@ -72,51 +76,24 @@ public class StressUsingSPARQLProtocol {
         logger.debug(ret);
 
         assertFalse(ret.isError(),String.valueOf(ret));
+        
+    	subscribers.clear();
+        publishers.clear();
+        
+        sync.reset();
     }
 
     @AfterEach
     public void endTest() throws IOException, InterruptedException {
-        client.close();
-
         for (Subscriber sub : subscribers)
             sub.close();
 
         for (Publisher pub : publishers)
-            pub.close();
-    }
-
-    //@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //(timeout = 5000)
-    public void RequestToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
-        ThreadGroup threadGroup = new ThreadGroup("TokenRequestGroup");
-        if (properties.isSecure()) {
-            for (int n = 0; n < 10; n++) {
-                new Thread(threadGroup,null,"TokenThread-"+n) {
-                    public void run() {
-                        for (int i = 0; i < 100; i++) {
-                        	try {
-								Response ret = provider.getSecurityManager().refreshToken();
-								assertFalse(ret.isError(),ret.toString());
-	                            try {
-	                                Thread.sleep(100);
-	                            } catch (InterruptedException e) {
-	                                return;
-	                            }
-							} catch (SEPAPropertiesException | SEPASecurityException e2) {
-								assertFalse(true,e2.getMessage());
-							}                    
-                        }
-                    }
-                }.start();
-            }
-            while(threadGroup.activeCount() != 0) {
-                Thread.sleep(1000);
-            }
-        }
+            pub.close(); 
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //(timeout = 5000)
+    @Timeout(5)
     public void Subscribe3xN()
             throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
         int n = 5;
@@ -138,7 +115,7 @@ public class StressUsingSPARQLProtocol {
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //(timeout = 5000)
+    @Timeout(5)
     public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
 
@@ -167,7 +144,7 @@ public class StressUsingSPARQLProtocol {
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //(timeout = 15000)
+    @Timeout(15)
     public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
             InterruptedException, SEPAPropertiesException, SEPASecurityException {
 
@@ -197,7 +174,7 @@ public class StressUsingSPARQLProtocol {
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //(timeout = 5000)
+    @Timeout(30)
     public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
         int n = 5;
 
@@ -216,7 +193,7 @@ public class StressUsingSPARQLProtocol {
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //(timeout = 60000)
+    @Timeout(60)
     public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
         int n = 15;

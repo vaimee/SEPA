@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.mina.util.ConcurrentHashSet;
@@ -63,14 +64,19 @@ class GatesMonitor {
 	private static void pingGates() {
 		Set<Gate> brokenGates = new HashSet<Gate>();
 
+		logger.log(Level.getLevel("ping"),"pingGates");
+		
 		for (Gate g : gates) {
+			logger.log(Level.getLevel("ping"),"ping "+g.getGID());
 			if (g.ping())
 				continue;
+			logger.log(Level.getLevel("ping"),"broken gate "+g.getGID());
 			brokenGates.add(g);
 		}
 
 		for (Gate g : brokenGates) {
 			try {
+				logger.log(Level.getLevel("ping"),"Close internal "+g.getGID());
 				onCloseInternal(g.getGID());
 			} catch (InterruptedException e) {
 				logger.warn("Exception on closing gate: " + g.getGID() + " exception: " + e.getMessage());
@@ -79,15 +85,19 @@ class GatesMonitor {
 		}
 	}
 
-	public static void addGate(Gate g) {
+	public synchronized static void addGate(Gate g) {
+		logger.log(Level.getLevel("ping"),"Add gate "+g.getGID());
 		gates.add(g);
 	}
 
-	public static void removeGate(Gate g) {
+	public synchronized static void removeGate(Gate g) {
+		logger.log(Level.getLevel("ping"),"Remove gate "+g.getGID());
 		gates.remove(g);
 	}
 
-	public static void onSubscribe(String gid, String sid) {
+	public synchronized static void onSubscribe(String gid, String sid) {
+		logger.log(Level.getLevel("ping"),"onSubscribe "+gid+" "+sid);
+		
 		if (gid == null) {
 			logger.error("@onSubscribe GID is null");
 			return;
@@ -100,18 +110,20 @@ class GatesMonitor {
 		// Gate exists?
 		if (!SUBSCRIPTIONS_HASH_MAP.containsKey(gid)) {
 			// Create a new gate entry
-			logger.debug("@onSubscribe create new gate: " + gid);
+			logger.log(Level.getLevel("ping"),"@onSubscribe create new gate: " + gid);
 			SUBSCRIPTIONS_HASH_MAP.put(gid, new ArrayList<String>());
 		}
 
 		// Add subscription
 		SUBSCRIPTIONS_HASH_MAP.get(gid).add(sid);
 
-		logger.trace("ADDED " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " "
+		logger.log(Level.getLevel("spu"),"ADDED " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " "
 				+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 	}
 
-	public static void onUnsubscribe(String gid, String sid) {
+	public synchronized static void onUnsubscribe(String gid, String sid) {
+		logger.log(Level.getLevel("ping"),"onUnsubscribe "+gid+" "+sid);
+		
 		if (gid == null) {
 			logger.error("@onUnsubscribe GID is null");
 			return;
@@ -122,7 +134,7 @@ class GatesMonitor {
 		}
 
 		if (SUBSCRIPTIONS_HASH_MAP.containsKey(gid)) {
-			logger.trace("REMOVE " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " "
+			logger.log(Level.getLevel("spu"),"REMOVE " + gid + " " + sid + " --- " + SUBSCRIPTIONS_HASH_MAP.size() + " "
 					+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 
 			// Remove subscription
@@ -133,11 +145,14 @@ class GatesMonitor {
 		}
 	}
 
-	public static void onClose(String gid) throws InterruptedException {
+	public synchronized static void onClose(String gid) throws InterruptedException {
+		logger.log(Level.getLevel("ping"),"onClose "+gid);
 		onCloseInternal(gid);
 	}
 
 	private static void onCloseInternal(String gid) throws InterruptedException {
+		logger.log(Level.getLevel("ping"),"onCloseInternal "+gid);
+		
 		if (gid == null) {
 			logger.error("@onClose GID is null");
 			return;
@@ -153,19 +168,23 @@ class GatesMonitor {
 			return;
 		}
 
-		logger.trace("CLOSE " + gid + " --- " + SUBSCRIPTIONS_HASH_MAP.size() + " "
+		logger.log(Level.getLevel("spu"),"CLOSE " + gid + " --- " + SUBSCRIPTIONS_HASH_MAP.size() + " "
 				+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 
 		// Kill all active subscriptions
 		for (String sid : SUBSCRIPTIONS_HASH_MAP.get(gid)) {
+			logger.log(Level.getLevel("ping"),"kill "+sid+" "+gid);
 			processor.killSubscription(sid, gid);
 		}
 
 		// Remove gate
+		logger.log(Level.getLevel("ping"),"remove gate "+gid);
 		SUBSCRIPTIONS_HASH_MAP.remove(gid);
 	}
 
-	public static void onError(String gid, Exception e) {
+	public synchronized static void onError(String gid, Exception e) {
+		logger.log(Level.getLevel("ping"),"onError "+gid+ " "+e.getMessage());
+		
 		if (gid == null) {
 			logger.error("@onError GID is null");
 			return;
@@ -174,7 +193,7 @@ class GatesMonitor {
 		logger.error("@onError GID:" + gid + " Exception:" + e);
 	}
 
-	public static long getNumberOfGates() {
+	public synchronized static long getNumberOfGates() {
 		return SUBSCRIPTIONS_HASH_MAP.size();
 
 	}

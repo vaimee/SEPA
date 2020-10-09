@@ -7,7 +7,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
@@ -17,9 +17,9 @@ public class AggregatorTestUnit extends Aggregator {
 	protected static boolean notificationReceived = false;
 	protected static boolean firstResultsReceived = false;
 	
-	public AggregatorTestUnit(ConfigurationProvider provider, String subscribeID, String updateID)
+	public AggregatorTestUnit(ConfigurationProvider provider, String subscribeID, String updateID,ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
-		super(provider.getJsap(), subscribeID, updateID, provider.getSecurityManager());
+		super(provider.getJsap(), subscribeID, updateID, sm);
 	}
 
 	@Override

@@ -2,6 +2,8 @@ package it.unibo.arces.wot.sepa.commons.security;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.io.IOException;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -19,37 +21,41 @@ public class ITSEPASecurityManager {
 	}
 
 	@Test
-	public void Register() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
-		if (provider.getSecurityManager() == null && !provider.getJsap().isSecure())
-			return;
-		
-		Response ret = provider.getSecurityManager().register(provider.getClientId());
-
-		assertFalse(ret.isError(), String.valueOf(ret));
-		
-		provider.getSecurityManager().storeOAuthProperties();
+	public void Register() throws SEPASecurityException, SEPAPropertiesException, InterruptedException, IOException {
+		if (provider.getJsap().isSecure()) {
+			ClientSecurityManager sm = new ClientSecurityManager(provider.getJsap().getAuthenticationProperties(), "sepa.jks", "sepa2020");
+			
+			if (!sm.isClientRegistered()) {
+				Response ret = sm.register(provider.getClientId());
+				assertFalse(ret.isError(), String.valueOf(ret));
+			}
+			
+			sm.storeOAuthProperties();
+			sm.close();
+		}
 	}
 	
 	@Test
-	public void RefreshToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
-		if (provider.getSecurityManager() == null && !provider.getJsap().isSecure())
-			return;
-		
-		Response token = provider.getSecurityManager().refreshToken();
-		
-		if (token.isError()) {
-			Response ret = provider.getSecurityManager().register(provider.getClientId());
+	public void RefreshToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException, IOException {
+		if (provider.getJsap().isSecure()) {
+			ClientSecurityManager sm = new ClientSecurityManager(provider.getJsap().getAuthenticationProperties(), "sepa.jks", "sepa2020");
+			Response token = sm.refreshToken();
+			if (token.isError()) {
+				if (!sm.isClientRegistered()) {
+					Response ret = sm.register(provider.getClientId());
+					assertFalse(ret.isError(), String.valueOf(ret));
+					sm.storeOAuthProperties();
+				}	
+				token = sm.refreshToken();
+			}
+			
+			assertFalse(token.isError(), String.valueOf(token));
 
-			assertFalse(ret.isError(), String.valueOf(ret));	
-		
-			token = provider.getSecurityManager().refreshToken();
+			assertFalse(sm.getAuthorizationHeader() == null, String.valueOf(token));
+			
+			sm.storeOAuthProperties();			
+			sm.close();
 		}
-		
-		assertFalse(token.isError(), String.valueOf(token));
-
-		assertFalse(provider.getSecurityManager().getAuthorizationHeader() == null, String.valueOf(token));
-		
-		provider.getSecurityManager().storeOAuthProperties();
 	}
 
 }

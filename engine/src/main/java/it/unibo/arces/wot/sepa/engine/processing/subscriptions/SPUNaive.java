@@ -34,8 +34,10 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
+import java.io.IOException;
 import java.util.UUID;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 
 class SPUNaive extends SPU {
@@ -51,8 +53,8 @@ class SPUNaive extends SPU {
 	}
 
 	@Override
-	public Response init() throws SEPASecurityException {
-		logger.debug("PROCESS " + subscribe);
+	public Response init() throws SEPASecurityException, IOException {
+		logger.log(Level.getLevel("spu"),"@init");
 
 		// Process the SPARQL query
 		Response ret = manager.processQuery(subscribe);
@@ -64,31 +66,35 @@ class SPUNaive extends SPU {
 
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
 
-		logger.debug("First results: " + lastBindings.toString());
+		logger.trace("First results: " + lastBindings.toString());
 
 		return new SubscribeResponse(getSPUID(), subscribe.getAlias(), lastBindings);
 	}
 
 	@Override
 	public void preUpdateInternalProcessing(InternalUpdateRequest req) throws SEPAProcessingException {
-
+		logger.log(Level.getLevel("spu"),"@preUpdateInternalProcessing");
 	}
 
 	@Override
 	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException {
-		logger.trace("* PROCESSING *" + subscribe);
+		logger.log(Level.getLevel("spu"),"@postUpdateInternalProcessing");
+		
 		Response ret = null;
 
 		// Query the SPARQL processing service
 		try {
+			logger.log(Level.getLevel("spu"),"Query endpoint");
 			ret = manager.processQuery(subscribe);
-		} catch (SEPASecurityException e) {
+		} catch (SEPASecurityException | IOException e) {
 			if (logger.isTraceEnabled()) e.printStackTrace();
-			throw new SEPAProcessingException(e.getMessage());
+			logger.log(Level.getLevel("spu"),"SEPASecurityException "+e.getMessage());
+			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+e.getMessage());
 		}
 
 		if (ret.isError()) {
-			throw new SEPAProcessingException(ret.toString());
+			logger.log(Level.getLevel("spu"),"SEPAProcessingException "+ret);
+			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+ret.toString());
 		}
 
 		// Current and previous bindings
@@ -130,9 +136,12 @@ class SPUNaive extends SPU {
 		lastBindings = currentBindings;
 
 		// Send notification (or end processing indication)
-		if (!added.isEmpty() || !removed.isEmpty())
+		if (!added.isEmpty() || !removed.isEmpty()) {
+			logger.log(Level.getLevel("spu"),"Send notification");
 			return new Notification(getSPUID(), new ARBindingsResults(added, removed));
+		}
 
+		logger.log(Level.getLevel("spu"),"Nothing to be notified");
 		return null;
 	}
 }

@@ -15,9 +15,8 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import org.apache.jena.query.QueryException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -114,31 +113,31 @@ public class Processor implements ProcessorMBean {
 	}
 
 	// Processing primitives
-	public synchronized Response processSubscribe(InternalSubscribeRequest request) throws InterruptedException {
+	public synchronized Response processSubscribe(InternalSubscribeRequest request) {
 		return spuManager.subscribe(request);
 	}
-
-	public synchronized void killSubscription(String sid, String gid) throws InterruptedException {
-		spuManager.killSubscription(sid, gid);
-	}
 	
-	public synchronized Response processUnsubscribe(String sid, String gid) throws InterruptedException {
+	public synchronized Response processUnsubscribe(String sid, String gid) {
 		return spuManager.unsubscribe(sid, gid);
 	}
 
-	public synchronized Response processUpdate(InternalUpdateRequest update) throws QueryException {
+	public synchronized Response processUpdate(InternalUpdateRequest update) {
 		return spuManager.update(update);
 	}
 	
-	public InternalPreProcessedUpdateRequest preProcessUpdate(InternalUpdateRequest update) throws QueryException {
+	public void killSubscription(String sid, String gid) throws InterruptedException {
+		spuManager.killSubscription(sid, gid);
+	}
+	
+	public InternalPreProcessedUpdateRequest preProcessUpdate(InternalUpdateRequest update) {
 		return updateProcessor.preProcess(update);
 	}
 	
-	public Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException {
+	public Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException, IOException {
 		return updateProcessor.process(preRequest);
 	}
 
-	public Response processQuery(InternalQueryRequest query) throws SEPASecurityException {
+	public Response processQuery(InternalQueryRequest query) throws SEPASecurityException, IOException {
 		return queryProcessor.process(query);
 	}
 

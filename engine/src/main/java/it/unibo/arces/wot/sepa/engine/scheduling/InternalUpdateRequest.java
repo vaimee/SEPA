@@ -21,7 +21,6 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.query.QueryException;
 import org.apache.jena.query.QueryParseException;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.lang.ParserSPARQL11Update;
@@ -40,7 +39,7 @@ import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 
 public class InternalUpdateRequest extends InternalUQRequest {
-	public InternalUpdateRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,ClientAuthorization auth) throws QueryException, SPARQL11ProtocolException {
+	public InternalUpdateRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,ClientAuthorization auth) throws SPARQL11ProtocolException {
 		super(sparql, defaultGraphUri, namedGraphUri,auth);
 	}
 
@@ -68,11 +67,18 @@ public class InternalUpdateRequest extends InternalUQRequest {
 	 * Similarly, a SPARQL Update processor should treat each occurrence of the using-named-graph-uri=g parameter in an update protocol operation 
 	 * as if a USING NAMED <g> clause were included for every operation in the SPARQL 1.1 Update request.
 	 * */
-	protected Set<String> getGraphURIs(String sparql) throws QueryParseException {		
+	protected Set<String> getGraphURIs(String sparql) {		
 		UpdateRequest upd = new UpdateRequest();
 		UpdateRequestSink sink = new UpdateRequestSink(upd);
 
-		new ParserSPARQL11Update().parse(sink, sparql);
+		try{
+			new ParserSPARQL11Update().parse(sink, sparql);
+		}
+		catch (QueryParseException e) {
+			logger.warn("Parsing exception "+e.getMessage());
+			rdfDataSet.add("*");
+			return rdfDataSet;
+		}
 
 		for (Update op : upd.getOperations()) {
 			if (op instanceof UpdateModify) {

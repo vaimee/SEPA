@@ -48,7 +48,8 @@ public abstract class Consumer extends Client implements IConsumer {
 	private boolean subscribed = false;
 	private final SPARQL11SEProtocol client;
 	private String spuid = null;
-
+	private final SubscriptionProtocol protocol;
+	
 	public Consumer(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
 			throws SEPAProtocolException, SEPASecurityException {
 		super(appProfile,sm);
@@ -76,11 +77,9 @@ public abstract class Consumer extends Client implements IConsumer {
 		}
 
 		// Subscription protocol
-		SubscriptionProtocol protocol = null;
+		
 		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
 				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID),this,sm);
-//		protocol.setHandler(this);
-//		if (appProfile.isSecure()) protocol.enableSecurity(sm);
 
 		client = new SPARQL11SEProtocol(protocol,sm);
 	}
@@ -124,6 +123,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	@Override
 	public void close() throws IOException {
 		client.close();
+		protocol.close();
 	}
 
 	public boolean isSubscribed() {

@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,11 +34,24 @@ import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 /**
  * A monitor class for subscription management
- * 
- * 
+ <pre>
+ Terms
+  
+ - SPU (SPARQL Processing Unit): the thread in charge of processing a SPARQL query (InternalSubscribeRequest). Each SPU is identified by a unique SPUID 
+ - Subscriber: a client subscribed to SEPA. Each subscriber is identified by a unique SID. A subscriber knows the SPU and the InternalSubscribeRequest.
+ - An SPU can be associated to multiple subscribers (e.g., they share the same SPARQL query)
+  
+ HashMaps
+ - subscribers: SID --> subscriber
+ - handlers: SPUID --> Set of subscribers
+ - requests:  InternalSubscribeRequest --> SPU
+ - spus: SPUID --> SPU
+ </pre>
+  
  * @author Luca Roffia (luca.roffia@unibo.it)
  * @version 0.9.12
  */
@@ -53,7 +67,13 @@ public class Subscriptions {
 	// Request ==> SPU
 	private static final HashMap<InternalSubscribeRequest, SPU> requests = new HashMap<InternalSubscribeRequest, SPU>();
 
+	// SPUID ==> SPU
+	private final static HashMap<String, SPU> spus = new HashMap<String, SPU>();
+	
+	//TODO: a different SPU can be created based on the InternalSubscribeRequest
 	public static SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
+		logger.log(Level.getLevel("subscriptions"),"@createSPU");
+		
 		try {
 			return new SPUNaive(req, manager);
 		} catch (SEPAProtocolException e) {
@@ -61,7 +81,10 @@ public class Subscriptions {
 		}
 	}
 
-	public static Collection<SPU> filter(InternalUpdateRequest update) {
+	// LUTT filtering
+	public synchronized static Collection<SPU> filter(InternalUpdateRequest update) {
+		long start = Timings.getTime();
+		
 		// First level filter: RDF data set
 		Collection<SPU> ret = new HashSet<>();
 		Set<String> target = update.getRdfDataSet();
@@ -80,38 +103,66 @@ public class Subscriptions {
 					}
 				}
 		}
-
+		long stop = Timings.getTime();
+		
+		SPUManagerBeans.filteringTimings(start, stop);
+		
+		logger.log(Level.getLevel("subscriptions"),"Filtered spus: " + ret.size());
+		
 		return ret;
 	}
 
-	public static boolean contains(InternalSubscribeRequest req) {
+	public synchronized static boolean containsSubscribe(InternalSubscribeRequest req) {
+		logger.log(Level.getLevel("subscriptions"),"@containsSubscribe");
 		return requests.containsKey(req);
 	}
 
-	public static void register(InternalSubscribeRequest req, SPU spu) {
-		handlers.put(spu.getSPUID(), new HashSet<Subscriber>());
+	public synchronized static void registerSubscribe(InternalSubscribeRequest req, SPU spu) {
+		logger.log(Level.getLevel("subscriptions"),"@registerSubscribe");
+		
+		if (requests.containsKey(req)) return;
+		
+		// Link the request with the SPU
 		requests.put(req, spu);
-
+		
+		// New entry for subscribers
+		handlers.put(spu.getSPUID(), new HashSet<Subscriber>());
+		
+		// Add the SPU to the collection
+		spus.put(spu.getSPUID(), spu);
+				
 		SPUManagerBeans.setActiveSPUs(handlers.size());
-		logger.debug("@subscribe SPU activated: " + spu.getSPUID() + " total (" + handlers.size() + ")");
+				
+		logger.log(Level.getLevel("subscriptions"),"@registerSubscribe SPU activated: " + spu.getSPUID() + " total (" + handlers.size() + ")");
 	}
 
-	public static SPU getSPU(InternalSubscribeRequest req) {
+	public synchronized static SPU getSPU(InternalSubscribeRequest req) {
 		return requests.get(req);
 	}
 
-	public static Subscriber addSubscriber(InternalSubscribeRequest req, SPU spu) {
+	public synchronized static Subscriber addSubscriber(InternalSubscribeRequest req, SPU spu) {
+		logger.log(Level.getLevel("subscriptions"),"@addSubscriber");
+		
+		// Create a new subscriber
 		Subscriber sub = new Subscriber(spu, req);
+		
+		// Add subscriber to the SPU
 		handlers.get(spu.getSPUID()).add(sub);
+		
+		// Add subscriber to the subscribers map
 		subscribers.put(sub.getSID(), sub);
 
 		SPUManagerBeans.addSubscriber();
+		
+		// Link the subscriber with the gate
 		Dependability.onSubscribe(req.getGID(), sub.getSID());
 
 		return sub;
 	}
 
-	public static Subscriber getSubscriber(String sid) throws SEPANotExistsException {
+	public synchronized static Subscriber getSubscriber(String sid) throws SEPANotExistsException {
+		logger.log(Level.getLevel("subscriptions"),"@getSubscriber "+sid);
+		
 		Subscriber sub = subscribers.get(sid);
 
 		if (sub == null)
@@ -119,30 +170,50 @@ public class Subscriptions {
 		return sub;
 	}
 
-	public static boolean removeSubscriber(Subscriber sub) throws SEPANotExistsException {
+	/**
+	 * Remove the subscriber and return true if it is the last of the SPU managed ones 
+	 * */
+	public synchronized static boolean removeSubscriber(Subscriber sub) throws SEPANotExistsException {
 		String sid = sub.getSID();
 		String spuid = sub.getSPU().getSPUID();
 
+		logger.log(Level.getLevel("subscriptions"),"@removeSubscriber "+sid+" "+spuid);
+		
 		if (!subscribers.containsKey(sid)) {
 			logger.warn("@internalUnsubscribe SID not found: " + sid);
 			throw new SEPANotExistsException("SID not found: " + sid);
 		}
 
-		SPUManagerBeans.removeSubscriber();
-
-		logger.trace("@internalUnsubscribe SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
+		logger.log(Level.getLevel("subscriptions"),"@internalUnsubscribe SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
 				+ subscribers.size());
 
-		handlers.get(spuid).remove(sub);
+		if (handlers.get(spuid) == null) return false;
+		
+		// Remove from maps
 		subscribers.remove(sid);
-
+		
+		handlers.get(spuid).remove(sub);
+	
 		// No more handlers: return true
 		if (handlers.get(spuid).isEmpty()) {
-			logger.debug("@internalUnsubscribe no more subscribers. Kill SPU: " + sub.getSPU().getSPUID());
+			logger.log(Level.getLevel("subscriptions"),"@internalUnsubscribe no more subscribers. Kill SPU: " + sub.getSPU().getSPUID());
 
 			requests.remove(sub.getSPU().getSubscribe());
 			handlers.remove(spuid);
 
+			// *** Kill SPU ***
+			logger.log(Level.getLevel("subscriptions"), "Interrupt SPU " + spuid);
+			spus.get(spuid).interrupt();
+
+			// Clear
+			logger.log(Level.getLevel("subscriptions"), "remove " + spuid);
+			spus.remove(spuid);
+
+			logger.log(Level.getLevel("subscriptions"), "@internalUnsubscribe active SPUs: " + spus.size());
+
+			SPUManagerBeans.setActiveSPUs(spus.size());
+			SPUManagerBeans.removeSubscriber();
+			
 			return true;
 		}
 
@@ -150,7 +221,13 @@ public class Subscriptions {
 		return false;
 	}
 
-	public static void notifySubscribers(String spuid, Notification notify) {
+	public synchronized static void notifySubscribers(Notification notify) {
+		logger.log(Level.getLevel("subscriptions"),"@notifySubscribers");
+		
+		String spuid = notify.getSpuid();
+
+		if (!spus.containsKey(spuid)) return;
+		
 		for (Subscriber client : handlers.get(spuid)) {
 			// Dispatching events
 			Notification event = new Notification(client.getSID(), notify.getARBindingsResults(),
@@ -163,5 +240,9 @@ public class Subscriptions {
 					e.printStackTrace();
 			}
 		}
+	}
+
+	public synchronized static long size() {
+		return spus.size();
 	}
 }

@@ -21,6 +21,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -43,6 +44,8 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 
 	private int genericClientNotifications;
 	private int genericClientSubscriptions;
+	
+	private static ClientSecurityManager sm;
 	
 	public void setOnSemanticEvent(String spuid) {
 		genericClientNotifications++;
@@ -71,16 +74,17 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     
     @AfterAll
 	public static void end() {
-		logger.debug("end");
 	}
 
     @BeforeEach
     public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-        consumerAll = new ConsumerTestUnit(provider, "ALL");
-        randomProducer = new Producer(provider.getJsap(), "RANDOM", provider.getSecurityManager());
-        randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1");
-        consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
-        genericClient = new GenericClient(provider.getJsap(), provider.getSecurityManager(), this);
+    	sm = provider.buildSecurityManager();
+    	
+        consumerAll = new ConsumerTestUnit(provider, "ALL",sm);
+        randomProducer = new Producer(provider.getJsap(), "RANDOM", sm);
+        randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1",sm);
+        consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1",sm);
+        genericClient = new GenericClient(provider.getJsap(), sm, this);
     }
 
     @AfterEach
@@ -97,7 +101,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
             SEPAProtocolException, SEPABindingsException {
         for (int i = 0; i < 100; i++) {
             Response ret = randomProducer.update(provider.TIMEOUT,provider.NRETRY);
-            assertFalse(ret.isError(),"Failed on update: "+i);
+            assertFalse(ret.isError(),"Failed on update: "+i+" "+ret);
         }
     }
 
@@ -107,7 +111,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
             SEPAProtocolException, SEPABindingsException {
         for (int i = 0; i < 1000; i++) {
             Response ret = randomProducer.update(provider.TIMEOUT,provider.NRETRY);
-            assertFalse(ret.isError(),"Failed on update: "+i);
+            assertFalse(ret.isError(),"Failed on update: "+i+" "+ret);
         }
     }
 

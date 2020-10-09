@@ -19,6 +19,8 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.IOException;
+
 import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,59 +40,60 @@ import it.unibo.arces.wot.sepa.timing.Timings;
 class UpdateProcessor implements UpdateProcessorMBean {
 	protected static final Logger logger = LogManager.getLogger();
 
-	private final SPARQL11Protocol endpoint;
+//	private final SPARQL11Protocol endpoint;
 	private final SPARQL11Properties properties;
 
 	public UpdateProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
-		this.endpoint = new SPARQL11Protocol();
+//		this.endpoint = new SPARQL11Protocol();
 		this.properties = properties;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update)
-			throws QueryException {
+	public InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update) throws QueryException {
 		return new InternalPreProcessedUpdateRequest(update);
 	}
 
-	public Response process(InternalUpdateRequest req) throws SEPASecurityException {
+	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
 		// ENDPOINT UPDATE
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
 				req.getDefaultGraphUri(), req.getNamedGraphUri(), req.getBasicAuthorizationHeader(),
-				UpdateProcessorBeans.getTimeout(),0);
+				UpdateProcessorBeans.getTimeout(), 0);
 		logger.trace(request);
 
 		Response ret;
 		int n = 0;
 		do {
 			long start = Timings.getTime();
+			SPARQL11Protocol endpoint = new SPARQL11Protocol();
 			ret = endpoint.update(request);
+			endpoint.close();
 			long stop = Timings.getTime();
-			
+
 			UpdateProcessorBeans.timings(start, stop);
-			
+
 			logger.trace("Response: " + ret.toString());
 			Timings.log("UPDATE_PROCESSING_TIME", start, stop);
-			
+
 			n++;
-			
+
 			if (ret.isTimeoutError()) {
 				UpdateProcessorBeans.timedOutRequest();
-				logger.error("*TIMEOUT* ("+n+"/"+UpdateProcessorBeans.getTimeoutNRetry()+") "+req);
+				logger.error("*TIMEOUT* (" + n + "/" + UpdateProcessorBeans.getTimeoutNRetry() + ") " + req);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					logger.warn("Failed to sleep...");
 				}
 			}
-		} while(ret.isTimeoutError() && n < UpdateProcessorBeans.getTimeoutNRetry());
-		
+		} while (ret.isTimeoutError() && n < UpdateProcessorBeans.getTimeoutNRetry());
+
 		if (ret.isTimeoutError()) {
-			logger.error("*** REQUEST ABORTED *** "+request);
+			logger.error("*** REQUEST ABORTED *** " + request);
 			UpdateProcessorBeans.abortedRequest();
 		}
-		
+
 		return ret;
 	}
 

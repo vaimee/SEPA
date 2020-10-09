@@ -19,6 +19,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -37,25 +38,21 @@ public class ITPattern {
 	protected static GenericClient genericClient;
 	
 	private static Sync handler;
+	private static ClientSecurityManager sm;
 
 	@BeforeAll
-	public static void init() throws SEPAProtocolException {
-		try {
-			provider = new ConfigurationProvider();
-			handler = new Sync(provider.getSecurityManager());
-		} catch (SEPAPropertiesException | SEPASecurityException e) {
-			assertFalse(true, "Configuration not found");
-		}
+	public static void init() throws SEPAProtocolException, SEPAPropertiesException, SEPASecurityException {
+		provider = new ConfigurationProvider();
 	}
 
 	@AfterAll
 	public static void end() {
-		logger.debug("end");
 	}
 
 	@BeforeEach
 	public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		handler.reset();
+		sm = provider.buildSecurityManager();
+		handler = new Sync(sm);
 
 		consumerAll = null;
 		randomProducer = null;
@@ -86,13 +83,15 @@ public class ITPattern {
 			randomProducer.close();
 
 		if (genericClient != null)	genericClient.close();
+		
+		sm.close();
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(10)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		consumerAll = new ConsumerTestUnit(provider, "ALL");
+		consumerAll = new ConsumerTestUnit(provider, "ALL",sm);
 
 		consumerAll.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
 	}
@@ -101,7 +100,7 @@ public class ITPattern {
 	@Timeout(10)
 	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		randomProducer = new Producer(provider.getJsap(), "RANDOM", provider.getSecurityManager());
+		randomProducer = new Producer(provider.getJsap(), "RANDOM", sm);
 		Response ret = randomProducer.update(provider.TIMEOUT, provider.NRETRY);
 		assertFalse(ret.isError(),ret.toString());
 	}
@@ -110,7 +109,7 @@ public class ITPattern {
 	@Timeout(10)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-		consumerAll = new ConsumerTestUnit(provider, "ALL");
+		consumerAll = new ConsumerTestUnit(provider, "ALL",sm);
 
 		consumerAll.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
 		consumerAll.waitFirstNotification();
@@ -120,10 +119,10 @@ public class ITPattern {
 	@Timeout(10)
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		consumerAll = new ConsumerTestUnit(provider, "ALL");
+		consumerAll = new ConsumerTestUnit(provider, "ALL",sm);
 		consumerAll.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
 
-		randomProducer = new Producer(provider.getJsap(), "RANDOM", provider.getSecurityManager());
+		randomProducer = new Producer(provider.getJsap(), "RANDOM", sm);
 		Response ret =randomProducer.update(provider.TIMEOUT, provider.NRETRY);
 		assertFalse(ret.isError(),ret.toString());
 		
@@ -135,15 +134,15 @@ public class ITPattern {
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		logger.debug("Aggregator");
-		consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
+		consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1",sm);
 		consumerRandom1.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
 		logger.debug("Aggregator first subscribe ok");
 
-		randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1");
+		randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1",sm);
 		randomAggregator.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
 		logger.debug("Aggregator second subscribe ok");
 
-		randomProducer = new Producer(provider.getJsap(), "RANDOM", provider.getSecurityManager());
+		randomProducer = new Producer(provider.getJsap(), "RANDOM", sm);
 		Response ret = randomProducer.update(provider.TIMEOUT, provider.NRETRY);
 		assertFalse(ret.isError(),ret.toString());
 		logger.debug("Aggregator Update Done");
@@ -157,7 +156,7 @@ public class ITPattern {
 	@Timeout(10)
 	public void genericClientSingleSubscribe() {
 		try {
-			genericClient = new GenericClient(provider.getJsap(), provider.getSecurityManager(), handler);
+			genericClient = new GenericClient(provider.getJsap(), sm, handler);
 			genericClient.subscribe("ALL", null, "first", provider.TIMEOUT, provider.NRETRY);
 
 			handler.waitSubscribes(1);
@@ -181,7 +180,7 @@ public class ITPattern {
 	@Timeout(10)
 	public void genericClientDoubleSubscribe() {
 		try {
-			genericClient = new GenericClient(provider.getJsap(), provider.getSecurityManager(), handler);
+			genericClient = new GenericClient(provider.getJsap(), sm, handler);
 			genericClient.subscribe("RANDOM", null, "first", provider.TIMEOUT, provider.NRETRY);
 			genericClient.subscribe("RANDOM1", null, "second", provider.TIMEOUT, provider.NRETRY);
 

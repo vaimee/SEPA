@@ -179,4 +179,9 @@ public class DefaultAuthenticationService extends AuthenticationService {
 			}
 		}
 	}
+
+	@Override
+	public void close() throws IOException {
+		httpClient.close();
+	}
 }

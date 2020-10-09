@@ -18,6 +18,8 @@
 
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
+import java.io.IOException;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
@@ -26,7 +28,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateReque
 interface ISPU {
 	String getSPUID();
 	
-    Response init() throws SEPASecurityException;
+    Response init() throws SEPASecurityException, IOException;
 
     BindingsResults getLastBindings();
 

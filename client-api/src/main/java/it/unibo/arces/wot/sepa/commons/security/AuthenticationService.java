@@ -1,6 +1,8 @@
 package it.unibo.arces.wot.sepa.commons.security;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
 
 import javax.net.ssl.SSLContext;
 
@@ -11,7 +13,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
-public abstract class AuthenticationService {
+public abstract class AuthenticationService implements Closeable {
 	protected static final Logger logger = LogManager.getLogger();
 
 	protected CloseableHttpClient httpClient;
@@ -47,4 +49,8 @@ public abstract class AuthenticationService {
 	abstract Response register(String identity,int timeout) throws SEPASecurityException;
 	abstract Response requestToken(String authorization,int timeout);
 	
+	@Override
+	public void close() throws IOException {
+		httpClient.close();
+	}
 }

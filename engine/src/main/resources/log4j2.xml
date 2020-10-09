@@ -10,7 +10,11 @@
 		DEBUG 500 
 		TRACE 600 
 		ALL Integer.MAX_VALUE -->
-		<CustomLevel name="timing" intLevel="550" />
+		<CustomLevel name="SPUManager" intLevel="350" />
+		<CustomLevel name="spu" intLevel="340" />
+		<CustomLevel name="timing" intLevel="330" />
+		<CustomLevel name="subscriptions" intLevel="350" />
+		<CustomLevel name="http" intLevel="250" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
@@ -22,9 +26,9 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="debug">
-			<AppenderRef ref="Console" level="debug" />
-			<AppenderRef ref="Log" level="error"/>
+		<Root level="error">
+			<AppenderRef ref="Console" level="http" />
+<!-- 			<AppenderRef ref="Log" level="error"/> -->
 		</Root>
 	</Loggers>
 </Configuration>
