@@ -1,13 +1,13 @@
 {
-	"host": "localhost",
+	"host": "sepa.vaimee.it",
 	"oauth": {
 		"enable": true,
 		"ssl": "TLSv1.2",
-		"trustall": true,
 		"registration": {
 			"endpoint": "https://sepa.vaimee.it:8443/auth/realms/MONAS/clients-registrations/default",
 			"initialAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4Y2E2ZGNiNC1jZmY5LTQzNGUtODNhNi05NTk4MzQ1NjUxZGMifQ.eyJleHAiOjAsImlhdCI6MTYwMjA3ODc3NiwianRpIjoiNjAxYzc3YWQtMDc3Yy00YjNlLTg2NWEtYzI3M2QwNTBmYzk2IiwiaXNzIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwiYXVkIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwidHlwIjoiSW5pdGlhbEFjY2Vzc1Rva2VuIn0.Whm-sQrv8c72It2aZkQ60S-885pNh0pOcmei65CyzlI",
-			"username": "sepatest"
+			"username": "sepatest",
+			"client_id" : "sepatest"
 		},
 		"authentication": {
 			"endpoint": "https://sepa.vaimee.it:8443/auth/realms/MONAS/protocol/openid-connect/token"

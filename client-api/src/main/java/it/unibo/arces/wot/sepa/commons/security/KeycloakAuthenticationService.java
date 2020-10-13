@@ -34,9 +34,9 @@ public class KeycloakAuthenticationService extends AuthenticationService {
 
 	String registrationAccessToken;
 
-	public KeycloakAuthenticationService(AuthenticationProperties oauthProp, String jksName, String jksPassword)
+	public KeycloakAuthenticationService(AuthenticationProperties oauthProp)
 			throws SEPASecurityException {
-		super(oauthProp, jksName, jksPassword);
+		super(oauthProp);
 	}
 
 	/**
@@ -49,11 +49,11 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 	 */
 
 	@Override
-	public Response register(String identity, int timeout) throws SEPASecurityException {
-		if (identity == null)
-			throw new SEPASecurityException("Identity is null");
+	public Response register(String client_id, String username, String initialAccessToken,int timeout) throws SEPASecurityException {
+		if (client_id == null)
+			throw new SEPASecurityException("client_id is null");
 
-		logger.info("REGISTER " + identity);
+		logger.info("REGISTER " + client_id);
 		
 		CloseableHttpResponse response = null;
 		long start = Timings.getTime();
@@ -65,11 +65,11 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 			HttpPost httpRequest = new HttpPost(uri);
 
 			httpRequest.setHeader("Content-Type", "application/json");
-			httpRequest.setHeader("Authorization", "bearer "+oauthProperties.getInitialAccessToken());
+			httpRequest.setHeader("Authorization", "bearer "+initialAccessToken);
 
 			// oidc_hardcoded_claim_mapper for username link
 			JsonObject usernameClaim = new JsonObject();
-			usernameClaim.add("claim.value", new JsonPrimitive(oauthProperties.getUsername()));
+			usernameClaim.add("claim.value", new JsonPrimitive(username));
 			usernameClaim.add("claim.name", new JsonPrimitive("username"));
 			usernameClaim.add("userinfo.token.claim", new JsonPrimitive(false));
 			usernameClaim.add("id.token.claim", new JsonPrimitive(false));
@@ -85,7 +85,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 			protocolMappers.add(oidc_hardcoded_claim_mapper);
 			
 			JsonObject jsonBody = new JsonObject();
-			jsonBody.add("clientId", new JsonPrimitive(identity));
+			jsonBody.add("clientId", new JsonPrimitive(client_id));
 			
 			jsonBody.add("standardFlowEnabled", new JsonPrimitive(false));
 			jsonBody.add("implicitFlowEnabled", new JsonPrimitive(false));
@@ -132,7 +132,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 
 				return ret;
 			}
-			return new RegistrationResponse(identity, json.get("secret").getAsString(), json);
+			return new RegistrationResponse(client_id, json.get("secret").getAsString(), json);
 
 		} catch (URISyntaxException e) {
 			logger.error(e.getMessage());

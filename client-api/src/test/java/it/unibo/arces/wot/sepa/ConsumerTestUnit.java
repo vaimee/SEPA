@@ -6,7 +6,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.pattern.Consumer;
@@ -15,9 +14,9 @@ public class ConsumerTestUnit extends Consumer {
 	protected static boolean notificationReceived = false;
 	protected static boolean firstResultsReceived = false;
 	
-	public ConsumerTestUnit(ConfigurationProvider provider, String subscribeID,ClientSecurityManager sm)
-			throws SEPAProtocolException, SEPASecurityException {
-		super(provider.getJsap(), subscribeID, sm);
+	public ConsumerTestUnit(ConfigurationProvider provider, String subscribeID)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(provider.getJsap(), subscribeID);
 	}
 
 	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {

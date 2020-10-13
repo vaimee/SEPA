@@ -30,7 +30,6 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public abstract class Aggregator extends Consumer implements IConsumer, IProducer {
 	protected static final Logger logger = LogManager.getLogger();
@@ -40,9 +39,9 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 	private final ForcedBindings updateForcedBindings;
 	private final SPARQL11Protocol sparql11;
 	
-	public Aggregator(JSAP appProfile, String subscribeID, String updateID, ClientSecurityManager sm)
-			throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile, subscribeID, sm);
+	public Aggregator(JSAP appProfile, String subscribeID, String updateID)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(appProfile, subscribeID);
 
 		if (updateID == null) {
 			logger.fatal("Update ID is null");

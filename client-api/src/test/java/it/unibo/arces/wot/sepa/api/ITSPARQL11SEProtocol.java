@@ -51,7 +51,7 @@ public class ITSPARQL11SEProtocol {
 	public void beginTest() throws IOException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
 			URISyntaxException, InterruptedException {
 		sm = provider.buildSecurityManager();
-		handler = new Sync(sm);
+		handler = new Sync();
 		
 		protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
 				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(),handler,

@@ -18,9 +18,14 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
@@ -36,62 +41,65 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 /**
- * This class implements the processing of the requests coming form the scheduler
+ * This class implements the processing of the requests coming form the
+ * scheduler
  * 
  * 
  * @author Luca Roffia (luca.roffia@unibo.it)
  * @version 0.9.12
  */
 public class Processor implements ProcessorMBean {
+	private final Logger logger = LogManager.getLogger();
+	
 	// Processor threads
 	private final UpdateProcessingThread updateProcessingThread;
 	private final SubscribeProcessingThread subscribeProcessingThread;
 	private final UnsubscribeProcessingThread unsubscribeProcessingThread;
 	private final QueryProcessingThread queryProcessingThread;
-	
+
 	// SPARQL Processors
 	private final QueryProcessor queryProcessor;
 	private final UpdateProcessor updateProcessor;
-	
+
 	// SPU manager
 	private final SPUManager spuManager;
-	
+
 	// Scheduler queue
 	private final Scheduler scheduler;
-	
+
 	// Running flag
 	private final AtomicBoolean running = new AtomicBoolean(true);
-	
-	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties,
-			Scheduler scheduler) throws IllegalArgumentException, SEPAProtocolException, SEPASecurityException {		
-		
+
+	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties, Scheduler scheduler)
+			throws IllegalArgumentException, SEPAProtocolException, SEPASecurityException {
+
 		this.scheduler = scheduler;
-		
+
 		// Processors
 		queryProcessor = new QueryProcessor(endpointProperties);
 		updateProcessor = new UpdateProcessor(endpointProperties);
-		
+
 		// SPU Manager
 		spuManager = new SPUManager(this);
-		
+
 		// Subscribe/Unsubscribe processing
 		subscribeProcessingThread = new SubscribeProcessingThread(this);
 		unsubscribeProcessingThread = new UnsubscribeProcessingThread(this);
-		
+
 		// Update processor
 		updateProcessingThread = new UpdateProcessingThread(this);
-		
+
 		// Query processing
 		queryProcessingThread = new QueryProcessingThread(this);
-		
+
 		// JMX
-		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);		
-		ProcessorBeans.setEndpoint(endpointProperties);		
-		QueryProcessorBeans.setTimeout(properties.getQueryTimeout());		
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+		ProcessorBeans.setEndpoint(endpointProperties);
+		QueryProcessorBeans.setTimeout(properties.getQueryTimeout());
 		UpdateProcessorBeans.setTimeout(properties.getUpdateTimeout());
 		UpdateProcessorBeans.setReilable(properties.isUpdateReliable());
 	}
-	
+
 	public boolean isRunning() {
 		return running.get();
 	}
@@ -116,23 +124,53 @@ public class Processor implements ProcessorMBean {
 	public synchronized Response processSubscribe(InternalSubscribeRequest request) {
 		return spuManager.subscribe(request);
 	}
-	
+
 	public synchronized Response processUnsubscribe(String sid, String gid) {
 		return spuManager.unsubscribe(sid, gid);
 	}
 
 	public synchronized Response processUpdate(InternalUpdateRequest update) {
-		return spuManager.update(update);
+		// PRE-processing update request
+		InternalPreProcessedUpdateRequest preRequest = preProcessUpdate(update);
+
+		// STOP processing?
+		if (preRequest.preProcessingFailed()) {
+			logger.error("*** UPDATE PRE-PROCESSING FAILED *** " + preRequest.getErrorResponse());
+			return preRequest.getErrorResponse();
+		}
+		
+		//PRE-UPDATE processing
+		spuManager.subscriptionsProcessingPreUpdate(preRequest);
+		
+		// Endpoint UPDATE
+		Response ret;
+		try {
+			ret = updateEndpoint(update);
+		} catch (SEPASecurityException | IOException e) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"sparql11endpoint",e.getMessage());
+		}
+
+		// STOP processing?
+		if (ret.isError()) {
+			logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
+			spuManager.abortSubscriptionsProcessing();
+			return ret;
+		}
+		
+		// POST-UPDATE processing
+		spuManager.subscriptionsProcessingPostUpdate(ret);
+		
+		return ret;
 	}
-	
+
 	public void killSubscription(String sid, String gid) throws InterruptedException {
 		spuManager.killSubscription(sid, gid);
 	}
-	
+
 	public InternalPreProcessedUpdateRequest preProcessUpdate(InternalUpdateRequest update) {
 		return updateProcessor.preProcess(update);
 	}
-	
+
 	public Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException, IOException {
 		return updateProcessor.process(preRequest);
 	}
@@ -160,9 +198,9 @@ public class Processor implements ProcessorMBean {
 	public ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
 		return scheduler.waitUnsubscribeRequest();
 	}
-	
+
 	public void addResponse(int token, Response ret) {
-		scheduler.addResponse(token, ret);		
+		scheduler.addResponse(token, ret);
 	}
 
 	@Override

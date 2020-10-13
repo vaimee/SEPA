@@ -37,7 +37,6 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public abstract class Consumer extends Client implements IConsumer {
 	protected static final Logger logger = LogManager.getLogger();
@@ -50,9 +49,9 @@ public abstract class Consumer extends Client implements IConsumer {
 	private String spuid = null;
 	private final SubscriptionProtocol protocol;
 	
-	public Consumer(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
-			throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile,sm);
+	public Consumer(JSAP appProfile, String subscribeID)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(appProfile);
 
 		if (subscribeID == null) {
 			logger.fatal("Subscribe ID is null");

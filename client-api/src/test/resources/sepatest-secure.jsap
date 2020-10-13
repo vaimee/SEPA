@@ -3,7 +3,6 @@
 	"oauth": {
 		"enable": true,
 		"ssl": "TLSv1.2",
-		"trustall": true,
 		"registration": {
 			"endpoint": "https://localhost:8443/oauth/register",
 			"initialAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4Y2E2ZGNiNC1jZmY5LTQzNGUtODNhNi05NTk4MzQ1NjUxZGMifQ.eyJleHAiOjE2MDI3NjI5ODgsImlhdCI6MTYwMDE3MDk4OCwianRpIjoiMTE5MDQ0MTYtODEzNC00OWRkLWEwODItNTRlZWE1NWM1YmQ0IiwiaXNzIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwiYXVkIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwidHlwIjoiSW5pdGlhbEFjY2Vzc1Rva2VuIn0.3cC8SMLX_sBBbI_U2t9XyiLVQv0z8ukIlsAj9ySrMUw",

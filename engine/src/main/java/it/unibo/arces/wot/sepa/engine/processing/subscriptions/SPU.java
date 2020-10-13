@@ -31,6 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
@@ -61,10 +62,12 @@ public abstract class SPU extends Thread implements ISPU {
 	protected BindingsResults lastBindings = null;
 
 	// Request and response
-	private final AtomicBoolean preProcessing = new AtomicBoolean();
 	protected InternalUpdateRequest request;
 	protected Response response;
 	protected final InternalSubscribeRequest subscribe;
+
+	private final AtomicBoolean preProcessing = new AtomicBoolean(false);
+	private final AtomicBoolean postProcessing = new AtomicBoolean(false);
 
 	protected final SPUManager manager;
 
@@ -84,7 +87,7 @@ public abstract class SPU extends Thread implements ISPU {
 	}
 
 	public void interrupt() {
-		logger.log(Level.getLevel("spu"),"@interrupt");
+		logger.log(Level.getLevel("spu"), "@interrupt");
 		running.set(false);
 		super.interrupt();
 	}
@@ -106,22 +109,31 @@ public abstract class SPU extends Thread implements ISPU {
 
 	@Override
 	public final void postUpdateProcessing(Response res) {
-		synchronized (preProcessing) {
-			logger.log(Level.getLevel("spu"),"@postUpdateProcessing");
+		synchronized (postProcessing) {
+			logger.log(Level.getLevel("spu"), "@postUpdateProcessing");
 			response = res;
-			preProcessing.set(false);
-			preProcessing.notify();
+			postProcessing.set(true);
+			postProcessing.notify();
 		}
 	}
 
 	@Override
 	public final void preUpdateProcessing(InternalPreProcessedUpdateRequest req) {
 		synchronized (preProcessing) {
-			logger.log(Level.getLevel("spu"),"@preUpdateProcessing");
+			logger.log(Level.getLevel("spu"), "@preUpdateProcessing");
 			request = req;
 			preProcessing.set(true);
 			preProcessing.notify();
 		}
+	}
+	
+	public void abortProcessing() {
+		synchronized (postProcessing) {
+			logger.log(Level.getLevel("spu"), "@postUpdateProcessing");
+			response = new ErrorResponse(0, "abort", "@postUpdateProcessing");
+			postProcessing.set(true);
+			postProcessing.notify();
+		}		
 	}
 
 	@Override
@@ -129,31 +141,52 @@ public abstract class SPU extends Thread implements ISPU {
 		while (running.get()) {
 			synchronized (preProcessing) {
 				try {
-					logger.log(Level.getLevel("spu"),"wait...");
-					preProcessing.wait();
+					while (!preProcessing.get()) {
+						logger.log(Level.getLevel("spu"), "Pre-processing wait...");
+						preProcessing.wait();
+					}
+					preProcessing.set(false);
 				} catch (InterruptedException e) {
-					logger.log(Level.getLevel("spu"),"SPU interrupted. Send EOP and exist.");
+					logger.log(Level.getLevel("spu"), "SPU interrupted. Send EOP and exist.");
 					manager.endOfProcessing(this);
 					return;
 				}
 
-				if (preProcessing.get()) {
-					// PRE processing
-					logger.log(Level.getLevel("spu"),"* PRE PROCESSING *");
-					try {
-						preUpdateInternalProcessing(request);
-					} catch (SEPAProcessingException e) {
-						SPUManagerBeans.preProcessingException();
-						logger.error(e.getMessage());
-						if (logger.isTraceEnabled())
-							e.printStackTrace();
+				// PRE processing
+				logger.log(Level.getLevel("spu"), "* PRE PROCESSING *");
+				try {
+					preUpdateInternalProcessing(request);
+				} catch (SEPAProcessingException e) {
+					SPUManagerBeans.preProcessingException();
+					logger.error(e.getMessage());
+					if (logger.isTraceEnabled())
+						e.printStackTrace();
+				}
+			}
+			
+			// End of processing
+			logger.log(Level.getLevel("spu"), "Send EOP");
+			manager.endOfProcessing(this);
+
+			synchronized (postProcessing) {
+				try {
+					while (!postProcessing.get()) {
+						logger.log(Level.getLevel("spu"), "Post-processing wait...");
+						postProcessing.wait();
 					}
-				} else {
+					postProcessing.set(false);
+				} catch (InterruptedException e) {
+					logger.log(Level.getLevel("spu"), "SPU interrupted. Send EOP and exist.");
+					manager.endOfProcessing(this);
+					return;
+				}
+
+				if (!response.isError()) {
 					// POST processing
-					logger.log(Level.getLevel("spu"),"* POST PROCESSING *");
+					logger.log(Level.getLevel("spu"), "* POST PROCESSING *");
 					try {
 						Notification notify = postUpdateInternalProcessing((UpdateResponse) response);
-						logger.log(Level.getLevel("spu"),"notifyEvent");
+						logger.log(Level.getLevel("spu"), "notifyEvent");
 						manager.notifyEvent(notify);
 					} catch (SEPAProcessingException e) {
 						SPUManagerBeans.postProcessingException();
@@ -163,8 +196,9 @@ public abstract class SPU extends Thread implements ISPU {
 					}
 				}
 			}
+
 			// End of processing
-			logger.log(Level.getLevel("spu"),"Send EOP");
+			logger.log(Level.getLevel("spu"), "Send EOP");
 			manager.endOfProcessing(this);
 		}
 	}

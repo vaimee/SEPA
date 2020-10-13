@@ -221,7 +221,7 @@ public class ErrorResponse extends Response {
 	}
 	
 	public boolean isTimeout() {
-		return getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT;
+		return getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT || getStatusCode() == HttpStatus.SC_NOT_FOUND;
 	}
 	
 	public boolean isBadFileDescriptor() {

@@ -64,12 +64,6 @@ public class ConfigurationProvider {
 			NRETRY = 3;
 	}
 
-//	public WebsocketSubscriptionProtocol getWebsocketClient(ClientSecurityManager sm)
-//			throws SEPASecurityException, SEPAProtocolException {
-//		return new WebsocketSubscriptionProtocol(appProfile.getHost(), appProfile.getSubscribePort(),
-//				appProfile.getSubscribePath(), null, sm);
-//	}
-
 	private String getSPARQLUpdate(String id) {
 		return prefixes + " " + appProfile.getSPARQLUpdate(id);
 	}
@@ -114,13 +108,18 @@ public class ConfigurationProvider {
 		return new UnsubscribeRequest(spuid, sm.getAuthorizationHeader());
 	}
 
+	public JSAP getJsap() {
+		return appProfile;
+	}
+
 	public ClientSecurityManager buildSecurityManager() throws SEPASecurityException, SEPAPropertiesException {
 		ClientSecurityManager sm = null;
 		if (appProfile.isSecure()) {
-			sm = new ClientSecurityManager(new AuthenticationProperties(jsapPath), "sepa.jks", "sepa2020");
+			AuthenticationProperties oauth = new AuthenticationProperties(jsapPath);
+			sm = new ClientSecurityManager(oauth);
 
 			if (!sm.isClientRegistered()) {
-				Response ret = sm.register(getClientId());
+				Response ret = sm.register(getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
 				if (ret.isError())
 					throw new SEPASecurityException(getClientId() + " registration failed");
 				sm.storeOAuthProperties();
@@ -129,10 +128,6 @@ public class ConfigurationProvider {
 		}
 
 		return sm;
-	}
-
-	public JSAP getJsap() {
-		return appProfile;
 	}
 
 	public String getClientId() throws SEPAPropertiesException, SEPASecurityException {

@@ -42,9 +42,7 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 /**
  * The Class GenericClient.
@@ -188,9 +186,9 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 //		this(appProfile, sm, null);
 //	}
 
-	public GenericClient(JSAP appProfile, ClientSecurityManager sm, ISubscriptionHandler handler)
-			throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile, sm);
+	public GenericClient(JSAP appProfile, ISubscriptionHandler handler)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(appProfile);
 		client = new SPARQL11Protocol(sm);
 		this.handler = handler;
 	}
@@ -602,35 +600,33 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 		client.close();
 	}
 
-	/**
-	 * Register.
-	 *
-	 * @param jksFile  the jks file
-	 * @param storePwd the store pwd
-	 * @param keyPwd   the key pwd
-	 * @param identity the identity
-	 * @return the response
-	 * @throws SEPASecurityException   the SEPA security exception
-	 * @throws SEPAPropertiesException the SEPA properties exception
-	 */
-	// Registration to the Authorization Server (AS)
-	public Response register(String jksFile, String storePwd, String identity)
-			throws SEPASecurityException, SEPAPropertiesException {
-		ClientSecurityManager security;
-		if (appProfile.getAuthenticationProperties().trustAll())
-			security = new ClientSecurityManager(appProfile.getAuthenticationProperties());
-		else
-			security = new ClientSecurityManager(appProfile.getAuthenticationProperties(), jksFile, storePwd);
-
-		Response ret = security.register(identity);
-
-		if (ret.isRegistrationResponse()) {
-			RegistrationResponse registration = (RegistrationResponse) ret;
-			appProfile.getAuthenticationProperties().setCredentials(registration.getClientId(),
-					registration.getClientSecret());
-		}
-
-		return ret;
-	}
+//	/**
+//	 * Register.
+//	 *
+//	 * @param jksFile  the jks file
+//	 * @param storePwd the store pwd
+//	 * @param keyPwd   the key pwd
+//	 * @param identity the identity
+//	 * @return the response
+//	 * @throws SEPASecurityException   the SEPA security exception
+//	 * @throws SEPAPropertiesException the SEPA properties exception
+//	 */
+//	// Registration to the Authorization Server (AS)
+//	public Response register(String jksFile, String storePwd, String identity)
+//			throws SEPASecurityException, SEPAPropertiesException {
+//		ClientSecurityManager security;
+//		AuthenticationProperties oauth = appProfile.getAuthenticationProperties();
+//		security = new ClientSecurityManager(appProfile.getAuthenticationProperties());
+//
+//		Response ret = security.register(identity);
+//
+//		if (ret.isRegistrationResponse()) {
+//			RegistrationResponse registration = (RegistrationResponse) ret;
+//			appProfile.getAuthenticationProperties().setCredentials(registration.getClientId(),
+//					registration.getClientSecret());
+//		}
+//
+//		return ret;
+//	}
 
 }

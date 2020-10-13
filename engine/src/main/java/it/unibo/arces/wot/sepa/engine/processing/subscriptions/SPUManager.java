@@ -29,7 +29,6 @@ import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 import java.io.IOException;
@@ -63,55 +62,18 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
-
-	public Response update(InternalUpdateRequest update) {
-		logger.log(Level.getLevel("SPUManager"),
-				"*** UPDATE PROCESSING BEGIN *** Total running SPUs: " + Subscriptions.size());
-
-		try {
-			// PRE-processing update request
-			InternalPreProcessedUpdateRequest preRequest = processor.preProcessUpdate(update);
-
-			// STOP processing?
-			if (preRequest.preProcessingFailed()) {
-				logger.error("*** UPDATE PRE-PROCESSING FAILED *** " + preRequest.getErrorResponse());
-				return preRequest.getErrorResponse();
-			}
-
-			// FILTERING: get active SPUs (e.g., LUTT filtering)
-			activeSpus = Subscriptions.filter(update);
-
-			// PRE-UPDATE subscriptions processing (ENDPOINT not yet updated)
-			subscriptionsProcessing(true, preRequest, null);
-
-			// UPDATE the ENDPOINT
-			logger.log(Level.getLevel("SPUManager"), "updateEndpoint");
-			Response ret = processor.updateEndpoint(preRequest);
-
-			// STOP processing?
-			if (ret.isError()) {
-				logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
-				return ret;
-			}
-
-			// POST-UPDATE subscriptions processing (ENDPOINT not yet updated)
-			logger.log(Level.getLevel("SPUManager"), "postUpdateSubscriptionsProcessing");
-			subscriptionsProcessing(false, preRequest, ret);
-
-			logger.log(Level.getLevel("SPUManager"), "*** UPDATE PROCESSING END *** ");
-
-			return ret;
-
-		} catch (SEPASecurityException | IOException e) {
-			logger.error("*** SUBSCRIPTION PROCESSING EXCEPTION *** " + e.getMessage());
-			return new ErrorResponse(500, "update_processing_failed",
-					"Update: " + update + " Message: " + e.getMessage());
+	
+	public void abortSubscriptionsProcessing() {
+		synchronized (activeSpus) {
+			for (SPU spu : activeSpus) spu.abortProcessing();	
 		}
 	}
-
-	private void subscriptionsProcessing(Boolean pre, InternalPreProcessedUpdateRequest update,
-			Response updateResponse) {
-		logger.log(Level.getLevel("SPUManager"), "*** subscriptionsProcessing *** PRE: " + pre);
+	
+	public void subscriptionsProcessingPreUpdate(InternalPreProcessedUpdateRequest update) {
+		// FILTERING: get active SPUs (e.g., LUTT filtering)
+		activeSpus = Subscriptions.filter(update);
+		
+		logger.log(Level.getLevel("SPUManager"), "*** subscriptionsProcessingPreUpdate ***");
 
 		// Start processing
 		long start = Timings.getTime();
@@ -136,17 +98,67 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			for (SPU spu : processingPool) {
 				logger.log(Level.getLevel("SPUManager"),
 						"*** subscriptionsProcessing *** start SPU: "+spu.getSPUID());
-				if (pre)
-					spu.preUpdateProcessing(update);
-				else
-					spu.postUpdateProcessing(updateResponse);
+				
+				spu.preUpdateProcessing(update);		
 			}
 			
-			if (pre)
-				logger.log(Level.getLevel("SPUManager"),
+			logger.log(Level.getLevel("SPUManager"),
 						"*** PRE-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
-			else
+
+			// Wait all SPUs to complete processing
+			while (!processingPool.isEmpty()) {
 				logger.log(Level.getLevel("SPUManager"),
+						String.format("Wait (%d ms) for %d SPUs to complete processing...",
+								SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size(),
+								processingPool.size()));
+
+				try {
+					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
+				} catch (InterruptedException e) {
+					logger.error(e.getMessage());
+				}
+			}
+		}
+
+		long stop = Timings.getTime();
+
+		SPUManagerBeans.preProcessingTimings(start, stop);
+		
+		logger.log(Level.getLevel("SPUManager"), "*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
+	} 
+
+	public void subscriptionsProcessingPostUpdate(Response updateResponse) {
+		logger.log(Level.getLevel("SPUManager"), "*** subscriptionsProcessingPostUpdate ***");
+
+		// Start processing
+		long start = Timings.getTime();
+
+		// Copy active SPU pool
+		synchronized (activeSpus) {
+			logger.log(Level.getLevel("SPUManager"),
+					"*** subscriptionsProcessing *** create processing pool. Active SPUs: " + activeSpus.size());
+			
+			synchronized (processingPool) {
+				processingPool.clear();
+			}
+			
+			for (SPU spu : activeSpus) {
+				processingPool.add(spu);
+			}
+		}
+		
+		synchronized(processingPool) {
+			logger.log(Level.getLevel("SPUManager"),
+					"*** subscriptionsProcessing *** start processing");
+			for (SPU spu : processingPool) {
+				logger.log(Level.getLevel("SPUManager"),
+						"*** subscriptionsProcessing *** start SPU: "+spu.getSPUID());
+
+				spu.postUpdateProcessing(updateResponse);
+			}
+			
+			
+			logger.log(Level.getLevel("SPUManager"),
 						"*** POST-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
 
 			// Wait all SPUs to complete processing
@@ -166,16 +178,114 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		long stop = Timings.getTime();
 
-		if (pre)
-			SPUManagerBeans.preProcessingTimings(start, stop);
-		else
-			SPUManagerBeans.postProcessingTimings(start, stop);
+		SPUManagerBeans.postProcessingTimings(start, stop);
 
-		if (pre)
-			logger.log(Level.getLevel("SPUManager"), "*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
-		else
-			logger.log(Level.getLevel("SPUManager"), "*** POST-PROCESSING SUBSCRIPTIONS END *** ");
-	}
+		logger.log(Level.getLevel("SPUManager"), "*** POST-PROCESSING SUBSCRIPTIONS END *** ");
+	} 
+
+//	public Response update(InternalPreProcessedUpdateRequest update) {
+//		logger.log(Level.getLevel("SPUManager"),
+//				"*** UPDATE PROCESSING BEGIN *** Total running SPUs: " + Subscriptions.size());
+//
+//		try {
+//			// FILTERING: get active SPUs (e.g., LUTT filtering)
+//			activeSpus = Subscriptions.filter(update);
+//
+//			// PRE-UPDATE subscriptions processing (ENDPOINT not yet updated)
+//			subscriptionsProcessing(true, update, null);
+//
+//			// UPDATE the ENDPOINT
+//			logger.log(Level.getLevel("SPUManager"), "updateEndpoint");
+//			Response ret = processor.updateEndpoint(update);
+//
+//			// STOP processing?
+//			if (ret.isError()) {
+//				logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
+//				return ret;
+//			}
+//
+//			// POST-UPDATE subscriptions processing (ENDPOINT not yet updated)
+//			logger.log(Level.getLevel("SPUManager"), "postUpdateSubscriptionsProcessing");
+//			subscriptionsProcessing(false, update, ret);
+//
+//			logger.log(Level.getLevel("SPUManager"), "*** UPDATE PROCESSING END *** ");
+//
+//			return ret;
+//
+//		} catch (SEPASecurityException | IOException e) {
+//			logger.error("*** SUBSCRIPTION PROCESSING EXCEPTION *** " + e.getMessage());
+//			return new ErrorResponse(500, "update_processing_failed",
+//					"Update: " + update + " Message: " + e.getMessage());
+//		}
+//	}
+//
+//	private void subscriptionsProcessing(Boolean pre, InternalPreProcessedUpdateRequest update,
+//			Response updateResponse) {
+//		logger.log(Level.getLevel("SPUManager"), "*** subscriptionsProcessing *** PRE: " + pre);
+//
+//		// Start processing
+//		long start = Timings.getTime();
+//
+//		// Copy active SPU pool
+//		synchronized (activeSpus) {
+//			logger.log(Level.getLevel("SPUManager"),
+//					"*** subscriptionsProcessing *** create processing pool. Active SPUs: " + activeSpus.size());
+//			
+//			synchronized (processingPool) {
+//				processingPool.clear();
+//			}
+//			
+//			for (SPU spu : activeSpus) {
+//				processingPool.add(spu);
+//			}
+//		}
+//		
+//		synchronized(processingPool) {
+//			logger.log(Level.getLevel("SPUManager"),
+//					"*** subscriptionsProcessing *** start processing");
+//			for (SPU spu : processingPool) {
+//				logger.log(Level.getLevel("SPUManager"),
+//						"*** subscriptionsProcessing *** start SPU: "+spu.getSPUID());
+//				if (pre)
+//					spu.preUpdateProcessing(update);
+//				else
+//					spu.postUpdateProcessing(updateResponse);
+//			}
+//			
+//			if (pre)
+//				logger.log(Level.getLevel("SPUManager"),
+//						"*** PRE-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
+//			else
+//				logger.log(Level.getLevel("SPUManager"),
+//						"*** POST-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
+//
+//			// Wait all SPUs to complete processing
+//			while (!processingPool.isEmpty()) {
+//				logger.log(Level.getLevel("SPUManager"),
+//						String.format("Wait (%d ms) for %d SPUs to complete processing...",
+//								SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size(),
+//								processingPool.size()));
+//
+//				try {
+//					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
+//				} catch (InterruptedException e) {
+//					logger.error(e.getMessage());
+//				}
+//			}
+//		}
+//
+//		long stop = Timings.getTime();
+//
+//		if (pre)
+//			SPUManagerBeans.preProcessingTimings(start, stop);
+//		else
+//			SPUManagerBeans.postProcessingTimings(start, stop);
+//
+//		if (pre)
+//			logger.log(Level.getLevel("SPUManager"), "*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
+//		else
+//			logger.log(Level.getLevel("SPUManager"), "*** POST-PROCESSING SUBSCRIPTIONS END *** ");
+//	}
 
 	public void endOfProcessing(SPU s) {
 		logger.log(Level.getLevel("SPUManager"), "@endOfProcessing  SPUID: " + s.getSPUID());

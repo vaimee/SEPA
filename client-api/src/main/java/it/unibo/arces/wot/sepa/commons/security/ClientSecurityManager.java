@@ -44,16 +44,12 @@ public class ClientSecurityManager implements Closeable {
 	private final AuthenticationProperties oauthProperties;
 	
 	private final AuthenticationService oauth;
-
-	public ClientSecurityManager(AuthenticationProperties oauthProp)  throws SEPASecurityException {
-		this(oauthProp, null, null);
-	}
 	
-	public ClientSecurityManager(AuthenticationProperties oauthProp, String jksName, String jksPassword) throws SEPASecurityException {		
+	public ClientSecurityManager(AuthenticationProperties oauthProp) throws SEPASecurityException {		
 		oauthProperties = oauthProp;
 		
-		if (oauthProperties.getProvider().equals(OAUTH_PROVIDER.SEPA)) oauth = new DefaultAuthenticationService(oauthProp, jksName, jksPassword);
-		else oauth = new KeycloakAuthenticationService(oauthProp, jksName, jksPassword);
+		if (oauthProperties.getProvider().equals(OAUTH_PROVIDER.SEPA)) oauth = new DefaultAuthenticationService(oauthProp);
+		else oauth = new KeycloakAuthenticationService(oauthProp);
 	}
 	
 	public SSLContext getSSLContext() throws SEPASecurityException {
@@ -77,11 +73,11 @@ public class ClientSecurityManager implements Closeable {
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
 	 */
-	public Response register(String identity, int timeout) throws SEPASecurityException, SEPAPropertiesException {
+	public Response register(String client_id, String username,String initialAccessToken,int timeout) throws SEPASecurityException, SEPAPropertiesException {
 		if (oauthProperties == null)
 			throw new SEPAPropertiesException("Authorization properties are null");
 
-		Response ret = oauth.register(identity, timeout);
+		Response ret = oauth.register(client_id,username, initialAccessToken,timeout);
 
 		if (ret.isRegistrationResponse()) {
 			RegistrationResponse reg = (RegistrationResponse) ret;
@@ -93,8 +89,8 @@ public class ClientSecurityManager implements Closeable {
 		return ret;
 	}
 
-	public Response register(String identity) throws SEPASecurityException, SEPAPropertiesException {
-		return register(identity, 5000);
+	public Response register(String client_id,String username,String initialAccessToken) throws SEPASecurityException, SEPAPropertiesException {
+		return register(client_id,username,initialAccessToken, 5000);
 	}
 
 	/**

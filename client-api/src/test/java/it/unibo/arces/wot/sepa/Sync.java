@@ -7,12 +7,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class Sync implements ISubscriptionHandler {
 	protected final Logger logger = LogManager.getLogger();
@@ -29,10 +27,10 @@ public class Sync implements ISubscriptionHandler {
 
 	private static ConcurrentHashMap<String, String> spuid = new ConcurrentHashMap<String, String>();
 
-	private ClientSecurityManager sm;
+//	private ClientSecurityManager sm;
 
-	public Sync(ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
-		this.sm = sm;
+	public Sync() throws SEPASecurityException, SEPAProtocolException {
+//		this.sm = sm;
 	}
 
 	public synchronized void reset() {
@@ -138,12 +136,12 @@ public class Sync implements ISubscriptionHandler {
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		logger.error(errorResponse);
-		if (errorResponse.isTokenExpiredError())
-			try {
-				sm.refreshToken();
-			} catch (SEPAPropertiesException | SEPASecurityException e) {
-				logger.error("Failed to refresh token. "+e.getMessage());
-			}
+//		if (errorResponse.isTokenExpiredError())
+//			try {
+//				sm.refreshToken();
+//			} catch (SEPAPropertiesException | SEPASecurityException e) {
+//				logger.error("Failed to refresh token. "+e.getMessage());
+//			}
 	}
 
 	@Override
