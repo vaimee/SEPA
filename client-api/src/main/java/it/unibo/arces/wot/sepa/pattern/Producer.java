@@ -32,7 +32,6 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class Producer extends Client implements IProducer {
 	protected static final Logger logger = LogManager.getLogger();
@@ -43,9 +42,9 @@ public class Producer extends Client implements IProducer {
 
 	private SPARQL11Protocol client;
 
-	public Producer(JSAP appProfile, String updateID, ClientSecurityManager sm)
+	public Producer(JSAP appProfile, String updateID)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-		super(appProfile, sm);
+		super(appProfile);
 
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
 			logger.fatal("UPDATE ID [" + updateID + "] not found in " + appProfile.getFileName());

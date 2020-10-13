@@ -20,22 +20,18 @@ public abstract class AuthenticationService implements Closeable {
 	protected SSLContext ctx;
 	protected AuthenticationProperties oauthProperties;
 	
-	public AuthenticationService(AuthenticationProperties oauthProperties,String jksName,String jksPassword) throws SEPASecurityException {		
-		if (!oauthProperties.trustAll()) {
-			File f = new File(jksName);
+	public AuthenticationService(AuthenticationProperties oauthProperties) throws SEPASecurityException {		
+		if (oauthProperties.useJks()) {
+			File f = new File(oauthProperties.getJks());
 			if (!f.exists() || f.isDirectory())
-				throw new SEPASecurityException(jksName + " not found");
-			httpClient = new SSLManager().getSSLHttpClient(jksName, jksPassword);
+				throw new SEPASecurityException(oauthProperties.getJks() + " not found");
+			httpClient = new SSLManager().getSSLHttpClient(oauthProperties.getJks(), oauthProperties.getJksSecret());
+			ctx = new SSLManager().getSSLContextFromJKS(oauthProperties.getJks(), oauthProperties.getJksSecret());
 		}
-		else httpClient = new SSLManager().getSSLHttpClientTrustAllCa(oauthProperties.getSSLProtocol());
-		
-		if (!oauthProperties.trustAll()) {
-			File f = new File(jksName);
-			if (!f.exists() || f.isDirectory())
-				throw new SEPASecurityException(jksName + " not found");
-			ctx = new SSLManager().getSSLContextFromJKS(jksName, jksPassword);
+		else {
+			httpClient = new SSLManager().getSSLHttpClientTrustAllCa(oauthProperties.getSSLProtocol());
+			ctx = new SSLManager().getSSLContextTrustAllCa(oauthProperties.getSSLProtocol());
 		}
-		else ctx = new SSLManager().getSSLContextTrustAllCa(oauthProperties.getSSLProtocol());
 		
 		this.oauthProperties = oauthProperties;
 	}
@@ -46,7 +42,7 @@ public abstract class AuthenticationService implements Closeable {
 		return ctx;
 	}
 	
-	abstract Response register(String identity,int timeout) throws SEPASecurityException;
+	abstract Response register(String client_id,String username,String initialAccessToken,int timeout) throws SEPASecurityException;
 	abstract Response requestToken(String authorization,int timeout);
 	
 	@Override

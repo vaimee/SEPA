@@ -54,7 +54,7 @@ class UnsubscribeProcessingThread extends Thread {
 				processor.addResponse(request.getToken(), response);
 
 			} catch (InterruptedException e) {
-				logger.warn(e.getMessage());
+				logger.warn("Exit");
 				return;
 			}
 		}

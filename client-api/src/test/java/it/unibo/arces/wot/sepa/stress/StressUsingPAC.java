@@ -11,6 +11,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Timeout;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
@@ -21,7 +22,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -44,8 +44,6 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 
 	private int genericClientNotifications;
 	private int genericClientSubscriptions;
-	
-	private static ClientSecurityManager sm;
 	
 	public void setOnSemanticEvent(String spuid) {
 		genericClientNotifications++;
@@ -78,13 +76,11 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 
     @BeforeEach
     public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-    	sm = provider.buildSecurityManager();
-    	
-        consumerAll = new ConsumerTestUnit(provider, "ALL",sm);
-        randomProducer = new Producer(provider.getJsap(), "RANDOM", sm);
-        randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1",sm);
-        consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1",sm);
-        genericClient = new GenericClient(provider.getJsap(), sm, this);
+        consumerAll = new ConsumerTestUnit(provider, "ALL");
+        randomProducer = new Producer(provider.getJsap(), "RANDOM");
+        randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1");
+        consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
+        genericClient = new GenericClient(provider.getJsap(), this);
     }
 
     @AfterEach
@@ -106,7 +102,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //(timeout = 30000)
+    @Timeout(60)
     public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
             SEPAProtocolException, SEPABindingsException {
         for (int i = 0; i < 1000; i++) {
@@ -116,7 +112,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //(timeout = 5000)
+    @Timeout(10)
     public void aggregationX10() throws InterruptedException, SEPASecurityException, IOException,
             SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
         consumerRandom1.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
@@ -134,6 +130,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+    @Timeout(30)
     //(timeout = 10000)
     public void aggregationX100() throws InterruptedException, SEPASecurityException, IOException,
             SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {

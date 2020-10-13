@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.commons.protocol;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
@@ -34,9 +35,11 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.execchain.RequestAbortedException;
 import org.apache.http.util.EntityUtils;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -159,6 +162,12 @@ public class SPARQL11Protocol implements Closeable {
 		} 
 		catch(Exception e) {
 			errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getClass().getName(), e.getMessage());
+			
+			// Considered as TIMEOUTS
+			if (e instanceof SocketTimeoutException || e instanceof ConnectTimeoutException || e instanceof RequestAbortedException) 
+				errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, e.getClass().getName(),
+						e.getMessage() + " [timeout: " + request.getTimeout() + " ms retry: " + request.getNRetry()
+								+ "]");
 //			e.printStackTrace();
 		}
 		

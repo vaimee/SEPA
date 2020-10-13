@@ -83,7 +83,6 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(5)
 	public void Connect() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, IOException {
-		ClientSecurityManager sm = provider.buildSecurityManager();
 		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
 		client.connect(url);
 		client.close();
@@ -93,7 +92,6 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@Timeout(5)
 	public void Subscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, IOException,
 			InterruptedException {
-		ClientSecurityManager sm = provider.buildSecurityManager();
 		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
 		client.connect(url);
 		client.send(provider.buildSubscribeRequest("ALL", sm).toString());
@@ -108,7 +106,6 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@Timeout(5)
 	public void SubscribeAndResults() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			IOException, InterruptedException {
-		ClientSecurityManager sm = provider.buildSecurityManager();
 		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
 		client.connect(url);
 
@@ -128,7 +125,6 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@Timeout(5)
 	public void SubscribeAndUnsubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			IOException, InterruptedException {
-		ClientSecurityManager sm = provider.buildSecurityManager();
 		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
 		client.connect(url);
 
@@ -151,7 +147,6 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@Timeout(5)
 	public void WrongSubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			IOException, InterruptedException {
-		ClientSecurityManager sm = provider.buildSecurityManager();
 		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
 		client.connect(url);
 		client.send(provider.buildSubscribeRequest("WRONG", sm).toString());

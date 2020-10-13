@@ -10,10 +10,10 @@
 		DEBUG 500 
 		TRACE 600 
 		ALL Integer.MAX_VALUE -->
-		<CustomLevel name="SPUManager" intLevel="350" />
-		<CustomLevel name="spu" intLevel="340" />
+		<CustomLevel name="SPUManager" intLevel="101" />
+		<CustomLevel name="spu" intLevel="102" />
 		<CustomLevel name="timing" intLevel="330" />
-		<CustomLevel name="subscriptions" intLevel="350" />
+		<CustomLevel name="subscriptions" intLevel="103" />
 		<CustomLevel name="http" intLevel="250" />
 	</CustomLevels>
 	<Appenders>

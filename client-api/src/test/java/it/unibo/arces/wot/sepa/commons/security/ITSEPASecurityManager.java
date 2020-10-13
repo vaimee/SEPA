@@ -23,14 +23,15 @@ public class ITSEPASecurityManager {
 	@Test
 	public void Register() throws SEPASecurityException, SEPAPropertiesException, InterruptedException, IOException {
 		if (provider.getJsap().isSecure()) {
-			ClientSecurityManager sm = new ClientSecurityManager(provider.getJsap().getAuthenticationProperties(), "sepa.jks", "sepa2020");
+			AuthenticationProperties oauth = provider.getJsap().getAuthenticationProperties();
+			ClientSecurityManager sm = new ClientSecurityManager(oauth);
 			
 			if (!sm.isClientRegistered()) {
-				Response ret = sm.register(provider.getClientId());
+				Response ret = sm.register(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
 				assertFalse(ret.isError(), String.valueOf(ret));
 			}
 			
-			sm.storeOAuthProperties();
+//			sm.storeOAuthProperties();
 			sm.close();
 		}
 	}
@@ -38,13 +39,16 @@ public class ITSEPASecurityManager {
 	@Test
 	public void RefreshToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException, IOException {
 		if (provider.getJsap().isSecure()) {
-			ClientSecurityManager sm = new ClientSecurityManager(provider.getJsap().getAuthenticationProperties(), "sepa.jks", "sepa2020");
+			AuthenticationProperties oauth = provider.getJsap().getAuthenticationProperties();
+			ClientSecurityManager sm = new ClientSecurityManager(provider.getJsap().getAuthenticationProperties());
+			
 			Response token = sm.refreshToken();
+			
 			if (token.isError()) {
 				if (!sm.isClientRegistered()) {
-					Response ret = sm.register(provider.getClientId());
+					Response ret = sm.register(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
 					assertFalse(ret.isError(), String.valueOf(ret));
-					sm.storeOAuthProperties();
+//					sm.storeOAuthProperties();
 				}	
 				token = sm.refreshToken();
 			}
@@ -53,7 +57,7 @@ public class ITSEPASecurityManager {
 
 			assertFalse(sm.getAuthorizationHeader() == null, String.valueOf(token));
 			
-			sm.storeOAuthProperties();			
+//			sm.storeOAuthProperties();			
 			sm.close();
 		}
 	}

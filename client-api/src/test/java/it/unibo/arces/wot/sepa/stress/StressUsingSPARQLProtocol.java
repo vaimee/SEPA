@@ -48,7 +48,8 @@ public class StressUsingSPARQLProtocol {
         properties = provider.getJsap();
         
         sm = provider.buildSecurityManager();
-        sync = new Sync(sm);
+        
+        sync = new Sync();
         client = new SPARQL11Protocol(sm);
     }
     
@@ -93,10 +94,10 @@ public class StressUsingSPARQLProtocol {
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    @Timeout(5)
+    @Timeout(60)
     public void Subscribe3xN()
             throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
-        int n = 5;
+        int n = 10;
 
         for (int i = 0; i < n; i++) {
             subscribers.add(new Subscriber(provider,"ALL", sync));
@@ -115,11 +116,11 @@ public class StressUsingSPARQLProtocol {
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    @Timeout(5)
+    //@Timeout(60)
     public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
 
-        int n = 5;
+        int n = 10;
 
         for (int i = 0; i < n; i++) {
             subscribers.add(new Subscriber(provider,"RANDOM", sync));
@@ -142,13 +143,14 @@ public class StressUsingSPARQLProtocol {
                 "Events:" + sync.getEvents() + "(" + subscribers.size()
                         + subscribers.size() * publishers.size() * publishers.size() + ")");
     }
+    
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    @Timeout(15)
+    //@Timeout(5)
     public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
             InterruptedException, SEPAPropertiesException, SEPASecurityException {
 
-        int n = 10;
+        int n = 4;
 
         for (int i = 0; i < n; i++) {
             subscribers.add(new Subscriber(provider,"RANDOM", sync));
@@ -176,7 +178,7 @@ public class StressUsingSPARQLProtocol {
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
     @Timeout(30)
     public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
-        int n = 5;
+        int n = 10;
 
         for (int i = 0; i < n; i++) {
             publishers.add(new Publisher(provider,"RANDOM", n));
@@ -196,7 +198,7 @@ public class StressUsingSPARQLProtocol {
     @Timeout(60)
     public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
             SEPAPropertiesException, SEPASecurityException {
-        int n = 15;
+        int n = 10;
 
         for (int i = 0; i < n; i++) {
             subscribers.add(new Subscriber(provider,"ALL", sync));

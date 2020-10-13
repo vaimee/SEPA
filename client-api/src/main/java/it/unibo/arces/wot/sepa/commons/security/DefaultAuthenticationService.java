@@ -29,22 +29,22 @@ import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class DefaultAuthenticationService extends AuthenticationService {
 	
-	public DefaultAuthenticationService(AuthenticationProperties oauthProperties, String jksName, String jksPassword)
+	public DefaultAuthenticationService(AuthenticationProperties oauthProperties)
 			throws SEPASecurityException {
-		super(oauthProperties, jksName, jksPassword);
+		super(oauthProperties);
 	}
 	
-	public Response register(String identity, int timeout) throws SEPASecurityException {
-		if (identity == null) throw new SEPASecurityException("Identity is null");
+	public Response register(String client_id, String username, String initialAccessToken, int timeout) throws SEPASecurityException {
+		if (client_id == null) throw new SEPASecurityException("Identity is null");
 			
-		logger.info("REGISTER " + identity);
+		logger.info("REGISTER " + client_id);
 
 		CloseableHttpResponse response = null;
 		long start = Timings.getTime();
 
 		try {
 			URI uri = new URI(oauthProperties.getRegisterUrl());
-			ByteArrayEntity body = new ByteArrayEntity(new RegistrationRequest(identity).toString().getBytes("UTF-8"));
+			ByteArrayEntity body = new ByteArrayEntity(new RegistrationRequest(client_id).toString().getBytes("UTF-8"));
 
 			HttpPost httpRequest = new HttpPost(uri);
 			httpRequest.setHeader("Content-Type", "application/json");

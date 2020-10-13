@@ -400,10 +400,6 @@ public class JSAP extends SPARQL11SEProperties {
 		return oauth.isEnabled();
 	}
 
-	public boolean sslTrustAll() {
-		return oauth.trustAll();
-	}
-
 	public boolean reconnect() {
 		try {
 			return jsap.getAsJsonObject("sparql11seprotocol").get("reconnect").getAsBoolean();

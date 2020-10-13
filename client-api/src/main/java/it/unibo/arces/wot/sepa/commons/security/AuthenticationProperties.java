@@ -44,17 +44,23 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
  * 
  * <pre>
 	"oauth": {
-		"enable" : true,
-		"ssl" : "TLSv1.2",
-		"register": "https://localhost:8443/oauth/register",
-		"tokenRequest": "https://localhost:8443/oauth/token",
-		"client_id": "jaJBrmgtqgW9jTLHeVbzSCH6ZIN1Qaf3XthmwLxjhw3WuXtt7VELmfibRNvOdKLs",
-		"client_secret": "fkITPTMsHUEb9gVVRMP5CAeIE1LrfBYtNLdqtlTVZ/CqgqcuzEw+ZcVegW5dMnIg",
-		"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oydQazps2cFzookIhydKJWfvx34vSSnhpkfcdYbZ+7KDaK5uCw8It/0FKvsuW0MAboo4X49sDS+AHTOnVUf67wnnPqJ2M1thThv3dIr/WNn+8xJovJWkwcpGP4T7nH7MOCfZzVnKTHr4hN3q14VUWHYkfP7DEKe7LScGYaT4RcuIfNmywI4fAWabAI4zqedYbd5lXmYhbSmXviPTOQPKxhmZptZ6F5Q178nfK6Bik4/0PwUlgMsC6oVFeJtyPWvjfEP0nx9tGMOt+z9Rvbd7enGWRFspUQJS2zzmGlHW1m5QNFdtOCfTLUOKkyZV4JUQxI1CaP+QbIyIihuQDvIMbmNgbvDNBkj9VQOzg1WB7mj4nn4w7T8I9MpOxAXxnaPUvDk8QnL/5leQcUiFVTa1zlzambQ8xr/BojFB52fIz8LsrDRW/+/0CJJVTFYD6OZ/gepFyLK4yOu/rOiTLT5CF9H2NZQd7bi85zSmi50RHFa3358LvL50c4G84Gz7mkDTBV9JxBhlWVNvD5VR58rPcgESwlGEL2YmOQCZzYGWjTc5cyI/50ZX83sTlTbfs+Tab3pBlsRQu36iNznleeKPj6uVvql+3uvcjMEBqqXvj8TKxMi9tCfHA1vt9RijOap8ROHtnIe4iMovPzkOCMiHJPcwbnyi+6jHbrPI18WGghceZQT23qKHDUYQo2NiehLQG9MQZA1Ncx2w4evBTBX8lkBS4aLoCUoTZTlNFSDOohUHJCbeig9eV77JbLo0a4+PNH9bgM/icSnIG5TidBGyJpEkVtD7+/KphwM89izJam3OT",
-		"expires": "04/5tRBT5n/VJ0XQASgs/w==",
-		"type": "XPrHEX2xHy+5IuXHPHigMw=="
-		"initialAccessToken" : "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4Y2E2ZGNiNC1jZmY5LTQzNGUtODNhNi05NTk4MzQ1NjUxZGMifQ.eyJleHAiOjAsImlhdCI6MTU5OTY3MDIxNywianRpIjoiYWM1OGQ4YTItMjNlZi00M2E1LWJjNjEtZDI2YzlmOTEwNjlkIiwiaXNzIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwiYXVkIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwidHlwIjoiSW5pdGlhbEFjY2Vzc1Rva2VuIn0.WdEiEZxbi9KuvDdYitGXHOdb2W4gGB9cRZC4mT1NLnc"
-	}
+		"enable": true,
+		"ssl": "TLSv1.2",
+		"loadTrustMaterial": {
+			"jks" : "store.jks",
+			"secret" : "XYZ"
+		},
+		"registration": {
+			"endpoint": "https://localhost:8443/auth/realms/MONAS/clients-registrations/default",
+			"initialAccessToken": "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4Y2E2ZGNiNC1jZmY5LTQzNGUtODNhNi05NTk4MzQ1NjUxZGMifQ.eyJleHAiOjAsImlhdCI6MTYwMjA3ODc3NiwianRpIjoiNjAxYzc3YWQtMDc3Yy00YjNlLTg2NWEtYzI3M2QwNTBmYzk2IiwiaXNzIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwiYXVkIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwidHlwIjoiSW5pdGlhbEFjY2Vzc1Rva2VuIn0.Whm-sQrv8c72It2aZkQ60S-885pNh0pOcmei65CyzlI",
+			"username": "sepatest"
+			"clientid": "sepatest"
+		},
+		"authentication": {
+			"endpoint": "https://locahost:8443/auth/realms/MONAS/protocol/openid-connect/token"
+		},
+		"provider": "keycloak"
+	},
 }
  * </pre>
  */
@@ -72,6 +78,7 @@ public class AuthenticationProperties {
 
 	private String initialAccessToken;
 	private String username = null;
+	private String clientRegistrationId = null;
 	
 	private String clientId = null;
 	private String clientSecret = null;
@@ -81,7 +88,8 @@ public class AuthenticationProperties {
 	private String type = null;
 
 	private String ssl = "TLS";
-	private boolean trustAll = false;
+	private String jks = null;
+	private String jksSecret = null;
 	
 	private JsonObject jsap;
 	private File propertiesFile;
@@ -121,7 +129,10 @@ public class AuthenticationProperties {
 			oauthJsonObject = jsap.getAsJsonObject("oauth");
 
 			if (oauthJsonObject.has("enable")) enabled = oauthJsonObject.get("enable").getAsBoolean();
-			if (oauthJsonObject.has("trustall")) trustAll = oauthJsonObject.get("trustall").getAsBoolean();
+			if (oauthJsonObject.has("loadTrustMaterial")) {
+				jks = oauthJsonObject.get("loadTrustMaterial").getAsJsonObject().get("jks").getAsString();
+				jksSecret = oauthJsonObject.get("loadTrustMaterial").getAsJsonObject().get("secret").getAsString();
+			}
 			if (oauthJsonObject.has("ssl")) ssl = oauthJsonObject.get("ssl").getAsString();
 
 			if (enabled) {
@@ -152,9 +163,11 @@ public class AuthenticationProperties {
 				// Initial access token registration
 				if (oauthJsonObject.has("registration")) {
 					JsonObject reg = oauthJsonObject.getAsJsonObject("registration");
-					initialAccessToken = reg.get("initialAccessToken").getAsString();
 					registrationURL = reg.get("endpoint").getAsString();
-					username = reg.get("username").getAsString();					
+					
+					initialAccessToken = (reg.has("initialAccessToken") ? reg.get("initialAccessToken").getAsString() : null);					
+					username = (reg.has("username") ? reg.get("username").getAsString() : null);
+					clientRegistrationId = (reg.has("client_id") ? reg.get("client_id").getAsString() : null);
 				}								
 			} 
 		} 
@@ -281,13 +294,22 @@ public class AuthenticationProperties {
 			jsap.getAsJsonObject("oauth").add("ssl", new JsonPrimitive(ssl));
 		}
 
-		jsap.getAsJsonObject("oauth").add("trustall", new JsonPrimitive(trustAll));
+		if (jks != null && jksSecret != null) {
+			JsonObject obj = new JsonObject();
+			obj.add("jks", new JsonPrimitive(jks));
+			obj.add("secret", new JsonPrimitive(jksSecret));
+			jsap.getAsJsonObject("oauth").add("loadTrustMaterial", obj);	
+		}
+		
 
 		if (registrationURL != null) {
 			JsonObject reg = new JsonObject();
 			reg.add("endpoint", new JsonPrimitive(registrationURL));
-			reg.add("initialAccessToken", new JsonPrimitive(initialAccessToken));
-			reg.add("username", new JsonPrimitive(username));
+			
+			if (initialAccessToken != null) reg.add("initialAccessToken", new JsonPrimitive(initialAccessToken));
+			if (username != null) reg.add("username", new JsonPrimitive(username));
+			if (clientRegistrationId != null) reg.add("client_id", new JsonPrimitive(clientRegistrationId));
+			
 			jsap.getAsJsonObject("oauth").add("registration", reg);
 		}
 		
@@ -331,13 +353,13 @@ public class AuthenticationProperties {
 	public String getClientId() {
 		return clientId;
 	}
+	
+	public String getClientRegistrationId() {
+		return clientRegistrationId;
+	}
 
 	public String getSSLProtocol() {
 		return ssl;
-	}
-
-	public boolean trustAll() {
-		return trustAll;
 	}
 
 	public String getInitialAccessToken() {
@@ -346,5 +368,17 @@ public class AuthenticationProperties {
 
 	public String getUsername() {
 		return username;
+	}
+
+	public boolean useJks() {
+		return jks != null && jksSecret != null;
+	}
+
+	public String getJks() {
+		return jks;
+	}
+
+	public String getJksSecret() {
+		return jksSecret;
 	}
 }
