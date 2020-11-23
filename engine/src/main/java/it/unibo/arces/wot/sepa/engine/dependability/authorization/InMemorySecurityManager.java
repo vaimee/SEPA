@@ -15,7 +15,6 @@ import it.unibo.arces.wot.sepa.commons.security.Credentials;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DeviceIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DigitalIdentity;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.UserIdentity;
 
 public class InMemorySecurityManager extends SecurityManager {
 	public InMemorySecurityManager(SSLContext ssl,RSAKey key)
@@ -28,8 +27,6 @@ public class InMemorySecurityManager extends SecurityManager {
 	
 	class AuthorizedIdentity {
 		DigitalIdentity identity = null;
-//		String secret = null;
-//		String user = null;
 		SignedJWT token = null;
 		Long expiring = null;
 		boolean authorized = true;
@@ -50,27 +47,11 @@ public class InMemorySecurityManager extends SecurityManager {
 		}
 		
 		public void register(String user,String secret) {
-			if (identity.getClass().equals(ApplicationIdentity.class))
-				identity = new ApplicationIdentity(identity.getUid(),new Credentials(user,secret));
-			else if (identity.getClass().equals(DeviceIdentity.class)) {
-				identity = new DeviceIdentity(identity.getUid(),new Credentials(user,secret));
-			}
-			else {
-				UserIdentity u = (UserIdentity) identity;
-				identity = new UserIdentity(identity.getUid(),u.getCommonName(),u.getSurname(),new Credentials(user,secret));
-			}
+			identity.setEndpointCredentials(user, secret);
 		}
 		
 		public void unregister() {
-			if (identity.getClass().equals(ApplicationIdentity.class))
-				identity = new ApplicationIdentity(identity.getUid());
-			else if (identity.getClass().equals(DeviceIdentity.class)) {
-				identity = new DeviceIdentity(identity.getUid());
-			}
-			else {
-				UserIdentity user = (UserIdentity) identity;
-				identity = new UserIdentity(identity.getUid(),user.getCommonName(),user.getSurname());
-			}
+			identity.resetEndpointCredentials();
 		}
 
 		public boolean isRegistered() {
@@ -78,8 +59,7 @@ public class InMemorySecurityManager extends SecurityManager {
 		}
 
 		public boolean checkPassword(String pwd) {
-			return identity.getEndpointCredentials().password().equals(pwd);
-//			return pwd.equals(secret);
+			return (isRegistered() ? identity.getEndpointCredentials().password().equals(pwd) : false);
 		}
 		
 		public boolean containsToken() {
