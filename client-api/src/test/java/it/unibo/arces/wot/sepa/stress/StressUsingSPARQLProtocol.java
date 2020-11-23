@@ -56,7 +56,7 @@ public class StressUsingSPARQLProtocol {
     @AfterAll
 	public static void end() throws IOException {
     	 client.close();       
-         sm.close();  
+         if (sm != null) sm.close();  
 	}
 
     @BeforeEach

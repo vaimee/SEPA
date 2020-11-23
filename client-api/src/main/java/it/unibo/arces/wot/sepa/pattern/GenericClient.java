@@ -67,7 +67,7 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	private Hashtable<String, SPARQL11SEProtocol> subscriptions = new Hashtable<String, SPARQL11SEProtocol>();
 
 	private Hashtable<String, SubscriptionProtocol> protocols = new Hashtable<String, SubscriptionProtocol>();
-	
+
 	@Override
 	public void onSemanticEvent(Notification notify) {
 		if (handler != null)
@@ -83,54 +83,29 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		if (errorResponse.isTokenExpiredError()) {
+			String message = "Failed to refresh token";
 			try {
 				sm.refreshToken();
-			} catch (SEPAPropertiesException | SEPASecurityException e) {
+				
+				message = "Failed to get authorization header after token refresh";
+				req.setAuthorizationHeader(sm.getAuthorizationHeader());
+				
+				if (req.isSubscribeRequest()) {
+					message = "Failed to subscribe after token refresh";
+					subscription.subscribe((SubscribeRequest) req);
+				}
+				else {
+					message = "Failed to unsubscribe after token refresh";
+					subscription.unsubscribe((UnsubscribeRequest) req);
+				}			
+			} catch (SEPAPropertiesException | SEPASecurityException | SEPAProtocolException e) {
 				logger.error(e.getMessage());
 				if (logger.isTraceEnabled())
 					e.printStackTrace();
 				if (handler != null)
 					handler.onError(
-							new ErrorResponse(401, "invalid_grant", "Failed to refresh token. " + e.getMessage()));
+							new ErrorResponse(401, "invalid_grant", message +" "+ e.getMessage()));
 				return;
-			}
-
-			try {
-				req.setAuthorizationHeader(sm.getAuthorizationHeader());
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-				if (logger.isTraceEnabled())
-					e.printStackTrace();
-				if (handler != null)
-					handler.onError(new ErrorResponse(401, "invalid_grant",
-							"Failed to get authorization header. " + e.getMessage()));
-				return;
-			}
-
-			if (req.isSubscribeRequest()) {
-				try {
-					subscription.subscribe((SubscribeRequest) req);
-				} catch (SEPAProtocolException e) {
-					logger.error(e.getMessage());
-					if (logger.isTraceEnabled())
-						e.printStackTrace();
-					if (handler != null)
-						handler.onError(
-								new ErrorResponse(401, "invalid_grant", "Failed to subscribe. " + e.getMessage()));
-					return;
-				}
-			} else {
-				try {
-					subscription.unsubscribe((UnsubscribeRequest) req);
-				} catch (SEPAProtocolException e) {
-					logger.error(e.getMessage());
-					if (logger.isTraceEnabled())
-						e.printStackTrace();
-					if (handler != null)
-						handler.onError(
-								new ErrorResponse(401, "invalid_grant", "Failed to unsubscribe. " + e.getMessage()));
-					return;
-				}
 			}
 		}
 
@@ -165,16 +140,6 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 			handler.onUnsubscribe(spuid);
 	}
 
-//	/**
-//	 * Instantiates a new generic client.
-//	 *
-//	 * @param appProfile the JSAP profile
-//	 * @throws SEPAProtocolException the SEPA protocol exception
-//	 */
-//	public GenericClient(JSAP appProfile) throws SEPAProtocolException {
-//		this(appProfile, null, null);
-//	}
-//
 //	/**
 //	 * Instantiates a new generic client.
 //	 *
@@ -357,8 +322,8 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 		_subscribe(ID, null, forced, null, timeout, nRetry);
 	}
 
-	public void subscribe(String ID, Bindings forced) throws SEPAProtocolException,
-			SEPASecurityException, SEPAPropertiesException, SEPABindingsException, InterruptedException {
+	public void subscribe(String ID, Bindings forced) throws SEPAProtocolException, SEPASecurityException,
+			SEPAPropertiesException, SEPABindingsException, InterruptedException {
 		_subscribe(ID, null, forced, null, TIMEOUT, NRETRY);
 	}
 
@@ -374,8 +339,9 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	 */
 	public void unsubscribe(String subID)
 			throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
-		unsubscribe(subID,TIMEOUT,NRETRY);
+		unsubscribe(subID, TIMEOUT, NRETRY);
 	}
+
 	public void unsubscribe(String subID, long timeout, long nRetry)
 			throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
 		if (!subscriptions.containsKey(subID))
@@ -412,7 +378,7 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	 * @throws IOException             Signals that an I/O exception has occurred.
 	 * @throws SEPAPropertiesException the SEPA properties exception
 	 * @throws SEPABindingsException   the SEPA bindings exception
-	 */	
+	 */
 	private Response _update(String ID, String sparql, Bindings forced, long timeout, long nRetry)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		String auth = null;
@@ -425,7 +391,8 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 		if (sparql == null)
 			sparql = appProfile.getSPARQLUpdate(ID);
 
-		if (sparql == null) throw new SEPAProtocolException("SPARQL update not found " + ID);
+		if (sparql == null)
+			throw new SEPAProtocolException("SPARQL update not found " + ID);
 
 		Response ret = client
 				.update(new UpdateRequest(appProfile.getUpdateMethod(ID), appProfile.getUpdateProtocolScheme(ID),
@@ -433,34 +400,21 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
 						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), auth, timeout, nRetry));
 
-//		while (isSecure() && ret.isError()) {
-//			ErrorResponse errorResponse = (ErrorResponse) ret;
-//
-//			if (errorResponse.isTokenExpiredError()) {
-//				try {
-//					sm.refreshToken();
-//				} catch (SEPAPropertiesException | SEPASecurityException e) {
-//					logger.error("Failed to refresh token: " + e.getMessage());
-//				}
-//			} else {
-//				logger.error("Failed to refresh token: " + errorResponse);
-//				break;
-//			}
-//
-//			auth = sm.getAuthorizationHeader();
-//
-//			ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
-//					appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID),
-//					appProfile.getUpdatePath(ID),
-//					appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
-//					appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), auth, timeout, nRetry));
-//		}
+		if (sm != null && ret.isError()) {
+			ErrorResponse errorResponse = (ErrorResponse) ret;
 
-//		try {
-//			client.close();
-//		} catch (IOException e) {
-//			throw new SEPAProtocolException(e);
-//		}
+			if (errorResponse.isTokenExpiredError()) {
+				sm.refreshToken();
+
+				auth = sm.getAuthorizationHeader();
+
+				ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
+						appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID),
+						appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),
+						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
+						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), auth, timeout, nRetry));
+			}
+		}
 
 		return ret;
 	}
@@ -484,7 +438,8 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 		if (sparql == null)
 			sparql = appProfile.getSPARQLQuery(ID);
 
-		if (sparql == null) throw new SEPAProtocolException("SPARQL query not found " + ID);
+		if (sparql == null)
+			throw new SEPAProtocolException("SPARQL query not found " + ID);
 
 		String auth = null;
 		try {
@@ -500,34 +455,21 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
 						appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout, nRetry));
 
-//		while (isSecure() && ret.isError()) {
-//			ErrorResponse errorResponse = (ErrorResponse) ret;
-//
-//			if (errorResponse.isTokenExpiredError()) {
-//				try {
-//					sm.refreshToken();
-//				} catch (SEPAPropertiesException | SEPASecurityException e) {
-//					logger.error("Failed to refresh token: " + e.getMessage());
-//				}
-//			} else {
-//				logger.error("Failed to refresh token: " + errorResponse);
-//				break;
-//			}
-//
-//			auth = sm.getAuthorizationHeader();
-//
-//			ret = client.query(new QueryRequest(appProfile.getQueryMethod(ID), appProfile.getQueryProtocolScheme(ID),
-//					appProfile.getQueryHost(ID), appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
-//					appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
-//					appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout, nRetry));
-//
-//		}
+		if (sm != null && ret.isError()) {
+			ErrorResponse errorResponse = (ErrorResponse) ret;
 
-//		try {
-//			client.close();
-//		} catch (IOException e) {
-//			throw new SEPAProtocolException(e);
-//		}
+			if (errorResponse.isTokenExpiredError()) {
+				sm.refreshToken();
+
+				auth = sm.getAuthorizationHeader();
+
+				ret = client
+						.query(new QueryRequest(appProfile.getQueryMethod(ID), appProfile.getQueryProtocolScheme(ID),
+								appProfile.getQueryHost(ID), appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
+								appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
+								appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout, nRetry));
+			}
+		}
 
 		return ret;
 	}
@@ -596,37 +538,7 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 			client.close();
 		for (SubscriptionProtocol protocol : protocols.values())
 			protocol.close();
-		
+
 		client.close();
 	}
-
-//	/**
-//	 * Register.
-//	 *
-//	 * @param jksFile  the jks file
-//	 * @param storePwd the store pwd
-//	 * @param keyPwd   the key pwd
-//	 * @param identity the identity
-//	 * @return the response
-//	 * @throws SEPASecurityException   the SEPA security exception
-//	 * @throws SEPAPropertiesException the SEPA properties exception
-//	 */
-//	// Registration to the Authorization Server (AS)
-//	public Response register(String jksFile, String storePwd, String identity)
-//			throws SEPASecurityException, SEPAPropertiesException {
-//		ClientSecurityManager security;
-//		AuthenticationProperties oauth = appProfile.getAuthenticationProperties();
-//		security = new ClientSecurityManager(appProfile.getAuthenticationProperties());
-//
-//		Response ret = security.register(identity);
-//
-//		if (ret.isRegistrationResponse()) {
-//			RegistrationResponse registration = (RegistrationResponse) ret;
-//			appProfile.getAuthenticationProperties().setCredentials(registration.getClientId(),
-//					registration.getClientSecret());
-//		}
-//
-//		return ret;
-//	}
-
 }

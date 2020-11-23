@@ -34,7 +34,7 @@ public class KeycloakAuthenticationService extends AuthenticationService {
 
 	String registrationAccessToken;
 
-	public KeycloakAuthenticationService(AuthenticationProperties oauthProp)
+	public KeycloakAuthenticationService(OAuthProperties oauthProp)
 			throws SEPASecurityException {
 		super(oauthProp);
 	}
@@ -49,7 +49,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 	 */
 
 	@Override
-	public Response register(String client_id, String username, String initialAccessToken,int timeout) throws SEPASecurityException {
+	public Response registerClient(String client_id, String username, String initialAccessToken,int timeout) throws SEPASecurityException {
 		if (client_id == null)
 			throw new SEPASecurityException("client_id is null");
 

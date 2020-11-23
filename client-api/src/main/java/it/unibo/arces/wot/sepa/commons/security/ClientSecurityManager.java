@@ -34,18 +34,18 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties.OAUTH_PROVIDER;
+import it.unibo.arces.wot.sepa.commons.security.OAuthProperties.OAUTH_PROVIDER;
 
 public class ClientSecurityManager implements Closeable {
 
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
 
-	private final AuthenticationProperties oauthProperties;
+	private final OAuthProperties oauthProperties;
 	
 	private final AuthenticationService oauth;
 	
-	public ClientSecurityManager(AuthenticationProperties oauthProp) throws SEPASecurityException {		
+	public ClientSecurityManager(OAuthProperties oauthProp) throws SEPASecurityException {		
 		oauthProperties = oauthProp;
 		
 		if (oauthProperties.getProvider().equals(OAUTH_PROVIDER.SEPA)) oauth = new DefaultAuthenticationService(oauthProp);
@@ -73,11 +73,11 @@ public class ClientSecurityManager implements Closeable {
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
 	 */
-	public Response register(String client_id, String username,String initialAccessToken,int timeout) throws SEPASecurityException, SEPAPropertiesException {
+	public Response registerClient(String client_id, String username,String initialAccessToken,int timeout) throws SEPASecurityException, SEPAPropertiesException {
 		if (oauthProperties == null)
 			throw new SEPAPropertiesException("Authorization properties are null");
 
-		Response ret = oauth.register(client_id,username, initialAccessToken,timeout);
+		Response ret = oauth.registerClient(client_id,username, initialAccessToken,timeout);
 
 		if (ret.isRegistrationResponse()) {
 			RegistrationResponse reg = (RegistrationResponse) ret;
@@ -89,8 +89,8 @@ public class ClientSecurityManager implements Closeable {
 		return ret;
 	}
 
-	public Response register(String client_id,String username,String initialAccessToken) throws SEPASecurityException, SEPAPropertiesException {
-		return register(client_id,username,initialAccessToken, 5000);
+	public Response registerClient(String client_id,String username,String initialAccessToken) throws SEPASecurityException, SEPAPropertiesException {
+		return registerClient(client_id,username,initialAccessToken, 5000);
 	}
 
 	/**
@@ -100,7 +100,7 @@ public class ClientSecurityManager implements Closeable {
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
 	 * 
-	 * @see AuthenticationProperties
+	 * @see OAuthProperties
 	 */
 	public String getAuthorizationHeader() throws SEPASecurityException, SEPAPropertiesException {
 		if (oauthProperties == null) {

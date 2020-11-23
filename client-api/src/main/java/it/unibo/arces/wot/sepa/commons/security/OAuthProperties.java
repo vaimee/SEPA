@@ -65,7 +65,7 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
  * </pre>
  */
 
-public class AuthenticationProperties {
+public class OAuthProperties {
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
 
@@ -102,7 +102,7 @@ public class AuthenticationProperties {
 		return provider;
 	}
 	
-	public AuthenticationProperties(String jsapFileName, byte[] secret)
+	public OAuthProperties(String jsapFileName, byte[] secret)
 			throws SEPAPropertiesException, SEPASecurityException {
 		propertiesFile = new File(jsapFileName);
 
@@ -178,11 +178,11 @@ public class AuthenticationProperties {
 
 	}
 
-	public AuthenticationProperties(String jsap) throws SEPAPropertiesException, SEPASecurityException {
+	public OAuthProperties(String jsap) throws SEPAPropertiesException, SEPASecurityException {
 		this(jsap, null);
 	}
 
-	public AuthenticationProperties() {}
+	public OAuthProperties() {}
 
 	public boolean isEnabled() {
 		return enabled;
@@ -380,5 +380,9 @@ public class AuthenticationProperties {
 
 	public String getJksSecret() {
 		return jksSecret;
+	}
+
+	public String getClientSecret() {
+		return clientSecret;
 	}
 }

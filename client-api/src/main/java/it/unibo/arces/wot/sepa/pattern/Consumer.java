@@ -42,7 +42,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	protected static final Logger logger = LogManager.getLogger();
 	
 	private final String sparqlSubscribe;	
-	private final String subID;
+	protected final String subID;
 	private final ForcedBindings forcedBindings;
 	private boolean subscribed = false;
 	private final SPARQL11SEProtocol client;

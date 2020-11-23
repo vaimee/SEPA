@@ -23,11 +23,11 @@ public class ITSEPASecurityManager {
 	@Test
 	public void Register() throws SEPASecurityException, SEPAPropertiesException, InterruptedException, IOException {
 		if (provider.getJsap().isSecure()) {
-			AuthenticationProperties oauth = provider.getJsap().getAuthenticationProperties();
+			OAuthProperties oauth = provider.getJsap().getAuthenticationProperties();
 			ClientSecurityManager sm = new ClientSecurityManager(oauth);
 			
 			if (!sm.isClientRegistered()) {
-				Response ret = sm.register(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
+				Response ret = sm.registerClient(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
 				assertFalse(ret.isError(), String.valueOf(ret));
 			}
 			
@@ -39,14 +39,14 @@ public class ITSEPASecurityManager {
 	@Test
 	public void RefreshToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException, IOException {
 		if (provider.getJsap().isSecure()) {
-			AuthenticationProperties oauth = provider.getJsap().getAuthenticationProperties();
+			OAuthProperties oauth = provider.getJsap().getAuthenticationProperties();
 			ClientSecurityManager sm = new ClientSecurityManager(provider.getJsap().getAuthenticationProperties());
 			
 			Response token = sm.refreshToken();
 			
 			if (token.isError()) {
 				if (!sm.isClientRegistered()) {
-					Response ret = sm.register(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
+					Response ret = sm.registerClient(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
 					assertFalse(ret.isError(), String.valueOf(ret));
 //					sm.storeOAuthProperties();
 				}	

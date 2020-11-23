@@ -18,9 +18,9 @@ public abstract class AuthenticationService implements Closeable {
 
 	protected CloseableHttpClient httpClient;
 	protected SSLContext ctx;
-	protected AuthenticationProperties oauthProperties;
+	protected OAuthProperties oauthProperties;
 	
-	public AuthenticationService(AuthenticationProperties oauthProperties) throws SEPASecurityException {		
+	public AuthenticationService(OAuthProperties oauthProperties) throws SEPASecurityException {		
 		if (oauthProperties.useJks()) {
 			File f = new File(oauthProperties.getJks());
 			if (!f.exists() || f.isDirectory())
@@ -42,7 +42,7 @@ public abstract class AuthenticationService implements Closeable {
 		return ctx;
 	}
 	
-	abstract Response register(String client_id,String username,String initialAccessToken,int timeout) throws SEPASecurityException;
+	abstract Response registerClient(String client_id,String username,String initialAccessToken,int timeout) throws SEPASecurityException;
 	abstract Response requestToken(String authorization,int timeout);
 	
 	@Override

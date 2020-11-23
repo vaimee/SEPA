@@ -7,8 +7,8 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties.OAUTH_PROVIDER;
+import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
+import it.unibo.arces.wot.sepa.commons.security.OAuthProperties.OAUTH_PROVIDER;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
@@ -78,7 +78,7 @@ public class ConfigurationProvider {
 		return new UpdateRequest(appProfile.getUpdateMethod(id), appProfile.getUpdateProtocolScheme(id),
 				appProfile.getUpdateHost(id), appProfile.getUpdatePort(id), appProfile.getUpdatePath(id),
 				getSPARQLUpdate(id), appProfile.getUsingGraphURI(id), appProfile.getUsingNamedGraphURI(id),
-				sm.getAuthorizationHeader(), TIMEOUT, NRETRY);
+				(sm == null ? null : sm.getAuthorizationHeader()), TIMEOUT, NRETRY);
 	}
 
 	public QueryRequest buildQueryRequest(String id, ClientSecurityManager sm)
@@ -87,7 +87,7 @@ public class ConfigurationProvider {
 		return new QueryRequest(appProfile.getQueryMethod(id), appProfile.getQueryProtocolScheme(id),
 				appProfile.getQueryHost(id), appProfile.getQueryPort(id), appProfile.getQueryPath(id),
 				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id),
-				sm.getAuthorizationHeader(), TIMEOUT, NRETRY);
+				(sm == null ? null : sm.getAuthorizationHeader()), TIMEOUT, NRETRY);
 	}
 
 	public QueryRequest buildQueryRequest(String id, String authToken) {
@@ -100,12 +100,12 @@ public class ConfigurationProvider {
 	public SubscribeRequest buildSubscribeRequest(String id, ClientSecurityManager sm)
 			throws SEPASecurityException, SEPAPropertiesException { // ), ClientSecurityManager sm) {
 		return new SubscribeRequest(getSPARQLQuery(id), id, appProfile.getDefaultGraphURI(id),
-				appProfile.getNamedGraphURI(id), sm.getAuthorizationHeader());
+				appProfile.getNamedGraphURI(id), (sm == null ? null : sm.getAuthorizationHeader()));
 	}
 
 	public UnsubscribeRequest buildUnsubscribeRequest(String spuid, ClientSecurityManager sm)
 			throws SEPASecurityException, SEPAPropertiesException {
-		return new UnsubscribeRequest(spuid, sm.getAuthorizationHeader());
+		return new UnsubscribeRequest(spuid, (sm == null ? null : sm.getAuthorizationHeader()));
 	}
 
 	public JSAP getJsap() {
@@ -115,11 +115,11 @@ public class ConfigurationProvider {
 	public ClientSecurityManager buildSecurityManager() throws SEPASecurityException, SEPAPropertiesException {
 		ClientSecurityManager sm = null;
 		if (appProfile.isSecure()) {
-			AuthenticationProperties oauth = new AuthenticationProperties(jsapPath);
+			OAuthProperties oauth = new OAuthProperties(jsapPath);
 			sm = new ClientSecurityManager(oauth);
 
 			if (!sm.isClientRegistered()) {
-				Response ret = sm.register(getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
+				Response ret = sm.registerClient(getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
 				if (ret.isError())
 					throw new SEPASecurityException(getClientId() + " registration failed");
 				sm.storeOAuthProperties();
@@ -132,7 +132,7 @@ public class ConfigurationProvider {
 
 	public String getClientId() throws SEPAPropertiesException, SEPASecurityException {
 		if (appProfile.isSecure()) {
-			AuthenticationProperties oauth = new AuthenticationProperties(appProfile.getFileName());
+			OAuthProperties oauth = new OAuthProperties(appProfile.getFileName());
 			if (oauth.getProvider().equals(OAUTH_PROVIDER.SEPA))
 				return "SEPATest";
 			else if (oauth.getProvider().equals(OAUTH_PROVIDER.KEYCLOAK))

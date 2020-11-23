@@ -26,8 +26,8 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="error">
-			<AppenderRef ref="Console" level="http" />
+		<Root level="debug">
+			<AppenderRef ref="Console" level="debug" />
 <!-- 			<AppenderRef ref="Log" level="error"/> -->
 		</Root>
 	</Loggers>

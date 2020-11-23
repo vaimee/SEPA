@@ -29,12 +29,12 @@ import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class DefaultAuthenticationService extends AuthenticationService {
 	
-	public DefaultAuthenticationService(AuthenticationProperties oauthProperties)
+	public DefaultAuthenticationService(OAuthProperties oauthProperties)
 			throws SEPASecurityException {
 		super(oauthProperties);
 	}
 	
-	public Response register(String client_id, String username, String initialAccessToken, int timeout) throws SEPASecurityException {
+	public Response registerClient(String client_id, String username, String initialAccessToken, int timeout) throws SEPASecurityException {
 		if (client_id == null) throw new SEPASecurityException("Identity is null");
 			
 		logger.info("REGISTER " + client_id);
