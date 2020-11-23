@@ -41,6 +41,10 @@ public abstract class DigitalIdentity {
 		return uid;
 	}
 	
+	public void setEndpointCredentials(String user,String secret) {
+		endpointCredentials = new Credentials(user, secret);
+	}
+	
 	public abstract String getObjectClass();
 	
 	public Credentials getEndpointCredentials() {
@@ -49,5 +53,9 @@ public abstract class DigitalIdentity {
 	
 	public String toString() {
 		return "UID: "+uid+" "+endpointCredentials;
+	}
+
+	public void resetEndpointCredentials() {
+		endpointCredentials = null;
 	}
 }

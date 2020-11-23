@@ -15,3 +15,5 @@
 /vaimee.jks
 /endpoint-virtuoso.jpar
 /log4j2.debug.xml
+/jwt.jks
+/ssl.jks
