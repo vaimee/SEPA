@@ -43,7 +43,7 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	
 	@AfterAll
 	public static void end() throws SEPAPropertiesException, SEPASecurityException, InterruptedException, IOException {
-		sm.close();
+		if (sm != null) sm.close();
 	}
 
 	@BeforeEach

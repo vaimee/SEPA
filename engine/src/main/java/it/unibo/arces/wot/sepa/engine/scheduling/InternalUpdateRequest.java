@@ -21,7 +21,6 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
-import org.apache.jena.query.QueryParseException;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.lang.ParserSPARQL11Update;
 import org.apache.jena.sparql.modify.UpdateRequestSink;
@@ -74,7 +73,7 @@ public class InternalUpdateRequest extends InternalUQRequest {
 		try{
 			new ParserSPARQL11Update().parse(sink, sparql);
 		}
-		catch (QueryParseException e) {
+		catch (Exception e) {
 			logger.warn("Parsing exception "+e.getMessage());
 			rdfDataSet.add("*");
 			return rdfDataSet;

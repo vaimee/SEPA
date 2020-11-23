@@ -44,7 +44,7 @@ import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
+import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermBNode;
@@ -176,7 +176,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	protected HashMap<String, String> namespaces = new HashMap<String, String>();
 
-	protected AuthenticationProperties oauth = new AuthenticationProperties();
+	protected OAuthProperties oauth = new OAuthProperties();
 
 	public JSAP() {
 		super();
@@ -194,7 +194,7 @@ public class JSAP extends SPARQL11SEProperties {
 		super(propertiesFile, validate);
 
 		if (jsap.has("oauth"))
-			oauth = new AuthenticationProperties(propertiesFile);
+			oauth = new OAuthProperties(propertiesFile);
 
 		if (jsap.has("#include"))
 			loadIncluded(jsap, validate, propertiesFile);
@@ -281,7 +281,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 		// OAuth
 		if (temp.has("oauth")) {
-			oauth = new AuthenticationProperties(filename);
+			oauth = new OAuthProperties(filename);
 		}
 
 		buildSPARQLPrefixes();
@@ -392,7 +392,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	protected Logger logger = LogManager.getLogger();
 
-	public AuthenticationProperties getAuthenticationProperties() {
+	public OAuthProperties getAuthenticationProperties() {
 		return oauth;
 	}
 

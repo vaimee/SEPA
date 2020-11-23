@@ -41,7 +41,7 @@ public class Publisher extends Thread implements Closeable {
 	public void run() {
 		while (running.get() > 0) {
 			try {
-				sm.refreshToken();
+				if (sm != null) sm.refreshToken();
 				Response ret = client.update(provider.buildUpdateRequest(id, sm));
 				if (ret.isError())
 					logger.error(ret);
@@ -60,7 +60,7 @@ public class Publisher extends Thread implements Closeable {
 			logger.error(e.getMessage());
 		}
 
-		sm.close();
+		if (sm != null) sm.close();
 
 		running.set(0);
 	}

@@ -45,9 +45,9 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 
 	public void run() {
 		try {
-			sm.refreshToken();
+			if (sm != null) sm.refreshToken();
 			client.subscribe(provider.buildSubscribeRequest(id, sm));
-			sm.close();
+			if (sm != null) sm.close();
 		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException e2) {
 			logger.error(e2.getMessage());
 			return;

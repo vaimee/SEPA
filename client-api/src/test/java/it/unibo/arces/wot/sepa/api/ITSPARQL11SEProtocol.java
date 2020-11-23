@@ -67,7 +67,7 @@ public class ITSPARQL11SEProtocol {
 	public void endTest() throws IOException, InterruptedException, SEPAProtocolException {		
 		client.close();
 		protocol.close();
-		sm.close();
+		if (sm != null) sm.close();
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)

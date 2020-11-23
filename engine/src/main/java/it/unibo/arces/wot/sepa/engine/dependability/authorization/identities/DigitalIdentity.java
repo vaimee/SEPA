@@ -25,8 +25,8 @@ import it.unibo.arces.wot.sepa.commons.security.Credentials;
  * */
 public abstract class DigitalIdentity {
 	
-	private String uid;
-	private Credentials endpointCredentials = new Credentials("SEPATest","SEPATest");
+	private String uid = null;
+	private Credentials endpointCredentials = null;
 	
 	public DigitalIdentity(String uid) {
 		this.uid = uid;
