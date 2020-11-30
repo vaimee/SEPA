@@ -22,7 +22,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
@@ -118,7 +117,7 @@ public abstract class SPU extends Thread implements ISPU {
 	}
 
 	@Override
-	public final void preUpdateProcessing(InternalPreProcessedUpdateRequest req) {
+	public final void preUpdateProcessing(InternalUpdateRequest req) {
 		synchronized (preProcessing) {
 			logger.log(Level.getLevel("spu"), "@preUpdateProcessing");
 			request = req;

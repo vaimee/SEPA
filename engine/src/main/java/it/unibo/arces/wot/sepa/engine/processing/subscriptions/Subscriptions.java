@@ -32,6 +32,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
@@ -81,11 +82,10 @@ public class Subscriptions {
 		}
 	}
 
-	// LUTT filtering
-	public synchronized static Collection<SPU> filter(InternalUpdateRequest update) {
+	// First level filtering on RDF data set (graph uris)
+	public synchronized static Collection<SPU> filterOnGraphs(InternalUpdateRequest update) {
 		long start = Timings.getTime();
 		
-		// First level filter: RDF data set
 		Collection<SPU> ret = new HashSet<>();
 		Set<String> target = update.getRdfDataSet();
 
@@ -93,6 +93,7 @@ public class Subscriptions {
 			Set<String> context = sub.getRdfDataSet();
 
 			// All graphs: NO FILTER
+			// TODO: default graph?
 			if (context.contains("*") || target.contains("*")) {
 				ret.add(requests.get(sub));
 			} else
@@ -112,6 +113,12 @@ public class Subscriptions {
 		return ret;
 	}
 
+	// Second level filtering (on quads)
+	public static Collection<SPU> filterOnQuads(Collection<SPU> activeSpus, InternalPreProcessedUpdateRequest update) {
+		// TODO implement LUTT filtering
+		return activeSpus;
+	}
+	
 	public synchronized static boolean containsSubscribe(InternalSubscribeRequest req) {
 		logger.log(Level.getLevel("subscriptions"),"@containsSubscribe");
 		return requests.containsKey(req);

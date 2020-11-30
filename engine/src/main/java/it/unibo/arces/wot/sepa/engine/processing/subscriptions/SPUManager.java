@@ -29,6 +29,7 @@ import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 import java.io.IOException;
@@ -69,9 +70,13 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		}
 	}
 	
-	public void subscriptionsProcessingPreUpdate(InternalPreProcessedUpdateRequest update) {
-		// FILTERING: get active SPUs (e.g., LUTT filtering)
-		activeSpus = Subscriptions.filter(update);
+	public boolean doUpdatePreProcessing(InternalUpdateRequest update) {
+		activeSpus = Subscriptions.filterOnGraphs(update);		
+		return !activeSpus.isEmpty();
+	}
+	
+	public void subscriptionsProcessingPreUpdate(InternalUpdateRequest update) {
+		if (update.getClass().equals(InternalPreProcessedUpdateRequest.class)) activeSpus = Subscriptions.filterOnQuads(activeSpus,(InternalPreProcessedUpdateRequest)update);
 		
 		logger.log(Level.getLevel("SPUManager"), "*** subscriptionsProcessingPreUpdate ***");
 
