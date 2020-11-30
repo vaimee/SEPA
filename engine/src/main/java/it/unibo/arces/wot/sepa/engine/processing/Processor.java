@@ -130,22 +130,25 @@ public class Processor implements ProcessorMBean {
 	}
 
 	public synchronized Response processUpdate(InternalUpdateRequest update) {
-		// PRE-processing update request
-		InternalPreProcessedUpdateRequest preRequest = preProcessUpdate(update);
-
-		// STOP processing?
-		if (preRequest.preProcessingFailed()) {
-			logger.error("*** UPDATE PRE-PROCESSING FAILED *** " + preRequest.getErrorResponse());
-			return preRequest.getErrorResponse();
+		InternalUpdateRequest preRequest = update;
+		if (spuManager.doUpdatePreProcessing(update)) {
+			// PRE-processing update request (i.e., extract added and removed quads)
+			preRequest = preProcessUpdate(update);
+			
+			// STOP processing?
+			if (((InternalPreProcessedUpdateRequest)preRequest).preProcessingFailed()) {
+				logger.error("*** UPDATE PRE-PROCESSING FAILED *** " + ((InternalPreProcessedUpdateRequest)preRequest).getErrorResponse());
+				return ((InternalPreProcessedUpdateRequest)preRequest).getErrorResponse();
+			}
 		}
-		
+				
 		//PRE-UPDATE processing
 		spuManager.subscriptionsProcessingPreUpdate(preRequest);
 		
 		// Endpoint UPDATE
 		Response ret;
 		try {
-			ret = updateEndpoint(update);
+			ret = updateEndpoint(preRequest);
 		} catch (SEPASecurityException | IOException e) {
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"sparql11endpoint",e.getMessage());
 		}

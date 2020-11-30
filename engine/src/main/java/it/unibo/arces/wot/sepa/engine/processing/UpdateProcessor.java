@@ -40,11 +40,9 @@ import it.unibo.arces.wot.sepa.timing.Timings;
 class UpdateProcessor implements UpdateProcessorMBean {
 	protected static final Logger logger = LogManager.getLogger();
 
-//	private final SPARQL11Protocol endpoint;
 	private final SPARQL11Properties properties;
 
 	public UpdateProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
-//		this.endpoint = new SPARQL11Protocol();
 		this.properties = properties;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
