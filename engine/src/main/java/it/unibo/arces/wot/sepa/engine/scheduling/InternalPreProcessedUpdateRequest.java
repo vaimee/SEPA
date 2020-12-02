@@ -14,6 +14,9 @@ public class InternalPreProcessedUpdateRequest extends InternalUpdateRequest{
 		// TODO: added and removed algorithm goes here
 		// 1) "sparql" member should be updated with insert/delete data
 		// 2) Added and removed quads can be represented as ARBindingsResults with the convention : ?g ?s ?p ?o
+		/*
+		 * ++++++++++++++++++++++++++++++++ CREATING NEW BRANCH ON GITHUB
+		 */
 		super(req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(), req.getClientAuthorization());
 	}
 	
