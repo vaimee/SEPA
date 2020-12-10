@@ -26,12 +26,11 @@ public class ITSEPASecurityManager {
 			OAuthProperties oauth = provider.getJsap().getAuthenticationProperties();
 			ClientSecurityManager sm = new ClientSecurityManager(oauth);
 			
-			if (!sm.isClientRegistered()) {
+			if (!oauth.isClientRegistered()) {
 				Response ret = sm.registerClient(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
 				assertFalse(ret.isError(), String.valueOf(ret));
 			}
 			
-//			sm.storeOAuthProperties();
 			sm.close();
 		}
 	}
@@ -45,19 +44,17 @@ public class ITSEPASecurityManager {
 			Response token = sm.refreshToken();
 			
 			if (token.isError()) {
-				if (!sm.isClientRegistered()) {
+				if (!oauth.isClientRegistered()) {
 					Response ret = sm.registerClient(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
 					assertFalse(ret.isError(), String.valueOf(ret));
-//					sm.storeOAuthProperties();
 				}	
 				token = sm.refreshToken();
 			}
 			
 			assertFalse(token.isError(), String.valueOf(token));
 
-			assertFalse(sm.getAuthorizationHeader() == null, String.valueOf(token));
-			
-//			sm.storeOAuthProperties();			
+			assertFalse(oauth.getBearerAuthorizationHeader() == null, String.valueOf(token));
+					
 			sm.close();
 		}
 	}

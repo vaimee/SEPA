@@ -22,13 +22,11 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	protected static final Logger logger = LogManager.getLogger();
 
 	private static ConfigurationProvider provider;
-	private static ClientSecurityManager sm;
 	private static URI url;
 
 	private static Object mutex = new Object();
@@ -41,14 +39,9 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 			throws SEPAPropertiesException, SEPASecurityException, InterruptedException, SEPAProtocolException {
 		provider = new ConfigurationProvider();
 
-		if (provider.getJsap().isSecure()) {
-			sm = provider.buildSecurityManager();
-		} else
-			sm = null;
-
 		// Connect
 		String scheme = "ws://";
-		if (sm != null)
+		if (provider.getClientSecurityManager() != null)
 			scheme = "wss://";
 		if (provider.getJsap().getSubscribePort() == -1)
 			try {
@@ -69,8 +62,7 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 
 	@AfterAll
 	public static void end() throws IOException {
-		if (sm != null)
-			sm.close();
+
 	}
 
 	@BeforeEach
@@ -83,7 +75,7 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(5)
 	public void Connect() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, IOException {
-		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
+		WebsocketClientEndpoint client = new WebsocketClientEndpoint(provider.getClientSecurityManager(), this);
 		client.connect(url);
 		client.close();
 	}
@@ -92,9 +84,9 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@Timeout(5)
 	public void Subscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, IOException,
 			InterruptedException {
-		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
+		WebsocketClientEndpoint client = new WebsocketClientEndpoint(provider.getClientSecurityManager(), this);
 		client.connect(url);
-		client.send(provider.buildSubscribeRequest("ALL", sm).toString());
+		client.send(provider.buildSubscribeRequest("ALL").toString());
 		synchronized (mutex) {
 			while (ITWebsocketClientEndpoint.spuid == null)
 				mutex.wait();
@@ -106,10 +98,10 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@Timeout(5)
 	public void SubscribeAndResults() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			IOException, InterruptedException {
-		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
+		WebsocketClientEndpoint client = new WebsocketClientEndpoint(provider.getClientSecurityManager(), this);
 		client.connect(url);
 
-		client.send(provider.buildSubscribeRequest("ALL", sm).toString());
+		client.send(provider.buildSubscribeRequest("ALL").toString());
 		synchronized (mutex) {
 			while (ITWebsocketClientEndpoint.spuid == null)
 				mutex.wait();
@@ -125,16 +117,16 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@Timeout(5)
 	public void SubscribeAndUnsubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			IOException, InterruptedException {
-		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
+		WebsocketClientEndpoint client = new WebsocketClientEndpoint(provider.getClientSecurityManager(), this);
 		client.connect(url);
 
-		client.send(provider.buildSubscribeRequest("ALL", sm).toString());
+		client.send(provider.buildSubscribeRequest("ALL").toString());
 		synchronized (mutex) {
 			while (ITWebsocketClientEndpoint.spuid == null)
 				mutex.wait();
 		}
 
-		client.send(provider.buildUnsubscribeRequest(ITWebsocketClientEndpoint.spuid, sm).toString());
+		client.send(provider.buildUnsubscribeRequest(ITWebsocketClientEndpoint.spuid).toString());
 		synchronized (mutex) {
 			while (ITWebsocketClientEndpoint.spuid != null)
 				mutex.wait();
@@ -147,9 +139,9 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	@Timeout(5)
 	public void WrongSubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			IOException, InterruptedException {
-		WebsocketClientEndpoint client = new WebsocketClientEndpoint(sm, this);
+		WebsocketClientEndpoint client = new WebsocketClientEndpoint(provider.getClientSecurityManager(), this);
 		client.connect(url);
-		client.send(provider.buildSubscribeRequest("WRONG", sm).toString());
+		client.send(provider.buildSubscribeRequest("WRONG").toString());
 		synchronized (mutex) {
 			while (!ITWebsocketClientEndpoint.error)
 				mutex.wait();

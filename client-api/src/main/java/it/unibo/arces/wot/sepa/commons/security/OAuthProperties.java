@@ -203,7 +203,7 @@ public class OAuthProperties {
 	 */
 	public String getBearerAuthorizationHeader() {
 		if (jwt != null)
-			return "Bearer " + jwt;
+			return type + " "+ jwt;
 		else
 			return null;
 	}
