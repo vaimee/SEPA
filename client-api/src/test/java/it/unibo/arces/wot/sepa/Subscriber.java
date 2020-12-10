@@ -15,7 +15,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class Subscriber extends Thread implements Closeable, ISubscriptionHandler {
 	protected final Logger logger = LogManager.getLogger();
@@ -25,7 +24,6 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 	private ConfigurationProvider provider;
 	private ISubscriptionHandler handler;
 	private String spuid = null;
-	private ClientSecurityManager sm;
 	private SubscriptionProtocol protocol;
 
 	public Subscriber(ConfigurationProvider provider, String id, ISubscriptionHandler sync)
@@ -35,20 +33,19 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 		this.provider = provider;
 		this.id = id;
 		this.handler = sync;
-		this.sm = provider.buildSecurityManager();
 		
 		protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, sm);
+				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
 
 		client = new SPARQL11SEProtocol(protocol);
 	}
 
 	public void run() {
 		try {
-			if (sm != null) sm.refreshToken();
-			client.subscribe(provider.buildSubscribeRequest(id, sm));
-			if (sm != null) sm.close();
-		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException | IOException e2) {
+			//if (sm != null) sm.refreshToken();
+			client.subscribe(provider.buildSubscribeRequest(id));
+			//if (sm != null) sm.close();
+		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException  e2) {
 			logger.error(e2.getMessage());
 			return;
 		}
@@ -67,7 +64,7 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 		synchronized(client) {
 			if (spuid != null)
 				try {
-					client.unsubscribe(provider.buildUnsubscribeRequest(spuid, sm));
+					client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
 				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
 					logger.error(e.getMessage());
 				}

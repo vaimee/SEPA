@@ -49,6 +49,7 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
@@ -168,42 +169,7 @@ public class SPARQL11Protocol implements Closeable {
 				errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, e.getClass().getName(),
 						e.getMessage() + " [timeout: " + request.getTimeout() + " ms retry: " + request.getNRetry()
 								+ "]");
-//			e.printStackTrace();
 		}
-		
-//		catch (IOException e) {
-//			if (e instanceof InterruptedIOException) {
-//				if (e instanceof SocketTimeoutException)
-//					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "SocketTimeoutException",
-//							e.getMessage() + " [timeout: " + request.getTimeout() + " ms retry: " + request.getNRetry()
-//									+ "]");
-//				else if (e instanceof RequestAbortedException)
-//					errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "RequestAbortedException",
-//							e.getMessage() + " [timeout: " + request.getTimeout() + " ms retry: " + request.getNRetry()
-//									+ "]");
-//				else if (e instanceof ConnectTimeoutException) {
-//					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "ConnectTimeoutException",
-//							e.getMessage());
-//				} else {
-//					//e.printStackTrace();
-//					errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getClass().getName(),
-//							e.getMessage());
-//				}
-//			} else if (e instanceof UnknownHostException) {
-//				errorResponse = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "UnknownHostException", e.getMessage());
-//			} else if (e instanceof SSLException) {
-//				errorResponse = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "SSLException", e.getMessage());
-//			} else if (e instanceof ClientProtocolException) {
-//				errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ClientProtocolException",
-//						e.getMessage());
-//			} else if (e instanceof HttpHostConnectException) {
-//				errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "HttpHostConnectException",
-//						e.getMessage());
-//			} else {
-//				//e.printStackTrace();
-//				errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getClass().getName(), e.getMessage());
-//			}
-//		} 
 		
 		finally {
 			try {
@@ -235,12 +201,21 @@ public class SPARQL11Protocol implements Closeable {
 		}
 
 		if (errorResponse != null) {
+			logger.error("Token expired: "+errorResponse.isTokenExpiredError()+" Security manager: "+(sm!=null)+" nRetry: "+request.getNRetry()+" "+errorResponse);
+			
 			// TOKEN EXPIRED
-			if (errorResponse.isTokenExpiredError() && sm != null && request.getNRetry() > 0) {
+			if (errorResponse.isTokenExpiredError()) {	
 				try {
-					sm.refreshToken();
-					request.setAuthorizationHeader(sm.getAuthorizationHeader());
-					request.retry();
+					logger.info("Refresh token");
+					Response ret = sm.refreshToken();
+					
+					if (ret.isError()) return ret;
+					
+					JWTResponse token = (JWTResponse) ret;
+					logger.debug(token.getAccessToken());
+					req.setHeader("Authorization", token.getTokenType()+" "+token.getAccessToken());
+					//request.setAuthorizationHeader(token.getTokenType()+" "+token.getAccessToken());
+					
 				} catch (SEPAPropertiesException | SEPASecurityException e) {
 					logger.error("Failed to refresh token. "+e.getMessage());
 					return errorResponse;
@@ -254,25 +229,10 @@ public class SPARQL11Protocol implements Closeable {
 
 				request.retry();
 
-//				try {
-//					Thread.sleep(1000);
-//				} catch (InterruptedException e) {
-//					return errorResponse;
-//				}
-
 				return executeRequest(req, request);
-//				if (request.isUpdateRequest()) {
-//					return post((UpdateRequest) request);
-//				} else {
-//					if (((QueryRequest) request).getHttpMethod().equals(HTTPMethod.GET)) {
-//						return get(((QueryRequest) request));
-//					}
-//					return post(((QueryRequest) request));
-//				}
 
-			} else
-				logger.error(errorResponse);
-
+			}
+				
 			return errorResponse;
 		}
 

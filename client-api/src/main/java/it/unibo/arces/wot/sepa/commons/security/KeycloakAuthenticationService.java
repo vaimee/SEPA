@@ -210,8 +210,8 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 
 			if (json.has("error")) {
 				Timings.log("TOKEN_REQUEST", start, Timings.getTime());
-				ErrorResponse error = new ErrorResponse(response.getStatusLine().getStatusCode(),
-						json.get("error").getAsString(), json.get("error_description").getAsString());
+				ErrorResponse error = new ErrorResponse(response.getStatusLine().getStatusCode(),"token_request",
+						json.get("error").getAsString());
 				return error;
 			}
 

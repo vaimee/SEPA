@@ -102,7 +102,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
     }
 
     @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    @Timeout(60)
+    //@Timeout(60)
     public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
             SEPAProtocolException, SEPABindingsException {
         for (int i = 0; i < 1000; i++) {

@@ -44,6 +44,7 @@ import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
@@ -187,9 +188,25 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
-		this(propertiesFile, false);
+		this(propertiesFile,false);
+	}
+	
+	public JSAP(String propertiesFile,byte[] aes128) throws SEPAPropertiesException, SEPASecurityException {
+		this(propertiesFile,false,aes128);
 	}
 
+	public JSAP(String propertiesFile, boolean validate,byte[] aes128) throws SEPAPropertiesException, SEPASecurityException {
+		super(propertiesFile, validate);
+
+		if (jsap.has("oauth"))
+			oauth = new OAuthProperties(propertiesFile,aes128);
+
+		if (jsap.has("#include"))
+			loadIncluded(jsap, validate, propertiesFile);
+
+		buildSPARQLPrefixes();
+	}
+	
 	public JSAP(String propertiesFile, boolean validate) throws SEPAPropertiesException, SEPASecurityException {
 		super(propertiesFile, validate);
 
@@ -202,6 +219,11 @@ public class JSAP extends SPARQL11SEProperties {
 		buildSPARQLPrefixes();
 	}
 
+	public void setClientCredentials(Credentials cred) throws SEPAPropertiesException, SEPASecurityException {
+		if (cred == null) throw new SEPASecurityException("Credentials are null");
+		oauth.setCredentials(cred.user(), cred.password());
+	}
+	
 	private void loadIncluded(JsonObject jsap, boolean validate, String parentFile) throws SEPAPropertiesException, SEPASecurityException {
 		File path = new File(parentFile);
 

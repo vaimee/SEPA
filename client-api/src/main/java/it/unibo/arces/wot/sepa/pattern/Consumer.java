@@ -97,7 +97,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		this.TIMEOUT = timeout;
 		this.NRETRY = nRetry;
 		
-		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
+		if (isSecure()) authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		
 		client.subscribe(new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparqlSubscribe, addDefaultDatatype(forcedBindings,subID,true)), null, appProfile.getDefaultGraphURI(subID),
 				appProfile.getNamedGraphURI(subID),
@@ -113,7 +113,7 @@ public abstract class Consumer extends Client implements IConsumer {
 
 		String authorizationHeader = null;
 		
-		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
+		if (isSecure()) authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		
 		client.unsubscribe(
 				new UnsubscribeRequest(spuid, authorizationHeader,timeout,nRetry));

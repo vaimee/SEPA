@@ -247,7 +247,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			return new ClientAuthorization("invalid_request","authorization member is not a string");
 		}
 
-		if (!bearer.startsWith("Bearer ")) {
+		if (!bearer.toUpperCase().startsWith("BEARER ")) {
 			logger.error("Authorization value MUST be of type Bearer");
 			return new ClientAuthorization("unsupported_grant_type","Authorization value MUST be of type Bearer");
 		}

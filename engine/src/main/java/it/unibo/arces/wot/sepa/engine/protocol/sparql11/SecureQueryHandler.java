@@ -100,7 +100,7 @@ According to RFC6749, the error member can assume the following values: invalid_
 //					"Authorization header must be a single one");
 			return new ClientAuthorization("invalid_request","Authorization header must be a single one");
 		}
-		if (!bearer[0].getValue().startsWith("Bearer ")) {
+		if (!bearer[0].getValue().toUpperCase().startsWith("BEARER ")) {
 			logger.error("Authorization must be ***Bearer JWT***");
 //			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "invalid_request",
 //					"Authorization header must be ***Bearer JWT***");

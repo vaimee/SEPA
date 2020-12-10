@@ -30,7 +30,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public class Producer extends Client implements IProducer {
@@ -67,20 +66,13 @@ public class Producer extends Client implements IProducer {
 
 	public final Response update(long timeout,long nRetry)
 			throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
-		String authorizationHeader = null;
-
-		if (isSecure()) {
-			authorizationHeader = sm.getAuthorizationHeader();
-			logger.debug("Authorization header: "+authorizationHeader);
-		}
-
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
 				appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
 				appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
 				appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
 						addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
 				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
-				authorizationHeader, timeout,nRetry);
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
 
 		logger.debug(req);
 		
@@ -88,14 +80,14 @@ public class Producer extends Client implements IProducer {
 
 		logger.debug(retResponse);
 		
-		if (retResponse.isError()) {
-			ErrorResponse errorResponse = (ErrorResponse) retResponse;
-			if (errorResponse.isTokenExpiredError()) {
-				sm.refreshToken();
-				req.setAuthorizationHeader(sm.getAuthorizationHeader());
-				retResponse = client.update(req);
-			} 
-		}
+//		if (appProfile.isSecure() && retResponse.isError()) {
+//			ErrorResponse errorResponse = (ErrorResponse) retResponse;
+//			if (errorResponse.isTokenExpiredError()) {
+//				sm.refreshToken();
+//				req.setAuthorizationHeader(appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
+//				retResponse = client.update(req);
+//			} 
+//		}
 		
 //		while (isSecure() && retResponse.isError()) {
 //

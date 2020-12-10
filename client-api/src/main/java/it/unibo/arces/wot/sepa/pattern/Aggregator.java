@@ -69,7 +69,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 	public final Response update(long timeout,long nRetry) throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
 		String authorizationHeader = null;
 		
-		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
+		if (isSecure()) authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(updateId), appProfile.getUpdateProtocolScheme(updateId),appProfile.getUpdateHost(updateId), appProfile.getUpdatePort(updateId),
 					appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
@@ -93,7 +93,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 					return errorResponse;
 				}
 
-				authorizationHeader = sm.getAuthorizationHeader();
+				authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 
 				req = new UpdateRequest(appProfile.getUpdateMethod(updateId), appProfile.getUpdateProtocolScheme(updateId),appProfile.getUpdateHost(updateId), appProfile.getUpdatePort(updateId),
 						appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
