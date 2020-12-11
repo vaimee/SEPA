@@ -81,8 +81,8 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				return null;
 			}
 
-			logger.info(">> " + scheduled);
-			logger.debug(scheduled.getRequest());
+			logger.debug(">> " + scheduled);
+			logger.trace(scheduled.getRequest());
 			
 			Timings.log(request);
 
@@ -106,7 +106,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			try {
 				// Wait for response
 				ScheduledResponse response = queue.waitResponse();
-				logger.info("<< " + response);
+				logger.debug("<< " + response);
 				logger.trace(response.getResponse());
 
 				// The token
