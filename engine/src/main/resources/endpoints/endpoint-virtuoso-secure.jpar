@@ -1,5 +1,6 @@
 {
 	"host": "localhost",
+	"endpointname":"virtuoso",
 	"oauth": {
 		"enable": false,
 		"register": "https://localhost:8443/oauth/register",

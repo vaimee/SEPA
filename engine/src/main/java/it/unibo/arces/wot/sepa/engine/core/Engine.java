@@ -55,6 +55,7 @@ import it.unibo.arces.wot.sepa.engine.gates.websocket.SecureWebsocketServer;
 import it.unibo.arces.wot.sepa.engine.gates.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.EpSpecFactory;
 
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the SPARQL
@@ -334,6 +335,10 @@ public class Engine implements EngineMBean {
 		// Dependability monitor
 		new DependabilityMonitor();
 
+		
+		EpSpecFactory.setInstanceFromFile(endpointJpar);		
+		
+			
 		try {
 			// Initialize SPARQL 1.1 SE processing service properties
 			properties = secure.isPresent() ? EngineProperties.load(engineJpar, secure.get()) : EngineProperties.load(engineJpar);

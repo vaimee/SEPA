@@ -1,5 +1,6 @@
 {
 	"host": "localhost",
+	"endpointname":"virtuoso",
 	"graphs": {
 		"default-graph-uri": "http://default",
 		"named-graph-uri": "http://default",

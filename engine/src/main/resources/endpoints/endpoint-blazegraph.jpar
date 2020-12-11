@@ -1,5 +1,6 @@
 {
 	"host": "localhost",
+	"endpointname":"blazegraph",
 	"sparql11protocol": {
 		"protocol": "http",
 		"port": 9999,
