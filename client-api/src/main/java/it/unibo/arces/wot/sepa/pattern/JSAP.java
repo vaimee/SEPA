@@ -412,7 +412,7 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 	}
 
-	protected Logger logger = LogManager.getLogger();
+	protected static Logger logger = LogManager.getLogger();
 
 	public OAuthProperties getAuthenticationProperties() {
 		return oauth;
@@ -1292,7 +1292,7 @@ public class JSAP extends SPARQL11SEProperties {
 //		
 //	}
 
-	private final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
+	public static final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 		if (bindings == null || sparql == null)
 			return sparql;
 
@@ -1450,7 +1450,7 @@ public class JSAP extends SPARQL11SEProperties {
 //		return selectPattern + replacedSparql;
 	}
 
-	private boolean isValidVarChar(int c) {
+	private static boolean isValidVarChar(int c) {
 		return ((c == '_') || (c == 0x00B7) || (0x0300 <= c && c <= 0x036F) || (0x203F <= c && c <= 0x2040)
 				|| ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') || ('0' <= c && c <= '9')
 				|| (0x00C0 <= c && c <= 0x00D6) || (0x00D8 <= c && c <= 0x00F6) || (0x00F8 <= c && c <= 0x02FF)
