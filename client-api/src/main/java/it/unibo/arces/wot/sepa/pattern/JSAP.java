@@ -1409,6 +1409,10 @@ public class JSAP extends SPARQL11SEProperties {
 			} else {
 				// A blank node
 				logger.trace("Blank node: " + value);
+				
+				// Not a BLANK_NODE_LABEL
+				// [142]  	BLANK_NODE_LABEL	  ::=  	'_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')* PN_CHARS)?
+				if (!value.startsWith("_:")) value = "<" + value + ">";
 			}
 			// Matching variables
 			/*
