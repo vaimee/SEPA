@@ -64,9 +64,11 @@ public abstract class Client implements java.io.Closeable {
 			OAuthProperties oauth = appProfile.getAuthenticationProperties();
 			
 			sm = new ClientSecurityManager(oauth);
-			if (!oauth.isClientRegistered()) sm.registerClient(oauth.getClientRegistrationId(),oauth.getUsername(),oauth.getInitialAccessToken());
+			if (!oauth.isClientRegistered()) {
+				sm.registerClient(oauth.getClientRegistrationId(),oauth.getUsername(),oauth.getInitialAccessToken());
+//				sm.refreshToken();
+			}
 			
-			sm.refreshToken();
 			oauth.storeProperties();
 		}
 	}
