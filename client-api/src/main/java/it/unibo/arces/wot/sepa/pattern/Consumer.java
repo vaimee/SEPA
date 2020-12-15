@@ -182,26 +182,26 @@ public abstract class Consumer extends Client implements IConsumer {
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		logger.error(errorResponse);
-		logger.error("Subscribed: "+subscribed+ " Token expired: "+errorResponse.isTokenExpiredError()+" SM: "+(sm != null));
-		
-		if (!subscribed && errorResponse.isTokenExpiredError() && sm != null) {
-			try {
-				logger.info("refreshToken");
-				
-				sm.refreshToken();
-				
-			} catch (SEPAPropertiesException | SEPASecurityException e) {
-				logger.error("Failed to refresh token "+e.getMessage());
-			}
-			
-			try {
-				logger.debug("subscribe");
-				subscribe(TIMEOUT,0);
-			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
-					| SEPABindingsException e) {
-				logger.error("Failed to subscribe "+e.getMessage());
-			}
-		}
+//		logger.error("Subscribed: "+subscribed+ " Token expired: "+errorResponse.isTokenExpiredError()+" SM: "+(sm != null));
+//		
+//		if (!subscribed && errorResponse.isTokenExpiredError() && sm != null) {
+//			try {
+//				logger.info("refreshToken");
+//				
+//				sm.refreshToken();
+//				
+//			} catch (SEPAPropertiesException | SEPASecurityException e) {
+//				logger.error("Failed to refresh token "+e.getMessage());
+//			}
+//			
+//			try {
+//				logger.debug("subscribe");
+//				subscribe(TIMEOUT,0);
+//			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
+//					| SEPABindingsException e) {
+//				logger.error("Failed to subscribe "+e.getMessage());
+//			}
+//		}
 	}
 
 	@Override

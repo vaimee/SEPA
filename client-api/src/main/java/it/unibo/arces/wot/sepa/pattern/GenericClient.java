@@ -82,32 +82,32 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		if (errorResponse.isTokenExpiredError()) {
-			String message = "Failed to refresh token";
-			try {
-				sm.refreshToken();
-				
-				message = "Failed to get authorization header after token refresh";
-				req.setAuthorizationHeader(appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
-				
-				if (req.isSubscribeRequest()) {
-					message = "Failed to subscribe after token refresh";
-					subscription.subscribe((SubscribeRequest) req);
-				}
-				else {
-					message = "Failed to unsubscribe after token refresh";
-					subscription.unsubscribe((UnsubscribeRequest) req);
-				}			
-			} catch (SEPAPropertiesException | SEPASecurityException | SEPAProtocolException e) {
-				logger.error(e.getMessage());
-				if (logger.isTraceEnabled())
-					e.printStackTrace();
-				if (handler != null)
-					handler.onError(
-							new ErrorResponse(401, "invalid_grant", message +" "+ e.getMessage()));
-				return;
-			}
-		}
+//		if (errorResponse.isTokenExpiredError()) {
+//			String message = "Failed to refresh token";
+//			try {
+//				sm.refreshToken();
+//				
+//				message = "Failed to get authorization header after token refresh";
+//				req.setAuthorizationHeader(appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
+//				
+//				if (req.isSubscribeRequest()) {
+//					message = "Failed to subscribe after token refresh";
+//					subscription.subscribe((SubscribeRequest) req);
+//				}
+//				else {
+//					message = "Failed to unsubscribe after token refresh";
+//					subscription.unsubscribe((UnsubscribeRequest) req);
+//				}			
+//			} catch (SEPAPropertiesException | SEPASecurityException | SEPAProtocolException e) {
+//				logger.error(e.getMessage());
+//				if (logger.isTraceEnabled())
+//					e.printStackTrace();
+//				if (handler != null)
+//					handler.onError(
+//							new ErrorResponse(401, "invalid_grant", message +" "+ e.getMessage()));
+//				return;
+//			}
+//		}
 
 		if (handler != null)
 			handler.onError(errorResponse);
@@ -385,19 +385,19 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
 						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
 
-		if (appProfile.isSecure() && ret.isError()) {
-			ErrorResponse errorResponse = (ErrorResponse) ret;
-
-			if (errorResponse.isTokenExpiredError()) {
-				sm.refreshToken();
-
-				ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
-						appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID),
-						appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),
-						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
-						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
-			}
-		}
+//		if (appProfile.isSecure() && ret.isError()) {
+//			ErrorResponse errorResponse = (ErrorResponse) ret;
+//
+//			if (errorResponse.isTokenExpiredError()) {
+//				sm.refreshToken();
+//
+//				ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
+//						appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID),
+//						appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),
+//						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
+//						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
+//			}
+//		}
 
 		return ret;
 	}
@@ -430,19 +430,19 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
 						appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
 
-		if (appProfile.isSecure() && ret.isError()) {
-			ErrorResponse errorResponse = (ErrorResponse) ret;
-
-			if (errorResponse.isTokenExpiredError()) {
-				sm.refreshToken();
-
-				ret = client
-						.query(new QueryRequest(appProfile.getQueryMethod(ID), appProfile.getQueryProtocolScheme(ID),
-								appProfile.getQueryHost(ID), appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
-								appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
-								appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
-			}
-		}
+//		if (appProfile.isSecure() && ret.isError()) {
+//			ErrorResponse errorResponse = (ErrorResponse) ret;
+//
+//			if (errorResponse.isTokenExpiredError()) {
+//				sm.refreshToken();
+//
+//				ret = client
+//						.query(new QueryRequest(appProfile.getQueryMethod(ID), appProfile.getQueryProtocolScheme(ID),
+//								appProfile.getQueryHost(ID), appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
+//								appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
+//								appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
+//			}
+//		}
 
 		return ret;
 	}
