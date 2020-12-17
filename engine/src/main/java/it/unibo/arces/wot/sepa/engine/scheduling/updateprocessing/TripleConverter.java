@@ -63,7 +63,7 @@ public class TripleConverter {
 		IEndPointSpecification eps = EpSpecFactory.getInstance();
 		Bindings temp = new Bindings();
 		if(t.getSubject().isLiteral()){
-			temp.addBinding(eps.s(), new RDFTermLiteral(t.getSubject().toString()));
+			temp.addBinding(eps.s(), new RDFTermLiteral(t.getSubject().getLiteral().toString())); //this is not allowed in SPARQL1.1
 		}else if(t.getSubject().isURI()) {
 			temp.addBinding(eps.s(), new RDFTermURI(t.getSubject().getURI()));			
 		}else if(t.getSubject().isBlank()) {
@@ -72,7 +72,7 @@ public class TripleConverter {
 			System.out.println("Warning, cannot convert Subject of Triple to Bindings, for triple: "+t.toString());
 		}
 		if(t.getPredicate().isLiteral()){
-			temp.addBinding(eps.p(), new RDFTermLiteral(t.getPredicate().toString()));
+			temp.addBinding(eps.p(), new RDFTermLiteral(t.getPredicate().getLiteral().toString())); //this is not allowed in SPARQL1.1
 		}else if(t.getPredicate().isURI()) {
 			temp.addBinding(eps.p(), new RDFTermURI(t.getPredicate().getURI()));			
 		}else if(t.getPredicate().isBlank()) {
@@ -81,7 +81,7 @@ public class TripleConverter {
 			System.out.println("Warning, cannot convert Predicate of Triple to Bindings, for triple: "+t.toString());
 		}
 		if(t.getObject().isLiteral()){
-			temp.addBinding(eps.o(), new RDFTermLiteral(t.getObject().toString()));
+			temp.addBinding(eps.o(), new RDFTermLiteral(t.getObject().getLiteral().toString())); 
 		}else if(t.getObject().isURI()) {
 			temp.addBinding(eps.o(), new RDFTermURI(t.getObject().getURI()));			
 		}else if(t.getObject().isBlank()) {

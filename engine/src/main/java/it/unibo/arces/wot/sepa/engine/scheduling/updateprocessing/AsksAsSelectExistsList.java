@@ -24,6 +24,7 @@ public class AsksAsSelectExistsList implements IAsk{
 		SELECT ?x ?i {
 			VALUES (?g ?s ?p ?o ?i) {
 				(<prova3><s0><p0><o0>0)
+				(<prova3><s0><p0>"..."0)				
 				(<prova3><s1><p1><o1>1)
 				(<prova2><s2><p2><o2>2)
 			}

@@ -37,7 +37,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateReque
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
-class UpdateProcessor implements UpdateProcessorMBean {
+public class UpdateProcessor implements UpdateProcessorMBean {
 	protected static final Logger logger = LogManager.getLogger();
 
 	private final SPARQL11Properties properties;

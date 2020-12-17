@@ -21,6 +21,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
 import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.AsksAsSelectExistsList;
+import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.AsksAsSelectGraphAsVar;
 import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.IAsk;
 import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.SPARQLAnalyzer;
 import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.TripleConverter;
@@ -241,14 +242,16 @@ public class InternalPreProcessedUpdateRequest extends InternalUpdateRequest{
 		
 		
 		//--------------------------------------------------------------------------ASK SECTION
+		
+	
 		long startAsk = System.nanoTime();	
-		IAsk asks3= new AsksAsSelectExistsList(constructsList, req, this.processor);
-		constructsList=asks3.filter();
+		//AsksAsSelectExistsList not pass all test on Virtuoso 
+		//IAsk asks= new AsksAsSelectExistsList(constructsList, req, this.processor);
+		IAsk asks= new AsksAsSelectGraphAsVar(constructsList, req, this.processor);
+		constructsList=asks.filter();
 		long endAsk = System.nanoTime();
 		logger.trace("Ask (selectAsAsk) execution time: " + (endAsk - startAsk) + " ns");
-		
-		
-		
+	
 		return constructsList;
 	}
 	
