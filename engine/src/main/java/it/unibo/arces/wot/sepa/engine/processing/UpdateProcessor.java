@@ -21,7 +21,6 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.IOException;
 
-import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,14 +32,13 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 class UpdateProcessor implements UpdateProcessorMBean {
 	protected static final Logger logger = LogManager.getLogger();
 
-	private final SPARQL11Properties properties;
+	protected final SPARQL11Properties properties;
 
 	public UpdateProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
 		this.properties = properties;
@@ -48,12 +46,8 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public InternalPreProcessedUpdateRequest preProcess(InternalUpdateRequest update) throws QueryException {
-		return new InternalPreProcessedUpdateRequest(update);
-	}
-
 	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		// ENDPOINT UPDATE
+		// ENDPOINT UPDATE (set timeout and set retry = 0)
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
 				req.getDefaultGraphUri(), req.getNamedGraphUri(), req.getBasicAuthorizationHeader(),

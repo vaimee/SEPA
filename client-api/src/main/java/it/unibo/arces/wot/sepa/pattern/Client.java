@@ -27,6 +27,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
@@ -66,7 +67,14 @@ public abstract class Client implements java.io.Closeable {
 			sm = new ClientSecurityManager(oauth);
 			if (!oauth.isClientRegistered()) {
 				sm.registerClient(oauth.getClientRegistrationId(),oauth.getUsername(),oauth.getInitialAccessToken());
-//				sm.refreshToken();
+			}
+			
+			if (oauth.isTokenExpired()) {
+				Response ret = sm.refreshToken();
+				if (ret.isError()) {
+					logger.error(ret);
+					throw new SEPASecurityException(ret.toString());
+				}
 			}
 			
 			oauth.storeProperties();

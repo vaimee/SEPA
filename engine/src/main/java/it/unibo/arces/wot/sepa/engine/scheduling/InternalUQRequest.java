@@ -24,16 +24,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.HttpStatus;
-import org.apache.jena.query.QueryParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 
+/**
+ * An internal request has been validated and graph URIs are extracted.
+ * 
+ * Functions are also evaluated (e.g., now())
+ * */
 public abstract class InternalUQRequest extends InternalRequest {
-	protected String arqDefaultGraphNodeUri = "urn:x-arq:DefaultGraphNode";
-	
 	protected final Logger logger = LogManager.getLogger();
 	
 	protected String sparql;
@@ -42,7 +45,7 @@ public abstract class InternalUQRequest extends InternalRequest {
 	protected Set<String> namedGraphUri = new HashSet<String>();
 	protected Set<String> rdfDataSet = new HashSet<String>();
 	
-	public InternalUQRequest(String sparql,Set<String> defaultGraphUri,Set<String> namedGraphUri,ClientAuthorization auth) {
+	public InternalUQRequest(String sparql,Set<String> defaultGraphUri,Set<String> namedGraphUri,ClientAuthorization auth) throws SEPASparqlParsingException {
 		super(auth);
 		
 		if (sparql == null) throw new IllegalArgumentException("SPARQL is null");
@@ -63,7 +66,7 @@ public abstract class InternalUQRequest extends InternalRequest {
 		rdfDataSet.addAll(this.namedGraphUri);
 	}
 	
-	protected abstract Set<String> getGraphURIs(String sparql) throws QueryParseException;
+	protected abstract Set<String> getGraphURIs(String sparql) throws SEPASparqlParsingException;
 	
 	public String getSparql() {
 		return sparql;
