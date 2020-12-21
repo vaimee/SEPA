@@ -35,7 +35,7 @@ import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
-public class QueryProcessor implements QueryProcessorMBean {
+class QueryProcessor implements QueryProcessorMBean {
 	protected static final Logger logger = LogManager.getLogger();
 
 //	protected final SPARQL11Protocol endpoint;

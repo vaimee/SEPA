@@ -19,9 +19,8 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 
 import java.util.Set;
 
-import org.apache.jena.query.QueryException;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
@@ -32,7 +31,7 @@ public class InternalSubscribeRequest extends InternalQueryRequest {
 	private String alias = null;
 	private EventHandler gate;
 	
-	public InternalSubscribeRequest(String sparql, String alias,Set<String> defaultGraphUri, Set<String> namedGraphUri,EventHandler gate,ClientAuthorization auth) throws QueryException {
+	public InternalSubscribeRequest(String sparql, String alias,Set<String> defaultGraphUri, Set<String> namedGraphUri,EventHandler gate,ClientAuthorization auth) throws SEPASparqlParsingException {
 		super(sparql, defaultGraphUri, namedGraphUri,auth);
 		
 		this.alias = alias;

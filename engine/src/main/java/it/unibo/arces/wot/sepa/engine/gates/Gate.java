@@ -23,7 +23,6 @@ import java.util.UUID;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.*;
 import org.apache.http.HttpStatus;
-import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -36,6 +35,7 @@ import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -120,7 +120,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			error.setAlias(subUnsub.get("alias").getAsString());
 	}
 
-	public final void onMessage(String message) throws SEPAProtocolException, SEPASecurityException, QueryException {
+	public final void onMessage(String message) throws SEPAProtocolException, SEPASecurityException, SEPASparqlParsingException {
 		// Authorize the request
 		ClientAuthorization auth = authorize(message);
 		
@@ -289,7 +289,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	 */
 	protected final InternalRequest parseRequest(String request, ClientAuthorization auth)
 			throws JsonParseException, JsonSyntaxException, IllegalStateException, ClassCastException,
-			SEPAProtocolException, QueryException {
+			SEPAProtocolException, SEPASparqlParsingException {
 		JsonObject req;
 		ErrorResponse error;
 		

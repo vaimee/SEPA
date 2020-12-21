@@ -22,8 +22,10 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -33,7 +35,7 @@ import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.subscriptions.SPUManager;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
@@ -50,7 +52,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  */
 public class Processor implements ProcessorMBean {
 	private final Logger logger = LogManager.getLogger();
-	
+
 	// Processor threads
 	private final UpdateProcessingThread updateProcessingThread;
 	private final SubscribeProcessingThread subscribeProcessingThread;
@@ -131,26 +133,23 @@ public class Processor implements ProcessorMBean {
 
 	public synchronized Response processUpdate(InternalUpdateRequest update) {
 		InternalUpdateRequest preRequest = update;
-		if (spuManager.doUpdatePreProcessing(update)) {
-			// PRE-processing update request (i.e., extract added and removed quads)
-			preRequest = preProcessUpdate(update);
-			
-			// STOP processing?
-			if (((InternalPreProcessedUpdateRequest)preRequest).preProcessingFailed()) {
-				logger.error("*** UPDATE PRE-PROCESSING FAILED *** " + ((InternalPreProcessedUpdateRequest)preRequest).getErrorResponse());
-				return ((InternalPreProcessedUpdateRequest)preRequest).getErrorResponse();
+		if (spuManager.doUpdateARQuadsExtraction(update)) {
+			try {
+				preRequest = ARQuadsAlgorithm.extractARQuads(update, queryProcessor);
+			} catch (SEPAProcessingException | SPARQL11ProtocolException | SEPASparqlParsingException e) {
+				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "update_processing", e.getMessage());
 			}
 		}
-				
-		//PRE-UPDATE processing
+
+		// PRE-UPDATE processing
 		spuManager.subscriptionsProcessingPreUpdate(preRequest);
-		
+
 		// Endpoint UPDATE
 		Response ret;
 		try {
 			ret = updateEndpoint(preRequest);
 		} catch (SEPASecurityException | IOException e) {
-			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"sparql11endpoint",e.getMessage());
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "sparql11endpoint", e.getMessage());
 		}
 
 		// STOP processing?
@@ -159,10 +158,10 @@ public class Processor implements ProcessorMBean {
 			spuManager.abortSubscriptionsProcessing();
 			return ret;
 		}
-		
+
 		// POST-UPDATE processing
 		spuManager.subscriptionsProcessingPostUpdate(ret);
-		
+
 		return ret;
 	}
 
@@ -170,11 +169,7 @@ public class Processor implements ProcessorMBean {
 		spuManager.killSubscription(sid, gid);
 	}
 
-	public InternalPreProcessedUpdateRequest preProcessUpdate(InternalUpdateRequest update) {
-		return updateProcessor.preProcess(update);
-	}
-
-	public Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException, IOException {
+	private Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException, IOException {
 		return updateProcessor.process(preRequest);
 	}
 
@@ -182,23 +177,23 @@ public class Processor implements ProcessorMBean {
 		return queryProcessor.process(query);
 	}
 
-	public boolean isUpdateReliable() {
+	boolean isUpdateReliable() {
 		return UpdateProcessorBeans.getReilable();
 	}
 
-	public ScheduledRequest waitQueryRequest() throws InterruptedException {
+	ScheduledRequest waitQueryRequest() throws InterruptedException {
 		return scheduler.waitQueryRequest();
 	}
 
-	public ScheduledRequest waitSubscribeRequest() throws InterruptedException {
+	ScheduledRequest waitSubscribeRequest() throws InterruptedException {
 		return scheduler.waitSubscribeRequest();
 	}
 
-	public ScheduledRequest waitUpdateRequest() throws InterruptedException {
+	ScheduledRequest waitUpdateRequest() throws InterruptedException {
 		return scheduler.waitUpdateRequest();
 	}
 
-	public ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
+	ScheduledRequest waitUnsubscribeRequest() throws InterruptedException {
 		return scheduler.waitUnsubscribeRequest();
 	}
 

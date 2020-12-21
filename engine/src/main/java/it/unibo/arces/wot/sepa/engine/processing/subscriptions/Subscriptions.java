@@ -32,9 +32,9 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalPreProcessedUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
 /**
@@ -114,7 +114,7 @@ public class Subscriptions {
 	}
 
 	// Second level filtering (on quads)
-	public static Collection<SPU> filterOnQuads(Collection<SPU> activeSpus, InternalPreProcessedUpdateRequest update) {
+	public static Collection<SPU> filterOnQuads(Collection<SPU> activeSpus, InternalUpdateRequestWithQuads update) {
 		// TODO implement LUTT filtering
 		return activeSpus;
 	}

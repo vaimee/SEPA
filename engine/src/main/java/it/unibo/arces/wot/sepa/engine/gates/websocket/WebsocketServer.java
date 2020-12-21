@@ -25,7 +25,6 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 
 import org.apache.http.HttpStatus;
-import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,6 +34,7 @@ import org.java_websocket.server.WebSocketServer;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -153,7 +153,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 				else {
 					logger.error("Gate NOT FOUND: " + conn);
 				}
-			} catch (SEPAProtocolException | SEPASecurityException | QueryException e) {
+			} catch (SEPAProtocolException | SEPASecurityException | SEPASparqlParsingException e) {
 				logger.error(e);
 
 				ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "parsing failed", e.getMessage());
