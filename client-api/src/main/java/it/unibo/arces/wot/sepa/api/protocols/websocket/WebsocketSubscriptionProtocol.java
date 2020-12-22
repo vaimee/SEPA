@@ -34,7 +34,9 @@ import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implements ISubscriptionHandler {
@@ -148,10 +150,17 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		// REFRESH TOKEN
-		if (sm != null && errorResponse.isTokenExpiredError()) {
+		if (errorResponse.isTokenExpiredError()) {
+			String authHeader = null;
 			try {
-				sm.refreshToken();
-				sm.storeOAuthProperties();
+				Response ret = sm.refreshToken();
+				if (ret.isError()) {
+					logger.error(ret);
+					handler.onError((ErrorResponse)ret);
+					return;
+				}
+				JWTResponse token = (JWTResponse) ret;
+				authHeader = token.getTokenType()+" "+token.getAccessToken();
 			} catch (SEPAPropertiesException | SEPASecurityException e1) {
 				logger.error(e1.getMessage());
 				handler.onError(errorResponse);
@@ -166,11 +175,11 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			}
 
 			try {
-				lastRequest.setAuthorizationHeader(sm.getAuthorizationHeader());
+				lastRequest.setAuthorizationHeader(authHeader);
 				logger.trace("SEND LAST REQUEST WITH NEW TOKEN");
 				
 				client.send(lastRequest.toString());
-			} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
+			} catch (SEPAProtocolException e) {
 				logger.error(e.getMessage());
 				if (logger.isTraceEnabled())
 					e.printStackTrace();

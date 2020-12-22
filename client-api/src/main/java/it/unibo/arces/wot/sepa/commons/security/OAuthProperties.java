@@ -203,7 +203,7 @@ public class OAuthProperties {
 	 */
 	public String getBearerAuthorizationHeader() {
 		if (jwt != null)
-			return "Bearer " + jwt;
+			return type + " "+ jwt;
 		else
 			return null;
 	}
@@ -259,7 +259,8 @@ public class OAuthProperties {
 	public boolean isTokenExpired() {
 		if (expires < 0 || jwt == null)
 			return true;
-		return expires > new Date().getTime();
+		long now = new Date().getTime();
+		return expires < now;
 	}
 
 	/**
@@ -273,7 +274,9 @@ public class OAuthProperties {
 	public void setJWT(JWTResponse jwt) throws SEPASecurityException, SEPAPropertiesException {
 		logger.debug("@setJWT: " + jwt);
 
-		this.expires = new Date().getTime() + 1000 * jwt.getExpiresIn();
+		long now = new Date().getTime();
+		
+		this.expires = now + 1000 * jwt.getExpiresIn();
 		this.jwt = jwt.getAccessToken();
 		this.type = jwt.getTokenType();
 	}

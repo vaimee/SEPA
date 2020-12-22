@@ -82,32 +82,32 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		if (errorResponse.isTokenExpiredError()) {
-			String message = "Failed to refresh token";
-			try {
-				sm.refreshToken();
-				
-				message = "Failed to get authorization header after token refresh";
-				req.setAuthorizationHeader(sm.getAuthorizationHeader());
-				
-				if (req.isSubscribeRequest()) {
-					message = "Failed to subscribe after token refresh";
-					subscription.subscribe((SubscribeRequest) req);
-				}
-				else {
-					message = "Failed to unsubscribe after token refresh";
-					subscription.unsubscribe((UnsubscribeRequest) req);
-				}			
-			} catch (SEPAPropertiesException | SEPASecurityException | SEPAProtocolException e) {
-				logger.error(e.getMessage());
-				if (logger.isTraceEnabled())
-					e.printStackTrace();
-				if (handler != null)
-					handler.onError(
-							new ErrorResponse(401, "invalid_grant", message +" "+ e.getMessage()));
-				return;
-			}
-		}
+//		if (errorResponse.isTokenExpiredError()) {
+//			String message = "Failed to refresh token";
+//			try {
+//				sm.refreshToken();
+//				
+//				message = "Failed to get authorization header after token refresh";
+//				req.setAuthorizationHeader(appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
+//				
+//				if (req.isSubscribeRequest()) {
+//					message = "Failed to subscribe after token refresh";
+//					subscription.subscribe((SubscribeRequest) req);
+//				}
+//				else {
+//					message = "Failed to unsubscribe after token refresh";
+//					subscription.unsubscribe((UnsubscribeRequest) req);
+//				}			
+//			} catch (SEPAPropertiesException | SEPASecurityException | SEPAProtocolException e) {
+//				logger.error(e.getMessage());
+//				if (logger.isTraceEnabled())
+//					e.printStackTrace();
+//				if (handler != null)
+//					handler.onError(
+//							new ErrorResponse(401, "invalid_grant", message +" "+ e.getMessage()));
+//				return;
+//			}
+//		}
 
 		if (handler != null)
 			handler.onError(errorResponse);
@@ -347,19 +347,11 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 		if (!subscriptions.containsKey(subID))
 			return;
 
-		String auth = null;
-		try {
-			if (sm != null) {
-				auth = sm.getAuthorizationHeader();
-			}
-		} catch (Exception e) {
-		}
-
 		synchronized (subLock) {
 			if (req != null)
 				subLock.wait();
 
-			req = new UnsubscribeRequest(subID, auth, timeout, nRetry);
+			req = new UnsubscribeRequest(subID, (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry);
 
 			subscriptions.get(subID).unsubscribe((UnsubscribeRequest) req);
 		}
@@ -381,13 +373,6 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	 */
 	private Response _update(String ID, String sparql, Bindings forced, long timeout, long nRetry)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
-		String auth = null;
-		try {
-			if (sm != null)
-				auth = sm.getAuthorizationHeader();
-		} catch (Exception e) {
-		}
-
 		if (sparql == null)
 			sparql = appProfile.getSPARQLUpdate(ID);
 
@@ -398,23 +383,21 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 				.update(new UpdateRequest(appProfile.getUpdateMethod(ID), appProfile.getUpdateProtocolScheme(ID),
 						appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),
 						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
-						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), auth, timeout, nRetry));
+						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
 
-		if (sm != null && ret.isError()) {
-			ErrorResponse errorResponse = (ErrorResponse) ret;
-
-			if (errorResponse.isTokenExpiredError()) {
-				sm.refreshToken();
-
-				auth = sm.getAuthorizationHeader();
-
-				ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
-						appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID),
-						appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),
-						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
-						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), auth, timeout, nRetry));
-			}
-		}
+//		if (appProfile.isSecure() && ret.isError()) {
+//			ErrorResponse errorResponse = (ErrorResponse) ret;
+//
+//			if (errorResponse.isTokenExpiredError()) {
+//				sm.refreshToken();
+//
+//				ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
+//						appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID),
+//						appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),
+//						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
+//						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
+//			}
+//		}
 
 		return ret;
 	}
@@ -441,35 +424,25 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 		if (sparql == null)
 			throw new SEPAProtocolException("SPARQL query not found " + ID);
 
-		String auth = null;
-		try {
-			if (sm != null)
-				auth = sm.getAuthorizationHeader();
-		} catch (Exception e) {
-
-		}
-
 		Response ret = client
 				.query(new QueryRequest(appProfile.getQueryMethod(ID), appProfile.getQueryProtocolScheme(ID),
 						appProfile.getQueryHost(ID), appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
 						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
-						appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout, nRetry));
+						appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
 
-		if (sm != null && ret.isError()) {
-			ErrorResponse errorResponse = (ErrorResponse) ret;
-
-			if (errorResponse.isTokenExpiredError()) {
-				sm.refreshToken();
-
-				auth = sm.getAuthorizationHeader();
-
-				ret = client
-						.query(new QueryRequest(appProfile.getQueryMethod(ID), appProfile.getQueryProtocolScheme(ID),
-								appProfile.getQueryHost(ID), appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
-								appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
-								appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout, nRetry));
-			}
-		}
+//		if (appProfile.isSecure() && ret.isError()) {
+//			ErrorResponse errorResponse = (ErrorResponse) ret;
+//
+//			if (errorResponse.isTokenExpiredError()) {
+//				sm.refreshToken();
+//
+//				ret = client
+//						.query(new QueryRequest(appProfile.getQueryMethod(ID), appProfile.getQueryProtocolScheme(ID),
+//								appProfile.getQueryHost(ID), appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
+//								appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
+//								appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
+//			}
+//		}
 
 		return ret;
 	}
@@ -520,13 +493,9 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 				subscription = new SPARQL11SEProtocol(protocol);
 			}
 
-			String auth = null;
-			if (sm != null)
-				auth = sm.getAuthorizationHeader();
-
 			req = new SubscribeRequest(
 					appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)), alias,
-					appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), auth, timeout, nRretry);
+					appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRretry);
 
 			subscription.subscribe((SubscribeRequest) req);
 		}

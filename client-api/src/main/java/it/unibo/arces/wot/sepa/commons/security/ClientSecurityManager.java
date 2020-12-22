@@ -60,19 +60,6 @@ public class ClientSecurityManager implements Closeable {
 		return oauth.getSSLHttpClient();
 	}
 
-	/**
-	 * Register the identity and store the credentials into the Authentication
-	 * properties
-	 * 
-	 * @param identity is a string that identifies the client (e.g., registration
-	 *                 code, MAC address, EPC, ...)
-	 * @return RegistrationResponse or ErrorResponse in case of an error
-	 * 
-	 * @see RegistrationResponse
-	 * @see ErrorResponse
-	 * @throws SEPAPropertiesException
-	 * @throws SEPASecurityException
-	 */
 	public Response registerClient(String client_id, String username,String initialAccessToken,int timeout) throws SEPASecurityException, SEPAPropertiesException {
 		if (oauthProperties == null)
 			throw new SEPAPropertiesException("Authorization properties are null");
@@ -93,43 +80,8 @@ public class ClientSecurityManager implements Closeable {
 		return registerClient(client_id,username,initialAccessToken, 5000);
 	}
 
-	/**
-	 * Returns the Bearer authentication header if the token is not expired,
-	 * otherwise requests and returns a fresh token
-	 * 
-	 * @throws SEPAPropertiesException
-	 * @throws SEPASecurityException
-	 * 
-	 * @see OAuthProperties
-	 */
-	public String getAuthorizationHeader() throws SEPASecurityException, SEPAPropertiesException {
-		if (oauthProperties == null) {
-			logger.warn("OAuth properties are null");
-			return null;
-		}
-
-		return oauthProperties.getBearerAuthorizationHeader();
-	}
-
-	public void storeOAuthProperties() throws SEPAPropertiesException, SEPASecurityException {
-		oauthProperties.storeProperties();
-	}
-
-	public boolean isTokenExpired() {
-		return oauthProperties.isTokenExpired();
-	}
-
-	public boolean isClientRegistered() {
-		return oauthProperties.isClientRegistered();
-	}
-	
-	public void setClientCredentials(String username, String password)
-			throws SEPAPropertiesException, SEPASecurityException {
-		oauthProperties.setCredentials(username, password);
-	}
-
 	public Response refreshToken(int timeout) throws SEPAPropertiesException, SEPASecurityException {
-		if (!isClientRegistered()) {
+		if (!oauthProperties.isClientRegistered()) {
 			return new ErrorResponse(401, "invalid_client", "Client is not registered");
 		}
 

@@ -44,6 +44,7 @@ import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.security.Credentials;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
@@ -187,9 +188,25 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
-		this(propertiesFile, false);
+		this(propertiesFile,false);
+	}
+	
+	public JSAP(String propertiesFile,byte[] aes128) throws SEPAPropertiesException, SEPASecurityException {
+		this(propertiesFile,false,aes128);
 	}
 
+	public JSAP(String propertiesFile, boolean validate,byte[] aes128) throws SEPAPropertiesException, SEPASecurityException {
+		super(propertiesFile, validate);
+
+		if (jsap.has("oauth"))
+			oauth = new OAuthProperties(propertiesFile,aes128);
+
+		if (jsap.has("#include"))
+			loadIncluded(jsap, validate, propertiesFile);
+
+		buildSPARQLPrefixes();
+	}
+	
 	public JSAP(String propertiesFile, boolean validate) throws SEPAPropertiesException, SEPASecurityException {
 		super(propertiesFile, validate);
 
@@ -202,6 +219,11 @@ public class JSAP extends SPARQL11SEProperties {
 		buildSPARQLPrefixes();
 	}
 
+	public void setClientCredentials(Credentials cred) throws SEPAPropertiesException, SEPASecurityException {
+		if (cred == null) throw new SEPASecurityException("Credentials are null");
+		oauth.setCredentials(cred.user(), cred.password());
+	}
+	
 	private void loadIncluded(JsonObject jsap, boolean validate, String parentFile) throws SEPAPropertiesException, SEPASecurityException {
 		File path = new File(parentFile);
 
@@ -390,7 +412,7 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 	}
 
-	protected Logger logger = LogManager.getLogger();
+	protected static Logger logger = LogManager.getLogger();
 
 	public OAuthProperties getAuthenticationProperties() {
 		return oauth;
@@ -1270,7 +1292,7 @@ public class JSAP extends SPARQL11SEProperties {
 //		
 //	}
 
-	private final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
+	public static final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 		if (bindings == null || sparql == null)
 			return sparql;
 
@@ -1387,6 +1409,10 @@ public class JSAP extends SPARQL11SEProperties {
 			} else {
 				// A blank node
 				logger.trace("Blank node: " + value);
+				
+				// Not a BLANK_NODE_LABEL
+				// [142]  	BLANK_NODE_LABEL	  ::=  	'_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')* PN_CHARS)?
+				if (!value.startsWith("_:")) value = "<" + value + ">";
 			}
 			// Matching variables
 			/*
@@ -1428,7 +1454,7 @@ public class JSAP extends SPARQL11SEProperties {
 //		return selectPattern + replacedSparql;
 	}
 
-	private boolean isValidVarChar(int c) {
+	private static boolean isValidVarChar(int c) {
 		return ((c == '_') || (c == 0x00B7) || (0x0300 <= c && c <= 0x036F) || (0x203F <= c && c <= 0x2040)
 				|| ('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z') || ('0' <= c && c <= '9')
 				|| (0x00C0 <= c && c <= 0x00D6) || (0x00D8 <= c && c <= 0x00F6) || (0x00F8 <= c && c <= 0x02FF)

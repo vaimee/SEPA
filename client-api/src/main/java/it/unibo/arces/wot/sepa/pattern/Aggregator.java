@@ -28,7 +28,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public abstract class Aggregator extends Consumer implements IConsumer, IProducer {
@@ -69,7 +68,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 	public final Response update(long timeout,long nRetry) throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
 		String authorizationHeader = null;
 		
-		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
+		if (isSecure()) authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(updateId), appProfile.getUpdateProtocolScheme(updateId),appProfile.getUpdateHost(updateId), appProfile.getUpdatePort(updateId),
 					appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
@@ -79,28 +78,28 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		
 		 Response retResponse = sparql11.update(req);
 		 
-		 while (isSecure() && retResponse.isError()) {
-				ErrorResponse errorResponse = (ErrorResponse) retResponse;
-
-				if (errorResponse.isTokenExpiredError()) {
-					try {
-						sm.refreshToken();
-					} catch (SEPAPropertiesException | SEPASecurityException e) {
-						logger.error("Failed to refresh token: " + e.getMessage());
-					}
-				} else {
-					logger.error("Failed to refresh token: " + errorResponse);
-					return errorResponse;
-				}
-
-				authorizationHeader = sm.getAuthorizationHeader();
-
-				req = new UpdateRequest(appProfile.getUpdateMethod(updateId), appProfile.getUpdateProtocolScheme(updateId),appProfile.getUpdateHost(updateId), appProfile.getUpdatePort(updateId),
-						appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
-						appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),authorizationHeader,timeout,nRetry);
-
-				retResponse = sparql11.update(req);
-			}
+//		 while (isSecure() && retResponse.isError()) {
+//				ErrorResponse errorResponse = (ErrorResponse) retResponse;
+//
+//				if (errorResponse.isTokenExpiredError()) {
+//					try {
+//						sm.refreshToken();
+//					} catch (SEPAPropertiesException | SEPASecurityException e) {
+//						logger.error("Failed to refresh token: " + e.getMessage());
+//					}
+//				} else {
+//					logger.error("Failed to refresh token: " + errorResponse);
+//					return errorResponse;
+//				}
+//
+//				authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
+//
+//				req = new UpdateRequest(appProfile.getUpdateMethod(updateId), appProfile.getUpdateProtocolScheme(updateId),appProfile.getUpdateHost(updateId), appProfile.getUpdatePort(updateId),
+//						appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
+//						appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),authorizationHeader,timeout,nRetry);
+//
+//				retResponse = sparql11.update(req);
+//			}
 		 
 		 return retResponse;
 	}

@@ -21,14 +21,11 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
-
 
 public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	protected static final Logger logger = LogManager.getLogger();
 
 	private static ConfigurationProvider provider;	
-	private static ClientSecurityManager sm;
 	
 	private static Object mutex = new Object();
 	private static String spuid = null;
@@ -38,12 +35,11 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	@BeforeAll
 	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException, SEPAProtocolException {
 		provider = new ConfigurationProvider();
-		sm = provider.buildSecurityManager();
 	}
 	
 	@AfterAll
 	public static void end() throws SEPAPropertiesException, SEPASecurityException, InterruptedException, IOException {
-		if (sm != null) sm.close();
+	
 	}
 
 	@BeforeEach
@@ -61,8 +57,8 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(5)
 	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException, InterruptedException {
-		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, sm);
-		client.subscribe(provider.buildSubscribeRequest("ALL", sm));
+		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
+		client.subscribe(provider.buildSubscribeRequest("ALL"));
 
 		synchronized (mutex) {
 			while (ITWebSocketSubscriptionProtocol.spuid == null)
@@ -75,8 +71,8 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	@Timeout(5)
 	public void SubscribeAndResults() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			IOException, InterruptedException {
-		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, sm);
-		client.subscribe(provider.buildSubscribeRequest("ALL", sm));
+		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
+		client.subscribe(provider.buildSubscribeRequest("ALL"));
 
 		synchronized (mutex) {
 			while (ITWebSocketSubscriptionProtocol.spuid == null)
@@ -93,15 +89,15 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	@Timeout(5)
 	public void SubscribeAndUnsubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			IOException, InterruptedException {
-		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, sm);
-		client.subscribe(provider.buildSubscribeRequest("ALL", sm));
+		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
+		client.subscribe(provider.buildSubscribeRequest("ALL"));
 		
 		synchronized (mutex) {
 			while (ITWebSocketSubscriptionProtocol.spuid == null)
 				mutex.wait();
 		}
 
-		client.unsubscribe(provider.buildUnsubscribeRequest(ITWebSocketSubscriptionProtocol.spuid, sm));
+		client.unsubscribe(provider.buildUnsubscribeRequest(ITWebSocketSubscriptionProtocol.spuid));
 		synchronized (mutex) {
 			while (ITWebSocketSubscriptionProtocol.spuid != null)
 				mutex.wait();
@@ -114,9 +110,9 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	@Timeout(5)
 	public void WrongSubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
 			IOException, InterruptedException {
-		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, sm);
+		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
 		
-		client.subscribe(provider.buildSubscribeRequest("WRONG", sm));
+		client.subscribe(provider.buildSubscribeRequest("WRONG"));
 		
 		synchronized (mutex) {
 			while (!ITWebSocketSubscriptionProtocol.error)

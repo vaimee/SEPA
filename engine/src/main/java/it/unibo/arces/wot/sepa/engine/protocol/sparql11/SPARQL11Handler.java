@@ -38,12 +38,12 @@ import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
@@ -192,7 +192,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 							headers[0].getValue());
 			} else
 				return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri, auth);
-		} catch (QueryException e) {
+		} catch (SEPASparqlParsingException e) {
 			logger.error(e.getMessage());
 			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 		}
