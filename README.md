@@ -139,8 +139,8 @@ SEPA also implements other two security mechanisms:
 
 Security is configured within the `engine.jpar` as follows:
 ```json
-{"gates": {
-  "security": {
+{"gates":{
+  "security":{
     "tls": false,
     "enabled": true,
     "type": "local"
