@@ -112,9 +112,7 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
       "tls":false,
       "enabled":false,
       "type":"local"},
-  "paths:{
-    "secure":"/secure",
-    "update":"/update",
+  "paths:{"secure":"/secure","update":"/update",
     "query":"/query",
     "subscribe":"/subscribe",
     "unsubscribe":"/unsubscribe",
