@@ -164,18 +164,16 @@ SEPA also implements other two security mechanisms:
 
 Security is configured within the `engine.jpar` as follows:
 ```json
-{ 
-...,
-"gates": {
+{ "gates": {
   "security": {
     "tls": false,
-		"enabled": `true`,
-		"type": "local"
-	},
-  ...
-	}
-}
+    "enabled": true,
+    "type": "local"
+}}}
 ```
+where 
+- `type` can assume one of the following values: `local`,`ldap`,`keycloak`
+- `tls` is used when `type`=`ldap` to enable or not LDAP StartTLS
 
 ### JMX monitoring
 The SEPA engine is also distributed with a default [JMX](http://www.oracle.com/technetwork/articles/java/javamanagement-140525.html) configuration `jmx.properties` (including the `jmxremote.password` and `jmxremote.access` files for password and user grants). Remember to change password file permissions using: `chmod 600 jmxremote.password`. To enable remote JMX, the engine must be run as follows: `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`. Using [`jconsole`](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) is possible to monitor and control the most important engine parameters. By default, the port is `5555` and the `root:root` credentials grant full control (read/write).
