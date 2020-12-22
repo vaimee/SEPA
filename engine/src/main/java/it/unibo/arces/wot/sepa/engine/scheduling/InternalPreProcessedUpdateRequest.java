@@ -43,54 +43,57 @@ public class InternalPreProcessedUpdateRequest extends InternalUpdateRequest{
 	public InternalPreProcessedUpdateRequest(InternalUpdateRequest req) {		
 		super(req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(), req.getClientAuthorization());
 	
-		
-		logger.log(Level.getLevel("updateProcessing"), "AddedRemovedAlgorithm --- START");
-		
-		
-		//questo è da sistemare, il processor va ottenuto in un modo più pulito?
-		try {
-			this.processor =new QueryProcessor( new SPARQL11Properties("endpoint.jpar"));
-		} catch (SEPAProtocolException e) {
-			retErrorResponse = errorResponseFromException(e,true);
-		} catch (SEPASecurityException e) {
-			retErrorResponse = errorResponseFromException(e,true);
-		} catch (SEPAPropertiesException e) {
-			retErrorResponse = errorResponseFromException(e,false);
-		}
-		
-		
-		if(retErrorResponse==null) {
-			this.originalUpdate = req.getSparql(); 		
-			long start = System.nanoTime();			
-			ArrayList<UpdateExtractedData> constructsList;
+		boolean doIt =false;
+		if(doIt) {
+			logger.log(Level.getLevel("updateProcessing"), "AddedRemovedAlgorithm --- START");
 			
+			
+			//questo è da sistemare, il processor va ottenuto in un modo più pulito?
 			try {
-				constructsList = getAddedRemovedFrom(req);
-				this.sparql = genereteInsertDeleteUpdate(constructsList);	
-				generateARBindingsResults(constructsList);
+				this.processor =new QueryProcessor( new SPARQL11Properties("endpoint.jpar"));
+			} catch (SEPAProtocolException e) {
+				retErrorResponse = errorResponseFromException(e,true);
 			} catch (SEPASecurityException e) {
 				retErrorResponse = errorResponseFromException(e,true);
-			} catch (IOException e) {
-				retErrorResponse = errorResponseFromException(e,false);
-			} catch (SEPABindingsException e) {
-				retErrorResponse = errorResponseFromException(e,false);
-			} catch (NullPointerException e) {
-				retErrorResponse = errorResponseFromException(e,false);
-			} catch (Exception e) {
+			} catch (SEPAPropertiesException e) {
 				retErrorResponse = errorResponseFromException(e,false);
 			}
 			
+			
 			if(retErrorResponse==null) {
-				long stop = System.nanoTime();
-				logger.trace("AddedRemovedAlgorithm executed in" + (stop - start) + " ns");
+				this.originalUpdate = req.getSparql(); 		
+				long start = System.nanoTime();			
+				ArrayList<UpdateExtractedData> constructsList;
+				
+				try {
+					constructsList = getAddedRemovedFrom(req);
+					this.sparql = genereteInsertDeleteUpdate(constructsList);	
+					generateARBindingsResults(constructsList);
+				} catch (SEPASecurityException e) {
+					retErrorResponse = errorResponseFromException(e,true);
+				} catch (IOException e) {
+					retErrorResponse = errorResponseFromException(e,false);
+				} catch (SEPABindingsException e) {
+					retErrorResponse = errorResponseFromException(e,false);
+				} catch (NullPointerException e) {
+					retErrorResponse = errorResponseFromException(e,false);
+				} catch (Exception e) {
+					retErrorResponse = errorResponseFromException(e,false);
+				}
+				
+				if(retErrorResponse==null) {
+					long stop = System.nanoTime();
+					logger.trace("AddedRemovedAlgorithm executed in" + (stop - start) + " ns");
+				}else {
+					logger.error("AddedRemovedAlgorithm", "Error",retErrorResponse);
+				}
+		
 			}else {
 				logger.error("AddedRemovedAlgorithm", "Error",retErrorResponse);
 			}
-	
-		}else {
-			logger.error("AddedRemovedAlgorithm", "Error",retErrorResponse);
+			logger.log(Level.getLevel("updateProcessing"), "AddedRemovedAlgorithm --- END");
+			
 		}
-		logger.log(Level.getLevel("updateProcessing"), "AddedRemovedAlgorithm --- END");
 		
 	}	
 	

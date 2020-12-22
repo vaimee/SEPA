@@ -84,6 +84,8 @@ public class Subscriptions {
 
 	// First level filtering on RDF data set (graph uris)
 	public synchronized static Collection<SPU> filterOnGraphs(InternalUpdateRequest update) {
+		
+			
 		long start = Timings.getTime();
 		
 		Collection<SPU> ret = new HashSet<>();
