@@ -112,17 +112,19 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
       "tls":false,
       "enabled":false,
       "type":"local"},
-  "paths:{"secure":"/secure","update":"/update",
-    "query":"/query",
-    "subscribe":"/subscribe",
-    "unsubscribe":"/unsubscribe",
-    "register":"/oauth/register",
-    "tokenRequest":"/oauth/token"},
-  "ports":{
-    "http":8000,
-    "https":8443,
-    "ws":9000,
-    "wss":9443
+    "paths:{
+      "secure":"/secure",
+      "update":"/update",
+      "query":"/query",
+      "subscribe":"/subscribe",
+      "unsubscribe":"/unsubscribe",
+      "register":"/oauth/register",
+      "tokenRequest":"/oauth/token"},
+    "ports":{
+      "http":8000,
+      "https":8443,
+      "ws":9000,
+      "wss":9443
 }}}}
 ```
 ### Logging
