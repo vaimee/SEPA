@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing;
+package it.unibo.arces.wot.sepa.engine.processing.updateprocessing;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.modify.request.*;
@@ -8,8 +8,8 @@ import org.apache.jena.update.UpdateRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.EpSpecFactory;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.IEndPointSpecification;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.IEndPointSpecification;
 
 import java.util.ArrayList;
 import java.util.HashMap;

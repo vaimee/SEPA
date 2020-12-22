@@ -29,7 +29,7 @@ public class ConfigurationProvider implements Closeable {
 
 	public final long TIMEOUT;
 	public final long NRETRY;
-	public static final int REPEATED_TEST = 1;
+	public static final int REPEATED_TEST = 5;
 
 	protected ClientSecurityManager sm = null;
 	

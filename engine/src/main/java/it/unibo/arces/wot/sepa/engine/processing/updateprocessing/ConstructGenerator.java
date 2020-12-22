@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing;
+package it.unibo.arces.wot.sepa.engine.processing.updateprocessing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,8 +9,8 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.syntax.ElementTriplesBlock;
 
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.EpSpecFactory;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.IEndPointSpecification;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.IEndPointSpecification;
 
 public class ConstructGenerator {
 	

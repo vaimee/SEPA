@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing;
+package it.unibo.arces.wot.sepa.engine.processing.updateprocessing;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -9,8 +9,8 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermBNode;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.EpSpecFactory;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.IEndPointSpecification;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.IEndPointSpecification;
 
 public class TripleConverter {
 

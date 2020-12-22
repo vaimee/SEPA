@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing;
+package it.unibo.arces.wot.sepa.engine.processing.updateprocessing;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,14 +8,15 @@ import java.util.List;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
+import it.unibo.arces.wot.sepa.engine.processing.ARQuadsAlgorithm;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.IEndPointSpecification;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.EpSpecFactory;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.IEndPointSpecification;
 
 
 public class AsksAsSelectGraphAsVar implements IAsk{
@@ -40,12 +41,12 @@ public class AsksAsSelectGraphAsVar implements IAsk{
 	private String addedAsksAsSelect=null;
 	private ArrayList<UpdateExtractedData> ueds = new ArrayList<UpdateExtractedData> ();
 	private InternalUpdateRequest req;
-	private QueryProcessor processor;
+	private ARQuadsAlgorithm algorithm;
 	
-	public AsksAsSelectGraphAsVar(ArrayList<UpdateExtractedData> ueds,InternalUpdateRequest req, QueryProcessor processor) throws SEPABindingsException {
+	public AsksAsSelectGraphAsVar(ArrayList<UpdateExtractedData> ueds,InternalUpdateRequest req, ARQuadsAlgorithm algorithm) throws SEPABindingsException {
 		this.ueds=ueds;
 		this.req=req;
-		this.processor=processor;
+		this.algorithm=algorithm;
 		this.init();
 		
 	}
@@ -136,7 +137,7 @@ public class AsksAsSelectGraphAsVar implements IAsk{
 
 
 	
-	public BindingsResults getBindingsForRemoved() throws SEPASecurityException, IOException  {
+	public BindingsResults getBindingsForRemoved() throws SEPASecurityException, IOException, SEPASparqlParsingException  {
 	
 		InternalQueryRequest askquery=new InternalQueryRequest(
 				removedAsksAsSelect,
@@ -145,12 +146,12 @@ public class AsksAsSelectGraphAsVar implements IAsk{
 				req.getClientAuthorization()
 				);
 		
-		return ((QueryResponse)processor.process(askquery)).getBindingsResults();
+		return algorithm.processQuery(askquery).getBindingsResults();
 						
 	}
 	
 	
-	public BindingsResults getBindingsForAdded() throws SEPASecurityException, IOException  {
+	public BindingsResults getBindingsForAdded() throws SEPASecurityException, IOException, SEPASparqlParsingException  {
 		InternalQueryRequest askquery=new InternalQueryRequest(
 				addedAsksAsSelect,
 				req.getDefaultGraphUri(),
@@ -158,12 +159,12 @@ public class AsksAsSelectGraphAsVar implements IAsk{
 				req.getClientAuthorization()
 				);
 		
-		return ((QueryResponse)processor.process(askquery)).getBindingsResults();	
+		return algorithm.processQuery(askquery).getBindingsResults();	
 		
 	}
 	
 	
-	protected HashMap<String,BindingsResults> getReorganizedBindingsForAdded() throws SEPABindingsException, SEPASecurityException, IOException  {
+	protected HashMap<String,BindingsResults> getReorganizedBindingsForAdded() throws SEPABindingsException, SEPASecurityException, IOException, SEPASparqlParsingException  {
 		IEndPointSpecification eps = EpSpecFactory.getInstance();
 		HashMap<String,BindingsResults>  list = new HashMap<String,BindingsResults>();
 		
@@ -196,7 +197,7 @@ public class AsksAsSelectGraphAsVar implements IAsk{
 	}
 	
 	
-	protected  HashMap<String,BindingsResults> getReorganizedBindingsForRemoved() throws SEPABindingsException, SEPASecurityException, IOException  {
+	protected  HashMap<String,BindingsResults> getReorganizedBindingsForRemoved() throws SEPABindingsException, SEPASecurityException, IOException, SEPASparqlParsingException  {
 		IEndPointSpecification eps = EpSpecFactory.getInstance();
 		HashMap<String,BindingsResults>  list = new HashMap<String,BindingsResults>();
 		
@@ -226,7 +227,7 @@ public class AsksAsSelectGraphAsVar implements IAsk{
 	
 	
 
-	public ArrayList<UpdateExtractedData> filter() throws SEPABindingsException, SEPASecurityException, IOException {
+	public ArrayList<UpdateExtractedData> filter() throws SEPABindingsException, SEPASecurityException, IOException, SEPASparqlParsingException {
 
 		HashMap<String,BindingsResults> alredyExist  = this.getReorganizedBindingsForAdded();
 		HashMap<String,BindingsResults> realRemoved  = this.getReorganizedBindingsForRemoved();

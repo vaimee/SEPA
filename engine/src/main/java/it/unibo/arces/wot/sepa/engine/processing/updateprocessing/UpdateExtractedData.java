@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing;
+package it.unibo.arces.wot.sepa.engine.processing.updateprocessing;
 
 import java.util.ArrayList;
 
@@ -8,7 +8,7 @@ import org.apache.jena.graph.Triple;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.EpSpecFactory;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory;
 
 
 public class UpdateExtractedData {

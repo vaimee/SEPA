@@ -54,8 +54,8 @@ import it.unibo.arces.wot.sepa.engine.gates.http.HttpsGate;
 import it.unibo.arces.wot.sepa.engine.gates.websocket.SecureWebsocketServer;
 import it.unibo.arces.wot.sepa.engine.gates.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.EpSpecFactory;
 
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the SPARQL

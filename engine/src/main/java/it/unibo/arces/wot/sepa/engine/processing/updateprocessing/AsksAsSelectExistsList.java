@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing;
+package it.unibo.arces.wot.sepa.engine.processing.updateprocessing;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -6,14 +6,15 @@ import java.util.HashMap;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.processing.QueryProcessor;
+import it.unibo.arces.wot.sepa.engine.processing.ARQuadsAlgorithm;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.IEndPointSpecification;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.EpSpecFactory;
-import it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec.IEndPointSpecification;
 
 public class AsksAsSelectExistsList implements IAsk{
 	
@@ -38,16 +39,16 @@ public class AsksAsSelectExistsList implements IAsk{
 	private HashMap<String,BindingsResults>  removed=null;
 	private ArrayList<UpdateExtractedData> ueds = new ArrayList<UpdateExtractedData> ();
 	private InternalUpdateRequest req;
-	private QueryProcessor processor;
+	private ARQuadsAlgorithm algorithm;
 	
-	public AsksAsSelectExistsList(ArrayList<UpdateExtractedData> ueds, InternalUpdateRequest req, QueryProcessor processor) throws NumberFormatException, SEPASecurityException, IOException, SEPABindingsException {
+	public AsksAsSelectExistsList(ArrayList<UpdateExtractedData> ueds, InternalUpdateRequest req, ARQuadsAlgorithm algorithm) throws NumberFormatException, SEPASecurityException, IOException, SEPABindingsException, SEPASparqlParsingException {
 		this.ueds=ueds;
 		this.req=req;
-		this.processor=processor;
+		this.algorithm=algorithm;
 		this.init();
 	}
 	
-	protected void init() throws NumberFormatException, SEPASecurityException, IOException, SEPABindingsException {
+	protected void init() throws NumberFormatException, SEPASecurityException, IOException, SEPABindingsException, SEPASparqlParsingException {
 		int orderIndex = 0;
 		tripleList= new HashMap<Integer,BindingsWrapper>();	
 		removed= new HashMap<String,BindingsResults>();
@@ -132,7 +133,7 @@ public class AsksAsSelectExistsList implements IAsk{
 	
 
 	
-	public BindingsResults getBindings(String query) throws SEPASecurityException, IOException  {	
+	public BindingsResults getBindings(String query) throws SEPASecurityException, IOException, SEPASparqlParsingException  {	
 		InternalQueryRequest askquery=new InternalQueryRequest(
 				query,
 				req.getDefaultGraphUri(),
@@ -140,7 +141,7 @@ public class AsksAsSelectExistsList implements IAsk{
 				req.getClientAuthorization()
 				);
 		
-		return ((QueryResponse)processor.process(askquery)).getBindingsResults();
+		return algorithm.processQuery(askquery).getBindingsResults();
 		
 	}
 	

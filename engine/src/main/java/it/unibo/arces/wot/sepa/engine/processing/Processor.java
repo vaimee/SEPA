@@ -135,7 +135,8 @@ public class Processor implements ProcessorMBean {
 		InternalUpdateRequest preRequest = update;
 		if (spuManager.doUpdateARQuadsExtraction(update)) {
 			try {
-				preRequest = ARQuadsAlgorithm.extractARQuads(update, queryProcessor);
+				ARQuadsAlgorithm arQuadsAlgorithm = new ARQuadsAlgorithm(update, queryProcessor);
+				preRequest = arQuadsAlgorithm.extractARQuads();
 			} catch (SEPAProcessingException | SPARQL11ProtocolException | SEPASparqlParsingException e) {
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "update_processing", e.getMessage());
 			}

@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.scheduling.updateprocessing.epspec;
+package it.unibo.arces.wot.sepa.engine.processing.epspec;
 
 import java.io.FileReader;
 
