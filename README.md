@@ -72,32 +72,18 @@ The default version of `endpoint.jpar` configures the engine to use use a local 
 
 ```json
 {
-  "host": "localhost",
-  "sparql11protocol": {
-    "protocol": "http",
-    "port": 9999,
-    "query": {
-      "path": "/blazegraph/namespace/kb/sparql",
-      "method": "POST",
-      "format": "JSON"
-    },
-    "update": {
-      "path": "/blazegraph/namespace/kb/sparql",
-      "method": "POST",
-      "format": "JSON"
-    }
-  },
-  "sparql11seprotocol": {
-    "protocol": "ws",
-    "availableProtocols": {
-      "ws": {
-        "port": 9443,
-        "path": "/subscribe"
-      },
-      "wss": {}
-    }
-  }
-}
+"host":"localhost",
+"sparql11protocol":{
+  "protocol":"http",
+  "port":9999,
+  "query":{
+    "path":"/blazegraph/namespace/kb/sparql",
+    "method":"POST",
+    "format":"JSON"},
+  "update":{
+    "path":"/blazegraph/namespace/kb/sparql",
+    "method":"POST",
+    "format":"JSON"}}}
 ```
 The default version of  `engine.jpar` configures the engine to listen for incoming [SPARQL 1.1 SE Protocol](http://mml.arces.unibo.it/TR/sparql11-se-protocol/) requests at the following URLs:
 
@@ -110,7 +96,35 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
 7. Regitration: https://localhost:8443/oauth/register
 8. Token request: https://localhost:8443/oauth/token
 ```json
-{"parameters":{"scheduler":{"queueSize":100,"timeout":5000},"processor":{"updateTimeout":5000,"queryTimeout":5000,"maxConcurrentRequests":5,"reliableUpdate":true},"spu":{"timeout":5000},"gates":{"security":{"tls":false,"enabled":false,"type":"local"},"paths":{"secure":"/secure","update":"/update","query":"/query","subscribe":"/subscribe","unsubscribe":"/unsubscribe","register":"/oauth/register","tokenRequest":"/oauth/token"},"ports":{"http":8000,"https":8443,"ws":9000,"wss":9443}}}}
+{"parameters":{
+  "scheduler":{
+    "queueSize":100,
+    "timeout":5000},
+  "processor":{
+    "updateTimeout":5000,
+    "queryTimeout":5000,
+    "maxConcurrentRequests":5,
+    "reliableUpdate":true},
+  "spu":{
+    "timeout":5000},
+  "gates":{
+    "security":{
+      "tls":false,
+      "enabled":false,
+      "type":"local"},
+  "paths:{
+    "secure":"/secure",
+    "update":"/update",
+    "query":"/query",
+    "subscribe":"/subscribe",
+    "unsubscribe":"/unsubscribe",
+    "register":"/oauth/register",
+    "tokenRequest":"/oauth/token"},
+  "ports":{
+    "http":8000,
+    "https":8443,
+    "ws":9000,
+    "wss":9443}}}}
 ```
 ### Logging
 SEPA uses [log4j2](http://logging.apache.org/log4j/2.x/) by Apache. A default configuration is stored in the file log4j2.xml provided with the distribution. If the file resides in the engine folder, but it is not used, add the following JVM directive to force using it:
