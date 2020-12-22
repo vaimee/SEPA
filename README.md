@@ -111,39 +111,43 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
 8. Token request: https://localhost:8443/oauth/token
 ```json
 {
-  "parameters": {
-    "scheduler": {
-      "queueSize": 100,
-      "timeout": 5000
-    },
-    "processor": {
-      "updateTimeout": 5000,
-      "queryTimeout": 5000,
-      "maxConcurrentRequests": 5,
-      "reliableUpdate": true
-    },
-    "spu": {
-      "timeout": 5000
-    },
-    "gates": {
-      "secure": false,
-      "paths": {
-        "secure": "/secure",
-        "update": "/update",
-        "query": "/query",
-        "subscribe": "/subscribe",
-        "unsubscribe": "/unsubscribe",
-        "register": "/oauth/register",
-        "tokenRequest": "/oauth/token"
-      },
-      "ports": {
-        "http": 8000,
-        "https": 8443,
-        "ws": 9000,
-        "wss": 9443
-      }
-    }
-  }
+	"parameters": {
+		"scheduler": {
+			"queueSize": 100,
+			"timeout": 5000
+		},
+		"processor": {
+			"updateTimeout": 5000,
+			"queryTimeout": 5000,
+			"maxConcurrentRequests": 5,
+			"reliableUpdate": true
+		},
+		"spu": {
+			"timeout": 5000
+		},
+		"gates": {
+			"security": {
+				"tls": false,
+				"enabled": false,
+				"type": "local"
+			},
+			"paths": {
+				"secure": "/secure",
+				"update": "/update",
+				"query": "/query",
+				"subscribe": "/subscribe",
+				"unsubscribe": "/unsubscribe",
+				"register": "/oauth/register",
+				"tokenRequest": "/oauth/token"
+			},
+			"ports": {
+				"http": 8000,
+				"https": 8443,
+				"ws": 9000,
+				"wss": 9443
+			}
+		}
+	}
 }
 ```
 ### Logging
@@ -157,6 +161,21 @@ Run `java -jar engine-x.y.z.jar -help` for a list of options. The Java [Keytool]
 SEPA also implements other two security mechanisms:
 - LDAP: it extends the default one by storing clients's information into an LDAP server (tested with [Apache Directory](https://directory.apache.org/))
 - KEYCLOAK: authentication based on OpenID Connect in managed by [Keycloak](https://www.keycloak.org/)
+
+Security is configured within the `engine.jpar` as follows:
+```json
+{ 
+...,
+"gates": {
+  "security": {
+    "tls": false,
+		"enabled": `true`,
+		"type": "local"
+	},
+  ...
+	}
+}
+```
 
 ### JMX monitoring
 The SEPA engine is also distributed with a default [JMX](http://www.oracle.com/technetwork/articles/java/javamanagement-140525.html) configuration `jmx.properties` (including the `jmxremote.password` and `jmxremote.access` files for password and user grants). Remember to change password file permissions using: `chmod 600 jmxremote.password`. To enable remote JMX, the engine must be run as follows: `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`. Using [`jconsole`](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) is possible to monitor and control the most important engine parameters. By default, the port is `5555` and the `root:root` credentials grant full control (read/write).
