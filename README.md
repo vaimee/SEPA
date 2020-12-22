@@ -40,9 +40,11 @@
 - [Credits](#credits)
 
 ## Introduction
-SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL 1.1** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refer to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm).
-
-SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification.
+SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of SPARQL endpoints (conformant with [SPARQL 1.1 protocol](https://www.w3.org/TR/sparql11-protocol/)) where publishers and subscribers use standard **SPARQL 1.1** [Updates](https://www.w3.org/TR/sparql11-update/) and [Queries](https://www.w3.org/TR/sparql11-query/). Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refer to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm). SEPA proposal has been formalized in the following *unofficial dratfs*:
+- [SPARQL Event Processing Architecture (SEPA)](http://mml.arces.unibo.it/TR/sepa.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sepa.html)
+- [SPARQL 1.1 Secure Event Protocol](http://mml.arces.unibo.it/TR/sparql11-se-protocol.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sparql11-se-protocol.html)
+- [SPARQL 1.1 Subscribe Language](http://mml.arces.unibo.it/TR/sparql11-subscribe.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sparql11-subscribe.html)
+- [JSON SPARQL Application Profile (JSAP)](http://mml.arces.unibo.it/TR/jsap.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/jsap.html)
 
 ## Demo
 
