@@ -98,34 +98,32 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
 ```json
 {"parameters":{
   "scheduler":{
-    "queueSize":100,
-    "timeout":5000},
+   "queueSize":100,
+   "timeout":5000},
   "processor":{
-    "updateTimeout":5000,
-    "queryTimeout":5000,
-    "maxConcurrentRequests":5,
-    "reliableUpdate":true},
-  "spu":{
-    "timeout":5000},
+   "updateTimeout":5000,
+   "queryTimeout":5000,
+   "maxConcurrentRequests":5,
+   "reliableUpdate":true},
+  "spu":{"timeout":5000},
   "gates":{
-    "security":{
-      "tls":false,
-      "enabled":false,
-      "type":"local"},
-    "paths:{
-      "secure":"/secure",
-      "update":"/update",
-      "query":"/query",
-      "subscribe":"/subscribe",
-      "unsubscribe":"/unsubscribe",
-      "register":"/oauth/register",
-      "tokenRequest":"/oauth/token"},
-    "ports":{
-      "http":8000,
-      "https":8443,
-      "ws":9000,
-      "wss":9443
-}}}}
+   "security":{
+    "tls":false,
+    "enabled":false,
+    "type":"local"},
+   "paths":{
+    "secure":"/secure",
+    "update":"/update",
+    "query":"/query",
+    "subscribe":"/subscribe",
+    "unsubscribe":"/unsubscribe",
+    "register":"/oauth/register",
+    "tokenRequest":"/oauth/token"},
+   "ports":{
+    "http":8000,
+    "https":8443,
+    "ws":9000,
+    "wss":9443}}}}
 ```
 ### Logging
 SEPA uses [log4j2](http://logging.apache.org/log4j/2.x/) by Apache. A default configuration is stored in the file log4j2.xml provided with the distribution. If the file resides in the engine folder, but it is not used, add the following JVM directive to force using it:
@@ -141,7 +139,7 @@ SEPA also implements other two security mechanisms:
 
 Security is configured within the `engine.jpar` as follows:
 ```json
-{ "gates": {
+{"gates": {
   "security": {
     "tls": false,
     "enabled": true,
