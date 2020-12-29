@@ -50,39 +50,38 @@ public class ARQuadsAlgorithm {
 	
 	public InternalUpdateRequestWithQuads extractARQuads() throws SEPAProcessingException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		ARBindingsResults quads = new ARBindingsResults(new BindingsResults(new ArrayList<>(),new ArrayList<>()), new BindingsResults(new ArrayList<>(),new ArrayList<>()));
-		
-
+	
 		logger.log(Level.getLevel("ARQuadsAlgorithm"), "AddedRemovedAlgorithm --- START");
+	
+		String insertDeleteUpdate = null;
+		long start = System.nanoTime();			
+		ArrayList<UpdateExtractedData> constructsList;
 		
-	 
-			String insertDeleteUpdate = null;
-			long start = System.nanoTime();			
-			ArrayList<UpdateExtractedData> constructsList;
+		try {
+			constructsList = getAddedRemovedFrom(originalUpdate);
+			insertDeleteUpdate = genereteInsertDeleteUpdate(constructsList);
+			quads =generateARBindingsResults(constructsList);
+		} catch (SEPASecurityException e) {
+			throw new SEPAProcessingException("SEPASecurityException: " + e.getMessage());
+		} catch (IOException e) {
+			throw new SEPAProcessingException("IOException: " + e.getMessage());
+		} catch (SEPABindingsException e) {
+			throw new SEPASparqlParsingException("SEPABindingsException: " + e.getMessage());
+		} 
 			
-			try {
-				constructsList = getAddedRemovedFrom(originalUpdate);
-				insertDeleteUpdate = genereteInsertDeleteUpdate(constructsList);
-				generateARBindingsResults(constructsList);
-			} catch (SEPASecurityException e) {
-				throw new SEPAProcessingException("SEPASecurityException: " + e.getMessage());
-			} catch (IOException e) {
-				throw new SEPAProcessingException("IOException: " + e.getMessage());
-			} catch (SEPABindingsException e) {
-				throw new SEPASparqlParsingException("SEPABindingsException: " + e.getMessage());
-			} 
-	
-				
-			if(insertDeleteUpdate!=null) {
-				long stop = System.nanoTime();
-				logger.trace("ARQuadsAlgorithm executed in" + (stop - start) + " ns");
-			}else {
-				logger.error("ARQuadsAlgorithm", "ARQuadsAlgorithm run into a error.");
-			}
-	
+		if(insertDeleteUpdate!=null) {
+			long stop = System.nanoTime();
+			logger.trace("ARQuadsAlgorithm executed in" + (stop - start) + " ns");
+		}else {
+			logger.error("ARQuadsAlgorithm", "ARQuadsAlgorithm run into a error.");
+		}
+
 		logger.log(Level.getLevel("ARQuadsAlgorithm"), "AddedRemovedAlgorithm --- END");
+		//return new InternalUpdateRequestWithQuads(insertDeleteUpdate,originalUpdate.getSparql(), originalUpdate.getDefaultGraphUri(), originalUpdate.getNamedGraphUri(), originalUpdate.getClientAuthorization(), quads);
+	
+	
+		return new InternalUpdateRequestWithQuads(originalUpdate.getSparql(),originalUpdate.getSparql(), originalUpdate.getDefaultGraphUri(), originalUpdate.getNamedGraphUri(), originalUpdate.getClientAuthorization(), quads);
 		
-		
-		return new InternalUpdateRequestWithQuads(originalUpdate.getSparql(), originalUpdate.getDefaultGraphUri(), originalUpdate.getNamedGraphUri(), originalUpdate.getClientAuthorization(), quads);
 	}
 
 	

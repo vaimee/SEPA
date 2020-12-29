@@ -15,7 +15,7 @@
 		<CustomLevel name="timing" intLevel="330" />
 		<CustomLevel name="subscriptions" intLevel="103" />
 		<CustomLevel name="http" intLevel="250" />
-		<CustomLevel name="updateProcessing" intLevel="550" />
+		<CustomLevel name="ARQuadsAlgorithm" intLevel="550" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
@@ -28,8 +28,8 @@
 	</Appenders>
 	<Loggers>
 		<Root level="trace">
-			<AppenderRef ref="Console" level="trace" />
-<!-- 			<AppenderRef ref="Log" level="error"/> -->
+			<!-- <AppenderRef ref="Console" level="trace" />  -->
+			<AppenderRef ref="Log" level="error"/> 
 		</Root>
 	</Loggers>
 </Configuration>

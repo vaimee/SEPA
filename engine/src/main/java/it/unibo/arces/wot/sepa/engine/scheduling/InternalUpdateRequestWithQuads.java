@@ -10,6 +10,7 @@ import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolExceptio
 public class InternalUpdateRequestWithQuads extends InternalUpdateRequest {
 
 	private ARBindingsResults quadsArBindingsResults;
+	private String originalSparql;
 	
 	public InternalUpdateRequestWithQuads(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
 			ClientAuthorization auth,ARBindingsResults quads) throws SPARQL11ProtocolException, SEPASparqlParsingException {
@@ -17,8 +18,23 @@ public class InternalUpdateRequestWithQuads extends InternalUpdateRequest {
 		quadsArBindingsResults = quads;
 	}
 	
+	public InternalUpdateRequestWithQuads(String sparql,String originalSparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
+			ClientAuthorization auth,ARBindingsResults quads) throws SPARQL11ProtocolException, SEPASparqlParsingException {
+		super(sparql, defaultGraphUri, namedGraphUri, auth);
+		quadsArBindingsResults = quads;
+		this.originalSparql=originalSparql;
+	}
+	
 	public ARBindingsResults getARBindingsResults() {
 		return quadsArBindingsResults;
+	}
+
+	public String getOriginalSparql() {
+		return originalSparql;
+	}
+
+	public void setOriginalSparql(String originalSparql) {
+		this.originalSparql = originalSparql;
 	}
 
 }
