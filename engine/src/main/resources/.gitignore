@@ -1,0 +1,12 @@
+/endpoint-virtuoso-vaimee.jpar
+/engine-secure-keycloak.jpar
+/engine-secure-ldap.jpar
+/engine-secure-local.jpar
+/engine-secure-vaimee.jpar
+/jwt.jks
+/keycloak.pem
+/keycloak.readme
+/log4j2.debug.xml
+/sepa.engine.csv
+/ssl.jks
+/vaimee.jks
