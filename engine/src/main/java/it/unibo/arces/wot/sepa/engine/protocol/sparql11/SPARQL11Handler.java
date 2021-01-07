@@ -1,9 +1,28 @@
+/* HTTP handler for SPARQL 1.1 protocol
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.protocol.sparql11;
 
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -19,11 +38,14 @@ import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
@@ -45,7 +67,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	public SPARQL11Handler(Scheduler scheduler) throws IllegalArgumentException {
 
 		if (scheduler == null)
-			throw new IllegalArgumentException("One or more arguments are null");
+			throw new IllegalArgumentException("Scheduler is null");
 
 		this.scheduler = scheduler;
 
@@ -53,22 +75,19 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	protected boolean validate(HttpRequest request) {
-		// TODO Validate SPARQL 1.1 Query
-		return true;
-	}
-
-	protected abstract Response authorize(HttpRequest request);
+	protected abstract ClientAuthorization authorize(HttpRequest request) throws SEPASecurityException;
 
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
 		if (!Dependability.processCORSRequest(exchange)) {
 			logger.error("CORS origin not allowed");
-			HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error","CORS origin not allowed"));
+			jmx.corsFailed();
+			HttpUtilities.sendFailureResponse(exchange,
+					new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error", "CORS origin not allowed"));
 			return false;
 		}
 
 		if (Dependability.isPreFlightRequest(exchange)) {
-			logger.error("Preflight request");
+			logger.debug("Preflight request");
 			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
 			return false;
 		}
@@ -76,7 +95,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 		return true;
 	}
 
-	protected abstract InternalUQRequest parse(HttpAsyncExchange exchange);
+	protected abstract InternalUQRequest parse(HttpAsyncExchange exchange, ClientAuthorization auth);
 
 	/**
 	 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
@@ -104,7 +123,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	 * </pre>
 	 * 
 	 */
-	protected InternalUQRequest parsePost(HttpAsyncExchange exchange, String type) {
+	protected InternalUQRequest parsePost(HttpAsyncExchange exchange, String type, ClientAuthorization auth) {
 		String contentTypePost = "application/sparql-query";
 		String defGraph = "default-graph-uri";
 		String namedGraph = "named-graph-uri";
@@ -113,11 +132,11 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			defGraph = "using-graph-uri";
 			namedGraph = "using-named-graph-uri";
 		}
-		
+
 		String sparql = null;
-		String default_graph_uri = null;
-		String named_graph_uri = null;
-		
+		Set<String> default_graph_uri = null;
+		Set<String> named_graph_uri = null;
+
 		try {
 			HttpEntity entity = ((HttpEntityEnclosingRequest) exchange.getRequest()).getEntity();
 			String body = EntityUtils.toString(entity, Charset.forName("UTF-8"));
@@ -132,26 +151,23 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 				logger.trace(type + " via POST directly");
 
 				String requestUri = exchange.getRequest().getRequestLine().getUri();
-				String graphUri = null;
-				String namedGraphUri = null;
 
 				if (requestUri.indexOf('?') != -1) {
 					String queryParameters = requestUri.substring(requestUri.indexOf('?') + 1);
-					Map<String, String> params = HttpUtilities.splitQuery(queryParameters);
-					graphUri = params.get(defGraph);
-					namedGraphUri = params.get(namedGraph);
+					Map<String, Set<String>> params = HttpUtilities.splitQuery(queryParameters);
+					default_graph_uri = params.get(defGraph);
+					named_graph_uri = params.get(namedGraph);
 				}
-				
+
 				sparql = body;
-				if (graphUri != null) default_graph_uri = URLDecoder.decode(graphUri,"UTF-8");
-				if (namedGraphUri != null) named_graph_uri = URLDecoder.decode(namedGraphUri,"UTF-8");
+
 			} else if (headers[0].getValue().equals("application/x-www-form-urlencoded")) {
 				logger.trace(type + " via URL ENCODED POST");
 
 				String decodedBody = URLDecoder.decode(body, "UTF-8");
-				Map<String, String> params = HttpUtilities.splitQuery(decodedBody);
+				Map<String, Set<String>> params = HttpUtilities.splitQuery(decodedBody);
 
-				sparql = params.get(type);
+				sparql = params.get(type).iterator().next();
 				default_graph_uri = params.get(defGraph);
 				named_graph_uri = params.get(namedGraph);
 			} else {
@@ -164,16 +180,28 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			logger.error(e.getMessage());
 			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 		}
-		
-		if (type.equals("query"))
-			return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri);
-		else
-			return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri);
+
+		try {
+			if (type.equals("query")) {
+				Header[] headers = exchange.getRequest().getHeaders("Accept");
+				logger.debug("query Accept headers: "+ headers.length);
+				if (headers.length != 1)
+					return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri, auth);
+				else
+					return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri, auth,
+							headers[0].getValue());
+			} else
+				return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri, auth);
+		} catch (SEPASparqlParsingException e) {
+			logger.error(e.getMessage());
+			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
+		}
 	}
 
 	@Override
 	public HttpAsyncRequestConsumer<HttpRequest> processRequest(HttpRequest request, HttpContext context)
 			throws HttpException, IOException {
+		logger.log(Level.getLevel("http"),"@processRequest "+request+" "+context);
 		// Buffer request content in memory for simplicity
 		return new BasicAsyncRequestConsumer();
 	}
@@ -181,47 +209,48 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
+		logger.log(Level.getLevel("http"),"@handle "+request+" "+context);
 		// CORS
-		if (!corsHandling(httpExchange)) {
-			jmx.corsFailed();
+		if (!corsHandling(httpExchange)) return;
+			
+		// Authorize
+		ClientAuthorization oauth = null;
+		try {
+			oauth = authorize(httpExchange.getRequest());
+		} catch (SEPASecurityException e1) {
+			HttpUtilities.sendFailureResponse(httpExchange,
+					new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "oauth_exception", e1.getMessage()));
+			jmx.authorizingFailed();
 			return;
 		}
+		if (!oauth.isAuthorized()) {
+			logger.warn("*** NOT AUTHORIZED *** " + oauth.getDescription());
+			HttpUtilities.sendFailureResponse(httpExchange,
+					new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, oauth.getError(), oauth.getDescription()));
+			jmx.authorizingFailed();
+			return;
+		}
+
 		InternalUQRequest sepaRequest = null;
 
 		try {
 			// Parsing SPARQL 1.1 request and attach a token
-			sepaRequest = parse(httpExchange);
+			sepaRequest = parse(httpExchange, oauth);
 		} catch (SPARQL11ProtocolException e) {
 			logger.error("Parsing failed: " + httpExchange.getRequest());
-			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "SPARQL11ProtocolException","Parsing failed: " + e.getBody()));
+			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(e.getCode(),
+					"SPARQL11ProtocolException", "Parsing failed: " + e.getMessage()));
 			jmx.parsingFailed();
-			return;
-		}
-
-		// Validate
-		if (!validate(httpExchange.getRequest())) {
-			logger.error("Validation failed SPARQL: " + sepaRequest.getSparql());
-			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"sparql_error",sepaRequest.getSparql()));
-			jmx.validatingFailed();
-			return;
-		}
-
-		// Authorize
-		Response oauth = authorize(httpExchange.getRequest());
-		if (oauth.isError()) {
-			final Header header = httpExchange.getRequest().getLastHeader("Authorization");
-			logger.error("<< NOT AUTHORIZED: " + (header == null ? "Unknown client" : header.toString()));
-			HttpUtilities.sendFailureResponse(httpExchange, (ErrorResponse) oauth);
-			jmx.authorizingFailed();
 			return;
 		}
 
 		// Schedule request
 		Timings.log(sepaRequest);
-		ScheduledRequest req = scheduler.schedule(sepaRequest,new SPARQL11ResponseHandler(httpExchange, jmx));
+		ScheduledRequest req = scheduler.schedule(sepaRequest, new SPARQL11ResponseHandler(httpExchange, jmx));
 		if (req == null) {
 			logger.error("Out of tokens");
-			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(429,"too_many_requests","Too many pending requests"));
+			HttpUtilities.sendFailureResponse(httpExchange,
+					new ErrorResponse(429, "too_many_requests", "Too many pending requests"));
 			jmx.outOfTokens();
 		}
 	}
@@ -234,7 +263,6 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public void reset() {
 		jmx.reset();
-
 	}
 
 	@Override
@@ -270,10 +298,5 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public long getErrors_ParsingFailed() {
 		return jmx.getErrors_ParsingFailed();
-	}
-
-	@Override
-	public long getErrors_ValidatingFailed() {
-		return jmx.getErrors_ValidatingFailed();
 	}
 }

@@ -1,17 +1,21 @@
 package it.unibo.arces.wot.sepa.api.protocol.websocket;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import java.io.IOException;
-import java.util.HashSet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Timeout;
 
-import it.unibo.arces.wot.sepa.Sync;
+import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
+import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -19,106 +23,138 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 
 public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
-	protected final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
+
+	private static ConfigurationProvider provider;	
 	
-	private static Sync sync = new Sync();
-	private String spuid = null;
+	private static Object mutex = new Object();
+	private static String spuid = null;
+	private static boolean error = false;
+	private static boolean results = false;
 	
-	private HashSet<Subscriber> subscribers = new HashSet<Subscriber>();
+	@BeforeAll
+	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException, SEPAProtocolException {
+		provider = new ConfigurationProvider();
+	}
 	
-	@BeforeClass
-	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
-
+	@AfterAll
+	public static void end() throws SEPAPropertiesException, SEPASecurityException, InterruptedException, IOException {
+	
 	}
 
-	@Before
-	public void before() {
-		sync.reset();
-		subscribers.clear();
+	@BeforeEach
+	public void before() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {		
+		ITWebSocketSubscriptionProtocol.spuid = null;
+		ITWebSocketSubscriptionProtocol.error = false;
+		ITWebSocketSubscriptionProtocol.results = false;
 	}
 
-	@After
-	public void after() throws IOException {
-		for (Subscriber s : subscribers) s.close();
+	@AfterEach
+	public void after() throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, InterruptedException {		
+		
 	}
 
-	@Test (timeout = 5000)
-	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
-		Subscriber s = new Subscriber(1,this);
-		subscribers.add(s);
-		s.start();
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(5)
+	public void Subscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException, InterruptedException {
+		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
+		client.subscribe(provider.buildSubscribeRequest("ALL"));
 
-		sync.waitSubscribes(1);	
+		synchronized (mutex) {
+			while (ITWebSocketSubscriptionProtocol.spuid == null)
+				mutex.wait();
+		}
+		client.close();
 	}
 
-	@Test (timeout = 5000)
-	public void MultipleSubscribes() throws IOException, SEPASecurityException, SEPAPropertiesException {
-		int n = 10;
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(5)
+	public void SubscribeAndResults() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
+			IOException, InterruptedException {
+		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
+		client.subscribe(provider.buildSubscribeRequest("ALL"));
 
-		for (int i = 0; i < n; i++) {
-			Subscriber s = new Subscriber(1,this);
-			subscribers.add(s);
-			s.start();
+		synchronized (mutex) {
+			while (ITWebSocketSubscriptionProtocol.spuid == null)
+				mutex.wait();
+		}
+		synchronized (mutex) {
+			while (!ITWebSocketSubscriptionProtocol.results)
+				mutex.wait();
+		}
+		client.close();
+	}
+
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(5)
+	public void SubscribeAndUnsubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
+			IOException, InterruptedException {
+		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
+		client.subscribe(provider.buildSubscribeRequest("ALL"));
+		
+		synchronized (mutex) {
+			while (ITWebSocketSubscriptionProtocol.spuid == null)
+				mutex.wait();
 		}
 
-		sync.waitSubscribes(n);
-	}
-
-	@Test (timeout = 5000)
-	public void MultipleClientsAndMultipleSubscribes() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
-		int n = 5;
-		int m = 5;
-
-		for (int i = 0; i < m; i++) {
-			Subscriber s = new Subscriber(n,this);
-			subscribers.add(s);
-			s.start();
+		client.unsubscribe(provider.buildUnsubscribeRequest(ITWebSocketSubscriptionProtocol.spuid));
+		synchronized (mutex) {
+			while (ITWebSocketSubscriptionProtocol.spuid != null)
+				mutex.wait();
 		}
 
-		sync.waitSubscribes(n*m);
+		client.close();
 	}
 
-	@Test (timeout = 5000)
-	public void SubscribeAndUnsubscribe() throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, IOException {
-		spuid = null;
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(5)
+	public void WrongSubscribe() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException,
+			IOException, InterruptedException {
+		WebsocketSubscriptionProtocol client = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(), provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
 		
-		Subscriber s = new Subscriber(1,this);
-		subscribers.add(s);
-		s.start();
-
-		sync.waitSubscribes(1);	
+		client.subscribe(provider.buildSubscribeRequest("WRONG"));
 		
-		s.unsubscribe(spuid);
-
-		sync.waitUnsubscribes(1);
+		synchronized (mutex) {
+			while (!ITWebSocketSubscriptionProtocol.error)
+				mutex.wait();
+		}
+		client.close();
 	}
 
 	@Override
 	public void onSemanticEvent(Notification notify) {
-		logger.debug("@onSemanticEvent: " + notify);
+		synchronized (mutex) {
+			ITWebSocketSubscriptionProtocol.results = true;
+			mutex.notify();
+		}
 	}
 
 	@Override
-	public void onBrokenConnection() {
-		logger.debug("@onBrokenConnection");
+	public void onBrokenConnection(ErrorResponse errorResponse) {
+		assertFalse(true, errorResponse.toString());
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		logger.error("@onError: " + errorResponse);
+		synchronized (mutex) {
+			ITWebSocketSubscriptionProtocol.error = true;
+			mutex.notify();
+		}
 	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		logger.debug("@onSubscribe: " + spuid + " alias: " + alias);
-		this.spuid = spuid;
-		sync.subscribe(spuid, alias);
+		synchronized (mutex) {
+			ITWebSocketSubscriptionProtocol.spuid = spuid;
+			mutex.notify();
+		}
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		logger.debug("@onUnsubscribe " + spuid);
-		
-		sync.unsubscribe();
+		synchronized (mutex) {
+			ITWebSocketSubscriptionProtocol.spuid = null;
+			mutex.notify();
+		}
 	}
 }

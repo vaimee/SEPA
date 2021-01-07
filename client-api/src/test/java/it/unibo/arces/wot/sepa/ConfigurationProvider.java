@@ -6,158 +6,152 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
+import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
+import it.unibo.arces.wot.sepa.commons.security.OAuthProperties.OAUTH_PROVIDER;
+import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
+import java.io.Closeable;
 import java.io.File;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Set;
-import java.util.TimeZone;
+import java.io.IOException;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ConfigurationProvider {
-	static {
-		configureLogger();
-	}
-
+public class ConfigurationProvider implements Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
 	private final JSAP appProfile;
 	private String prefixes = "";
+	private final String jsapPath;
 
-	public static void configureLogger() {
-		// Logging
-		TimeZone tz = TimeZone.getTimeZone("UTC");
-		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate UTC, no timezone offset
-		df.setTimeZone(tz);
-		String nowAsISO = df.format(new Date());
-		System.setProperty("logFilename", nowAsISO);
+	public final long TIMEOUT;
+	public final long NRETRY;
+	public static final int REPEATED_TEST = 1;
 
-		//Create file
-		final File logfolder = new File("logs/");
-		if(!logfolder.exists()){
-			logfolder.mkdir();
-		}
-
-		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
-				.getContext(false);
-		ctx.reconfigure();
-	}
-
+	protected ClientSecurityManager sm = null;
+	
 	public ConfigurationProvider() throws SEPAPropertiesException, SEPASecurityException {
 		String jsapFileName = "sepatest.jsap";
 
 		if (System.getProperty("testConfiguration") != null) {
 			jsapFileName = System.getProperty("testConfiguration");
-			logger.info("JSAP from property testConfiguration: " + jsapFileName);
+			logger.debug("JSAP from property testConfiguration: " + jsapFileName);
 		} else if (System.getProperty("secure") != null) {
 			jsapFileName = "sepatest-secure.jsap";
-			logger.info("JSAP secure default: " + jsapFileName);
+			logger.debug("JSAP secure default: " + jsapFileName);
 		}
 
-		String path = getClass().getClassLoader().getResource(jsapFileName).getPath();
-		File f = new File(path);
+		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
+		File f = new File(jsapPath);
 		if (!f.exists()) {
-			logger.error("File not found: " + path);
-			throw new SEPAPropertiesException("File not found: "+path);
+			logger.error("File not found: " + jsapPath);
+			throw new SEPAPropertiesException("File not found: " + jsapPath);
 		}
+
+		logger.debug("Loading JSAP from: " + jsapPath);
+
+		appProfile = new JSAP(jsapPath);
+
+		prefixes = appProfile.getPrefixes();
+
+		if (appProfile.getExtendedData().has("timeout")) {
+			TIMEOUT = appProfile.getExtendedData().get("timeout").getAsLong();
+		} else
+			TIMEOUT = 15000;
+
+		if (appProfile.getExtendedData().has("nretry")) {
+			NRETRY = appProfile.getExtendedData().get("nretry").getAsLong();
+		} else
+			NRETRY = 3;
 		
-		appProfile = new JSAP(path);
-		
-		Set<String> appPrefixes = appProfile.getPrefixes();
-		for (String prefix : appPrefixes) {
-			prefixes += "PREFIX " + prefix + ":<" + appProfile.getNamespaceURI(prefix) + "> ";
-		}
+		sm = buildSecurityManager();
 	}
 
 	private String getSPARQLUpdate(String id) {
-		return prefixes + " " +appProfile.getSPARQLUpdate(id);
+		return prefixes + " " + appProfile.getSPARQLUpdate(id);
 	}
-	
+
 	private String getSPARQLQuery(String id) {
-		return prefixes + " " +appProfile.getSPARQLQuery(id);
+		return prefixes + " " + appProfile.getSPARQLQuery(id);
 	}
-	
-	public UpdateRequest buildUpdateRequest(String id, long timeout,SEPASecurityManager sm) {
-		String authorization = null;
 
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-				logger.debug("Authorized");
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-
+	public UpdateRequest buildUpdateRequest(String id)
+			throws SEPASecurityException, SEPAPropertiesException {
 		return new UpdateRequest(appProfile.getUpdateMethod(id), appProfile.getUpdateProtocolScheme(id),
 				appProfile.getUpdateHost(id), appProfile.getUpdatePort(id), appProfile.getUpdatePath(id),
 				getSPARQLUpdate(id), appProfile.getUsingGraphURI(id), appProfile.getUsingNamedGraphURI(id),
-				authorization, timeout);
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), TIMEOUT, NRETRY);
 	}
 
-	public QueryRequest buildQueryRequest(String id, long timeout,SEPASecurityManager sm) {
-		String authorization = null;
-
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-
+	public QueryRequest buildQueryRequest(String id)
+			throws SEPASecurityException, SEPAPropertiesException {
 		return new QueryRequest(appProfile.getQueryMethod(id), appProfile.getQueryProtocolScheme(id),
 				appProfile.getQueryHost(id), appProfile.getQueryPort(id), appProfile.getQueryPath(id),
 				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id),
-				authorization, timeout);
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), TIMEOUT, NRETRY);
 	}
 
-	public QueryRequest buildQueryRequest(String id, long timeout,String authToken) {
+	public QueryRequest buildQueryRequest(String id, String authToken) {
 		return new QueryRequest(appProfile.getQueryMethod(id), appProfile.getQueryProtocolScheme(id),
 				appProfile.getQueryHost(id), appProfile.getQueryPort(id), appProfile.getQueryPath(id),
-				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id),
-				authToken, timeout);
+				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id), authToken,
+				TIMEOUT, NRETRY);
 	}
 
-	public SubscribeRequest buildSubscribeRequest(String id, long timeout,SEPASecurityManager sm) {
-		String authorization = null;		
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-		
+	public SubscribeRequest buildSubscribeRequest(String id)
+			throws SEPASecurityException, SEPAPropertiesException {
 		return new SubscribeRequest(getSPARQLQuery(id), id, appProfile.getDefaultGraphURI(id),
-				appProfile.getNamedGraphURI(id), authorization, timeout);
+				appProfile.getNamedGraphURI(id), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null));
 	}
 
-	public UnsubscribeRequest buildUnsubscribeRequest(String spuid, long timeout,SEPASecurityManager sm) {
-		String authorization = null;		
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-		
-		return new UnsubscribeRequest(spuid, authorization, timeout);
+	public UnsubscribeRequest buildUnsubscribeRequest(String spuid)
+			throws SEPASecurityException, SEPAPropertiesException {
+		return new UnsubscribeRequest(spuid, (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null));
 	}
 
-	public SEPASecurityManager buildSecurityManager() throws SEPASecurityException {
-		String path = getClass().getClassLoader().getResource("sepa.jks").getPath();
-		File f = new File(path);
-		if (!f.exists()) {
-			logger.error("File not found: " + path);
-			throw new SEPASecurityException("File not found: "+path);
-		}
-		return new SEPASecurityManager(f.getPath(), "sepa2017", "sepa2017",appProfile.getAuthenticationProperties());
-	}
-	
 	public JSAP getJsap() {
 		return appProfile;
+	}
+	
+	public ClientSecurityManager getClientSecurityManager() {
+		return sm;
+	}
+
+	private ClientSecurityManager buildSecurityManager() throws SEPASecurityException, SEPAPropertiesException {
+		ClientSecurityManager sm = null;
+		
+		if (appProfile.isSecure()) {
+			sm = new ClientSecurityManager(appProfile.getAuthenticationProperties());
+
+			if (!appProfile.getAuthenticationProperties().isClientRegistered()) {
+				Response ret = sm.registerClient(getClientId(),appProfile.getAuthenticationProperties().getUsername(),appProfile.getAuthenticationProperties().getInitialAccessToken());
+				if (ret.isError())
+					throw new SEPASecurityException(getClientId() + " registration failed");
+			}
+			sm.refreshToken();
+			appProfile.getAuthenticationProperties().storeProperties();
+		}
+
+		return sm;
+	}
+
+	public String getClientId() throws SEPAPropertiesException, SEPASecurityException {
+		if (appProfile.isSecure()) {
+			OAuthProperties oauth = new OAuthProperties(appProfile.getFileName());
+			if (oauth.getProvider().equals(OAUTH_PROVIDER.SEPA))
+				return "SEPATest";
+			else if (oauth.getProvider().equals(OAUTH_PROVIDER.KEYCLOAK))
+				return "SEPATest-" + UUID.randomUUID().toString();
+		}
+
+		return null;
+	}
+
+	@Override
+	public void close() throws IOException {
+		if (sm != null) sm.close();		
 	}
 }

@@ -20,8 +20,6 @@ package it.unibo.arces.wot.sepa.commons.request;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import it.unibo.arces.wot.sepa.commons.request.Request;
-
 /**
  * The Class UnsubscribeRequest.
  */
@@ -35,8 +33,12 @@ public class UnsubscribeRequest extends Request {
 	 * @param subId
 	 *            the sub id
 	 */
-	public UnsubscribeRequest(String subId,String authorization,long timeout) {
-		super(subId, authorization,timeout);
+	public UnsubscribeRequest(String subId,String authorization,long timeout,long nRetry) {
+		super(subId, authorization,timeout,nRetry);
+	}
+	
+	public UnsubscribeRequest(String subId,String authorization) {
+		super(subId, authorization);
 	}
 	
 	/**

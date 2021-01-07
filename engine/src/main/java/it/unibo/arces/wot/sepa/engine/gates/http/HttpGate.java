@@ -1,3 +1,21 @@
+/* The main HTTP gate supporting the SPARQL 1.1 protocol
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.gates.http;
 
 import java.io.IOException;
@@ -14,7 +32,7 @@ import org.apache.logging.log4j.Logger;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdHandler;
+
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.QueryHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.UpdateHandler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
@@ -38,7 +56,6 @@ public class HttpGate {
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
 				.registerHandler(properties.getQueryPath(), new QueryHandler(scheduler))
 				.registerHandler(properties.getUpdatePath(), new UpdateHandler(scheduler))
-				.registerHandler("/ngsi-ld/v1/*", new NgsiLdHandler(scheduler))
 				.registerHandler("/echo", new EchoHandler()).create();
 		
 		try {

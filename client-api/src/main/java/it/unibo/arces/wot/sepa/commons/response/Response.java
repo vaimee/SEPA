@@ -52,6 +52,12 @@ public abstract class Response {
 	public boolean isUpdateResponse() {
 		return this instanceof UpdateResponse;
 	}
+	public boolean isTimeoutError() {
+		if (this instanceof ErrorResponse) {
+			return ((ErrorResponse) this).isTimeout();
+		}
+		return false;
+	}
 	
 	/**
 	 * Instantiates a new response.

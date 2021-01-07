@@ -20,8 +20,6 @@ package it.unibo.arces.wot.sepa.commons.sparql;
 
 import com.google.gson.JsonPrimitive;
 
-import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
-
 /**
  * The Class RDFTermLiteral.
  */
@@ -57,14 +55,10 @@ public class RDFTermLiteral extends RDFTerm {
 	public RDFTermLiteral(String value, String datatype, String language) {
 		super(value);
 
-		json.add("type", new JsonPrimitive("literal"));
+		json.add("type", new JsonPrimitive("literal"));	
 		
-		if (language != null) {
-			json.add("xml:lang", new JsonPrimitive(language));
-			json.add("datatype", new JsonPrimitive("xsd:string"));
-		}
-		else if (datatype != null) json.add("datatype", new JsonPrimitive(datatype));
-		else json.add("datatype", new JsonPrimitive("xsd:string"));
+		if (language != null) json.add("xml:lang", new JsonPrimitive(language));
+		if (datatype != null) json.add("datatype", new JsonPrimitive(datatype));
 	}
 
 	/**

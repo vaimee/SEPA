@@ -1,9 +1,7 @@
 {
 	"host": "localhost",
 	"oauth": {
-		"enable" : false,
-		"register": "https://localhost:8443/oauth/register",
-		"tokenRequest": "https://localhost:8443/oauth/token"
+		"enable" : false
 	},
 	"sparql11protocol": {
 		"protocol": "http",
@@ -37,6 +35,9 @@
 		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
 	},
 	"updates": {
+		"WRONG" : {
+			"sparql" : "WITH <http://sepatest> DELETE {?x ?y} WHERE {?y ?z}"
+		},
 		"DELETE_ALL" : {
 			"sparql" : "WITH <http://sepatest> DELETE {?x ?y ?z} WHERE {?x ?y ?z}"
 		},
@@ -51,6 +52,9 @@
 		}
 	},
 	"queries": {
+		"WRONG": {
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest> {?x \"ვაიმეე\"}}"
+		},
 		"VAIMEE": {
 			"sparql": "SELECT * WHERE {GRAPH <http://sepatest> {?x ?y \"ვაიმეე\"}}"
 		},

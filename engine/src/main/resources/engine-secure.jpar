@@ -13,7 +13,10 @@
 			"timeout": 2000
 		},
 		"gates": {
-			"secure": true,
+			"security": {
+				"enabled" : true,
+				"type" : "local"
+			},
 			"ports": {
 				"http": 8000,
 				"ws": 9000,

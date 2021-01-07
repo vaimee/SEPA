@@ -23,7 +23,6 @@ import java.io.IOException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -32,49 +31,96 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
 
 public class Producer extends Client implements IProducer {
-	private static final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 	
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
-	private Bindings forcedBindings;
-	
+	private ForcedBindings forcedBindings;
+
 	private SPARQL11Protocol client;
-	
-	public Producer(JSAP appProfile,String updateID,SEPASecurityManager sm) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException  {
-		super(appProfile,sm);
-		
+
+	public Producer(JSAP appProfile, String updateID)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(appProfile);
+
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
-			logger.fatal("UPDATE ID [" +updateID+"] not found in "+appProfile.getFileName());
-			throw new IllegalArgumentException("UPDATE ID [" +updateID+"] not found in "+appProfile.getFileName());
+			logger.fatal("UPDATE ID [" + updateID + "] not found in " + appProfile.getFileName());
+			throw new IllegalArgumentException("UPDATE ID [" + updateID + "] not found in " + appProfile.getFileName());
 		}
-		
+
 		SPARQL_ID = updateID;
-		
+
 		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
-		
+
 		forcedBindings = appProfile.getUpdateBindings(updateID);
-		
+
 		client = new SPARQL11Protocol(sm);
 	}
-	
-	public final Response update() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException {
-		return update(0);
+
+	public final Response update()
+			throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
+		return update(TIMEOUT,NRETRY);
 	}
-	
-	public final Response update(int timeout) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPABindingsException{	 
-		String authorizationHeader = null;
+
+	public final Response update(long timeout,long nRetry)
+			throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
+		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
+				appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
+				appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
+				appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
+						addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
+				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
+
+		logger.debug(req);
 		
-		if (isSecure()) 	authorizationHeader = sm.getAuthorizationHeader();
+		Response retResponse = client.update(req);
+
+		logger.debug(retResponse);
 		
-		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID), appProfile.getUpdateProtocolScheme(SPARQL_ID),appProfile.getUpdateHost(SPARQL_ID), appProfile.getUpdatePort(SPARQL_ID),
-					appProfile.getUpdatePath(SPARQL_ID), addPrefixesAndReplaceBindings(sparqlUpdate, forcedBindings),
-					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),authorizationHeader,timeout);
-		 
-		 return client.update(req);		 
-	 }
+//		if (appProfile.isSecure() && retResponse.isError()) {
+//			ErrorResponse errorResponse = (ErrorResponse) retResponse;
+//			if (errorResponse.isTokenExpiredError()) {
+//				sm.refreshToken();
+//				req.setAuthorizationHeader(appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
+//				retResponse = client.update(req);
+//			} 
+//		}
+		
+//		while (isSecure() && retResponse.isError()) {
+//
+//			ErrorResponse errorResponse = (ErrorResponse) retResponse;
+//
+//			if (errorResponse.isTokenExpiredError()) {
+//				try {
+//					sm.refreshToken();
+//				} catch (SEPAPropertiesException | SEPASecurityException e) {
+//					logger.error("Failed to refresh token: " + e.getMessage());
+//				}
+//			} else {
+//				logger.error(errorResponse);
+//				return errorResponse;
+//			}
+//
+//			authorizationHeader = sm.getAuthorizationHeader();
+//			
+//			logger.debug("Authorization header: "+authorizationHeader);
+//
+//			req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
+//					appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
+//					appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
+//					appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
+//							addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
+//					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
+//					authorizationHeader, timeout,nRetry);
+//
+//			retResponse = client.update(req);
+//		}
+
+		return retResponse;
+	}
 
 	@Override
 	public void close() throws IOException {
@@ -83,6 +129,5 @@ public class Producer extends Client implements IProducer {
 
 	public final void setUpdateBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
 		forcedBindings.setBindingValue(variable, value);
-		
 	}
 }

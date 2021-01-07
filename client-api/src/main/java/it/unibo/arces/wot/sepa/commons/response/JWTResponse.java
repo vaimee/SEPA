@@ -18,8 +18,16 @@
 
 package it.unibo.arces.wot.sepa.commons.response;
 
+import java.text.ParseException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.nimbusds.jwt.SignedJWT;
+
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 
 /**
  * Produce JWT compliant with WoT W3C recommendations
@@ -33,33 +41,47 @@ import com.google.gson.JsonPrimitive;
  * Guhes4s9GE6sikh0rPtJg4QtY1DFT3OZ3WDF05OCwsBCe6dkNOn__68-e_9cEoiFY4s4KQ8heRQHpyRuD
  * QK0vTOefpgumKtRHrlCe0JGHBnPNqo8Zp7cVivZnin8NsePcuweFgZxWfaOC-EH5ClpqjPEbjj65g",
  * "token_type":"bearer", "expires_in":3600}
+ * 
+ * Keycloak OpenID Connect token
+ * 
+ * {"access_token":"..isSaVqlen4bH0C5oAg1--",
+ * "expires_in":18000,
+ * "refresh_expires_in":1800,
+ * "refresh_token":"..",
+ * "token_type":"bearer",
+ * "not-before-policy":0,
+ * "session_state":"bc94b90c-fd2c-417c-a19f-4f5c98653236",
+ * "scope":"profile email"}
  */
-public class JWTResponse extends Response {
 
+public class JWTResponse extends Response {
+	/** The log4j2 logger. */
+	private static final Logger logger = LogManager.getLogger();
+	
 	/**
 	 * Instantiates a new JWT response.
+	 * @throws SEPASecurityException 
 	 *
-	 * @param access_token
-	 *            the access token
-	 * @param token_type
-	 *            the token type
-	 * @param expiresIn
-	 *            the expiring
 	 */
-	public JWTResponse(String access_token, String token_type, long expiresIn) {
+	public JWTResponse(SignedJWT token) throws SEPASecurityException {
 		super();
-		JsonObject jwt = new JsonObject();
 		
-		if (access_token != null)
-			jwt.add("access_token", new JsonPrimitive(access_token));
-		if (token_type != null)
-			jwt.add("token_type", new JsonPrimitive(token_type));
-		if (expiresIn > 0)
-			jwt.add("expires_in", new JsonPrimitive(expiresIn));
-		else
-			jwt.add("expires_in", new JsonPrimitive(0));
+		json = new JsonObject();
 		
-		json.add("token", jwt);
+		json.add("access_token", new JsonPrimitive(token.serialize()));
+		json.add("token_type", new JsonPrimitive("bearer"));
+		
+		try {
+			json.add("expires_in", new JsonPrimitive(token.getJWTClaimsSet().getExpirationTime().getTime()-token.getJWTClaimsSet().getIssueTime().getTime()));
+		} catch (ParseException e) {
+			logger.error(e.getMessage());
+			throw new SEPASecurityException(e);
+		}
+	}
+	
+	public JWTResponse(JsonObject json) {
+		super();
+		this.json = json;
 	}
 	
 	/**
@@ -69,7 +91,7 @@ public class JWTResponse extends Response {
 	 */
 	public String getAccessToken() {
 		try {
-			return json.get("token").getAsJsonObject().get("access_token").getAsString();
+			return json.get("access_token").getAsString();
 		}
 		catch(Exception e) {
 			return "";
@@ -83,7 +105,7 @@ public class JWTResponse extends Response {
 	 */
 	public String getTokenType() {
 		try {
-			return json.get("token").getAsJsonObject().get("token_type").getAsString();
+			return json.get("token_type").getAsString();
 		}
 		catch(Exception e) {
 			return "";
@@ -97,7 +119,7 @@ public class JWTResponse extends Response {
 	 */
 	public long getExpiresIn() {
 		try {
-			return json.get("token").getAsJsonObject().get("expires_in").getAsLong();
+			return json.get("expires_in").getAsLong();
 		}
 		catch(Exception e) {
 			return 0;

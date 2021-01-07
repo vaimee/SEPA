@@ -1,63 +1,62 @@
 package it.unibo.arces.wot.sepa.commons.security;
 
-import it.unibo.arces.wot.sepa.api.ITSPARQL11SEProtocol;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import java.io.IOException;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.SEPASecurityManager;
-import it.unibo.arces.wot.sepa.pattern.JSAP;
-
-import java.io.File;
-
-import static org.junit.Assert.*;
 
 public class ITSEPASecurityManager {
-	private static SEPASecurityManager sm = null;
-	private static JSAP app = null;
-	
-	private String testId = "SEPATest";
-	private String notAllowedId = "IamNotAllowedToRegister";
-	
-	@BeforeClass
+	private static ConfigurationProvider provider;
+
+	@BeforeAll
 	public static void init() throws SEPAPropertiesException, SEPASecurityException, InterruptedException {
-		app = new ConfigurationProvider().getJsap();
-		
-		if (app.isSecure()){
-			ClassLoader classLoader = ITSPARQL11SEProtocol.class.getClassLoader();
-			File keyFile = new File(classLoader.getResource("sepa.jks").getFile());
-			sm = new SEPASecurityManager(keyFile.getPath(), "sepa2017", "sepa2017",
-					app.getAuthenticationProperties());
+		provider = new ConfigurationProvider();
+	}
+
+	@Test
+	public void Register() throws SEPASecurityException, SEPAPropertiesException, InterruptedException, IOException {
+		if (provider.getJsap().isSecure()) {
+			OAuthProperties oauth = provider.getJsap().getAuthenticationProperties();
+			ClientSecurityManager sm = new ClientSecurityManager(oauth);
+			
+			if (!oauth.isClientRegistered()) {
+				Response ret = sm.registerClient(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
+				assertFalse(ret.isError(), String.valueOf(ret));
+			}
+			
+			sm.close();
+		}
+	}
+	
+	@Test
+	public void RefreshToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException, IOException {
+		if (provider.getJsap().isSecure()) {
+			OAuthProperties oauth = provider.getJsap().getAuthenticationProperties();
+			ClientSecurityManager sm = new ClientSecurityManager(provider.getJsap().getAuthenticationProperties());
+			
+			Response token = sm.refreshToken();
+			
+			if (token.isError()) {
+				if (!oauth.isClientRegistered()) {
+					Response ret = sm.registerClient(provider.getClientId(),oauth.getUsername(),oauth.getInitialAccessToken());
+					assertFalse(ret.isError(), String.valueOf(ret));
+				}	
+				token = sm.refreshToken();
+			}
+			
+			assertFalse(token.isError(), String.valueOf(token));
+
+			assertFalse(oauth.getBearerAuthorizationHeader() == null, String.valueOf(token));
+					
+			sm.close();
 		}
 	}
 
-	@Test(timeout = 2000)
-	public void Register() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException  {
-		if (sm == null && !app.isSecure()) return;
-		
-		Response ret = sm.register(testId);
-		assertFalse(String.valueOf(ret),ret.isError());
-		
-		ret = sm.register(notAllowedId);
-		assertFalse(String.valueOf(ret),!ret.isError());
-	}
-	
-	@Test(timeout = 15000)
-	public void GetAuthorizationHeader() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
-		if (sm == null && !app.isSecure()) return;
-		
-		Response ret = sm.register(testId);
-		assertFalse(String.valueOf(ret),ret.isError());
-		
-		// In test conditions token expires in 5 seconds
-		for (int i=0; i < 10; i++) {
-			sm.getAuthorizationHeader();
-			Thread.sleep(1000);
-		}
-	}
-	
 }
