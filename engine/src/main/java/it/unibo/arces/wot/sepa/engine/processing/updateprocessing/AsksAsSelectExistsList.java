@@ -41,11 +41,10 @@ public class AsksAsSelectExistsList implements IAsk{
 	private InternalUpdateRequest req;
 	private ARQuadsAlgorithm algorithm;
 	
-	public AsksAsSelectExistsList(ArrayList<UpdateExtractedData> ueds, InternalUpdateRequest req, ARQuadsAlgorithm algorithm) throws NumberFormatException, SEPASecurityException, IOException, SEPABindingsException, SEPASparqlParsingException {
+	public AsksAsSelectExistsList(ArrayList<UpdateExtractedData> ueds, InternalUpdateRequest req, ARQuadsAlgorithm algorithm){
 		this.ueds=ueds;
 		this.req=req;
 		this.algorithm=algorithm;
-		this.init();
 	}
 	
 	protected void init() throws NumberFormatException, SEPASecurityException, IOException, SEPABindingsException, SEPASparqlParsingException {
@@ -146,7 +145,8 @@ public class AsksAsSelectExistsList implements IAsk{
 	}
 	
 
-	public ArrayList<UpdateExtractedData> filter() throws SEPABindingsException {
+	public ArrayList<UpdateExtractedData> filter() throws SEPABindingsException, NumberFormatException, SEPASecurityException, IOException, SEPASparqlParsingException {
+		init();
 		HashMap<String,BindingsResults> alredyExist_E  = this.getReorganizedBindingsForAdded();
 		HashMap<String,BindingsResults> realRemoved_E = this.getReorganizedBindingsForRemoved();
 		for (UpdateExtractedData constructs : ueds) {

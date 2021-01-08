@@ -336,7 +336,7 @@ public class Engine implements EngineMBean {
 		new DependabilityMonitor();
 
 		
-		EpSpecFactory.setInstanceFromFile(endpointJpar);		
+		EpSpecFactory.setInstanceFromFile(endpointJpar);
 		
 			
 		try {

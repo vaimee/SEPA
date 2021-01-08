@@ -41,10 +41,6 @@ public class ARQuadsAlgorithm {
 	}
 	
 	public QueryResponse processQuery(InternalQueryRequest query) throws SEPASecurityException, IOException {
-		//questo metodo permette l'esecuzione di query al di fuori del package "processing"
-		//ma dato che chi istanzia ARQuadsAlgorithm deve per forza assegnarli un QueryProcessor
-		//di conseguenza deve per forza essere all'interno del package "processing"
-		//quindi le ristrizioni sulla visibilità ed utilizzabilità di QueryProcessor sono soddisfatte
 		return (QueryResponse)queryProcessor.process(query);			
 	}
 	
@@ -77,10 +73,12 @@ public class ARQuadsAlgorithm {
 		}
 
 		logger.log(Level.getLevel("ARQuadsAlgorithm"), "AddedRemovedAlgorithm --- END");
-		//return new InternalUpdateRequestWithQuads(insertDeleteUpdate,originalUpdate.getSparql(), originalUpdate.getDefaultGraphUri(), originalUpdate.getNamedGraphUri(), originalUpdate.getClientAuthorization(), quads);
-	
-	
-		return new InternalUpdateRequestWithQuads(originalUpdate.getSparql(),originalUpdate.getSparql(), originalUpdate.getDefaultGraphUri(), originalUpdate.getNamedGraphUri(), originalUpdate.getClientAuthorization(), quads);
+		
+		//--------------> using --> insertDeleteUpdate
+		return new InternalUpdateRequestWithQuads(insertDeleteUpdate,originalUpdate.getSparql(), originalUpdate.getDefaultGraphUri(), originalUpdate.getNamedGraphUri(), originalUpdate.getClientAuthorization(), quads);
+		
+		//--------------> using --> originalUpdate
+		//return new InternalUpdateRequestWithQuads(originalUpdate.getSparql(),originalUpdate.getSparql(), originalUpdate.getDefaultGraphUri(), originalUpdate.getNamedGraphUri(), originalUpdate.getClientAuthorization(), quads);
 		
 	}
 
@@ -213,9 +211,10 @@ public class ARQuadsAlgorithm {
 		
 	
 		long startAsk = System.nanoTime();	
-		//AsksAsSelectExistsList not pass all test on Virtuoso 
-		//IAsk asks= new AsksAsSelectExistsList(constructsList, req, this.processor);
-		IAsk asks= new AsksAsSelectGraphAsVar(constructsList, req, this);
+		//Ottengo la ask migliore a seconda dell'end point
+		//ad esempio sappiamo che la "AsksAsSelectExistsList" è la più performante ma 
+		//non sempre funziona su Virtuoso
+		IAsk asks= EpSpecFactory.getInstance().getAsk(constructsList, req, this);
 		constructsList=asks.filter();
 		long endAsk = System.nanoTime();
 		logger.trace("Ask (selectAsAsk) execution time: " + (endAsk - startAsk) + " ns");

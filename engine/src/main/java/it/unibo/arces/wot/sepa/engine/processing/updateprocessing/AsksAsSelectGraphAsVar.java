@@ -43,12 +43,10 @@ public class AsksAsSelectGraphAsVar implements IAsk{
 	private InternalUpdateRequest req;
 	private ARQuadsAlgorithm algorithm;
 	
-	public AsksAsSelectGraphAsVar(ArrayList<UpdateExtractedData> ueds,InternalUpdateRequest req, ARQuadsAlgorithm algorithm) throws SEPABindingsException {
+	public AsksAsSelectGraphAsVar(ArrayList<UpdateExtractedData> ueds,InternalUpdateRequest req, ARQuadsAlgorithm algorithm){
 		this.ueds=ueds;
 		this.req=req;
 		this.algorithm=algorithm;
-		this.init();
-		
 	}
 	
 	protected void init() throws SEPABindingsException {
@@ -228,7 +226,7 @@ public class AsksAsSelectGraphAsVar implements IAsk{
 	
 
 	public ArrayList<UpdateExtractedData> filter() throws SEPABindingsException, SEPASecurityException, IOException, SEPASparqlParsingException {
-
+		init();
 		HashMap<String,BindingsResults> alredyExist  = this.getReorganizedBindingsForAdded();
 		HashMap<String,BindingsResults> realRemoved  = this.getReorganizedBindingsForRemoved();
 		for (UpdateExtractedData constructs : ueds) {

@@ -23,9 +23,8 @@ public class EpSpecFactory {
 	}
 	
 
-	
-	
 	private static IEndPointSpecification instance = new VirtuosoSpecification();
+	private static EndPointSpec EndPointName=EndPointSpec.VIRTUOSO;
 	
 	public static IEndPointSpecification getInstance() {
 			return instance;
@@ -39,6 +38,10 @@ public class EpSpecFactory {
 			}
 	}
 	
+	public static EndPointSpec getEndPointSpec() {
+			return EndPointName;
+	}
+	
 	public static void setInstance(String eps){
 		String fixed = eps.trim().toUpperCase().replace("\"", "");
 		if(fixed.compareTo(EndPointSpec.BLAZEGRAPH.toString())==0) {
@@ -48,7 +51,7 @@ public class EpSpecFactory {
 		}else {
 			//default + warning
 			instance = new VirtuosoSpecification();
-			System.out.println("Warning: end point name not found for "+ eps+ ", EpSpecification setted as defualt (VIRTUOSO).");
+			System.out.println("Warning: end point name not found for "+ eps+ ", EpSpecification setted as default (VIRTUOSO).");
 		}
 	}
 	
