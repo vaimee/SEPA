@@ -1,32 +1,16 @@
 {
 	"host": "localhost",	
-	"endpointname":"virtuoso",
-	"oauth": {
-		"enable": false,
-		"register": "https://localhost:8443/oauth/register",
-		"tokenRequest": "https://localhost:8443/oauth/token",
-		"client_id": "",
-		"client_secret": "",
-		"jwt": "",
-		"expires": "",
-		"type": ""
-	},
-	"graphs": {
-		"default-graph-uri": "http://default",
-		"named-graph-uri": "http://default",
-		"using-graph-uri": "http://default",
-		"using-named-graph-uri": "http://default"
-	},
+	"endpointname":"blazegraph",
 	"sparql11protocol": {
 		"protocol": "http",
-		"port": 8890,
+		"port": 9999,
 		"query": {
-			"path": "/sparql",
-			"method": "URL_ENCODED_POST",
+			"path": "/blazegraph/namespace/kb/sparql",
+			"method": "POST",
 			"format": "JSON"
 		},
 		"update": {
-			"path": "/sparql",
+			"path": "/blazegraph/namespace/kb/sparql",
 			"method": "POST",
 			"format": "JSON"
 		}

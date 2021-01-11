@@ -24,7 +24,6 @@ public class EpSpecFactory {
 	
 
 	private static IEndPointSpecification instance = new VirtuosoSpecification();
-	private static EndPointSpec EndPointName=EndPointSpec.VIRTUOSO;
 	
 	public static IEndPointSpecification getInstance() {
 			return instance;
@@ -38,9 +37,6 @@ public class EpSpecFactory {
 			}
 	}
 	
-	public static EndPointSpec getEndPointSpec() {
-			return EndPointName;
-	}
 	
 	public static void setInstance(String eps){
 		String fixed = eps.trim().toUpperCase().replace("\"", "");

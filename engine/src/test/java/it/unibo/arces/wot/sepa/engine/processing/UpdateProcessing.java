@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory.EndPointSpec;
 import it.unibo.arces.wot.sepa.engine.processing.epspec.IEndPointSpecification;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -53,7 +54,7 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 		System.out.println("[VERBOSE] endpointJpar percorso: "+ endpointJpar);
 		EpSpecFactory.setInstanceFromFile(endpointJpar);
 		eps = EpSpecFactory.getInstance();		
-		System.out.println("[Junit][ARQuadsAlgorith] end point: "+ EpSpecFactory.getEndPointSpec().toString());
+		System.out.println("[Junit][ARQuadsAlgorith] end point: "+ eps.getEndPointName().toString());
 		try {
 			SPARQL11Properties props = new SPARQL11Properties(endpointJpar);
 			queryProcessor = new QueryProcessor(props);
@@ -81,13 +82,21 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 				initUpdateDeleteWhere();
 				initUpdateModify();
 				initUpdateDataDelete();
-				initUpdateModifyWhere();
+				if(eps.getEndPointName()!=EndPointSpec.BLAZEGRAPH) {
+					initUpdateModifyWhere();
+				}else {
+					System.out.println("UpdateModifyWhere SKIPPED (don't work on blazegraph)");
+				}
 				//create tests on 2 graphs
 				initUpdateDataInsert_2g();
 				initUpdateDeleteWhere_2g();
 				initUpdateModify_2g();
 				initUpdateDataDelete_2g();
-				initUpdateModifyWhere_2g();
+				if(eps.getEndPointName()!=EndPointSpec.BLAZEGRAPH) {
+					initUpdateModifyWhere_2g();
+				}else {
+					System.out.println("initUpdateModifyWhere_2g SKIPPED (don't work on blazegraph)");
+				}
 			} catch (SPARQL11ProtocolException | SEPASparqlParsingException e) {
 				testAbort=true;
 				e.printStackTrace();

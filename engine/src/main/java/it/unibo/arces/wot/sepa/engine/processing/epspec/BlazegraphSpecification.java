@@ -1,12 +1,9 @@
 package it.unibo.arces.wot.sepa.engine.processing.epspec;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.engine.processing.ARQuadsAlgorithm;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory.EndPointSpec;
 import it.unibo.arces.wot.sepa.engine.processing.updateprocessing.AsksAsSelectExistsList;
 import it.unibo.arces.wot.sepa.engine.processing.updateprocessing.IAsk;
 import it.unibo.arces.wot.sepa.engine.processing.updateprocessing.UpdateExtractedData;
@@ -45,6 +42,10 @@ public class BlazegraphSpecification implements IEndPointSpecification {
 		vars.add(o());
 		return vars;
 	}
+	public EndPointSpec getEndPointName() {
+		return EndPointSpec.BLAZEGRAPH;
+	}
+
 
 	@Override
 	public IAsk getAsk(ArrayList<UpdateExtractedData> ueds, InternalUpdateRequest req, ARQuadsAlgorithm algorithm){

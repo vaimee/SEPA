@@ -2,8 +2,8 @@ package it.unibo.arces.wot.sepa.engine.processing.epspec;
 
 import java.util.ArrayList;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.engine.processing.ARQuadsAlgorithm;
+import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory.EndPointSpec;
 import it.unibo.arces.wot.sepa.engine.processing.updateprocessing.AsksAsSelectGraphAsVar;
 import it.unibo.arces.wot.sepa.engine.processing.updateprocessing.IAsk;
 import it.unibo.arces.wot.sepa.engine.processing.updateprocessing.UpdateExtractedData;
@@ -41,6 +41,11 @@ public class VirtuosoSpecification implements IEndPointSpecification {
 		vars.add(p());
 		vars.add(o());
 		return vars;
+	}
+	
+
+	public EndPointSpec getEndPointName() {
+		return EndPointSpec.VIRTUOSO;
 	}
 
 	@Override

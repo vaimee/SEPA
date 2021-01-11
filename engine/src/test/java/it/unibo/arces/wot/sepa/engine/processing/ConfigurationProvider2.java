@@ -37,7 +37,7 @@ public class ConfigurationProvider2 {
 			}
 		    
 		}
-
+		//a="endpoint.jpar";
 		a=jksFile.getAbsolutePath();
 	}
 	
