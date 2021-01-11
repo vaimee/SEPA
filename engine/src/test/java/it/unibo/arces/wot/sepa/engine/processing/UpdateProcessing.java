@@ -50,6 +50,7 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 	public static void init() throws SEPASecurityException {		
 		System.out.println("[Junit][ARQuadsAlgorith] Prepare test");
 		String endpointJpar =new ConfigurationProvider2().a;
+		System.out.println("[VERBOSE] endpointJpar percorso: "+ endpointJpar);
 		EpSpecFactory.setInstanceFromFile(endpointJpar);
 		eps = EpSpecFactory.getInstance();		
 		System.out.println("[Junit][ARQuadsAlgorith] end point: "+ EpSpecFactory.getEndPointSpec().toString());
@@ -290,7 +291,7 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 	//----------------------------------------------------
 	
 	private static void initUpdateDataInsert_2g() throws SPARQL11ProtocolException, SEPASparqlParsingException {
-		String testName = "UpdateDataInsert";
+		String testName = "UpdateDataInsert_2g";
 		String sparql = ""+
 				"INSERT DATA{\r\n" + 
 				"	GRAPH <"+graph1+"> {\r\n" + 
@@ -323,7 +324,7 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 	}
 		
 	private static void initUpdateDeleteWhere_2g() throws SPARQL11ProtocolException, SEPASparqlParsingException {
-		String testName = "UpdateDeleteWhere";
+		String testName = "UpdateDeleteWhere_2g";
 		String sparql = ""+
 				"DELETE WHERE {\r\n" + 
 				"		GRAPH <"+graph1+"> { \r\n" + 
@@ -351,7 +352,7 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 	}
 		
 	private static void initUpdateModify_2g() throws SPARQL11ProtocolException, SEPASparqlParsingException {
-		String testName = "UpdateModify";
+		String testName = "UpdateModify_2g";
 		String sparql = ""+
 				"DELETE { "+
 					"GRAPH <"+graph1+">  {\r\n" + 
@@ -394,7 +395,7 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 	}
 	
 	private static void initUpdateDataDelete_2g() throws SPARQL11ProtocolException, SEPASparqlParsingException {
-		String testName = "UpdateDataDelete";
+		String testName = "UpdateDataDelete_2g";
 		String sparql = ""+
 				"DELETE DATA { "+ 
 				"GRAPH  <"+graph1+"> { \r\n" + 
@@ -420,7 +421,7 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 	
 	
 	private static void initUpdateModifyWhere_2g() throws SPARQL11ProtocolException, SEPASparqlParsingException {
-		String testName = "UpdateModifyWhere";
+		String testName = "UpdateModifyWhere_2g";
 		String sparql = ""+
 				"DELETE {  \r\n" + 
 				"		GRAPH <"+graph1+">  {\r\n" + 

@@ -1,6 +1,8 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
 
 import javax.net.ssl.SSLContext;
 
@@ -17,6 +19,25 @@ public class ConfigurationProvider2 {
 	
 	public ConfigurationProvider2() throws SEPASecurityException {
 		File jksFile = new File(getClass().getClassLoader().getResource("endpoint.jpar").getFile());
+		System.out.println("[VERBOSE] endpointJpar EXIST: "+ jksFile.exists());	
+		if( jksFile.exists()) {
+
+			 Scanner myReader;
+			try {
+				myReader = new Scanner(jksFile); 
+				while (myReader.hasNextLine()) {
+			        String data = myReader.nextLine();
+					System.out.println("[VERBOSE] endpointJpar: "+ data);		
+		      }
+		      myReader.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				System.out.println("[VERBOSE] can't read endpointJpar ");	
+			}
+		    
+		}
+
 		a=jksFile.getAbsolutePath();
 	}
 	
