@@ -3,6 +3,7 @@ package it.unibo.arces.wot.sepa.engine.processing;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -11,6 +12,7 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.engine.processing.epspec.EpSpecFactory;
 import it.unibo.arces.wot.sepa.engine.processing.epspec.IEndPointSpecification;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
@@ -31,8 +33,9 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 
 public class UpdateProcessing {
 
-	private final static String endpointJpar = "./src/main/resources/endpoint.jpar";
-	private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
+
+	
+private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 	private final static String graph2 = "http://it.unibo.test.updateprocessing.2";
 	private final static ArrayList<InternalUpdateRequest> updates = new ArrayList<InternalUpdateRequest>();
 	private final static ArrayList<ARBindingsResults> results = new ArrayList<ARBindingsResults>();
@@ -44,8 +47,9 @@ public class UpdateProcessing {
 	
 	
 	@BeforeClass
-	public static void init() {		
+	public static void init() throws SEPASecurityException {		
 		System.out.println("[Junit][ARQuadsAlgorith] Prepare test");
+		String endpointJpar =new ConfigurationProvider2().a;
 		EpSpecFactory.setInstanceFromFile(endpointJpar);
 		eps = EpSpecFactory.getInstance();		
 		System.out.println("[Junit][ARQuadsAlgorith] end point: "+ EpSpecFactory.getEndPointSpec().toString());

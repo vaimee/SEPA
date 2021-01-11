@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -29,11 +30,12 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DeviceIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DigitalIdentity;
+import it.unibo.arces.wot.sepa.engine.processing.UpdateProcessing;
 
 public class SecurityManagerTest {
 	private static SecurityManager auth;
 	private static ConfigurationProvider configurationProvider;
-
+	private static UpdateProcessing temp;
 	
 	private SignedJWT generateToken(DigitalIdentity identity, String password) throws ParseException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {
@@ -94,8 +96,21 @@ public class SecurityManagerTest {
 	public static void init() throws SEPASecurityException {
 		configurationProvider = new ConfigurationProvider();
 		auth = new InMemorySecurityManager(configurationProvider.getSslContext(),configurationProvider.getRsaKey());
+		temp= new UpdateProcessing();		
+		temp.init();
 	}
 
+
+	@After
+	public void clean() {
+		temp.clean();
+	}
+	
+	@Test
+	public void updateProcessingTest() {
+		temp.updatesTest();
+	}
+	
 	//@Test
 	public void entitiesAuthorization() throws SEPASecurityException {
 		String uid = UUID.randomUUID().toString();
