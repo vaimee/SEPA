@@ -22,6 +22,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
@@ -45,13 +46,17 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 	private static QueryProcessor queryProcessor;
 	private static UpdateProcessor updateProcessor;
 	private static boolean testAbort =false;
+	private static boolean verbose = true;
+			
 	
 	
 	@BeforeClass
 	public static void init() throws SEPASecurityException {		
 		System.out.println("[Junit][ARQuadsAlgorith] Prepare test");
 		String endpointJpar =new ConfigurationProvider2().a;
-		System.out.println("[VERBOSE] endpointJpar percorso: "+ endpointJpar);
+		if(verbose) {
+			System.out.println("[VERBOSE] endpointJpar percorso: "+ endpointJpar);
+		}
 		EpSpecFactory.setInstanceFromFile(endpointJpar);
 		eps = EpSpecFactory.getInstance();		
 		System.out.println("[Junit][ARQuadsAlgorith] end point: "+ eps.getEndPointName().toString());
@@ -113,19 +118,10 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 		try {
 			cleanKB();
 		} catch (SPARQL11ProtocolException | SEPASparqlParsingException | SEPASecurityException | IOException e) {
-			// TODO Auto-generated catch block
+	
 			e.printStackTrace();
 		}
-		
-//		boolean shutdownPass = true;
-//		try {
-//			engine.shutdown();
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			System.out.println("Junit UpdateProcessing-> Engine shutdown error: "+ e.getMessage());
-//			shutdownPass = false;
-//		}
-//		assertTrue("Engine shutdown",shutdownPass);
+
 	}
 	
 	@Test
@@ -480,12 +476,17 @@ private final static String graph1 = "http://it.unibo.test.updateprocessing.1";
 	
 	
 	private static boolean cleanKB() throws SEPASparqlParsingException, SPARQL11ProtocolException, SEPASecurityException, IOException {
-		System.out.println("Junit UpdateProcessing-> Clean graphs: <"+ graph1 + ">; <"+ graph2+">");
-		
+		if(verbose ) {	
+			System.out.println("[VERBOSE] Clean graphs: <"+ graph1 + ">; <"+ graph2+">");
+		}
+	
 		String sparql ="CLEAR GRAPH <"+ graph1 + ">;"+
 				"CLEAR GRAPH <"+ graph2 + ">;";
-		
-		boolean error = updateProcessor.process(new InternalUpdateRequest(sparql,new HashSet<String>(),new HashSet<String>(), new ClientAuthorization())).isError();
+		Response resp = updateProcessor.process(new InternalUpdateRequest(sparql,new HashSet<String>(),new HashSet<String>(), new ClientAuthorization()));
+		boolean error = resp.isError();
+		if(verbose && error) {	
+			System.out.println("[VERBOSE] errore clean: "+ resp.toString());
+		}
 		System.out.println("Junit UpdateProcessing-> Clean error: "+error);
 		return error;
 		

@@ -96,8 +96,9 @@ public class SecurityManagerTest {
 	public static void init() throws SEPASecurityException {
 		configurationProvider = new ConfigurationProvider();
 		auth = new InMemorySecurityManager(configurationProvider.getSslContext(),configurationProvider.getRsaKey());
+		// UpdateProcessing junit
+		UpdateProcessing.init();
 		temp= new UpdateProcessing();		
-		temp.init();
 	}
 
 

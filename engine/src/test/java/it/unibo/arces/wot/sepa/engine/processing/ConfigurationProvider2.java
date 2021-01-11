@@ -19,24 +19,24 @@ public class ConfigurationProvider2 {
 	
 	public ConfigurationProvider2() throws SEPASecurityException {
 		File jksFile = new File(getClass().getClassLoader().getResource("endpoint.jpar").getFile());
-		System.out.println("[VERBOSE] endpointJpar EXIST: "+ jksFile.exists());	
-		if( jksFile.exists()) {
-
-			 Scanner myReader;
-			try {
-				myReader = new Scanner(jksFile); 
-				while (myReader.hasNextLine()) {
-			        String data = myReader.nextLine();
-					System.out.println("[VERBOSE] endpointJpar: "+ data);		
-		      }
-		      myReader.close();
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				System.out.println("[VERBOSE] can't read endpointJpar ");	
-			}
-		    
-		}
+		//System.out.println("[VERBOSE] endpointJpar EXIST: "+ jksFile.exists());	
+//		if( jksFile.exists()) {
+//
+//			Scanner myReader;
+//			try {
+//				myReader = new Scanner(jksFile); 
+//				while (myReader.hasNextLine()) {
+//			        String data = myReader.nextLine();
+//					System.out.println("[VERBOSE] endpointJpar: "+ data);		
+//		      }
+//		      myReader.close();
+//			} catch (FileNotFoundException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//				System.out.println("[VERBOSE] can't read endpointJpar ");	
+//			}
+//		    
+//		}
 		//a="endpoint.jpar";
 		a=jksFile.getAbsolutePath();
 	}
