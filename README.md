@@ -40,9 +40,11 @@
 - [Credits](#credits)
 
 ## Introduction
-SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL 1.1** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refer to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm).
-
-SEPA is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of a generic SPARQL endpoint where publishers and subscribers use standard **SPARQL** Updates and Queries. Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification.
+SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of generic SPARQL endpoints (conformant with [SPARQL 1.1 protocol](https://www.w3.org/TR/sparql11-protocol/)) where publishers and subscribers use standard **SPARQL 1.1** [Updates](https://www.w3.org/TR/sparql11-update/) and [Queries](https://www.w3.org/TR/sparql11-query/). Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refer to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm). SEPA proposal has been formalized in the following *unofficial dratfs*:
+- [SPARQL Event Processing Architecture (SEPA)](http://mml.arces.unibo.it/TR/sepa.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sepa.html)
+- [SPARQL 1.1 Secure Event Protocol](http://mml.arces.unibo.it/TR/sparql11-se-protocol.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sparql11-se-protocol.html)
+- [SPARQL 1.1 Subscribe Language](http://mml.arces.unibo.it/TR/sparql11-subscribe.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sparql11-subscribe.html)
+- [JSON SPARQL Application Profile (JSAP)](http://mml.arces.unibo.it/TR/jsap.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/jsap.html)
 
 ## Demo
 
@@ -70,32 +72,18 @@ The default version of `endpoint.jpar` configures the engine to use use a local 
 
 ```json
 {
-  "host": "localhost",
-  "sparql11protocol": {
-    "protocol": "http",
-    "port": 9999,
-    "query": {
-      "path": "/blazegraph/namespace/kb/sparql",
-      "method": "POST",
-      "format": "JSON"
-    },
-    "update": {
-      "path": "/blazegraph/namespace/kb/sparql",
-      "method": "POST",
-      "format": "JSON"
-    }
-  },
-  "sparql11seprotocol": {
-    "protocol": "ws",
-    "availableProtocols": {
-      "ws": {
-        "port": 9443,
-        "path": "/subscribe"
-      },
-      "wss": {}
-    }
-  }
-}
+"host":"localhost",
+"sparql11protocol":{
+  "protocol":"http",
+  "port":9999,
+  "query":{
+    "path":"/blazegraph/namespace/kb/sparql",
+    "method":"POST",
+    "format":"JSON"},
+  "update":{
+    "path":"/blazegraph/namespace/kb/sparql",
+    "method":"POST",
+    "format":"JSON"}}}
 ```
 The default version of  `engine.jpar` configures the engine to listen for incoming [SPARQL 1.1 SE Protocol](http://mml.arces.unibo.it/TR/sparql11-se-protocol/) requests at the following URLs:
 
@@ -108,41 +96,34 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
 7. Regitration: https://localhost:8443/oauth/register
 8. Token request: https://localhost:8443/oauth/token
 ```json
-{
-  "parameters": {
-    "scheduler": {
-      "queueSize": 100,
-      "timeout": 5000
-    },
-    "processor": {
-      "updateTimeout": 5000,
-      "queryTimeout": 5000,
-      "maxConcurrentRequests": 5,
-      "reliableUpdate": true
-    },
-    "spu": {
-      "timeout": 5000
-    },
-    "gates": {
-      "secure": false,
-      "paths": {
-        "secure": "/secure",
-        "update": "/update",
-        "query": "/query",
-        "subscribe": "/subscribe",
-        "unsubscribe": "/unsubscribe",
-        "register": "/oauth/register",
-        "tokenRequest": "/oauth/token"
-      },
-      "ports": {
-        "http": 8000,
-        "https": 8443,
-        "ws": 9000,
-        "wss": 9443
-      }
-    }
-  }
-}
+{"parameters":{
+  "scheduler":{
+   "queueSize":100,
+   "timeout":5000},
+  "processor":{
+   "updateTimeout":5000,
+   "queryTimeout":5000,
+   "maxConcurrentRequests":5,
+   "reliableUpdate":true},
+  "spu":{"timeout":5000},
+  "gates":{
+   "security":{
+    "tls":false,
+    "enabled":false,
+    "type":"local"},
+   "paths":{
+    "secure":"/secure",
+    "update":"/update",
+    "query":"/query",
+    "subscribe":"/subscribe",
+    "unsubscribe":"/unsubscribe",
+    "register":"/oauth/register",
+    "tokenRequest":"/oauth/token"},
+   "ports":{
+    "http":8000,
+    "https":8443,
+    "ws":9000,
+    "wss":9443}}}}
 ```
 ### Logging
 SEPA uses [log4j2](http://logging.apache.org/log4j/2.x/) by Apache. A default configuration is stored in the file log4j2.xml provided with the distribution. If the file resides in the engine folder, but it is not used, add the following JVM directive to force using it:
@@ -150,13 +131,26 @@ SEPA uses [log4j2](http://logging.apache.org/log4j/2.x/) by Apache. A default co
 java `-Dlog4j.configurationFile=./log4j2.xml` -jar engine-x.y.z.jar
 
 ### Security
+By default, the engine implements a simple in-memory [OAuth 2.0 client-credential flow](https://auth0.com/docs/flows/client-credentials-flow). It uses a JKS for storing the keys and certificates for [SSL](http://docs.oracle.com/cd/E19509-01/820-3503/6nf1il6ek/index.html) and [JWT](https://tools.ietf.org/html/rfc7519) signing/verification. A default `sepa.jks` is provided including a single X.509 certificate (the password for both the store and the key is: `sepa2017`). If you face problems using the provided JKS, please delete the `sepa.jks` file and create a new one as follows: `keytool -genkey -keyalg RSA -alias sepakey -keystore sepa.jks -storepass sepa2017 -validity 360 -keysize 2048`
+Run `java -jar engine-x.y.z.jar -help` for a list of options. The Java [Keytool](https://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html) can be used to create, access and modify a JKS. 
+SEPA also implements other two security mechanisms:
+- LDAP: it extends the default one by storing clients's information into an LDAP server (tested with [Apache Directory](https://directory.apache.org/))
+- KEYCLOAK: authentication based on OpenID Connect in managed by [Keycloak](https://www.keycloak.org/)
 
-The engine uses a JKS for storing the keys and certificates for [SSL](http://docs.oracle.com/cd/E19509-01/820-3503/6nf1il6ek/index.html) and [JWT](https://tools.ietf.org/html/rfc7519) signing/verification. A default `sepa.jks` is provided including a single X.509 certificate (the password for both the store and the key is: `sepa2017`). If you face problems using the provided JKS, please delete the `sepa.jks` file and create a new one as follows: `keytool -genkey -keyalg RSA -alias sepakey -keystore sepa.jks -storepass sepa2017 -validity 360 -keysize 2048`
+Security is configured within the `engine.jpar` as follows:
+```json
+{"gates":{
+  "security":{
+    "tls": false,
+    "enabled": true,
+    "type": "local"
+}}}
+```
+where 
+- `type` can assume one of the following values: `local`,`ldap`,`keycloak`
+- `tls` is used when `type`=`ldap` to enable or not LDAP StartTLS
 
-## Usage
-
-The SEPA engine allows to use a user generated JKS. Run `java -jar engine-x.y.z.jar -help` for a list of options. The Java [Keytool](https://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html) can be used to create, access and modify a JKS. 
-
+### JMX monitoring
 The SEPA engine is also distributed with a default [JMX](http://www.oracle.com/technetwork/articles/java/javamanagement-140525.html) configuration `jmx.properties` (including the `jmxremote.password` and `jmxremote.access` files for password and user grants). Remember to change password file permissions using: `chmod 600 jmxremote.password`. To enable remote JMX, the engine must be run as follows: `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`. Using [`jconsole`](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) is possible to monitor and control the most important engine parameters. By default, the port is `5555` and the `root:root` credentials grant full control (read/write).
 
 ## Contributing
@@ -175,8 +169,8 @@ ask any question. For more details check [Contributing guidelines](CONTRIBUTING.
 Pull request with unit tests have an higher likelihood to be accepted, but we are not to restrictive. So do not be afraid to send your contribution!
 
 ### Clone in Eclipse
-There is no particular restriction in your IDE choice, here we provide a short guide to import the cloned project inside Eclipse. Any 
-other IDE should be fine. 
+There is no particular restriction in your IDE choice. Here we provide a short guide to import the GitHub cloned project inside Eclipse. Any 
+other IDEs work fine. 
 
 1. Open Eclipse
 2. File > Import > Maven
@@ -185,13 +179,22 @@ other IDE should be fine.
 5. go on...
 The project is cloned. Enjoy!
 
-### Build with maven
-SEPA engine is a maven project and you can build it with this command:
+### Build with Maven
+SEPA engine is a Maven project composed by two sub-projects:
+- Client-api
+- Engine
+
+As first, you need to build client-api skipping JUnit tests:
+```bash
+mvn install -DskipTests
+```
+In fact, clien-api JUnit tests include integration tests that require a SEPA engine running
+
+Then you can build the engine with this command:
 ```bash
 mvn install
 ```
-That create an executable inside the target directory. To know more about mave please refer to the [official documentation](https://maven.apache.org/).
-
+That create an executable inside the target directory. To know more about Maven please refer to the [official documentation](https://maven.apache.org/).
 
 ## History
 
