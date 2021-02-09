@@ -38,11 +38,12 @@ import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-import org.apache.jena.query.QueryException;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
@@ -191,7 +192,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 							headers[0].getValue());
 			} else
 				return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri, auth);
-		} catch (QueryException e) {
+		} catch (SEPASparqlParsingException e) {
 			logger.error(e.getMessage());
 			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 		}
@@ -200,6 +201,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public HttpAsyncRequestConsumer<HttpRequest> processRequest(HttpRequest request, HttpContext context)
 			throws HttpException, IOException {
+		logger.log(Level.getLevel("http"),"@processRequest "+request+" "+context);
 		// Buffer request content in memory for simplicity
 		return new BasicAsyncRequestConsumer();
 	}
@@ -207,6 +209,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 	@Override
 	public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
 			throws HttpException, IOException {
+		logger.log(Level.getLevel("http"),"@handle "+request+" "+context);
 		// CORS
 		if (!corsHandling(httpExchange)) return;
 			
@@ -221,7 +224,7 @@ public abstract class SPARQL11Handler implements HttpAsyncRequestHandler<HttpReq
 			return;
 		}
 		if (!oauth.isAuthorized()) {
-			logger.error("*** NOT AUTHORIZED *** " + oauth.getDescription());
+			logger.warn("*** NOT AUTHORIZED *** " + oauth.getDescription());
 			HttpUtilities.sendFailureResponse(httpExchange,
 					new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, oauth.getError(), oauth.getDescription()));
 			jmx.authorizingFailed();

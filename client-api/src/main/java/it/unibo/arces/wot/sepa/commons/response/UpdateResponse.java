@@ -21,8 +21,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
-import it.unibo.arces.wot.sepa.commons.response.Response;
-
 /**
  * This class represents the response of a SPARQL 1.1 Update
  */

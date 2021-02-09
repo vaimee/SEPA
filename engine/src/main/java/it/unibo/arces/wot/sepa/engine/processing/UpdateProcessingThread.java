@@ -18,12 +18,9 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import org.apache.http.HttpStatus;
-import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
@@ -31,9 +28,9 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 
 class UpdateProcessingThread extends Thread {
 	private static final Logger logger = LogManager.getLogger();
-	
+
 	private final Processor processor;
-	
+
 	public UpdateProcessingThread(Processor processor) {
 		this.processor = processor;
 		setName("SEPA-Update-Processor");
@@ -50,36 +47,25 @@ class UpdateProcessingThread extends Thread {
 			}
 
 			// Update request
-			InternalUpdateRequest update = (InternalUpdateRequest)request.getRequest();
-			
+			InternalUpdateRequest update = (InternalUpdateRequest) request.getRequest();
+
 			// Notify update (not reliable)
 			if (!processor.isUpdateReliable()) {
 				logger.trace("Notify client of update processing (not reliable)");
-				processor.addResponse(request.getToken(),new UpdateResponse("Processing: "+update));
+				processor.addResponse(request.getToken(), new UpdateResponse("Processing: " + update));
 			}
-			
-			try{
-				// Process update
-				logger.trace("Start processing update...");
-				Response ret = processor.processUpdate(update);
-				logger.trace("Update processing COMPLETED");
-				
-				// Notify update result
-				if (processor.isUpdateReliable()) {
-					logger.trace("Notify client of update processing (reliable)");
-					processor.addResponse(request.getToken(),ret);
-				}
+
+			// Process update
+			logger.trace("Start processing update...");
+			Response ret = processor.processUpdate(update);
+			logger.trace("Update processing COMPLETED");
+
+			// Notify update result
+			if (processor.isUpdateReliable()) {
+				logger.trace("Notify client of update processing (reliable)");
+				processor.addResponse(request.getToken(), ret);
 			}
-			catch(QueryException e) {
-				logger.trace("Update processing EXCEPTION");
-				logger.error(e.getMessage());
-				
-				// Notify update result
-				if (processor.isUpdateReliable()) {
-					processor.addResponse(request.getToken(),new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "parsing failed", e.getMessage()));
-				}
-			}
-			
+
 		}
 	}
 }

@@ -25,7 +25,6 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 
 import org.apache.http.HttpStatus;
-import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,6 +34,7 @@ import org.java_websocket.server.WebSocketServer;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -45,22 +45,22 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class WebsocketServer extends WebSocketServer implements WebsocketServerMBean {
 	protected static final Logger logger = LogManager.getLogger();
-	
+
 	// Active gates
 	protected final HashMap<WebSocket, WebsocketGate> gates = new HashMap<WebSocket, WebsocketGate>();
-		
+
 	// Fragmentation support
 	protected final HashMap<WebSocket, String> fragmentedMessages = new HashMap<WebSocket, String>();
 
 	protected final Scheduler scheduler;
 	protected final String welcomeMessage;
 	protected final String path;
-	
+
 	public WebsocketServer(int port, String path, Scheduler scheduler) throws SEPAProtocolException {
 		super(new InetSocketAddress(port));
 
 		// Connection lost timeout (0 = disabled)
-		setConnectionLostTimeout( 0 );
+		setConnectionLostTimeout(0);
 
 		if (path == null || scheduler == null)
 			throw new SEPAProtocolException(new IllegalArgumentException("One or more arguments are null"));
@@ -86,26 +86,29 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		return "SPARQL 1.1 Subscribe | ws://%s:%d%s";
 	}
 
-	@Override
-	public void onOpen(WebSocket conn, ClientHandshake handshake) {
+	protected void addGate(WebsocketGate gate,WebSocket conn) {
 		// Add new gate
 		synchronized (gates) {
-			WebsocketGate gate = new WebsocketGate(conn, scheduler);
-			
+
 			gates.put(conn, gate);
-			
+
 			Dependability.addGate(gate);
 
 			fragmentedMessages.put(conn, null);
 
-			logger.debug("@onOpen (sockets: " + gates.size()+") GID: " + gate.getGID() + " socket: "+conn);
+			logger.debug("@onOpen (sockets: " + gates.size() + ") GID: " + gate.getGID() + " socket: " + conn);
 		}
 	}
-	
+
+	@Override
+	public void onOpen(WebSocket conn, ClientHandshake handshake) {
+		addGate(new WebsocketGate(conn, scheduler),conn);
+	}
+
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		synchronized (gates) {
-			logger.debug("@onClose socket: " + conn + " reason: " + reason + " remote: "+remote);
+			logger.debug("@onClose socket: " + conn + " reason: " + reason + " remote: " + remote);
 
 			fragmentedMessages.remove(conn);
 
@@ -118,7 +121,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 				}
 
 			Dependability.removeGate(gates.get(conn));
-			
+
 			// Remove from active gates
 			gates.remove(conn);
 		}
@@ -131,14 +134,13 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		// Check path
 		if (!conn.getResourceDescriptor().equals(path)) {
 			logger.warn("@onMessage bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-			
+
 			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "wrong_path",
 					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
-			
-			try{
+
+			try {
 				conn.send(response.toString());
-			}
-			catch(Exception e) {
+			} catch (Exception e) {
 				logger.warn(e.getMessage());
 			}
 			return;
@@ -146,19 +148,18 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 		synchronized (gates) {
 			try {
-				if (gates.get(conn) !=  null) gates.get(conn).onMessage(message);
+				if (gates.get(conn) != null)
+					gates.get(conn).onMessage(message);
 				else {
-					logger.error("Gate NOT FOUND: "+conn);
+					logger.error("Gate NOT FOUND: " + conn);
 				}
-			} catch (SEPAProtocolException | SEPASecurityException | QueryException e) {
+			} catch (SEPAProtocolException | SEPASecurityException | SEPASparqlParsingException e) {
 				logger.error(e);
-				
-				ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "parsing failed",
-						e.getMessage());
-				try{
+
+				ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "parsing failed", e.getMessage());
+				try {
 					conn.send(response.toString());
-				}
-				catch(Exception e1) {
+				} catch (Exception e1) {
 					logger.warn(e1.getMessage());
 				}
 			}
@@ -198,7 +199,13 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
-		logger.error("@onError: " + conn + " Exception: " + ex);
+		if (conn == null) {
+			logger.fatal("Failed to start. Cannot bind port. Exit");
+			System.exit(-1);
+		}
+
+		logger.error("@onError " + conn.getResourceDescriptor() + " remote: " + conn.getRemoteSocketAddress() + " "
+				+ ex.getClass().getCanonicalName() + " " + ex.getMessage());
 
 		GateBeans.onError();
 

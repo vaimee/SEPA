@@ -45,17 +45,9 @@ public class Subscriber {
 		return sequence;
 	}
 	
-//	public EventHandler getHandler() {
-//		return handler;
-//	}
-	
 	public String getSID() {
 		return sid;
 	}
-	
-//	public String getGID() {
-//		return ((Gate)handler).getGID();
-//	}
 	
 	public SPU getSPU() {
 		return spu;

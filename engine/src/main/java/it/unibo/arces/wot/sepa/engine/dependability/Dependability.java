@@ -24,92 +24,100 @@ import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.nimbusds.jose.jwk.RSAKey;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.InMemorySecurityManager;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.IsqlProperties;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.KeyCloakSecurityManager;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapProperties;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapSecurityManager;
+import it.unibo.arces.wot.sepa.engine.dependability.authorization.SecurityManager;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 
 public class Dependability {
 	protected static Logger logger = LogManager.getLogger();
-	
+
 	private static boolean isSecure = false;
 	private static SecurityManager authManager = null;
-		
-	private static String keystore = null;
-	private static String keypass = null;
-	
+
 	public static boolean isSecure() {
 		return isSecure;
 	}
-		
-	public static void enableLDAP(String host, int port, String base, String uid, String pwd) throws SEPASecurityException {
-		if (authManager == null) throw new SEPASecurityException("Authorization manager is null");
-		
-		authManager.enableLDAP(host, port, base, uid, pwd);
-	}
-	
-	public static void enableSecurity(String keystoreFileName,String keystorePwd,String keyAlias) throws SEPASecurityException {
-		authManager = new SecurityManager(keystoreFileName,keystorePwd,keyAlias);
-		
+
+	public static void enableLDAPSecurity(SSLContext ssl, RSAKey key, LdapProperties prop) throws SEPASecurityException {
+		authManager = new LdapSecurityManager( ssl,  key,  prop);
 		isSecure = true;
-		
-		keystore = keystoreFileName;
-		keypass = keystorePwd;
-		
-		authManager.setSSLContextFromJKS(keystore, keypass);
 	}
-	
+
+	public static void enableLocalSecurity(SSLContext ssl, RSAKey key)
+			throws SEPASecurityException {
+		authManager = new InMemorySecurityManager( ssl,  key);
+		isSecure = true;
+	}
+
+	public static void enableKeyCloakSecurity(SSLContext ssl, RSAKey key,LdapProperties prop, IsqlProperties isqlprop) throws SEPASecurityException {
+		authManager = new  KeyCloakSecurityManager( ssl,  key, prop, isqlprop);
+		isSecure = true;
+	}
+
 	public static SSLContext getSSLContext() throws SEPASecurityException {
-		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
-		
+		if (authManager == null)
+			throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+
 		return authManager.getSSLContext();
 	}
-	
+
 	public static Response getToken(String encodedCredentials) throws SEPASecurityException {
-		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
-		
+		if (authManager == null)
+			throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+
 		return authManager.getToken(encodedCredentials);
 	}
 
 	public static Response register(String identity) throws SEPASecurityException {
-		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
-		
+		if (authManager == null)
+			throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+
 		return authManager.register(identity);
 	}
 
 	public static ClientAuthorization validateToken(String jwt) throws SEPASecurityException {
-		if (authManager == null) throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
-		
+		if (authManager == null)
+			throw new SEPASecurityException("Authorization manager is null. First call enableSecurity()");
+
 		return authManager.validateToken(jwt);
 	}
-	
+
 	public static void setProcessor(Processor p) {
-		SubscriptionManager.setProcessor(p);
-	}
-	
-	public static void onCloseGate(String gid) throws InterruptedException {
-		SubscriptionManager.onClose(gid);
+		GatesMonitor.setProcessor(p);
 	}
 
-	public static void addGate(Gate g)  {
-		SubscriptionManager.addGate(g);
+	public static void onCloseGate(String gid) throws InterruptedException {
+		GatesMonitor.onClose(gid);
 	}
-	
-	public static void removeGate(Gate g)  {
-		SubscriptionManager.removeGate(g);
+
+	public static void addGate(Gate g) {
+		GatesMonitor.addGate(g);
 	}
-	
+
+	public static void removeGate(Gate g) {
+		GatesMonitor.removeGate(g);
+	}
+
 	public static void onGateError(String gid, Exception e) {
-		SubscriptionManager.onError(gid, e);
+		GatesMonitor.onError(gid, e);
 	}
 
 	public static void onSubscribe(String gid, String sid) {
-		SubscriptionManager.onSubscribe(gid, sid);
+		GatesMonitor.onSubscribe(gid, sid);
 	}
 
 	public static void onUnsubscribe(String gid, String sid) {
-		SubscriptionManager.onUnsubscribe(gid, sid);
+		GatesMonitor.onUnsubscribe(gid, sid);
 	}
 
 	public static boolean processCORSRequest(HttpAsyncExchange exchange) {
@@ -119,7 +127,5 @@ public class Dependability {
 	public static boolean isPreFlightRequest(HttpAsyncExchange exchange) {
 		return CORSManager.isPreFlightRequest(exchange);
 	}
-
-	
 
 }

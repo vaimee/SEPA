@@ -3,8 +3,6 @@ package it.unibo.arces.wot.sepa.engine.dependability.authorization;
 import java.io.Console;
 import java.util.Scanner;
 
-import org.apache.directory.api.ldap.model.exception.LdapException;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.Credentials;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
@@ -27,7 +25,7 @@ public class ACLManager {
 		System.out.println("* SEPA ACL Manager *");
 		System.out.println("********************");
 
-		LdapAuthorization ldap;
+		LdapSecurityManager ldap;
 		String line;
 		while (true) {
 			System.out.print("Host (return for default: localhost): ");
@@ -60,8 +58,8 @@ public class ACLManager {
 			}
 
 			try {
-				ldap = new LdapAuthorization(host, port, base, user, pwd);
-			} catch (LdapException e2) {
+				ldap = new LdapSecurityManager(JKSUtil.getSSLContext("sepa.jks", "sepa2020"),JKSUtil.getRSAKey("sepa.jks", "sepa2020","jwt","sepa2020"),new LdapProperties(host, port, base, null,user, pwd, false));
+			} catch (SEPASecurityException e2) {
 				System.out.println(e2.getMessage());
 				continue;
 			}

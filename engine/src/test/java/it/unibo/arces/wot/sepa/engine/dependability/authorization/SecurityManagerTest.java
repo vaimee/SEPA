@@ -1,12 +1,9 @@
-package engine;
+package it.unibo.arces.wot.sepa.engine.dependability.authorization;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
@@ -16,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
-import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -30,19 +26,14 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.IAuthorization;
-import it.unibo.arces.wot.sepa.engine.dependability.authorization.InMemoryAuthorization;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DeviceIdentity;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DigitalIdentity;
 
-public class ITAuthorizationTest {
-	private static IAuthorization auth;
-	private final File jksFile;
-	
-	public ITAuthorizationTest() {
-		jksFile = new File(getClass().getClassLoader().getResource("sepa.jks").getFile());
-	}
+public class SecurityManagerTest {
+	private static SecurityManager auth;
+	private static ConfigurationProvider configurationProvider;
+
 	
 	private SignedJWT generateToken(DigitalIdentity identity, String password) throws ParseException, KeyStoreException,
 			NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException, JOSEException, SEPASecurityException {
@@ -80,11 +71,13 @@ public class ITAuthorizationTest {
 		SignedJWT signedJWT;
 		signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), JWTClaimsSet.parse(jwtClaims.toString()));
 
-		// Load the key from the key store
-		KeyStore keystore = KeyStore.getInstance("JKS");
+//		// Load the key from the key store
+//		KeyStore keystore = KeyStore.getInstance("JKS");
+//		
+//		keystore.load(new FileInputStream(jksFile), storePass.toCharArray());
+//		RSAKey jwk = RSAKey.load(keystore, alias, keyPass.toCharArray());
 		
-		keystore.load(new FileInputStream(jksFile), "sepa2017".toCharArray());
-		RSAKey jwk = RSAKey.load(keystore, "sepakey", "sepa2017".toCharArray());
+		RSAKey jwk = configurationProvider.getRsaKey();
 
 		// Get the private and public keys to sign and verify
 		RSAPrivateKey privateKey = jwk.toRSAPrivateKey();
@@ -98,12 +91,12 @@ public class ITAuthorizationTest {
 	}
 
 	@BeforeClass
-	public static void init() throws LdapException {
-		//auth = new LdapAuthorization("localhost", 10389, "o=vaimee",null,null);
-		auth = new InMemoryAuthorization();
+	public static void init() throws SEPASecurityException {
+		configurationProvider = new ConfigurationProvider();
+		auth = new InMemorySecurityManager(configurationProvider.getSslContext(),configurationProvider.getRsaKey());
 	}
 
-	@Test
+	//@Test
 	public void entitiesAuthorization() throws SEPASecurityException {
 		String uid = UUID.randomUUID().toString();
 
@@ -119,7 +112,7 @@ public class ITAuthorizationTest {
 		assertFalse(uid+" should not be authorized",auth.isAuthorized(uid));
 	}
 
-	@Test
+	//@Test
 	public void jwtClaims() throws SEPASecurityException {
 		String issuer = auth.getIssuer();
 //		String httpsAudience = auth.getHttpsAudience();
@@ -176,12 +169,12 @@ public class ITAuthorizationTest {
 		SignedJWT token = generateToken(device,uid);
 		Date expirationDate = token.getJWTClaimsSet().getExpirationTime();
 		
-		auth.addToken(uid,token);
-		assertFalse("Failed to check token presence",!auth.containsToken(uid));
+		auth.addJwt(uid,token);
+		assertFalse("Failed to check token presence",!auth.containsJwt(uid));
 		assertFalse("Failed to get expiring period",auth.getTokenExpiringPeriod(uid) != auth.getDeviceExpiringPeriod());
 		assertFalse("Failed to get expiring date",!auth.getTokenExpiringDate(uid).equals(expirationDate));
 		
-		SignedJWT stored = auth.getToken(uid);
+		SignedJWT stored = auth.getJwt(uid);
 		assertFalse("Token does not match",!stored.serialize().equals(token.serialize()));
 		
 		auth.setTokenExpiringPeriod(uid,0);

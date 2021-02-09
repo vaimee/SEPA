@@ -1,4 +1,4 @@
-/* Class for processing SPARQL 1.1 subscribe requests
+/** Class for processing SPARQL 1.1 subscribe requests
  * 
  * Author: Luca Roffia (luca.roffia@unibo.it)
 
@@ -46,7 +46,7 @@ class UnsubscribeProcessingThread extends Thread {
 				// Process request
 				String sid = ((InternalUnsubscribeRequest) request.getRequest()).getSID();
 				String gid = ((InternalUnsubscribeRequest) request.getRequest()).getGID();
-				Response response = processor.unsubscribe(sid,gid);
+				Response response = processor.processUnsubscribe(sid,gid);
 				
 				logger.debug("<< " + response);
 
@@ -54,7 +54,7 @@ class UnsubscribeProcessingThread extends Thread {
 				processor.addResponse(request.getToken(), response);
 
 			} catch (InterruptedException e) {
-				logger.warn(e.getMessage());
+				logger.warn("Exit");
 				return;
 			}
 		}

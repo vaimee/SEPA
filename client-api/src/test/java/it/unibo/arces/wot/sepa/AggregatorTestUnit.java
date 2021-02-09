@@ -7,19 +7,17 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
-import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 public class AggregatorTestUnit extends Aggregator {
 	protected static boolean notificationReceived = false;
 	protected static boolean firstResultsReceived = false;
 	
-	public AggregatorTestUnit(JSAP appProfile, String subscribeID, String updateID, ClientSecurityManager sm)
-			throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile, subscribeID, updateID, sm);
+	public AggregatorTestUnit(ConfigurationProvider provider, String subscribeID, String updateID)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(provider.getJsap(), subscribeID, updateID);
 	}
 
 	@Override
@@ -31,30 +29,35 @@ public class AggregatorTestUnit extends Aggregator {
 		
 		try {
 			Response ret = update();
-
-			int retryTimes = 0;
-			while (ret.isError() && retryTimes < 10){
-				ret = update();
-				retryTimes++;
-			}
-
+			if (ret.isError()) logger.error(ret);
 		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 			logger.error(e);
 		}
 		
 	}
 	
-	public void syncSubscribe() throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
 		logger.debug("subscribe");
 		
 		notificationReceived = false;
 		firstResultsReceived = false;
 		
-		super.subscribe();
+		super.subscribe(timeout,nretry);
 		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
 			logger.debug("subscribed");
+		}
+	}
+	
+	public void syncUnsubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
+		logger.debug("unsubscribe");
+		
+		super.unsubscribe(timeout,nretry);
+		
+		synchronized(this) {
+			while (isSubscribed()) wait();
+			logger.debug("unsubscribed");
 		}
 	}
 	

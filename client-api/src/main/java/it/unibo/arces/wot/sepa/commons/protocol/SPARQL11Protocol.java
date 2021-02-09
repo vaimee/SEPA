@@ -18,22 +18,18 @@
 
 package it.unibo.arces.wot.sepa.commons.protocol;
 
+import java.io.Closeable;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
-import java.net.UnknownHostException;
 import java.nio.charset.Charset;
-
-import javax.net.ssl.SSLException;
 
 import org.apache.http.Consts;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -46,12 +42,14 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.execchain.RequestAbortedException;
 import org.apache.http.util.EntityUtils;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.HTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
@@ -69,7 +67,7 @@ import org.apache.logging.log4j.LogManager;
  * This class implements the SPARQL 1.1 Protocol
  */
 
-public class SPARQL11Protocol implements java.io.Closeable {
+public class SPARQL11Protocol implements Closeable {
 
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
@@ -78,7 +76,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 	protected static String mBeanName = "arces.unibo.SEPA.server:type=SPARQL11Protocol";
 
 	/** The http client. */
-	protected final CloseableHttpClient httpClient;
+	protected CloseableHttpClient httpClient;
 
 	/** The security manager */
 	protected final ClientSecurityManager sm;
@@ -87,17 +85,49 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		this.sm = sm;
 		if (sm == null)
 			httpClient = HttpClients.createDefault();
-		// httpClient = HttpClients.custom().setRetryHandler(new
-		// SPARQL11RetryHandler()).build();
 		else
 			httpClient = sm.getSSLHttpClient();
 	}
 
-	public SPARQL11Protocol() {
-		this.sm = null;
-		httpClient = HttpClients.createDefault();
+	public SPARQL11Protocol() throws SEPASecurityException {
+		this(null);
 	}
 
+	@Override
+	public void close() throws IOException {
+		httpClient.close();
+	}
+	
+	/*
+	 * http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.
+	 * html#d5e279
+	 * 
+	 * 1.5. Exception handling
+	 * 
+	 * HTTP protocol processors can throw two types of exceptions:
+	 * 
+	 * 1) java.io.IOException in case of an I/O failure such as socket timeout or an
+	 * socket reset 2) HttpException that signals an HTTP failure such as a
+	 * violation of the HTTP protocol.
+	 * 
+	 * Usually I/O errors are considered non-fatal and recoverable, whereas HTTP
+	 * protocol errors are considered fatal and cannot be automatically recovered
+	 * from. Please note that HttpClient implementations re-throw HttpExceptions as
+	 * ClientProtocolException, which is a subclass of java.io.IOException. This
+	 * enables the users of HttpClient to handle both I/O errors and protocol
+	 * violations from a single catch clause.
+	 */
+
+	/*
+	 * {"error":"IOException","status_code":500,
+	 * "error_description":"Connect to mml.arces.unibo.it:8666 [mml.arces.unibo.it/137.204.143.19] failed: Operation timed out"
+	 * }
+	 * 
+	 * extended by java.io.IOException extended by java.net.SocketException extended
+	 * by java.net.ConnectException extended by
+	 * org.apache.http.conn.HttpHostConnectException
+	 * 
+	 */
 	private Response executeRequest(HttpUriRequest req, Request request) {
 		CloseableHttpResponse httpResponse = null;
 		HttpEntity responseEntity = null;
@@ -105,18 +135,12 @@ public class SPARQL11Protocol implements java.io.Closeable {
 		String responseBody = null;
 		ErrorResponse errorResponse = null;
 
-		// Add "Authorization" header if required
-		String authorizationHeader = request.getAuthorizationHeader();
-		if (authorizationHeader != null) {
-			req.setHeader("Authorization", authorizationHeader);
-		}
-
 		try {
 			// Execute HTTP request
 			logger.trace(req.toString() + " " + request.toString() + " (timeout: " + request.getTimeout() + " ms) ");
 
 			long start = Timings.getTime();
-
+			
 			httpResponse = httpClient.execute(req);
 
 			long stop = Timings.getTime();
@@ -132,55 +156,22 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			// Body
 			responseEntity = httpResponse.getEntity();
 			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
-			logger.trace(String.format("Response code: %d", responseCode));
-			EntityUtils.consume(responseEntity);
 
-			/*
-			 * http://hc.apache.org/httpcomponents-client-4.5.x/tutorial/html/fundamentals.
-			 * html#d5e279
-			 * 
-			 * 1.5. Exception handling
-			 * 
-			 * HTTP protocol processors can throw two types of exceptions:
-			 * 
-			 * 1) java.io.IOException in case of an I/O failure such as socket timeout or an
-			 * socket reset 2) HttpException that signals an HTTP failure such as a
-			 * violation of the HTTP protocol.
-			 * 
-			 * Usually I/O errors are considered non-fatal and recoverable, whereas HTTP
-			 * protocol errors are considered fatal and cannot be automatically recovered
-			 * from. Please note that HttpClient implementations re-throw HttpExceptions as
-			 * ClientProtocolException, which is a subclass of java.io.IOException. This
-			 * enables the users of HttpClient to handle both I/O errors and protocol
-			 * violations from a single catch clause.
-			 */
+			logger.trace(String.format("Response code: %d", responseCode));
+
+			EntityUtils.consume(responseEntity);
+		} 
+		catch(Exception e) {
+			errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getClass().getName(), e.getMessage());
 			
-		} catch (IOException e) {
-			if (e instanceof InterruptedIOException) {
-				if (e instanceof SocketTimeoutException)
-					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "SocketTimeoutException",
-							e.getMessage() + " [timeout: " + request.getTimeout()+" ms retry: "+request.getNRetry()+"]");
-				else if (e instanceof RequestAbortedException)
-					errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "RequestAbortedException",
-							e.getMessage() + " [timeout: " + request.getTimeout()+" ms retry: "+request.getNRetry()+"]");
-				else {
-					e.printStackTrace();
-					errorResponse = new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "InterruptedIOException",
-							e.getMessage());
-				}
-			} else if (e instanceof UnknownHostException) {
-				errorResponse = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "UnknownHostException", e.getMessage());
-			} else if (e instanceof ConnectTimeoutException) {
-				errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, "ConnectTimeoutException",
-						e.getMessage());
-			} else if (e instanceof SSLException) {
-				errorResponse = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "SSLException", e.getMessage());
-			} else if (e instanceof ClientProtocolException) {
-				errorResponse = new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "ClientProtocolException",
-						e.getMessage());
-			} else
-				errorResponse = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
-		} finally {
+			// Considered as TIMEOUTS
+			if (e instanceof SocketTimeoutException || e instanceof ConnectTimeoutException || e instanceof RequestAbortedException) 
+				errorResponse = new ErrorResponse(HttpStatus.SC_REQUEST_TIMEOUT, e.getClass().getName(),
+						e.getMessage() + " [timeout: " + request.getTimeout() + " ms retry: " + request.getNRetry()
+								+ "]");
+		}
+		
+		finally {
 			try {
 				if (httpResponse != null)
 					httpResponse.close();
@@ -192,7 +183,7 @@ public class SPARQL11Protocol implements java.io.Closeable {
 			responseEntity = null;
 		}
 
-		if (responseCode >= 400) {
+		if (responseCode >= 400 && errorResponse == null) {
 			// SPARQL 1.1 protocol does not recommend any format, while SPARQL 1.1 SE
 			// suggests to use a JSON format
 			// http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
@@ -201,23 +192,47 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				errorResponse = new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),
 						ret.get("error_description").getAsString());
 			} catch (Exception e) {
-				logger.error(e.getMessage() + " response code:" + responseCode + " response body: " + responseBody);
+				// E.g. parsing response from a "common" SPARQL endpoint
+				logger.warn(e.getMessage() + " response code:" + responseCode + " response body: " + responseBody);
 				if (responseBody.equals(""))
 					responseBody = httpResponse.toString();
 				errorResponse = new ErrorResponse(responseCode, "sparql11_endpoint", responseBody);
 			}
 		}
 
-		// ERRORS: if timeout retry...
 		if (errorResponse != null) {
-			logger.error(errorResponse);
+			logger.error("Token expired: "+errorResponse.isTokenExpiredError()+" Security manager: "+(sm!=null)+" nRetry: "+request.getNRetry()+" "+errorResponse);
 			
-			if (errorResponse.getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT && request.getNRetry() > 0) {
-				logger.warn("*** TIMEOUT RETRY "+request.getNRetry()+" ***");
-				request.retry();
-				return executeRequest(req, request);		
+			// TOKEN EXPIRED
+			if (errorResponse.isTokenExpiredError()) {	
+				try {
+					logger.info("Refresh token");
+					Response ret = sm.refreshToken();
+					
+					if (ret.isError()) return ret;
+					
+					JWTResponse token = (JWTResponse) ret;
+					logger.debug(token.getAccessToken());
+					req.setHeader("Authorization", token.getTokenType()+" "+token.getAccessToken());
+					//request.setAuthorizationHeader(token.getTokenType()+" "+token.getAccessToken());
+					
+				} catch (SEPAPropertiesException | SEPASecurityException e) {
+					logger.error("Failed to refresh token. "+e.getMessage());
+					return errorResponse;
+				}
+				return executeRequest(req, request);
 			}
-			
+			// TIMEOUT
+			else if (errorResponse.isTimeout() && request.getNRetry() > 0) {
+				logger.warn(errorResponse);
+				logger.warn("*** TIMEOUT RETRY " + request.getNRetry() + " ***");
+
+				request.retry();
+
+				return executeRequest(req, request);
+
+			}
+				
 			return errorResponse;
 		}
 
@@ -460,6 +475,12 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				.setConnectTimeout((int) req.getTimeout()).build();
 		post.setConfig(requestConfig);
 
+		// Add "Authorization" header if required
+		String authorizationHeader = req.getAuthorizationHeader();
+		if (authorizationHeader != null) {
+			post.setHeader("Authorization", authorizationHeader);
+		}
+
 		return executeRequest(post, req);
 	}
 
@@ -540,6 +561,12 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				.setConnectTimeout((int) req.getTimeout()).build();
 		post.setConfig(requestConfig);
 
+		// Add "Authorization" header if required
+		String authorizationHeader = req.getAuthorizationHeader();
+		if (authorizationHeader != null) {
+			post.setHeader("Authorization", authorizationHeader);
+		}
+
 		return executeRequest(post, req);
 	}
 
@@ -608,16 +635,12 @@ public class SPARQL11Protocol implements java.io.Closeable {
 				.setConnectTimeout((int) req.getTimeout()).build();
 		get.setConfig(requestConfig);
 
-		return executeRequest(get, req);
-	}
-
-	@Override
-	public void close() throws IOException {
-		try {
-			httpClient.close();
-		} catch (IOException e) {
-			logger.error(e.getMessage());
-			throw e;
+		// Add "Authorization" header if required
+		String authorizationHeader = req.getAuthorizationHeader();
+		if (authorizationHeader != null) {
+			get.setHeader("Authorization", authorizationHeader);
 		}
+
+		return executeRequest(get, req);
 	}
 }

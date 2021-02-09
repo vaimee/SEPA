@@ -18,6 +18,8 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -33,20 +35,20 @@ import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
-public class QueryProcessor implements QueryProcessorMBean {
+class QueryProcessor implements QueryProcessorMBean {
 	protected static final Logger logger = LogManager.getLogger();
 
-	protected final SPARQL11Protocol endpoint;
+//	protected final SPARQL11Protocol endpoint;
 	protected final SPARQL11Properties properties;
 
-	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException {
-		this.endpoint = new SPARQL11Protocol();
+	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
+//		this.endpoint = new SPARQL11Protocol();
 		this.properties = properties;
 		
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public Response process(InternalQueryRequest req) throws SEPASecurityException {
+	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
 		// Build the request
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
@@ -58,7 +60,9 @@ public class QueryProcessor implements QueryProcessorMBean {
 		Response ret;
 		do {
 			long start = Timings.getTime();
+			SPARQL11Protocol endpoint = new SPARQL11Protocol();
 			ret = endpoint.query(request);
+			endpoint.close();
 			long stop = Timings.getTime();
 			
 			UpdateProcessorBeans.timings(start, stop);

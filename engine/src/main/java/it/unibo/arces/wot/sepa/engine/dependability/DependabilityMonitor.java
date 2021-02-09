@@ -18,8 +18,6 @@
 
 package it.unibo.arces.wot.sepa.engine.dependability;
 
-//
-//import it.unibo.arces.wot.sepa.engine.bean.AuthorizationManagerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 
 public class DependabilityMonitor implements DependabilityMonitorMBean {
@@ -30,7 +28,7 @@ public class DependabilityMonitor implements DependabilityMonitorMBean {
 
 	@Override
 	public long getNumberOfGates() {
-		return SubscriptionManager.getNumberOfGates();
+		return GatesMonitor.getNumberOfGates();
 	}
 
 	@Override

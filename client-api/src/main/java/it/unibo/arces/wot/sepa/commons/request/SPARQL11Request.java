@@ -39,6 +39,13 @@ public abstract class SPARQL11Request extends Request {
 		if (defaultGraphUri != null) this.default_graph_uri = defaultGraphUri;
 		if (namedGraphUri != null) this.named_graph_uri = namedGraphUri;
 	}
+	
+	public SPARQL11Request(String sparql, String auth,Set<String> defaultGraphUri,Set<String> namedGraphUri) {
+		super(sparql, auth);
+		
+		if (defaultGraphUri != null) this.default_graph_uri = defaultGraphUri;
+		if (namedGraphUri != null) this.named_graph_uri = namedGraphUri;
+	}
 
 	@Override
 	public String toString() {

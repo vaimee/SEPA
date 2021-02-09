@@ -26,11 +26,11 @@ import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpStatus;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
-import org.apache.jena.query.QueryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
@@ -100,7 +100,7 @@ public class QueryHandler extends SPARQL11Handler {
 				Header[] headers = exchange.getRequest().getHeaders("Accept");
 				if (headers.length != 1) return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth);
 				else return new InternalQueryRequest(sparql, graphUri, namedGraphUri,auth,headers[0].getValue());
-			} catch (QueryException | UnsupportedEncodingException e) {
+			} catch (SEPASparqlParsingException | UnsupportedEncodingException e) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}
 		case "POST":
