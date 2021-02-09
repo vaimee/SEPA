@@ -42,10 +42,10 @@ public interface IAuthorization {
 	Credentials getEndpointCredentials(String uid) throws SEPASecurityException;
 	
 	// JWT
-	void addToken(String id,SignedJWT claims) throws SEPASecurityException;
-	boolean containsToken(String id) throws SEPASecurityException;
-	SignedJWT getToken(String uid) throws SEPASecurityException;
-	void removeToken(String id) throws SEPASecurityException;
+	void addJwt(String id,SignedJWT claims) throws SEPASecurityException;
+	boolean containsJwt(String id) throws SEPASecurityException;
+	SignedJWT getJwt(String uid) throws SEPASecurityException;
+	void removeJwt(String id) throws SEPASecurityException;
 	
 	// Token expiring
 	Date getTokenExpiringDate(String id) throws SEPASecurityException;

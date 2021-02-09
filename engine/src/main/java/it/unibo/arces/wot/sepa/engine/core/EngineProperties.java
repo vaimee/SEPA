@@ -48,7 +48,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 		"gates": {
 			"security": {
 				"enabled" : true,
-				"ldap" : true
+				"type" : "local|ldap|keycloak",
+				"tls" : false
 			},
 			"ports": {
 				"http": 8000,
@@ -135,7 +136,8 @@ public class EngineProperties {
 
 		// Gates
 		result.parameters.gates.security.enabled = false;
-		result.parameters.gates.security.ldap = false;
+		result.parameters.gates.security.type = "local";
+		result.parameters.gates.security.tls = false;
 		
 		// Gates -> Ports
 		result.parameters.gates.ports.http = 8000;
@@ -164,8 +166,20 @@ public class EngineProperties {
 		return this.parameters.gates.security.enabled;
 	}
 	
+	public boolean isTls() {
+		return this.parameters.gates.security.tls;
+	}
+	
 	public boolean isLDAPEnabled() {
-		return this.parameters.gates.security.ldap;
+		return this.parameters.gates.security.type.equals("ldap");
+	}
+	
+	public boolean isLocalEnabled() {
+		return this.parameters.gates.security.type.equals("local");
+	}
+	
+	public boolean isKeycìCloakEnabled() {
+		return this.parameters.gates.security.type.equals("keycloak");
 	}
 	
 	public int getMaxConcurrentRequests() {
@@ -280,12 +294,14 @@ public class EngineProperties {
 	}
 	
 	static private class Security {
+		public boolean tls;
 		public boolean enabled;
-		public boolean ldap;
+		public String type;
 		
 		public Security(){
 			enabled = false;
-			ldap = false;
+			type = "local";
+			tls = false;
 		}
 	}
 

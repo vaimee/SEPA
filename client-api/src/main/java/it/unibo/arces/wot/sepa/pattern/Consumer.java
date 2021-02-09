@@ -37,23 +37,21 @@ import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 
 public abstract class Consumer extends Client implements IConsumer {
 	protected static final Logger logger = LogManager.getLogger();
-
-	private long TIMEOUT = 60000;
-	private long NRETRY = 0;
 	
 	private final String sparqlSubscribe;	
-	private final String subID;
+	protected final String subID;
 	private final ForcedBindings forcedBindings;
 	private boolean subscribed = false;
 	private final SPARQL11SEProtocol client;
-
-	public Consumer(JSAP appProfile, String subscribeID, ClientSecurityManager sm)
-			throws SEPAProtocolException, SEPASecurityException {
-		super(appProfile,sm);
+	private String spuid = null;
+	private final SubscriptionProtocol protocol;
+	
+	public Consumer(JSAP appProfile, String subscribeID)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(appProfile);
 
 		if (subscribeID == null) {
 			logger.fatal("Subscribe ID is null");
@@ -78,11 +76,9 @@ public abstract class Consumer extends Client implements IConsumer {
 		}
 
 		// Subscription protocol
-		SubscriptionProtocol protocol = null;
+		
 		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
 				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID),this,sm);
-//		protocol.setHandler(this);
-//		if (appProfile.isSecure()) protocol.enableSecurity(sm);
 
 		client = new SPARQL11SEProtocol(protocol,sm);
 	}
@@ -101,7 +97,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		this.TIMEOUT = timeout;
 		this.NRETRY = nRetry;
 		
-		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
+		if (isSecure()) authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		
 		client.subscribe(new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparqlSubscribe, addDefaultDatatype(forcedBindings,subID,true)), null, appProfile.getDefaultGraphURI(subID),
 				appProfile.getNamedGraphURI(subID),
@@ -113,19 +109,20 @@ public abstract class Consumer extends Client implements IConsumer {
 	}
 	
 	public final void unsubscribe(long timeout,long nRetry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
-		logger.debug("UNSUBSCRIBE " + subID);
+		logger.debug("UNSUBSCRIBE " + spuid);
 
 		String authorizationHeader = null;
 		
-		if (isSecure()) authorizationHeader = sm.getAuthorizationHeader();
+		if (isSecure()) authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		
 		client.unsubscribe(
-				new UnsubscribeRequest(subID, authorizationHeader,timeout,nRetry));
+				new UnsubscribeRequest(spuid, authorizationHeader,timeout,nRetry));
 	}
 
 	@Override
 	public void close() throws IOException {
 		client.close();
+		protocol.close();
 	}
 
 	public boolean isSubscribed() {
@@ -185,23 +182,26 @@ public abstract class Consumer extends Client implements IConsumer {
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		logger.error(errorResponse);
-		logger.error("Subscribed: "+subscribed+ " Token expired: "+errorResponse.isTokenExpiredError()+" SM: "+(sm != null));
-		if (!subscribed && errorResponse.isTokenExpiredError() && sm != null) {
-			try {
-				logger.info("refreshToken");
-				sm.refreshToken();
-			} catch (SEPAPropertiesException | SEPASecurityException e) {
-				logger.error("Failed to refresh token "+e.getMessage());
-			}
-			
-			try {
-				logger.debug("subscribe");
-				subscribe(TIMEOUT,0);
-			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
-					| SEPABindingsException e) {
-				logger.error("Failed to subscribe "+e.getMessage());
-			}
-		}
+//		logger.error("Subscribed: "+subscribed+ " Token expired: "+errorResponse.isTokenExpiredError()+" SM: "+(sm != null));
+//		
+//		if (!subscribed && errorResponse.isTokenExpiredError() && sm != null) {
+//			try {
+//				logger.info("refreshToken");
+//				
+//				sm.refreshToken();
+//				
+//			} catch (SEPAPropertiesException | SEPASecurityException e) {
+//				logger.error("Failed to refresh token "+e.getMessage());
+//			}
+//			
+//			try {
+//				logger.debug("subscribe");
+//				subscribe(TIMEOUT,0);
+//			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
+//					| SEPABindingsException e) {
+//				logger.error("Failed to subscribe "+e.getMessage());
+//			}
+//		}
 	}
 
 	@Override
@@ -209,6 +209,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		synchronized(client) {
 			logger.debug("onSubscribe");
 			subscribed = true;
+			this.spuid = spuid;
 			client.notify();
 		}
 	}

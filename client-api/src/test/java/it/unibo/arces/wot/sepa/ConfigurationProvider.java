@@ -6,166 +6,152 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.security.AuthenticationProperties;
+import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
+import it.unibo.arces.wot.sepa.commons.security.OAuthProperties.OAUTH_PROVIDER;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ConfigurationProvider {
+public class ConfigurationProvider implements Closeable {
 	protected final Logger logger = LogManager.getLogger();
 
 	private final JSAP appProfile;
 	private String prefixes = "";
-	private final String jsapPath; 
+	private final String jsapPath;
 
-	private final long TIMEOUT = 5000;
-	private final long NRETRY = 0;
-	
-	public long getTimeout() {
-		return TIMEOUT;
-	}
-	
-	public long getNRetry() {
-		return NRETRY;
-	}
+	public final long TIMEOUT;
+	public final long NRETRY;
+	public static final int REPEATED_TEST = 1;
+
+	protected ClientSecurityManager sm = null;
 	
 	public ConfigurationProvider() throws SEPAPropertiesException, SEPASecurityException {
 		String jsapFileName = "sepatest.jsap";
-		
+
 		if (System.getProperty("testConfiguration") != null) {
 			jsapFileName = System.getProperty("testConfiguration");
-			logger.info("JSAP from property testConfiguration: " + jsapFileName);
+			logger.debug("JSAP from property testConfiguration: " + jsapFileName);
 		} else if (System.getProperty("secure") != null) {
 			jsapFileName = "sepatest-secure.jsap";
-			logger.info("JSAP secure default: " + jsapFileName);
+			logger.debug("JSAP secure default: " + jsapFileName);
 		}
 
 		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
 		File f = new File(jsapPath);
 		if (!f.exists()) {
 			logger.error("File not found: " + jsapPath);
-			throw new SEPAPropertiesException("File not found: "+jsapPath);
+			throw new SEPAPropertiesException("File not found: " + jsapPath);
 		}
-		
-		logger.info("Loading JSAP from: "+jsapPath);
-		
+
+		logger.debug("Loading JSAP from: " + jsapPath);
+
 		appProfile = new JSAP(jsapPath);
-		
+
 		prefixes = appProfile.getPrefixes();
+
+		if (appProfile.getExtendedData().has("timeout")) {
+			TIMEOUT = appProfile.getExtendedData().get("timeout").getAsLong();
+		} else
+			TIMEOUT = 15000;
+
+		if (appProfile.getExtendedData().has("nretry")) {
+			NRETRY = appProfile.getExtendedData().get("nretry").getAsLong();
+		} else
+			NRETRY = 3;
+		
+		sm = buildSecurityManager();
 	}
 
 	private String getSPARQLUpdate(String id) {
-		return prefixes + " " +appProfile.getSPARQLUpdate(id);
+		return prefixes + " " + appProfile.getSPARQLUpdate(id);
 	}
-	
+
 	private String getSPARQLQuery(String id) {
-		return prefixes + " " +appProfile.getSPARQLQuery(id);
+		return prefixes + " " + appProfile.getSPARQLQuery(id);
 	}
-	
-	public UpdateRequest buildUpdateRequest(String id, ClientSecurityManager sm,long timeout,long nRetry) {
-		String authorization = null;
 
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-				if (authorization == null) {
-					sm.refreshToken();
-					authorization = sm.getAuthorizationHeader();
-				}
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-
+	public UpdateRequest buildUpdateRequest(String id)
+			throws SEPASecurityException, SEPAPropertiesException {
 		return new UpdateRequest(appProfile.getUpdateMethod(id), appProfile.getUpdateProtocolScheme(id),
 				appProfile.getUpdateHost(id), appProfile.getUpdatePort(id), appProfile.getUpdatePath(id),
 				getSPARQLUpdate(id), appProfile.getUsingGraphURI(id), appProfile.getUsingNamedGraphURI(id),
-				authorization, timeout,nRetry);
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), TIMEOUT, NRETRY);
 	}
 
-	public QueryRequest buildQueryRequest(String id, ClientSecurityManager sm,long timeout,long nRetry) {
-		String authorization = null;
-
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-				if (authorization == null) {
-					sm.refreshToken();
-					authorization = sm.getAuthorizationHeader();
-				}
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-
+	public QueryRequest buildQueryRequest(String id)
+			throws SEPASecurityException, SEPAPropertiesException {
 		return new QueryRequest(appProfile.getQueryMethod(id), appProfile.getQueryProtocolScheme(id),
 				appProfile.getQueryHost(id), appProfile.getQueryPort(id), appProfile.getQueryPath(id),
 				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id),
-				authorization, timeout,nRetry);
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), TIMEOUT, NRETRY);
 	}
 
-	public QueryRequest buildQueryRequest(String id, String authToken,long timeout,long nRetry) {
+	public QueryRequest buildQueryRequest(String id, String authToken) {
 		return new QueryRequest(appProfile.getQueryMethod(id), appProfile.getQueryProtocolScheme(id),
 				appProfile.getQueryHost(id), appProfile.getQueryPort(id), appProfile.getQueryPath(id),
-				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id),
-				authToken, timeout,nRetry);
+				getSPARQLQuery(id), appProfile.getDefaultGraphURI(id), appProfile.getNamedGraphURI(id), authToken,
+				TIMEOUT, NRETRY);
 	}
 
-	public SubscribeRequest buildSubscribeRequest(String id, ClientSecurityManager sm,long timeout, long nRetry) {
-		String authorization = null;		
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-				if (authorization == null) {
-					sm.refreshToken();
-					authorization = sm.getAuthorizationHeader();
-				}
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-		
+	public SubscribeRequest buildSubscribeRequest(String id)
+			throws SEPASecurityException, SEPAPropertiesException {
 		return new SubscribeRequest(getSPARQLQuery(id), id, appProfile.getDefaultGraphURI(id),
-				appProfile.getNamedGraphURI(id), authorization, timeout,nRetry);
+				appProfile.getNamedGraphURI(id), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null));
 	}
 
-	public UnsubscribeRequest buildUnsubscribeRequest(String spuid, ClientSecurityManager sm, long timeout, long nRetry) {
-		String authorization = null;		
-		if (sm != null)
-			try {
-				authorization = sm.getAuthorizationHeader();
-				if (authorization == null) {
-					sm.refreshToken();
-					authorization = sm.getAuthorizationHeader();
-				}
-			} catch (SEPASecurityException | SEPAPropertiesException e) {
-				logger.error(e.getMessage());
-			}
-		
-		return new UnsubscribeRequest(spuid, authorization, timeout,nRetry);
+	public UnsubscribeRequest buildUnsubscribeRequest(String spuid)
+			throws SEPASecurityException, SEPAPropertiesException {
+		return new UnsubscribeRequest(spuid, (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null));
 	}
 
-	public ClientSecurityManager buildSecurityManager() throws SEPASecurityException, SEPAPropertiesException {
-		AuthenticationProperties auth = new AuthenticationProperties(jsapPath);
-		
-		ClientSecurityManager security;
-		if (auth.trustAll()) security = new ClientSecurityManager(auth);
-		else {
-			String path = getClass().getClassLoader().getResource("sepa.jks").getPath();
-			File f = new File(path);
-			if (!f.exists()) {
-				logger.error("File not found: " + path);
-				throw new SEPASecurityException("File not found: "+path);
-			}
-			
-			security = new ClientSecurityManager(auth,f.getPath(), "sepa2017");
-		}
-		
-		return security;
-	}
-	
 	public JSAP getJsap() {
 		return appProfile;
+	}
+	
+	public ClientSecurityManager getClientSecurityManager() {
+		return sm;
+	}
+
+	private ClientSecurityManager buildSecurityManager() throws SEPASecurityException, SEPAPropertiesException {
+		ClientSecurityManager sm = null;
+		
+		if (appProfile.isSecure()) {
+			sm = new ClientSecurityManager(appProfile.getAuthenticationProperties());
+
+			if (!appProfile.getAuthenticationProperties().isClientRegistered()) {
+				Response ret = sm.registerClient(getClientId(),appProfile.getAuthenticationProperties().getUsername(),appProfile.getAuthenticationProperties().getInitialAccessToken());
+				if (ret.isError())
+					throw new SEPASecurityException(getClientId() + " registration failed");
+			}
+			sm.refreshToken();
+			appProfile.getAuthenticationProperties().storeProperties();
+		}
+
+		return sm;
+	}
+
+	public String getClientId() throws SEPAPropertiesException, SEPASecurityException {
+		if (appProfile.isSecure()) {
+			OAuthProperties oauth = new OAuthProperties(appProfile.getFileName());
+			if (oauth.getProvider().equals(OAUTH_PROVIDER.SEPA))
+				return "SEPATest";
+			else if (oauth.getProvider().equals(OAUTH_PROVIDER.KEYCLOAK))
+				return "SEPATest-" + UUID.randomUUID().toString();
+		}
+
+		return null;
+	}
+
+	@Override
+	public void close() throws IOException {
+		if (sm != null) sm.close();		
 	}
 }

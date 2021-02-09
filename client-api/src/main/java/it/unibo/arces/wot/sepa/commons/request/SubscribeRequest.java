@@ -44,6 +44,15 @@ public class SubscribeRequest extends Request {
 		this.named_graph_uri = namedGraphURI;
 	}
 	
+	public SubscribeRequest(String sparql, String alias, Set<String> defaultGraphURI, Set<String> namedGraphURI,
+			String authorization) {
+		super(sparql, authorization);
+		
+		this.alias = alias;	
+		this.default_graph_uri = defaultGraphURI;
+		this.named_graph_uri = namedGraphURI;
+	}
+	
 	public Set<String> getDefaultGraphUri() {
 		return default_graph_uri;
 	}

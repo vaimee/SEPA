@@ -18,6 +18,8 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.IOException;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -51,7 +53,7 @@ class QueryProcessingThread extends Thread{
 			Response ret;
 			try {
 				ret = processor.processQuery(query);
-			} catch (SEPASecurityException e) {
+			} catch (SEPASecurityException | IOException e) {
 				logger.error(e.getMessage());
 				if (logger.isTraceEnabled()) e.printStackTrace();
 				ret = new ErrorResponse(401,"SEPASecurityException",e.getMessage());

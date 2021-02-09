@@ -1,4 +1,5 @@
 package it.unibo.arces.wot.sepa.stress;
+
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Publisher;
 import it.unibo.arces.wot.sepa.Subscriber;
@@ -7,272 +8,200 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
-import it.unibo.arces.wot.sepa.pattern.JSAP;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Timeout;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 
-import static org.junit.Assert.*;
-
-
 public class StressUsingSPARQLProtocol {
-    protected final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 
-    private static JSAP properties = null;
-    private static ConfigurationProvider provider;
+	private static ConfigurationProvider provider;
 
-    private static ClientSecurityManager sm;
-    private final static String VALID_ID = "SEPATest";
+	private static Sync sync;
 
-    private final static Sync sync = new Sync();
+	private static SPARQL11Protocol client;
 
-    private static SPARQL11Protocol client;
-    private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
-    private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
+	private final ArrayList<Subscriber> subscribers = new ArrayList<Subscriber>();
+	private final ArrayList<Publisher> publishers = new ArrayList<Publisher>();
 
-    @BeforeClass
-    public static void init() throws Exception {
-        provider = new ConfigurationProvider();
-        properties = provider.getJsap();
+	@BeforeEach
+	public void beginTest() throws IOException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
+			URISyntaxException, InterruptedException {
+		provider = new ConfigurationProvider();
+		sync = new Sync();
+		client = new SPARQL11Protocol(provider.getClientSecurityManager());
 
-        if (properties.isSecure()) {
-            sm = provider.buildSecurityManager();
+		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
 
-            // Registration
-            Response response = sm.register(VALID_ID);
-            assertFalse(response.toString(), response.isError());
-        }
-    }
+		logger.debug(ret);
 
-    @Before
-    public void beginTest() throws IOException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
-            URISyntaxException, InterruptedException {
+		assertFalse(ret.isError(), String.valueOf(ret));
 
-        sync.reset();
+		subscribers.clear();
+		publishers.clear();
 
-        if (properties.isSecure())
-            client = new SPARQL11Protocol(sm);
-        else
-            client = new SPARQL11Protocol();
+		sync.reset();
+	}
 
-        subscribers.clear();
-        publishers.clear();
+	@AfterEach
+	public void endTest() throws IOException, InterruptedException {
+		for (Subscriber sub : subscribers)
+			sub.close();
 
-        Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL", sm,provider.getTimeout(),provider.getNRetry()));
+		for (Publisher pub : publishers)
+			pub.close();
+		
+		client.close();
+		
+		provider.close();
+	}
 
-        if (ret.isError()) {
-            ErrorResponse error = (ErrorResponse) ret;
-            if (error.isTokenExpiredError() && properties.isSecure()) sm.refreshToken();
-            ret = client.update(provider.buildUpdateRequest("DELETE_ALL", sm,provider.getTimeout(),provider.getNRetry()));
-        }
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(60)
+	public void Subscribe3xN()
+			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
+		int n = 10;
 
-        logger.debug(ret);
+		for (int i = 0; i < n; i++) {
+			subscribers.add(new Subscriber(provider, "ALL", sync));
+			subscribers.add(new Subscriber(provider, "RANDOM", sync));
+			subscribers.add(new Subscriber(provider, "RANDOM1", sync));
+		}
 
-        assertFalse(String.valueOf(ret), ret.isError());
-    }
+		for (Subscriber sub : subscribers)
+			sub.start();
 
-    @After
-    public void endTest() throws IOException, InterruptedException {
-        client.close();
+		sync.waitSubscribes(subscribers.size());
+		sync.waitEvents(subscribers.size());
 
-        for (Subscriber sub : subscribers)
-            sub.close();
+		assertFalse(sync.getSubscribes() != subscribers.size(),
+				"Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")");
+		assertFalse(sync.getEvents() != subscribers.size(),
+				"Events:" + sync.getEvents() + "(" + subscribers.size() + ")");
+	}
 
-        for (Publisher pub : publishers)
-            pub.close();
-    }
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	// @Timeout(60)
+	public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
+			SEPAPropertiesException, SEPASecurityException {
 
-    @Test(timeout = 15000)
-    public void RequestToken() throws SEPASecurityException, SEPAPropertiesException, InterruptedException {
-        ThreadGroup threadGroup = new ThreadGroup("TokenRequestGroup");
-        if (properties.isSecure()) {
-            for (int n = 0; n < 10; n++) {
-                new Thread(threadGroup,null,"TokenThread-"+n) {
-                    public void run() {
-                        ClientSecurityManager sm = null;
-                        try {
-                            sm = provider.buildSecurityManager();
-                        } catch (SEPASecurityException | SEPAPropertiesException e1) {
-                            assertFalse(e1.getMessage(),true);
-                        }
+		int n = 10;
 
-                        // Registration
-                        Response response = null;
-                        try {
-                            response = sm.register(VALID_ID);
-                            logger.debug(response);
-                        } catch (SEPASecurityException | SEPAPropertiesException e1) {
-                            assertFalse(e1.getMessage(),true);
-                        }
-                        assertFalse("Failed to register a valid ID", response.isError());
+		for (int i = 0; i < n; i++) {
+			subscribers.add(new Subscriber(provider, "RANDOM", sync));
+			publishers.add(new Publisher(provider, "RANDOM", n));
+		}
 
-                        for (int i = 0; i < 100; i++) {
-                            String authorization = null;
-                            try {
-                                authorization = sm.getAuthorizationHeader();
-                                if (authorization == null) sm.refreshToken();
-                                authorization = sm.getAuthorizationHeader();
-                            } catch (SEPASecurityException | SEPAPropertiesException e1) {
-                                assertFalse(e1.getMessage(),true);
-                            }
-                            assertFalse("Failed to get authorization header", authorization == null);
-                            try {
-                                Thread.sleep(100);
-                            } catch (InterruptedException e) {
-                                return;
-                            }
-                        }
-                    }
-                }.start();
-            }
-            while(threadGroup.activeCount() != 0) {
-                Thread.sleep(1000);
-            }
-        }
-    }
+		for (Subscriber sub : subscribers)
+			sub.start();
 
-    @Test(timeout = 10000)
-    public void Subscribe3xN()
-            throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
-        int n = 5;
+		sync.waitSubscribes(subscribers.size());
+		sync.waitEvents(subscribers.size());
 
-        for (int i = 0; i < n; i++) {
-            subscribers.add(new Subscriber("ALL", sync));
-            subscribers.add(new Subscriber("RANDOM", sync));
-            subscribers.add(new Subscriber("RANDOM1", sync));
-        }
+		for (Publisher pub : publishers)
+			pub.start();
 
-        for (Subscriber sub : subscribers)
-            sub.start();
+		sync.waitEvents(subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
 
-        sync.waitSubscribes(subscribers.size());
-        sync.waitEvents(subscribers.size());
+		assertFalse(sync.getSubscribes() != subscribers.size(),
+				"Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")");
+		assertFalse(sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size(),
+				"Events:" + sync.getEvents() + "(" + subscribers.size()
+						+ subscribers.size() * publishers.size() * publishers.size() + ")");
+	}
 
-        assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-                sync.getSubscribes() != subscribers.size());
-        assertFalse("Events:" + sync.getEvents() + "(" + subscribers.size() + ")",
-                sync.getEvents() != subscribers.size());
-    }
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	// @Timeout(5)
+	public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
+			InterruptedException, SEPAPropertiesException, SEPASecurityException {
 
-    @Test(timeout = 200000)
-    public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
-            SEPAPropertiesException, SEPASecurityException {
+		int n = 4;
 
-        int n = 5;
+		for (int i = 0; i < n; i++) {
+			subscribers.add(new Subscriber(provider, "RANDOM", sync));
+			publishers.add(new Publisher(provider, "RANDOM", n));
+			publishers.add(new Publisher(provider, "WRONG", n));
+		}
 
-        for (int i = 0; i < n; i++) {
-            subscribers.add(new Subscriber("RANDOM", sync));
-            publishers.add(new Publisher("RANDOM", n));
-        }
+		for (Subscriber sub : subscribers)
+			sub.start();
 
-        for (Subscriber sub : subscribers)
-            sub.start();
+		sync.waitSubscribes(subscribers.size());
+		sync.waitEvents(subscribers.size());
 
-        sync.waitSubscribes(subscribers.size());
-        sync.waitEvents(subscribers.size());
+		for (Publisher pub : publishers)
+			pub.start();
 
-        for (Publisher pub : publishers)
-            pub.start();
+		sync.waitEvents(subscribers.size() + subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2));
 
-        sync.waitEvents(subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
+		assertFalse(sync.getSubscribes() != subscribers.size(),
+				"Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")");
+		assertFalse(
+				sync.getEvents() != subscribers.size()
+						+ subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2),
+				"Events:" + sync.getEvents() + "(" + subscribers.size()
+						+ subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2) + ")");
+	}
 
-        assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-                sync.getSubscribes() != subscribers.size());
-        assertFalse(
-                "Events:" + sync.getEvents() + "(" + subscribers.size()
-                        + subscribers.size() * publishers.size() * publishers.size() + ")",
-                sync.getEvents() != subscribers.size() + subscribers.size() * publishers.size() * publishers.size());
-    }
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(30)
+	public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
+		int n = 10;
 
-    @Test (timeout = 200000)
-    public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
-            InterruptedException, SEPAPropertiesException, SEPASecurityException {
+		for (int i = 0; i < n; i++) {
+			publishers.add(new Publisher(provider, "RANDOM", n));
+			publishers.add(new Publisher(provider, "RANDOM1", n));
+			publishers.add(new Publisher(provider, "VAIMEE", n));
+		}
 
-        int n = 10;
+		for (Publisher pub : publishers)
+			pub.start();
 
-        for (int i = 0; i < n; i++) {
-            subscribers.add(new Subscriber("RANDOM", sync));
-            publishers.add(new Publisher("RANDOM", n));
-            publishers.add(new Publisher("WRONG", n));
-        }
+		// Wait all publishers to complete
+		for (Publisher pub : publishers)
+			pub.join();
+	}
 
-        for (Subscriber sub : subscribers)
-            sub.start();
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(60)
+	public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
+			SEPAPropertiesException, SEPASecurityException {
+		int n = 10;
 
-        sync.waitSubscribes(subscribers.size());
-        sync.waitEvents(subscribers.size());
+		for (int i = 0; i < n; i++) {
+			subscribers.add(new Subscriber(provider, "ALL", sync));
+			subscribers.add(new Subscriber(provider, "RANDOM", sync));
+			subscribers.add(new Subscriber(provider, "RANDOM1", sync));
 
-        for (Publisher pub : publishers)
-            pub.start();
+			publishers.add(new Publisher(provider, "RANDOM", n));
+			publishers.add(new Publisher(provider, "RANDOM1", n));
+		}
 
-        sync.waitEvents(subscribers.size() + subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2));
+		int events = 4 * n * n * n + subscribers.size();
 
-        assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-                sync.getSubscribes() != subscribers.size());
-        assertFalse(
-                "Events:" + sync.getEvents() + "(" + subscribers.size()
-                        + subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2) + ")",
-                sync.getEvents() != subscribers.size()
-                        + subscribers.size() * (publishers.size() / 2) * (publishers.size() / 2));
-    }
+		for (Subscriber sub : subscribers)
+			sub.start();
 
-    @Test(timeout = 200000)
-    public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
-        int n = 5;
+		sync.waitSubscribes(subscribers.size());
+		sync.waitEvents(subscribers.size());
 
-        for (int i = 0; i < n; i++) {
-            publishers.add(new Publisher("RANDOM", n));
-            publishers.add(new Publisher("RANDOM1", n));
-            publishers.add(new Publisher("VAIMEE", n));
-        }
+		for (Publisher pub : publishers)
+			pub.start();
 
-        for (Publisher pub : publishers)
-            pub.start();
+		sync.waitEvents(events);
 
-        // Wait all publishers to complete
-        for (Publisher pub : publishers)
-            pub.join();
-    }
-
-    @Test (timeout = 200000)
-    public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
-            SEPAPropertiesException, SEPASecurityException {
-        int n = 15;
-
-        for (int i = 0; i < n; i++) {
-            subscribers.add(new Subscriber("ALL", sync));
-            subscribers.add(new Subscriber("RANDOM", sync));
-            subscribers.add(new Subscriber("RANDOM1", sync));
-
-            publishers.add(new Publisher("RANDOM", n));
-            publishers.add(new Publisher("RANDOM1", n));
-        }
-
-        int events = 4 * n * n * n + subscribers.size();
-
-        for (Subscriber sub : subscribers)
-            sub.start();
-
-        sync.waitSubscribes(subscribers.size());
-        sync.waitEvents(subscribers.size());
-
-        for (Publisher pub : publishers)
-            pub.start();
-
-        sync.waitEvents(events);
-
-        assertFalse("Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")",
-                sync.getSubscribes() != subscribers.size());
-        assertFalse("Events:" + sync.getEvents() + "(" + events + ")", sync.getEvents() != events);
-    }
+		assertFalse(sync.getSubscribes() != subscribers.size(),
+				"Subscribes:" + sync.getSubscribes() + "(" + subscribers.size() + ")");
+		assertFalse(sync.getEvents() != events, "Events:" + sync.getEvents() + "(" + events + ")");
+	}
 }

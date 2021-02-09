@@ -29,21 +29,12 @@ public abstract class SubscriptionProtocol implements Closeable {
 	protected ISubscriptionHandler handler;
 	protected final ClientSecurityManager sm;
 	
-//	public void setHandler(ISubscriptionHandler handler) {
-//		this.handler = handler;
-//	}
-
-	public SubscriptionProtocol() {
-		this.sm = null;
-		this.handler = null;
-	}
-	
 	public SubscriptionProtocol(ISubscriptionHandler handler) {
-		this.handler = handler;
-		this.sm = null;
+		this(handler, null);
 	}
 	
 	public SubscriptionProtocol(ISubscriptionHandler handler,ClientSecurityManager sm) {
+		if (handler == null) throw new IllegalArgumentException("Handler is null");
 		this.handler = handler;
 		this.sm = sm;
 	}

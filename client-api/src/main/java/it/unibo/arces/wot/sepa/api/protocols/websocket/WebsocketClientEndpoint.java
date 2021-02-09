@@ -31,11 +31,13 @@ import javax.websocket.Session;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
@@ -64,12 +66,43 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		
 		this.handler = handler;
 	}
+	
+	public void connect(URI url) throws SEPAProtocolException {
+		try {
+			session = client.connectToServer(this, url);
+		} catch (DeploymentException | IOException e) {
+			logger.error("Connect to: "+url+" exception "+e.getClass().getName()+" "+e.getMessage());
+			throw new SEPAProtocolException(e.getMessage());
+		}
+		
+//		// Attempt to connect
+//		while (true) {
+//			try {
+//				logger.debug("Connect to: " + url);
+//				client.connectToServer(this, url);
+//				return;
+//
+//			} catch (DeploymentException | IOException e) {
+//				logger.error("Exception " +e.getClass().getName()+" "+e.getMessage()+" retry in 1 s");
+//
+//				try {
+//					Thread.sleep(1000);
+//				} catch (InterruptedException e1) {
+//					throw new SEPAProtocolException(e1);
+//				}
+//			}
+//		}
+//
+	}
 
 	@Override
 	public void close() throws IOException {
 		logger.trace("Close");
+		
 		if (session != null)
 			session.close();
+		
+		client.shutdown();
 	}
 
 	@Override
@@ -106,6 +139,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 							logger.trace("Subscribed: " + spuid + " alias: " + alias);
 							handler.onSubscribe(spuid, alias);
 						} catch (Exception e) {
+							e.printStackTrace();
 							logger.error("Exception on handling onSubscribe. Handler: " + handler + " Exception: "
 									+ e.getMessage());
 							return;
@@ -129,6 +163,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 					try {
 						handler.onError(error);
 					} catch (Exception e) {
+						e.printStackTrace();
 						logger.error(
 								"Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
 					}
@@ -161,14 +196,28 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 
 	@Override
 	public void onError(Session session, Throwable thr) {
-		ErrorResponse error = new ErrorResponse(500, "Exception", thr.getMessage());
-		logger.error("@onError: " + error);
-
-		try {
-			handler.onError(error);
-		} catch (Exception e) {
-			logger.error("Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
+		// Parsing error as JSON
+		String msg = thr.getMessage();
+		ErrorResponse error = null;
+		try{
+			msg = msg.substring(0, msg.lastIndexOf('}')+1);
+			JsonObject err = new JsonParser().parse(msg).getAsJsonObject();
+			error = new ErrorResponse(err.get("status_code").getAsInt(), err.get("error").getAsString(), err.get("error_description").getAsString());
 		}
+		catch(JsonParseException e) {
+			error = new ErrorResponse(500, "Exception", msg);
+		}
+		
+		if (error.getStatusCode() != 1000) {
+			logger.error(error);
+			try {
+				handler.onError(error);
+			} catch (Exception e) {
+				logger.error("Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
+			}
+		}
+		else logger.warn(error);
+
 	}
 
 	public boolean isConnected() {
@@ -176,27 +225,6 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 			return false;
 
 		return session.isOpen();
-	}
-
-	public void connect(URI url) throws SEPAProtocolException {
-		// Attempt to connect
-		while (true) {
-			try {
-				logger.debug("Connect to: " + url);
-				client.connectToServer(this, url);
-				return;
-
-			} catch (DeploymentException | IOException e) {
-				logger.error(e.getMessage());
-
-				try {
-					Thread.sleep(5000);
-				} catch (InterruptedException e1) {
-					throw new SEPAProtocolException(e1);
-				}
-			}
-		}
-
 	}
 
 	public void send(String subscribeRequest) throws SEPAProtocolException {

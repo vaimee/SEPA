@@ -81,8 +81,8 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				return null;
 			}
 
-			logger.info(">> " + scheduled);
-			logger.debug(scheduled.getRequest());
+			logger.debug(">> " + scheduled);
+			logger.trace(scheduled.getRequest());
 			
 			Timings.log(request);
 
@@ -106,7 +106,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			try {
 				// Wait for response
 				ScheduledResponse response = queue.waitResponse();
-				logger.info("<< " + response);
+				logger.debug("<< " + response);
 				logger.trace(response.getResponse());
 
 				// The token
@@ -123,7 +123,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 						try {
 							handler.sendResponse(response.getResponse());
 						} catch (SEPAProtocolException e) {
-							logger.error("Failed to send response: " + e.getMessage());
+							logger.warn(e.getMessage());
 						}
 					}
 
@@ -172,16 +172,6 @@ public class Scheduler extends Thread implements SchedulerMBean {
 		return SchedulerBeans.getQueueSize();
 	}
 
-//	@Override
-//	public int getTimeout() {
-//		return SchedulerBeans.getTimeout();
-//	}
-//
-//	@Override
-//	public void setTimeout(int timeout) {
-//		SchedulerBeans.setTimeout(timeout);
-//	}
-
 	public ScheduledRequest waitQueryRequest() throws InterruptedException {
 		return queue.waitQueryRequest();
 	}
@@ -221,24 +211,4 @@ public class Scheduler extends Thread implements SchedulerMBean {
 	public long getPendingUnsubscribes() {
 		return queue.getPendingUnsubscribes();
 	}
-//	
-//	@Override
-//	public long getTimedoutUpdates() {
-//		return SchedulerBeans.getTimedoutUpdates();
-//	}
-//
-//	@Override
-//	public long getTimedoutQueries() {
-//		return SchedulerBeans.getTimedoutQueries();
-//	}
-//
-//	@Override
-//	public long getTimedoutSubscribes() {
-//		return SchedulerBeans.getTimedoutSubscribes();
-//	}
-//
-//	@Override
-//	public long getTimedoutUnsubscribes() {
-//		return SchedulerBeans.getTimedoutUnsubscribes();
-//	}	
 }

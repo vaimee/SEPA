@@ -17,6 +17,8 @@
 */
 package it.unibo.arces.wot.sepa.commons.response;
 
+import org.apache.http.HttpStatus;
+
 import com.google.gson.JsonPrimitive;
 
 /**
@@ -215,6 +217,15 @@ public class ErrorResponse extends Response {
 	// {"error":"invalid_grant","status_code":401,"error_description":"BadJOSEException: Expired JWT"}
 	
 	public boolean isTokenExpiredError() {
-		return getStatusCode() == 401 && getError().equals("invalid_grant");
+		return getStatusCode() == HttpStatus.SC_UNAUTHORIZED && getError().equals("invalid_grant");
+	}
+	
+	public boolean isTimeout() {
+		return getStatusCode() == HttpStatus.SC_REQUEST_TIMEOUT || getStatusCode() == HttpStatus.SC_NOT_FOUND;
+	}
+	
+	public boolean isBadFileDescriptor() {
+		// {"error":"IOException","status_code":404,"error_description":"Bad file descriptor"}
+		return getStatusCode() == HttpStatus.SC_NOT_FOUND && getError().equals("IOException") && getErrorDescription().equals("Bad file descriptor");
 	}
 }

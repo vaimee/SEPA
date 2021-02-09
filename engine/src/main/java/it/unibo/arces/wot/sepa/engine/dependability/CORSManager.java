@@ -49,17 +49,15 @@ class CORSManager {
 			/*
 			 * If the Origin header is not present terminate this set of steps. The request is outside the scope of this specification.
 			 */
-			
-			String allowOrigin = null;
-			
+			logger.debug("Get Origin header");
 			Header[] origins = exchange.getRequest().getHeaders("Origin");
 			if (origins.length != 1) {
 				logger.debug("Origin header is not present. Number of origin headers: "+origins.length);
 				return false;
 			}
 			
+			String allowOrigin = origins[0].getValue();	
 			logger.debug("Check origin: "+allowOrigin);
-			allowOrigin = origins[0].getValue();	
 			if(!allowedOrigin(allowOrigin)) {
 				logger.debug("Origin: "+allowOrigin+" is not allowed");
 				return false;
@@ -72,15 +70,15 @@ class CORSManager {
 			 * The request is outside the scope of this specification.
 			 */
 			
-			logger.debug("Check method");
-			String allowMethod = null;
+			logger.debug("Get Access-Control-Request-Method header");
 			Header[] methods = exchange.getRequest().getHeaders("Access-Control-Request-Method" );
 			if (methods.length != 1) {
 				logger.debug("Method not specified. Number of methods:"+methods.length);
 				return false;
 			}
 			
-			allowMethod = methods[0].getValue();		
+			String allowMethod = methods[0].getValue();
+			logger.debug("Check method: "+allowMethod);
 			if(!allowedMethod(allowMethod)) {
 				logger.debug("Method: "+allowMethod+ " NOT allowed");
 				return false;

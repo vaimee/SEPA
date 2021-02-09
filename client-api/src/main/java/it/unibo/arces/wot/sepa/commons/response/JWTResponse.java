@@ -41,7 +41,19 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
  * Guhes4s9GE6sikh0rPtJg4QtY1DFT3OZ3WDF05OCwsBCe6dkNOn__68-e_9cEoiFY4s4KQ8heRQHpyRuD
  * QK0vTOefpgumKtRHrlCe0JGHBnPNqo8Zp7cVivZnin8NsePcuweFgZxWfaOC-EH5ClpqjPEbjj65g",
  * "token_type":"bearer", "expires_in":3600}
+ * 
+ * Keycloak OpenID Connect token
+ * 
+ * {"access_token":"..isSaVqlen4bH0C5oAg1--",
+ * "expires_in":18000,
+ * "refresh_expires_in":1800,
+ * "refresh_token":"..",
+ * "token_type":"bearer",
+ * "not-before-policy":0,
+ * "session_state":"bc94b90c-fd2c-417c-a19f-4f5c98653236",
+ * "scope":"profile email"}
  */
+
 public class JWTResponse extends Response {
 	/** The log4j2 logger. */
 	private static final Logger logger = LogManager.getLogger();
@@ -54,19 +66,17 @@ public class JWTResponse extends Response {
 	public JWTResponse(SignedJWT token) throws SEPASecurityException {
 		super();
 		
-		JsonObject jwt = new JsonObject();
+		json = new JsonObject();
 		
-		jwt.add("access_token", new JsonPrimitive(token.serialize()));
-		jwt.add("token_type", new JsonPrimitive("bearer"));
+		json.add("access_token", new JsonPrimitive(token.serialize()));
+		json.add("token_type", new JsonPrimitive("bearer"));
 		
 		try {
-			jwt.add("expires_in", new JsonPrimitive(token.getJWTClaimsSet().getExpirationTime().getTime()-token.getJWTClaimsSet().getIssueTime().getTime()));
+			json.add("expires_in", new JsonPrimitive(token.getJWTClaimsSet().getExpirationTime().getTime()-token.getJWTClaimsSet().getIssueTime().getTime()));
 		} catch (ParseException e) {
 			logger.error(e.getMessage());
 			throw new SEPASecurityException(e);
 		}
-		
-		json.add("token", jwt);
 	}
 	
 	public JWTResponse(JsonObject json) {
@@ -81,7 +91,7 @@ public class JWTResponse extends Response {
 	 */
 	public String getAccessToken() {
 		try {
-			return json.get("token").getAsJsonObject().get("access_token").getAsString();
+			return json.get("access_token").getAsString();
 		}
 		catch(Exception e) {
 			return "";
@@ -95,7 +105,7 @@ public class JWTResponse extends Response {
 	 */
 	public String getTokenType() {
 		try {
-			return json.get("token").getAsJsonObject().get("token_type").getAsString();
+			return json.get("token_type").getAsString();
 		}
 		catch(Exception e) {
 			return "";
@@ -109,7 +119,7 @@ public class JWTResponse extends Response {
 	 */
 	public long getExpiresIn() {
 		try {
-			return json.get("token").getAsJsonObject().get("expires_in").getAsLong();
+			return json.get("expires_in").getAsLong();
 		}
 		catch(Exception e) {
 			return 0;

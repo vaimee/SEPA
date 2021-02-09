@@ -18,29 +18,21 @@
 
 package it.unibo.arces.wot.sepa.engine.scheduling;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-import org.apache.jena.query.Query;
-import org.apache.jena.query.QueryException;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.sparql.syntax.Element;
-import org.apache.jena.sparql.syntax.ElementGroup;
-import org.apache.jena.sparql.syntax.ElementNamedGraph;
-
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 
 public class InternalQueryRequest extends InternalUQRequest {
 	private String internetMediaType = "application/sparql-results+json";
 
 	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
-			ClientAuthorization auth) throws QueryException {
+			ClientAuthorization auth) throws SEPASparqlParsingException {
 		super(sparql, defaultGraphUri, namedGraphUri, auth);
 	}
 
 	public InternalQueryRequest(String sparql, Set<String> defaultGraphUri, Set<String> namedGraphUri,
-			ClientAuthorization auth, String mediaType) throws QueryException {
+			ClientAuthorization auth, String mediaType) throws SEPASparqlParsingException {
 		this(sparql, defaultGraphUri, namedGraphUri, auth);
 
 		internetMediaType = mediaType;
@@ -56,61 +48,8 @@ public class InternalQueryRequest extends InternalUQRequest {
 				+ namedGraphUri + "} SPARQL: " + sparql;
 	}
 
-	protected Set<String> getGraphURIs(String sparql) throws QueryException {
-		Set<String> ret = new HashSet<>();
-
-		if (sparql == null)
-			return ret;
-
-		Query q = null;
-		logger.debug("Parsing query: " + sparql);
-		q = QueryFactory.create(sparql);
-
-		logger.debug("Get dataset descriptiors");
-		if (q.hasDatasetDescription()) {
-			logger.debug("Get default graph URIs");
-			for (String gr : q.getDatasetDescription().getDefaultGraphURIs()) {
-				ret.add(gr);
-			}
-			logger.debug("Get named graph URIs");
-			for (String gr : q.getDatasetDescription().getNamedGraphURIs()) {
-				ret.add(gr);
-			}
-		}
-
-		logger.debug("Get graph URIs");
-		List<String> graphs = q.getGraphURIs();
-		logger.debug("Get named graph URIs");
-		List<String> namedGraphs = q.getNamedGraphURIs();
-
-		ret.addAll(extractGraphs(q.getQueryPattern()));
-		ret.addAll(graphs);
-		ret.addAll(namedGraphs);
-
-		return ret;
-	}
-
-	private Set<String> extractGraphs(Element e) {
-		Set<String> ret = new HashSet<String>();
-
-		if (e == null)
-			return ret;
-
-		logger.debug("Extract graphs " + e);
-		if (e.getClass().equals(ElementGroup.class)) {
-			ElementGroup group = (ElementGroup) e;
-			for (Element element : group.getElements()) {
-				ret.addAll(extractGraphs(element));
-			}
-		} else if (e.getClass().equals(ElementNamedGraph.class)) {
-			ElementNamedGraph namedGraph = (ElementNamedGraph) e;
-			if (namedGraph.getGraphNameNode().isURI())
-				ret.add(namedGraph.getGraphNameNode().getURI());
-			// TODO: comment if variables can be only NAMED graphs
-			else
-				ret.add("*");
-		}
-
-		return ret;
+	@Override
+	protected Set<String> getGraphURIs(String sparql) throws SEPASparqlParsingException {
+		return JenaSparqlParsing.getQueryGraphURIs(sparql);
 	}
 }
