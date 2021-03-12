@@ -23,6 +23,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
@@ -269,6 +271,30 @@ public class JSAP extends SPARQL11SEProperties {
 		read(path, true, validate);
 	}
 
+	public void read(InputStream input,boolean replace,boolean validate) throws SEPAPropertiesException, SEPASecurityException {
+		InputStreamReader in  = new InputStreamReader(input);
+		
+		JsonObject temp = new JsonParser().parse(in).getAsJsonObject();
+
+		merge(temp, jsap, replace);
+
+		// Validate the JSON elements
+		if (validate)
+			validate();
+
+		// OAuth
+		if (temp.has("oauth")) {
+			oauth = new OAuthProperties(input);
+		}
+
+		buildSPARQLPrefixes();
+	}
+	
+	public void read(InputStream filename)
+			throws SEPAPropertiesException, SEPASecurityException {
+		read(filename, true, false);
+	}
+	
 	/**
 	 * Parse the file and merge the content with the actual JSAP object. Primitive
 	 * values are replaced if replace = true.
@@ -1468,6 +1494,5 @@ public class JSAP extends SPARQL11SEProperties {
 			jsap.getAsJsonObject("sparql11seprotocol").add("reconnect", new JsonPrimitive(b));
 		}
 	}
-
 	
 }
