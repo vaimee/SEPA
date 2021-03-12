@@ -93,13 +93,14 @@ public class Engine implements EngineMBean {
 	// JKS defaults
 	private String sslStoreName = "sepa.jks";
 	private String sslStorePass = "sepa2020";
-	
+
 	private String jwtKeyAlias = "jwt";
 	private String jwtKeyStore = "sepa.jks";
 	private String jwtKeyStorePass = "sepa2020";
 	private String jwtKeyAliasPass = "sepa2020";
-	
-	// CA defaults (using PEM certificate provided by Let's Encrypt or a key within the JKS)
+
+	// CA defaults (using PEM certificate provided by Let's Encrypt or a key within
+	// the JKS)
 	private String caCertificate = null;
 	private String caPath = null;
 	private String caPassword = null;
@@ -111,13 +112,19 @@ public class Engine implements EngineMBean {
 	private String ldapUsersDn = null;
 	private String ldapUser = null;
 	private String ldapPwd = null;
-	
+
 	// Virtuoso LDAP sync
 	private String isqlPath = "/usr/local/virtuoso-opensource/bin/";
 	private String isqlHost = "localhost";
 	private String isqlUser = "dba";
 	private String isqlPass = "dba";
-	
+
+	// Security management
+	SSLContext ssl = null;
+	RSAKey jwt = null;
+	LdapProperties ldap = null;
+	IsqlProperties isql = null;
+
 	// Logging file name
 	static {
 		// Logging
@@ -149,15 +156,15 @@ public class Engine implements EngineMBean {
 		System.out.println("JMX:");
 		System.out.println("-Dcom.sun.management.config.file=jmx.properties : to enable JMX remote managment");
 		System.out.println("");
-		
+
 		System.out.println("JVM:");
 		System.out.println("-XX:+UseG1GC");
 		System.out.println("");
-		
+
 		System.out.println("LOG4J");
 		System.out.println("-Dlog4j.configurationFile=path/to/log4j2.xml");
 		System.out.println("");
-		
+
 		System.out.println("JKS OPTIONS:");
 		System.out.println("-sslstore <jks> : JKS for SSL CA      			(default: ssl.jks)");
 		System.out.println("-sslpass <pwd> : password of the JKS        	(default: sepastore)");
@@ -165,7 +172,7 @@ public class Engine implements EngineMBean {
 		System.out.println("-jwtalias <alias> : alias for the JWT key   	(default: jwt)");
 		System.out.println("-jwtstorepass <pwd> : password for the JKS  	(default: sepakey)");
 		System.out.println("-jwtaliaspass <pwd> : password for the JWT key  (default: sepakey)");
-		
+
 		System.out.println("LDAP OPTIONS:");
 		System.out.println("-ldaphost <name> : host     		         (default: localhost)");
 		System.out.println("-ldapport <port> : port                      (default: 10389)");
@@ -173,9 +180,10 @@ public class Engine implements EngineMBean {
 		System.out.println("-ldapusersdn <dn> : domain                   (default: null)");
 		System.out.println("-ldapuser <usr> : username                   (default: null)");
 		System.out.println("-ldappwd <pwd> : password                    (default: null)");
-		
+
 		System.out.println("ISQL OPTIONS:");
-		System.out.println("-isqlpath <path> : location of isql     		 (default: /usr/local/virtuoso-opensource/bin/)");
+		System.out.println(
+				"-isqlpath <path> : location of isql     		 (default: /usr/local/virtuoso-opensource/bin/)");
 		System.out.println("-isqlhost <host> : host of Virtuoso     		 (default: localhost)");
 		System.out.println("-isqluser <user> : user of Virtuoso     		 (default: dba)");
 		System.out.println("-isqlpass <pass> : password of Virtuoso     	 (default: dba)");
@@ -190,74 +198,74 @@ public class Engine implements EngineMBean {
 
 			switch (args[i].toLowerCase()) {
 			case "-capwd":
-				caPassword = args[i+1];
+				caPassword = args[i + 1];
 				break;
 			case "-cacertificate":
-				caCertificate = args[i+1];
+				caCertificate = args[i + 1];
 				break;
 			case "-capath":
-				caPath = args[i+1];
+				caPath = args[i + 1];
 				break;
-				
+
 			case "-sslstore":
-				sslStoreName = args[i+1];
+				sslStoreName = args[i + 1];
 				break;
 			case "-sslpass":
-				sslStorePass = args[i+1];
+				sslStorePass = args[i + 1];
 				break;
 			case "-jwtalias":
-				jwtKeyAlias = args[i+1];
+				jwtKeyAlias = args[i + 1];
 				break;
 			case "-jwtstore":
-				jwtKeyStore = args[i+1];
+				jwtKeyStore = args[i + 1];
 				break;
 			case "-jwtstorepass":
-				jwtKeyStorePass = args[i+1];
+				jwtKeyStorePass = args[i + 1];
 			case "-jwtaliaspass":
-				jwtKeyAliasPass = args[i+1];
-				break;		
-				
+				jwtKeyAliasPass = args[i + 1];
+				break;
+
 			case "-engine":
-				engineJpar = args[i+1];
+				engineJpar = args[i + 1];
 				break;
 			case "-endpoint":
-				endpointJpar = args[i+1];
+				endpointJpar = args[i + 1];
 				break;
-			
+
 			case "-secure":
-				secure = Optional.of(Boolean.parseBoolean(args[i+1]));
+				secure = Optional.of(Boolean.parseBoolean(args[i + 1]));
 				break;
-			
+
 			case "-ldaphost":
-				ldapHost = args[i+1];
+				ldapHost = args[i + 1];
 				break;
 			case "-ldapport":
-				ldapPort = Integer.parseInt(args[i+1]);
+				ldapPort = Integer.parseInt(args[i + 1]);
 				break;
 			case "-ldapdn":
-				ldapDn = args[i+1];
+				ldapDn = args[i + 1];
 				break;
 			case "-ldapusersdn":
-				ldapUsersDn = args[i+1];
+				ldapUsersDn = args[i + 1];
 				break;
 			case "-ldapuser":
-				ldapUser = args[i+1];
+				ldapUser = args[i + 1];
 				break;
 			case "-ldappwd":
-				ldapPwd = args[i+1];
+				ldapPwd = args[i + 1];
 				break;
-				
+
 			case "-isqlpath":
-				isqlPath = args[i+1];
+				isqlPath = args[i + 1];
 				break;
 			case "-isqlhost":
-				isqlHost = args[i+1];
+				isqlHost = args[i + 1];
 				break;
 			case "-isqluser":
-				isqlUser = args[i+1];
+				isqlUser = args[i + 1];
 				break;
 			case "-isqlpass":
-				isqlPass = args[i+1];
+				isqlPass = args[i + 1];
 				break;
 			default:
 				break;
@@ -270,13 +278,13 @@ public class Engine implements EngineMBean {
 		logger.debug("-capath: " + caPath);
 		logger.debug("-sslstore: " + sslStoreName);
 		logger.debug("-sslpass: " + sslStorePass);
-		
+
 		logger.debug("--- JWT ---");
 		logger.debug("-jwtstore: " + jwtKeyStore);
 		logger.debug("-jwtpass: " + jwtKeyStorePass);
 		logger.debug("-jwtalias: " + jwtKeyAlias);
 		logger.debug("-jwtaliaspass: " + jwtKeyAliasPass);
-		
+
 		logger.debug("--- Engine/endpoint ---");
 		logger.debug("-engine: " + engineJpar);
 		logger.debug("-endpoint: " + endpointJpar);
@@ -289,7 +297,7 @@ public class Engine implements EngineMBean {
 		logger.debug("-ldapusersdn: " + ldapUsersDn);
 		logger.debug("-ldapuser: " + ldapUser);
 		logger.debug("-ldappwd: " + ldapPwd);
-		
+
 		logger.debug("--- ISQL ---");
 		logger.debug("-isqlpath: " + isqlPath);
 		logger.debug("-isqlhost: " + isqlHost);
@@ -297,68 +305,97 @@ public class Engine implements EngineMBean {
 		logger.debug("-isqlpass: " + isqlPass);
 	}
 
+	private void setSecurity() throws SEPASecurityException {
+		// OAUTH 2.0 Authorization Manager
+		if (properties.isSecure()) {
+			ssl = JKSUtil.getSSLContext(sslStoreName, sslStorePass);
+			jwt = JKSUtil.getRSAKey(jwtKeyStore, jwtKeyStorePass, jwtKeyAlias, jwtKeyAliasPass);
+			ldap = new LdapProperties(ldapHost, ldapPort, ldapDn, ldapUsersDn, ldapUser, ldapPwd, properties.isTls());
+			isql = new IsqlProperties(isqlPath, isqlHost, isqlUser, isqlPass);
+			if (properties.isLocalEnabled())
+				Dependability.enableLocalSecurity(ssl, jwt);
+			else if (properties.isLDAPEnabled()) {
+				Dependability.enableLDAPSecurity(ssl, jwt, ldap);
+			} else if (properties.isKeycìCloakEnabled()) {
+				Dependability.enableKeyCloakSecurity(ssl, jwt, ldap, isql);
+			}
+
+			// Check that SSL has been properly configured
+			Dependability.getSSLContext();
+		}
+	}
+
 	public Engine(String[] args) {
-		System.out.println("##########################################################################################");
-		System.out.println("#                           ____  _____ ____   _                                         #");    
-		System.out.println("#                          / ___|| ____|  _ \\ / \\                                        #");   
-		System.out.println("#                          \\___ \\|  _| | |_) / _ \\                                       #");  
-		System.out.println("#                           ___) | |___|  __/ ___ \\                                      #");
-		System.out.println("#                          |____/|_____|_| /_/   \\_\\                                     #");
-		System.out.println("#                                                                                        #");
-		System.out.println("#                     SPARQL Event Processing Architecture                               #");
-		System.out.println("#                                                                                        #");
-		System.out.println("#                                                                                        #");
-		System.out.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
-		System.out.println("# This is free software, and you are welcome to redistribute it under certain conditions #");
-		System.out.println("# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #");
-		System.out.println("#                                                                                        #");
-		System.out.println("#                                                                                        #");
-		System.out.println("# @prefix git: <https://github.com/> .                                                   #");
-		System.out.println("# @prefix dc: <http://purl.org/dc/elements/1.1/> .                                       #");
-		System.out.println("#                                                                                        #");
-		System.out.println("# git:arces-wot/sepa dc:title 'SEPA' ;                                                   #");
-		System.out.println("# dc:creator git:lroffia ;                                                               #");
-		System.out.println("# dc:contributor git:relu91 ;                                                            #");
-		System.out.println("# dc:format <https://java.com> ;                                                         #");
-		System.out.println("# dc:publisher <https://github.com> .                                                    #");
-		System.out.println("##########################################################################################");
+		System.out
+				.println("##########################################################################################");
+		System.out
+				.println("#                           ____  _____ ____   _                                         #");
+		System.out.println(
+				"#                          / ___|| ____|  _ \\ / \\                                        #");
+		System.out.println(
+				"#                          \\___ \\|  _| | |_) / _ \\                                       #");
+		System.out
+				.println("#                           ___) | |___|  __/ ___ \\                                      #");
+		System.out.println(
+				"#                          |____/|_____|_| /_/   \\_\\                                     #");
+		System.out
+				.println("#                                                                                        #");
+		System.out
+				.println("#                     SPARQL Event Processing Architecture                               #");
+		System.out
+				.println("#                                                                                        #");
+		System.out
+				.println("#                                                                                        #");
+		System.out
+				.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
+		System.out
+				.println("# This is free software, and you are welcome to redistribute it under certain conditions #");
+		System.out
+				.println("# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #");
+		System.out
+				.println("#                                                                                        #");
+		System.out
+				.println("#                                                                                        #");
+		System.out
+				.println("# @prefix git: <https://github.com/> .                                                   #");
+		System.out
+				.println("# @prefix dc: <http://purl.org/dc/elements/1.1/> .                                       #");
+		System.out
+				.println("#                                                                                        #");
+		System.out
+				.println("# git:arces-wot/sepa dc:title 'SEPA' ;                                                   #");
+		System.out
+				.println("# dc:creator git:lroffia ;                                                               #");
+		System.out
+				.println("# dc:contributor git:relu91 ;                                                            #");
+		System.out
+				.println("# dc:format <https://java.com> ;                                                         #");
+		System.out
+				.println("# dc:publisher <https://github.com> .                                                    #");
+		System.out
+				.println("##########################################################################################");
 		System.out.println("");
-		
+
 		// Command arguments
 		parsingArgument(args);
 
 		// Beans
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		EngineBeans.setVersion(version);
-		
+
 		// Dependability monitor
 		new DependabilityMonitor();
 
 		try {
 			// Initialize SPARQL 1.1 SE processing service properties
-			properties = secure.isPresent() ? EngineProperties.load(engineJpar, secure.get()) : EngineProperties.load(engineJpar);
+			properties = secure.isPresent() ? EngineProperties.load(engineJpar, secure.get())
+					: EngineProperties.load(engineJpar);
 
 			EngineBeans.setEngineProperties(properties);
 
 			SPARQL11Properties endpointProperties = new SPARQL11Properties(endpointJpar);
 
-			// OAUTH 2.0 Authorization Manager
-			if (properties.isSecure()) {
-				SSLContext ssl = JKSUtil.getSSLContext(sslStoreName, sslStorePass);
-				RSAKey jwt = JKSUtil.getRSAKey(jwtKeyStore, jwtKeyStorePass, jwtKeyAlias, jwtKeyAliasPass);
-				LdapProperties ldap = new LdapProperties(ldapHost, ldapPort, ldapDn, ldapUsersDn,ldapUser, ldapPwd, properties.isTls());
-				IsqlProperties isql = new IsqlProperties(isqlPath,isqlHost,isqlUser,isqlPass);
-				if (properties.isLocalEnabled()) Dependability.enableLocalSecurity(ssl, jwt);
-				else if (properties.isLDAPEnabled()) {					
-					Dependability.enableLDAPSecurity(ssl,jwt,ldap);
-				}
-				else if (properties.isKeycìCloakEnabled()) {
-					Dependability.enableKeyCloakSecurity(ssl,jwt,ldap,isql);
-				}
-				
-				// Check that SSL has been properly configured
-				Dependability.getSSLContext();
-			}
+			setSecurity();
 
 			// SPARQL 1.1 SE request scheduler
 			scheduler = new Scheduler(properties);
@@ -452,8 +489,7 @@ public class Engine implements EngineMBean {
 			System.out.println(
 					"*****************************************************************************************");
 
-		} catch (SEPAPropertiesException | SEPASecurityException | IllegalArgumentException | SEPAProtocolException
-				e) {
+		} catch (SEPAPropertiesException | SEPASecurityException | IllegalArgumentException | SEPAProtocolException e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
 		} catch (InterruptedException e) {
@@ -572,5 +608,21 @@ public class Engine implements EngineMBean {
 	@Override
 	public boolean getSecure() {
 		return EngineBeans.getSecure();
+	}
+
+	@Override
+	public String getSSLCertificate() {
+		if (!properties.isSecure())
+			return "Security off";
+		return jwt.getParsedX509CertChain().get(0).getIssuerDN().getName() + " "+ jwt.getParsedX509CertChain().get(0).getNotAfter().toString();
+	}
+
+	@Override
+	public void refreshSSLCertificate() {
+		try {
+			setSecurity();
+		} catch (SEPASecurityException e) {
+			logger.error(e.getMessage());
+		}
 	}
 }
