@@ -531,17 +531,17 @@ public class JSAP extends SPARQL11SEProperties {
 		return super.getUpdateAcceptHeader();
 	}
 
-	public HTTPMethod getUpdateMethod(String id) {
+	public UpdateHTTPMethod getUpdateMethod(String id) {
 		try {
 			switch (jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
 					.getAsJsonObject("update").get("method").getAsString()) {
 			case "URL_ENCODED_POST":
-				return HTTPMethod.URL_ENCODED_POST;
+				return UpdateHTTPMethod.URL_ENCODED_POST;
 			case "POST":
-				return HTTPMethod.POST;
-			case "GET":
-				// Virtuoso PATCH
-				return HTTPMethod.GET;
+				return UpdateHTTPMethod.POST;
+//			case "GET":
+//				// Virtuoso PATCH
+//				return HTTPMethod.GET;
 			}
 		} catch (Exception e) {
 		}
@@ -634,7 +634,7 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 	}
 
-	public void setUpdateMethod(String id, HTTPMethod method) {
+	public void setUpdateMethod(String id, UpdateHTTPMethod method) {
 		JsonObject prop = checkAndCreate(id, true);
 
 		if (!prop.has("update"))
@@ -642,9 +642,9 @@ public class JSAP extends SPARQL11SEProperties {
 		JsonObject temp = prop.getAsJsonObject("update");
 
 		switch (method) {
-		case GET:
-			temp.add("method", new JsonPrimitive("GET"));
-			break;
+//		case GET:
+//			temp.add("method", new JsonPrimitive("GET"));
+//			break;
 		case POST:
 			temp.add("method", new JsonPrimitive("POST"));
 			break;
@@ -766,21 +766,22 @@ public class JSAP extends SPARQL11SEProperties {
 		return super.getQueryPath();
 	}
 
-	public HTTPMethod getQueryMethod(String id) {
+	public QueryHTTPMethod getQueryMethod(String id) {
 		try {
 			switch (jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
 					.getAsJsonObject("query").get("method").getAsString()) {
 			case "URL_ENCODED_POST":
-				return HTTPMethod.URL_ENCODED_POST;
+				return QueryHTTPMethod.URL_ENCODED_POST;
 			case "POST":
-				return HTTPMethod.POST;
+				return QueryHTTPMethod.POST;
 			case "GET":
-				return HTTPMethod.GET;
+				return QueryHTTPMethod.GET;
 			}
 		} catch (Exception e) {
+			
 		}
 
-		return super.getUpdateMethod();
+		return super.getQueryMethod();
 	}
 
 	public String getQueryAcceptHeader(String id) {
@@ -859,7 +860,7 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 	}
 
-	public void setQueryMethod(String id, HTTPMethod method) {
+	public void setQueryMethod(String id, QueryHTTPMethod method) {
 		JsonObject prop = checkAndCreate(id, false);
 
 		if (!prop.has("query"))
