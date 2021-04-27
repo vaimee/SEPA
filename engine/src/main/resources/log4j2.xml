@@ -15,8 +15,8 @@
 		<CustomLevel name="timing" intLevel="700" />
 		<CustomLevel name="subscriptions" intLevel="700" />
 		<CustomLevel name="http" intLevel="700" />
-		<CustomLevel name="oauth" intLevel="700" />
-		<CustomLevel name="ldap" intLevel="700" />
+		<CustomLevel name="oauth" intLevel="501" />
+		<CustomLevel name="ldap" intLevel="501" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
@@ -28,7 +28,7 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="debug">
+		<Root level="error">
 			<AppenderRef ref="Console" level="trace" />
  			<AppenderRef ref="Log" level="error"/>
 		</Root>
