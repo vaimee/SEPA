@@ -4,6 +4,7 @@ import org.apache.http.HttpStatus;
 
 import com.google.gson.JsonObject;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.engine.bean.NgisLdHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.protocol.ngsild.NgsiLdError;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
@@ -48,7 +49,10 @@ public class EntityById extends ResourceHandler {
 		}
 
 		// Get entity graph
-		JsonObject jsonld = ngsiLdRdfMapper.getEntityById(entityId);
+		JsonObject jsonld = null;
+	
+		jsonld = ngsiLdRdfMapper.getEntityById(entityId);
+		
 		if (jsonld == null) {
 			NgsiLdError error = ngsiLdRdfMapper.getLastError();
 			setResponse(error.getErrorCode(), "application/json", error.getJsonResponse(), null);

@@ -49,12 +49,14 @@ import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.engine.bean.NgisLdHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
@@ -687,10 +689,11 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 
 	/**
 	 * Sends the SPARQL query to the endpoint
+	 * @throws SEPASparqlParsingException 
 	 */
-	private Response query(String sparql) {
+	private Response query(String sparql) throws SEPASparqlParsingException {
 		// Scheduler QUERY request
-		InternalUQRequest sepaRequest = new InternalQueryRequest(sparql, null, null);
+		InternalUQRequest sepaRequest = new InternalQueryRequest(sparql, null, null,null);
 		Timings.log(sepaRequest);
 		ScheduledRequest req = scheduler.schedule(sepaRequest, this);
 
@@ -715,10 +718,12 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 
 	/**
 	 * Sends the SPARQL update to the endpoint
+	 * @throws SEPASparqlParsingException 
+	 * @throws SPARQL11ProtocolException 
 	 */
-	private Response update(String sparql) {
+	private Response update(String sparql) throws SPARQL11ProtocolException, SEPASparqlParsingException {
 		// Scheduler UPDATE request
-		InternalUQRequest sepaRequest = new InternalUpdateRequest(sparql, null, null);
+		InternalUQRequest sepaRequest = new InternalUpdateRequest(sparql, null, null,null);
 		Timings.log(sepaRequest);
 		ScheduledRequest req = scheduler.schedule(sepaRequest, this);
 
@@ -744,8 +749,10 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 	/**
 	 * Stores the JSON LD frame of an entity in the form { "@type" : "...",
 	 * "@context" : ... }
+	 * @throws SEPASparqlParsingException 
+	 * @throws SPARQL11ProtocolException 
 	 */
-	private boolean storeEntityFrame(String entityId, String type, JsonElement context) {
+	private boolean storeEntityFrame(String entityId, String type, JsonElement context) throws SPARQL11ProtocolException, SEPASparqlParsingException {
 		// Model entityContext = extractContext(entityId, context);
 		// entityContext.add(entityContext.createResource(entityId),
 		// entityContext.createProperty(rdfTypeIri),
@@ -777,8 +784,9 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 	/**
 	 * Gets the previously stored JSON LD frame of an entity which is supposed to
 	 * assume the form { "@type" : "...", "@context" : ... }
+	 * @throws SEPASparqlParsingException 
 	 */
-	private JsonObject getEntityFrame(String entityId) {
+	private JsonObject getEntityFrame(String entityId) throws SEPASparqlParsingException {
 		String construct = "SELECT ?type ?primitive ?term ?iri FROM <" + ngsiLdContextGraph
 				+ "> WHERE {{?id <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type} UNION {?id <"
 				+ ngsiLdContextPrimitive + "> ?primitive} UNION {?id <" + ngsiLdContextElement
@@ -818,12 +826,21 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 
 	/**
 	 * Checks if NGSI-LD entity identified by the "@id" member is present or not
+	 * @throws SEPASparqlParsingException 
 	 */
 	public boolean entityExists(JsonObject jsonld) {
 		String entityId = "<" + jsonld.get("@id").getAsString() + ">";
 		String ask = "ASK {" + entityId + " ?p ?o}";
 
-		Response ret = query(ask);
+		Response ret;
+		try {
+			ret = query(ask);
+		} catch (SEPASparqlParsingException e) {
+			lastError = NgsiLdError.InternalError;
+			lastError.setTitle("SEPASparqlParsingException");
+			lastError.setDetail(e.getMessage());
+			return false;
+		}
 
 		if (ret.isError()) {
 			ErrorResponse error = (ErrorResponse) ret;
@@ -833,19 +850,13 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 			return false;
 		}
 
-		try {
-			return ((QueryResponse) response).getAskResult();
-		} catch (SEPABindingsException e) {
-			logger.error(e);
-			lastError = NgsiLdError.InternalError;
-			lastError.setTitle("Failed to get ASK result");
-			lastError.setDetail(e.getMessage());
-			return false;
-		}
+		return ((QueryResponse) response).getAskResult();
 	}
 
 	/**
 	 * Creates a new NGSI-LD entity
+	 * @throws SEPASparqlParsingException 
+	 * @throws SPARQL11ProtocolException 
 	 */
 	public boolean createEntity(JsonObject jsonld) {
 		// From JSON-LD to RDF
@@ -875,7 +886,16 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 		// Insert triples
 		String triples = nTriples(ds);
 		String sparql = "INSERT DATA { GRAPH <" + NgsiLdRdfMapper.ngsiLdEntitiesGraph + "> {" + triples + "}}";
-		Response ret = update(sparql);
+		Response ret;
+		try {
+			ret = update(sparql);
+		} catch (SPARQL11ProtocolException | SEPASparqlParsingException e) {
+			lastError = NgsiLdError.InternalError;
+			lastError.setTitle("SPARQL11ProtocolException|SEPASparqlParsingException");
+			lastError.setDetail(e.getMessage());
+			return false;
+		}
+		
 		if (ret.isError()) {
 			ErrorResponse error = (ErrorResponse) ret;
 			lastError = NgsiLdError.InternalError;
@@ -885,13 +905,28 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 		}
 
 		// Store frame
-		boolean store = storeEntityFrame(id, type, context);
+		boolean store;
+		try {
+			store = storeEntityFrame(id, type, context);
+		} catch (SPARQL11ProtocolException | SEPASparqlParsingException e) {
+			lastError = NgsiLdError.InternalError;
+			lastError.setTitle("SPARQL11ProtocolException|SEPASparqlParsingException");
+			lastError.setDetail(e.getMessage());
+			return false;
+		}
 
 		// Delete triples if frame cannot be stored
 		if (!store) {
 			sparql = "WITH <" + NgsiLdRdfMapper.ngsiLdEntitiesGraph + "> DELETE WHERE {"
 					+ triples.replaceAll(" _:", " ?") + "}";
-			update(sparql);
+			try {
+				update(sparql);
+			} catch (SPARQL11ProtocolException | SEPASparqlParsingException e) {
+				lastError = NgsiLdError.InternalError;
+				lastError.setTitle("SPARQL11ProtocolException|SEPASparqlParsingException");
+				lastError.setDetail(e.getMessage());
+				return false;
+			}
 
 			lastError = NgsiLdError.InternalError;
 			lastError.setTitle("Failed to store entity");
@@ -991,6 +1026,7 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 
 	/**
 	 * Retrieve JSON LD description of the entity idenfied by id
+	 * @throws SEPASparqlParsingException 
 	 */
 	public JsonObject getEntityById(String id) {
 		int iteration = -1;
@@ -1000,7 +1036,15 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 			String query = buildConstruct(iteration).replace("id", id);
 			logger.debug(query);
 
-			Response ret = query(query);
+			Response ret = null;
+			try {
+				ret = query(query);
+			} catch (SEPASparqlParsingException e) {
+				lastError = NgsiLdError.InternalError;
+				lastError.setTitle("SEPASparqlParsingException");
+				lastError.setDetail(e.getMessage());
+				return null;
+			}
 
 			if (ret.isError()) {
 				ErrorResponse error = (ErrorResponse) ret;
@@ -1018,7 +1062,15 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 		RDFDataset entity = buildRdfGraph(results.getBindingsResults().getBindings());
 
 		// Get entity frame
-		JsonObject frame = getEntityFrame(id);
+		JsonObject frame;
+		try {
+			frame = getEntityFrame(id);
+		} catch (SEPASparqlParsingException e) {
+			lastError = NgsiLdError.InternalError;
+			lastError.setTitle("SEPASparqlParsingException");
+			lastError.setDetail(e.getMessage());
+			return null;
+		}
 
 		// Build JSON-LD response
 		return toJsonLd(entity, frame);
