@@ -63,4 +63,8 @@ public class QueryResponse extends Response {
 	public String toString() {
 		return responseBody;
 	}
+
+	public boolean getAskResult() {
+		return json.get("boolean").getAsBoolean(); 
+	}
 }

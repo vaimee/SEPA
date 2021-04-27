@@ -53,6 +53,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.engine.bean.NgisLdHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
@@ -693,7 +694,7 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 	 */
 	private Response query(String sparql) throws SEPASparqlParsingException {
 		// Scheduler QUERY request
-		InternalUQRequest sepaRequest = new InternalQueryRequest(sparql, null, null,null);
+		InternalUQRequest sepaRequest = new InternalQueryRequest(sparql, null, null,new ClientAuthorization());
 		Timings.log(sepaRequest);
 		ScheduledRequest req = scheduler.schedule(sepaRequest, this);
 
@@ -723,7 +724,7 @@ public class NgsiLdRdfMapper implements ResponseHandler {
 	 */
 	private Response update(String sparql) throws SPARQL11ProtocolException, SEPASparqlParsingException {
 		// Scheduler UPDATE request
-		InternalUQRequest sepaRequest = new InternalUpdateRequest(sparql, null, null,null);
+		InternalUQRequest sepaRequest = new InternalUpdateRequest(sparql, null, null,new ClientAuthorization());
 		Timings.log(sepaRequest);
 		ScheduledRequest req = scheduler.schedule(sepaRequest, this);
 
