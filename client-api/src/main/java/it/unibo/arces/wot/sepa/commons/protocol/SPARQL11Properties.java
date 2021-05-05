@@ -103,7 +103,7 @@ public class SPARQL11Properties {
 	/**
 	 * The Enum HTTPMethod (GET,POST,URL_ENCODED_POST).
 	 */
-	public enum HTTPMethod {
+	public enum QueryHTTPMethod {
 		/** The get. */
 		GET,
 		/** The post. */
