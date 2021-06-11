@@ -118,6 +118,7 @@ public class Engine implements EngineMBean {
 	private String isqlHost = "localhost";
 	private String isqlUser = "dba";
 	private String isqlPass = "dba";
+	private int isqlPort = 1111;
 
 	// Security management
 	SSLContext ssl = null;
@@ -267,6 +268,9 @@ public class Engine implements EngineMBean {
 			case "-isqlpass":
 				isqlPass = args[i + 1];
 				break;
+			case "-isqlport":
+				isqlPort = Integer.parseInt(args[i + 1]);
+				break;
 			default:
 				break;
 			}
@@ -301,6 +305,7 @@ public class Engine implements EngineMBean {
 		logger.debug("--- ISQL ---");
 		logger.debug("-isqlpath: " + isqlPath);
 		logger.debug("-isqlhost: " + isqlHost);
+		logger.debug("-isqlport: " + isqlPort);
 		logger.debug("-isqluser: " + isqlUser);
 		logger.debug("-isqlpass: " + isqlPass);
 	}
@@ -311,7 +316,7 @@ public class Engine implements EngineMBean {
 			ssl = JKSUtil.getSSLContext(sslStoreName, sslStorePass);
 			jwt = JKSUtil.getRSAKey(jwtKeyStore, jwtKeyStorePass, jwtKeyAlias, jwtKeyAliasPass);
 			ldap = new LdapProperties(ldapHost, ldapPort, ldapDn, ldapUsersDn, ldapUser, ldapPwd, properties.isTls());
-			isql = new IsqlProperties(isqlPath, isqlHost, isqlUser, isqlPass);
+			isql = new IsqlProperties(isqlPath, isqlHost, isqlPort,isqlUser, isqlPass);
 			if (properties.isLocalEnabled())
 				Dependability.enableLocalSecurity(ssl, jwt);
 			else if (properties.isLDAPEnabled()) {
