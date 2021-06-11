@@ -58,8 +58,8 @@ public abstract class InternalUQRequest extends InternalRequest {
 		if (defaultGraphUri != null) this.defaultGraphUri = defaultGraphUri;
 		if (namedGraphUri != null) this.namedGraphUri = namedGraphUri;
 		
-		if(!this.defaultGraphUri.isEmpty() && !rdfDataSet.isEmpty()) throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"using-graph-uri conflicts with USING, USING NAMED or WITH");
-		if(!this.namedGraphUri.isEmpty() && !rdfDataSet.isEmpty()) throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"using-named-graph-uri conflicts with USING, USING NAMED or WITH");
+		//if(!this.defaultGraphUri.isEmpty() && !rdfDataSet.isEmpty()) throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"using-graph-uri conflicts with USING, USING NAMED or WITH");
+		//if(!this.namedGraphUri.isEmpty() && !rdfDataSet.isEmpty()) throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,"using-named-graph-uri conflicts with USING, USING NAMED or WITH");
 	
 		rdfDataSet.addAll(this.defaultGraphUri);
 		rdfDataSet.addAll(this.namedGraphUri);
