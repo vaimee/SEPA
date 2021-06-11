@@ -23,13 +23,11 @@ import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
-import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 
 /**
  * An internal request has been validated and graph URIs are extracted.
