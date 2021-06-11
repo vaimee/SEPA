@@ -233,7 +233,7 @@ public class Subscriptions {
 		
 		String spuid = notify.getSpuid();
 
-		if (!spus.containsKey(spuid)) return;
+		if (!spus.containsKey(spuid)) return;		
 		
 		for (Subscriber client : handlers.get(spuid)) {
 			// Dispatching events
