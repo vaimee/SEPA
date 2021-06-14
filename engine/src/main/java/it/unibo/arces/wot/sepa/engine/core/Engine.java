@@ -61,11 +61,11 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  * Event Processing Architecture (SEPA)
  *
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.9.12
+ * @version 0.10.0
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "1.0.0";
+	private final static String version = "0.10.0";
 
 	private EngineProperties properties = null;
 
