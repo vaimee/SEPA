@@ -331,54 +331,30 @@ public class Engine implements EngineMBean {
 	}
 
 	public Engine(String[] args) {
-		System.out
-				.println("##########################################################################################");
-		System.out
-				.println("#                           ____  _____ ____   _                                         #");
-		System.out.println(
-				"#                          / ___|| ____|  _ \\ / \\                                        #");
-		System.out.println(
-				"#                          \\___ \\|  _| | |_) / _ \\                                       #");
-		System.out
-				.println("#                           ___) | |___|  __/ ___ \\                                      #");
-		System.out.println(
-				"#                          |____/|_____|_| /_/   \\_\\                                     #");
-		System.out
-				.println("#                                                                                        #");
-		System.out
-				.println("#                     SPARQL Event Processing Architecture                               #");
-		System.out
-				.println("#                                                                                        #");
-		System.out
-				.println("#                                                                                        #");
-		System.out
-				.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
-		System.out
-				.println("# This is free software, and you are welcome to redistribute it under certain conditions #");
-		System.out
-				.println("# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #");
-		System.out
-				.println("#                                                                                        #");
-		System.out
-				.println("#                                                                                        #");
-		System.out
-				.println("# @prefix git: <https://github.com/> .                                                   #");
-		System.out
-				.println("# @prefix dc: <http://purl.org/dc/elements/1.1/> .                                       #");
-		System.out
-				.println("#                                                                                        #");
-		System.out
-				.println("# git:arces-wot/sepa dc:title 'SEPA' ;                                                   #");
-		System.out
-				.println("# dc:creator git:lroffia ;                                                               #");
-		System.out
-				.println("# dc:contributor git:relu91 ;                                                            #");
-		System.out
-				.println("# dc:format <https://java.com> ;                                                         #");
-		System.out
-				.println("# dc:publisher <https://github.com> .                                                    #");
-		System.out
-				.println("##########################################################################################");
+		System.out.println("##########################################################################################");
+		System.out.println("#                           ____  _____ ____   _                                         #");
+		System.out.println("#                          / ___|| ____|  _ \\ / \\                                        #");
+		System.out.println("#                          \\___ \\|  _| | |_) / _ \\                                       #");
+		System.out.println("#                           ___) | |___|  __/ ___ \\                                      #");
+		System.out.println("#                          |____/|_____|_| /_/   \\_\\                                     #");
+		System.out.println("#                                                                                        #");
+		System.out.println("#                     SPARQL Event Processing Architecture                               #");
+		System.out.println("#                                                                                        #");
+		System.out.println("#                                                                                        #");
+		System.out.println("# This program comes with ABSOLUTELY NO WARRANTY                                         #");
+		System.out.println("# This is free software, and you are welcome to redistribute it under certain conditions #");
+		System.out.println("# GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007                                    #");
+		System.out.println("#                                                                                        #");
+		System.out.println("#                                                                                        #");
+		System.out.println("# @prefix git: <https://github.com/> .                                                   #");
+		System.out.println("# @prefix dc: <http://purl.org/dc/elements/1.1/> .                                       #");
+		System.out.println("#                                                                                        #");
+		System.out.println("# git:arces-wot/sepa dc:title 'SEPA' ;                                                   #");
+		System.out.println("# dc:creator git:lroffia ;                                                               #");
+		System.out.println("# dc:contributor git:relu91 ;                                                            #");
+		System.out.println("# dc:format <https://java.com> ;                                                         #");
+		System.out.println("# dc:publisher <https://github.com> .                                                    #");
+		System.out.println("##########################################################################################");
 		System.out.println("");
 
 		// Command arguments
