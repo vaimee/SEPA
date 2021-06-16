@@ -80,7 +80,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 		this.updatePath = updatePath;
 
 		// JMX
-		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+		if(this.getClass().getSimpleName().equals("SPARQL11Handler")) SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
 	protected ClientAuthorization authorize(HttpRequest request) throws SEPASecurityException {
