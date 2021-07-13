@@ -33,6 +33,8 @@ public class WebsocketGate extends Gate {
 	
 	protected final WebSocket socket;
 	
+	protected boolean isConnected = true;
+	
 	public WebsocketGate(WebSocket s,Scheduler scheduler){
 		super(scheduler);
 		this.socket = s;
@@ -44,13 +46,15 @@ public class WebsocketGate extends Gate {
 			logger.trace("Sent: "+ret);
 		}
 		catch(WebsocketNotConnectedException e){
+			logger.error("WebsocketNotConnectedException "+e.getMessage());
+			isConnected = false;
 			if (ret.isNotification()) {
 				Notification notify = (Notification) ret;
-				logger.warn("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
+				logger.error("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
 				throw new SEPAProtocolException("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
 			}
 			else {
-				logger.warn("WebsocketNotConnectedException failed to send error response "+ret);
+				logger.error("WebsocketNotConnectedException failed to send error response "+ret);
 				throw new SEPAProtocolException("WebsocketNotConnectedException failed to send error response "+ret);
 			}
 		}	
@@ -58,6 +62,6 @@ public class WebsocketGate extends Gate {
 
 	@Override
 	public boolean ping() {
-		return socket.isOpen();
+		return isConnected && socket.isOpen();
 	}
 }

@@ -171,31 +171,31 @@ public class Subscriptions {
 		return sub;
 	}
 
-	public synchronized static Subscriber getSubscriber(String sid) throws SEPANotExistsException {
-		logger.log(Level.getLevel("subscriptions"),"@getSubscriber "+sid);
-		
-		Subscriber sub = subscribers.get(sid);
-
-		if (sub == null)
-			throw new SEPANotExistsException("Subscriber " + sid + " does not exists");
-		return sub;
-	}
+//	public synchronized static Subscriber getSubscriber(String sid) throws SEPANotExistsException {
+//		logger.log(Level.getLevel("subscriptions"),"@getSubscriber "+sid);
+//		
+//		Subscriber sub = subscribers.get(sid);
+//
+//		if (sub == null)
+//			throw new SEPANotExistsException("Subscriber " + sid + " does not exists");
+//		return sub;
+//	}
 
 	/**
 	 * Remove the subscriber and return true if it is the last of the SPU managed ones 
 	 * */
-	public synchronized static boolean removeSubscriber(Subscriber sub) throws SEPANotExistsException {
-		String sid = sub.getSID();
+	public synchronized static boolean removeSubscriber(String sid) throws SEPANotExistsException {
+		if (!subscribers.containsKey(sid)) {
+			logger.warn("@removeSubscriber SID not found: " + sid);
+			throw new SEPANotExistsException("SID not found: " + sid);
+		}
+		
+		Subscriber sub = subscribers.get(sid);
 		String spuid = sub.getSPU().getSPUID();
 
 		logger.log(Level.getLevel("subscriptions"),"@removeSubscriber "+sid+" "+spuid);
 		
-		if (!subscribers.containsKey(sid)) {
-			logger.warn("@internalUnsubscribe SID not found: " + sid);
-			throw new SEPANotExistsException("SID not found: " + sid);
-		}
-
-		logger.log(Level.getLevel("subscriptions"),"@internalUnsubscribe SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
+		logger.log(Level.getLevel("subscriptions"),"@removeSubscriber SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
 				+ subscribers.size());
 
 		if (handlers.get(spuid) == null) return false;
@@ -207,7 +207,7 @@ public class Subscriptions {
 	
 		// No more handlers: return true
 		if (handlers.get(spuid).isEmpty()) {
-			logger.log(Level.getLevel("subscriptions"),"@internalUnsubscribe no more subscribers. Kill SPU: " + sub.getSPU().getSPUID());
+			logger.log(Level.getLevel("subscriptions"),"@removeSubscriber no more subscribers. Kill SPU: " + sub.getSPU().getSPUID());
 
 			requests.remove(sub.getSPU().getSubscribe());
 			handlers.remove(spuid);
@@ -220,7 +220,7 @@ public class Subscriptions {
 			logger.log(Level.getLevel("subscriptions"), "remove " + spuid);
 			spus.remove(spuid);
 
-			logger.log(Level.getLevel("subscriptions"), "@internalUnsubscribe active SPUs: " + spus.size());
+			logger.log(Level.getLevel("subscriptions"), "@removeSubscriber active SPUs: " + spus.size());
 
 			SPUManagerBeans.setActiveSPUs(spus.size());
 			SPUManagerBeans.removeSubscriber();
@@ -237,8 +237,9 @@ public class Subscriptions {
 		
 		String spuid = notify.getSpuid();
 
-		if (!spus.containsKey(spuid)) return;		
+		if (!spus.containsKey(spuid)) return;
 		
+		HashSet<Subscriber> brokenSubscribers = new HashSet<Subscriber>();		
 		for (Subscriber client : handlers.get(spuid)) {
 			// Dispatching events
 			Notification event = new Notification(client.getSID(), notify.getARBindingsResults(),
@@ -246,6 +247,17 @@ public class Subscriptions {
 			try {
 				client.notifyEvent(event);
 			} catch (SEPAProtocolException e) {
+				logger.error(e.getMessage());
+				if (logger.isTraceEnabled())
+					e.printStackTrace();
+				brokenSubscribers.add(client);
+			}
+		}
+		
+		for (Subscriber client : brokenSubscribers) {
+			try {
+				removeSubscriber(client.getSID());
+			} catch (SEPANotExistsException e) {
 				logger.error(e.getMessage());
 				if (logger.isTraceEnabled())
 					e.printStackTrace();

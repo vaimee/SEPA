@@ -165,9 +165,9 @@ public class Processor implements ProcessorMBean {
 		return ret;
 	}
 
-	public void killSubscription(String sid, String gid) throws InterruptedException {
-		spuManager.killSubscription(sid, gid);
-	}
+//	public void killSubscription(String sid, String gid) throws InterruptedException {
+//		spuManager.killSubscription(sid, gid);
+//	}
 
 	private Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException, IOException {
 		return updateProcessor.process(preRequest);

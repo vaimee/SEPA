@@ -75,6 +75,10 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 		client = new WebsocketClientEndpoint(sm, this);
 		
+		connect();
+	}
+	
+	private void connect() throws SEPASecurityException {
 		while (!client.isConnected()) {
 			try {
 				client.connect(url);
@@ -92,11 +96,11 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 				}
 				client = new WebsocketClientEndpoint(sm, this);
 			}
-		}
+		}	
 	}
 
 	@Override
-	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
+	public void subscribe(SubscribeRequest request) throws SEPAProtocolException, SEPASecurityException {
 		logger.trace("subscribe: " + request);
 
 		synchronized (mutex) {
@@ -129,7 +133,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			lastRequest = request;
 		}
 
-		client.send(lastRequest.toString());
+		if (client.isConnected()) client.send(lastRequest.toString());
 	}
 
 	@Override

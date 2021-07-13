@@ -89,7 +89,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
 		if (!Dependability.processCORSRequest(exchange)) {
-			logger.error("CORS origin not allowed");
+			logger.log(Level.getLevel("http"),"CORS origin not allowed");
 			jmx.corsFailed();
 			HttpUtilities.sendFailureResponse(exchange,
 					new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error", "CORS origin not allowed"));
@@ -97,7 +97,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 		}
 
 		if (Dependability.isPreFlightRequest(exchange)) {
-			logger.debug("Preflight request");
+			logger.log(Level.getLevel("http"),"Preflight request");
 			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
 			return false;
 		}
@@ -205,7 +205,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 			
 			Header[] headers = exchange.getRequest().getHeaders("Content-Type");
 			if (headers.length != 1) {
-				logger.error("Content-Type is missing or multiple");
+				logger.log(Level.getLevel("http"),"Content-Type is missing or multiple");
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, "Content-Type is missing or multiple");
 			}
 			
@@ -529,7 +529,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 			return;
 		}
 		if (!oauth.isAuthorized()) {
-			logger.warn("*** NOT AUTHORIZED *** " + oauth.getDescription());
+			logger.log(Level.getLevel("oauth"),"*** NOT AUTHORIZED *** " + oauth.getDescription());
 			HttpUtilities.sendFailureResponse(httpExchange,
 					new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, oauth.getError(), oauth.getDescription()));
 			jmx.authorizingFailed();
@@ -542,7 +542,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 			// Parsing SPARQL 1.1 request and attach a token
 			sepaRequest = parse(httpExchange, oauth);
 		} catch (SPARQL11ProtocolException e) {
-			logger.error("Parsing failed: " + httpExchange.getRequest());
+			logger.log(Level.getLevel("http"),"Parsing failed: " + httpExchange.getRequest());
 			HttpUtilities.sendFailureResponse(httpExchange,
 					new ErrorResponse(e.getCode(), "SPARQL11ProtocolException", "Parsing failed: " + e.getMessage()));
 			jmx.parsingFailed();
