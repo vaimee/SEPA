@@ -65,7 +65,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.10.0";
+	private final static String version = "0.10.20210702";
 
 	private EngineProperties properties = null;
 
@@ -380,10 +380,11 @@ public class Engine implements EngineMBean {
 
 			// SPARQL 1.1 SE request scheduler
 			scheduler = new Scheduler(properties);
-
+			Dependability.setScheduler(scheduler);
+			
 			// SEPA Processor
 			processor = new Processor(endpointProperties, properties, scheduler);
-			Dependability.setProcessor(processor);
+			
 
 			// SPARQL protocol service
 			int port = endpointProperties.getPort();
@@ -461,14 +462,11 @@ public class Engine implements EngineMBean {
 
 			// Welcome message
 			System.out.println("");
-			System.out.println(
-					"*****************************************************************************************");
-			System.out.println("*                      SEPA Broker Ver " + version
-					+ " is up and running                          *");
-			System.out.println(
-					"*                                Let Things Talk!                                       *");
-			System.out.println(
-					"*****************************************************************************************");
+			System.out.println("*****************************************************************************************");
+			System.out.println("*                        SEPA Broker Ver is up and running                              *");
+			System.out.println("*                        Let Things Talk and Data Be Free!                              *");
+			System.out.println("*****************************************************************************************");
+			System.out.print("Version "+version);
 
 		} catch (SEPAPropertiesException | SEPASecurityException | IllegalArgumentException | SEPAProtocolException e) {
 			System.err.println(e.getMessage());

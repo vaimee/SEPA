@@ -28,27 +28,27 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.io.IOException;
 import java.util.HashMap;
 
-public class StressUsingPAC  implements ISubscriptionHandler{
+public class StressUsingPAC implements ISubscriptionHandler {
 
-    protected static final Logger logger = LogManager.getLogger();
+	protected static final Logger logger = LogManager.getLogger();
 
-    static ConfigurationProvider provider;
-    
-    protected static ConsumerTestUnit consumerAll;
-    protected static Producer randomProducer;
-    protected static AggregatorTestUnit randomAggregator;
-    protected static ConsumerTestUnit consumerRandom1;
+	static ConfigurationProvider provider;
 
-    protected static GenericClient genericClient;
-    protected static HashMap<String,String> subscriptions = new HashMap<>();
+	protected static ConsumerTestUnit consumerAll;
+	protected static Producer randomProducer;
+	protected static AggregatorTestUnit randomAggregator;
+	protected static ConsumerTestUnit consumerRandom1;
+
+	protected static GenericClient genericClient;
+	protected static HashMap<String, String> subscriptions = new HashMap<>();
 
 	private int genericClientNotifications;
 	private int genericClientSubscriptions;
-	
+
 	public void setOnSemanticEvent(String spuid) {
 		genericClientNotifications++;
 	}
-	
+
 	public int getNotificationsCount() {
 		return genericClientNotifications;
 	}
@@ -56,7 +56,7 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 	public void setOnSubscribe(String spuid, String alias) {
 		genericClientSubscriptions++;
 	}
-	
+
 	public int getSubscriptionsCount() {
 		return genericClientSubscriptions;
 	}
@@ -64,115 +64,163 @@ public class StressUsingPAC  implements ISubscriptionHandler{
 	public void setOnUnsubscribe(String spuid) {
 		genericClientSubscriptions--;
 	}
-	
-    @BeforeAll
-    public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-        provider = new ConfigurationProvider();
-    }
-    
-    @AfterAll
+
+	@BeforeAll
+	public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		provider = new ConfigurationProvider();
+	}
+
+	@AfterAll
 	public static void end() {
 	}
 
-    @BeforeEach
-    public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
-        consumerAll = new ConsumerTestUnit(provider, "ALL");
-        randomProducer = new Producer(provider.getJsap(), "RANDOM");
-        randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1");
-        consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
-        genericClient = new GenericClient(provider.getJsap(), this);
-    }
+	@BeforeEach
+	public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		consumerAll = new ConsumerTestUnit(provider, "ALL");
+		randomProducer = new Producer(provider.getJsap(), "RANDOM");
+		randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1");
+		consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
+		genericClient = new GenericClient(provider.getJsap(), this);
+	}
 
-    @AfterEach
-    public void afterTest() throws IOException {
-        consumerAll.close();
-        randomProducer.close();
-        randomAggregator.close();
-        consumerRandom1.close();
-    }
+	@AfterEach
+	public void afterTest() throws IOException {
+		consumerAll.close();
+		randomProducer.close();
+		randomAggregator.close();
+		consumerRandom1.close();
+	}
 
-    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //(timeout = 5000)
-    public void produceX100() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
-            SEPAProtocolException, SEPABindingsException {
-        for (int i = 0; i < 100; i++) {
-            Response ret = randomProducer.update(provider.TIMEOUT,provider.NRETRY);
-            assertFalse(ret.isError(),"Failed on update: "+i+" "+ret);
-        }
-    }
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	// (timeout = 5000)
+	public void produceX100() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
+			SEPAProtocolException, SEPABindingsException {
+		for (int i = 0; i < 100; i++) {
+			Response ret = randomProducer.update(provider.TIMEOUT, provider.NRETRY);
+			assertFalse(ret.isError(), "Failed on update: " + i + " " + ret);
+		}
+	}
 
-    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    //@Timeout(60)
-    public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
-            SEPAProtocolException, SEPABindingsException {
-        for (int i = 0; i < 1000; i++) {
-            Response ret = randomProducer.update(provider.TIMEOUT,provider.NRETRY);
-            assertFalse(ret.isError(),"Failed on update: "+i+" "+ret);
-        }
-    }
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	// @Timeout(60)
+	public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
+			SEPAProtocolException, SEPABindingsException {
+		for (int i = 0; i < 1000; i++) {
+			Response ret = randomProducer.update(provider.TIMEOUT, provider.NRETRY);
+			assertFalse(ret.isError(), "Failed on update: " + i + " " + ret);
+		}
+	}
 
-    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    @Timeout(10)
-    public void aggregationX10() throws InterruptedException, SEPASecurityException, IOException,
-            SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-        consumerRandom1.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
-        consumerRandom1.waitFirstNotification();
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(10)
+	public void aggregationX10() throws InterruptedException, SEPASecurityException, IOException,
+			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+		consumerRandom1.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
+		consumerRandom1.waitFirstNotification();
 
-        randomAggregator.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
-        randomAggregator.waitFirstNotification();
+		randomAggregator.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
+		randomAggregator.waitFirstNotification();
 
-        for (int i = 0; i < 10; i++) {
-            randomProducer.update(provider.TIMEOUT,provider.NRETRY);
+		for (int i = 0; i < 10; i++) {
+			randomProducer.update(provider.TIMEOUT, provider.NRETRY);
 
-            randomAggregator.waitNotification();
-            consumerRandom1.waitNotification();
-        }
-    }
+			randomAggregator.waitNotification();
+			consumerRandom1.waitNotification();
+		}
+	}
 
-    @RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-    @Timeout(30)
-    //(timeout = 10000)
-    public void aggregationX100() throws InterruptedException, SEPASecurityException, IOException,
-            SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
-        consumerRandom1.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
-        consumerRandom1.waitFirstNotification();
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	// @Timeout(10)
+	public void subscribeAndUpdateRaceDetection() throws InterruptedException, SEPASecurityException, IOException,
+			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+		Thread pub = new Thread() {
+			public void run() {
+				for (int i = 0; i < 500; i++) {
+					try {
+						randomProducer.update(provider.TIMEOUT, provider.NRETRY);
+					} catch (SEPASecurityException | SEPAPropertiesException | SEPABindingsException
+							| SEPAProtocolException e) {
+						assertFalse(true, "Failed on update: " + i + " " + e.getMessage());
+					}
+				}
+			}
+		};
 
-        randomAggregator.syncSubscribe(provider.TIMEOUT,provider.NRETRY);
-        randomAggregator.waitFirstNotification();
+		Thread sub = new Thread() {
+			public void run() {
+				for (int i = 0; i < 500; i++) {
+					try {
+						consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
+						consumerRandom1.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
+						consumerRandom1.close();
+						
+						consumerAll = new ConsumerTestUnit(provider, "ALL");
+						consumerAll.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
+						consumerAll.close();
+					} catch (SEPASecurityException | SEPAPropertiesException | SEPABindingsException
+							| SEPAProtocolException | IOException | InterruptedException e) {
+						assertFalse(true, "Failed on subscribe: " + i + " " + e.getMessage());
+					}
+				}
+			}
+		};
 
-        for (int i = 0; i < 100; i++) {
-            randomProducer.update(provider.TIMEOUT,provider.NRETRY);
+		pub.start();
+		sub.start();
 
-            randomAggregator.waitNotification();
-            consumerRandom1.waitNotification();
-        }
-    }
-    @Override
-    public void onSemanticEvent(Notification notify) {
-        logger.debug(notify);
-        setOnSemanticEvent(notify.getSpuid());
-    }
+		synchronized (pub) {
+			pub.wait();
+		}
+		synchronized (sub) {
+			sub.wait();
+		}
+	}
 
-    @Override
-    public void onBrokenConnection(ErrorResponse err) {
-        logger.debug("onBrokenConnection "+err);
-    }
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(30)
+	// (timeout = 10000)
+	public void aggregationX100() throws InterruptedException, SEPASecurityException, IOException,
+			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+		consumerRandom1.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
+		consumerRandom1.waitFirstNotification();
 
-    @Override
-    public void onError(ErrorResponse errorResponse) {
-        logger.debug(errorResponse);
-    }
+		randomAggregator.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
+		randomAggregator.waitFirstNotification();
 
-    @Override
-    public void onSubscribe(String spuid, String alias) {
-        logger.debug("onSubscribe "+spuid+" "+alias);
-        subscriptions.put(alias, spuid);
-        setOnSubscribe(spuid,alias);
-    }
+		for (int i = 0; i < 100; i++) {
+			randomProducer.update(provider.TIMEOUT, provider.NRETRY);
 
-    @Override
-    public void onUnsubscribe(String spuid) {
-        logger.debug("onUnsubscribe "+spuid);
-        setOnUnsubscribe(spuid);
-    }
+			randomAggregator.waitNotification();
+			consumerRandom1.waitNotification();
+		}
+	}
+
+	@Override
+	public void onSemanticEvent(Notification notify) {
+		logger.debug(notify);
+		setOnSemanticEvent(notify.getSpuid());
+	}
+
+	@Override
+	public void onBrokenConnection(ErrorResponse err) {
+		logger.debug("onBrokenConnection " + err);
+	}
+
+	@Override
+	public void onError(ErrorResponse errorResponse) {
+		logger.debug(errorResponse);
+	}
+
+	@Override
+	public void onSubscribe(String spuid, String alias) {
+		logger.debug("onSubscribe " + spuid + " " + alias);
+		subscriptions.put(alias, spuid);
+		setOnSubscribe(spuid, alias);
+	}
+
+	@Override
+	public void onUnsubscribe(String spuid) {
+		logger.debug("onUnsubscribe " + spuid);
+		setOnUnsubscribe(spuid);
+	}
 }

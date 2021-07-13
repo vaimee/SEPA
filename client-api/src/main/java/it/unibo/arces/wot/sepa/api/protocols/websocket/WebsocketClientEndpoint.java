@@ -74,25 +74,6 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 			logger.error("Connect to: "+url+" exception "+e.getClass().getName()+" "+e.getMessage());
 			throw new SEPAProtocolException(e.getMessage());
 		}
-		
-//		// Attempt to connect
-//		while (true) {
-//			try {
-//				logger.debug("Connect to: " + url);
-//				client.connectToServer(this, url);
-//				return;
-//
-//			} catch (DeploymentException | IOException e) {
-//				logger.error("Exception " +e.getClass().getName()+" "+e.getMessage()+" retry in 1 s");
-//
-//				try {
-//					Thread.sleep(1000);
-//				} catch (InterruptedException e1) {
-//					throw new SEPAProtocolException(e1);
-//				}
-//			}
-//		}
-//
 	}
 
 	@Override

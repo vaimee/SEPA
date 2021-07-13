@@ -63,21 +63,23 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
-	
+
 	public void abortSubscriptionsProcessing() {
 		synchronized (activeSpus) {
-			for (SPU spu : activeSpus) spu.abortProcessing();	
+			for (SPU spu : activeSpus)
+				spu.abortProcessing();
 		}
 	}
-	
+
 	public boolean doUpdateARQuadsExtraction(InternalUpdateRequest update) {
-		activeSpus = Subscriptions.filterOnGraphs(update);		
+		activeSpus = Subscriptions.filterOnGraphs(update);
 		return !activeSpus.isEmpty();
 	}
-	
+
 	public void subscriptionsProcessingPreUpdate(InternalUpdateRequest update) {
-		if (update.getClass().equals(InternalUpdateRequestWithQuads.class)) activeSpus = Subscriptions.filterOnQuads(activeSpus,(InternalUpdateRequestWithQuads)update);
-		
+		if (update.getClass().equals(InternalUpdateRequestWithQuads.class))
+			activeSpus = Subscriptions.filterOnQuads(activeSpus, (InternalUpdateRequestWithQuads) update);
+
 		logger.log(Level.getLevel("SPUManager"), "*** subscriptionsProcessingPreUpdate ***");
 
 		// Start processing
@@ -87,28 +89,27 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		synchronized (activeSpus) {
 			logger.log(Level.getLevel("SPUManager"),
 					"*** subscriptionsProcessing *** create processing pool. Active SPUs: " + activeSpus.size());
-			
+
 			synchronized (processingPool) {
 				processingPool.clear();
 			}
-			
+
 			for (SPU spu : activeSpus) {
 				processingPool.add(spu);
 			}
 		}
-		
-		synchronized(processingPool) {
-			logger.log(Level.getLevel("SPUManager"),
-					"*** subscriptionsProcessing *** start processing");
+
+		synchronized (processingPool) {
+			logger.log(Level.getLevel("SPUManager"), "*** subscriptionsProcessing *** start processing");
 			for (SPU spu : processingPool) {
 				logger.log(Level.getLevel("SPUManager"),
-						"*** subscriptionsProcessing *** start SPU: "+spu.getSPUID());
-				
-				spu.preUpdateProcessing(update);		
+						"*** subscriptionsProcessing *** start SPU: " + spu.getSPUID());
+
+				spu.preUpdateProcessing(update);
 			}
-			
+
 			logger.log(Level.getLevel("SPUManager"),
-						"*** PRE-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
+					"*** PRE-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
 
 			// Wait all SPUs to complete processing
 			while (!processingPool.isEmpty()) {
@@ -128,9 +129,9 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		long stop = Timings.getTime();
 
 		SPUManagerBeans.preProcessingTimings(start, stop);
-		
+
 		logger.log(Level.getLevel("SPUManager"), "*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
-	} 
+	}
 
 	public void subscriptionsProcessingPostUpdate(Response updateResponse) {
 		logger.log(Level.getLevel("SPUManager"), "*** subscriptionsProcessingPostUpdate ***");
@@ -142,29 +143,27 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		synchronized (activeSpus) {
 			logger.log(Level.getLevel("SPUManager"),
 					"*** subscriptionsProcessing *** create processing pool. Active SPUs: " + activeSpus.size());
-			
+
 			synchronized (processingPool) {
 				processingPool.clear();
 			}
-			
+
 			for (SPU spu : activeSpus) {
 				processingPool.add(spu);
 			}
 		}
-		
-		synchronized(processingPool) {
-			logger.log(Level.getLevel("SPUManager"),
-					"*** subscriptionsProcessing *** start processing");
+
+		synchronized (processingPool) {
+			logger.log(Level.getLevel("SPUManager"), "*** subscriptionsProcessing *** start processing");
 			for (SPU spu : processingPool) {
 				logger.log(Level.getLevel("SPUManager"),
-						"*** subscriptionsProcessing *** start SPU: "+spu.getSPUID());
+						"*** subscriptionsProcessing *** start SPU: " + spu.getSPUID());
 
 				spu.postUpdateProcessing(updateResponse);
 			}
-			
-			
+
 			logger.log(Level.getLevel("SPUManager"),
-						"*** POST-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
+					"*** POST-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
 
 			// Wait all SPUs to complete processing
 			while (!processingPool.isEmpty()) {
@@ -186,7 +185,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		SPUManagerBeans.postProcessingTimings(start, stop);
 
 		logger.log(Level.getLevel("SPUManager"), "*** POST-PROCESSING SUBSCRIPTIONS END *** ");
-	} 
+	}
 
 	void endOfProcessing(SPU s) {
 		logger.log(Level.getLevel("SPUManager"), "@endOfProcessing  SPUID: " + s.getSPUID());
@@ -247,37 +246,38 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		return new SubscribeResponse(sub.getSID(), req.getAlias(), sub.getSPU().getLastBindings());
 	}
 
+//	public Response unsubscribe(String sid, String gid) {
+//		logger.log(Level.getLevel("SPUManager"), "@unsubscribe " + sid + " " + gid);
+//		return internalUnsubscribe(sid, gid, true);
+//	}
+
+//	public void killSubscription(String sid, String gid) {
+//		logger.log(Level.getLevel("SPUManager"), "@killSubscription " + sid + " " + gid);
+//		internalUnsubscribe(sid, gid, false);
+//	}
+
 	public Response unsubscribe(String sid, String gid) {
-		logger.log(Level.getLevel("SPUManager"), "@unsubscribe " + sid + " " + gid);
-		return internalUnsubscribe(sid, gid, true);
-	}
-
-	public void killSubscription(String sid, String gid) {
-		logger.log(Level.getLevel("SPUManager"), "@killSubscription " + sid + " " + gid);
-		internalUnsubscribe(sid, gid, false);
-	}
-
-	private Response internalUnsubscribe(String sid, String gid, boolean dep) {
-		logger.log(Level.getLevel("SPUManager"), "@internalUnsubscribe " + sid + " " + gid + " " + dep);
+//	private Response internalUnsubscribe(String sid, String gid, boolean dep) {
+		logger.log(Level.getLevel("SPUManager"), "@internalUnsubscribe " + sid + " " + gid);// + " " + dep);
 
 		try {
-			Subscriber sub = Subscriptions.getSubscriber(sid);
+//			Subscriber sub = Subscriptions.getSubscriber(sid);
+//
+//			endOfProcessing(sub.getSPU());
+//
+//			synchronized (activeSpus) {
+//				activeSpus.remove(sub.getSPU());
+//			}
 
-			endOfProcessing(sub.getSPU());
-
-			synchronized (activeSpus) {
-				activeSpus.remove(sub.getSPU());
-			}
-
-			Subscriptions.removeSubscriber(sub);
+			Subscriptions.removeSubscriber(sid);
 
 		} catch (SEPANotExistsException e) {
 			logger.warn("@internalUnsubscribe SID not found: " + sid);
 			return new ErrorResponse(500, "sid_not_found", "Unregistering a not existing subscriber: " + sid);
 		}
 
-		if (dep)
-			Dependability.onUnsubscribe(gid, sid);
+		// if (dep)
+		Dependability.onUnsubscribe(gid, sid);
 
 		return new UnsubscribeResponse(sid);
 	}

@@ -69,19 +69,19 @@ public class KeyCloakSecurityManager extends SecurityManager {
 		try {
 			signedJWT = SignedJWT.parse(accessToken);
 		} catch (ParseException e) {
-			logger.error(e.getMessage());
+			logger.log(Level.getLevel("oauth"),e.getMessage());
 			return new ClientAuthorization("invalid_request", "ParseException: " + e.getMessage());
 		}
 
 		// Verify token
 		try {
 			if (!signedJWT.verify(verifier)) {
-				logger.error("Signed JWT not verified");
+				logger.log(Level.getLevel("oauth"),"Signed JWT not verified");
 				return new ClientAuthorization("invalid_grant", "Signed JWT not verified");
 			}
 
 		} catch (JOSEException e) {
-			logger.error(e.getMessage());
+			logger.log(Level.getLevel("oauth"),e.getMessage());
 			return new ClientAuthorization("invalid_grant", "JOSEException: " + e.getMessage());
 		}
 		
@@ -98,7 +98,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 				logger.log(Level.getLevel("oauth"),"<username> claim is null. Look for <preferred_username>");
 				uid = claimsSet.getStringClaim("preferred_username");
 				if (uid == null) {
-					logger.error("USER ID not found...");
+					logger.log(Level.getLevel("oauth"),"USER ID not found...");
 					return new ClientAuthorization("invalid_grant", "Username claim not found");
 				}
 			}
@@ -120,7 +120,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 		Date notBefore = claimsSet.getNotBeforeTime();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 		if (expiring.getTime() - nowUnixSeconds < 0) {
-			logger.warn("Token is expired: " + sdf.format(claimsSet.getExpirationTime()) + " < "
+			logger.log(Level.getLevel("oauth"),"Token is expired: " + sdf.format(claimsSet.getExpirationTime()) + " < "
 					+ sdf.format(new Date(nowUnixSeconds)));
 
 			return new ClientAuthorization("invalid_grant", "Token issued at " + sdf.format(claimsSet.getIssueTime())
@@ -128,7 +128,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 		}
 
 		if (notBefore != null && nowUnixSeconds < notBefore.getTime()) {
-			logger.warn("Token can not be used before: " + claimsSet.getNotBeforeTime());
+			logger.log(Level.getLevel("oauth"),"Token can not be used before: " + claimsSet.getNotBeforeTime());
 			return new ClientAuthorization("invalid_grant",
 					"Token can not be used before: " + claimsSet.getNotBeforeTime());
 		}
@@ -138,7 +138,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 			cred = getEndpointCredentials(uid);
 			logger.log(Level.getLevel("oauth"),"Endpoint credentials: "+cred);
 		} catch (SEPASecurityException e) {
-			logger.error("Failed to retrieve credentials (" + uid + ")");
+			logger.log(Level.getLevel("oauth"),"Failed to retrieve credentials (" + uid + ")");
 			return new ClientAuthorization("invalid_grant", "Failed to get credentials (" + uid + ")");
 		}
 

@@ -36,13 +36,15 @@ import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapProperties
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapSecurityManager;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.SecurityManager;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
-import it.unibo.arces.wot.sepa.engine.processing.Processor;
+import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class Dependability {
 	protected static Logger logger = LogManager.getLogger();
 
 	private static boolean isSecure = false;
 	private static SecurityManager authManager = null;
+	
+	private static GatesMonitor monitor = new GatesMonitor();
 
 	public static boolean isSecure() {
 		return isSecure;
@@ -92,32 +94,32 @@ public class Dependability {
 		return authManager.validateToken(jwt);
 	}
 
-	public static void setProcessor(Processor p) {
-		GatesMonitor.setProcessor(p);
+	public static void setScheduler(Scheduler p) {
+		monitor.setScheduler(p);
 	}
 
 	public static void onCloseGate(String gid) throws InterruptedException {
-		GatesMonitor.onClose(gid);
+		monitor.onClose(gid);
 	}
 
 	public static void addGate(Gate g) {
-		GatesMonitor.addGate(g);
+		monitor.addGate(g);
 	}
 
 	public static void removeGate(Gate g) {
-		GatesMonitor.removeGate(g);
+		monitor.removeGate(g);
 	}
 
 	public static void onGateError(String gid, Exception e) {
-		GatesMonitor.onError(gid, e);
+		monitor.onError(gid, e);
 	}
 
 	public static void onSubscribe(String gid, String sid) {
-		GatesMonitor.onSubscribe(gid, sid);
+		monitor.onSubscribe(gid, sid);
 	}
 
 	public static void onUnsubscribe(String gid, String sid) {
-		GatesMonitor.onUnsubscribe(gid, sid);
+		monitor.onUnsubscribe(gid, sid);
 	}
 
 	public static boolean processCORSRequest(HttpAsyncExchange exchange) {
@@ -126,6 +128,10 @@ public class Dependability {
 
 	public static boolean isPreFlightRequest(HttpAsyncExchange exchange) {
 		return CORSManager.isPreFlightRequest(exchange);
+	}
+
+	public static long getNumberOfGates() {
+		return monitor.getNumberOfGates();
 	}
 
 }
