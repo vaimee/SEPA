@@ -31,6 +31,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
+import it.unibo.arces.wot.sepa.engine.protocol.wac.WebAccessControlHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.oauth.JWTRequestHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.oauth.RegisterHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SecureSPARQL11Handler;
@@ -50,7 +51,8 @@ public class HttpsGate {
 
 		try {
 			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
-
+			WebAccessControlHandler wacHandler = new WebAccessControlHandler(properties.getWacPath());
+			
 			server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
 					.setIOReactorConfig(config).setSslContext(Dependability.getSSLContext())
 					.setExceptionLogger(ExceptionLogger.STD_ERR)
@@ -58,6 +60,7 @@ public class HttpsGate {
 					.registerHandler(properties.getSecurePath() + properties.getQueryPath(),handler)
 					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),handler)
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
+					.registerHandler(properties.getWacPath(), wacHandler)
 					.registerHandler("/echo", new EchoHandler())
 					.registerHandler("", new EchoHandler()).create();
 		} catch (IllegalArgumentException e) {
@@ -74,6 +77,7 @@ public class HttpsGate {
 		System.out.println("SPARQL 1.1 SE Update | " + EngineBeans.getSecureUpdateURL());
 		System.out.println("Client registration  | " + EngineBeans.getRegistrationURL());
 		System.out.println("Token request        | " + EngineBeans.getTokenRequestURL());
+		System.out.println("SOLID Wac            | " + EngineBeans.getWacURL());
 	}
 	
 	public void shutdown() {
