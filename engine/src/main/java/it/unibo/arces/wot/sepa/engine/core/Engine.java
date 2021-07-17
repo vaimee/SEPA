@@ -295,8 +295,8 @@ public class Engine implements EngineMBean {
 				Dependability.enableLocalSecurity(ssl, jwt);
 			else if (properties.isLDAPEnabled()) {
 				Dependability.enableLDAPSecurity(ssl, jwt, ldap);
-			} else if (properties.isKeycìCloakEnabled()) {
-				Dependability.enableKeyCloakSecurity(ssl, jwt, ldap, isql);
+			} else if (properties.isKeycloakEnabled()) {
+				Dependability.enableKeycloakSecurity(ssl, jwt, ldap, isql);
 			}
 
 			// Check that SSL has been properly configured

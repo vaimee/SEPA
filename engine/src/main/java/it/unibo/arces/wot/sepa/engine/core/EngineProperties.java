@@ -177,7 +177,7 @@ public class EngineProperties {
 		return this.parameters.gates.security.type.equals("local");
 	}
 	
-	public boolean isKeycìCloakEnabled() {
+	public boolean isKeycloakEnabled() {
 		return this.parameters.gates.security.type.equals("keycloak");
 	}
 	
