@@ -61,7 +61,8 @@ import it.unibo.arces.wot.sepa.logging.Logging;
 				"subscribe": "/subscribe",
 				"register": "/oauth/register",
 				"tokenRequest": "/oauth/token",
-				"securePath": "/secure"
+				"securePath": "/secure",
+				"wacPath": "/wac"
 			}
 		}
 	}
@@ -150,6 +151,7 @@ public class EngineProperties {
 		result.parameters.gates.paths.unsubscribe = "/unsubscribe";
 		result.parameters.gates.paths.register = "/oauth/register";
 		result.parameters.gates.paths.tokenRequest = "/oauth/token";
+		result.parameters.gates.paths.wac = "/wac";
 		return result;
 	}
 
@@ -239,6 +241,10 @@ public class EngineProperties {
 		return this.parameters.gates.paths.secure;
 	}
 
+	public String getWacPath() {
+		return this.parameters.gates.paths.wac;
+	}
+	
 	public int getSPUProcessingTimeout() {
 		return this.parameters.spu.timeout;
 	}
@@ -316,6 +322,7 @@ public class EngineProperties {
 		public String unsubscribe;
 		public String register;
 		public String tokenRequest;
+		public String wac;
 
 		public Paths(){
 			secure       = "/secure";
@@ -325,6 +332,7 @@ public class EngineProperties {
 			unsubscribe  = "/unsubscribe";
 			register     = "/oauth/register";
 			tokenRequest = "/oauth/token";
+			wac          = "/wac";
 		}
 	}
 
