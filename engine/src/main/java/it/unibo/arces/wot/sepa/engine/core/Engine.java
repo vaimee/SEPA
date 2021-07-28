@@ -420,9 +420,9 @@ public class Engine implements EngineMBean {
 
 			System.out.println("SPARQL 1.1 endpoint");
 			System.out.println("----------------------");
-			System.out.println("SPARQL 1.1 Query     | http://" + endpointProperties.getHost() + portS
+			System.out.println("SPARQL 1.1 Query     | "+endpointProperties.getProtocolScheme()+"://" + endpointProperties.getHost() + portS
 					+ endpointProperties.getQueryPath() + queryMethod);
-			System.out.println("SPARQL 1.1 Update    | http://" + endpointProperties.getHost() + portS
+			System.out.println("SPARQL 1.1 Update    | "+endpointProperties.getProtocolScheme()+"://" + endpointProperties.getHost() + portS
 					+ endpointProperties.getUpdatePath() + updateMethod);
 			System.out.println("----------------------");
 			System.out.println("");
