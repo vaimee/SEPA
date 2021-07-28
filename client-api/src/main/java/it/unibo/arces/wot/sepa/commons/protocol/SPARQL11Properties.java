@@ -111,7 +111,7 @@ public class SPARQL11Properties {
 		/** The url encoded post. */
 		URL_ENCODED_POST
 	};
-	
+
 	/**
 	 * The Enum HTTPMethod (GET,POST,URL_ENCODED_POST).
 	 */
@@ -493,7 +493,11 @@ public class SPARQL11Properties {
 	 * @return the update path (default is /update)
 	 */
 	public String getUpdatePath() {
-		return jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("path").getAsString();
+		try {
+			return jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("path").getAsString();
+		} catch (NullPointerException e) {
+			return "/update";
+		}
 	}
 
 	public void setUpdatePath(String path) {
@@ -508,12 +512,17 @@ public class SPARQL11Properties {
 	 * @see QueryHTTPMethod
 	 */
 	public UpdateHTTPMethod getUpdateMethod() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("method").getAsString()) {
-		case "POST":
-			return UpdateHTTPMethod.POST;
-		case "URL_ENCODED_POST":
-			return UpdateHTTPMethod.URL_ENCODED_POST;
-		default:
+		try {
+			switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("method").getAsString()) {
+
+			case "POST":
+				return UpdateHTTPMethod.POST;
+			case "URL_ENCODED_POST":
+				return UpdateHTTPMethod.URL_ENCODED_POST;
+			default:
+				return UpdateHTTPMethod.POST;
+			}
+		} catch (NullPointerException e) {
 			return UpdateHTTPMethod.POST;
 		}
 	}
@@ -527,9 +536,6 @@ public class SPARQL11Properties {
 			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("method",
 					new JsonPrimitive("URL_ENCODED_POST"));
 			break;
-//		case GET:
-//			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("method", new JsonPrimitive("POST"));
-//			break;
 		}
 	}
 
@@ -568,7 +574,11 @@ public class SPARQL11Properties {
 	 * @return the query path (default is /query)
 	 */
 	public String getQueryPath() {
-		return jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("path").getAsString();
+		try {
+			return jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("path").getAsString();
+		} catch (NullPointerException e) {
+			return "/query";
+		}
 	}
 
 	public void setQueryPath(String path) {
@@ -583,14 +593,18 @@ public class SPARQL11Properties {
 	 * @see QueryHTTPMethod
 	 */
 	public QueryHTTPMethod getQueryMethod() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("method").getAsString()) {
-		case "POST":
-			return QueryHTTPMethod.POST;
-		case "GET":
-			return QueryHTTPMethod.GET;
-		case "URL_ENCODED_POST":
-			return QueryHTTPMethod.URL_ENCODED_POST;
-		default:
+		try {
+			switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("method").getAsString()) {
+			case "POST":
+				return QueryHTTPMethod.POST;
+			case "GET":
+				return QueryHTTPMethod.GET;
+			case "URL_ENCODED_POST":
+				return QueryHTTPMethod.URL_ENCODED_POST;
+			default:
+				return QueryHTTPMethod.POST;
+			}
+		} catch (NullPointerException e) {
 			return QueryHTTPMethod.POST;
 		}
 	}

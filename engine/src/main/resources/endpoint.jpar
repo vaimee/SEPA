@@ -1,1 +1,6 @@
-{"host":"localhost","sparql11protocol":{"protocol":"http","port":9999,"query":{"path":"/blazegraph/namespace/kb/sparql","method":"POST","format":"JSON"},"update":{"path":"/blazegraph/namespace/kb/sparql","method":"POST","format":"JSON"}}}
+{
+	"host": "in-memory",
+	"sparql11protocol": {
+		"protocol": "jena-api"
+	}
+}
