@@ -7,6 +7,7 @@ import java.util.Set;
 import org.apache.jena.graph.Node;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.core.Prologue;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.lang.ParserSPARQL11Update;
 import org.apache.jena.sparql.modify.UpdateRequestSink;
@@ -67,7 +68,7 @@ public class JenaSparqlParsing {
 		Set<String> rdfDataSet = new HashSet<String>();
 		
 		try {
-			new ParserSPARQL11Update().parse(sink, sparql);
+			new ParserSPARQL11Update().parse(sink, new Prologue(),sparql);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new SEPASparqlParsingException(e.getMessage());
