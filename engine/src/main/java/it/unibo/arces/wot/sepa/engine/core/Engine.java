@@ -410,9 +410,6 @@ public class Engine implements EngineMBean {
 			case POST:
 				updateMethod = " (Method: POST)";
 				break;
-//			case GET:
-//				updateMethod = " (Method: GET)";
-//				break;
 			case URL_ENCODED_POST:
 				updateMethod = " (Method: URL ENCODED POST)";
 				break;
