@@ -220,11 +220,11 @@ public class Processor implements ProcessorMBean {
 
 	@Override
 	public String getEndpointUpdateMethod() {
-		return ProcessorBeans.getEndpointUpdateMethod();
+		return ProcessorBeans.getEndpointUpdateMethod().name();
 	}
 
 	@Override
 	public String getEndpointQueryMethod() {
-		return ProcessorBeans.getEndpointQueryMethod();
+		return ProcessorBeans.getEndpointQueryMethod().name();
 	}
 }
