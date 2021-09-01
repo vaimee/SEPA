@@ -144,8 +144,8 @@ According to RFC6749, the error member can assume the following values: invalid_
 			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 		}
 		
+		String credentials = "http://localhost:3000/" + auth.getCredentials().user()+ "#me";
 		//TODO authorize that return a webID and put it into credentials
-		String credentials = "http://localhost:3000/sepa_test#me";
 		//TODO construct object GraphsFromQuery
 		
 		

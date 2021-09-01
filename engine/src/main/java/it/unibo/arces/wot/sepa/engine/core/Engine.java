@@ -81,12 +81,12 @@ public class Engine implements EngineMBean {
 
 	// JKS defaults
 	private String sslStoreName = "sepa.jks";
-	private String sslStorePass = "sepa2020";
+	private String sslStorePass = "sepa2021";
 
-	private String jwtKeyAlias = "jwt";
+	private String jwtKeyAlias = "localhost";
 	private String jwtKeyStore = "sepa.jks";
-	private String jwtKeyStorePass = "sepa2020";
-	private String jwtKeyAliasPass = "sepa2020";
+	private String jwtKeyStorePass = "sepa2021";
+	private String jwtKeyAliasPass = "sepa2021";
 
 	// CA defaults (using PEM certificate provided by Let's Encrypt or a key within
 	// the JKS)

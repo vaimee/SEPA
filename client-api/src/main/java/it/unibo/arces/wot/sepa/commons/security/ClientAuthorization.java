@@ -60,5 +60,9 @@ public class ClientAuthorization {
 		if (credentials == null) return null;
 		return credentials.getBasicAuthorizationHeader();
 	}
+	
+	public Credentials getCredentials () {
+		return this.credentials;
+	}
 
 }

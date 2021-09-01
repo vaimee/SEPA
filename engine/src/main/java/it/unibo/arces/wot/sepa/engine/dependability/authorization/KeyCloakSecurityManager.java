@@ -23,20 +23,11 @@ import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class KeyCloakSecurityManager extends SecurityManager {
 
-	private SyncLdap ldap;
-	private VirtuosoIsql isql;
+
 
 	public KeyCloakSecurityManager(SSLContext ssl, RSAKey key,LdapProperties prop, IsqlProperties isqlprop)
 			throws SEPASecurityException {
 		super(ssl, key, false);
-
-		ldap = new SyncLdap(prop);
-
-		isql = new VirtuosoIsql(isqlprop,ldap.getEndpointUsersPassword());
-
-		new UsersSync(ldap, isql);
-		
-		Logging.logger.log(Logging.getLevel("oauth"),"EndpointUsersPassword: "+ldap.getEndpointUsersPassword());
 	}
 	
 	@Override
@@ -201,7 +192,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 
 	@Override
 	public Credentials getEndpointCredentials(String uid) throws SEPASecurityException {
-		return new Credentials(uid, ldap.getEndpointUsersPassword());
+		return new Credentials(uid, uid);
 	}
 
 	@Override
