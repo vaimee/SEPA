@@ -288,7 +288,7 @@ public class WebAccessControlManager {
 
 			if (aclGraph != null) {
 				found = true; // this forces to while-loop to stop
-				aclGraph = this.filterData(aclGraph, directACL, resourceId);
+				aclGraph = this.filterData(aclGraph, directACL, currentResourceId);
 			} else {
 				directACL = false;
 				found = false;
