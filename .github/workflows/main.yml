@@ -29,6 +29,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     
+    services:
+      blazegraph: 
+        image: nawer/blazegraph:2.1.5
+        ports: 
+          - 9999:9999
+    
     steps: 
       - uses: actions/checkout@v2
       - name: Set up JDK 1.8
@@ -37,18 +43,13 @@ jobs:
           java-version: '8'
           distribution: 'adopt'
           cache: maven
-      - name: Run blazegraph
-        uses: mosteo-actions/docker-run@v1
+      - name: wait for blazegraph
+        uses: nev7n/wait_for_response@v1
         with:
-          image: nawer/blazegraph:2.1.5
-          params: --name blazegraph -d -p 9999:9999
-      - name: Sleep for 30 seconds
-        run: sleep 30s
-        shell: bash
-      - name: verify that blazegraph is up
-        uses: wei/wget@v1
-        with:
-          args: http://localhost:9999/blazegraph/namespace/kb/sparql
+          url: 'http://localhost:9999/blazegraph/namespace/kb/sparql'
+          responseCode: 200
+          timeout: 20000
+          interval: 500
       - name: package engine and launch
         run: |
           mvn package 
@@ -59,7 +60,7 @@ jobs:
           cat engine.jpar
           java -jar engine-0-SNAPSHOT.jar -engine engine.jpar > log.txt &
         shell: bash
-      - name: Sleep for 30 seconds
+      - name: sleep for 30 seconds
         run: sleep 30s && cd ../..
         shell: bash
       - name: verify
