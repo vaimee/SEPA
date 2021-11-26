@@ -60,7 +60,7 @@ jobs:
           cat endpoint.jpar
           echo launching engine with this configuration
           cat engine.jpar
-          java -jar engine-0-SNAPSHOT.jar -engine engine.jpar > log.txt &
+          java -Dlog4j.configurationFile=./log4j2.xml -jar engine-0-SNAPSHOT.jar -engine engine.jpar > log.txt &
         shell: bash
       - name: sleep for 30 seconds
         run: sleep 30s && cd ../..
