@@ -70,6 +70,28 @@ jobs:
         with:
           name: engine-log
           path: engine/target/log.txt
+          
+  publish:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    needs: 
+      - build
+      - test
+    permissions: 
+      contents: read
+      packages: write 
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v2
+        with:
+          java-version: '8'
+          distribution: 'adopt'
+          cache: maven
+      - name: Publish package
+        run: mvn --batch-mode deploy -DrepositoryId=github
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
       
     
       
