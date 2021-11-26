@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+	<CustomLevels>
+		<!-- Standard Level intLevel 
+		OFF 0 
+		FATAL 100 
+		ERROR 200 
+		WARN 300 
+		INFO 400 
+		DEBUG 500 
+		TRACE 600 
+		ALL Integer.MAX_VALUE -->
+		<CustomLevel name="timing" intLevel="550" />
+		<CustomLevel name="SPUManager" intLevel="700" />
+		<CustomLevel name="spu" intLevel="700" />
+		<CustomLevel name="timing" intLevel="700" />
+		<CustomLevel name="subscriptions" intLevel="700" />
+		<CustomLevel name="http" intLevel="700" />
+		<CustomLevel name="oauth" intLevel="700" />
+		<CustomLevel name="ldap" intLevel="700" />
+	</CustomLevels>
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<PatternLayout
+				pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
+		</Console>
+		<File name="Log" fileName="sepa.api.csv">
+		<PatternLayout pattern="%d{ISO8601}|[%-5level]|%t|(%F:%L)|%msg%n%throwable\n"/>
+		</File>
+	</Appenders>
+	<Loggers>
+		<Root level="debug">
+			<AppenderRef ref="Console" level="debug" />
+			<AppenderRef ref="Log" level="error"/>
+		</Root>
+	</Loggers>
+</Configuration>
