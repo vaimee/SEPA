@@ -34,7 +34,13 @@ public class Timings {
 	
 	public synchronized static void log(String tag,long start,long stop) {
 		String message = String.format("%d,%d,%s",System.currentTimeMillis(),stop-start,tag);
-		logger.log(Level.getLevel("timing"),message);
+		Level level =Level.getLevel("timing");
+		if(level==null) {
+			//default
+			logger.log(Level.TRACE,message);
+		}else {
+			logger.log(level,message);
+		}
 	}
 	
 	public synchronized static void log(Request request) {
