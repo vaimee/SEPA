@@ -64,9 +64,13 @@ jobs:
           cat log4j2.xml
           java -Dlog4j.configurationFile=./log4j2.xml -jar engine-0-SNAPSHOT.jar -engine engine.jpar > log.txt &
         shell: bash
-      - name: sleep for 30 seconds
-        run: sleep 30s && cd ../..
-        shell: bash
+      - name: wait for SEPA engine
+        uses: nev7n/wait_for_response@v1
+        with:
+          url: 'http://localhost:8000/echo'
+          responseCode: 200
+          timeout: 20000
+          interval: 500
       - name: verify
         run: mvn verify -e
       - name: Archive code coverage results
