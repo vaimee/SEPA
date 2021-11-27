@@ -19,6 +19,7 @@
 			<url>http://dl.bintray.com/cy6ergn0m/maven</url>
 		</pluginRepository>
 	</pluginRepositories>
+	
 	<build>
 		<plugins>
 			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-deploy-plugin -->
