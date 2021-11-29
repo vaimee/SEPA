@@ -58,9 +58,9 @@
   </properties>
     <distributionManagement>
         <repository>
-            <id>bintray-arces-wot-sepa-java-libs</id>
-            <name>arces-wot-sepa-java-libs</name>
-            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/${project.artifactId}/;publish=1;override=${update}</url>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/arces-wot/SEPA</url>
         </repository>
     </distributionManagement>
     <build>
