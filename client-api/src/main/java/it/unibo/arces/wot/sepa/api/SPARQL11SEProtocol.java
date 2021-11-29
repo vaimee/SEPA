@@ -68,8 +68,9 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * @return A valid {@link Response} if the subscription is successful <br>
 	 *         an {@link ErrorResponse} otherwise
 	 * @throws SEPAProtocolException 
+	 * @throws SEPASecurityException 
 	 */
-	public void subscribe(SubscribeRequest request) throws SEPAProtocolException {
+	public void subscribe(SubscribeRequest request) throws SEPAProtocolException, SEPASecurityException {
 		logger.debug("SUBSCRIBE: "+request.toString());
 		
 		subscriptionProtocol.subscribe(request);

@@ -9,7 +9,12 @@
 			"username": "SEPATest"
 		},
 		"authentication": {
-			"endpoint": "https://localhost:8443/oauth/token"
+			"endpoint": "https://localhost:8443/oauth/token",
+			"client_id": "Jxo4sYqGc0pGKES4V3YY/Q==",
+			"client_secret": "Jxo4sYqGc0pGKES4V3YY/Q==",
+			"jwt": "xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+2/21lcu1mMrzLs8SMIZDluQ3oF1Dhl3jy1i6i8NpE679Z8zP+HxComgTzcuVAyDDU4G9goj+a+SStO/1x4tna8SMhtRK/oVJoVl7mqQ47H5+H9pldT+pJkAKusdZRxgs9E0WB0KfRMbJ8DeUilcmGxGw1DgA4cAl6WSklSEhh+IUzFZ/wlwv1MjkVWbRiSP3zYyr3XTxJMSqf0gM3emgu62Pe86OClbhtEJrEvaEG+67c0KYQ8+9QHzL3kgNltW38+y66VxPz9Jk/D9ApKLr/juKCSW1WkF226Xr4xQtQaR+01IfWMTSd+L4+zuaDOIgHChK1DYZjfhNXqhb65cHBoEURpUoCXV2bJ1mFexGYh0cpQE55eZtLrqgHLZsA0mOUeGzhdVvBBhyzX1PIgVwtfDajZVtKNsRDQBMXz1tgUevcHOkpnTt0DyF0mcR3leX4/t0tKaxpE8G22m3KkDsQrFUDzYIEaq0bo5qVtzz6ZniEi+b+NR6JMWQZUnaSyF3ipgnv7Cs2STA5o2QL23Li6gl8juPFGu79eMjthH7ai1A==",
+			"expires": "nRDFGDm8v2EYQnL3vm6y9g==",
+			"type": "XPrHEX2xHy+5IuXHPHigMw=="
 		},
 		"provider": "sepa"
 	},
@@ -28,6 +33,7 @@
 		}
 	},
 	"sparql11seprotocol": {
+		"reconnect" : true,
 		"protocol": "wss",
 		"availableProtocols": {
 			"ws": {

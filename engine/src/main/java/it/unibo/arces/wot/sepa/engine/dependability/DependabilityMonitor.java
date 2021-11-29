@@ -28,7 +28,7 @@ public class DependabilityMonitor implements DependabilityMonitorMBean {
 
 	@Override
 	public long getNumberOfGates() {
-		return GatesMonitor.getNumberOfGates();
+		return Dependability.getNumberOfGates();
 	}
 
 	@Override

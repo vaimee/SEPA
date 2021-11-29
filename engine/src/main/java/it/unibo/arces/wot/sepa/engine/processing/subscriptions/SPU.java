@@ -128,7 +128,7 @@ public abstract class SPU extends Thread implements ISPU {
 	
 	public void abortProcessing() {
 		synchronized (postProcessing) {
-			logger.log(Level.getLevel("spu"), "@postUpdateProcessing");
+			logger.log(Level.getLevel("spu"), "@abortProcessing");
 			response = new ErrorResponse(0, "abort", "@postUpdateProcessing");
 			postProcessing.set(true);
 			postProcessing.notify();
@@ -185,8 +185,10 @@ public abstract class SPU extends Thread implements ISPU {
 					logger.log(Level.getLevel("spu"), "* POST PROCESSING *");
 					try {
 						Notification notify = postUpdateInternalProcessing((UpdateResponse) response);
-						logger.log(Level.getLevel("spu"), "notifyEvent");
-						manager.notifyEvent(notify);
+						if (notify != null) {
+							logger.log(Level.getLevel("spu"), "notifyEvent");
+							manager.notifyEvent(notify);
+						}
 					} catch (SEPAProcessingException e) {
 						SPUManagerBeans.postProcessingException();
 						logger.error(e.getMessage());

@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.api;
 import java.io.Closeable;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
@@ -40,7 +41,7 @@ public abstract class SubscriptionProtocol implements Closeable {
 	}
 	
 
-	public abstract void subscribe(SubscribeRequest request) throws SEPAProtocolException;
+	public abstract void subscribe(SubscribeRequest request) throws SEPAProtocolException, SEPASecurityException;
 
 	public abstract void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException;
 }
