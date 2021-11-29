@@ -28,11 +28,16 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.mina.util.ConcurrentHashSet;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
-import it.unibo.arces.wot.sepa.engine.processing.Processor;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
-class GatesMonitor {
-	static {
+class GatesMonitor implements ResponseHandler{
+	
+	public GatesMonitor() {
 		Thread thread = new Thread() {
 			public void run() {
 				while (true) {
@@ -46,22 +51,22 @@ class GatesMonitor {
 			}
 		};
 		thread.setName("SEPA-Gates-Ping");
-		thread.start();
+		thread.start();	
 	}
 
 	private static final Logger logger = LogManager.getLogger();
 
 	// Active subscriptions and gates
-	private static final ConcurrentHashMap<String, ArrayList<String>> SUBSCRIPTIONS_HASH_MAP = new ConcurrentHashMap<String, ArrayList<String>>();
-	private static final Set<Gate> gates = new ConcurrentHashSet<Gate>();
+	private final ConcurrentHashMap<String, ArrayList<String>> SUBSCRIPTIONS_HASH_MAP = new ConcurrentHashMap<String, ArrayList<String>>();
+	private final Set<Gate> gates = new ConcurrentHashSet<Gate>();
 
-	private static Processor processor = null;
+	private Scheduler scheduler = null;
 
-	public static void setProcessor(Processor p) {
-		processor = p;
+	public void setScheduler(Scheduler p) {
+		scheduler = p;
 	}
 
-	private static void pingGates() {
+	private void pingGates() {
 		Set<Gate> brokenGates = new HashSet<Gate>();
 
 		logger.log(Level.getLevel("ping"),"pingGates");
@@ -85,17 +90,17 @@ class GatesMonitor {
 		}
 	}
 
-	public synchronized static void addGate(Gate g) {
+	public synchronized void addGate(Gate g) {
 		logger.log(Level.getLevel("ping"),"Add gate "+g.getGID());
 		gates.add(g);
 	}
 
-	public synchronized static void removeGate(Gate g) {
+	public synchronized void removeGate(Gate g) {
 		logger.log(Level.getLevel("ping"),"Remove gate "+g.getGID());
 		gates.remove(g);
 	}
 
-	public synchronized static void onSubscribe(String gid, String sid) {
+	public synchronized void onSubscribe(String gid, String sid) {
 		logger.log(Level.getLevel("ping"),"onSubscribe "+gid+" "+sid);
 		
 		if (gid == null) {
@@ -121,7 +126,7 @@ class GatesMonitor {
 				+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 	}
 
-	public synchronized static void onUnsubscribe(String gid, String sid) {
+	public synchronized void onUnsubscribe(String gid, String sid) {
 		logger.log(Level.getLevel("ping"),"onUnsubscribe "+gid+" "+sid);
 		
 		if (gid == null) {
@@ -141,24 +146,24 @@ class GatesMonitor {
 			SUBSCRIPTIONS_HASH_MAP.get(gid).remove(sid);
 		}
 		else {
-			logger.warn("@onUnsubscribe "+gid+" NOT FOUND");
+			logger.warn("@onUnsubscribe "+gid+" NOT FOUND. Broken subscription?");
 		}
 	}
 
-	public synchronized static void onClose(String gid) throws InterruptedException {
+	public void onClose(String gid) throws InterruptedException {
 		logger.log(Level.getLevel("ping"),"onClose "+gid);
 		onCloseInternal(gid);
 	}
 
-	private static void onCloseInternal(String gid) throws InterruptedException {
+	private synchronized void onCloseInternal(String gid) throws InterruptedException {
 		logger.log(Level.getLevel("ping"),"onCloseInternal "+gid);
 		
 		if (gid == null) {
 			logger.error("@onClose GID is null");
 			return;
 		}
-		if (processor == null) {
-			logger.error("@onClose processor is null");
+		if (scheduler == null) {
+			logger.error("@onClose scheduler is null");
 			return;
 		}
 
@@ -174,7 +179,9 @@ class GatesMonitor {
 		// Kill all active subscriptions
 		for (String sid : SUBSCRIPTIONS_HASH_MAP.get(gid)) {
 			logger.log(Level.getLevel("ping"),"kill "+sid+" "+gid);
-			processor.killSubscription(sid, gid);
+			scheduler.schedule(new InternalUnsubscribeRequest(gid, sid, null), this);
+			//processor.killSubscription(sid, gid);
+			//processor.processUnsubscribe(sid, gid);
 		}
 
 		// Remove gate
@@ -182,7 +189,7 @@ class GatesMonitor {
 		SUBSCRIPTIONS_HASH_MAP.remove(gid);
 	}
 
-	public synchronized static void onError(String gid, Exception e) {
+	public synchronized void onError(String gid, Exception e) {
 		logger.log(Level.getLevel("ping"),"onError "+gid+ " "+e.getMessage());
 		
 		if (gid == null) {
@@ -193,8 +200,14 @@ class GatesMonitor {
 		logger.error("@onError GID:" + gid + " Exception:" + e);
 	}
 
-	public synchronized static long getNumberOfGates() {
+	public synchronized long getNumberOfGates() {
 		return SUBSCRIPTIONS_HASH_MAP.size();
 
+	}
+
+	@Override
+	public void sendResponse(Response response) throws SEPAProtocolException {
+		// TODO Auto-generated method stub
+		
 	}
 }

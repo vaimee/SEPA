@@ -68,6 +68,8 @@ public class ConfigurationProvider implements Closeable {
 			NRETRY = 3;
 		
 		sm = buildSecurityManager();
+		
+		logger.debug("Loaded JSAP: " + appProfile);
 	}
 
 	private String getSPARQLUpdate(String id) {

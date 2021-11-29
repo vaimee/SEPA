@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.query.ARQ;
 import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.sparql.core.Prologue;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.lang.ParserSPARQL11Update;
 import org.apache.jena.sparql.modify.UpdateRequestSink;
@@ -31,6 +33,10 @@ public class JenaSparqlParsing {
 	protected final static Logger logger = LogManager.getLogger();
 	
 	protected final static String arqDefaultGraphNodeUri = "urn:x-arq:DefaultGraphNode";
+	
+	public JenaSparqlParsing() {
+		ARQ.init();
+	}
 	
 	/*
 	 * 2.2.3 Specifying an RDF Dataset
@@ -60,17 +66,17 @@ public class JenaSparqlParsing {
 	 * Update request.
 	 */
 
-	public static Set<String> getUpdateGraphURIs(String sparql) throws SEPASparqlParsingException {
+	public Set<String> getUpdateGraphURIs(String sparql) throws SEPASparqlParsingException {
 		UpdateRequest upd = new UpdateRequest();
 		UpdateRequestSink sink = new UpdateRequestSink(upd);
 
 		Set<String> rdfDataSet = new HashSet<String>();
 		
 		try {
-			new ParserSPARQL11Update().parse(sink, sparql);
+			new ParserSPARQL11Update().parse(sink, new Prologue(),sparql);
 		} catch (Exception e) {
-			logger.error(e.getMessage());
-			throw new SEPASparqlParsingException(e.getMessage());
+			logger.error("SPARQL: "+sparql+" MESSAGE: "+e.getMessage());
+			throw new SEPASparqlParsingException("SPARQL: "+sparql+" MESSAGE: "+e.getMessage());
 //			logger.warn("Parsing exception "+e.getMessage());
 //			rdfDataSet.add("*");
 //			return rdfDataSet;
@@ -198,7 +204,7 @@ public class JenaSparqlParsing {
 		return rdfDataSet;
 	}
 	
-	public static Set<String> getQueryGraphURIs(String sparql) throws SEPASparqlParsingException {
+	public Set<String> getQueryGraphURIs(String sparql) throws SEPASparqlParsingException {
 		Set<String> ret = new HashSet<>();
 
 		if (sparql == null)
@@ -241,7 +247,7 @@ public class JenaSparqlParsing {
 		return ret;
 	}
 
-	private static Set<String> extractGraphs(Element e) {
+	private Set<String> extractGraphs(Element e) {
 		Set<String> ret = new HashSet<String>();
 
 		if (e == null)

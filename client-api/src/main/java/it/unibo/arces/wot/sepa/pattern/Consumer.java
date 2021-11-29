@@ -45,9 +45,9 @@ public abstract class Consumer extends Client implements IConsumer {
 	protected final String subID;
 	private final ForcedBindings forcedBindings;
 	private boolean subscribed = false;
-	private final SPARQL11SEProtocol client;
+	private SPARQL11SEProtocol client;
 	private String spuid = null;
-	private final SubscriptionProtocol protocol;
+	private SubscriptionProtocol protocol;
 	
 	public Consumer(JSAP appProfile, String subscribeID)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
@@ -77,8 +77,8 @@ public abstract class Consumer extends Client implements IConsumer {
 
 		// Subscription protocol
 		
-		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subscribeID),
-				appProfile.getSubscribePort(subscribeID), appProfile.getSubscribePath(subscribeID),this,sm);
+		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subID),
+				appProfile.getSubscribePort(subID), appProfile.getSubscribePath(subID),this,sm);
 
 		client = new SPARQL11SEProtocol(protocol,sm);
 	}
@@ -159,6 +159,15 @@ public abstract class Consumer extends Client implements IConsumer {
 		
 		// Auto reconnection mechanism
 		if (appProfile.reconnect()) {
+			try {
+				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subID),
+						appProfile.getSubscribePort(subID), appProfile.getSubscribePath(subID),this,sm);
+				client = new SPARQL11SEProtocol(protocol,sm);
+			} catch (SEPASecurityException | SEPAProtocolException e1) {
+				logger.error(e1.getMessage());
+				return;
+			}	
+			
 			while(!subscribed) {
 				try {
 					subscribe(TIMEOUT,NRETRY);

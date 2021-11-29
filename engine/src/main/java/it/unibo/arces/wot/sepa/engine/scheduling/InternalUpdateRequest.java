@@ -38,6 +38,6 @@ public class InternalUpdateRequest extends InternalUQRequest {
 	
 	@Override
 	protected Set<String> getGraphURIs(String sparql) throws SEPASparqlParsingException {
-		return JenaSparqlParsing.getUpdateGraphURIs(sparql);
+		return new JenaSparqlParsing().getUpdateGraphURIs(sparql);
 	}
 }
