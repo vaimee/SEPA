@@ -1430,7 +1430,7 @@ public class JSAP extends SPARQL11SEProperties {
 				}
 
 				if (uri != null) {
-					if (uri.getSchemeSpecificPart().startsWith("/") || uri.getScheme().equals("urn"))
+					if (uri.getSchemeSpecificPart().startsWith("/") || uri.getScheme().equals("urn") || uri.getScheme().equals("meta") )
 						value = "<" + value + ">";
 				}
 			} else {
