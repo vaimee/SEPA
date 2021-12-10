@@ -65,7 +65,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.11.0";
+	private final static String version = "0.11.1";
 
 	private EngineProperties properties = null;
 
