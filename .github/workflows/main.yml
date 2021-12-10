@@ -96,6 +96,6 @@ jobs:
           distribution: 'adopt'
           cache: maven
       - name: Publish package
-        run: mvn --batch-mode deploy -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=${{github.ref_name}} -DrepositoryId=github
+        run: mvn --batch-mode package deploy -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=${{github.ref_name}} -DrepositoryId=github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
