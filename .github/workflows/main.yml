@@ -92,10 +92,10 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-java@v2
         with:
-          java-version: '8'
+          java-version: '13'
           distribution: 'adopt'
           cache: maven
       - name: Publish package
-        run: mvn --batch-mode package deploy -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=${{github.ref_name}} -DrepositoryId=github
+        run: mvn clean deploy -Dmaven.main.skip -Dmaven.test.skip=true -Drevision=${{github.ref_name}} -DrepositoryId=github
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
