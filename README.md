@@ -54,7 +54,7 @@ SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscri
 
 - Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/latest) and run it: `java -jar engine-x.y.z.jar`
 
-- Download [Blazegraph](https://sourceforge.net/projects/bigdata/files/latest/download) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
+- Download [Blazegraph](https://github.com/blazegraph/database/releases/latest) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
 
 - Use the [SEPA Playground](http://mml.arces.unibo.it/apps/dashboard?mode=local) to check basic functionalities of the engine.
 
