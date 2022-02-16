@@ -67,10 +67,6 @@ public class EngineBeans {
 	public static String getTokenRequestPath() {
 		return properties.getTokenRequestPath();
 	}
-	
-	public static String getWacPath() {
-		return properties.getWacPath();
-	}
 
 	public static int getHttpPort() {
 		return properties.getHttpPort();
@@ -147,10 +143,5 @@ public class EngineBeans {
 		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
 		return "https://"+getHost()+port+getTokenRequestPath();
 	}
-	
-	public static String getWacURL() {
-		String port = "";
-		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
-		return "https://"+getHost()+port+getWacPath();
-	}
+
 }

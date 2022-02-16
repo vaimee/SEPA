@@ -74,7 +74,6 @@ public class HttpsGate {
 		System.out.println("SPARQL 1.1 SE Update | " + EngineBeans.getSecureUpdateURL());
 		System.out.println("Client registration  | " + EngineBeans.getRegistrationURL());
 		System.out.println("Token request        | " + EngineBeans.getTokenRequestURL());
-		System.out.println("SOLID Wac            | " + EngineBeans.getWacURL());
 	}
 	
 	public void shutdown() {
