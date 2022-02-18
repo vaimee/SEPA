@@ -61,8 +61,12 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		do {
 			long start = Timings.getTime();
 			SPARQLEndpoint endpoint;
-			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) endpoint = new JenaInMemoryEndpoint();
-			else endpoint = new RemoteEndpoint();
+			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) 
+                            endpoint = JenaInMemoryEndpoint.newInstanceda(JenaInMemoryEndpoint.datasetId.dsiPrimary);
+			else 
+                            endpoint = new RemoteEndpoint();
+                        
+                        
 			ret = endpoint.update(request);
 			endpoint.close();
 			long stop = Timings.getTime();
