@@ -22,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
@@ -39,12 +38,37 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import org.apache.jena.query.Dataset;
 
 public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	protected static final Logger logger = LogManager.getLogger();
-	
-	static final Dataset dataset = DatasetFactory.createTxnMem();
-	
+	public enum datasetId {
+            dsiPrimary,             //where to write first
+            dsiAlternate,           //where to read first
+        }
+	//static final Dataset dataset = DatasetFactory.createTxnMem();
+        private static final Dataset      primaryDataset    = DatasetFactory.createTxnMem();
+        private static final Dataset      alternateDataset  = DatasetFactory.createTxnMem();
+        
+        private final Dataset             dataset;  
+        
+	private JenaInMemoryEndpoint (final Dataset src) {
+            dataset = src;
+        }
+                
+        public static JenaInMemoryEndpoint newInstanceda(final datasetId id) {
+            JenaInMemoryEndpoint ret = null;
+            switch(id) {
+                case dsiAlternate:
+                    ret = new JenaInMemoryEndpoint(alternateDataset);
+                    break;
+                case dsiPrimary:
+                    ret = new JenaInMemoryEndpoint(primaryDataset);
+                    break;
+            }
+            
+            return ret;
+        }
 	@Override
 	public Response query(QueryRequest req) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
