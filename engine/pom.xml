@@ -148,6 +148,42 @@
 					<groupId>org.glassfish</groupId>
 					<artifactId>jakarta.json</artifactId>
 				</exclusion>
+			 <exclusion>
+			  <groupId>org.apache.jena</groupId>
+			  <artifactId>jena-arq</artifactId>
+			 </exclusion>
+			 <exclusion>
+			  <groupId>org.apache.jena</groupId>
+			  <artifactId>jena-dboe-base</artifactId>
+			 </exclusion>
+			 <exclusion>
+			  <groupId>org.apache.jena</groupId>
+			  <artifactId>jena-dboe-index</artifactId>
+			 </exclusion>
+			 <exclusion>
+			  <groupId>org.apache.jena</groupId>
+			  <artifactId>jena-dboe-storage</artifactId>
+			 </exclusion>
+			 <exclusion>
+			  <groupId>org.apache.jena</groupId>
+			  <artifactId>jena-rdfconnection</artifactId>
+			 </exclusion>
+			 <exclusion>
+			  <groupId>org.apache.jena</groupId>
+			  <artifactId>jena-shacl</artifactId>
+			 </exclusion>
+			 <exclusion>
+			  <groupId>org.apache.jena</groupId>
+			  <artifactId>jena-shex</artifactId>
+			 </exclusion>
+			 <exclusion>
+			  <groupId>org.apache.jena</groupId>
+			  <artifactId>jena-tdb</artifactId>
+			 </exclusion>
+			 <exclusion>
+			  <groupId>org.apache.jena</groupId>
+			  <artifactId>jena-tdb2</artifactId>
+			 </exclusion>
 			</exclusions>
 		</dependency>
 
@@ -212,8 +248,66 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-arq</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-dboe-base</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-dboe-index</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-dboe-storage</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-dboe-trans-data</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-rdfconnection</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-shacl</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-shex</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-tdb</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-tdb2</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-core</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-base</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
 	</dependencies>
 
 </project>
