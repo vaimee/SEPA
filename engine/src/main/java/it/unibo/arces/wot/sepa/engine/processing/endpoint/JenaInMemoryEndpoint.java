@@ -38,7 +38,14 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.modify.UpdateResult;
+
 
 public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	protected static final Logger logger = LogManager.getLogger();
@@ -88,14 +95,46 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	@Override
 	public Response update(UpdateRequest req) {
 		RDFConnection conn = RDFConnectionFactory.connect(dataset);
+                final Set<Quad> updated = new TreeSet<>(new QuadComparator());
+                final Set<Quad> removed = new TreeSet<>(new QuadComparator());
 		Txn.executeWrite(conn, ()-> {
-			conn.update(req.getSPARQL());
+                    final List<UpdateResult> lur = conn.update(req.getSPARQL());
+                    if (lur != null) {
+                        for(final UpdateResult ur : lur) {
+                            if (ur.deletedTuples != null) {
+                                for(final Quad q : ur.deletedTuples) {
+                                    removed.add(q);
+                                }
+                            }
+                            
+                            if (ur.updatedTuples != null) {
+                                for(final Quad q : ur.updatedTuples) {
+                                    updated.add(q);
+                                }
+                            }
+                            
+                        }
+                        
+                    }                    
+			
 		});
-		return new UpdateResponse("Jena-in-memory-update");
+                
+                
+		return new UpdateResponse(removed,updated);
 	}
 
 	@Override
 	public void close() {
 	}
+        
+        
+        private class QuadComparator implements Comparator<Quad> {
+
+            @Override
+            public int compare(Quad o1, Quad o2) {
+                return o1.toString().compareTo(o2.toString());
+            }
+            
+        }
 
 }
