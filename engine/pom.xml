@@ -248,66 +248,45 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-arq</artifactId>
-	  <version>4.3.2</version>
+
+	<!-- <dependency>
+		  <groupId>com.vaimee</groupId>
+		  <artifactId>jenar-arq</artifactId>
+		  <version>4.3.2</version>
 	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-dboe-base</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-dboe-index</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-dboe-storage</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-dboe-trans-data</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
+-->
+	<!-- 
+		Temporary local dependencies, 
+		the jena-ar dependecies will be upload to online maven repo in the future
+	-->
+	<dependency>
+	    <groupId>com.vaimee</groupId>
+	    <artifactId>jenar-arq</artifactId>
+	    <version>4.3.2</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/jenar-arq-4.3.2.jar</systemPath>
+	</dependency>
 	 <dependency>
 	  <groupId>com.vaimee</groupId>
 	  <artifactId>jenar-rdfconnection</artifactId>
 	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-shacl</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-shex</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-tdb</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-tdb2</artifactId>
-	  <version>4.3.2</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/jenar-rdfconnection-4.3.2.jar</systemPath>
 	 </dependency>
 	 <dependency>
 	  <groupId>com.vaimee</groupId>
 	  <artifactId>jenar-core</artifactId>
 	  <version>4.3.2</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/jenar-core-4.3.2.jar</systemPath>
 	 </dependency>
 	 <dependency>
 	  <groupId>com.vaimee</groupId>
 	  <artifactId>jenar-base</artifactId>
 	  <version>4.3.2</version>
-	 </dependency>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/jenar-base-4.3.2.jar</systemPath>
+	 </dependency> 
 	</dependencies>
 
 </project>
