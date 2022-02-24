@@ -4,8 +4,6 @@ import it.unibo.arces.wot.sepa.AggregatorTestUnit;
 import it.unibo.arces.wot.sepa.ConsumerTestUnit;
 import it.unibo.arces.wot.sepa.pattern.GenericClient;
 import it.unibo.arces.wot.sepa.pattern.Producer;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,6 +20,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
@@ -29,9 +28,6 @@ import java.io.IOException;
 import java.util.HashMap;
 
 public class StressUsingPAC implements ISubscriptionHandler {
-
-	protected static final Logger logger = LogManager.getLogger();
-
 	static ConfigurationProvider provider;
 
 	protected static ConsumerTestUnit consumerAll;
@@ -197,30 +193,30 @@ public class StressUsingPAC implements ISubscriptionHandler {
 
 	@Override
 	public void onSemanticEvent(Notification notify) {
-		logger.debug(notify);
+		Logging.logger.debug(notify);
 		setOnSemanticEvent(notify.getSpuid());
 	}
 
 	@Override
 	public void onBrokenConnection(ErrorResponse err) {
-		logger.debug("onBrokenConnection " + err);
+		Logging.logger.debug("onBrokenConnection " + err);
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		logger.debug(errorResponse);
+		Logging.logger.debug(errorResponse);
 	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		logger.debug("onSubscribe " + spuid + " " + alias);
+		Logging.logger.debug("onSubscribe " + spuid + " " + alias);
 		subscriptions.put(alias, spuid);
 		setOnSubscribe(spuid, alias);
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		logger.debug("onUnsubscribe " + spuid);
+		Logging.logger.debug("onUnsubscribe " + spuid);
 		setOnUnsubscribe(spuid);
 	}
 }

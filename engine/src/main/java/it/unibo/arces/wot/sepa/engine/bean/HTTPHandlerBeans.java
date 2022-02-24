@@ -22,7 +22,7 @@ import java.util.HashMap;
 
 import org.apache.http.nio.protocol.HttpAsyncExchange;
 
-import it.unibo.arces.wot.sepa.timing.Timings;
+import it.unibo.arces.wot.sepa.logging.Timings;
 
 public class HTTPHandlerBeans {
 	private long timeoutRequests = 0;

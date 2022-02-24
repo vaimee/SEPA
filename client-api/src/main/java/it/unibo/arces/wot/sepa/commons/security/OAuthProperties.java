@@ -29,9 +29,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.Date;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
@@ -39,6 +36,7 @@ import com.google.gson.JsonPrimitive;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * The set of properties used for client authentication
@@ -68,9 +66,6 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
  */
 
 public class OAuthProperties {
-	/** The log4j2 logger. */
-	private static final Logger logger = LogManager.getLogger();
-
 	private Encryption encryption = new Encryption();
 
 	private boolean enabled = false;
@@ -160,7 +155,7 @@ public class OAuthProperties {
 			} 
 		} 
 		} catch(Exception e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			throw new SEPAPropertiesException(e.getMessage());
 		}
 	}
@@ -235,7 +230,7 @@ public class OAuthProperties {
 			} 
 		} 
 		} catch(Exception e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			throw new SEPAPropertiesException(e.getMessage());
 		}
 
@@ -314,7 +309,7 @@ public class OAuthProperties {
 	 * @param secret the password
 	 */
 	public void setCredentials(String id, String secret) throws SEPAPropertiesException, SEPASecurityException {
-		// logger.debug("@setCredentials Id: " + id + " Secret:" + secret);
+		// Logging.logger.debug("@setCredentials Id: " + id + " Secret:" + secret);
 
 		clientId = id;
 		clientSecret = secret;
@@ -340,7 +335,7 @@ public class OAuthProperties {
 	 *
 	 */
 	public void setJWT(JWTResponse jwt) throws SEPASecurityException, SEPAPropertiesException {
-		logger.debug("@setJWT: " + jwt);
+		Logging.logger.debug("@setJWT: " + jwt);
 
 		long now = new Date().getTime();
 		

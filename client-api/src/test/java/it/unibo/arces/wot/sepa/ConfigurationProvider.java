@@ -9,6 +9,7 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties.OAUTH_PROVIDER;
+import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
@@ -17,12 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 public class ConfigurationProvider implements Closeable {
-	protected final Logger logger = LogManager.getLogger();
-
 	private final JSAP appProfile;
 	private String prefixes = "";
 	private final String jsapPath;
@@ -38,20 +34,20 @@ public class ConfigurationProvider implements Closeable {
 
 		if (System.getProperty("testConfiguration") != null) {
 			jsapFileName = System.getProperty("testConfiguration");
-			logger.debug("JSAP from property testConfiguration: " + jsapFileName);
+			Logging.logger.debug("JSAP from property testConfiguration: " + jsapFileName);
 		} else if (System.getProperty("secure") != null) {
 			jsapFileName = "sepatest-secure.jsap";
-			logger.debug("JSAP secure default: " + jsapFileName);
+			Logging.logger.debug("JSAP secure default: " + jsapFileName);
 		}
 
 		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
 		File f = new File(jsapPath);
 		if (!f.exists()) {
-			logger.error("File not found: " + jsapPath);
+			Logging.logger.error("File not found: " + jsapPath);
 			throw new SEPAPropertiesException("File not found: " + jsapPath);
 		}
 
-		logger.debug("Loading JSAP from: " + jsapPath);
+		Logging.logger.debug("Loading JSAP from: " + jsapPath);
 
 		appProfile = new JSAP(jsapPath);
 
@@ -69,7 +65,7 @@ public class ConfigurationProvider implements Closeable {
 		
 		sm = buildSecurityManager();
 		
-		logger.debug("Loaded JSAP: " + appProfile);
+		Logging.logger.debug("Loaded JSAP: " + appProfile);
 	}
 
 	private String getSPARQLUpdate(String id) {

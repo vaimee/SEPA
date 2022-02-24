@@ -22,12 +22,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.gson.Gson;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * <pre>
@@ -71,7 +69,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
  * </pre>
  */
 public class EngineProperties {
-	private static final transient Logger logger = LogManager.getLogger();
 
 	private static final transient String defaultsFileName = "engine.jpar";
 
@@ -96,15 +93,15 @@ public class EngineProperties {
 		try {
 			result = gson.fromJson(new FileReader(propertiesFile), EngineProperties.class);
 		} catch (Exception e) {
-			logger.warn(e.getMessage());
+			Logging.logger.warn(e.getMessage());
 			result = defaults();
 			try {
 				result.storeProperties(defaultsFileName);
 			} catch (IOException e1) {
-				logger.error(e1.getMessage());
+				Logging.logger.error(e1.getMessage());
 				throw new SEPAPropertiesException(e1);
 			}
-			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
+			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
 		}
 		return result;
 	}

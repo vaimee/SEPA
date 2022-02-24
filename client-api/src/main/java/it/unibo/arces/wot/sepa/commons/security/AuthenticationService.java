@@ -7,15 +7,11 @@ import java.io.IOException;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public abstract class AuthenticationService implements Closeable {
-	protected static final Logger logger = LogManager.getLogger();
-
 	protected CloseableHttpClient httpClient;
 	protected SSLContext ctx;
 	protected OAuthProperties oauthProperties;

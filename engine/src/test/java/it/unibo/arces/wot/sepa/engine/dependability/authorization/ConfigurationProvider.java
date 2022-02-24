@@ -4,15 +4,12 @@ import java.io.File;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.nimbusds.jose.jwk.RSAKey;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class ConfigurationProvider {
-	protected final Logger logger = LogManager.getLogger();
 	
 	private final String keyPass ="sepa2020";
 	private final String storePass ="sepa2020";
@@ -26,7 +23,7 @@ public class ConfigurationProvider {
 		ssl = JKSUtil.getSSLContext(jksFile.getPath(),storePass);
 		key = JKSUtil.getRSAKey(jksFile.getPath(),storePass,alias,keyPass);
 		
-		logger.debug("JKS: "+jksFile.getAbsolutePath());
+		Logging.logger.debug("JKS: "+jksFile.getAbsolutePath());
 	}
 	
 	public SSLContext getSslContext() {

@@ -20,14 +20,12 @@ package it.unibo.arces.wot.sepa.commons.response;
 
 import java.text.ParseException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.nimbusds.jwt.SignedJWT;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * Produce JWT compliant with WoT W3C recommendations
@@ -55,9 +53,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
  */
 
 public class JWTResponse extends Response {
-	/** The log4j2 logger. */
-	private static final Logger logger = LogManager.getLogger();
-	
 	/**
 	 * Instantiates a new JWT response.
 	 * @throws SEPASecurityException 
@@ -74,7 +69,7 @@ public class JWTResponse extends Response {
 		try {
 			json.add("expires_in", new JsonPrimitive(token.getJWTClaimsSet().getExpirationTime().getTime()-token.getJWTClaimsSet().getIssueTime().getTime()));
 		} catch (ParseException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			throw new SEPASecurityException(e);
 		}
 	}

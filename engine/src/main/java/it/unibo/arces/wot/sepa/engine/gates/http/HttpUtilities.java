@@ -37,17 +37,14 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.nio.protocol.BasicAsyncResponseProducer;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class HttpUtilities {
-	private static final Logger logger = LogManager.getLogger();
-
 	public static void sendResponse(HttpAsyncExchange exchange, int httpResponseCode, String body) {
 		exchange.getResponse().setStatusCode(httpResponseCode);
 		HttpEntity entity = new StringEntity(body, ContentType.create("application/json", Consts.UTF_8));
@@ -86,7 +83,7 @@ public class HttpUtilities {
 				body = EntityUtils.toString(entity);
 			} catch (ParseException | IOException e) {
 				body = e.getMessage();
-				logger.error(body);
+				Logging.logger.error(body);
 			}
 		}
 		return new JsonPrimitive(body);

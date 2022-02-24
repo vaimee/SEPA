@@ -9,6 +9,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.pattern.Aggregator;
 
 public class AggregatorTestUnit extends Aggregator {
@@ -29,15 +30,15 @@ public class AggregatorTestUnit extends Aggregator {
 		
 		try {
 			Response ret = update();
-			if (ret.isError()) logger.error(ret);
+			if (ret.isError()) Logging.logger.error(ret);
 		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
-			logger.error(e);
+			Logging.logger.error(e);
 		}
 		
 	}
 	
 	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
-		logger.debug("subscribe");
+		Logging.logger.debug("subscribe");
 		
 		notificationReceived = false;
 		firstResultsReceived = false;
@@ -46,43 +47,43 @@ public class AggregatorTestUnit extends Aggregator {
 		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
-			logger.debug("subscribed");
+			Logging.logger.debug("subscribed");
 		}
 	}
 	
 	public void syncUnsubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
-		logger.debug("unsubscribe");
+		Logging.logger.debug("unsubscribe");
 		
 		super.unsubscribe(timeout,nretry);
 		
 		synchronized(this) {
 			while (isSubscribed()) wait();
-			logger.debug("unsubscribed");
+			Logging.logger.debug("unsubscribed");
 		}
 	}
 	
 	public void waitNotification() throws InterruptedException {
 		synchronized(this) {
-			logger.debug("waitNotification");
+			Logging.logger.debug("waitNotification");
 			while (!notificationReceived) wait();
 			notificationReceived = false;
-			logger.debug("notify!");
+			Logging.logger.debug("notify!");
 		}
 	}
 	
 	public void waitFirstNotification() throws InterruptedException {
 		synchronized(this) {
-			logger.debug("waitFirstNotification");
+			Logging.logger.debug("waitFirstNotification");
 			while (!firstResultsReceived) wait();
 			firstResultsReceived = false;
-			logger.debug("first results received");
+			Logging.logger.debug("first results received");
 		}
 	}
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
 		synchronized(this) {
-			logger.debug("onFirstResults");
+			Logging.logger.debug("onFirstResults");
 			firstResultsReceived = true;
 			notify();
 		}	

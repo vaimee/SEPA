@@ -21,9 +21,6 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -31,14 +28,13 @@ import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.timing.Timings;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * This class represents the scheduler of the SPARQL Event Processing Engine
  */
 
 public class Scheduler extends Thread implements SchedulerMBean {
-	private static final Logger logger = LogManager.getLogger();
-
 	private final AtomicBoolean running = new AtomicBoolean(true);
 
 	// Responders
@@ -49,7 +45,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 
 	public Scheduler(EngineProperties properties) {
 		if (properties == null) {
-			logger.error("Properties are null");
+			Logging.logger.error("Properties are null");
 			throw new IllegalArgumentException("Properties are null");
 		}
 
@@ -65,7 +61,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 
 	public ScheduledRequest schedule(InternalRequest request, ResponseHandler handler) {
 		if (request == null || handler == null) {
-			logger.error("Request handler or request are null");
+			Logging.logger.error("Request handler or request are null");
 			return null;
 		}
 
@@ -77,19 +73,19 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			// No more tokens
 			if (scheduled == null) {
 				SchedulerBeans.newRequest(request, false);
-				logger.error("Request refused: too many pending requests: " + request);
+				Logging.logger.error("Request refused: too many pending requests: " + request);
 				return null;
 			}
 
-			logger.debug(">> " + scheduled);
-			logger.trace(scheduled.getRequest());
+			Logging.logger.debug(">> " + scheduled);
+			Logging.logger.trace(scheduled.getRequest());
 			
 			Timings.log(request);
 
 			SchedulerBeans.newRequest(request, true);
 
 			// Register response handlers
-			logger.trace("Register handler: " + handler + " token: " + scheduled.getToken());
+			Logging.logger.trace("Register handler: " + handler + " token: " + scheduled.getToken());
 			responders.put(scheduled.getToken(), handler);
 		}
 
@@ -106,8 +102,8 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			try {
 				// Wait for response
 				ScheduledResponse response = queue.waitResponse();
-				logger.debug("<< " + response);
-				logger.trace(response.getResponse());
+				Logging.logger.debug("<< " + response);
+				Logging.logger.trace(response.getResponse());
 
 				// The token
 				int token = response.getToken();
@@ -116,14 +112,14 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				synchronized (responders) {
 					ResponseHandler handler = responders.get(token);
 					if (handler == null) {
-						logger.warn("Response handler is null (token #" + token + "). Timeout already expired?");
+						Logging.logger.warn("Response handler is null (token #" + token + "). Timeout already expired?");
 
 					} else {
-						logger.trace("Handler: " + handler + " response: " + response);
+						Logging.logger.trace("Handler: " + handler + " response: " + response);
 						try {
 							handler.sendResponse(response.getResponse());
 						} catch (SEPAProtocolException e) {
-							logger.warn(e.getMessage());
+							Logging.logger.warn(e.getMessage());
 						}
 					}
 

@@ -30,10 +30,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * <pre>
@@ -117,30 +116,27 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
  * @see HostnameVerifier
  */
 public class SSLManager implements HostnameVerifier {
-	/** The log4j2 logger. */
-	private static final Logger logger = LogManager.getLogger();
-
 	private static final String[] protocols = { "TLSv1.2" };
 	
 	static TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
 		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-			logger.debug("getAcceptedIssuers");
+			Logging.logger.debug("getAcceptedIssuers");
 			return new X509Certificate[0];
 		}
 
 		public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			logger.debug("checkClientTrusted");
+			Logging.logger.debug("checkClientTrusted");
 		}
 
 		public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			logger.debug("checkServerTrusted");
+			Logging.logger.debug("checkServerTrusted");
 		}
 	} };
 	
 	@Override
 	public boolean verify(String hostname, SSLSession session) {
 		// TODO IMPORTANT Verify X.509 certificate
-		logger.debug("*** Hostname always VERIFIED ***" + hostname + " SSLSession: " + session);
+		Logging.logger.debug("*** Hostname always VERIFIED ***" + hostname + " SSLSession: " + session);
 
 		return true;
 	}
@@ -154,8 +150,8 @@ public class SSLManager implements HostnameVerifier {
 			ctx.init(null, trustAllCerts, new java.security.SecureRandom());
 			sslsf = new SSLConnectionSocketFactory(ctx, protocols, null, this);
 		} catch (KeyManagementException | NoSuchAlgorithmException e) {
-			logger.error(e.getMessage());
-			if (logger.isTraceEnabled())
+			Logging.logger.error(e.getMessage());
+			if (Logging.logger.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
@@ -175,8 +171,8 @@ public class SSLManager implements HostnameVerifier {
 			sslsf = new SSLConnectionSocketFactory(ctx, protocols, null, this);
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException
 				| IOException e) {
-			logger.error(e.getMessage());
-			if (logger.isTraceEnabled())
+			Logging.logger.error(e.getMessage());
+			if (Logging.logger.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
@@ -206,23 +202,23 @@ public class SSLManager implements HostnameVerifier {
 					.useProtocol("TLS")
 					.build();
 		} catch (NoSuchAlgorithmException e) {
-			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (logger.isTraceEnabled()) e.printStackTrace();
+			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
 		} catch (KeyManagementException e) {
-			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (logger.isTraceEnabled()) e.printStackTrace();
+			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
 		} catch (KeyStoreException e) {
-			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (logger.isTraceEnabled()) e.printStackTrace();
+			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
 		} catch (CertificateException e) {
-			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (logger.isTraceEnabled()) e.printStackTrace();
+			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
 		} catch (IOException e) {
-			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (logger.isTraceEnabled()) e.printStackTrace();
+			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
 		} catch (UnrecoverableKeyException e) {
-			logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (logger.isTraceEnabled()) e.printStackTrace();
+			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
 		}
 		return sslContext;
 	}

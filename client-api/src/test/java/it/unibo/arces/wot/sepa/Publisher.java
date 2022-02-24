@@ -4,17 +4,13 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class Publisher extends Thread implements Closeable {
-	protected final Logger logger = LogManager.getLogger();
-
 	private SPARQL11Protocol client;
 	private final String id;
 
@@ -41,9 +37,9 @@ public class Publisher extends Thread implements Closeable {
 				//if (sm != null) sm.refreshToken();
 				Response ret = client.update(provider.buildUpdateRequest(id));
 				if (ret.isError())
-					logger.error(ret);
+					Logging.logger.error(ret);
 			} catch (SEPAPropertiesException | SEPASecurityException e) {
-				logger.error(e.getMessage());
+				Logging.logger.error(e.getMessage());
 			}
 			
 			running.set(running.get() - 1);
@@ -54,7 +50,7 @@ public class Publisher extends Thread implements Closeable {
 		try {
 			client.close();
 		} catch (IOException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 		}
 
 //		if (sm != null) sm.close();

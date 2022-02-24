@@ -18,15 +18,11 @@
 
 package it.unibo.arces.wot.sepa.engine.timing;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequest;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class Timings {
-	private static final Logger logger = LogManager.getLogger();
 	
 	public static long getTime() {
 		return System.nanoTime();
@@ -34,7 +30,7 @@ public class Timings {
 	
 	public synchronized static void log(String tag,long start,long stop) {
 		String message = String.format("%d,%d,%s",System.currentTimeMillis(),stop-start,tag);
-		logger.log(Level.getLevel("timing"),message);
+		Logging.logger.log(Logging.getLevel("timing"),message);
 	}
 	
 	public synchronized static void log(InternalRequest request) {
