@@ -26,8 +26,6 @@ import org.apache.http.ExceptionLogger;
 import org.apache.http.impl.nio.bootstrap.HttpServer;
 import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
@@ -35,10 +33,9 @@ import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11Handler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class HttpGate {
-	protected static final Logger logger = LogManager.getLogger();
-
 	protected EngineProperties properties;
 	protected Scheduler scheduler;
 
@@ -79,7 +76,7 @@ public class HttpGate {
 		try {
 			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
-			logger.debug(serverInfo+" interrupted: " + e.getMessage());
+			Logging.logger.debug(serverInfo+" interrupted: " + e.getMessage());
 		}
 	}
 }

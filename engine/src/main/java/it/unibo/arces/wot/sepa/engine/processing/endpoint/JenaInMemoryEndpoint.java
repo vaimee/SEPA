@@ -30,8 +30,6 @@ import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.system.Txn;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
@@ -65,8 +63,6 @@ General		MRSW				DatasetFactory.create
 The general dataset can have any graphs added to it (e.g. inference graphs).
  * */
 public class JenaInMemoryEndpoint implements SPARQLEndpoint {
-	protected static final Logger logger = LogManager.getLogger();
-
 	static final Dataset dataset = DatasetFactory.create(); // DatasetFactory.createTxnMem();
 
 	@Override

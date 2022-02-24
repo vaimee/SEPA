@@ -18,16 +18,12 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUnsubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 class UnsubscribeProcessingThread extends Thread {
-	private static final Logger logger = LogManager.getLogger();
-
 	private final Processor processor;
 
 	public UnsubscribeProcessingThread(Processor processor) {
@@ -41,20 +37,20 @@ class UnsubscribeProcessingThread extends Thread {
 			try {
 				// Wait request...
 				ScheduledRequest request = processor.waitUnsubscribeRequest();
-				logger.debug(">> " + request);
+				Logging.logger.debug(">> " + request);
 
 				// Process request
 				String sid = ((InternalUnsubscribeRequest) request.getRequest()).getSID();
 				String gid = ((InternalUnsubscribeRequest) request.getRequest()).getGID();
 				Response response = processor.processUnsubscribe(sid,gid);
 				
-				logger.debug("<< " + response);
+				Logging.logger.debug("<< " + response);
 
 				// Send back response
 				processor.addResponse(request.getToken(), response);
 
 			} catch (InterruptedException e) {
-				logger.warn("Exit");
+				Logging.logger.warn("Exit");
 				return;
 			}
 		}
