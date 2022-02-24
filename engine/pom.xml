@@ -261,6 +261,14 @@
 	-->
 	<dependency>
 	    <groupId>com.vaimee</groupId>
+	    <artifactId>jenar</artifactId>
+	    <version>4.3.2</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/apache-jena-4.3.2-jar-with-dependencies.jar</systemPath>
+	</dependency>
+<!--
+	<dependency>
+	    <groupId>com.vaimee</groupId>
 	    <artifactId>jenar-arq</artifactId>
 	    <version>4.3.2</version>
 	    <scope>system</scope>
@@ -286,7 +294,7 @@
 	  <version>4.3.2</version>
 	    <scope>system</scope>
 	    <systemPath>${project.basedir}/../lib/jenar-base-4.3.2.jar</systemPath>
-	 </dependency> 
+	 </dependency> -->
 	</dependencies>
 
 </project>
