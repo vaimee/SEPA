@@ -127,7 +127,7 @@ public class EngineProperties {
 
 		// Processor
 		result.parameters.processor.updateTimeout = 5000;
-		result.parameters.processor.queryTimeout = 5000;
+		result.parameters.processor.queryTimeout = 30000;
 		result.parameters.processor.maxConcurrentRequests = 5;
 		result.parameters.processor.reliableUpdate = true;
 
@@ -147,8 +147,8 @@ public class EngineProperties {
 
 		// Gates -> Paths
 		result.parameters.gates.paths.secure = "/secure";
-		result.parameters.gates.paths.update = "/update";
-		result.parameters.gates.paths.query = "/query";
+		result.parameters.gates.paths.update = "/sparql";
+		result.parameters.gates.paths.query = "/sparql";
 		result.parameters.gates.paths.subscribe = "/subscribe";
 		result.parameters.gates.paths.unsubscribe = "/unsubscribe";
 		result.parameters.gates.paths.register = "/oauth/register";
