@@ -31,6 +31,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
@@ -50,7 +51,7 @@ class QueryProcessor implements QueryProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
+	private Response process(InternalQueryRequest req,Boolean secondPhase) throws SEPASecurityException, IOException {
 		// Build the request
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
@@ -64,9 +65,9 @@ class QueryProcessor implements QueryProcessorMBean {
 			long start = Timings.getTime();
 			SPARQLEndpoint endpoint;
 			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) 
-                            endpoint = JenaInMemoryEndpoint.newInstanceda(JenaInMemoryEndpoint.datasetId.dsiPrimary);
+                endpoint = new JenaInMemory2PhEndpoint(secondPhase);
 			else 
-                            endpoint = new RemoteEndpoint();
+				endpoint = new RemoteEndpoint();
                         
 			ret = endpoint.query(request);
 			endpoint.close();
@@ -97,7 +98,15 @@ class QueryProcessor implements QueryProcessorMBean {
 		
 		return ret;
 	}
-
+	
+	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
+		return process(req,false);
+	}
+	
+	public Response process2Ph(InternalQueryRequest req) throws SEPASecurityException, IOException {
+		return process(req,true);
+	}
+	
 	@Override
 	public void reset() {
 		QueryProcessorBeans.reset();

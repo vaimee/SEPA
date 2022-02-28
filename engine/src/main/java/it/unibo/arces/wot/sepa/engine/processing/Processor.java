@@ -133,10 +133,20 @@ public class Processor implements ProcessorMBean {
 
 	public synchronized Response processUpdate(InternalUpdateRequest update) {
 		InternalUpdateRequest preRequest = update;
-		if (spuManager.doUpdateARQuadsExtraction(update)) {
+		
+		//need looking for retrive that value from end-point props
+		boolean secondPh= true;
+
+		if (true || spuManager.doUpdateARQuadsExtraction(update)) {
 			try {
-				preRequest = ARQuadsAlgorithm.extractARQuads(update, queryProcessor);
-			} catch (SEPAProcessingException | SPARQL11ProtocolException | SEPASparqlParsingException e) {
+				if(secondPh) {
+					//JENAR-AR 		(done)
+					preRequest = ARQuadsAlgorithm.extractJenaARQuads(update, updateProcessor);
+				}else {
+					//alghoritm AR 	(...pending)
+					preRequest = ARQuadsAlgorithm.extractARQuads(update, queryProcessor);
+				}
+			} catch (SEPAProcessingException | SPARQL11ProtocolException | SEPASparqlParsingException | SEPASecurityException | IOException e) {
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "update_processing", e.getMessage());
 			}
 		}
@@ -147,7 +157,13 @@ public class Processor implements ProcessorMBean {
 		// Endpoint UPDATE
 		Response ret;
 		try {
-			ret = updateEndpoint(preRequest);
+			if(secondPh) {
+				//in this case the "preRequest" is 
+				//INSERT DATA and DELETE DATA update built with the AR
+				ret = updateEndpoint2Ph(preRequest);
+			}else {
+				ret = updateEndpoint(preRequest);
+			}
 		} catch (SEPASecurityException | IOException e) {
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "sparql11endpoint", e.getMessage());
 		}
@@ -168,7 +184,11 @@ public class Processor implements ProcessorMBean {
 //	public void killSubscription(String sid, String gid) throws InterruptedException {
 //		spuManager.killSubscription(sid, gid);
 //	}
-
+	
+	private Response updateEndpoint2Ph(InternalUpdateRequest preRequest) throws SEPASecurityException, IOException {
+		return updateProcessor.process2Ph(preRequest);
+	}
+	
 	private Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException, IOException {
 		return updateProcessor.process(preRequest);
 	}

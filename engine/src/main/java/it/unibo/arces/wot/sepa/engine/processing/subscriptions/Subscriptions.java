@@ -119,6 +119,7 @@ public class Subscriptions {
 
 	// Second level filtering (on quads)
 	public static Collection<SPU> filterOnQuads(Collection<SPU> activeSpus, InternalUpdateRequestWithQuads update) {
+		
 		// TODO implement LUTT filtering
 		return activeSpus;
 	}
