@@ -42,49 +42,34 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Semaphore;
+
 import org.apache.jena.query.Dataset;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.modify.UpdateResult;
 
 
-public class JenaInMemoryEndpoint implements SPARQLEndpoint{
+public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
 	protected static final Logger logger = LogManager.getLogger();
-	public enum datasetId {
-		dsiPrimary,             //where to write first
-		dsiAlternate,           //where to read first
-	}
+
 	//static final Dataset dataset = DatasetFactory.createTxnMem();
-	private static final Dataset      primaryDataset    = DatasetFactory.createTxnMem();
-	private static final Dataset      alternateDataset  = DatasetFactory.createTxnMem();
+	private static final Dataset primaryDataset    = DatasetFactory.createTxnMem();
+	private static final Dataset alternateDataset  = DatasetFactory.createTxnMem();
 
-	private final Dataset             dataset;  
-
-	private JenaInMemoryEndpoint (final Dataset src) {
-		dataset = src;
+	
+	private boolean _secondPhase=false;
+	public JenaInMemory2PhEndpoint(boolean secondPhase) {
+		this._secondPhase=secondPhase;
 	}
 
-	public static JenaInMemoryEndpoint newInstanceda(final datasetId id) {
-		JenaInMemoryEndpoint ret = null;
-		switch(id) {
-		case dsiAlternate:
-			ret = new JenaInMemoryEndpoint(alternateDataset);
-			break;
-		case dsiPrimary:
-			ret = new JenaInMemoryEndpoint(primaryDataset);
-			break;
-		}
-
-		return ret;
-	}
 	@Override
 	public Response query(QueryRequest req) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		RDFConnection conn = RDFConnectionFactory.connect(dataset);
+		RDFConnection conn = this._secondPhase ? RDFConnectionFactory.connect(alternateDataset):RDFConnectionFactory.connect(primaryDataset);
 		Txn.executeRead(conn, ()-> {
 			ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
 			ResultSetFormatter.outputAsJSON(out, rs);
 		});
-
 		try {
 			return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
 		} catch (UnsupportedEncodingException e) {
@@ -94,7 +79,7 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 
 	@Override
 	public Response update(UpdateRequest req) {
-		RDFConnection conn = RDFConnectionFactory.connect(dataset);
+		RDFConnection conn = this._secondPhase ? RDFConnectionFactory.connect(alternateDataset):RDFConnectionFactory.connect(primaryDataset);
 		final Set<Quad> updated = new TreeSet<>(new QuadComparator());
 		final Set<Quad> removed = new TreeSet<>(new QuadComparator());
 		Txn.executeWrite(conn, ()-> {
@@ -118,11 +103,10 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 			}                    
 
 		});
-
-
 		return new UpdateResponse(removed,updated);
 	}
 
+	
 	@Override
 	public void close() {
 	}
