@@ -36,6 +36,16 @@ public class QueryLUTTextraction{
 		PrefixMapping prefixs=jenaQuery.getPrefixMapping();
 		QElementVisitor visitor = new QElementVisitor();
 		where.visit(visitor);
+		for(int x =0;x<namedGraphs.size();x++) {
+			visitor.addFromNamed(namedGraphs.get(x), x==namedGraphs.size()-1);
+		}
+		if(graphs.size()>0) {
+			graphs.forEach((String g)->{
+				visitor.addFrom(g);
+			});
+		}else {
+			visitor.setNoFromClause();
+		}
 		return new LUTT(
 			visitor.getJollyTriple(),
 			visitor.getQuads()

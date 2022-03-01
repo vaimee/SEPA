@@ -109,11 +109,69 @@ public class QElementVisitor implements ElementVisitor{
 		return jolly_triple;
 	}
 
+	/*
+	 * The namedGraph will substitute all the variable-graph in the query
+	 * we can have more than one FROM NAMED clause,
+	 * so exist the "removeJollyTriple" parameter.
+	 * If "removeJollyTriple" is TRUE the triple list that correspond to a variable-graph
+	 * will be cleaned. "removeJollyTriple" must be true just for the last FROM NAMED graph.
+	 */
+	public void addFromNamed(String namedGraph,boolean removeJollyTriple) {
+		jolly_triple.forEach((LUTTTriple t)->{
+			if(quads.keySet().contains(namedGraph)){
+				quads.get(namedGraph).add(t);
+			}else {
+				ArrayList<LUTTTriple> triples = new ArrayList<LUTTTriple>();
+				triples.add(t);
+				quads.put(namedGraph, triples);	
+			}
+		});
+		if(removeJollyTriple) {
+			jolly_triple.clear();
+		}
+	}
+	
+	/*
+	 * If we have one or more FROM clauses,
+	 * it's required to use that method, 
+	 * otherwise the triples that hasen't a graph will be lost
+	 * and the LUTT will not has that triples.
+	 * (if the query hasn't a FROM clause,
+	 *  pls use the "setNoFromClause" method.)
+	 */
+	public void addFrom(String graph) {
+		if(quads==null) {
+			quads= new HashMap<String,ArrayList<LUTTTriple>>();
+		}
+		triple.forEach((LUTTTriple t)->{
+			if(quads.keySet().contains(graph)){
+				quads.get(graph).add(t);
+			}else {
+				ArrayList<LUTTTriple> triples = new ArrayList<LUTTTriple>();
+				triples.add(t);
+				quads.put(graph, triples);	
+			}
+		});
+	}
+	
+	/*
+	 * That method will add the remaining triples (without a graph)
+	 * to the jolly list
+	 */
+	public void setNoFromClause() {
+		if(triple!=null && triple.size()>0) {
+			if(jolly_triple==null) {
+				jolly_triple= new ArrayList<LUTTTriple>();
+			}
+			jolly_triple.addAll(triple);
+		}
+	}
+	
 	//----------------------------------REAL VISITOR
 	@Override
 	public void visit(ElementTriplesBlock arg0) {
 		// TODO Auto-generated method stub
-		String s="";
+		System.out.println("QElementVisitor.ElementTriplesBlock");
 	}
 	
 	@Override
@@ -125,48 +183,52 @@ public class QElementVisitor implements ElementVisitor{
 			String o = convertNode(tp.getObject());
 			this.safeAddTriple(new LUTTTriple(s, p,o));
 		});
+
+//		System.out.println("QElementVisitor.ElementPathBlock");
 	}
 	
 	@Override
 	public void visit(ElementFilter arg0) {
 		// TODO Auto-generated method stub
 //		arg0.getExpr().visit(this);
-		String s="";
+
+		System.out.println("QElementVisitor.ElementFilter");
 	}
 	
 	@Override
 	public void visit(ElementAssign arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementAssign");
 	}
 	
 	@Override
 	public void visit(ElementBind arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementBind");
 	}
 	
 	@Override
 	public void visit(ElementData arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementData");
 	}
 	
 	@Override
 	public void visit(ElementUnion arg0) {
-		// TODO Auto-generated method stub
-
-		String s="";
+		arg0.getElements().forEach((Element e)->{
+			e.visit(this);
+		});
+//		System.out.println("QElementVisitor.ElementUnion");
 	}
 	
 	@Override
 	public void visit(ElementOptional arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementOptional");
 	}
 	
 	@Override
@@ -175,14 +237,14 @@ public class QElementVisitor implements ElementVisitor{
 		arg0.getElements().forEach((Element e)->{
 			e.visit(this);
 		});
-		String s="";
+//		System.out.println("QElementVisitor.ElementGroup");
 	}
 	
 	@Override
 	public void visit(ElementDataset arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementDataset");
 	}
 	
 	@Override
@@ -201,42 +263,42 @@ public class QElementVisitor implements ElementVisitor{
 			}
 		}
 		//else {}//that should't appen
-		String s="";
+//		System.out.println("QElementVisitor.ElementNamedGraph");
 	}
 	
 	@Override
 	public void visit(ElementExists arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementExists");
 	}
 	
 	@Override
 	public void visit(ElementNotExists arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementNotExists");
 	}
 	
 	@Override
 	public void visit(ElementMinus arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementMinus");
 	}
 	
 	@Override
 	public void visit(ElementService arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementService");
 	}
 	
 	@Override
 	public void visit(ElementSubQuery arg0) {
 		// TODO Auto-generated method stub
 
-		String s="";
+		System.out.println("QElementVisitor.ElementSubQuery");
 	}
 	
 	//---------------------------UTILS
