@@ -64,46 +64,61 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
 
 	@Override
 	public Response query(QueryRequest req) {
+		return query(req.getSPARQL());
+	}
+	
+	public Response query(String sparqlQuery) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		RDFConnection conn = this._secondPhase ? RDFConnectionFactory.connect(alternateDataset):RDFConnectionFactory.connect(primaryDataset);
 		Txn.executeRead(conn, ()-> {
-			ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
+			ResultSet rs = conn.query(QueryFactory.create(sparqlQuery)).execSelect();
 			ResultSetFormatter.outputAsJSON(out, rs);
 		});
 		try {
 			return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
-		} catch (UnsupportedEncodingException e) {
-			return new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
+		} catch (Exception e) {
+			return new ErrorResponse(500, "Exception", "JenaInMemory catch an error for a query: "+e.getMessage());
 		}
 	}
 
 	@Override
 	public Response update(UpdateRequest req) {
+		String sparqlUpdate = req.getSPARQL();
+		Response r= update(sparqlUpdate);
+		return r;
+	}
+
+	public Response update(String sparqlUpdate) {
 		RDFConnection conn = this._secondPhase ? RDFConnectionFactory.connect(alternateDataset):RDFConnectionFactory.connect(primaryDataset);
 		final Set<Quad> updated = new TreeSet<>(new QuadComparator());
 		final Set<Quad> removed = new TreeSet<>(new QuadComparator());
-		Txn.executeWrite(conn, ()-> {
-			final List<UpdateResult> lur = conn.update(req.getSPARQL());
-			if (lur != null) {
-				for(final UpdateResult ur : lur) {
-					if (ur.deletedTuples != null) {
-						for(final Quad q : ur.deletedTuples) {
-							removed.add(q);
+		try {
+			Txn.executeWrite(conn, ()-> {
+				final List<UpdateResult> lur = conn.update(sparqlUpdate);
+				if (lur != null) {
+					for(final UpdateResult ur : lur) {
+						if (ur.deletedTuples != null) {
+							for(final Quad q : ur.deletedTuples) {
+								removed.add(q);
+							}
 						}
+
+						if (ur.updatedTuples != null) {
+							for(final Quad q : ur.updatedTuples) {
+								updated.add(q);
+							}
+						}
+
 					}
 
-					if (ur.updatedTuples != null) {
-						for(final Quad q : ur.updatedTuples) {
-							updated.add(q);
-						}
-					}
+				}                    
 
-				}
+			});
 
-			}                    
-
-		});
-		return new UpdateResponse(removed,updated);
+			return new UpdateResponse(removed,updated);
+		}catch(Exception ex) {
+			return new ErrorResponse(500, "Exception", "JenaInMemory catch an error for an update: "+ex.getMessage());
+		}
 	}
 
 	

@@ -123,6 +123,7 @@
 			<version>2.13.2</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
+<!--
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>apache-jena-libs</artifactId>
@@ -187,6 +188,7 @@
 			 </exclusion>
 			</exclusions>
 		</dependency>
+-->
 
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->
 		<dependency>

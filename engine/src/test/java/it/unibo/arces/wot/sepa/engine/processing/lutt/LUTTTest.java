@@ -22,8 +22,6 @@ public class LUTTTest {
 	}
 
 
-	
-
 	@Test
 	public void General_Test_01() throws SEPASecurityException {
 		String sparqlQuery = 
