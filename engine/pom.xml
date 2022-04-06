@@ -109,6 +109,11 @@
 		</plugins>
 	</build>
 	<dependencies>
+                <dependency>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                    <version>1.7.36</version>
+                </dependency>            
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -230,12 +235,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>it.unibo.arces.wot</groupId>
-			<artifactId>client-api</artifactId>
-			<version>${revision}</version>
-		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/org.apache.directory.api/api-all -->
 		<dependency>
 			<groupId>org.apache.directory.api</groupId>
@@ -307,6 +306,11 @@
 	  <groupId>com.vaimee</groupId>
 	  <artifactId>jenar-base</artifactId>
 	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>sepa-client-api</artifactId>
+	  <version>1.0</version>
 	 </dependency>
 	</dependencies>
 
