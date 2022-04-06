@@ -31,9 +31,10 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
@@ -48,7 +49,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
+	private Response process(InternalUpdateRequest req,Boolean secondPhase) throws SEPASecurityException, IOException {
 		// ENDPOINT UPDATE (set timeout and set retry = 0)
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
@@ -62,9 +63,9 @@ class UpdateProcessor implements UpdateProcessorMBean {
 			long start = Timings.getTime();
 			SPARQLEndpoint endpoint;
 			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) 
-                            endpoint = JenaInMemoryEndpoint.newInstanceda(JenaInMemoryEndpoint.datasetId.dsiPrimary);
+                endpoint =new JenaInMemory2PhEndpoint(secondPhase);
 			else 
-                            endpoint = new RemoteEndpoint();
+                endpoint = new RemoteEndpoint();
                         
                         
 			ret = endpoint.update(request);
@@ -95,6 +96,14 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		}
 
 		return ret;
+	}
+	
+	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
+		return process(req,false);
+	}
+	
+	public Response process2Ph(InternalUpdateRequest req) throws SEPASecurityException, IOException {
+		return process(req,true);
 	}
 
 	@Override
