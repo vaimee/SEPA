@@ -26,6 +26,12 @@ public class ACLStorageException extends Exception {
         id = null;
         params = null;
     }
+    public ACLStorageException(String msg, Exception inner) {
+        super(msg, inner);
+        id = null;
+        params = null;
+    }
+    
     //on create 
     public ACLStorageException(ACLStorage.ACLStorageId id, Map<String,Object> params) {
         super();

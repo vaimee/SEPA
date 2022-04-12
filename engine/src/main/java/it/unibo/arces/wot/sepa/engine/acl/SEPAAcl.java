@@ -39,6 +39,9 @@ public class SEPAAcl extends DatasetACL implements ACLStorage{
     }
     @Override
     public boolean checkGrapBase(aclId id, String graphName, String user) {
+        if (user.equals(ADMIN_USER))
+            return true;
+        
         return true;
     }
 
