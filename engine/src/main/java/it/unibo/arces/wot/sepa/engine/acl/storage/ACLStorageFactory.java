@@ -20,6 +20,10 @@ public abstract class ACLStorageFactory {
             case asiDataset:
                 ret = new ACLStorageDataset(params);
                 break;
+            case aiJSon:
+                break;
+            case asiSolid:
+                break;
         }
         return ret;
     }

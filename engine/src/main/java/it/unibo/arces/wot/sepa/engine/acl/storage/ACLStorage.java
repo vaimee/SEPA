@@ -6,7 +6,9 @@
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
 import java.util.Map;
+import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
+import org.apache.jena.acl.DatasetACL.aclId;
 
 /**
  *
@@ -15,7 +17,8 @@ import org.apache.jena.acl.DatasetACL;
 public interface ACLStorage {
     public enum ACLStorageId {
         asiDataset,
-        asiSolid
+        asiSolid,
+        aiJSon
     }
     
     
