@@ -10,6 +10,7 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 
 public class RemoteEndpoint implements SPARQLEndpoint {
 	protected static final Logger logger = LogManager.getLogger();
@@ -25,12 +26,12 @@ public class RemoteEndpoint implements SPARQLEndpoint {
 	}
 
 	@Override
-	public Response query(QueryRequest req) {
+	public Response query(QueryRequest req,SEPAUserInfo usr) {
 		return endpoint.query(req);
 	}
 
 	@Override
-	public Response update(UpdateRequest req) {
+	public Response update(UpdateRequest req,SEPAUserInfo usr) {
 		return endpoint.update(req);
 	}
 

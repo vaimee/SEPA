@@ -29,6 +29,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
@@ -67,8 +68,8 @@ class UpdateProcessor implements UpdateProcessorMBean {
 			else 
                 endpoint = new RemoteEndpoint();
                         
-                        
-			ret = endpoint.update(request);
+                        final SEPAUserInfo ui = SEPAUserInfo.newInstance(req.getClientAuthorization().getCredentials().user());
+			ret = endpoint.update(request,ui);
 			endpoint.close();
 			long stop = Timings.getTime();
 

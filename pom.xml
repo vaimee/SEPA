@@ -136,7 +136,7 @@
         					</pluginExecutions>
         				</lifecycleMappingMetadata>
         			</configuration>
-        		</plugin>		
+        		</plugin>
         	</plugins>
         </pluginManagement>
     </build>

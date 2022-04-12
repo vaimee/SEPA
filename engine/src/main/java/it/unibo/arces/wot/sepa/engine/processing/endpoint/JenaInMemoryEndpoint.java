@@ -38,6 +38,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -63,6 +64,8 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 		dataset = src;
 	}
 
+
+        
 	public static JenaInMemoryEndpoint newInstanceda(final datasetId id) {
 		JenaInMemoryEndpoint ret = null;
 		switch(id) {
@@ -77,9 +80,9 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 		return ret;
 	}
 	@Override
-	public Response query(QueryRequest req) {
+	public Response query(QueryRequest req,SEPAUserInfo usr) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		RDFConnection conn = RDFConnectionFactory.connect(dataset);
+		RDFConnection conn = RDFConnectionFactory.connect(dataset,usr.userName);
 		Txn.executeRead(conn, ()-> {
 			ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
 			ResultSetFormatter.outputAsJSON(out, rs);
@@ -93,8 +96,14 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	}
 
 	@Override
-	public Response update(UpdateRequest req) {
-		RDFConnection conn = RDFConnectionFactory.connect(dataset);
+	public Response update(UpdateRequest req,SEPAUserInfo usr) {
+                RDFConnection conn;
+                if (usr != null && usr.userName != null && usr.userName.trim().length() > 0 )
+                    conn = RDFConnectionFactory.connect(dataset,usr.userName);
+                else
+                   conn = RDFConnectionFactory.connect(dataset); 
+                
+                
 		final Set<Quad> updated = new TreeSet<>(new QuadComparator());
 		final Set<Quad> removed = new TreeSet<>(new QuadComparator());
 		Txn.executeWrite(conn, ()-> {

@@ -61,4 +61,7 @@ public class ClientAuthorization {
 		return credentials.getBasicAuthorizationHeader();
 	}
 
+        public Credentials getCredentials() {
+            return credentials;
+        }
 }
