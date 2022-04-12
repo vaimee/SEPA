@@ -28,6 +28,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
@@ -69,7 +70,8 @@ class QueryProcessor implements QueryProcessorMBean {
 			else 
 				endpoint = new RemoteEndpoint();
                         
-			ret = endpoint.query(request);
+                        final SEPAUserInfo ui = SEPAUserInfo.newInstance(req.getClientAuthorization().getCredentials().user());
+			ret = endpoint.query(request,ui);
 			endpoint.close();
 			long stop = Timings.getTime();
 			

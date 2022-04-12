@@ -38,6 +38,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -53,6 +54,7 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
 	protected static final Logger logger = LogManager.getLogger();
 
 	//static final Dataset dataset = DatasetFactory.createTxnMem();
+        
 	private static final Dataset primaryDataset    = DatasetFactory.createTxnMem();
 	private static final Dataset alternateDataset  = DatasetFactory.createTxnMem();
 
@@ -61,15 +63,26 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
 	public JenaInMemory2PhEndpoint(boolean secondPhase) {
 		this._secondPhase=secondPhase;
 	}
+        private RDFConnection connectDataset(SEPAUserInfo usr)  {
+            final Dataset tgtDataset = this._secondPhase ? alternateDataset : primaryDataset;
+            RDFConnection conn;
+            if (usr != null && usr.userName != null && usr.userName.trim().length() > 0 ) {
+                conn = RDFConnectionFactory.connect(tgtDataset,usr.userName);
+            } else {
+                conn = RDFConnectionFactory.connect(tgtDataset);
+            }
+            return conn;
+        }
 
 	@Override
-	public Response query(QueryRequest req) {
-		return query(req.getSPARQL());
+	public Response query(QueryRequest req,SEPAUserInfo usr) { 
+		return query(req.getSPARQL(),usr);
 	}
 	
-	public Response query(String sparqlQuery) {
+	public Response query(String sparqlQuery,SEPAUserInfo usr) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		RDFConnection conn = this._secondPhase ? RDFConnectionFactory.connect(alternateDataset):RDFConnectionFactory.connect(primaryDataset);
+                final Dataset tgtDataset = this._secondPhase ? alternateDataset : primaryDataset;
+                final RDFConnection conn = connectDataset(usr);
 		Txn.executeRead(conn, ()-> {
 			ResultSet rs = conn.query(QueryFactory.create(sparqlQuery)).execSelect();
 			ResultSetFormatter.outputAsJSON(out, rs);
@@ -82,14 +95,21 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
 	}
 
 	@Override
-	public Response update(UpdateRequest req) {
+	public Response update(UpdateRequest req,SEPAUserInfo usr) {
 		String sparqlUpdate = req.getSPARQL();
-		Response r= update(sparqlUpdate);
+		Response r= update(sparqlUpdate,usr);
 		return r;
 	}
-
-	public Response update(String sparqlUpdate) {
-		RDFConnection conn = this._secondPhase ? RDFConnectionFactory.connect(alternateDataset):RDFConnectionFactory.connect(primaryDataset);
+        
+        public Response query(String sparqlUpdate) {
+            return query(sparqlUpdate, null);
+        }
+        
+        public Response update(String sparqlUpdate) {
+            return update(sparqlUpdate, null);
+        }
+	public Response update(String sparqlUpdate,SEPAUserInfo usr) {
+		final RDFConnection conn = connectDataset(usr);
 		final Set<Quad> updated = new TreeSet<>(new QuadComparator());
 		final Set<Quad> removed = new TreeSet<>(new QuadComparator());
 		try {
