@@ -11,7 +11,7 @@ import java.util.Map;
  *
  * @author Lorenzo
  */
-public class ACLStorageException extends Exception {
+public class ACLStorageException extends ACLException {
     private final ACLStorage.ACLStorageId   id;
     private final Map<String,Object>        params;
     
@@ -45,5 +45,9 @@ public class ACLStorageException extends Exception {
         this.params = params;
     }
     
-    
+     public ACLStorageException(String msg, ACLStorage.ACLStorageId id) {
+         super(msg);
+         this.id = id;
+         this.params = null;
+     }
 }

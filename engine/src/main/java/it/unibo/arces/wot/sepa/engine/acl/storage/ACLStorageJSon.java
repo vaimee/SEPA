@@ -6,6 +6,7 @@
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
 import com.google.gson.Gson;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -57,14 +58,14 @@ public class ACLStorageJSon implements ACLStorage {
     }
     
     @Override
-    public Map<String, Map<String, Set<aclId>>> load() throws ACLStorageException {
+    public Map<String, SEPAAcl.UserData> loadUsers() throws ACLStorageException {
         
         
         try  {
              byte[] bytes = Files.readAllBytes(Paths.get(jsonFile));
             final String fileContent = new String (bytes);
             jsonArchive  = gson.fromJson(fileContent, JSonArchive.class);
-            return jsonArchive.aclData;
+            return jsonArchive.aclUserData;
         } catch(Exception e ) {
             throw new ACLStorageException("File not found " + jsonFile,ACLStorageId.aiJSon, params);
         }
@@ -108,7 +109,63 @@ public class ACLStorageJSon implements ACLStorage {
             throw new ACLStorageException("Failed to save data to " + jsonFile,e);
         }
     }
+
+    @Override
+    public void addUserToGroup(String user, String group) throws ACLStorageException {
+        write();
+    }
+
+    @Override
+    public void removeUserFromGroup(String user, String group) throws ACLStorageException {
+        write();
+    }
     public static class JSonArchive {
-        public  Map<String, Map<String, Set<aclId>>> aclData;
+        public  Map<String, SEPAAcl.UserData>           aclUserData;
+        public  Map<String, Map<String, Set<aclId>>>    aclGroupData;
     };
+    
+    @Override
+    public Map<String, Map<String, Set<aclId>>> loadGroups() throws ACLStorageException {
+        
+        
+        try  {
+             byte[] bytes = Files.readAllBytes(Paths.get(jsonFile));
+            final String fileContent = new String (bytes);
+            jsonArchive  = gson.fromJson(fileContent, ACLStorageJSon.JSonArchive.class);
+            return jsonArchive.aclGroupData;
+        } catch(Exception e ) {
+            throw new ACLStorageException("File not found " + jsonFile,ACLStorage.ACLStorageId.aiJSon, params);
+        }
+        
+        
+    }
+
+    @Override
+    public void removeGroup(String user) throws ACLStorageException {
+        write();
+    }
+
+    @Override
+    public void removeGroupPermissions(String user, String graph) throws ACLStorageException {
+        write();
+    }
+
+    @Override
+    public void removeGroupPermission(String user, String graph, aclId id) throws ACLStorageException {
+        write();
+    }
+
+    @Override
+    public void addGroup(String user) throws ACLStorageException {
+        write();
+    }
+
+    @Override
+    public void addGroupPermission(String user, String graph, aclId id) throws ACLStorageException {
+        write();
+    }
+    
 }
+
+
+
