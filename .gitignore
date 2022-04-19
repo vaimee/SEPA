@@ -173,3 +173,5 @@ buildNumber.properties
 
 # End of https://www.gitignore.io/api/java,maven,eclipse,intellij
 /blazegraph.jnl
+run/*
+
