@@ -76,6 +76,10 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		return !activeSpus.isEmpty();
 	}
 
+	public void setNoActiveSPU() {
+		activeSpus= new HashSet<>(); 
+	}
+	
 	public void subscriptionsProcessingPreUpdate(InternalUpdateRequest update) {
 		if (update.getClass().equals(InternalUpdateRequestWithQuads.class))
 			activeSpus = Subscriptions.filterOnQuads(activeSpus, (InternalUpdateRequestWithQuads) update);

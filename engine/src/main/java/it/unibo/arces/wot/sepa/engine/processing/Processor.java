@@ -39,6 +39,7 @@ import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolExceptio
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
@@ -137,10 +138,10 @@ public class Processor implements ProcessorMBean {
 		//need looking for retrive that value from end-point props
 		boolean secondPh= true;
 
-		if (true || spuManager.doUpdateARQuadsExtraction(update)) {
+		if (spuManager.doUpdateARQuadsExtraction(update)) {
 			try {
 				if(secondPh) {
-					//JENAR-AR 		(done)
+					//JENAR-AR 		(done)	
 					preRequest = ARQuadsAlgorithm.extractJenaARQuads(update, updateProcessor);
 				}else {
 					//alghoritm AR 	(...pending)
@@ -151,8 +152,21 @@ public class Processor implements ProcessorMBean {
 			}
 		}
 
-		// PRE-UPDATE processing
-		spuManager.subscriptionsProcessingPreUpdate(preRequest);
+		if(preRequest instanceof InternalUpdateRequestWithQuads ) 
+		{
+			Response voidResponse =((InternalUpdateRequestWithQuads)preRequest).getResponseNothingToDo();
+			if(voidResponse==null) {
+				spuManager.subscriptionsProcessingPreUpdate(preRequest);
+			}else {
+				//THE UPDATE DOSEN'T AFFECT THE STORE
+				//we can skipp all the remain process.
+				spuManager.setNoActiveSPU(); //remove all active SPU
+				return voidResponse;
+			}
+		}else {
+			// PRE-UPDATE processing
+			spuManager.subscriptionsProcessingPreUpdate(preRequest);
+		}
 
 		// Endpoint UPDATE
 		Response ret;

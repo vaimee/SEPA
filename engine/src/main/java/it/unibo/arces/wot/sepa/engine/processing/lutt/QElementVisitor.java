@@ -31,38 +31,33 @@ public class QElementVisitor implements ElementVisitor{
 	private ArrayList<LUTTTriple> triple=null;
 	private ArrayList<LUTTTriple> jolly_triple=null;
 
-	public QElementVisitor() {}
+	public QElementVisitor() {
+		this.jolly_triple= new ArrayList<LUTTTriple>();
+		this.triple= new ArrayList<LUTTTriple>();
+		this.quads=new HashMap<String,ArrayList<LUTTTriple>>();
+	}
 	
 	public boolean hasTriples() {
-		return triple!=null && triple.size()>0;
+		return triple.size()>0;
 	}
 	
 	public boolean hasQuads() {
-		return quads!=null && quads.keySet().size()>0;
+		return quads.keySet().size()>0;
 	}
 	
 	public boolean hasJollyTriples() {
-		return jolly_triple!=null && jolly_triple.size()>0;
+		return  jolly_triple.size()>0;
 	}
 	
-	public void safeAddJollyTriple(LUTTTriple t) {
-		if(jolly_triple==null) {
-			jolly_triple= new ArrayList<LUTTTriple>();
-		}
+	public void addJollyTriple(LUTTTriple t) {
 		jolly_triple.add(t);
 	}
 	
-	public void safeAddTriple(LUTTTriple t) {
-		if(triple==null) {
-			triple= new ArrayList<LUTTTriple>();
-		}
+	public void addTriple(LUTTTriple t) {
 		triple.add(t);
 	}
 	
-	public void safeAddQuads(String graph,LUTTTriple t) {
-		if(quads==null) {
-			quads= new HashMap<String,ArrayList<LUTTTriple>>();
-		}
+	public void addQuads(String graph,LUTTTriple t) {
 		if(quads.containsKey(graph)) {
 			quads.get(graph).add(t);
 		}else {
@@ -72,24 +67,15 @@ public class QElementVisitor implements ElementVisitor{
 		}
 	}
 	
-	public void safeAddJollyTriple(ArrayList<LUTTTriple> t) {
-		if(jolly_triple==null) {
-			jolly_triple= new ArrayList<LUTTTriple>();
-		}
+	public void addJollyTriple(ArrayList<LUTTTriple> t) {
 		jolly_triple.addAll(t);
 	}
 	
-	public void safeAddTriple(ArrayList<LUTTTriple> t) {
-		if(triple==null) {
-			triple= new ArrayList<LUTTTriple>();
-		}
+	public void addTriple(ArrayList<LUTTTriple> t) {
 		triple.addAll(t);
 	}
 	
-	public void safeAddQuads(String graph,ArrayList<LUTTTriple> t) {
-		if(quads==null) {
-			quads= new HashMap<String,ArrayList<LUTTTriple>>();
-		}
+	public void addQuads(String graph,ArrayList<LUTTTriple> t) {
 		if(quads.containsKey(graph)) {
 			quads.get(graph).addAll(t);
 		}else {
@@ -140,9 +126,6 @@ public class QElementVisitor implements ElementVisitor{
 	 *  pls use the "setNoFromClause" method.)
 	 */
 	public void addFrom(String graph) {
-		if(quads==null) {
-			quads= new HashMap<String,ArrayList<LUTTTriple>>();
-		}
 		triple.forEach((LUTTTriple t)->{
 			if(quads.keySet().contains(graph)){
 				quads.get(graph).add(t);
@@ -159,10 +142,7 @@ public class QElementVisitor implements ElementVisitor{
 	 * to the jolly list
 	 */
 	public void setNoFromClause() {
-		if(triple!=null && triple.size()>0) {
-			if(jolly_triple==null) {
-				jolly_triple= new ArrayList<LUTTTriple>();
-			}
+		if(triple.size()>0) {
 			jolly_triple.addAll(triple);
 		}
 	}
@@ -181,7 +161,7 @@ public class QElementVisitor implements ElementVisitor{
 			String s = convertNode(tp.getSubject());
 			String p = convertNode(tp.getPredicate());
 			String o = convertNode(tp.getObject());
-			this.safeAddTriple(new LUTTTriple(s, p,o));
+			this.addTriple(new LUTTTriple(s, p,o));
 		});
 
 //		System.out.println("QElementVisitor.ElementPathBlock");
@@ -253,13 +233,13 @@ public class QElementVisitor implements ElementVisitor{
 		arg0.getElement().visit(partial);
 		if(partial.hasTriples()) {
 			if(arg0.getGraphNameNode().isVariable()) {
-				this.safeAddJollyTriple(partial.getTriple());
+				this.addJollyTriple(partial.getTriple());
 			}else if(arg0.getGraphNameNode().isURI()){
-				this.safeAddQuads(arg0.getGraphNameNode().getURI(), partial.getTriple());
+				this.addQuads(arg0.getGraphNameNode().getURI(), partial.getTriple());
 			}else if(arg0.getGraphNameNode().isBlank()){
 				//that can be triky
 				//it should't be appen, but we consider it as graph-var
-				this.safeAddJollyTriple(partial.getTriple());
+				this.addJollyTriple(partial.getTriple());
 			}
 		}
 		//else {}//that should't appen

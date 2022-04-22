@@ -31,41 +31,27 @@ public class LUTTTriple {
 	}
 
 
-
+	private boolean hitPassed(String a, String b) {
+		if(!(a==null || b==null)) {
+			if(a.compareTo(b)!=0) {
+				return false;
+			}
+		}
+		return true;
+	}
 
 	@Override
 	public boolean equals(Object obj) {
+		
 		if(obj.getClass().equals(LUTTTriple.class)) {
 			LUTTTriple temp = (LUTTTriple)obj;
-			if(temp.getObject()==null) {
-				if(this.str_object!=null) {
-					return false;
-				}
-			}else {
-				if(this.str_object==null || temp.getObject().compareTo(this.str_object)!=0) {
-					return false;
-				}
-			}
-			if(temp.getPredicate()==null) {
-				if(this.str_predicate!=null) {
-					return false;
-				}
-			}else {
-				if(this.str_predicate==null || temp.getPredicate().compareTo(this.str_predicate)!=0) {
-					return false;
-				}
-			}
-			if(temp.getSubject()==null) {
-				if(this.str_subject!=null) {
-					return false;
-				}
-			}else {
-				if(this.str_subject==null || temp.getSubject().compareTo(this.str_subject)!=0) {
-					return false;
-				}
-			}
-			return true;
+			
+			return hitPassed(temp.getObject(),this.str_object) 
+					&& hitPassed(temp.getPredicate(),this.str_predicate)
+					&& hitPassed(temp.getSubject(),this.str_subject);
+			
 		}
+		
 		return false;
 
 	}
