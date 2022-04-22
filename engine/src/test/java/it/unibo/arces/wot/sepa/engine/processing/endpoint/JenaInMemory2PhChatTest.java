@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -68,9 +69,11 @@ public class JenaInMemory2PhChatTest {
 					+ 							messageid+" rdf:type schema:Message ;\r\n"
 					+ "							schema:text \"Testo del messaggio\" ;\r\n"
 					+ "							schema:sender "+sender+" ;\r\n"
-					+ "							schema:toRecipient "+receiver+".\r\n"
+					+ "							schema:toRecipient "+receiver+";\r\n"
+					+ "							schema:dateSent ?time.\r\n"
 					+			 			"}"
 					+ "					} WHERE {\r\n"
+					+ "						BIND(\""+new Date().toString()+"\" AS ?time) ."
 					+ "						GRAPH "+graph+" {\r\n"
 					+ "							"+sender+" rdf:type schema:Person .\r\n"
 					+ "							"+receiver+" rdf:type schema:Person \r\n"
@@ -89,6 +92,7 @@ public class JenaInMemory2PhChatTest {
 			expectedAdded.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/text","Testo del messaggio"));
 			expectedAdded.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/sender","http://wot.arces.unibo.it/chat#IamASender"));
 			expectedAdded.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/toRecipient","http://wot.arces.unibo.it/chat#IamAReceiver"));
+			expectedAdded.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/dateSent",null));
 			assertTrue(LUTTTestUtils.quadsSetCompare(updateRes.updatedTuples,expectedAdded,"02.added"));
 			assertTrue(updateRes.removedTuples.size()==0);
 			
@@ -97,7 +101,39 @@ public class JenaInMemory2PhChatTest {
 	}
 	
 	@Test
-	public void TEST_03_SET_RECEIVED() throws SEPASecurityException {
+	public void TEST_03_SENT() throws SEPASecurityException {
+		String sparqlQuery = prefixs+
+						"SELECT ?message ?sender ?name ?text ?time \r\n"
+						+ "				FROM <"+room_graph+"> \r\n"
+						+ "				FROM NAMED "+graph+" \r\n"
+						+ "				WHERE {\r\n"
+						+ "					?message rdf:type schema:Message ;\r\n"
+						+ "					schema:text ?text ;\r\n"
+						+ "					schema:sender ?sender ;					\r\n"
+						+ "					schema:toRecipient "+receiver+";\r\n"
+						+ "					schema:dateSent ?time .\r\n"
+						+ "\r\n"
+						+ "					GRAPH "+graph+" {\r\n"
+						+ "						?sender rdf:type schema:Person ;\r\n"
+						+ "						schema:name ?name .\r\n"
+						+ "						"+receiver+" rdf:type schema:Person\r\n"
+						+ "					}\r\n"
+						+ "\r\n"
+						+ "\r\n"
+						+ "} ORDER BY ?time";
+		Response res= inMemEndPoint.query(sparqlQuery);
+		if(res.isError()) {
+			System.out.println(((ErrorResponse)res).getErrorDescription());
+			assertTrue(false);
+		}else {
+			QueryResponse queryeRes = (QueryResponse)res;
+			assertTrue(queryeRes.getBindingsResults().getBindings().size()==1);
+		}
+
+	}
+	
+	@Test
+	public void TEST_04_SET_RECEIVED() throws SEPASecurityException {
 		String sparqlUpdate = prefixs+
 					"WITH <"+room_graph+"> DELETE {\r\n"
 					+ "							"+messageid+" schema:dateReceived ?time .\r\n"
@@ -130,7 +166,7 @@ public class JenaInMemory2PhChatTest {
 	
 
 	@Test
-	public void TEST_04_REMOVE() throws SEPASecurityException {
+	public void TEST_05_REMOVE() throws SEPASecurityException {
 		String sparqlUpdate = prefixs+
 					"WITH <"+room_graph+"> DELETE \r\n"
 					+ "				{"+messageid+" ?p ?o} \r\n"
@@ -157,6 +193,7 @@ public class JenaInMemory2PhChatTest {
 			expectedRemoved.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/text","Testo del messaggio"));
 			expectedRemoved.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/sender","http://wot.arces.unibo.it/chat#IamASender"));
 			expectedRemoved.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/toRecipient","http://wot.arces.unibo.it/chat#IamAReceiver"));
+			expectedRemoved.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/dateSent",null));
 			
 			assertTrue(LUTTTestUtils.quadsSetCompare(updateRes.removedTuples,expectedRemoved,"04.removed"));
 			assertTrue(updateRes.updatedTuples.size()==0);		
@@ -164,7 +201,7 @@ public class JenaInMemory2PhChatTest {
 	}
 	
 //	@Test
-//	public void TEST_04_CREATE_ROOM() throws SEPASecurityException {
+//	public void TEST_0X_CREATE_ROOM() throws SEPASecurityException {
 //		String sparqlUpdate = prefixs+
 //					"WITH  <"+room_graph+">\r\n"
 //					+ "					INSERT DATA {\r\n"
@@ -183,7 +220,7 @@ public class JenaInMemory2PhChatTest {
 //	}
 //	
 //	@Test
-//	public void TEST_05_ENTER_ROOM() throws SEPASecurityException {
+//	public void TEST_0X_ENTER_ROOM() throws SEPASecurityException {
 //		String sparqlUpdate = prefixs+
 //					"			WITH  "+room_graph+"\r\n"
 //					+ "				DELETE {\r\n"

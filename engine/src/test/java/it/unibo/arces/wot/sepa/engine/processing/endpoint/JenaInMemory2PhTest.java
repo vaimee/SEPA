@@ -1,13 +1,9 @@
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
-import static org.junit.Assert.assertFalse;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.jena.sparql.core.Quad;
@@ -17,10 +13,8 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JenaInMemory2PhTest {
@@ -374,6 +368,40 @@ public class JenaInMemory2PhTest {
 
 	}
 	
+	@Test
+	public void Test_12_DATA_TYPE() throws SEPASecurityException {
+		String sparqlUpdate = "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>"+
+					"INSERT DATA  {  \r\n"
+					+ "    GRAPH <http://datatypes> {\r\n"
+					+ "        <http://s><http://p1> \"1\"^^xsd:integer.\r\n"
+					+ "        <http://s><http://p2> \"true\"^^xsd:boolean.\r\n"
+					+ "        <http://s><http://p3> '1'^^xsd:integer.\r\n"
+					+ "        <http://s><http://p4> 'true'^^xsd:boolean.\r\n"
+					//+ "        <http://s><http://p5> '''1''''^^xsd:integer.\r\n" 		//THIS IS NOT ALLOWED
+					//+ "        <http://s><http://p6> '''true'''^^xsd:boolean.\r\n" 	//THIS IS NOT ALLOWED
+					+ "    }\r\n"
+					+ "}";
+		Response res = inMemEndPoint.update(sparqlUpdate);
+		assertTrue(!res.isError());
+//		if(res.isError()) {
+//			assertTrue(false);
+//		}else {
+//			UpdateResponse res2= (UpdateResponse)inMemEndPoint.update(sparqlUpdate);
+//			Set<TempQuadForTest> expectedAdded = new HashSet<TempQuadForTest>();
+//			//order TempQuadForTest args: graph, subject, predicate, object
+//			expectedAdded.add(new TempQuadForTest("http://datatypes","http://s","http://p1","1"));
+//			expectedAdded.add(new TempQuadForTest("http://datatypes","http://s","http://p2","true"));
+//			expectedAdded.add(new TempQuadForTest("http://datatypes","http://s","http://p3","2"));
+//			//printQueryAll();
+//			//for (Quad realQuad : res.updatedTuples) {
+//			//	System.out.println("--->"+realQuad.toString());
+//			//}
+//			//assertTrue(res.removedTuples.size()==0);
+//			//assertTrue(LUTTTestUtils.quadsSetCompare(res2.updatedTuples,expectedAdded,"12.added"));
+//		}
+		
+
+	}
 
 }
 

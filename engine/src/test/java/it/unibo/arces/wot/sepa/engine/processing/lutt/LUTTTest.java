@@ -8,10 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LUTTTest {
 	
 	
@@ -23,7 +26,7 @@ public class LUTTTest {
 
 
 	@Test
-	public void General_Test_01() throws SEPASecurityException {
+	public void Test_01_General() throws SEPASecurityException {
 		String sparqlQuery = 
 					"PREFIX pp:<http://prefix.prova/> "
 				+ 	"SELECT ?s ?p ?o WHERE {"
@@ -42,7 +45,7 @@ public class LUTTTest {
 	}
 	
 	@Test
-	public void General_Test_02() throws SEPASecurityException {
+	public void Test_02_General() throws SEPASecurityException {
 		String sparqlQuery = 
 					"PREFIX pp:<http://prefix.prova/> "
 				+ 	"SELECT ?s ?p ?o WHERE {"
@@ -79,7 +82,7 @@ public class LUTTTest {
 	}
 	
 	@Test
-	public void General_Test_03() throws SEPASecurityException {
+	public void Test_03_General() throws SEPASecurityException {
 		String sparqlQuery = 
 					"PREFIX xsd:<http://www.w3.org/2001/XMLSchema> "
 				+	"PREFIX pp:<http://prefix.prova#> "
@@ -102,7 +105,7 @@ public class LUTTTest {
 	}
 	
 	@Test
-	public void Chat_sent_Test_04() throws SEPASecurityException {
+	public void Test_04_Chat_sent() throws SEPASecurityException {
 		String sparqlQuery = 
 					"		PREFIX	schema: <http://schema.org/>\n"
 					+ "		PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -168,7 +171,7 @@ public class LUTTTest {
 	}
 	
 	@Test
-	public void Chat_received_Test_05() throws SEPASecurityException {
+	public void Test_05_Chat_received() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 					+ "		PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
 					+ "		PREFIX 	chat: <http://wot.arces.unibo.it/chat#>\n"
@@ -195,7 +198,7 @@ public class LUTTTest {
 	
 	
 	@Test
-	public void Chat_received_monitor_Test_06() throws SEPASecurityException {
+	public void Test_06_Chat_received_monitor() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+ 				"PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
 				+ 				"PREFIX chat: <http://wot.arces.unibo.it/chat#>\n"
@@ -220,7 +223,7 @@ public class LUTTTest {
 	
 
 	@Test
-	public void Chat_log_sent_Test_07() throws SEPASecurityException {
+	public void Test_07_Chat_log_sent() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+ 				"PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
 				+ 				"PREFIX chat: <http://wot.arces.unibo.it/chat#>\n"
@@ -245,7 +248,7 @@ public class LUTTTest {
 	}
 	
 	@Test
-	public void Chat_log_received_Test_08() throws SEPASecurityException {
+	public void Test_08_Chat_log_received() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+				"SELECT ?message ?dateReceived FROM <http://wot.arces.unibo.it/chat/log> WHERE {"
 				+ "?message schema:dateReceived ?dateReceived}";
@@ -261,7 +264,7 @@ public class LUTTTest {
 	}
 	
 	@Test
-	public void Chat_users_Test_09() throws SEPASecurityException {
+	public void Test_09_Chat_users() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+ 				"PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
 				+				"SELECT ?user ?userName FROM <http://wot.arces.unibo.it/chat/> WHERE "
@@ -279,7 +282,7 @@ public class LUTTTest {
 	}
 	
 	@Test
-	public void Chat_query_all_Test_10() throws SEPASecurityException {
+	public void Test_10_Chat_query_all() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+ 				"PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
 				+				"SELECT * FROM <http://wot.arces.unibo.it/chat/log> FROM <http://wot.arces.unibo.it/chat/> WHERE {?s ?p ?o}";
@@ -297,6 +300,100 @@ public class LUTTTest {
 		triples= quads.get("http://wot.arces.unibo.it/chat/");
 		assertTrue(triples.size()==1);
 		assertTrue(triples.contains(new LUTTTriple(null,null,null)));
+		
+	}
+	
+	@Test
+	public void Test_11_Hitter() throws SEPASecurityException {
+		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
+				+ 				"PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+				+				"SELECT ?user ?userName FROM <http://wot.arces.unibo.it/chat/> WHERE {?user rdf:type schema:Person ; schema:name ?userName}";
+		
+		LUTT luttQuery = QueryLUTTextraction.exstract(sparqlQuery);
+		
+		
+		//################################################## HIT
+		HashMap<String,ArrayList<LUTTTriple>> quads = new HashMap<String,ArrayList<LUTTTriple>>();
+		ArrayList<LUTTTriple> triples_01 = new ArrayList<LUTTTriple>();
+		triples_01.add(new LUTTTriple(null,"http://www.w3.org/1999/02/22-rdf-syntax-ns#type", null));
+		quads.put("http://wot.arces.unibo.it/chat/", triples_01);
+		LUTT luttAR = new LUTT(new ArrayList<LUTTTriple>(),quads);
+		assertTrue(luttAR.hit(luttQuery));
+		assertTrue(luttQuery.hit(luttAR));
+		
+		
+		
+		//################################################## NOT HIT
+		quads = new HashMap<String,ArrayList<LUTTTriple>>();
+		triples_01 = new ArrayList<LUTTTriple>();
+		triples_01.add(new LUTTTriple(null,"http://www.w3.org/1999/02/22-rdf-syntax-ns#Property", null));
+		quads.put("http://wot.arces.unibo.it/chat/", triples_01);
+		luttAR = new LUTT(new ArrayList<LUTTTriple>(),quads);
+		assertTrue(!luttAR.hit(luttQuery));
+		assertTrue(!luttQuery.hit(luttAR));
+		
+		
+		//################################################## HIT
+		quads = new HashMap<String,ArrayList<LUTTTriple>>();
+		triples_01 = new ArrayList<LUTTTriple>();
+		triples_01.add(new LUTTTriple("Andrea","http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://schema.org/Person"));
+		quads.put("http://wot.arces.unibo.it/chat/", triples_01);
+		luttAR = new LUTT(new ArrayList<LUTTTriple>(),quads);
+		assertTrue(luttAR.hit(luttQuery));
+		assertTrue(luttQuery.hit(luttAR));
+		
+		//################################################## NOT HIT
+		quads = new HashMap<String,ArrayList<LUTTTriple>>();
+		triples_01 = new ArrayList<LUTTTriple>();
+		triples_01.add(new LUTTTriple("SEPA","http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://schema.org/Product"));
+		quads.put("http://wot.arces.unibo.it/chat/", triples_01);
+		luttAR = new LUTT(new ArrayList<LUTTTriple>(),quads);
+		assertTrue(!luttAR.hit(luttQuery));
+		assertTrue(!luttQuery.hit(luttAR));
+		
+		//################################################## HIT
+		/*
+		 * The first LUTTTriple will not hit but the second LUTTTriple will do
+		 */
+		quads = new HashMap<String,ArrayList<LUTTTriple>>();
+		triples_01 = new ArrayList<LUTTTriple>();
+		triples_01.add(new LUTTTriple("SEPA","http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://schema.org/Product"));
+		triples_01.add(new LUTTTriple("SEPA","http://schema.org/name", null));
+		quads.put("http://wot.arces.unibo.it/chat/", triples_01);
+		luttAR = new LUTT(new ArrayList<LUTTTriple>(),quads);
+		assertTrue(luttAR.hit(luttQuery));
+		assertTrue(luttQuery.hit(luttAR));
+		
+		
+		//################################################## NOT HIT
+		/*
+		 * The same as the previous test so should hit
+		 * but the graph is wrong and so will not hit
+		 */
+		quads = new HashMap<String,ArrayList<LUTTTriple>>();
+		triples_01 = new ArrayList<LUTTTriple>();
+		triples_01.add(new LUTTTriple("SEPA","http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://schema.org/Product"));
+		triples_01.add(new LUTTTriple("SEPA","http://schema.org/name", null));
+		quads.put("http://wot.arces.unibo.it/chat/wrong_graph", triples_01);
+		luttAR = new LUTT(new ArrayList<LUTTTriple>(),quads);
+		assertTrue(!luttAR.hit(luttQuery));
+		assertTrue(!luttQuery.hit(luttAR));
+
+		
+		//################################################## HIT
+		/*
+		 * The same as the previous test so not hit for the wrong graph but we use 
+		 * the same triple (that hit) in the jolly graph, result: hit
+		 */
+		quads = new HashMap<String,ArrayList<LUTTTriple>>();
+		triples_01 = new ArrayList<LUTTTriple>();
+		triples_01.add(new LUTTTriple("SEPA","http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://schema.org/Product"));
+		triples_01.add(new LUTTTriple("SEPA","http://schema.org/name", null));
+		quads.put("http://wot.arces.unibo.it/chat/wrong_graph", triples_01);
+		luttAR = new LUTT(triples_01,quads);//<-------------------------------use "triples_01" as jolly graph too
+		assertTrue(!luttAR.hit(luttQuery));
+		assertTrue(!luttQuery.hit(luttAR));
+		
 		
 	}
 }

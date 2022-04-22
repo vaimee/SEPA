@@ -27,9 +27,9 @@ import org.apache.jena.sparql.syntax.ElementVisitor;
 
 public class QueryLUTTextraction{
 
-	private static SPARQLParser sparqlPArser = SPARQLParser.createParser(Syntax.syntaxSPARQL_11);
+	private static SPARQLParser sparqlParser = SPARQLParser.createParser(Syntax.syntaxSPARQL_11);
 	public static LUTT exstract(String sparqlQuery) {
-		Query jenaQuery = sparqlPArser.parse(new Query(), sparqlQuery);
+		Query jenaQuery = sparqlParser.parse(new Query(), sparqlQuery);
 		Element where = jenaQuery.getQueryPattern();
 		List<String> graphs= jenaQuery.getGraphURIs();
 		List<String> namedGraphs= jenaQuery.getNamedGraphURIs();
