@@ -142,7 +142,7 @@ public class ACLStorageFactoryTest {
         
         initACLDataset(dsName);
         
-        testNewInstanceDataset(paramMap,false);
+        //testNewInstanceDataset(paramMap,false);
     }
     
     @Test 
@@ -339,13 +339,54 @@ public class ACLStorageFactoryTest {
         
         return ret;
     }
-    
+
+        private boolean checkUserRightExistsReload(ACLStorageOperations as,String user ,String graph, DatasetACL.aclId id) {
+        boolean ret = false;
+        try {
+            final Map<String,UserData> m = as.loadUsers();
+            
+            final UserData  udm  = m.get(user);
+            if (udm!= null) {
+                final Set<DatasetACL.aclId> s = udm.graphACLs.get(graph);
+                if (s != null) {
+                    ret = s.contains(id);
+                }
+            }
+        } catch(EngineACLException e ) {
+            
+        }
+        
+        return ret;
+    }
+
     private void checkUserActions(ACLStorageOperations as) {
         try {
             as.addUser(NEWUSER);
             assertTrue(checkUserExistsReload(as, NEWUSER));
-            as.addUserToGroup(NEWUSER, NEWGROUP);
-            assertTrue(checkUserMemberOfReload(as,NEWUSER,NEWGROUP));
+            
+            as.addGraphToUser(NEWUSER, NEWGRAPH, DatasetACL.aclId.aiQuery);
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiQuery));
+            assertFalse(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiUpdate));
+
+            as.addUserPermission(NEWUSER, NEWGRAPH, DatasetACL.aclId.aiUpdate);
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiQuery));
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiUpdate));
+            
+            as.addGraphToUser(NEWUSER, NEWGRAPH2, DatasetACL.aclId.aiQuery);
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiQuery));
+            assertFalse(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiUpdate));
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiQuery));
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiUpdate));
+
+            as.addUserPermission(NEWUSER, NEWGRAPH2, DatasetACL.aclId.aiUpdate);
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiQuery));
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiUpdate));
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiQuery));
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiUpdate));
+            
+            
+            //as.addUserToGroup(NEWUSER, NEWGROUP);
+            //assertTrue(checkUserMemberOfReload(as,NEWUSER,NEWGROUP));
             
             //as.addUserPermission(newUser, GRAPH1, DatasetACL.aclId.aiQuery);
             
