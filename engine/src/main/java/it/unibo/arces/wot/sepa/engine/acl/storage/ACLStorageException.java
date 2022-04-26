@@ -5,13 +5,14 @@
  */
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
+import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
 import java.util.Map;
 
 /**
  *
  * @author Lorenzo
  */
-public class ACLStorageException extends ACLException {
+public class ACLStorageException extends EngineACLException {
     private final ACLStorage.ACLStorageId   id;
     private final Map<String,Object>        params;
     

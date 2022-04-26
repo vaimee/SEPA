@@ -23,7 +23,7 @@ import org.apache.jena.rdfconnection.RDFConnectionFactory;
  *
  * @author Lorenzo
  */
-public class ACLStorageDataset implements ACLStorage{ 
+public class ACLStorageDataset implements ACLStorageOperations { 
     public static final String PARAM_DATASETPATH                    = "acl.dataset.path";
     public static final String PARAM_DATASETPERSISTENCY             = "acl.dataset.persistency";
     
@@ -34,14 +34,19 @@ public class ACLStorageDataset implements ACLStorage{
     
     private static final       Map<String,String>                   paramsInfo = new TreeMap<>();
     private static final       Map<String,DatasetACL.aclId>         aclLookupMap = new TreeMap<>();
+    private static final       Map<DatasetACL.aclId,String>         aclRevLookupMap = new TreeMap<>();
     
     
     //here are defined all ontologies
     private static final  String    SEPACL_NS_PFIX              =          "<http://acl.sepa.com/>";
+    private static final  String    SEPACL_NS_GRP_PFIX          =          "<http://groups.acl.sepa.com/>";
     private static final  String    SEPACL_GRAPH_NAME           =          "sepaACL:acl";
     private static final  String    SEPACL_GRAPH_GROUP_NAME     =          "sepaACL:aclGroups";
     
-    
+    private static String encodeUriRight(DatasetACL.aclId id) {
+        final String ret = aclRevLookupMap.get(id);
+        return ret;
+    }
     private static DatasetACL.aclId decodeUriRight(String uri) {
 
         final DatasetACL.aclId ret = aclLookupMap.get(uri);
@@ -58,7 +63,12 @@ public class ACLStorageDataset implements ACLStorage{
         );
     }
     
-    
+    private static void addAclIdElement(String name, DatasetACL.aclId id) {
+        aclLookupMap.put(name, id);
+        final String BASE = SEPACL_NS_PFIX.substring(1,SEPACL_NS_PFIX .length() - 1);
+        
+        aclRevLookupMap.put(id, name.substring(BASE.length()));
+    }
     static {
         final String BASE = SEPACL_NS_PFIX.substring(1,SEPACL_NS_PFIX .length() - 1);
         final String QUERY  = BASE +  "query";
@@ -69,13 +79,13 @@ public class ACLStorageDataset implements ACLStorage{
         final String INSERTDATA  = BASE +  "insertData";
         final String DELETEDATA  = BASE +  "deleteData";
 
-        aclLookupMap.put(QUERY, DatasetACL.aclId.aiQuery);
-        aclLookupMap.put(UPDATE, DatasetACL.aclId.aiUpdate);
-        aclLookupMap.put(CLEAR , DatasetACL.aclId.aiClear);
-        aclLookupMap.put(CREATE, DatasetACL.aclId.aiCreate);
-        aclLookupMap.put(DROP, DatasetACL.aclId.aiDrop);
-        aclLookupMap.put(INSERTDATA, DatasetACL.aclId.aiDeleteData);
-        aclLookupMap.put(DELETEDATA, DatasetACL.aclId.aiInsertData);
+        addAclIdElement(QUERY, DatasetACL.aclId.aiQuery);
+        addAclIdElement(UPDATE, DatasetACL.aclId.aiUpdate);
+        addAclIdElement(CLEAR , DatasetACL.aclId.aiClear);
+        addAclIdElement(CREATE, DatasetACL.aclId.aiCreate);
+        addAclIdElement(DROP, DatasetACL.aclId.aiDrop);
+        addAclIdElement(INSERTDATA, DatasetACL.aclId.aiDeleteData);
+        addAclIdElement(DELETEDATA, DatasetACL.aclId.aiInsertData);
         
         
         
@@ -239,11 +249,13 @@ public class ACLStorageDataset implements ACLStorage{
     private Map<String,Set<DatasetACL.aclId>> loadGroupData(String groupUri, String groupName) {
         final Map<String,Set<DatasetACL.aclId>> ret  = new TreeMap<>();
         final String selectQuery = 
-            "PREFIX sepaACL: " + SEPACL_NS_PFIX + System.lineSeparator()   +
-            "select * WHERE { GRAPH " + SEPACL_GRAPH_GROUP_NAME   +"  { " + System.lineSeparator()   +
-            "  <$$GROUPNAME> sepaACL:accessInformation [sepaACL:graphName ?graphName] ." + System.lineSeparator()   +
-            "  <$$GROUPNAME> sepaACL:accessInformation [sepaACL:allowedRight ?right] ." + System.lineSeparator()   +
-            "  }}                " + System.lineSeparator()  ;
+            "PREFIX sepaACL: "+ SEPACL_NS_PFIX                          + System.lineSeparator()   +
+             "select * WHERE { GRAPH " + SEPACL_GRAPH_GROUP_NAME   +"  { "    + System.lineSeparator()   +
+            "   <$$GROUPNAME> sepaACL:accessInformation ?bnode. "        + System.lineSeparator()   +
+            "   ?bnode sepaACL:allowedRight		?right.  "        + System.lineSeparator()   +
+            "   ?bnode sepaACL:graphName                ?graphName. "     + System.lineSeparator()   +
+            "}}";                
+                 
         
         final String finalSelectQuery = selectQuery.replaceAll("\\$\\$GROUPNAME", groupUri);
         final  ResultSet rs = LocalDatasetActions.query(storageDataset, finalSelectQuery, dsConnection);
@@ -329,27 +341,79 @@ public class ACLStorageDataset implements ACLStorage{
 
     @Override
     public void removeGroup(String group) throws ACLStorageException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final String baseQuery = 
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                                 + System.lineSeparator()   +
+                "PREFIX sepaACLGroups: " + SEPACL_NS_GRP_PFIX                       + System.lineSeparator()   +
+                "DELETE WHERE { GRAPH sepaACL:aclGroups {"                          + System.lineSeparator()   +
+                  "sepaACLGroups:$$GROUPNAME ?p ?o 		."                  + System.lineSeparator()   +
+                  "sepaACLGroups:$$GROUPNAME sepaACL:accessInformation ?bnode."     + System.lineSeparator()   +
+                  "?bnode ?a ?b "                                                   + System.lineSeparator()   +
+                "}}";
+        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", group);
+        
+        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
     }
 
     @Override
     public void removeGroupPermissions(String group, String graph) throws ACLStorageException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final String baseQuery = 
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                                     + System.lineSeparator()            +
+                "PREFIX sepaACLGroups: " + SEPACL_NS_GRP_PFIX                           + System.lineSeparator()            +
+
+                "DELETE WHERE"                                                          + System.lineSeparator()            +		 
+                "{ "                                                                    + System.lineSeparator()            +		 
+                  "GRAPH " + SEPACL_GRAPH_GROUP_NAME        +"  { "               + System.lineSeparator()    +
+                        "sepaACLGroups:$$GROUPNAME sepaACL:accessInformation ?bnode."   + System.lineSeparator()            +		 
+                        "?bnode sepaACL:graphName <$$GRAPHNAME>."                       + System.lineSeparator()            +		 
+                        "?bnode ?p ?o."                                                 + System.lineSeparator()            +		 
+                  "} "                                                                  + System.lineSeparator()            +		 
+                "}                ";
+        
+        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", group)
+                                            .replaceAll("\\$\\$GRAPHNAME", graph);
+        
+        
+        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        
     }
 
     @Override
     public void removeGroupPermission(String group, String graph, DatasetACL.aclId id) throws ACLStorageException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final String baseQuery = 
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                                             + System.lineSeparator()            +
+                "PREFIX sepaACLGroups: " + SEPACL_NS_GRP_PFIX                                   + System.lineSeparator()            +
+
+                "DELETE"                                                                        + System.lineSeparator()            +		 
+                "{ "                                                                            + System.lineSeparator()            +		 
+                  "GRAPH " + SEPACL_GRAPH_GROUP_NAME        +"  { "                             + System.lineSeparator()            +
+                    "?bnode  sepaACL:allowedRight	sepaACL:$$RIGHTNAME."                           + System.lineSeparator()            +		 
+                  "} "                                                                          + System.lineSeparator()            +		 
+                "}"                                                                             + System.lineSeparator()            +		 
+                "WHERE {"                                                                       + System.lineSeparator()            +		 
+	                "GRAPH " + SEPACL_GRAPH_GROUP_NAME        +"  { "                       + System.lineSeparator()            +
+		                "sepaACLGroups:$$GROUPNAME sepaACL:accessInformation ?bnode."   + System.lineSeparator()            +		 
+                                 "?bnode sepaACL:graphName  	<$$GRAPHNAME>."                 + System.lineSeparator()            +		                 
+	                "}"                                                                     + System.lineSeparator()            +		 
+                "}                ";
+        
+        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", group)
+                                            .replaceAll("\\$\\$GRAPHNAME", graph)
+                                            .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
+        
+        
+        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        
     }
 
     @Override
     public void addGroup(String group) throws ACLStorageException {
         final String insertQuery = 
-                "PREFIX sepaACL: " + SEPACL_NS_PFIX + System.lineSeparator()                    +
-                "INSERT DATA { GRAPH " + SEPACL_GRAPH_NAME   +"  { " + System.lineSeparator()   +
-                "    sepaACL:$$GROUPNAME " + System.lineSeparator()   +		 
-                "        sepaACL:groupName    \"$$GROUPNAME \" ; " + System.lineSeparator()   +
-                "        sepaACL:accessInformation 	[]" + System.lineSeparator()   +
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                     + System.lineSeparator()            +
+                "PREFIX sepaACLGroups: " + SEPACL_NS_GRP_PFIX           + System.lineSeparator()            +
+                "INSERT DATA { GRAPH " + SEPACL_GRAPH_GROUP_NAME        +"  { " + System.lineSeparator()    +
+                "    sepaACLGroups:$$GROUPNAME "                        + System.lineSeparator()            +		 
+                "        sepaACL:groupName    \"$$GROUPNAME\" ; "      + System.lineSeparator()            +
+//                "        sepaACL:accessInformation 	[]"             + System.lineSeparator()            +
                 "        }}";
         
         final String finalInsertQuery = insertQuery.replaceAll("\\$\\$GROUPNAME", group);
@@ -360,7 +424,46 @@ public class ACLStorageDataset implements ACLStorage{
 
     @Override
     public void addGroupPermission(String group, String graph, DatasetACL.aclId id) throws ACLStorageException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+/*        
+        final String baseQuery = 
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                                             + System.lineSeparator()   +
+                "PREFIX sepaACLGroups: " + SEPACL_NS_GRP_PFIX                                   + System.lineSeparator()   +                
+                "INSERT "                                                                       + System.lineSeparator()   +		 
+                "{ "                                                                            + System.lineSeparator()   +		 
+                "  GRAPH " + SEPACL_GRAPH_GROUP_NAME   +" { "                                   + System.lineSeparator()   +		 
+                "    ?bnode sepaACL:graphName  	<$$GRAPHNAME>;"                                 + System.lineSeparator()   +		 
+                "    sepaACL:allowedRight	sepaACL:$$RIGHTNAME."                           + System.lineSeparator()   +		 
+                "  } "                                                                          + System.lineSeparator()   +		 
+                "}"                                                                             + System.lineSeparator()   +		 
+                "WHERE {"                                                                       + System.lineSeparator()   +		 
+                "	GRAPH " + SEPACL_GRAPH_GROUP_NAME    +" {"                              + System.lineSeparator()   +		 
+                "		sepaACLGroups:$$GROUPNAME sepaACL:accessInformation ?bnode."    + System.lineSeparator()   +		 
+                "	}"                                                                      + System.lineSeparator()   +		 
+                "}                "                                                             + System.lineSeparator()  ;
+        
+*/
+        final String baseQuery = 
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                                             + System.lineSeparator()   +
+                "PREFIX sepaACLGroups: " + SEPACL_NS_GRP_PFIX                                   + System.lineSeparator()   +                
+                "INSERT "                                                                       + System.lineSeparator()   +		 
+                "{ "                                                                            + System.lineSeparator()   +		 
+                "  GRAPH " + SEPACL_GRAPH_GROUP_NAME   +" { "                                   + System.lineSeparator()   +		 
+                "    ?bnode sepaACL:allowedRight	sepaACL:$$RIGHTNAME."                   + System.lineSeparator()   +		 
+                "  } "                                                                          + System.lineSeparator()   +		 
+                "}"                                                                             + System.lineSeparator()   +		 
+                "WHERE {"                                                                       + System.lineSeparator()   +		 
+                "  GRAPH " + SEPACL_GRAPH_GROUP_NAME   +" { "                                   + System.lineSeparator()   +		 		 
+                "		sepaACLGroups:$$GROUPNAME sepaACL:accessInformation ?bnode. "   + System.lineSeparator()   +		 
+                "		?bnode sepaACL:graphName  <$$GRAPHNAME>;"                       + System.lineSeparator()   +		 
+                "	}"                                                                      + System.lineSeparator()   +		 
+                "}";
+        
+        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", group)
+                                            .replaceAll("\\$\\$GRAPHNAME", graph)
+                                            .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
+        
+        
+        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
     }
 
     @Override
@@ -371,6 +474,38 @@ public class ACLStorageDataset implements ACLStorage{
     @Override
     public void removeUserFromGroup(String user, String group) throws ACLStorageException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void addGraphToUser(String user, String graph,DatasetACL.aclId firstId) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void addGraphToGroup(String group, String graph,DatasetACL.aclId firstId) {
+        final String baseQuery = 
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                                         + System.lineSeparator()   +
+                "PREFIX sepaACLGroups: " + SEPACL_NS_GRP_PFIX                               + System.lineSeparator()   +                
+                "INSERT  DATA"                                                              + System.lineSeparator()  +
+                "{ "                                                                        + System.lineSeparator()  +
+                "  GRAPH " + SEPACL_GRAPH_GROUP_NAME   +" { "                               + System.lineSeparator()   +		 
+                "        sepaACLGroups:$$GROUPNAME sepaACL:groupName \"$$GROUPNAME\" ; "    + System.lineSeparator()  +
+                "        sepaACL:accessInformation 	[ "                                 + System.lineSeparator()   +		 
+                "			sepaACL:graphName   	<$$GRAPHNAME>;"             + System.lineSeparator()   +		 
+                "			sepaACL:allowedRight	sepaACL:$$RIGHTNAME"       + System.lineSeparator()   +		                 
+
+                "       	]."                                                         + System.lineSeparator()   +		 
+                "  } "                                                                      + System.lineSeparator()  +
+                "}                ";
+        
+        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", group)
+                                            .replaceAll("\\$\\$GRAPHNAME", graph)
+                                            .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(firstId));
+        
+        
+        LocalDatasetActions.insertData(storageDataset, finalQuery);
+        
+                
     }
     
 

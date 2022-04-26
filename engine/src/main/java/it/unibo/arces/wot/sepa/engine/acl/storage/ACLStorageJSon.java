@@ -14,13 +14,14 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.acl.DatasetACL.aclId;
 
 /**
  *
  * @author Lorenzo
  */
-public class ACLStorageJSon implements ACLStorage {
+public class ACLStorageJSon implements ACLStorageOperations {
     public static final String PARAM_JSONFILE                       = "acl.json.fileName";
 
     
@@ -117,6 +118,16 @@ public class ACLStorageJSon implements ACLStorage {
 
     @Override
     public void removeUserFromGroup(String user, String group) throws ACLStorageException {
+        write();
+    }
+
+    @Override
+    public void addGraphToUser(String user, String graph,DatasetACL.aclId firstId) {
+        write();
+    }
+
+    @Override
+    public void addGraphToGroup(String group, String graph,DatasetACL.aclId firstId) {
         write();
     }
     public static class JSonArchive {

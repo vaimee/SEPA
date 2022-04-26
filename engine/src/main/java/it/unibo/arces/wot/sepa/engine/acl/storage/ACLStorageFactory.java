@@ -14,8 +14,8 @@ import org.apache.jena.acl.DatasetACL;
  */
 public abstract class ACLStorageFactory {
     
-    public static ACLStorage newInstance(ACLStorage.ACLStorageId id,Map<String,Object> params) throws ACLStorageException {
-        ACLStorage  ret = null;
+    public static ACLStorageOperations newInstance(ACLStorage.ACLStorageId id,Map<String,Object> params) throws ACLStorageException {
+        ACLStorageOperations ret = null;
         switch(id) {
             case asiDataset:
                 ret = new ACLStorageDataset(params);
