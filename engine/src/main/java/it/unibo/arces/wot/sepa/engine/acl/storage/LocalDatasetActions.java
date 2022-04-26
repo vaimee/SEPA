@@ -34,6 +34,8 @@ public class LocalDatasetActions {
         return query(dataset, query,null,conn);
     }
     public static ResultSet query(Dataset dataset, String query,String userName,RDFConnection conn) {
+            System.out.println("[QUERY] : "+ System.lineSeparator() + query + System.lineSeparator());
+            
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             final RSHolder rsh = new RSHolder();
             Txn.executeRead(conn, ()-> {
@@ -54,6 +56,7 @@ public class LocalDatasetActions {
         update(dataset,query,null,conn);
     }
     public static void update(Dataset dataset, String query,String userName,RDFConnection conn) {
+            System.out.println("[UPDATE] : " + System.lineSeparator() + query + System.lineSeparator() );
             Txn.executeWrite(conn, ()-> {
                     final List<UpdateResult> ur = conn.update(query);
                     if (ur != null) {
@@ -67,6 +70,7 @@ public class LocalDatasetActions {
             
     }
     public static void insertData(Dataset dataset, String query) {
+        System.out.println("[INSERT] : "+ System.lineSeparator() + query + System.lineSeparator());
         UpdateAction.parseExecute(query, dataset,null);
         RDFDataMgr.write(System.out, dataset, Lang.TRIG);
             

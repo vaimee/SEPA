@@ -5,18 +5,13 @@
  */
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
+import org.apache.jena.acl.DatasetACL;
+
 /**
  *
  * @author Lorenzo
  */
-public class ACLException extends Exception {
-    public ACLException() {
-        super();
-    }
-    public ACLException(String msg) {
-        super(msg);
-    }
-    public ACLException(String msg, Exception inner) {
-        super(msg,inner);
-    }
+public interface ACLStorageOperations extends ACLStorage {
+    void    addGraphToUser(String user, String graph,DatasetACL.aclId firstId);
+    void    addGraphToGroup(String group, String graph,DatasetACL.aclId firstId);
 }
