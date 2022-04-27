@@ -38,11 +38,14 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.modify.UpdateResult;
@@ -55,18 +58,32 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 		dsiAlternate,           //where to read first
 	}
 	//static final Dataset dataset = DatasetFactory.createTxnMem();
-	private static final Dataset      primaryDataset    = DatasetFactory.createTxnMem();
-	private static final Dataset      alternateDataset  = DatasetFactory.createTxnMem();
+	private static Dataset      primaryDataset;
+	private static Dataset      alternateDataset;
+        private static boolean      hasInit;
 
 	private final Dataset             dataset;  
 
+        private synchronized static void init() {
+            if (hasInit == false) {
+                
+                primaryDataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath());
+                alternateDataset = JenaDatasetFactory.newInstance(EngineBeans.getSecondDatasetMode(), EngineBeans.getSecondDatasetPath());
+                hasInit = true;
+            }
+        }
+        
 	private JenaInMemoryEndpoint (final Dataset src) {
+
 		dataset = src;
 	}
 
 
         
 	public static JenaInMemoryEndpoint newInstanceda(final datasetId id) {
+                init();
+                
+                
 		JenaInMemoryEndpoint ret = null;
 		switch(id) {
 		case dsiAlternate:

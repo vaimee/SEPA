@@ -259,6 +259,8 @@ public class EngineProperties {
 		public Processor processor = new Processor();
 		public Spu spu = new Spu();
 		public Gates gates = new Gates();
+                public Acl   acl = new Acl();
+                public DatasetConfiguration dsConfig = new DatasetConfiguration();
 	}
 
 	static private class Scheduler {
@@ -344,5 +346,89 @@ public class EngineProperties {
 			wss   = 9443;
 		}
 	}
+        
+        static private class Acl {
+                public  boolean     enabled     =   false;
+                public  String      type        =   ACL_TYPE_DS;  //allowed: dataset/json
+                public  String      mode        =   DS_MODE_TDB2;     /*
+                                                                    Valid values depends on type :
+                                                                    *) type == dataset
+                                                                        -) mode = tdb2  tdb2 persistency
+                                                                        -) mode = tdb1  tdb1 persistency
+                                                                        -) mode = mem   not persistent
+                                                                    *) type == json : no value required
+                                                                        
+                                                                */
+                public String       path = "./acl";             /*
+                                                                    Valid values depends on type :
+                                                                    *) type == dataset/tdb1|tdb2
+                                                                        -) path = path of tdbx persistent data
+
+                                                                    *) type == json : full path of json file
+                                                                        
+                                                                */
+                public int          controlPort =   8800;   //control port used for htttp(s) connections
+                
+        }
+        
+        public boolean  isAclEnabled() {
+            return parameters.acl.enabled;
+        }
+        
+        public String getAclType() {
+            return parameters.acl.type;
+        }
+        
+        public String getAclMode() {
+            return parameters.acl.mode;
+        }
+        
+        public String getAclPath() {
+            return parameters.acl.path;
+        }
+        
+        public int  getAclControlPort() {
+            return parameters.acl.controlPort;
+        }
+        
+        private static class    DatasetData {
+                public  String      mode        =   DS_MODE_MEM ;     /*
+                                                                    -) mode = tdb2  tdb2 persistency
+                                                                    -) mode = tdb1  tdb1 persistency
+                                                                    -) mode = mem   not persistent
+                                                                */
+                public String       path        =   "";         //path of dataset is mode is tdb1 or tdb2
+        }
+        private static class    DatasetConfiguration {
+            public boolean          enable2P = false;
+            public DatasetData      firstDS  = new DatasetData();
+            public DatasetData      secondDS = new DatasetData();
+            
+            
+        }
+        
+        public static final String    DS_MODE_MEM     =   "mem";
+        public static final String    DS_MODE_TDB2    =   "tdb2";
+        public static final String    DS_MODE_TDB1    =   "tdb1";
+        
+        public static final String    ACL_TYPE_DS     =   "dataset";
+        public static final String    ACL_TYPE_JSON   =   "json";
+        
+        public boolean is2PEnabled() {
+            return parameters.dsConfig.enable2P;
+        }
+        
+        public String   getFirstDatasetMode() {
+            return parameters.dsConfig.firstDS.mode;
+        }
+        public String   getFirstDatasetPath() {
+            return parameters.dsConfig.firstDS.path;
+        }
+        public String   getSecondDatasetMode() {
+            return parameters.dsConfig.secondDS.mode;
+        }
+        public String   getSecondDatasetPath() {
+            return parameters.dsConfig.secondDS.path;
+        }
 	
 }
