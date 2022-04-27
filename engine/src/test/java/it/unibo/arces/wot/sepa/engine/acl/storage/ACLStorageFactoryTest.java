@@ -7,6 +7,23 @@ package it.unibo.arces.wot.sepa.engine.acl.storage;
 
 import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl.UserData;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.CommonFuncs.initACLDataset;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH1;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH2;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH3;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH4;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GROUP1;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GROUP2;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GROUP3;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.NEWGRAPH;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.NEWGRAPH2;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.NEWGROUP;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.NEWUSER;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.USER1;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.USER2;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.USER3;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initGroupsQuery;
+import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initQuery;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,84 +41,6 @@ import static org.junit.Assert.*;
  */
 public class ACLStorageFactoryTest {
     
-     private final String initQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"   +System.lineSeparator() +   
-                            "PREFIX mp: <http://mysparql.com/> " + System.lineSeparator() + 
-                            "INSERT DATA { GRAPH sepaACL:acl { " + System.lineSeparator() + 
-                            "   sepaACL:monger" + System.lineSeparator() + 		
-                            "       sepaACL:userName    \"monger\" ;" + System.lineSeparator() + 
-                            "       sepaACL:memberOf	\"group1\" ;" + System.lineSeparator() + 
-                            "       sepaACL:accessInformation 	[" + System.lineSeparator() + 
-                            "           sepaACL:graphName   	mp:graph1;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:update;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:query" + System.lineSeparator() + 
-                            "       ]." + System.lineSeparator() + 
-                            "   sepaACL:gonger" + System.lineSeparator() + 
-                            "       sepaACL:userName    \"gonger\" ;" + System.lineSeparator() + 
-                            "       sepaACL:memberOf	\"group2\" ;" + System.lineSeparator() +              
-                            "       sepaACL:accessInformation 	[" + System.lineSeparator() + 
-                            "           sepaACL:graphName   	mp:graph2;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:update;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:insertData;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:deleteData;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:query" + System.lineSeparator() + 
-                            "   ]" + System.lineSeparator() + 
-                            "}}" + System.lineSeparator();
-     
-     private final String initGroupsQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"            + System.lineSeparator() + 
-                            "PREFIX sepaACLGroups: <http://groups.acl.sepa.com/>"               + System.lineSeparator() + 
-                            "PREFIX mp: <http://mysparql.com/>"                                 + System.lineSeparator() + 
-                            ""                                                                  + System.lineSeparator() + 
-                            "INSERT DATA { GRAPH sepaACL:aclGroups {"                           + System.lineSeparator() + 
-                            "    sepaACLGroups:group1		 "                              + System.lineSeparator() + 
-                            "    sepaACL:groupName    \"group1\" ; "                            + System.lineSeparator() + 
-                            "    sepaACL:accessInformation 	["                              + System.lineSeparator() + 
-                            "       sepaACL:graphName   	mp:graph1;"                     + System.lineSeparator() + 
-                            "       sepaACL:allowedRight	sepaACL:update;"                + System.lineSeparator() + 
-                            "       sepaACL:allowedRight	sepaACL:query  "                + System.lineSeparator() +       
-                            "   ];"                                                             + System.lineSeparator() + 
-                            "   sepaACL:accessInformation 	["                              + System.lineSeparator() + 
-                            "       sepaACL:graphName   	mp:graph3;"                     + System.lineSeparator() + 
-                            "       sepaACL:allowedRight	sepaACL:query  "                + System.lineSeparator() +       
-                            "   ]."                                                             + System.lineSeparator() + 
-             
-                            ""                                                                  + System.lineSeparator() + 
-                            ""                                                                  + System.lineSeparator() + 
-                            "   sepaACLGroups:group2"                                           + System.lineSeparator() + 
-                            "   sepaACL:groupName    \"group2\" ; "                             + System.lineSeparator() + 
-                            "   sepaACL:accessInformation 	["                              + System.lineSeparator() + 
-                            "       sepaACL:graphName   	mp:graph2;"                     + System.lineSeparator() + 
-                            "       sepaACL:allowedRight	sepaACL:update;"                + System.lineSeparator() + 
-                            "       sepaACL:allowedRight	sepaACL:query     "             + System.lineSeparator() + 
-                            "   ];"                                                             + System.lineSeparator() + 
-                            "   sepaACL:accessInformation 	["                              + System.lineSeparator() + 
-                            "       sepaACL:graphName   	mp:graph4;"                     + System.lineSeparator() + 
-                            "       sepaACL:allowedRight	sepaACL:query     "             + System.lineSeparator() + 
-                            "   ]."                                                             + System.lineSeparator() + 
-             
-                            ""                                                                  + System.lineSeparator() + 
-                            ""                                                                  + System.lineSeparator() + 
-                            "}}";
-
-
-     
-    
-    private final String USER1= "monger";
-    private final String USER2= "gonger";
-    private final String USER3= "deaduser";
-    private final String GROUP1= "group1";
-    private final String GROUP2= "group2";
-    private final String GROUP3= "deadgroup";
-    
-    private final String NEWUSER = "newUser";
-    private final String NEWGRAPH = "http://it.trivo.com/newGraph";
-    private final String NEWGRAPH2 = "http://it.trivo.com/newGraph2";
-    private final String NEWGROUP = "newGroup";
-    
-        
-    private final String GRAPH1 = "mp:graph1";
-    private final String GRAPH2 = "mp:graph2";
-    private final String GRAPH3 = "mp:graph3";    
-    private final String GRAPH4 = "mp:graph4";    
     
     public ACLStorageFactoryTest() {
     }
@@ -501,15 +440,5 @@ public class ACLStorageFactoryTest {
         }
     }
     
-    private void initACLDataset(final String dsName, final boolean fUseTDB2 ) throws Exception {
-        //connect and clear dataset prior to testing
-        Dataset ds = LocalDatasetFactory.newInstance(dsName, fUseTDB2);
-        
-        
-        
-        LocalDatasetActions.insertData(ds, initQuery);
-        LocalDatasetActions.insertData(ds, initGroupsQuery);
-        ds.close();
-    }
     
 }
