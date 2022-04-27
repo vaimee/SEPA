@@ -117,7 +117,7 @@ public class SEPAAclStorageTest {
             
         }
         
-        final ACLStorage as = SEPAAcl.getInstance(obj);
+        final ACLStorage as = SEPAAcl.newInstance(obj);
         
         testNewInstance(as);
 

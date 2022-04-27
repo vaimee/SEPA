@@ -61,6 +61,12 @@ public class SEPAAcl extends DatasetACL implements ACLStorage{
     
     private final Map<String, UserData>                             cachedACL;
     private final Map<String,Map<String, Set<DatasetACL.aclId>>>    cachedGroupsACL;
+
+    public static SEPAAcl newInstance(ACLStorageOperations storage) throws EngineACLException,ACLStorageException{
+        aclInstance = new SEPAAcl(storage);
+        
+        return aclInstance;
+    }
     
     public static SEPAAcl getInstance(ACLStorageOperations storage) throws EngineACLException,ACLStorageException{
         if (aclInstance == null)
@@ -118,7 +124,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage{
         }        
         
         //look for ALL Name
-        if (ret == false) {
+        if (ret == false && graphName.equals(DatasetACL.ACL_GRAPH_NAME_ALL) == false) {
             ret = checkAccessMap(aclMap, id,DatasetACL.ACL_GRAPH_NAME_ALL);
         }
         return ret;
