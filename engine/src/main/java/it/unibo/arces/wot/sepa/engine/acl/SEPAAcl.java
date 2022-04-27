@@ -79,9 +79,50 @@ public class SEPAAcl extends DatasetACL implements ACLStorage{
         if (user.equals(ADMIN_USER))
             return true;
         
-        return true;
+        //first, try to find user
+        final UserData ud = cachedACL.get(user);
+        
+        if (ud == null)
+            return false;   //bye bye
+        
+        //check if has any group membership
+        boolean ret = false;
+        
+        if (ud.memberOf != null) {
+            for(final String groupName : ud.memberOf) {
+                final Map<String,Set<DatasetACL.aclId>> grpACLs = cachedGroupsACL.get(groupName);
+                ret = checkAccessMap(grpACLs, id, graphName);
+                if (ret)
+                    break;
+            }
+        }
+        
+        
+        if (ret == true) {
+            //passed group check, 
+            return ret;
+        }
+        
+        //group policy does not allow access. let's try with user 
+        
+        ret = checkAccessMap(ud.graphACLs, id, graphName);
+        
+        return ret;
     }
 
+    private boolean checkAccessMap(Map<String,Set<DatasetACL.aclId>> aclMap, aclId id, String graphName) {
+        final Set<DatasetACL.aclId> grpACL = aclMap.get(graphName);
+        boolean ret = false;
+        if (grpACL != null) {
+            ret = grpACL.contains(id);
+        }        
+        
+        //look for ALL Name
+        if (ret == false) {
+            ret = checkAccessMap(aclMap, id,DatasetACL.ACL_GRAPH_NAME_ALL);
+        }
+        return ret;
+    }
     @Override
     public Map<String, UserData> loadUsers() throws EngineACLException,ACLStorageException {
         return cachedACL;
