@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
+import org.apache.jena.query.ReadWrite;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -123,9 +124,9 @@ public class ACLStorageFactoryTest {
         paramMap.put(ACLStorageDataset.PARAM_DATASETPERSISTENCY, ACLStorageDataset.PARAM_DATASETPERSISTENCY_VALUE_TDB2);
         paramMap.put(ACLStorageDataset.PARAM_DATASETPATH,dsName);
         
-        initACLDataset(dsName);
+        initACLDataset(dsName,true);
 
-        //testNewInstanceDataset(paramMap);
+        testNewInstanceDataset(paramMap,false);
     }
     
     @Test 
@@ -140,9 +141,9 @@ public class ACLStorageFactoryTest {
             
         }
         
-        initACLDataset(dsName);
+        initACLDataset(dsName,false);
         
-        //testNewInstanceDataset(paramMap,false);
+        testNewInstanceDataset(paramMap,false);
     }
     
     @Test 
@@ -385,10 +386,49 @@ public class ACLStorageFactoryTest {
             assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiUpdate));
             
             
-            //as.addUserToGroup(NEWUSER, NEWGROUP);
-            //assertTrue(checkUserMemberOfReload(as,NEWUSER,NEWGROUP));
+            //removes a permission from first graph
+            as.removeUserPermission(NEWUSER, NEWGRAPH, DatasetACL.aclId.aiUpdate);
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH, DatasetACL.aclId.aiQuery));
+            assertFalse(checkUserRightExistsReload(as,NEWUSER, NEWGRAPH,DatasetACL.aclId.aiUpdate));
+            //removes a permission from second
+            as.removeUserPermission(NEWUSER, NEWGRAPH2, DatasetACL.aclId.aiQuery);
+                //check that not exists anymore
+            assertFalse(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH2, DatasetACL.aclId.aiQuery));
+            assertTrue(checkUserRightExistsReload(as,NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiUpdate));
+                //check other graph
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH, DatasetACL.aclId.aiQuery));
+            assertFalse(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH, DatasetACL.aclId.aiUpdate));
+                
+            //removes everything from NEWGRAPH2
+            as.removeUserPermissions(NEWUSER, NEWGRAPH2);
+                //check that nothing exists
+            assertFalse(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH2, DatasetACL.aclId.aiQuery));
+            assertFalse(checkUserRightExistsReload(as,NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiUpdate));
+            assertFalse(checkUserRightExistsReload(as,NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiCreate));
+                //check other graph
+            assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH, DatasetACL.aclId.aiQuery));
+            assertFalse(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH, DatasetACL.aclId.aiUpdate));
+                
+            //adds user to group 
+            assertFalse(checkUserMemberOfReload(as, NEWUSER, GROUP1));
+            assertFalse(checkUserMemberOfReload(as, NEWUSER, GROUP2));
             
-            //as.addUserPermission(newUser, GRAPH1, DatasetACL.aclId.aiQuery);
+            as.addUserToGroup(NEWUSER, GROUP1);
+            assertTrue(checkUserMemberOfReload(as, NEWUSER, GROUP1));
+            assertFalse(checkUserMemberOfReload(as, NEWUSER, GROUP2));
+
+            as.addUserToGroup(NEWUSER, GROUP2);
+            assertTrue(checkUserMemberOfReload(as, NEWUSER, GROUP1));
+            assertTrue(checkUserMemberOfReload(as, NEWUSER, GROUP2));
+            
+            as.removeUserFromGroup(NEWUSER, GROUP2);
+            assertTrue(checkUserMemberOfReload(as, NEWUSER, GROUP1));
+            assertFalse(checkUserMemberOfReload(as, NEWUSER, GROUP2));
+            
+            
+            //removes an entire user
+            as.removeUser(NEWUSER);
+            assertFalse(checkUserExistsReload(as, NEWUSER));
             
         } catch(Exception e ) {
             fail(e.getMessage());
@@ -462,10 +502,9 @@ public class ACLStorageFactoryTest {
         }
     }
     
-    private void initACLDataset(final String dsName ) throws Exception {
+    private void initACLDataset(final String dsName, final boolean fUseTDB2 ) throws Exception {
         //connect and clear dataset prior to testing
-        Dataset ds = LocalDatasetFactory.newInstance(dsName, false);
-        
+        Dataset ds = LocalDatasetFactory.newInstance(dsName, fUseTDB2);
         
         
         
