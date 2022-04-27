@@ -143,4 +143,39 @@ public class EngineBeans {
 		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
 		return "https://"+getHost()+port+getTokenRequestPath();
 	}
+        
+        public static boolean  isAclEnabled() {
+            return properties.isAclEnabled();
+        }
+        
+        public static String getAclType() {
+            return properties.getAclType();
+        }
+        public static String getAclMode() {
+            return properties.getAclMode();
+        }
+        public static String getAclPath() {
+            return properties.getAclPath();
+        }
+        
+        public static int  getAclControlPort() {
+            return properties.getAclControlPort();
+        }
+        
+        public static boolean is2PEnabled() {
+            return properties.is2PEnabled();
+        }
+        
+        public static String   getFirstDatasetMode() {
+            return properties.getFirstDatasetMode();
+        }
+        public static String   getFirstDatasetPath() {
+            return properties.getFirstDatasetPath();
+        }
+        public static String   getSecondDatasetMode() {
+            return properties.getSecondDatasetMode();
+        }
+        public static String   getSecondDatasetPath() {
+            return properties.getSecondDatasetPath();
+        }        
 }
