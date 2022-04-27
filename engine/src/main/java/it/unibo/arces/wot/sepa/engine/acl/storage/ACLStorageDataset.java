@@ -255,28 +255,25 @@ public class ACLStorageDataset implements ACLStorageOperations {
     
     private UserData loadUserData(String userUri, String userName) {
         final UserData ret = new UserData();
-        final String selectQuery = 
-            "PREFIX sepaACL: " + SEPACL_NS_PFIX + System.lineSeparator()   +
-            "select * WHERE { GRAPH " + SEPACL_GRAPH_NAME +"  { " + System.lineSeparator()   +
-            "  <$$USERNAME> sepaACL:accessInformation [sepaACL:graphName ?graphName] ." + System.lineSeparator()   +
-            "  <$$USERNAME> sepaACL:accessInformation [sepaACL:allowedRight ?right] ." + System.lineSeparator()   +
-            "  <$$USERNAME> sepaACL:userName ?user ." + System.lineSeparator()   +
-            "  OPTIONAL {" + System.lineSeparator()   +
-            "    <$$USERNAME> sepaACL:memberOf ?groupName" + System.lineSeparator()   +
-            "  }" + System.lineSeparator()   +
-            "  }}                " + System.lineSeparator()  ;
+        //first pass, load rights
+        final String selectRightsQuery = 
+            "PREFIX sepaACL: "+ SEPACL_NS_PFIX                              + System.lineSeparator()   +
+             "select * WHERE { GRAPH " + SEPACL_GRAPH_NAME   +"  { "        + System.lineSeparator()   +
+            "   <$$USERNAME> sepaACL:accessInformation ?bnode. "            + System.lineSeparator()   +
+            "   ?bnode sepaACL:allowedRight		?right.  "          + System.lineSeparator()   +
+            "   ?bnode sepaACL:graphName                ?graphName. "       + System.lineSeparator()   +
+            "  OPTIONAL {"                                                  + System.lineSeparator()   +
+            "    <$$USERNAME> sepaACL:memberOf ?groupName"                  + System.lineSeparator()   +
+            "  }"                                                           + System.lineSeparator()   +                
+            "}}";                
+        final String finalSelectRightsQuery = selectRightsQuery.replaceAll("\\$\\$USERNAME", userUri);
+        final  ResultSet rsRights = LocalDatasetActions.query(storageDataset, finalSelectRightsQuery, dsConnection);
         
-        final String finalSelectQuery = selectQuery.replaceAll("\\$\\$USERNAME", userUri);
-        final  ResultSet rs = LocalDatasetActions.query(storageDataset, finalSelectQuery, dsConnection);
         
-        
-        while(rs.hasNext()) {
-            final QuerySolution qs = rs.next();
-            final String  groupName = qs.get("groupName") != null ? qs.get("groupName").toString() : null;
+        while(rsRights.hasNext()) {
+            final QuerySolution qs = rsRights.next();
             final String  graphName = qs.get("graphName").toString();
             final String  allowedRight = qs.get("right").toString();
-            if (groupName != null)
-                ret.memberOf.add(groupName);
             
             Set<DatasetACL.aclId> r = ret.graphACLs.get(graphName);
             if (r == null) {
@@ -288,6 +285,28 @@ public class ACLStorageDataset implements ACLStorageOperations {
             r.add(aclRight);
         }
         
+        //second pass, read OPTIONAL group membership
+        final String selectMembershipQuery = 
+            "PREFIX sepaACL: "+ SEPACL_NS_PFIX                              + System.lineSeparator()   +
+             "select * WHERE { GRAPH " + SEPACL_GRAPH_NAME   +"  { "        + System.lineSeparator()   +
+            "   <$$USERNAME> sepaACL:accessInformation ?bnode. "            + System.lineSeparator()   +
+            "   ?bnode sepaACL:allowedRight		?right.  "          + System.lineSeparator()   +
+            "   ?bnode sepaACL:graphName                ?graphName. "       + System.lineSeparator()   +
+            "  OPTIONAL {"                                                  + System.lineSeparator()   +
+            "    <$$USERNAME> sepaACL:memberOf ?groupName"                  + System.lineSeparator()   +
+            "  }"                                                           + System.lineSeparator()   +                
+            "}}";                
+        final String finalSelectMembershipQuery = selectRightsQuery.replaceAll("\\$\\$USERNAME", userUri);
+        final  ResultSet rsMembership = LocalDatasetActions.query(storageDataset, finalSelectMembershipQuery, dsConnection);
+        
+        
+        while(rsMembership.hasNext()) {
+            final QuerySolution qs = rsMembership.next();
+            final String  groupName = qs.get("groupName") != null ? qs.get("groupName").toString() : null;
+            if (groupName != null)
+                ret.memberOf.add(groupName);
+            
+        }
         
         return ret;
     }
@@ -517,12 +536,33 @@ public class ACLStorageDataset implements ACLStorageOperations {
 
     @Override
     public void addUserToGroup(String user, String group) throws ACLStorageException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        final String baseQuery  =
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                             + System.lineSeparator()    +
+                "INSERT DATA { GRAPH " + SEPACL_GRAPH_NAME          +"  { "     + System.lineSeparator()    +  
+                "   sepaACL:$$USERNAME sepaACL:memberOf     \"$$GROUPNAME\" "   + System.lineSeparator()    +  
+                "}}";
+        
+        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", group)
+                                            .replaceAll("\\$\\$USERNAME", user);
+        
+        LocalDatasetActions.insertData(storageDataset, finalQuery);
+
     }
 
     @Override
     public void removeUserFromGroup(String user, String group) throws ACLStorageException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+       final String baseQuery  =
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                             + System.lineSeparator()    +
+                "DELETE WHERE { GRAPH " + SEPACL_GRAPH_NAME          +"  { "    + System.lineSeparator()    +  
+                "   sepaACL:$$USERNAME sepaACL:memberOf     \"$$GROUPNAME\" "   + System.lineSeparator()    +  
+                "}}";
+        
+        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", group)
+                                            .replaceAll("\\$\\$USERNAME", user);
+        
+        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+
+        
     }
 
     @Override

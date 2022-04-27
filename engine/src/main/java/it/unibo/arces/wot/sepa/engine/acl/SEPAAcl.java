@@ -184,6 +184,15 @@ public class SEPAAcl extends DatasetACL implements ACLStorage{
     public void removeGroup(String group) throws EngineACLException,ACLStorageException {
         cachedGroupsACL.remove(group);
         aclStorage.removeGroup(group);
+        
+        //next, remove all reference of this group from all users
+        for(final Map.Entry<String, UserData> e : cachedACL.entrySet()) {
+            final UserData ud = e.getValue();
+            if (ud.memberOf != null && ud.memberOf.contains(group)) {
+                    ud.memberOf.remove(group);
+                    aclStorage.removeUserFromGroup(e.getKey(), group);
+            }
+        }
     }
 
     @Override
