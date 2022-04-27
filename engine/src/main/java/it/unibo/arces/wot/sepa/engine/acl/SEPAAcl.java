@@ -136,6 +136,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage{
             }
         } else {
             specAcl = new TreeSet<>();
+            specAcl.add(id);
             acls.put(graph, specAcl);
             aclStorage.addGraphToUser(user, graph,id);
         }
@@ -231,15 +232,11 @@ public class SEPAAcl extends DatasetACL implements ACLStorage{
                 specAcl.add(id);
                 aclStorage.addGroupPermission(group, graph, id);
             }
-
-        
-        
-            
         } else {
             specAcl = new TreeSet<>();
+            specAcl.add(id);
             acls.put(graph, specAcl);
             aclStorage.addGraphToGroup(group, graph,id);
-            
         }
         
             
