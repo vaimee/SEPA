@@ -24,5 +24,14 @@ class CommonFuncs {
         LocalDatasetActions.insertData(ds, initGroupsQuery);
         ds.close();
     }
-    
+    public static void initACLDataset(final String dsName, final boolean fUseTDB2,String iq, String igq ) throws Exception {
+        //connect and clear dataset prior to testing
+        Dataset ds = LocalDatasetFactory.newInstance(dsName, fUseTDB2);
+        
+        
+        
+        LocalDatasetActions.insertData(ds, iq);
+        LocalDatasetActions.insertData(ds, igq);
+        ds.close();
+    }    
 }

@@ -10,30 +10,30 @@ package it.unibo.arces.wot.sepa.engine.acl.storage;
  * @author Lorenzo
  */
 class Constants {
-     public static final String initQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"   +System.lineSeparator() +   
-                            "PREFIX mp: <http://mysparql.com/> " + System.lineSeparator() + 
-                            "INSERT DATA { GRAPH sepaACL:acl { " + System.lineSeparator() + 
-                            "   sepaACL:monger" + System.lineSeparator() + 		
-                            "       sepaACL:userName    \"monger\" ;" + System.lineSeparator() + 
-                            "       sepaACL:memberOf	\"group1\" ;" + System.lineSeparator() + 
-                            "       sepaACL:accessInformation 	[" + System.lineSeparator() + 
-                            "           sepaACL:graphName   	mp:graph1;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:update;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:query" + System.lineSeparator() + 
-                            "       ]." + System.lineSeparator() + 
-                            "   sepaACL:gonger" + System.lineSeparator() + 
-                            "       sepaACL:userName    \"gonger\" ;" + System.lineSeparator() + 
-                            "       sepaACL:memberOf	\"group2\" ;" + System.lineSeparator() +              
-                            "       sepaACL:accessInformation 	[" + System.lineSeparator() + 
-                            "           sepaACL:graphName   	mp:graph2;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:update;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:insertData;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:deleteData;" + System.lineSeparator() + 
-                            "           sepaACL:allowedRight	sepaACL:query" + System.lineSeparator() + 
-                            "   ]" + System.lineSeparator() + 
-                            "}}" + System.lineSeparator();
+     public static final String initQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"    + System.lineSeparator() +   
+                            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+                            "INSERT DATA { GRAPH sepaACL:acl { "                        + System.lineSeparator() + 
+                            "   sepaACL:monger"                                         + System.lineSeparator() + 		
+                            "       sepaACL:userName    \"monger\" ;"                   + System.lineSeparator() + 
+                            "       sepaACL:memberOf	\"group1\" ;"                   + System.lineSeparator() + 
+                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() + 
+                            "           sepaACL:graphName   	mp:graph1;"             + System.lineSeparator() + 
+                            "           sepaACL:allowedRight	sepaACL:update;"        + System.lineSeparator() + 
+                            "           sepaACL:allowedRight	sepaACL:query"          + System.lineSeparator() + 
+                            "       ]."                                                 + System.lineSeparator() + 
+                            "   sepaACL:gonger"                                         + System.lineSeparator() + 
+                            "       sepaACL:userName    \"gonger\" ;"                   + System.lineSeparator() + 
+                            "       sepaACL:memberOf	\"group2\" ;"                   + System.lineSeparator() +              
+                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() + 
+                            "           sepaACL:graphName   	mp:graph2;"             + System.lineSeparator() + 
+                            "           sepaACL:allowedRight	sepaACL:update;"        + System.lineSeparator() + 
+                            "           sepaACL:allowedRight	sepaACL:insertData;"    + System.lineSeparator() + 
+                            "           sepaACL:allowedRight	sepaACL:deleteData;"    + System.lineSeparator() + 
+                            "           sepaACL:allowedRight	sepaACL:query"          + System.lineSeparator() + 
+                            "   ]"                                                      + System.lineSeparator() + 
+                            "}}"                                                        + System.lineSeparator();
      
-     public static final String initGroupsQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"            + System.lineSeparator() + 
+     public static final String initGroupsQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"      + System.lineSeparator() + 
                             "PREFIX sepaACLGroups: <http://groups.acl.sepa.com/>"               + System.lineSeparator() + 
                             "PREFIX mp: <http://mysparql.com/>"                                 + System.lineSeparator() + 
                             ""                                                                  + System.lineSeparator() + 
@@ -85,5 +85,7 @@ class Constants {
     public static  final String GRAPH2 = "mp:graph2";
     public static  final String GRAPH3 = "mp:graph3";    
     public static  final String GRAPH4 = "mp:graph4";         
+    public static  final String GRAPH5 = "mp:graph5";                   
+    public static  final String GRAPH6 = "mp:graph6";             
     
 }
