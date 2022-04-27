@@ -82,54 +82,57 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo usr) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		RDFConnection conn = RDFConnectionFactory.connect(dataset,usr.userName);
-		Txn.executeRead(conn, ()-> {
-			ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
-			ResultSetFormatter.outputAsJSON(out, rs);
-		});
+		try (final RDFConnection conn = RDFConnectionFactory.connect(dataset,usr.userName)) {
+                    Txn.executeRead(conn, ()-> {
+                            ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
+                            ResultSetFormatter.outputAsJSON(out, rs);
+                    });
 
-		try {
-			return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
-		} catch (UnsupportedEncodingException e) {
-			return new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
-		}
+                    try {
+                            return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
+                    } catch (UnsupportedEncodingException e) {
+                            return new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
+                    }
+                }
 	}
 
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo usr) {
-                RDFConnection conn;
-                if (usr != null && usr.userName != null && usr.userName.trim().length() > 0 )
-                    conn = RDFConnectionFactory.connect(dataset,usr.userName);
-                else
-                   conn = RDFConnectionFactory.connect(dataset); 
+
+                try (final RDFConnection conn = 
+                        (usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
+                        RDFConnectionFactory.connect(dataset,usr.userName)                              :
+                        RDFConnectionFactory.connect(dataset); 
+                ) {
+                        
                 
-                
-		final Set<Quad> updated = new TreeSet<>(new QuadComparator());
-		final Set<Quad> removed = new TreeSet<>(new QuadComparator());
-		Txn.executeWrite(conn, ()-> {
-			final List<UpdateResult> lur = conn.update(req.getSPARQL());
-			if (lur != null) {
-				for(final UpdateResult ur : lur) {
-					if (ur.deletedTuples != null) {
-						for(final Quad q : ur.deletedTuples) {
-							removed.add(q);
-						}
-					}
+                    final Set<Quad> updated = new TreeSet<>(new QuadComparator());
+                    final Set<Quad> removed = new TreeSet<>(new QuadComparator());
+                    Txn.executeWrite(conn, ()-> {
+                            final List<UpdateResult> lur = conn.update(req.getSPARQL());
+                            if (lur != null) {
+                                    for(final UpdateResult ur : lur) {
+                                            if (ur.deletedTuples != null) {
+                                                    for(final Quad q : ur.deletedTuples) {
+                                                            removed.add(q);
+                                                    }
+                                            }
 
-					if (ur.updatedTuples != null) {
-						for(final Quad q : ur.updatedTuples) {
-							updated.add(q);
-						}
-					}
+                                            if (ur.updatedTuples != null) {
+                                                    for(final Quad q : ur.updatedTuples) {
+                                                            updated.add(q);
+                                                    }
+                                            }
 
-				}
+                                    }
 
-			}                    
+                            }                    
 
-		});
+                    });
 
 
-		return new UpdateResponse(removed,updated);
+                    return new UpdateResponse(removed,updated);
+                }
 	}
 
 	@Override

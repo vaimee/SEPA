@@ -82,16 +82,17 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
 	public Response query(String sparqlQuery,SEPAUserInfo usr) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
                 final Dataset tgtDataset = this._secondPhase ? alternateDataset : primaryDataset;
-                final RDFConnection conn = connectDataset(usr);
-		Txn.executeRead(conn, ()-> {
-			ResultSet rs = conn.query(QueryFactory.create(sparqlQuery)).execSelect();
-			ResultSetFormatter.outputAsJSON(out, rs);
-		});
-		try {
-			return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
-		} catch (Exception e) {
-			return new ErrorResponse(500, "Exception", "JenaInMemory catch an error for a query: "+e.getMessage());
-		}
+                try (final RDFConnection conn = connectDataset(usr)) {
+                    Txn.executeRead(conn, ()-> {
+                            ResultSet rs = conn.query(QueryFactory.create(sparqlQuery)).execSelect();
+                            ResultSetFormatter.outputAsJSON(out, rs);
+                    });
+                    try {
+                            return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
+                    } catch (Exception e) {
+                            return new ErrorResponse(500, "Exception", "JenaInMemory catch an error for a query: "+e.getMessage());
+                    }
+                }
 	}
 
 	@Override
@@ -109,36 +110,37 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
             return update(sparqlUpdate, null);
         }
 	public Response update(String sparqlUpdate,SEPAUserInfo usr) {
-		final RDFConnection conn = connectDataset(usr);
-		final Set<Quad> updated = new TreeSet<>(new QuadComparator());
-		final Set<Quad> removed = new TreeSet<>(new QuadComparator());
-		try {
-			Txn.executeWrite(conn, ()-> {
-				final List<UpdateResult> lur = conn.update(sparqlUpdate);
-				if (lur != null) {
-					for(final UpdateResult ur : lur) {
-						if (ur.deletedTuples != null) {
-							for(final Quad q : ur.deletedTuples) {
-								removed.add(q);
-							}
-						}
+		try (final RDFConnection conn = connectDataset(usr)) { 
+                    final Set<Quad> updated = new TreeSet<>(new QuadComparator());
+                    final Set<Quad> removed = new TreeSet<>(new QuadComparator());
+                    try {
+                            Txn.executeWrite(conn, ()-> {
+                                    final List<UpdateResult> lur = conn.update(sparqlUpdate);
+                                    if (lur != null) {
+                                            for(final UpdateResult ur : lur) {
+                                                    if (ur.deletedTuples != null) {
+                                                            for(final Quad q : ur.deletedTuples) {
+                                                                    removed.add(q);
+                                                            }
+                                                    }
 
-						if (ur.updatedTuples != null) {
-							for(final Quad q : ur.updatedTuples) {
-								updated.add(q);
-							}
-						}
+                                                    if (ur.updatedTuples != null) {
+                                                            for(final Quad q : ur.updatedTuples) {
+                                                                    updated.add(q);
+                                                            }
+                                                    }
 
-					}
+                                            }
 
-				}                    
+                                    }                    
 
-			});
+                            });
 
-			return new UpdateResponse(removed,updated);
-		}catch(Exception ex) {
-			return new ErrorResponse(500, "Exception", "JenaInMemory catch an error for an update: "+ex.getMessage());
-		}
+                            return new UpdateResponse(removed,updated);
+                    }catch(Exception ex) {
+                            return new ErrorResponse(500, "Exception", "JenaInMemory catch an error for an update: "+ex.getMessage());
+                    }
+                }
 	}
 
 	
