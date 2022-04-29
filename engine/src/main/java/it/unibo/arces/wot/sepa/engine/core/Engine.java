@@ -54,7 +54,7 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.10.20211126";
+	private final static String version = "0.10.20220302";
 
 	private EngineProperties properties = null;
 
@@ -438,6 +438,8 @@ public class Engine implements EngineMBean {
 			System.out.println("*                        Let Things Talk and Data Be Free!                              *");
 			System.out.println("*****************************************************************************************");
 			System.out.print("Version "+version);
+			
+			Logging.init();
 
 		} catch (SEPAPropertiesException | SEPASecurityException | IllegalArgumentException | SEPAProtocolException e) {
 			System.err.println(e.getMessage());
