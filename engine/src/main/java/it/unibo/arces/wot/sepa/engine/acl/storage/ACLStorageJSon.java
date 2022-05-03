@@ -6,6 +6,7 @@
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
 import com.google.gson.Gson;
+import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
@@ -129,6 +130,26 @@ public class ACLStorageJSon implements ACLStorageOperations {
     @Override
     public void addGraphToGroup(String group, String graph,DatasetACL.aclId firstId) {
         write();
+    }
+
+    @Override
+    public SEPAAcl.UserData loadUser(String userName) throws EngineACLException, ACLStorageException {
+        final Map<String, SEPAAcl.UserData> tmp = loadUsers();
+        final SEPAAcl.UserData ud = tmp.get(userName);
+        if (ud == null)
+            throw new ACLStorageException("User not found : " + userName,ACLStorageId.aiJSon);
+        
+        return ud;
+    }
+
+    @Override
+    public Map<String, Set<aclId>> loadGroup(String groupName) throws EngineACLException, ACLStorageException {
+        final Map<String, Map<String, Set<aclId>>> tmp = loadGroups();
+        final Map<String, Set<aclId>> gd  = tmp.get(groupName);
+        if (gd == null)
+            throw new ACLStorageException("Group not found : " + groupName,ACLStorageId.aiJSon);
+        
+        return gd;
     }
     public static class JSonArchive {
         public  Map<String, SEPAAcl.UserData>           aclUserData;

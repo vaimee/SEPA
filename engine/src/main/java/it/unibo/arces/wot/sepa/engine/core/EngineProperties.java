@@ -78,7 +78,10 @@ public class EngineProperties {
 	private Parameters parameters = new Parameters();
 
 	private EngineProperties() {}
-
+        public static EngineProperties newInstanceDefault() throws SEPAPropertiesException  {
+            EngineProperties result  = EngineProperties.load(defaultsFileName);
+            return result;
+        }
 	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		EngineProperties result = EngineProperties.load(propertiesFile);
 		result.parameters.gates.security.enabled = secure;
@@ -348,9 +351,9 @@ public class EngineProperties {
 	}
         
         static private class Acl {
-                public  boolean     enabled     =   false;
+                public  boolean     enabled     =   true;
                 public  String      type        =   ACL_TYPE_DS;  //allowed: dataset/json
-                public  String      mode        =   DS_MODE_TDB2;     /*
+                public  String      mode        =   DS_MODE_MEM;     /*
                                                                     Valid values depends on type :
                                                                     *) type == dataset
                                                                         -) mode = tdb2  tdb2 persistency
@@ -367,10 +370,10 @@ public class EngineProperties {
                                                                     *) type == json : full path of json file
                                                                         
                                                                 */
-                public int          controlPort =   8800;   //control port used for htttp(s) connections
                 
-                public String       queryPath       = "/acl/query";
-                public String       updatePath      = "/acl/update";
+                
+                public String       queryPath       = "/acl/query//";
+                public String       updatePath      = "/acl/update/";
                 
         }
         
@@ -390,9 +393,6 @@ public class EngineProperties {
             return parameters.acl.path;
         }
         
-        public int  getAclControlPort() {
-            return parameters.acl.controlPort;
-        }
         
         public String getAclQueryPath() {
             return parameters.acl.queryPath;

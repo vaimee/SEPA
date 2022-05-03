@@ -158,9 +158,6 @@ public class EngineBeans {
             return properties.getAclPath();
         }
         
-        public static int  getAclControlPort() {
-            return properties.getAclControlPort();
-        }
         
 	public static String getAclQueryPath() {
 		return properties.getAclQueryPath();
@@ -172,15 +169,32 @@ public class EngineBeans {
         
 	public static String getAclQueryURL() {
 		String port = "";
-		if (getAclControlPort() != -1) port = ":"+getAclControlPort();
+		if (getHttpPort() != -1) 
+                    port = ":"+getHttpPort();
 		return "http://"+getHost()+port+getAclQueryPath();
 	}
 
 	public static String getAclUpdateURL() {
 		String port = "";
-		if (getAclControlPort() != -1) port = ":"+getAclControlPort();
+		if (getHttpPort() != -1) 
+                    port = ":"+getHttpPort();
 		return "http://"+getHost()+port+getAclUpdatePath();
 	}
+        
+	public static String getSecureAclQueryURL() {
+		String port = "";
+		if (getHttpsPort() != -1) 
+                    port = ":"+getHttpsPort();
+		return "https://"+getHost()+port+getSecurePath()+getAclQueryPath();
+	}
+
+	public static String getSecureAclUpdateURL() {
+		String port = "";
+		if (getHttpsPort() != -1) 
+                    port = ":"+getHttpsPort();
+		return "https://"+getHost()+port+getSecurePath()+getAclUpdatePath();
+	}
+        
         
         
         public static boolean is2PEnabled() {

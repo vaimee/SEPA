@@ -9,6 +9,7 @@ import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorage;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageListable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
+import it.unibo.arces.wot.sepa.engine.processing.SEPAAclProcessor;
 
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
     
     //where persistence is archieved
     private final ACLStorageOperations                                aclStorage;
+    private final SEPAAclProcessor                                    jmx;
 
     @Override
     public void addUserToGroup(String user, String group) throws EngineACLException,ACLStorageException {
@@ -83,6 +85,20 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         return ret;
         
     }
+
+    @Override
+    public UserData loadUser(String userName) throws EngineACLException, ACLStorageException {
+        final UserData ud = aclStorage.loadUser(userName);
+        cachedACL.put(userName, ud);
+        return ud;
+    }
+
+    @Override
+    public Map<String, Set<aclId>> loadGroup(String groupName) throws EngineACLException, ACLStorageException {
+        final Map<String, Set<aclId>> gd = aclStorage.loadGroup(groupName);
+        cachedGroupsACL.put(groupName, gd);
+        return gd;
+    }
     //local caching of ACL
     public static class UserData {
         public final Set<String>                            memberOf    = new TreeSet<>();
@@ -93,15 +109,15 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
     private final Map<String, UserData>                             cachedACL;
     private final Map<String,Map<String, Set<DatasetACL.aclId>>>    cachedGroupsACL;
 
-    public static SEPAAcl newInstance(ACLStorageOperations storage) throws EngineACLException,ACLStorageException{
+    public static synchronized SEPAAcl newInstance(ACLStorageOperations storage) throws EngineACLException,ACLStorageException{
         aclInstance = new SEPAAcl(storage);
         
         return aclInstance;
     }
-    public static SEPAAcl getInstance() throws EngineACLException,ACLStorageException {
+    public static synchronized SEPAAcl getInstance() throws EngineACLException,ACLStorageException {
             return aclInstance;
     }
-    public static SEPAAcl getInstance(ACLStorageOperations storage) throws EngineACLException,ACLStorageException{
+    public static synchronized SEPAAcl getInstance(ACLStorageOperations storage) throws EngineACLException,ACLStorageException{
         if (aclInstance == null)
             aclInstance = new SEPAAcl(storage);
         
@@ -112,6 +128,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         aclStorage = storage;
         cachedACL = aclStorage.loadUsers();
         cachedGroupsACL = aclStorage.loadGroups();
+        jmx = new SEPAAclProcessor();
     }
     @Override
     public boolean checkGrapBase(aclId id, String graphName, String user) {
@@ -164,6 +181,10 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
     }
     @Override
     public Map<String, UserData> loadUsers() throws EngineACLException,ACLStorageException {
+        //reload users
+        final Map<String, UserData> tmp = aclStorage.loadUsers();
+        cachedACL.clear();
+        cachedACL.putAll(tmp);
         return cachedACL;
     }
 
@@ -258,7 +279,11 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
 
     @Override
     public Map<String,Map<String, Set<DatasetACL.aclId>>> loadGroups() throws EngineACLException,ACLStorageException {
+        final Map<String,Map<String, Set<DatasetACL.aclId>>>  tmp = aclStorage.loadGroups();
+        cachedGroupsACL.clear();
+        cachedGroupsACL.putAll(tmp);
         return cachedGroupsACL;
+        
     }
 
     @Override
