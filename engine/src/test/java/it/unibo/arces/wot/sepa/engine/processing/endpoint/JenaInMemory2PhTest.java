@@ -76,7 +76,7 @@ public class JenaInMemory2PhTest {
 		expected.add(new TempQuadForTest("http://g2","http://s3","http://p1","http://o9"));
 		expected.add(new TempQuadForTest("http://g2","http://s3","http://p1","http://o10"));
 		//printQueryAll();
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.updatedTuples,expected,"01"));
+		assertTrue(TestUtils.quadsSetCompare(res.updatedTuples,expected,"01"));
 		assertTrue(res.removedTuples.size()==0);
 		
 	}
@@ -96,7 +96,7 @@ public class JenaInMemory2PhTest {
 		//order TempQuadForTest args: graph, subject, predicate, object
 		expected.add(new TempQuadForTest("http://g2","http://s3","http://p1","http://o10"));
 		//printQueryAll();
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.removedTuples,expected,"02"));
+		assertTrue(TestUtils.quadsSetCompare(res.removedTuples,expected,"02"));
 		assertTrue(res.updatedTuples.size()==0);
 
 	}
@@ -113,7 +113,7 @@ public class JenaInMemory2PhTest {
 		Set<TempQuadForTest> expected = new HashSet<TempQuadForTest>();
 		//order TempQuadForTest args: graph, subject, predicate, object
 		expected.add(new TempQuadForTest("http://g2","http://s3","http://p1","http://o9"));
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.removedTuples,expected,"03"));
+		assertTrue(TestUtils.quadsSetCompare(res.removedTuples,expected,"03"));
 		assertTrue(res.updatedTuples.size()==0);
 	}
 	
@@ -136,8 +136,8 @@ public class JenaInMemory2PhTest {
 		expectedDeleted.add(new TempQuadForTest("http://g1","http://s2","http://p2","http://o3"));
 		expectedAdded.add(new TempQuadForTest("http://g1","http://s2","http://p2","http://o2"));
 		//printQueryAll();
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"04.removed"));
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"04.added"));
+		assertTrue(TestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"04.removed"));
+		assertTrue(TestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"04.added"));
 
 	}
 	
@@ -166,8 +166,8 @@ public class JenaInMemory2PhTest {
 		expectedDeleted.add(new TempQuadForTest("http://g1","http://s2","http://p2","http://o2"));
 		expectedAdded.add(new TempQuadForTest("http://g1","http://s2","http://p2","http://o10"));
 		//printQueryAll();
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"05.removed"));
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"05.added"));
+		assertTrue(TestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"05.removed"));
+		assertTrue(TestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"05.added"));
 
 	}
 	
@@ -201,8 +201,8 @@ public class JenaInMemory2PhTest {
 		expectedAdded.add(new TempQuadForTest("http://g2","http://s2","http://p2","http://o10"));
 		expectedAdded.add(new TempQuadForTest("http://g2","http://s3","http://p2","http://o10"));
 		//printQueryAll();
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"06.removed"));
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"06.added"));
+		assertTrue(TestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"06.removed"));
+		assertTrue(TestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"06.added"));
 
 	}
 	
@@ -234,8 +234,8 @@ public class JenaInMemory2PhTest {
 
 		expectedAdded.add(new TempQuadForTest("http://g2","http://s3","http://p3","http://o3"));
 		//printQueryAll();
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"07.removed"));
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"07.added"));
+		assertTrue(TestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"07.removed"));
+		assertTrue(TestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"07.added"));
 
 	}
 	
@@ -263,8 +263,8 @@ public class JenaInMemory2PhTest {
 		expectedAdded.add(new TempQuadForTest("http://g2","http://s2","http://p0","http://o0"));
 		expectedAdded.add(new TempQuadForTest("http://g2","http://s3","http://p0","http://o0"));
 //		printQueryAll();
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"08.removed"));
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"08.added"));
+		assertTrue(TestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"08.removed"));
+		assertTrue(TestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"08.added"));
 
 	}
 	
@@ -290,7 +290,7 @@ public class JenaInMemory2PhTest {
 		expectedAdded.add(new TempQuadForTest("http://g3","http://s","http://p","http://s2"));
 		expectedAdded.add(new TempQuadForTest("http://g3","http://s","http://p","http://s3"));
 		//printQueryAll();
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"09.added"));
+		assertTrue(TestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"09.added"));
 		assertTrue(res.removedTuples.size()==0);
 
 	}
@@ -332,8 +332,8 @@ public class JenaInMemory2PhTest {
 		expectedAdded.add(new TempQuadForTest("http://g3","http://s10","http://g2","http://s2"));
 		expectedAdded.add(new TempQuadForTest("http://g3","http://s10","http://g2","http://s3"));
 		//printQueryAll();
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"10.added"));
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"10.removed"));
+		assertTrue(TestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"10.added"));
+		assertTrue(TestUtils.quadsSetCompare(res.removedTuples,expectedDeleted,"10.removed"));
 	}
 	
 	@Test
@@ -364,7 +364,7 @@ public class JenaInMemory2PhTest {
 		expectedAdded.add(new TempQuadForTest("http://counters","http://g3","http://p1","2"));
 		//printQueryAll();
 		assertTrue(res.removedTuples.size()==0);
-		assertTrue(LUTTTestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"11.added"));
+		assertTrue(TestUtils.quadsSetCompare(res.updatedTuples,expectedAdded,"11.added"));
 
 	}
 	

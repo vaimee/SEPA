@@ -6,7 +6,7 @@ import org.apache.jena.sparql.core.Quad;
 
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 
-public class LUTTTestUtils {
+public class TestUtils {
 
 	public static boolean quadsSetCompare(Set<Quad> found,Set<TempQuadForTest> expected, String testName) {
 		if(found.size()==expected.size()) {
@@ -14,8 +14,8 @@ public class LUTTTestUtils {
 				boolean pass=false;
 				for (Quad realQuad : found) {
 					if(realQuad.getGraph().getURI().compareTo(tempQuadForTest.getGraph())==0){
-						if(realQuad.getSubject().getURI().compareTo(tempQuadForTest.getSubject())==0) {
-							if(realQuad.getPredicate().getURI().compareTo(tempQuadForTest.getPredicate())==0) {
+						if(tempQuadForTest.getSubject()==null || realQuad.getSubject().getURI().compareTo(tempQuadForTest.getSubject())==0) {
+							if(tempQuadForTest.getPredicate()==null || realQuad.getPredicate().getURI().compareTo(tempQuadForTest.getPredicate())==0) {
 								if(realQuad.getObject().isURI()) {
 									if(
 											tempQuadForTest.getObject()==null ||

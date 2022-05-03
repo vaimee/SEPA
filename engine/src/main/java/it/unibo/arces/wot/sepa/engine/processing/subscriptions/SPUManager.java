@@ -385,7 +385,11 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	}
 
 	Response processQuery(InternalSubscribeRequest subscribe) throws SEPASecurityException, IOException {
-		return processor.processQuery(subscribe);
+		if(this.processor.isInMemoryDoubleStore()) {
+			return processor.processQuery2Ph(subscribe);
+		}else {
+			return processor.processQuery(subscribe);
+		}
 	}
 
 	@Override
