@@ -69,8 +69,8 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
             if (hasInit == false) {
                 
                 
-                primaryDataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath());
-                alternateDataset = JenaDatasetFactory.newInstance(EngineBeans.getSecondDatasetMode(), EngineBeans.getSecondDatasetPath());
+                primaryDataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
+                alternateDataset = JenaDatasetFactory.newInstance(EngineBeans.getSecondDatasetMode(), EngineBeans.getSecondDatasetPath(),false);
                 hasInit = true;
             }
         }

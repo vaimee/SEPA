@@ -42,12 +42,12 @@ public class JenaDatasetFactory {
          return ret;
      }
      
-     public static Dataset newInstance(String mode,String path) {
+     public static Dataset newInstance(String mode,String path,boolean useACLIfPossible) {
          
          
          Dataset ret = null;
          
-         if (EngineBeans.isAclEnabled()) {
+         if (EngineBeans.isAclEnabled() && useACLIfPossible) {
              final DatasetACL acl = SEPAAcl.getInstance(ACLTools.makeACLStorage());
              ret = newInstance(mode, path,acl);
          } else {
