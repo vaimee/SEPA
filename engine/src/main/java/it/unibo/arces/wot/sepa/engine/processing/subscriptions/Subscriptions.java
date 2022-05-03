@@ -76,7 +76,8 @@ public class Subscriptions {
 		logger.log(Level.getLevel("subscriptions"),"@createSPU");
 		
 		try {
-			return new SPUNaive(req, manager);
+			//return new SPUNaive(req, manager);
+			return new SPUSmart(req, manager);
 		} catch (SEPAProtocolException e) {
 			return null;
 		}

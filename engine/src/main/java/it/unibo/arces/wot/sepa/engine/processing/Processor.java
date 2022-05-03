@@ -73,6 +73,9 @@ public class Processor implements ProcessorMBean {
 	// Running flag
 	private final AtomicBoolean running = new AtomicBoolean(true);
 
+	//flag for boost mode, if true, we use JenaInMemory with double store, LUTT and SPUSmart
+	private boolean inMemoryDoubleStore;
+	
 	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties, Scheduler scheduler)
 			throws IllegalArgumentException, SEPAProtocolException, SEPASecurityException {
 
@@ -101,6 +104,8 @@ public class Processor implements ProcessorMBean {
 		QueryProcessorBeans.setTimeout(properties.getQueryTimeout());
 		UpdateProcessorBeans.setTimeout(properties.getUpdateTimeout());
 		UpdateProcessorBeans.setReilable(properties.isUpdateReliable());
+		
+		this.inMemoryDoubleStore=properties.isInMemoryDoubleStore();
 	}
 
 	public boolean isRunning() {
@@ -134,46 +139,57 @@ public class Processor implements ProcessorMBean {
 
 	public synchronized Response processUpdate(InternalUpdateRequest update) {
 		InternalUpdateRequest preRequest = update;
+				
+		//WE NEEED exstract the AR (if inMemoryDoubleStore is true) anyway
+		//if there are not SPU we need anyway extract the AR for build the INSERT-DELETE
+		try {
+			if(this.inMemoryDoubleStore) {
+				//JENAR-AR 		(done)	
+				preRequest = ARQuadsAlgorithm.extractJenaARQuads(update, updateProcessor);
+			}else {
+				//alghoritm AR 	(...pending)
+				preRequest = ARQuadsAlgorithm.extractARQuads(update, queryProcessor);
+			}
+		} catch (SEPAProcessingException | SPARQL11ProtocolException | SEPASparqlParsingException | SEPASecurityException | IOException e) {
+			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "update_processing", e.getMessage());
+		}
 		
-		//need looking for retrive that value from end-point props
-		boolean secondPh= true;
-
+		
 		if (spuManager.doUpdateARQuadsExtraction(update)) {
-			try {
-				if(secondPh) {
-					//JENAR-AR 		(done)	
-					preRequest = ARQuadsAlgorithm.extractJenaARQuads(update, updateProcessor);
+			if(preRequest instanceof InternalUpdateRequestWithQuads ) 
+			{
+				Response voidResponse =((InternalUpdateRequestWithQuads)preRequest).getResponseNothingToDo();
+				if(voidResponse==null) {
+					spuManager.subscriptionsProcessingPreUpdate(preRequest);
 				}else {
-					//alghoritm AR 	(...pending)
-					preRequest = ARQuadsAlgorithm.extractARQuads(update, queryProcessor);
+					//THE UPDATE DOSEN'T AFFECT THE STORE
+					//we can skipp all the remain process.
+					spuManager.setNoActiveSPU(); //remove all active SPU
+					return voidResponse;
 				}
-			} catch (SEPAProcessingException | SPARQL11ProtocolException | SEPASparqlParsingException | SEPASecurityException | IOException e) {
+			}else {
+				// PRE-UPDATE processing
+				spuManager.subscriptionsProcessingPreUpdate(preRequest);
+			}
+		}else if(this.inMemoryDoubleStore) {
+			try {
+					//no spu, no AR, no INSERT/DELETE
+					//so we need update the 2 RDF-STORE with the original update
+					//updateEndpoint(preRequest); //INSERT-DELETE do not work properly yet			
+					updateEndpoint(preRequest);		
+			} catch (SPARQL11ProtocolException | SEPASecurityException | IOException e) {
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "update_processing", e.getMessage());
 			}
 		}
 
-		if(preRequest instanceof InternalUpdateRequestWithQuads ) 
-		{
-			Response voidResponse =((InternalUpdateRequestWithQuads)preRequest).getResponseNothingToDo();
-			if(voidResponse==null) {
-				spuManager.subscriptionsProcessingPreUpdate(preRequest);
-			}else {
-				//THE UPDATE DOSEN'T AFFECT THE STORE
-				//we can skipp all the remain process.
-				spuManager.setNoActiveSPU(); //remove all active SPU
-				return voidResponse;
-			}
-		}else {
-			// PRE-UPDATE processing
-			spuManager.subscriptionsProcessingPreUpdate(preRequest);
-		}
 
 		// Endpoint UPDATE
 		Response ret;
 		try {
-			if(secondPh) {
+			if(this.inMemoryDoubleStore) {
 				//in this case the "preRequest" is 
 				//INSERT DATA and DELETE DATA update built with the AR
+				//ret = updateEndpoint2Ph(preRequest); //INSERT-DELETE do not work properly yet
 				ret = updateEndpoint2Ph(preRequest);
 			}else {
 				ret = updateEndpoint(preRequest);
@@ -209,6 +225,10 @@ public class Processor implements ProcessorMBean {
 
 	public Response processQuery(InternalQueryRequest query) throws SEPASecurityException, IOException {
 		return queryProcessor.process(query);
+	}
+	
+	public Response processQuery2Ph(InternalQueryRequest query) throws SEPASecurityException, IOException {
+		return queryProcessor.process2Ph(query);
 	}
 
 	boolean isUpdateReliable() {
@@ -263,5 +283,9 @@ public class Processor implements ProcessorMBean {
 	@Override
 	public String getEndpointQueryMethod() {
 		return ProcessorBeans.getEndpointQueryMethod();
+	}
+	
+	public boolean isInMemoryDoubleStore() {
+		return this.inMemoryDoubleStore;
 	}
 }

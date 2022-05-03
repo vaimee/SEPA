@@ -93,12 +93,50 @@ public class JenaInMemory2PhChatTest {
 			expectedAdded.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/sender","http://wot.arces.unibo.it/chat#IamASender"));
 			expectedAdded.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/toRecipient","http://wot.arces.unibo.it/chat#IamAReceiver"));
 			expectedAdded.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/dateSent",null));
-			assertTrue(LUTTTestUtils.quadsSetCompare(updateRes.updatedTuples,expectedAdded,"02.added"));
+			assertTrue(TestUtils.quadsSetCompare(updateRes.updatedTuples,expectedAdded,"02.added"));
 			assertTrue(updateRes.removedTuples.size()==0);
 			
 		}
 
 	}
+	
+	@Test
+	public void TEST_02V2_SEND() throws SEPASecurityException {
+		String sparqlUpdate = "PREFIX schema:<http://schema.org/> PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX owl:<http://www.w3.org/2002/07/owl#> PREFIX chat:<http://wot.arces.unibo.it/chat#> PREFIX xsd:<http://www.w3.org/2001/XMLSchema#> PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> \r\n"
+				+ "		INSERT {\r\n"
+				+ "			GRAPH <http://wot.arces.unibo.it/chat/room_2_4> {\r\n"
+				+ "				?message rdf:type schema:Message ;\r\n"
+				+ "				schema:text \"MSG #4\" ;\r\n"
+				+ "				schema:sender <http://wot.arces.unibo.it/chat/person_9f9e9035-6e28-456d-bb0a-96bc8f8fc91f> ;\r\n"
+				+ "				schema:toRecipient <http://wot.arces.unibo.it/chat/person_28a2becf-6e62-4227-9d65-cfc55c8da99f>;\r\n"
+				+ "				schema:dateSent ?time\r\n"
+				+ "			}\r\n"
+				+ "		} WHERE    {\r\n"
+				+ "			BIND(IRI(CONCAT(CONCAT(str(<http://wot.arces.unibo.it/chat/room_2_4>) ,\"/message_\"),STRUUID())) AS ?message) .\r\n"
+				+ "			BIND(STR('2022-04-22T15:26:15.568327Z'^^xsd:dateTimeStamp) AS ?time) .\r\n"
+				+ "		}";
+		Response res= inMemEndPoint.update(sparqlUpdate);
+		if(res.isError()) {
+			System.out.println(((ErrorResponse)res).getErrorDescription());
+			assertTrue(false);
+		}else {
+			UpdateResponse updateRes = (UpdateResponse)res;
+//			LUTTTestUtils.printQueryAll(inMemEndPoint);
+			Set<TempQuadForTest> expectedAdded = new HashSet<TempQuadForTest>();
+			//order TempQuadForTest args: graph, subject, predicate, object
+			expectedAdded.add(new TempQuadForTest("http://wot.arces.unibo.it/chat/room_2_4",null,"http://www.w3.org/1999/02/22-rdf-syntax-ns#type","http://schema.org/Message"));
+			expectedAdded.add(new TempQuadForTest("http://wot.arces.unibo.it/chat/room_2_4",null,"http://schema.org/text","MSG #4"));
+			expectedAdded.add(new TempQuadForTest("http://wot.arces.unibo.it/chat/room_2_4",null,"http://schema.org/sender","http://wot.arces.unibo.it/chat/person_9f9e9035-6e28-456d-bb0a-96bc8f8fc91f"));
+			expectedAdded.add(new TempQuadForTest("http://wot.arces.unibo.it/chat/room_2_4",null,"http://schema.org/toRecipient","http://wot.arces.unibo.it/chat/person_28a2becf-6e62-4227-9d65-cfc55c8da99f"));
+			expectedAdded.add(new TempQuadForTest("http://wot.arces.unibo.it/chat/room_2_4",null,"http://schema.org/dateSent",null));
+			assertTrue(TestUtils.quadsSetCompare(updateRes.updatedTuples,expectedAdded,"02.added"));
+			assertTrue(updateRes.removedTuples.size()==0);
+			
+		}
+
+	}
+	
+	
 	
 	@Test
 	public void TEST_03_SENT() throws SEPASecurityException {
@@ -159,7 +197,7 @@ public class JenaInMemory2PhChatTest {
 			//order TempQuadForTest args: graph, subject, predicate, object
 			expectedAdded.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/dateReceived",null));
 			expectedAdded.add(new TempQuadForTest(room_graph,"http://messageid","http://wot.arces.unibo.it/chat#atualReceivedCount","1"));
-			assertTrue(LUTTTestUtils.quadsSetCompare(updateRes.updatedTuples,expectedAdded,"03.added"));
+			assertTrue(TestUtils.quadsSetCompare(updateRes.updatedTuples,expectedAdded,"03.added"));
 			assertTrue(updateRes.removedTuples.size()==0);		
 		}
 	}
@@ -195,7 +233,7 @@ public class JenaInMemory2PhChatTest {
 			expectedRemoved.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/toRecipient","http://wot.arces.unibo.it/chat#IamAReceiver"));
 			expectedRemoved.add(new TempQuadForTest(room_graph,"http://messageid","http://schema.org/dateSent",null));
 			
-			assertTrue(LUTTTestUtils.quadsSetCompare(updateRes.removedTuples,expectedRemoved,"04.removed"));
+			assertTrue(TestUtils.quadsSetCompare(updateRes.removedTuples,expectedRemoved,"04.removed"));
 			assertTrue(updateRes.updatedTuples.size()==0);		
 		}
 	}
@@ -276,7 +314,7 @@ public class JenaInMemory2PhChatTest {
 			//order TempQuadForTest args: graph, subject, predicate, object
 			expectedAdded.add(new TempQuadForTest(graphUri,"http://wot.arces.unibo.it/chat#IamAReceiver","http://www.w3.org/1999/02/22-rdf-syntax-ns#type","http://schema.org/Person"));
 			expectedAdded.add(new TempQuadForTest(graphUri,"http://wot.arces.unibo.it/chat#IamAReceiver","http://schema.org/name",receiverName));
-			assertTrue(LUTTTestUtils.quadsSetCompare(updateResR.updatedTuples,expectedAdded,"01.r.added"));
+			assertTrue(TestUtils.quadsSetCompare(updateResR.updatedTuples,expectedAdded,"01.r.added"));
 			assertTrue(updateResR.removedTuples.size()==0);
 		}
 		if(resS.isError()) {
@@ -288,7 +326,7 @@ public class JenaInMemory2PhChatTest {
 			//order TempQuadForTest args: graph, subject, predicate, object
 			expectedAdded.add(new TempQuadForTest(graphUri,"http://wot.arces.unibo.it/chat#IamASender","http://www.w3.org/1999/02/22-rdf-syntax-ns#type","http://schema.org/Person"));
 			expectedAdded.add(new TempQuadForTest(graphUri,"http://wot.arces.unibo.it/chat#IamASender","http://schema.org/name",senderName));
-			assertTrue(LUTTTestUtils.quadsSetCompare(updateResS.updatedTuples,expectedAdded,"01.s.added"));
+			assertTrue(TestUtils.quadsSetCompare(updateResS.updatedTuples,expectedAdded,"01.s.added"));
 			assertTrue(updateResS.removedTuples.size()==0);
 		}
 	}
