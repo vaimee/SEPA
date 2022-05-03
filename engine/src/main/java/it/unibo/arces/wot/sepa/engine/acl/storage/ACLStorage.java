@@ -27,6 +27,9 @@ public interface ACLStorage {
     Map<String, SEPAAcl.UserData>                   loadUsers() throws EngineACLException,ACLStorageException;
     Map<String,Map<String, Set<DatasetACL.aclId>>>  loadGroups() throws EngineACLException,ACLStorageException;
     
+    SEPAAcl.UserData                                loadUser(String userName) throws EngineACLException,ACLStorageException;
+    Map<String, Set<DatasetACL.aclId>>              loadGroup(String groupName) throws EngineACLException,ACLStorageException;
+    
     void removeUser(String user) throws EngineACLException,ACLStorageException;;
     void removeUserPermissions(String user,String graph) throws EngineACLException,ACLStorageException;;
     void removeUserPermission(String user,String graph,DatasetACL.aclId id) throws EngineACLException,ACLStorageException;;

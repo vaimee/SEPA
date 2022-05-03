@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import static org.junit.Assert.assertFalse;
 
 import static org.junit.Assert.assertTrue;
@@ -20,6 +21,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -28,11 +31,14 @@ public class JenaInMemory2PhTest {
 	private static JenaInMemory2PhEndpoint inMemEndPoint;
 
 	@BeforeClass
-	public static void init() throws SEPASecurityException {
+	public static void init() throws SEPASecurityException, SEPAPropertiesException {
 		//using "primary"	-> 	JenaInMemory2PhEndpoint(false)
 		//or "alternative" 	->	JenaInMemory2PhEndpoint(true)
 		//dataset are the same for the scope
 		//of that test, we will use the "primary"
+                final EngineProperties ep = EngineProperties.newInstanceDefault();
+                EngineBeans.setEngineProperties(ep);
+                
 		inMemEndPoint=new JenaInMemory2PhEndpoint(false);
 		//clean dataset
 		String delete_all = "DELETE WHERE { GRAPH ?g {?s ?p ?o}}";

@@ -51,12 +51,15 @@ public class HttpGate {
 		this.properties = properties;
 		this.scheduler = scheduler;
 		
-		SPARQL11Handler handler = new SPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
+		final SPARQL11Handler handler = new SPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
+                final SPARQL11Handler aclHandler = new SPARQL11Handler(scheduler,properties.getAclQueryPath(),properties.getAclUpdatePath());
 	
 		server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort())
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
 				.registerHandler(properties.getQueryPath(), handler)
 				.registerHandler(properties.getUpdatePath(), handler)
+				.registerHandler(properties.getAclQueryPath(), aclHandler)
+				.registerHandler(properties.getAclUpdatePath(), aclHandler)
 				.registerHandler("/echo", new EchoHandler()).create();
 		
 		try {
@@ -69,8 +72,11 @@ public class HttpGate {
 			throw new SEPAProtocolException(server.getEndpoint().getException());	
 		}
 
-		System.out.println("SPARQL 1.1 Query     | " + EngineBeans.getQueryURL());
-		System.out.println("SPARQL 1.1 Update    | " + EngineBeans.getUpdateURL());
+		System.out.println("SPARQL 1.1 Query        | " + EngineBeans.getQueryURL());
+		System.out.println("SPARQL 1.1 Update       | " + EngineBeans.getUpdateURL());
+		System.out.println("SPARQL 1.1 ACL Query    | " + EngineBeans.getAclQueryURL());
+		System.out.println("SPARQL 1.1 ACL Update   | " + EngineBeans.getAclUpdateURL());
+                
 	}
 	
 	public void shutdown() {

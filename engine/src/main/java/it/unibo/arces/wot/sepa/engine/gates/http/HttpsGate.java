@@ -53,7 +53,8 @@ public class HttpsGate {
 	public HttpsGate(EngineProperties properties, Scheduler scheduler) throws SEPASecurityException, SEPAProtocolException {
 
 		try {
-			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
+			final SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
+                        final SecureSPARQL11Handler aclHandler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getAclQueryPath(),properties.getSecurePath() + properties.getAclUpdatePath());
 
 			server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
 					.setIOReactorConfig(config).setSslContext(Dependability.getSSLContext())
@@ -61,6 +62,8 @@ public class HttpsGate {
 					.registerHandler(properties.getRegisterPath(), new RegisterHandler())
 					.registerHandler(properties.getSecurePath() + properties.getQueryPath(),handler)
 					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),handler)
+					.registerHandler(properties.getSecurePath() + properties.getAclQueryPath(),aclHandler )
+					.registerHandler(properties.getSecurePath() + properties.getAclUpdatePath(),aclHandler )
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
 					.registerHandler("/echo", new EchoHandler())
 					.registerHandler("", new EchoHandler()).create();
@@ -76,6 +79,9 @@ public class HttpsGate {
 
 		System.out.println("SPARQL 1.1 SE Query  | " + EngineBeans.getSecureQueryURL());
 		System.out.println("SPARQL 1.1 SE Update | " + EngineBeans.getSecureUpdateURL());
+		System.out.println("SPARQL 1.1 ACL SE Query  | " + EngineBeans.getSecureAclQueryURL());
+		System.out.println("SPARQL 1.1 ACL SE Update | " + EngineBeans.getSecureAclUpdateURL());
+                
 		System.out.println("Client registration  | " + EngineBeans.getRegistrationURL());
 		System.out.println("Token request        | " + EngineBeans.getTokenRequestURL());
 	}

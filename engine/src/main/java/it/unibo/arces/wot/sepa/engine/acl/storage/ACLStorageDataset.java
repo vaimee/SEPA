@@ -5,12 +5,14 @@
  */
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
+import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl.UserData;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import javax.swing.GroupLayout;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -24,6 +26,29 @@ import org.apache.jena.rdfconnection.RDFConnectionFactory;
  * @author Lorenzo
  */
 public class ACLStorageDataset implements ACLStorageOperations { 
+
+    @Override
+    public UserData loadUser(String userName) throws EngineACLException, ACLStorageException {
+        final String userURI = "sepaACL:" + userName;
+        final UserData ret = loadUserData(userURI);
+        return ret;
+    }
+
+    @Override
+    public Map<String, Set<DatasetACL.aclId>> loadGroup(String groupName) throws EngineACLException, ACLStorageException {
+        final String groupURI = "sepaACLGroups:" + groupName;
+        final Map<String, Set<DatasetACL.aclId>> ret = loadGroupData(groupURI);
+        return ret;
+    }
+    //bare implementation of ACL of ACL
+    private static class ACLStorageDatasetACL extends DatasetACL {
+
+        @Override
+        public boolean checkGrapBase(aclId id, String graphName, String user) {
+           return (user.equals(DatasetACL.ADMIN_USER));
+        }
+        
+    }
     public static final String PARAM_DATASETPATH                    = "acl.dataset.path";
     public static final String PARAM_DATASETPERSISTENCY             = "acl.dataset.persistency";
     
@@ -99,14 +124,14 @@ public class ACLStorageDataset implements ACLStorageOperations {
         this.params = params;
         
         if (params == null) {
-            storageDataset = DatasetFactory.createTxnMem();
+            storageDataset = DatasetFactory.createTxnMem(new ACLStorageDatasetACL());
         } else {
 
             final String persName = (String) params.get(PARAM_DATASETPERSISTENCY );
 
             if (persName == null || persName.trim().length() == 0 ) {
                 //goes to mem dataset
-                storageDataset = DatasetFactory.createTxnMem();
+                storageDataset = DatasetFactory.createTxnMem(new ACLStorageDatasetACL());
             } else {
                 final String dsPath = (String) params.get(PARAM_DATASETPATH );
                 if (dsPath == null || dsPath.trim().length() == 0 ) 
@@ -114,17 +139,17 @@ public class ACLStorageDataset implements ACLStorageOperations {
 
                 switch(persName.trim().toLowerCase()) {
                     case PARAM_DATASETPERSISTENCY_VALUE_NONE:
-                        storageDataset = DatasetFactory.createTxnMem();
+                        storageDataset = DatasetFactory.createTxnMem(new ACLStorageDatasetACL());
                         break;
                     case PARAM_DATASETPERSISTENCY_VALUE_TDB1: {
                         final org.apache.jena.tdb.base.file.Location loc = org.apache.jena.tdb.base.file.Location.create(dsPath);
-                        storageDataset = org.apache.jena.tdb.TDBFactory.createDataset(loc);
+                        storageDataset = org.apache.jena.tdb.TDBFactory.createDataset(loc,new ACLStorageDatasetACL());
 
                         break;
                     }
                     case PARAM_DATASETPERSISTENCY_VALUE_TDB2: {
                         final org.apache.jena.dboe.base.file.Location loc = org.apache.jena.dboe.base.file.Location.create(dsPath);
-                        storageDataset = org.apache.jena.tdb2.TDB2Factory.connectDataset(loc);       
+                        storageDataset = org.apache.jena.tdb2.TDB2Factory.connectDataset(loc,new ACLStorageDatasetACL());       
 
                         break;
                     }                
@@ -253,7 +278,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
         return ret;
     }
     
-    private UserData loadUserData(String userUri, String userName) {
+    private UserData loadUserData(String userUri) {
         final UserData ret = new UserData();
         //first pass, load rights
         final String selectRightsQuery = 
@@ -311,7 +336,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
         return ret;
     }
     
-    private Map<String,Set<DatasetACL.aclId>> loadGroupData(String groupUri, String groupName) {
+    private Map<String,Set<DatasetACL.aclId>> loadGroupData(String groupUri) {
         final Map<String,Set<DatasetACL.aclId>> ret  = new TreeMap<>();
         final String selectQuery = 
             "PREFIX sepaACL: "+ SEPACL_NS_PFIX                          + System.lineSeparator()   +
@@ -358,7 +383,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
         for(final Map.Entry<String,String> user : users.entrySet()) {
             final String uri = user.getKey();
             final String name = user.getValue();
-            final UserData ud = loadUserData(uri, name);
+            final UserData ud = loadUserData(uri);
             ret.put(name, ud);
             
         }
@@ -379,7 +404,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
         for(final Map.Entry<String,String> group : groups.entrySet()) {
             final String uri = group.getKey();
             final String name = group.getValue();
-            final Map<String,Set<DatasetACL.aclId>> gd = loadGroupData(uri, name);
+            final Map<String,Set<DatasetACL.aclId>> gd = loadGroupData(uri);
             ret.put(name, gd);
             
         }

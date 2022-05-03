@@ -22,7 +22,7 @@ import java.util.TreeMap;
 public class ACLTools {
     public static ACLStorage.ACLStorageId decodeId(String mode) {
         ACLStorage.ACLStorageId ret = null;
-        switch(mode.trim().toUpperCase()) {
+        switch(mode.trim().toLowerCase()) {
             case EngineProperties.ACL_TYPE_DS:
                 ret = ACLStorageId.asiDataset;
                 break;
