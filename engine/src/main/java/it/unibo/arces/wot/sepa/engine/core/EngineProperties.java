@@ -369,6 +369,9 @@ public class EngineProperties {
                                                                 */
                 public int          controlPort =   8800;   //control port used for htttp(s) connections
                 
+                public String       queryPath       = "/acl/query";
+                public String       updatePath      = "/acl/update";
+                
         }
         
         public boolean  isAclEnabled() {
@@ -389,6 +392,13 @@ public class EngineProperties {
         
         public int  getAclControlPort() {
             return parameters.acl.controlPort;
+        }
+        
+        public String getAclQueryPath() {
+            return parameters.acl.queryPath;
+        }
+        public String getAclUpdatePath() {
+            return parameters.acl.updatePath;
         }
         
         private static class    DatasetData {
