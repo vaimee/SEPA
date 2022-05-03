@@ -1,0 +1,1 @@
+java -jar ./engine/target/engine-0-SNAPSHOT.jar:./lib/apache-jena-4.3.2-jar-with-dependencies.jar:./lib/jenar-arq-4.3.2.jar
