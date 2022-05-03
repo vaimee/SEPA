@@ -162,6 +162,27 @@ public class EngineBeans {
             return properties.getAclControlPort();
         }
         
+	public static String getAclQueryPath() {
+		return properties.getAclQueryPath();
+	}
+
+	public static String getAclUpdatePath() {
+		return properties.getAclUpdatePath();
+	}
+        
+	public static String getAclQueryURL() {
+		String port = "";
+		if (getAclControlPort() != -1) port = ":"+getAclControlPort();
+		return "http://"+getHost()+port+getAclQueryPath();
+	}
+
+	public static String getAclUpdateURL() {
+		String port = "";
+		if (getAclControlPort() != -1) port = ":"+getAclControlPort();
+		return "http://"+getHost()+port+getAclUpdatePath();
+	}
+        
+        
         public static boolean is2PEnabled() {
             return properties.is2PEnabled();
         }
