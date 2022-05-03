@@ -76,6 +76,10 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		return !activeSpus.isEmpty();
 	}
 
+	public void setNoActiveSPU() {
+		activeSpus= new HashSet<>(); 
+	}
+	
 	public void subscriptionsProcessingPreUpdate(InternalUpdateRequest update) {
 		if (update.getClass().equals(InternalUpdateRequestWithQuads.class))
 			activeSpus = Subscriptions.filterOnQuads(activeSpus, (InternalUpdateRequestWithQuads) update);
@@ -381,7 +385,11 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	}
 
 	Response processQuery(InternalSubscribeRequest subscribe) throws SEPASecurityException, IOException {
-		return processor.processQuery(subscribe);
+		if(this.processor.isInMemoryDoubleStore()) {
+			return processor.processQuery2Ph(subscribe);
+		}else {
+			return processor.processQuery(subscribe);
+		}
 	}
 
 	@Override

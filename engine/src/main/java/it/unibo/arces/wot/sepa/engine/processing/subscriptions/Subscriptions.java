@@ -76,7 +76,8 @@ public class Subscriptions {
 		logger.log(Level.getLevel("subscriptions"),"@createSPU");
 		
 		try {
-			return new SPUNaive(req, manager);
+			//return new SPUNaive(req, manager);
+			return new SPUSmart(req, manager);
 		} catch (SEPAProtocolException e) {
 			return null;
 		}
@@ -122,11 +123,11 @@ public class Subscriptions {
 		int preFilterSpus = activeSpus.size();
 		long start = Timings.getTime();
 		activeSpus.removeIf(spu -> (
-			spu.lutt.hit(update.getHitterLUTT())
+			!spu.lutt.hit(update.getHitterLUTT())
 		));
 		long stop = Timings.getTime();
 		int postFilterSpus = activeSpus.size();
-		logger.log(Level.getLevel("subscriptions"),"FilterOnQuads spus: " + (preFilterSpus-postFilterSpus) + " in "+(stop-start)+"ns");
+		logger.log(Level.getLevel("subscriptions"),"FilterOnQuads pre filter spu: " + preFilterSpus+ ", after filter:"+postFilterSpus + ". In "+(stop-start)+"ns");
 		return activeSpus;
 	}
 	

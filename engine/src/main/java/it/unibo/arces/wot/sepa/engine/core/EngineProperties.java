@@ -133,7 +133,8 @@ public class EngineProperties {
 		result.parameters.processor.queryTimeout = 5000;
 		result.parameters.processor.maxConcurrentRequests = 5;
 		result.parameters.processor.reliableUpdate = true;
-
+		result.parameters.processor.inMemoryDoubleStore = true;
+		
 		// SPU
 		result.parameters.spu.timeout = 5000;
 
@@ -156,6 +157,8 @@ public class EngineProperties {
 		result.parameters.gates.paths.unsubscribe = "/unsubscribe";
 		result.parameters.gates.paths.register = "/oauth/register";
 		result.parameters.gates.paths.tokenRequest = "/oauth/token";
+
+		
 		return result;
 	}
 
@@ -253,17 +256,24 @@ public class EngineProperties {
 		return this.parameters.processor.reliableUpdate;
 	}
 
+	public boolean isInMemoryDoubleStore() {
+		return this.parameters.processor.inMemoryDoubleStore;
+	}
+	
 	public int getSchedulerTimeout() {
 		return this.parameters.scheduler.timeout;
 	}
+	
 	
 	static private class Parameters {
 		public Scheduler scheduler = new Scheduler();
 		public Processor processor = new Processor();
 		public Spu spu = new Spu();
 		public Gates gates = new Gates();
-                public Acl   acl = new Acl();
-                public DatasetConfiguration dsConfig = new DatasetConfiguration();
+		
+		public Acl   acl = new Acl();
+		public DatasetConfiguration dsConfig = new DatasetConfiguration();
+
 	}
 
 	static private class Scheduler {
@@ -281,12 +291,15 @@ public class EngineProperties {
 		public int queryTimeout;
 		public int maxConcurrentRequests;
 		public boolean reliableUpdate;
+		
+		public boolean inMemoryDoubleStore;
 
 		public Processor(){
 			reliableUpdate = true;
 			updateTimeout = 5000;
 			queryTimeout = 5000;
 			maxConcurrentRequests = 5;
+			inMemoryDoubleStore=true;
 		}
 	}
 
