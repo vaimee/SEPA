@@ -7,6 +7,7 @@ package it.unibo.arces.wot.sepa.engine.acl;
 
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorage;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageListable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
 
 import java.util.Map;
@@ -19,8 +20,8 @@ import org.apache.jena.acl.DatasetACL;
  *
  * @author Lorenzo
  */
-public class SEPAAcl extends DatasetACL implements ACLStorage{
-    private static SEPAAcl          aclInstance;
+public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable{
+    private static SEPAAcl                                              aclInstance;
     
     //where persistence is archieved
     private final ACLStorageOperations                                aclStorage;
@@ -52,6 +53,36 @@ public class SEPAAcl extends DatasetACL implements ACLStorage{
         aclStorage.removeUserFromGroup(user, group);
 
     }
+
+    @Override
+    public Map<String, UserData> listUsers() throws EngineACLException, ACLStorageException {
+        return cachedACL;
+    }
+
+    @Override
+    public Map<String, Map<String, Set<aclId>>> listGroups() throws EngineACLException, ACLStorageException {
+        return cachedGroupsACL;
+    }
+
+    @Override
+    public UserData viewUser(String userName) throws EngineACLException {
+        final UserData ret = cachedACL.get(userName);
+        if (ret == null)
+            throw new EngineACLException ("User " +  userName + " does not exist !");
+        
+        return ret;
+
+    }
+
+    @Override
+    public Map<String, Set<aclId>> viewGroup(String groupName) throws EngineACLException {
+        final Map<String, Set<aclId>>  ret = cachedGroupsACL.get(groupName);
+        if (ret == null)
+            throw new EngineACLException ("Group " + groupName + " does not exist !");
+        
+        return ret;
+        
+    }
     //local caching of ACL
     public static class UserData {
         public final Set<String>                            memberOf    = new TreeSet<>();
@@ -67,7 +98,9 @@ public class SEPAAcl extends DatasetACL implements ACLStorage{
         
         return aclInstance;
     }
-    
+    public static SEPAAcl getInstance() throws EngineACLException,ACLStorageException {
+            return aclInstance;
+    }
     public static SEPAAcl getInstance(ACLStorageOperations storage) throws EngineACLException,ACLStorageException{
         if (aclInstance == null)
             aclInstance = new SEPAAcl(storage);
