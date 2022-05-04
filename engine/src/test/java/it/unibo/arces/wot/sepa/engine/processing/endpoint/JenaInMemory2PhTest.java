@@ -11,9 +11,12 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class JenaInMemory2PhTest {
