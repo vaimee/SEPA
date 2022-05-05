@@ -105,28 +105,25 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin>	
+ 			
 		</plugins>
 	</build>
 	<dependencies>
-                <dependency>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                    <version>1.7.25</version>
-                </dependency>            
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-api</artifactId>
-			<version>2.16.0</version>
+			<version>2.13.2</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
-			<version>2.16.0</version>
+			<version>2.13.2</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
+<!--
 		<dependency>
 			<groupId>org.apache.jena</groupId>
 			<artifactId>apache-jena-libs</artifactId>
@@ -191,6 +188,7 @@
 			 </exclusion>
 			</exclusions>
 		</dependency>
+-->
 
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->
 		<dependency>
@@ -206,45 +204,6 @@
 			<artifactId>gson</artifactId>
 			<version>2.8.0</version>
 		</dependency>
-                
-                <dependency>
-                  <groupId>org.apache.commons</groupId>
-                  <artifactId>commons-compress</artifactId>
-                  <version>1.21</version>
-                </dependency>
-                
-                <dependency>
-                  <groupId>com.github.andrewoma.dexx</groupId>
-                  <artifactId>collection</artifactId>
-                  <version>0.7</version>
-                </dependency>
-                
-                <dependency>
-                  <groupId>org.apache.thrift</groupId>
-                  <artifactId>libthrift</artifactId>
-                  <version>0.15.0</version>
-                  <exclusions>
-                    <!-- Use whatever version Jena is using -->
-                    <exclusion>
-                      <groupId>org.apache.httpcomponents</groupId>
-                      <artifactId>httpcore</artifactId>
-                    </exclusion>
-                    <exclusion>
-                      <groupId>org.apache.commons</groupId>
-                      <artifactId>commons-lang3</artifactId>
-                    </exclusion>
-                    <!-- libthrift : 0.14.0 onwards : THRIFT-5375 -->
-                    <exclusion>
-                      <groupId>org.apache.tomcat.embed</groupId>
-                      <artifactId>tomcat-embed-core</artifactId>
-                    </exclusion>
-                    <exclusion>
-                      <groupId>javax.servlet</groupId>
-                      <artifactId>javax.servlet-api</artifactId>
-                    </exclusion>
-                  </exclusions>
-                </dependency>
-                
 
 		<!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->
 		<dependency>
@@ -257,7 +216,7 @@
 		<dependency>
 			<groupId>org.java-websocket</groupId>
 			<artifactId>Java-WebSocket</artifactId>
-			<version>1.5.3</version>
+			<version>1.5.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -274,6 +233,12 @@
 			<scope>test</scope>
 		</dependency>
 
+		<dependency>
+			<groupId>it.unibo.arces.wot</groupId>
+			<artifactId>client-api</artifactId>
+			<version>${revision}</version>
+		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/org.apache.directory.api/api-all -->
 		<dependency>
 			<groupId>org.apache.directory.api</groupId>
@@ -286,86 +251,53 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-arq</artifactId>
-	  <version>4.3.2</version>
+
+	<!-- <dependency>
+		  <groupId>com.vaimee</groupId>
+		  <artifactId>jenar-arq</artifactId>
+		  <version>4.3.2</version>
 	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-dboe-base</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-dboe-index</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-dboe-storage</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-dboe-trans-data</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
+-->
+	<!-- 
+		Temporary local dependencies, 
+		the jena-ar dependecies will be upload to online maven repo in the future
+	-->
+	<dependency>
+	    <groupId>com.vaimee</groupId>
+	    <artifactId>jenar</artifactId>
+	    <version>4.3.2</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/apache-jena-4.3.2-jar-with-dependencies.jar</systemPath>
+	</dependency>
+<!--
+	<dependency>
+	    <groupId>com.vaimee</groupId>
+	    <artifactId>jenar-arq</artifactId>
+	    <version>4.3.2</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/jenar-arq-4.3.2.jar</systemPath>
+	</dependency>
 	 <dependency>
 	  <groupId>com.vaimee</groupId>
 	  <artifactId>jenar-rdfconnection</artifactId>
 	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-shacl</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-shex</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-tdb</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-tdb2</artifactId>
-	  <version>4.3.2</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/jenar-rdfconnection-4.3.2.jar</systemPath>
 	 </dependency>
 	 <dependency>
 	  <groupId>com.vaimee</groupId>
 	  <artifactId>jenar-core</artifactId>
 	  <version>4.3.2</version>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/jenar-core-4.3.2.jar</systemPath>
 	 </dependency>
 	 <dependency>
 	  <groupId>com.vaimee</groupId>
 	  <artifactId>jenar-base</artifactId>
 	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>sepa-client-api</artifactId>
-	  <version>1.0</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-iri</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-shaded</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-dboe-transaction</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
+	    <scope>system</scope>
+	    <systemPath>${project.basedir}/../lib/jenar-base-4.3.2.jar</systemPath>
+	 </dependency> -->
 	</dependencies>
 
 </project>
