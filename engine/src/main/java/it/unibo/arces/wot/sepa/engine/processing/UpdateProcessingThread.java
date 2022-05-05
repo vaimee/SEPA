@@ -38,6 +38,7 @@ class UpdateProcessingThread extends Thread {
 
 	public void run() {
 		while (processor.isRunning()) {
+                    try {
 			ScheduledRequest request;
 			try {
 				logger.trace("Wait for update requests...");
@@ -65,7 +66,10 @@ class UpdateProcessingThread extends Thread {
 				logger.trace("Notify client of update processing (reliable)");
 				processor.addResponse(request.getToken(), ret);
 			}
-
+                    } catch(Throwable t) {
+                        System.err.println(t);
+                        t.printStackTrace(System.err);
+                    }
 		}
 	}
 }
