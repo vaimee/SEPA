@@ -68,7 +68,10 @@ class UpdateProcessor implements UpdateProcessorMBean {
 			else 
                 endpoint = new RemoteEndpoint();
                         
-                        final SEPAUserInfo ui = SEPAUserInfo.newInstance(req.getClientAuthorization().getCredentials().user());
+                        final SEPAUserInfo ui = req.getClientAuthorization().getCredentials() != null                           ? 
+                                                SEPAUserInfo.newInstance(req.getClientAuthorization().getCredentials().user())  :
+                                                null;
+                                                
 			ret = endpoint.update(request,ui);
 			endpoint.close();
 			long stop = Timings.getTime();
