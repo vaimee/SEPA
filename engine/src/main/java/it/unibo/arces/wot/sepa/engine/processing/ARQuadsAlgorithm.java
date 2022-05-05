@@ -57,13 +57,20 @@ public class ARQuadsAlgorithm {
 		//exstract prefixs we will use them to resolve datatype of literals
 		HashMap<String, String> resolvedPrefix= new HashMap<String, String>();
 		String sparqlOriginalLower = update.getSparql().toLowerCase();
+		String sparqlPrefix="";
 		int cut1= sparqlOriginalLower.lastIndexOf("prefix");
-		int cut2= sparqlOriginalLower.substring(cut1).indexOf(">");
-		String sparqlPrefix = update.getSparql().substring(0,cut1+cut2+1)+"\n";
+		if(cut1>-1) {
+			int cut2= sparqlOriginalLower.substring(cut1).indexOf(">");
+			if(cut2>-1) {
+				sparqlPrefix = update.getSparql().substring(0,cut1+cut2+1)+"\n";
+			}
+		}
+		//this query is just for take prefix as "PrefixMapping" from JENA
+		//we will NOT run it
 		String sparqlUpdateToQuery = sparqlPrefix+"SELECT ?s WHERE {?s ?p ?o}";
 		Query jenaQuery = sparqlParser.parse(new Query(),sparqlUpdateToQuery);
 		PrefixMapping prefixs=jenaQuery.getPrefixMapping();
-		
+	
 		String sparql = "";
 		HashMap<String,String> graph_triples = new HashMap<String,String>();
 	
