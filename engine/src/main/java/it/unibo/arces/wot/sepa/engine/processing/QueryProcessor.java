@@ -28,11 +28,9 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
@@ -52,7 +50,7 @@ class QueryProcessor implements QueryProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	private Response process(InternalQueryRequest req,Boolean secondPhase) throws SEPASecurityException, IOException {
+	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
 		// Build the request
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
@@ -65,16 +63,9 @@ class QueryProcessor implements QueryProcessorMBean {
 		do {
 			long start = Timings.getTime();
 			SPARQLEndpoint endpoint;
-			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) 
-                endpoint = new JenaInMemory2PhEndpoint(secondPhase);
-			else 
-				endpoint = new RemoteEndpoint();
-                        
-                        final SEPAUserInfo ui = req.getClientAuthorization().getCredentials() != null                           ? 
-                                                SEPAUserInfo.newInstance(req.getClientAuthorization().getCredentials().user())  :
-                                                null;
-
-			ret = endpoint.query(request,ui);
+			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) endpoint = new JenaInMemoryEndpoint();
+			else endpoint = new RemoteEndpoint();
+			ret = endpoint.query(request);
 			endpoint.close();
 			long stop = Timings.getTime();
 			
@@ -103,15 +94,7 @@ class QueryProcessor implements QueryProcessorMBean {
 		
 		return ret;
 	}
-	
-	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
-		return process(req,false);
-	}
-	
-	public Response process2Ph(InternalQueryRequest req) throws SEPASecurityException, IOException {
-		return process(req,true);
-	}
-	
+
 	@Override
 	public void reset() {
 		QueryProcessorBeans.reset();

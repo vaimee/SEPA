@@ -76,8 +76,7 @@ public class Subscriptions {
 		logger.log(Level.getLevel("subscriptions"),"@createSPU");
 		
 		try {
-			//return new SPUNaive(req, manager);
-			return new SPUSmart(req, manager);
+			return new SPUNaive(req, manager);
 		} catch (SEPAProtocolException e) {
 			return null;
 		}
@@ -120,14 +119,7 @@ public class Subscriptions {
 
 	// Second level filtering (on quads)
 	public static Collection<SPU> filterOnQuads(Collection<SPU> activeSpus, InternalUpdateRequestWithQuads update) {
-		int preFilterSpus = activeSpus.size();
-		long start = Timings.getTime();
-		activeSpus.removeIf(spu -> (
-			!spu.lutt.hit(update.getHitterLUTT())
-		));
-		long stop = Timings.getTime();
-		int postFilterSpus = activeSpus.size();
-		logger.log(Level.getLevel("subscriptions"),"FilterOnQuads pre filter spu: " + preFilterSpus+ ", after filter:"+postFilterSpus + ". In "+(stop-start)+"ns");
+		// TODO implement LUTT filtering
 		return activeSpus;
 	}
 	

@@ -22,8 +22,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
-import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTT;
-import it.unibo.arces.wot.sepa.engine.processing.lutt.QueryLUTTextraction;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
@@ -71,14 +69,11 @@ public abstract class SPU extends Thread implements ISPU {
 	private final AtomicBoolean postProcessing = new AtomicBoolean(false);
 
 	protected final SPUManager manager;
-	
-	protected LUTT lutt;
 
 	public SPU(InternalSubscribeRequest subscribe, SPUManager manager) {
 		this.manager = manager;
 		this.subscribe = subscribe;
 		this.spuid = "sepa://spu/" + UUID.randomUUID();
-		this.lutt= QueryLUTTextraction.exstract(subscribe.getSparql());
 	}
 
 	public InternalSubscribeRequest getSubscribe() {

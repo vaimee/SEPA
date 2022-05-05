@@ -29,13 +29,11 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.timing.Timings;
 
@@ -50,7 +48,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	private Response process(InternalUpdateRequest req,Boolean secondPhase) throws SEPASecurityException, IOException {
+	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
 		// ENDPOINT UPDATE (set timeout and set retry = 0)
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
@@ -63,16 +61,9 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		do {
 			long start = Timings.getTime();
 			SPARQLEndpoint endpoint;
-			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) 
-                endpoint =new JenaInMemory2PhEndpoint(secondPhase);
-			else 
-                endpoint = new RemoteEndpoint();
-                        
-                        final SEPAUserInfo ui = req.getClientAuthorization().getCredentials() != null                           ? 
-                                                SEPAUserInfo.newInstance(req.getClientAuthorization().getCredentials().user())  :
-                                                null;
-                                                
-			ret = endpoint.update(request,ui);
+			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) endpoint = new JenaInMemoryEndpoint();
+			else endpoint = new RemoteEndpoint();
+			ret = endpoint.update(request);
 			endpoint.close();
 			long stop = Timings.getTime();
 
@@ -100,14 +91,6 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		}
 
 		return ret;
-	}
-	
-	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		return process(req,false);
-	}
-	
-	public Response process2Ph(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		return process(req,true);
 	}
 
 	@Override
