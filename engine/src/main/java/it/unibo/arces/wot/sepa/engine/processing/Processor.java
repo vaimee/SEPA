@@ -154,7 +154,6 @@ public class Processor implements ProcessorMBean {
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "update_processing", e.getMessage());
 		}
 		
-		
 		if (spuManager.doUpdateARQuadsExtraction(update)) {
 			if(preRequest instanceof InternalUpdateRequestWithQuads ) 
 			{
@@ -168,21 +167,10 @@ public class Processor implements ProcessorMBean {
 					return voidResponse;
 				}
 			}else {
-				// PRE-UPDATE processing
+				// PRE-UPDATE processing (standard)
 				spuManager.subscriptionsProcessingPreUpdate(preRequest);
 			}
-		}else if(this.inMemoryDoubleStore) {
-			try {
-					//no spu, no AR, no INSERT/DELETE
-					//so we need update the 2 RDF-STORE with the original update
-					//updateEndpoint(preRequest); //INSERT-DELETE do not work properly yet			
-					updateEndpoint(preRequest);		
-			} catch (SPARQL11ProtocolException | SEPASecurityException | IOException e) {
-				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "update_processing", e.getMessage());
-			}
 		}
-
-
 		// Endpoint UPDATE
 		Response ret;
 		try {

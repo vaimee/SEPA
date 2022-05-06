@@ -54,7 +54,7 @@ class SPUSmart extends SPU {
 
 		this.spuid = "sepa://spu/naive/" + UUID.randomUUID();
 
-		logger = LogManager.getLogger("SPUNaive" + getSPUID());
+		logger = LogManager.getLogger("SPUSmart" + getSPUID());
 		logger.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
 	}
 

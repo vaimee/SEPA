@@ -74,7 +74,7 @@ public class Subscriptions {
 	//TODO: a different SPU can be created based on the InternalSubscribeRequest
 	public static SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
 		logger.log(Level.getLevel("subscriptions"),"@createSPU");
-		
+		System.out.println("SOTTOSCRIZIONE:\n"+req.getSparql());
 		try {
 			//return new SPUNaive(req, manager);
 			return new SPUSmart(req, manager);

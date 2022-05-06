@@ -386,10 +386,18 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 	Response processQuery(InternalSubscribeRequest subscribe) throws SEPASecurityException, IOException {
 		if(this.processor.isInMemoryDoubleStore()) {
+			//if we are using the 2 dataset process for AR
+			//The second one is the consistent dataset
+			//because if the second one fails something
+			//the first one should do a rollback (so the first one is not consistent for a wild)
 			return processor.processQuery2Ph(subscribe);
 		}else {
 			return processor.processQuery(subscribe);
 		}
+	}
+	
+	Response processQuery2Ph(InternalSubscribeRequest subscribe) throws SEPASecurityException, IOException {
+		return processor.processQuery2Ph(subscribe);
 	}
 
 	@Override
