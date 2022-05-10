@@ -62,8 +62,6 @@ public class HttpsGate {
 					.registerHandler(properties.getRegisterPath(), new RegisterHandler())
 					.registerHandler(properties.getSecurePath() + properties.getQueryPath(),handler)
 					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),handler)
-					.registerHandler(properties.getSecurePath() + properties.getAclQueryPath(),aclHandler )
-					.registerHandler(properties.getSecurePath() + properties.getAclUpdatePath(),aclHandler )
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
 					.registerHandler("/echo", new EchoHandler())
 					.registerHandler("", new EchoHandler()).create();
@@ -79,8 +77,6 @@ public class HttpsGate {
 
 		System.out.println("SPARQL 1.1 SE Query  | " + EngineBeans.getSecureQueryURL());
 		System.out.println("SPARQL 1.1 SE Update | " + EngineBeans.getSecureUpdateURL());
-		System.out.println("SPARQL 1.1 ACL SE Query  | " + EngineBeans.getSecureAclQueryURL());
-		System.out.println("SPARQL 1.1 ACL SE Update | " + EngineBeans.getSecureAclUpdateURL());
                 
 		System.out.println("Client registration  | " + EngineBeans.getRegistrationURL());
 		System.out.println("Token request        | " + EngineBeans.getTokenRequestURL());

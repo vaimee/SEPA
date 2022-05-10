@@ -58,8 +58,6 @@ public class HttpGate {
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
 				.registerHandler(properties.getQueryPath(), handler)
 				.registerHandler(properties.getUpdatePath(), handler)
-				.registerHandler(properties.getAclQueryPath(), aclHandler)
-				.registerHandler(properties.getAclUpdatePath(), aclHandler)
 				.registerHandler("/echo", new EchoHandler()).create();
 		
 		try {
@@ -74,8 +72,6 @@ public class HttpGate {
 
 		System.out.println("SPARQL 1.1 Query        | " + EngineBeans.getQueryURL());
 		System.out.println("SPARQL 1.1 Update       | " + EngineBeans.getUpdateURL());
-		System.out.println("SPARQL 1.1 ACL Query    | " + EngineBeans.getAclQueryURL());
-		System.out.println("SPARQL 1.1 ACL Update   | " + EngineBeans.getAclUpdateURL());
                 
 	}
 	
