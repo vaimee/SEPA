@@ -13,19 +13,20 @@ import org.apache.jena.acl.DatasetACL;
  * @author Lorenzo
  */
 public abstract class ACLStorageFactory {
-    
+    private static  ACLStorageOperations  aclStorageInstance = null;
     public static ACLStorageOperations newInstance(ACLStorage.ACLStorageId id,Map<String,Object> params) throws ACLStorageException {
-        ACLStorageOperations ret = null;
-        switch(id) {
-            case asiDataset:
-                ret = new ACLStorageDataset(params);
-                break;
-            case aiJSon:
-                ret = new ACLStorageJSon(params);
-                break;
-            case asiSolid:
-                break;
+        if (aclStorageInstance == null) {
+            switch(id) {
+                case asiDataset:
+                    aclStorageInstance = new ACLStorageDataset(params);
+                    break;
+                case aiJSon:
+                    aclStorageInstance = new ACLStorageJSon(params);
+                    break;
+                case asiSolid:
+                    break;
+            }
         }
-        return ret;
+        return aclStorageInstance;
     }
 }

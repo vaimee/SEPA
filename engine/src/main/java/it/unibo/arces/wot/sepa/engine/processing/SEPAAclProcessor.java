@@ -10,7 +10,7 @@ import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import java.util.Map;
 import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
-import it.unibo.arces.wot.sepa.engine.processing.SEPAAclProcessorMBean;
+import java.lang.reflect.Method;
 
 /**
  *
@@ -85,5 +85,107 @@ public class SEPAAclProcessor implements SEPAAclProcessorMBean{
         }
 
     }
+
+    @Override
+    public void removeUser(String user) {
+        methodInvoker("removeUser", new Object[] {user});
+    }
+
+    @Override
+    public void removeUserPermissions(String user, String graph) {
+        methodInvoker("removeUserPermissions", new Object[] {user,graph});
+    }
+
+    @Override
+    public void removeUserPermission(String user, String graph, DatasetACL.aclId id) {
+        methodInvoker("removeUserPermission", new Object[] {user,graph,id});
+    }
+
+    @Override
+    public void addUser(String user) {
+        methodInvoker("addUser", new Object[] {user});
+    }
+
+    @Override
+    public void addUserPermission(String user, String graph, DatasetACL.aclId id) {
+        methodInvoker("addUserPermission", new Object[] {user,graph,id});
+    }
+
+    @Override
+    public void addUserToGroup(String user, String group) {
+        methodInvoker("addUserToGroup", new Object[] {user,group});
+    }
+
+    @Override
+    public void removeUserFromGroup(String user, String group) {
+        methodInvoker("removeUserFromGroup", new Object[] {user,group});
+    }
+
+    @Override
+    public void removeGroup(String group) {
+        methodInvoker("removeGroup", new Object[] {group});
+    }
+
+    @Override
+    public void removeGroupPermissions(String group, String graph) {
+        methodInvoker("removeGroupPermissions", new Object[] {group,graph});
+    }
+
+    @Override
+    public void removeGroupPermission(String group, String graph, DatasetACL.aclId id) {
+        methodInvoker("removeGroupPermission", new Object[] {group,graph,id});
+    }
+
+    @Override
+    public void addGroup(String group) {
+        methodInvoker("addGroup", new Object[] {group});
+    }
+
+    @Override
+    public void addGroupPermission(String group, String graph, DatasetACL.aclId id) {
+        methodInvoker("addGroupPermission", new Object[] {group,graph,id});
+    }
+
+    @Override
+    public Map<String, Object> getParams() {
+        final SEPAAcl acl = SEPAAcl.getInstance();
+        final Map<String, Object> ret = (acl != null ? acl.getParams() : null);
+        return ret;
+    }
+
+    @Override
+    public Map<String, String> getParamsInfo() {
+        final SEPAAcl acl = SEPAAcl.getInstance();
+        final Map<String, String> ret = (acl != null ? acl.getParamsInfo() : null);
+        return ret;
+    }
     
+    private void methodInvoker(String name, Object args[]) {
+        final SEPAAcl acl = SEPAAcl.getInstance();
+        final Class cargs[] = new Class[args.length];
+        for(int i = 0 ; i < args.length;++i) {
+            cargs[i] = args[i].getClass();
+        }
+        
+        if (acl != null) {
+            try {
+                final Class c = SEPAAcl.class;
+                final Method m = c.getDeclaredMethod(name, cargs);
+                if (m != null) {
+                    m.invoke(acl, args);
+                }
+            } catch(Exception e ) {
+                System.err.println(e);
+            }
+        }
+    }
+    
+    
+    
+    public static void main(String[] args ) {
+        final Object a[]  =  { "parama1",12};
+        for(final Object o : a) {
+            System.out.println(o.getClass().getName());
+    }
+    }
 }

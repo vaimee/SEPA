@@ -5,7 +5,9 @@
  */
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl.UserData;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
 import java.util.Map;
 import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
@@ -15,13 +17,32 @@ import org.apache.jena.acl.DatasetACL;
  * @author Lorenzo
  */
 public interface SEPAAclProcessorMBean {
-    public void reloadUsers();
-    public void reloadGroups();
-    public void reloadUser(String userName);
-    public void reloadGroup(String groupName);
-    public Map<String,UserData> listUsers();
-    public Map<String,Map<String,Set<DatasetACL.aclId>>> listGroups();
-    public UserData viewUser(String name);
-    public Map<String,Set<DatasetACL.aclId>> viewGroup(String name);
+    void reloadUsers();
+    void reloadGroups();
+    void reloadUser(String userName);
+    void reloadGroup(String groupName);
+    Map<String,UserData> listUsers();
+    Map<String,Map<String,Set<DatasetACL.aclId>>> listGroups();
+    UserData viewUser(String name);
+    Map<String,Set<DatasetACL.aclId>> viewGroup(String name);
     
+    
+    void removeUser(String user);
+    void removeUserPermissions(String user,String graph);
+    void removeUserPermission(String user,String graph,DatasetACL.aclId id);
+    void addUser(String user);
+    void addUserPermission(String user, String graph,DatasetACL.aclId id);
+
+    void addUserToGroup(String user, String group) ;
+    void removeUserFromGroup(String user, String group) ;
+    
+    
+    void removeGroup(String group) ;
+    void removeGroupPermissions(String group,String graph);
+    void removeGroupPermission(String group,String graph,DatasetACL.aclId id);
+    void addGroup(String group);
+    void addGroupPermission(String group, String graph,DatasetACL.aclId id) ;
+    
+    Map<String,Object> getParams();
+    Map<String,String> getParamsInfo();    
 }
