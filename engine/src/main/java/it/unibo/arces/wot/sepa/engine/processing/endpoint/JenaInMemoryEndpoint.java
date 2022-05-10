@@ -67,7 +67,13 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	public Response query(QueryRequest req,SEPAUserInfo usr) {
                 init();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		try (final RDFConnection conn = RDFConnectionFactory.connect(dataset,usr.userName)) {
+                try (final RDFConnection conn = 
+                        (usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
+                        RDFConnectionFactory.connect(dataset,usr.userName)                              :
+                        RDFConnectionFactory.connect(dataset); 
+                ) {
+
+                    
                     Txn.executeRead(conn, ()-> {
                             ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
                             ResultSetFormatter.outputAsJSON(out, rs);
