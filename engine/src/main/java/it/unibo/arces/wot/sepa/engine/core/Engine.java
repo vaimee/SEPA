@@ -43,7 +43,8 @@ import it.unibo.arces.wot.sepa.engine.gates.websocket.SecureWebsocketServer;
 import it.unibo.arces.wot.sepa.engine.gates.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.logging.Logging;
+
+import it.unibo.arces.wot.sepa.engine.timing.Timings;
 
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the SPARQL
@@ -54,7 +55,8 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.10.20220302";
+
+	private final static String version = "0.10.20220419";
 
 	private EngineProperties properties = null;
 

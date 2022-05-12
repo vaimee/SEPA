@@ -2,31 +2,28 @@ package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
 import java.io.IOException;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.logging.Logging;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
+import it.unibo.arces.wot.sepa.engine.timing.Timings;
 
 public class RemoteEndpoint implements SPARQLEndpoint {
-	SPARQL11Protocol endpoint;
+	SPARQL11ProtocolException endpoint;
 
 	public RemoteEndpoint() {
 		try {
-			endpoint = new SPARQL11Protocol();
+			endpoint = new SPARQL11ProtocolException();
 		} catch (SEPASecurityException e) {
 			Logging.logger.error(e.getMessage());
 		}
 	}
 
 	@Override
-	public Response query(QueryRequest req) {
+	public Response query(QueryRequest req,SEPAUserInfo usr) {
 		return endpoint.query(req);
 	}
 
 	@Override
-	public Response update(UpdateRequest req) {
+	public Response update(UpdateRequest req,SEPAUserInfo usr) {
 		return endpoint.update(req);
 	}
 
