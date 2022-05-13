@@ -11,29 +11,81 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
 import java.lang.reflect.Method;
+import static org.apache.jena.acl.DatasetACL.aclId.aiClear;
+import static org.apache.jena.acl.DatasetACL.aclId.aiCreate;
+import static org.apache.jena.acl.DatasetACL.aclId.aiDeleteData;
+import static org.apache.jena.acl.DatasetACL.aclId.aiDrop;
+import static org.apache.jena.acl.DatasetACL.aclId.aiInsertData;
+import static org.apache.jena.acl.DatasetACL.aclId.aiQuery;
+import static org.apache.jena.acl.DatasetACL.aclId.aiUpdate;
 
 /**
  *
  * @author Lorenzo
  */
 public class SEPAAclProcessor implements SEPAAclProcessorMBean{
+    
+    private static DatasetACL.aclId decodeACLId(String u) {
+        DatasetACL.aclId ret = null;
+        switch(u.trim().toLowerCase()) {
+            case "drop":
+                ret = aiDrop;
+                break;
+            case "clear":
+                ret = aiClear;
+                break;
+            case "create":
+                ret = aiCreate;
+                break;
+            case "insertdata":
+                ret = aiInsertData;
+                break;
+            case "deletedata":
+                ret = aiDeleteData;
+                break;
+            case "update":
+                ret = aiUpdate;
+                break;
+            case "query":
+                ret = aiQuery ;
+                break;
+        }
+        return ret;
+    }
     public SEPAAclProcessor() {
         SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
     }
     @Override
-    public void reloadUsers() {
-        final SEPAAcl acl = SEPAAcl.getInstance();
-        if (acl != null) {
-            acl.loadUsers();
+    public String reloadUsers() {
+        String ret ="N/A";
+        try {
+            final SEPAAcl acl = SEPAAcl.getInstance();
+            if (acl != null) {
+                acl.loadUsers();
+                ret = "OK";
+
+            }
+        } catch(Exception e ) {
+            ret = "ERROR: " + e.getMessage();
         }
+        return ret;
     }
 
     @Override
-    public void reloadGroups() {
-        final SEPAAcl acl = SEPAAcl.getInstance();
-        if (acl != null) {
-            acl.loadGroups();
+    public String  reloadGroups() {
+        String ret ="N/A";
+        try {
+            final SEPAAcl acl = SEPAAcl.getInstance();
+            if (acl != null) {
+                acl.loadGroups();
+                ret = "OK";
+
+            }
+        } catch(Exception e ) {
+            ret = "ERROR: " + e.getMessage();
         }
+        return ret;
+
     }
 
     @Override
@@ -69,81 +121,100 @@ public class SEPAAclProcessor implements SEPAAclProcessorMBean{
     }
 
     @Override
-    public void reloadUser(String userName) {
-        final SEPAAcl acl = SEPAAcl.getInstance();
-        if (acl != null) {
-            acl.loadUser(userName);
+    public String  reloadUser(String userName) {
+        String ret ="N/A";
+        try {
+            final SEPAAcl acl = SEPAAcl.getInstance();
+            if (acl != null) {
+                acl.loadUser(userName);
+                ret = "OK";
+
+            }
+        } catch(Exception e ) {
+            ret = "ERROR: " + e.getMessage();
         }
+        return ret;
+
 
     }
 
     @Override
-    public void reloadGroup(String groupName) {
-        final SEPAAcl acl = SEPAAcl.getInstance();
-        if (acl != null) {
-            acl.loadGroup(groupName);
+    public String  reloadGroup(String groupName) {
+        String ret ="N/A";
+        try {
+
+            final SEPAAcl acl = SEPAAcl.getInstance();
+            if (acl != null) {
+                acl.loadGroup(groupName);
+                ret = "OK";
+
+            }
+        } catch(Exception e ) {
+            ret = "ERROR: " + e.getMessage();
         }
+        return ret;
+
 
     }
 
     @Override
-    public void removeUser(String user) {
-        methodInvoker("removeUser", new Object[] {user});
+    public String  removeUser(String user) {
+        return methodInvoker("removeUser", new Object[] {user});
     }
 
     @Override
-    public void removeUserPermissions(String user, String graph) {
-        methodInvoker("removeUserPermissions", new Object[] {user,graph});
+    public String  removeUserPermissions(String user, String graph) {
+        return methodInvoker("removeUserPermissions", new Object[] {user,graph});
     }
 
     @Override
-    public void removeUserPermission(String user, String graph, DatasetACL.aclId id) {
-        methodInvoker("removeUserPermission", new Object[] {user,graph,id});
+    public String  removeUserPermission(String user, String graph, String id) {
+        return methodInvoker("removeUserPermission", new Object[] {user,graph,decodeACLId(id)});
     }
 
     @Override
-    public void addUser(String user) {
-        methodInvoker("addUser", new Object[] {user});
+    public String  addUser(String user) {
+        return methodInvoker("addUser", new Object[] {user});
     }
 
     @Override
-    public void addUserPermission(String user, String graph, DatasetACL.aclId id) {
-        methodInvoker("addUserPermission", new Object[] {user,graph,id});
+    public String  addUserPermission(String user, String graph, String id) {
+        return methodInvoker("addUserPermission", new Object[] {user,graph,decodeACLId(id)});
     }
 
     @Override
-    public void addUserToGroup(String user, String group) {
-        methodInvoker("addUserToGroup", new Object[] {user,group});
+    public String  addUserToGroup(String user, String group) {
+        return methodInvoker("addUserToGroup", new Object[] {user,group});
     }
 
     @Override
-    public void removeUserFromGroup(String user, String group) {
-        methodInvoker("removeUserFromGroup", new Object[] {user,group});
+    public String  removeUserFromGroup(String user, String group) {
+        return methodInvoker("removeUserFromGroup", new Object[] {user,group});
     }
 
     @Override
-    public void removeGroup(String group) {
-        methodInvoker("removeGroup", new Object[] {group});
+    public String  removeGroup(String group) {
+        return methodInvoker("removeGroup", new Object[] {group});
     }
 
     @Override
-    public void removeGroupPermissions(String group, String graph) {
-        methodInvoker("removeGroupPermissions", new Object[] {group,graph});
+    public String  removeGroupPermissions(String group, String graph) {
+        return methodInvoker("removeGroupPermissions", new Object[] {group,graph});
     }
 
     @Override
-    public void removeGroupPermission(String group, String graph, DatasetACL.aclId id) {
-        methodInvoker("removeGroupPermission", new Object[] {group,graph,id});
+    public String  removeGroupPermission(String group, String graph, String id) {
+        return methodInvoker("removeGroupPermission", new Object[] {group,graph,decodeACLId(id)});
     }
 
     @Override
-    public void addGroup(String group) {
-        methodInvoker("addGroup", new Object[] {group});
+    public String  addGroup(String group) {
+        return methodInvoker("addGroup", new Object[] {group});
     }
 
     @Override
-    public void addGroupPermission(String group, String graph, DatasetACL.aclId id) {
-        methodInvoker("addGroupPermission", new Object[] {group,graph,id});
+    public String  addGroupPermission(String group, String graph, String id) {
+        return methodInvoker("addGroupPermission", new Object[] {group,graph,decodeACLId(id)});
     }
 
     @Override
@@ -160,7 +231,9 @@ public class SEPAAclProcessor implements SEPAAclProcessorMBean{
         return ret;
     }
     
-    private void methodInvoker(String name, Object args[]) {
+    private String methodInvoker(String name, Object args[]) {
+        String ret = "N/A";
+        
         final SEPAAcl acl = SEPAAcl.getInstance();
         final Class cargs[] = new Class[args.length];
         for(int i = 0 ; i < args.length;++i) {
@@ -173,11 +246,15 @@ public class SEPAAclProcessor implements SEPAAclProcessorMBean{
                 final Method m = c.getDeclaredMethod(name, cargs);
                 if (m != null) {
                     m.invoke(acl, args);
+                    ret = "OK";
                 }
             } catch(Exception e ) {
                 System.err.println(e);
+                ret = "ERROR: " + e.getMessage();
             }
         }
+        
+        return ret;
     }
     
     

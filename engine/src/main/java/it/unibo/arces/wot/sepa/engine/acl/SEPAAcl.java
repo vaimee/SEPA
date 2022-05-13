@@ -10,6 +10,7 @@ import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorage;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageListable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
 import it.unibo.arces.wot.sepa.engine.processing.SEPAAclProcessor;
+import java.io.Serializable;
 
 import java.util.Map;
 import java.util.Set;
@@ -100,7 +101,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         return gd;
     }
     //local caching of ACL
-    public static class UserData {
+    public static class UserData implements Serializable{
         public final Set<String>                            memberOf    = new TreeSet<>();
         public final Map<String,Set<DatasetACL.aclId>>      graphACLs   = new TreeMap<>();
     }
