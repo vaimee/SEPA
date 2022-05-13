@@ -391,9 +391,32 @@ public class LUTTTest {
 		triples_01.add(new LUTTTriple("SEPA","http://schema.org/name", null));
 		quads.put("http://wot.arces.unibo.it/chat/wrong_graph", triples_01);
 		luttAR = new LUTT(triples_01,quads);//<-------------------------------use "triples_01" as jolly graph too
-		assertTrue(!luttAR.hit(luttQuery));
-		assertTrue(!luttQuery.hit(luttAR));
+		assertTrue(luttAR.hit(luttQuery));
+		assertTrue(luttQuery.hit(luttAR));
 		
 		
+	}
+	
+	@Test
+	public void Test_11_final_chat() throws SEPASecurityException {
+		String sparqlQuery = 	"PREFIX chat:<http://wot.arces.unibo.it/chat/>\r\n"
+				+ "PREFIX schema:<http://schema.org/>\r\n"
+				+ "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\r\n"
+				+ "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\r\n"
+				+				"SELECT ?person ?log ?count WHERE { \r\n"
+				+ "				GRAPH <http://wot.arces.unibo.it/chat/> {\r\n"
+				+ "					?person chat:status chat:registered.\r\n"
+				+ "				} \r\n"
+				+ "				GRAPH ?person {\r\n"
+				+ "					?person rdf:type schema:Person.\r\n"
+				+ "					chat:send chat:count ?count.\r\n"
+				+ "				}\r\n"
+				+ "			}";
+		
+		LUTT lutt = QueryLUTTextraction.exstract(sparqlQuery);
+		assertTrue(lutt.getLutt().size()==1);
+		assertTrue(lutt.getJollyGraph().size()==2);
+		
+			
 	}
 }

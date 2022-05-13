@@ -25,25 +25,41 @@ public class LUTT {
 	}
 	
 	public boolean hit(LUTT hitter) {
-		//first of all looking for jolly
+		
+		//this		--> 1
+		//hitter	-->	2
+		
 		if(jolly_graph.size()>0) {
+			//[JOLLY GRAPH]1 vs [JOLLY GRAPH]2
 			if(hitter.jolly_graph.size()>0) {
 				for (LUTTTriple luttTriple : hitter.jolly_graph) {
 					if(jolly_graph.contains(luttTriple)) {
 						return true;
 					}
 				}
-				for (String graph : hitter.lutt.keySet()) {
-					ArrayList<LUTTTriple> hitterList = hitter.lutt.get(graph);
-					for (LUTTTriple luttTriple : hitterList) {
-						if(jolly_graph.contains(luttTriple)) {
-							return true;
-						}
+			}
+			//[JOLLY GRAPH]1 vs [GRAPHS]2
+			for (String graph : hitter.lutt.keySet()) {
+				ArrayList<LUTTTriple> hitterList = hitter.lutt.get(graph);
+				for (LUTTTriple luttTriple : hitterList) {
+					if(jolly_graph.contains(luttTriple)) {
+						return true;
 					}
 				}
 			}
 		}
-		//then looking for quads
+		//[JOLLY GRAPH]2 vs [GRAPHS]1
+		if(hitter.jolly_graph.size()>0) {
+			for (String graph : lutt.keySet()) {
+				ArrayList<LUTTTriple> hitterList = lutt.get(graph);
+				for (LUTTTriple luttTriple : hitterList) {
+					if(hitter.jolly_graph.contains(luttTriple)) {
+						return true;
+					}
+				}
+			}
+		}
+		//then looking for quads-> [GRAPHS]1 vs [GRAPHS]2
 		for (String graph : lutt.keySet()) {
 			if(hitter.lutt.containsKey(graph)) {
 				ArrayList<LUTTTriple> hitterTriples =hitter.lutt.get(graph);
