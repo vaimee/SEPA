@@ -5,9 +5,7 @@
  */
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
-import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl.UserData;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import java.util.Map;
 import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
@@ -17,31 +15,31 @@ import org.apache.jena.acl.DatasetACL;
  * @author Lorenzo
  */
 public interface SEPAAclProcessorMBean {
-    void reloadUsers();
-    void reloadGroups();
-    void reloadUser(String userName);
-    void reloadGroup(String groupName);
-    Map<String,UserData> listUsers();
+    String reloadUsers();
+    String reloadGroups();
+    String reloadUser(String userName);
+    String reloadGroup(String groupName);
+    Map<String,SEPAAcl.UserData> listUsers();
     Map<String,Map<String,Set<DatasetACL.aclId>>> listGroups();
-    UserData viewUser(String name);
+    SEPAAcl.UserData viewUser(String name);
     Map<String,Set<DatasetACL.aclId>> viewGroup(String name);
     
     
-    void removeUser(String user);
-    void removeUserPermissions(String user,String graph);
-    void removeUserPermission(String user,String graph,DatasetACL.aclId id);
-    void addUser(String user);
-    void addUserPermission(String user, String graph,DatasetACL.aclId id);
+    String removeUser(String user);
+    String removeUserPermissions(String user,String graph);
+    String removeUserPermission(String user,String graph,String id);
+    String addUser(String user);
+    String addUserPermission(String user, String graph,String id);
 
-    void addUserToGroup(String user, String group) ;
-    void removeUserFromGroup(String user, String group) ;
+    String addUserToGroup(String user, String group) ;
+    String removeUserFromGroup(String user, String group) ;
     
     
-    void removeGroup(String group) ;
-    void removeGroupPermissions(String group,String graph);
-    void removeGroupPermission(String group,String graph,DatasetACL.aclId id);
-    void addGroup(String group);
-    void addGroupPermission(String group, String graph,DatasetACL.aclId id) ;
+    String removeGroup(String group) ;
+    String removeGroupPermissions(String group,String graph);
+    String removeGroupPermission(String group,String graph,String id);
+    String addGroup(String group);
+    String addGroupPermission(String group, String graph,String id) ;
     
     Map<String,Object> getParams();
     Map<String,String> getParamsInfo();    
