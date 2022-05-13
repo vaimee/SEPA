@@ -44,7 +44,7 @@ import it.unibo.arces.wot.sepa.engine.gates.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
-import it.unibo.arces.wot.sepa.engine.timing.Timings;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the SPARQL

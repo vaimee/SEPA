@@ -6,15 +6,17 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 
 public interface SPARQLEndpoint {
-	public Response query(QueryRequest req,SEPAUserInfo usr);
-	public Response update(UpdateRequest req,SEPAUserInfo usr);
-        
-        default public Response query(QueryRequest req) {
-            return query(req,null);
-        }
-        default public Response update(UpdateRequest req) {
-            return update(req,null);
-        }
-        
+	public Response query(QueryRequest req, SEPAUserInfo usr);
+
+	public Response update(UpdateRequest req, SEPAUserInfo usr);
+
+	default public Response query(QueryRequest req) {
+		return query(req, null);
+	}
+
+	default public Response update(UpdateRequest req) {
+		return update(req, null);
+	}
+
 	public void close();
 }
