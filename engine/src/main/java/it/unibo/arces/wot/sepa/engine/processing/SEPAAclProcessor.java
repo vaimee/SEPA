@@ -11,6 +11,10 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import static org.apache.jena.acl.DatasetACL.aclId.aiClear;
 import static org.apache.jena.acl.DatasetACL.aclId.aiCreate;
 import static org.apache.jena.acl.DatasetACL.aclId.aiDeleteData;
@@ -24,32 +28,53 @@ import static org.apache.jena.acl.DatasetACL.aclId.aiUpdate;
  * @author Lorenzo
  */
 public class SEPAAclProcessor implements SEPAAclProcessorMBean{
+    private static final Map<DatasetACL.aclId, String>      encodeMap = new TreeMap<>();
+    private static final Map<String,DatasetACL.aclId>       decodeMap = new TreeMap<>();
+    
+    private static void addEncodeDecodeElement(DatasetACL.aclId id, String name) {
+        encodeMap .put(id, name);
+        decodeMap.put(name, id);
+    }
     
     private static DatasetACL.aclId decodeACLId(String u) {
         DatasetACL.aclId ret = null;
-        switch(u.trim().toLowerCase()) {
-            case "drop":
-                ret = aiDrop;
-                break;
-            case "clear":
-                ret = aiClear;
-                break;
-            case "create":
-                ret = aiCreate;
-                break;
-            case "insertdata":
-                ret = aiInsertData;
-                break;
-            case "deletedata":
-                ret = aiDeleteData;
-                break;
-            case "update":
-                ret = aiUpdate;
-                break;
-            case "query":
-                ret = aiQuery ;
-                break;
+        if (decodeMap.containsKey(u.trim().toLowerCase())) {
+            ret = decodeMap.get(u);
         }
+        return ret;
+    }
+    
+    private static String encodeACLId(DatasetACL.aclId id) {
+        String ret = null;
+        if (encodeMap.containsKey(id)) {
+            ret = encodeMap.get(id);
+        }
+        
+        return ret;
+    }
+    static {
+        addEncodeDecodeElement(aiDrop,"drop");
+        addEncodeDecodeElement(aiClear,"clear");
+        addEncodeDecodeElement(aiCreate,"create");
+        addEncodeDecodeElement(aiInsertData,"insertdata");
+        addEncodeDecodeElement(aiDeleteData,"deletedata");
+        addEncodeDecodeElement(aiUpdate,"update");
+        addEncodeDecodeElement(aiQuery,"query");
+    
+    }
+    private static Map<String, Set<String>> marshallAccessMap(Map<String,Set<DatasetACL.aclId>> m) {
+        final Map<String, Set<String>> ret = new TreeMap<>();
+        for(final Map.Entry<String,Set<DatasetACL.aclId>> e : m.entrySet()) {
+            final String key = e.getKey();
+            final Set<String>  value = new TreeSet<>();
+            for(final DatasetACL.aclId id : e.getValue()) {
+                final String n = encodeACLId(id);
+                value.add(n);
+            }
+            
+            ret.put(key, value);
+        }
+        
         return ret;
     }
     public SEPAAclProcessor() {
@@ -89,35 +114,63 @@ public class SEPAAclProcessor implements SEPAAclProcessorMBean{
     }
 
     @Override
-    public Map<String, SEPAAcl.UserData> listUsers() {
+    public Map<String,List<Object>> listUsers() {
         final SEPAAcl acl = SEPAAcl.getInstance();
-        final Map<String, SEPAAcl.UserData> ret = (acl != null ? acl.listUsers() : null);
+        final Map<String, SEPAAcl.UserData> tmp = (acl != null ? acl.listUsers() : null);
+        
+        final Map<String,List<Object>> ret = tmp == null ? null : new TreeMap<>();
+        
+        if (ret != null) {
+            for(final Map.Entry<String, SEPAAcl.UserData> e : tmp.entrySet()) {
+                final List<Object> z = new ArrayList();
+                z.add(marshallAccessMap(e.getValue().graphACLs));
+                z.add(e.getValue().memberOf);
+                ret.put(e.getKey(), z);
+            }
+        }
         return ret;
            
     }
 
     @Override
-    public Map<String, Map<String, Set<DatasetACL.aclId>>> listGroups() {
+    public Map<String, Map<String, Set<String>>> listGroups() {
         final SEPAAcl acl = SEPAAcl.getInstance();
-        final Map<String, Map<String, Set<DatasetACL.aclId>>> ret = (acl != null ? acl.listGroups() : null);
+        final Map<String, Map<String, Set<DatasetACL.aclId>>> tmp = (acl != null ? acl.listGroups() : null);
+        
+        final Map<String, Map<String, Set<String>>> ret  = (tmp == null ? null : new TreeMap<>());
+        if (ret != null) {
+            for (final Map.Entry<String, Map<String, Set<DatasetACL.aclId>>> e : tmp.entrySet()) {
+                final String key = e.getKey();
+                final  Map<String, Set<String>> value = marshallAccessMap(e.getValue());
+                
+                ret.put(key, value);
+            }
+        }
         return ret;
 
     }
 
     @Override
-    public SEPAAcl.UserData viewUser(String name) {
+    public List<Object> viewUser(String name) {
         final SEPAAcl acl = SEPAAcl.getInstance();
-        final SEPAAcl.UserData ret = (acl != null ? acl.viewUser(name): null);
+        final SEPAAcl.UserData tmp = (acl != null ? acl.viewUser(name): null);
+        final List<Object> ret = (tmp == null ? null : new ArrayList<>());
+        if (ret != null) {
+                ret.add(marshallAccessMap(tmp.graphACLs));
+                ret.add(tmp.memberOf);
+
+        }
         return ret;
 
     }
 
     @Override
-    public Map<String, Set<DatasetACL.aclId>> viewGroup(String name) {
+    public Map<String, Set<String>> viewGroup(String name) {
         final SEPAAcl acl = SEPAAcl.getInstance();
-        final Map<String, Set<DatasetACL.aclId>> ret = (acl != null ? acl.viewGroup(name): null);
+        final Map<String, Set<DatasetACL.aclId>> tmp = (acl != null ? acl.viewGroup(name): null);
+        final Map<String, Set<String>>  ret = (tmp == null ? null : marshallAccessMap(tmp));
         return ret;
-
+ 
     }
 
     @Override

@@ -6,6 +6,7 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
@@ -19,10 +20,10 @@ public interface SEPAAclProcessorMBean {
     String reloadGroups();
     String reloadUser(String userName);
     String reloadGroup(String groupName);
-    Map<String,SEPAAcl.UserData> listUsers();
-    Map<String,Map<String,Set<DatasetACL.aclId>>> listGroups();
-    SEPAAcl.UserData viewUser(String name);
-    Map<String,Set<DatasetACL.aclId>> viewGroup(String name);
+    Map<String,List<Object>> listUsers();
+    Map<String,Map<String,Set<String>>> listGroups();
+    List<Object> viewUser(String name);
+    Map<String,Set<String>> viewGroup(String name);
     
     
     String removeUser(String user);
