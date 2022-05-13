@@ -6,7 +6,6 @@
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
 import java.util.Map;
-import org.apache.jena.acl.DatasetACL;
 
 /**
  *

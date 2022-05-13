@@ -13,7 +13,8 @@ import java.util.Map;
  * @author Lorenzo
  */
 public class ACLStorageException extends EngineACLException {
-    private final ACLStorage.ACLStorageId   id;
+    private static final long serialVersionUID = -8602378801033401900L;
+	private final ACLStorage.ACLStorageId   id;
     private final Map<String,Object>        params;
     
     public ACLStorage.ACLStorageId getId() {

@@ -10,7 +10,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.jena.query.Dataset;
-import static org.apache.jena.query.QueryExecution.dataset;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.ResultSet;

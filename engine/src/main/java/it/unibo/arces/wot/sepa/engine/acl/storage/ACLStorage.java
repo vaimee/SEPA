@@ -10,7 +10,6 @@ import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import java.util.Map;
 import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
-import org.apache.jena.acl.DatasetACL.aclId;
 
 /**
  *

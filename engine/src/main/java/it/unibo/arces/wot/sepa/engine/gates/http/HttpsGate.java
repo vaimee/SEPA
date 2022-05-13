@@ -54,7 +54,8 @@ public class HttpsGate {
 
 		try {
 			final SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
-                        final SecureSPARQL11Handler aclHandler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getAclQueryPath(),properties.getSecurePath() + properties.getAclUpdatePath());
+                        
+			final SecureSPARQL11Handler aclHandler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getAclQueryPath(),properties.getSecurePath() + properties.getAclUpdatePath());
 
 			server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
 					.setIOReactorConfig(config).setSslContext(Dependability.getSSLContext())

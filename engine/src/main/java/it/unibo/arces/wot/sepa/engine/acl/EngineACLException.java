@@ -12,7 +12,8 @@ import org.apache.jena.acl.ACLException;
  * @author Lorenzo
  */
 public class EngineACLException extends ACLException {
-    public EngineACLException() {
+    private static final long serialVersionUID = -1428510478937854934L;
+	public EngineACLException() {
         super();
     }
     public EngineACLException(String msg) {
