@@ -54,7 +54,7 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	private static Dataset       dataset;
         private static boolean       hasInit;
 
-        private synchronized static void init() {
+        public  synchronized static void init() {
             if (hasInit == false) {
                 
                 dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
