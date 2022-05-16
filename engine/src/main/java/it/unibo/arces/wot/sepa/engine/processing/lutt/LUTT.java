@@ -3,14 +3,17 @@ package it.unibo.arces.wot.sepa.engine.processing.lutt;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 
 public class LUTT {
 	
 	private HashMap<String,ArrayList<LUTTTriple>> lutt;
 	private ArrayList<LUTTTriple> jolly_graph;
 
-	
+	public LUTT() {
+		this.lutt = new HashMap<String,ArrayList<LUTTTriple>>();
+		this.jolly_graph = new ArrayList<LUTTTriple>();
+	}
+
 	public LUTT(ArrayList<LUTTTriple> jollyTriples,HashMap<String, ArrayList<LUTTTriple>> quads) {
 		this.lutt = quads;
 		this.jolly_graph = jollyTriples;
@@ -74,4 +77,5 @@ public class LUTT {
 		return false;
 	}
 	
+
 }

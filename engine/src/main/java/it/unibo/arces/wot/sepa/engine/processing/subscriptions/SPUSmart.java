@@ -31,6 +31,7 @@ import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.engine.processing.lutt.QueryLUTTextraction;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 
@@ -56,6 +57,7 @@ class SPUSmart extends SPU {
 
 		logger = LogManager.getLogger("SPUSmart" + getSPUID());
 		logger.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
+		this.lutt= QueryLUTTextraction.exstract(subscribe.getSparql());
 	}
 
 	@Override
@@ -90,7 +92,7 @@ class SPUSmart extends SPU {
 
 		// Query the SPARQL processing service
 		try {
-			logger.log(Level.getLevel("spu"),"Query endpoint");
+			logger.log(Level.getLevel("spu"),"Query endpoint");			
 			ret = manager.processQuery(subscribe);
 		} catch (SEPASecurityException | IOException e) {
 			if (logger.isTraceEnabled()) e.printStackTrace();

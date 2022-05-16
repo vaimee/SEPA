@@ -396,9 +396,12 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		}
 	}
 	
-	Response processQuery2Ph(InternalSubscribeRequest subscribe) throws SEPASecurityException, IOException {
-		return processor.processQuery2Ph(subscribe);
-	}
+//	Response processQuery(InternalSubscribeRequest subscribe,boolean use2ph) throws SEPASecurityException, IOException {
+//		if(this.processor.isInMemoryDoubleStore() && use2ph) {
+//			return processor.processQuery2Ph(subscribe);
+//		}
+//		return processor.processQuery(subscribe);
+//	}
 
 	@Override
 	public long getPreProcessingRequests() {

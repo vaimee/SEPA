@@ -2,10 +2,8 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
@@ -14,6 +12,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTT;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTTTriple;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
@@ -27,8 +26,6 @@ import org.apache.jena.query.Syntax;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.lang.SPARQLParser;
-import org.apache.jena.sparql.syntax.Element;
-import org.apache.jena.update.Update;
 
 public class ARQuadsAlgorithm {
 
@@ -38,6 +35,110 @@ public class ARQuadsAlgorithm {
 		return new InternalUpdateRequestWithQuads(update.getSparql(), update.getDefaultGraphUri(), update.getNamedGraphUri(), update.getClientAuthorization(), null);
 	}
 
+	public static InternalUpdateRequestWithQuads generateLUTTandInsertDelete(
+					String originalSparql,
+					UpdateResponse ret,
+					Set<String> defaultGraphUri, 
+					Set<String> namedGraphUri,
+					ClientAuthorization auth
+			) throws SPARQL11ProtocolException, SEPASparqlParsingException {
+		
+		//"jollyTriples" is not used jet, it would be used in case of default graph
+		ArrayList<LUTTTriple> jollyTriples = new ArrayList<LUTTTriple>();
+		
+		HashMap<String, ArrayList<LUTTTriple>> quads = new 	HashMap<String, ArrayList<LUTTTriple>>();
+		
+		//exstract prefixs we will use them to resolve datatype of literals
+		HashMap<String, String> resolvedPrefix= new HashMap<String, String>();
+		String sparqlOriginalLower = originalSparql.toLowerCase();
+		String sparqlPrefix="";
+		int cut1= sparqlOriginalLower.lastIndexOf("prefix");
+		if(cut1>-1) {
+			int cut2= sparqlOriginalLower.substring(cut1).indexOf(">");
+			if(cut2>-1) {
+				sparqlPrefix = originalSparql.substring(0,cut1+cut2+1)+"\n";
+			}
+		}
+		//this query is just for take prefix as "PrefixMapping" from JENA
+		//we will NOT run it
+		String sparqlUpdateToQuery = sparqlPrefix+"SELECT ?s WHERE {?s ?p ?o}";
+		Query jenaQuery = sparqlParser.parse(new Query(),sparqlUpdateToQuery);
+		PrefixMapping prefixs=jenaQuery.getPrefixMapping();
+	
+		String sparql = "";
+		String rollback = "";
+		HashMap<String,String> graph_triples = new HashMap<String,String>();
+	
+		if(ret.removedTuples.size() >0 ) {
+			Iterator<Quad> removedIterator = ret.removedTuples.iterator();
+			sparql="DELETE DATA{\n";
+			rollback="INSERT DATA{";
+			while(removedIterator.hasNext()) {
+				Quad q = removedIterator.next();
+				String graph = q.getGraph().getURI();
+				Triple t = q.asTriple();
+				String triples = tripleToStringForSparql(t,prefixs,resolvedPrefix);
+				//---- for update delete-insert
+				if(graph_triples.containsKey(graph)) {
+					graph_triples.put(graph, graph_triples.get(graph) +"\n"+ triples);
+				}else {
+					graph_triples.put(graph,triples);
+				}
+				//---- for LUTT
+				if(quads.containsKey(graph)) {
+					quads.get(graph).add(tripleToLUTTTriple(t));
+				}else {
+					ArrayList<LUTTTriple> lutttriple = new ArrayList<LUTTTriple>();
+					lutttriple.add(tripleToLUTTTriple(t));
+					quads.put(graph,lutttriple);
+				}
+			}
+			for (String key : graph_triples.keySet()) {
+				String newGraph="GRAPH <"+key+"> {"+graph_triples.get(key)+"}\n";
+				sparql+=newGraph;
+				rollback+=newGraph;
+			}
+			sparql+="};\n";
+			rollback+="};\n";
+			graph_triples = new HashMap<String,String>();
+		}
+		if(ret.updatedTuples.size() >0 ) {
+			Iterator<Quad> updatedIterator = ret.updatedTuples.iterator();
+			sparql+="INSERT DATA{\n";
+			rollback+="DELETE DATA{\n";
+			while(updatedIterator.hasNext()) {
+				Quad q = updatedIterator.next();
+				String graph = q.getGraph().getURI();
+				Triple t = q.asTriple();
+				String triples = tripleToStringForSparql(t,prefixs,resolvedPrefix);
+				//---- for update delete-insert
+				if(graph_triples.containsKey(graph)) {
+					graph_triples.put(graph, graph_triples.get(graph) +"\n"+ triples);
+				}else {
+					graph_triples.put(graph,triples);
+				}
+				//---- for LUTT
+				if(quads.containsKey(graph)) {
+					quads.get(graph).add(tripleToLUTTTriple(t));
+				}else {
+					ArrayList<LUTTTriple> lutttriple = new ArrayList<LUTTTriple>();
+					lutttriple.add(tripleToLUTTTriple(t));
+					quads.put(graph,lutttriple);
+				}
+			}
+			for (String key : graph_triples.keySet()) {
+				String newGraph="GRAPH <"+key+"> {"+graph_triples.get(key)+"}\n";
+				sparql+=newGraph;
+				rollback+=newGraph;
+			}
+			sparql+="};\n";
+			rollback+="};\n";
+		}
+		LUTT hitter = new LUTT(jollyTriples,quads);
+		return new InternalUpdateRequestWithQuads(sparqlPrefix+sparql,sparqlPrefix+rollback ,defaultGraphUri,namedGraphUri,auth, hitter);
+		
+	}
+	
 	public static InternalUpdateRequestWithQuads extractJenaARQuads(InternalUpdateRequest update, UpdateProcessor updateProcessor) throws SEPAProcessingException, SPARQL11ProtocolException, SEPASparqlParsingException, SEPASecurityException, IOException {
 		
 		System.out.println("###########################update: \n"+update.getSparql());
@@ -48,106 +149,23 @@ public class ARQuadsAlgorithm {
 		}else {
 			UpdateResponse ret = (UpdateResponse)resp;
 			
-			//"jollyTriples" is not used jet, it would be used in case of default graph
-			ArrayList<LUTTTriple> jollyTriples = new ArrayList<LUTTTriple>();
-			HashMap<String, ArrayList<LUTTTriple>> quads = new 	HashMap<String, ArrayList<LUTTTriple>>();
-			
+		
+		
 			if(ret.removedTuples.size() <1 && ret.updatedTuples.size()<1 ) {
 				//no quads, no SPU to active
-				LUTT hitter = new LUTT(jollyTriples,quads);
-				InternalUpdateRequestWithQuads ris = new InternalUpdateRequestWithQuads("", update.getDefaultGraphUri(), update.getNamedGraphUri(), update.getClientAuthorization(), hitter);
+				InternalUpdateRequestWithQuads ris = new InternalUpdateRequestWithQuads(
+						"", 
+						update.getDefaultGraphUri(), 
+						update.getNamedGraphUri(), 
+						update.getClientAuthorization(), 
+						new LUTT()
+					);
 				ris.setResponseNothingToDo(ret);
 				return ris;
 			}
 			
-			//exstract prefixs we will use them to resolve datatype of literals
-			HashMap<String, String> resolvedPrefix= new HashMap<String, String>();
-			String sparqlOriginalLower = update.getSparql().toLowerCase();
-			String sparqlPrefix="";
-			int cut1= sparqlOriginalLower.lastIndexOf("prefix");
-			if(cut1>-1) {
-				int cut2= sparqlOriginalLower.substring(cut1).indexOf(">");
-				if(cut2>-1) {
-					sparqlPrefix = update.getSparql().substring(0,cut1+cut2+1)+"\n";
-				}
-			}
-			//this query is just for take prefix as "PrefixMapping" from JENA
-			//we will NOT run it
-			String sparqlUpdateToQuery = sparqlPrefix+"SELECT ?s WHERE {?s ?p ?o}";
-			Query jenaQuery = sparqlParser.parse(new Query(),sparqlUpdateToQuery);
-			PrefixMapping prefixs=jenaQuery.getPrefixMapping();
 		
-			String sparql = "";
-			String rollback = "";
-			HashMap<String,String> graph_triples = new HashMap<String,String>();
-		
-			if(ret.removedTuples.size() >0 ) {
-				Iterator<Quad> removedIterator = ret.removedTuples.iterator();
-				sparql="DELETE DATA{\n";
-				rollback="INSERT DATA{";
-				while(removedIterator.hasNext()) {
-					Quad q = removedIterator.next();
-					String graph = q.getGraph().getURI();
-					Triple t = q.asTriple();
-					String triples = tripleToStringForSparql(t,prefixs,resolvedPrefix);
-					//---- for update delete-insert
-					if(graph_triples.containsKey(graph)) {
-						graph_triples.put(graph, graph_triples.get(graph) +"\n"+ triples);
-					}else {
-						graph_triples.put(graph,triples);
-					}
-					//---- for LUTT
-					if(quads.containsKey(graph)) {
-						quads.get(graph).add(tripleToLUTTTriple(t));
-					}else {
-						ArrayList<LUTTTriple> lutttriple = new ArrayList<LUTTTriple>();
-						lutttriple.add(tripleToLUTTTriple(t));
-						quads.put(graph,lutttriple);
-					}
-				}
-				for (String key : graph_triples.keySet()) {
-					String newGraph="GRAPH <"+key+"> {"+graph_triples.get(key)+"}\n";
-					sparql+=newGraph;
-					rollback+=newGraph;
-				}
-				sparql+="};\n";
-				rollback+="};\n";
-				graph_triples = new HashMap<String,String>();
-			}
-			if(ret.updatedTuples.size() >0 ) {
-				Iterator<Quad> updatedIterator = ret.updatedTuples.iterator();
-				sparql+="INSERT DATA{\n";
-				rollback+="DELETE DATA{\n";
-				while(updatedIterator.hasNext()) {
-					Quad q = updatedIterator.next();
-					String graph = q.getGraph().getURI();
-					Triple t = q.asTriple();
-					String triples = tripleToStringForSparql(t,prefixs,resolvedPrefix);
-					//---- for update delete-insert
-					if(graph_triples.containsKey(graph)) {
-						graph_triples.put(graph, graph_triples.get(graph) +"\n"+ triples);
-					}else {
-						graph_triples.put(graph,triples);
-					}
-					//---- for LUTT
-					if(quads.containsKey(graph)) {
-						quads.get(graph).add(tripleToLUTTTriple(t));
-					}else {
-						ArrayList<LUTTTriple> lutttriple = new ArrayList<LUTTTriple>();
-						lutttriple.add(tripleToLUTTTriple(t));
-						quads.put(graph,lutttriple);
-					}
-				}
-				for (String key : graph_triples.keySet()) {
-					String newGraph="GRAPH <"+key+"> {"+graph_triples.get(key)+"}\n";
-					sparql+=newGraph;
-					rollback+=newGraph;
-				}
-				sparql+="};\n";
-				rollback+="};\n";
-			}
-			LUTT hitter = new LUTT(jollyTriples,quads);
-			return new InternalUpdateRequestWithQuads(sparqlPrefix+sparql,sparqlPrefix+rollback ,update.getDefaultGraphUri(), update.getNamedGraphUri(), update.getClientAuthorization(), hitter);
+			return generateLUTTandInsertDelete(update.getSparql(),ret,update.getDefaultGraphUri(), update.getNamedGraphUri(), update.getClientAuthorization());
 			
 		}
 		

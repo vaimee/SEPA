@@ -389,10 +389,29 @@ public class ChatTest {
 		assertTrue(!responseQuery.isError());
 		assertTrue(Integer.parseInt(((QueryResponse)responseQuery).getBindingsResults().getBindings().get(0).getRDFTerm("count").getValue())==datasetSizeAfterUpdate);
 	}
+	
+	@Test
+	public void TEST_12_SET_RECEIVED_bis() throws NumberFormatException, SEPABindingsException{
+		//same of test 12 but we use ' instead of "
+		int datasetSizeAfterUpdate = 36;
+		String sparqlUpdate = prefixs
+				+ "INSERT DATA {\r\n"
+				+ "    GRAPH <http://wot.arces.unibo.it/chat/room/a> {\r\n"
+				+ "        <http://wot.arces.unibo.it/chat/msg_id2> chat:received 'true'^^xsd:boolean.\r\n"
+				+ "    }\r\n"
+				+ "}";
+		UpdateRequest reqUpdate= generateUpdate(sparqlUpdate);
+		Response responseUpdate = client.update(reqUpdate);
+		assertTrue(!responseUpdate.isError());
+		QueryRequest reqQuery= generateQuery(sparqlCountQuad);
+		Response responseQuery = client.query(reqQuery);
+		assertTrue(!responseQuery.isError());
+		assertTrue(Integer.parseInt(((QueryResponse)responseQuery).getBindingsResults().getBindings().get(0).getRDFTerm("count").getValue())==datasetSizeAfterUpdate);
+	}
 
 	@Test
 	public void TEST_13_DELETE_MSG() throws NumberFormatException, SEPABindingsException{
-		int datasetSizeAfterUpdate = 30;
+		int datasetSizeAfterUpdate = 31;
 		String sparqlUpdate = prefixs
 				+ "DELETE {\r\n"
 				+ "    GRAPH <http://wot.arces.unibo.it/chat/room/a> {\r\n"
@@ -424,7 +443,7 @@ public class ChatTest {
 
 	@Test
 	public void TEST_14_CPU_STATUS() throws NumberFormatException, SEPABindingsException{
-		int datasetSizeAfterUpdate = 34;
+		int datasetSizeAfterUpdate = 35;
 		String sparqlUpdate = prefixs
 				+ "DELETE {\r\n"
 				+ "	    GRAPH <http://wot.arces.unibo.it/chat/hw/cpu> {\r\n"
@@ -532,6 +551,8 @@ public class ChatTest {
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 	}
+	
+	
 	
 	
 	private static UpdateRequest generateUpdate(String sparql) {

@@ -4,9 +4,9 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 
 public class LUTTTriple {
 	//null value is as jolly *
-	private String str_subject;
-	private String str_object;
-	private String str_predicate;
+	protected String str_subject;
+	protected String str_object;
+	protected String str_predicate;
 
 
 	public LUTTTriple(String str_subject, String str_predicate,String str_object) {
@@ -55,6 +55,8 @@ public class LUTTTriple {
 		return false;
 
 	}
+	
+
 
 
 
