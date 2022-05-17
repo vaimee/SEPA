@@ -18,7 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.bean;
 
-import it.unibo.arces.wot.sepa.engine.timing.Timings;
+import it.unibo.arces.wot.sepa.logging.Timings;
 
 public class GateBeans {
 	private static long messages = 0;

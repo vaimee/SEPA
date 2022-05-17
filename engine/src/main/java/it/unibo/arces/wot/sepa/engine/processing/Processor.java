@@ -19,8 +19,6 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -41,6 +39,7 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * This class implements the processing of the requests coming form the
@@ -51,8 +50,6 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  * @version 0.9.12
  */
 public class Processor implements ProcessorMBean {
-	private final Logger logger = LogManager.getLogger();
-
 	// Processor threads
 	private final UpdateProcessingThread updateProcessingThread;
 	private final SubscribeProcessingThread subscribeProcessingThread;
@@ -154,7 +151,7 @@ public class Processor implements ProcessorMBean {
 
 		// STOP processing?
 		if (ret.isError()) {
-			logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
+			Logging.logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
 			spuManager.abortSubscriptionsProcessing();
 			return ret;
 		}

@@ -21,8 +21,6 @@ package it.unibo.arces.wot.sepa.engine.dependability;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.nio.protocol.HttpAsyncExchange;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import com.nimbusds.jose.jwk.RSAKey;
 
@@ -39,7 +37,6 @@ import it.unibo.arces.wot.sepa.engine.gates.Gate;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 
 public class Dependability {
-	protected static Logger logger = LogManager.getLogger();
 
 	private static boolean isSecure = false;
 	private static SecurityManager authManager = null;

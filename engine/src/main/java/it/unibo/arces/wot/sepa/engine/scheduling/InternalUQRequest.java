@@ -23,11 +23,9 @@ import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * An internal request has been validated and graph URIs are extracted.
@@ -35,8 +33,6 @@ import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
  * Functions are also evaluated (e.g., now())
  * */
 public abstract class InternalUQRequest extends InternalRequest {
-	protected final Logger logger = LogManager.getLogger();
-	
 	protected String sparql;
 	
 	protected Set<String> defaultGraphUri = new HashSet<String>();
@@ -51,7 +47,7 @@ public abstract class InternalUQRequest extends InternalRequest {
 		this.sparql = evaluateFunctions(sparql);
 		
 		rdfDataSet = getGraphURIs(sparql);
-		logger.debug("getGraphURIs: "+rdfDataSet);
+		Logging.logger.debug("getGraphURIs: "+rdfDataSet);
 		
 		if (defaultGraphUri != null) this.defaultGraphUri = defaultGraphUri;
 		if (namedGraphUri != null) this.namedGraphUri = namedGraphUri;
@@ -62,7 +58,7 @@ public abstract class InternalUQRequest extends InternalRequest {
 		rdfDataSet.addAll(this.defaultGraphUri);
 		rdfDataSet.addAll(this.namedGraphUri);
 		
-		logger.debug("RDF DATASET: "+ rdfDataSet);
+		Logging.logger.debug("RDF DATASET: "+ rdfDataSet);
 	}
 	
 	protected abstract Set<String> getGraphURIs(String sparql) throws SEPASparqlParsingException;

@@ -20,10 +20,8 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
+import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -33,8 +31,6 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public class Producer extends Client implements IProducer {
-	protected static final Logger logger = LogManager.getLogger();
-	
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
 	private ForcedBindings forcedBindings;
@@ -46,7 +42,7 @@ public class Producer extends Client implements IProducer {
 		super(appProfile);
 
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
-			logger.fatal("UPDATE ID [" + updateID + "] not found in " + appProfile.getFileName());
+			Logging.logger.fatal("UPDATE ID [" + updateID + "] not found in " + appProfile.getFileName());
 			throw new IllegalArgumentException("UPDATE ID [" + updateID + "] not found in " + appProfile.getFileName());
 		}
 
@@ -74,11 +70,11 @@ public class Producer extends Client implements IProducer {
 				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
 
-		logger.debug(req);
+		Logging.logger.debug(req);
 		
 		Response retResponse = client.update(req);
 
-		logger.debug(retResponse);
+		Logging.logger.debug(retResponse);
 		
 //		if (appProfile.isSecure() && retResponse.isError()) {
 //			ErrorResponse errorResponse = (ErrorResponse) retResponse;
@@ -97,16 +93,16 @@ public class Producer extends Client implements IProducer {
 //				try {
 //					sm.refreshToken();
 //				} catch (SEPAPropertiesException | SEPASecurityException e) {
-//					logger.error("Failed to refresh token: " + e.getMessage());
+//					Logging.logger.error("Failed to refresh token: " + e.getMessage());
 //				}
 //			} else {
-//				logger.error(errorResponse);
+//				Logging.logger.error(errorResponse);
 //				return errorResponse;
 //			}
 //
 //			authorizationHeader = sm.getAuthorizationHeader();
 //			
-//			logger.debug("Authorization header: "+authorizationHeader);
+//			Logging.logger.debug("Authorization header: "+authorizationHeader);
 //
 //			req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
 //					appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),

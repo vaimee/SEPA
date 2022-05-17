@@ -18,17 +18,13 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 class UpdateProcessingThread extends Thread {
-	private static final Logger logger = LogManager.getLogger();
-
 	private final Processor processor;
 
 	public UpdateProcessingThread(Processor processor) {
@@ -41,7 +37,7 @@ class UpdateProcessingThread extends Thread {
                     try {
 			ScheduledRequest request;
 			try {
-				logger.trace("Wait for update requests...");
+				Logging.logger.trace("Wait for update requests...");
 				request = processor.waitUpdateRequest();
 			} catch (InterruptedException e) {
 				return;
@@ -52,18 +48,18 @@ class UpdateProcessingThread extends Thread {
 
 			// Notify update (not reliable)
 			if (!processor.isUpdateReliable()) {
-				logger.trace("Notify client of update processing (not reliable)");
+				Logging.logger.trace("Notify client of update processing (not reliable)");
 				processor.addResponse(request.getToken(), new UpdateResponse("Processing: " + update));
 			}
 
 			// Process update
-			logger.trace("Start processing update...");
+			Logging.logger.trace("Start processing update...");
 			Response ret = processor.processUpdate(update);
-			logger.trace("Update processing COMPLETED");
+			Logging.logger.trace("Update processing COMPLETED");
 
 			// Notify update result
 			if (processor.isUpdateReliable()) {
-				logger.trace("Notify client of update processing (reliable)");
+				Logging.logger.trace("Notify client of update processing (reliable)");
 				processor.addResponse(request.getToken(), ret);
 			}
                     } catch(Throwable t) {

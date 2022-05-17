@@ -7,7 +7,6 @@ import java.util.Date;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.Level;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -20,6 +19,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.commons.security.Credentials;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.DigitalIdentity;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class KeyCloakSecurityManager extends SecurityManager {
 
@@ -36,7 +36,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 
 		new UsersSync(ldap, isql);
 		
-		logger.log(Level.getLevel("oauth"),"EndpointUsersPassword: "+ldap.getEndpointUsersPassword());
+		Logging.logger.log(Logging.getLevel("oauth"),"EndpointUsersPassword: "+ldap.getEndpointUsersPassword());
 	}
 	
 	@Override
@@ -62,26 +62,26 @@ public class KeyCloakSecurityManager extends SecurityManager {
 	 * */
 	@Override
 	public synchronized ClientAuthorization validateToken(String accessToken) {
-		logger.log(Level.getLevel("oauth"),"VALIDATE TOKEN");
+		Logging.logger.log(Logging.getLevel("oauth"),"VALIDATE TOKEN");
 
 		// Parse token
 		SignedJWT signedJWT = null;
 		try {
 			signedJWT = SignedJWT.parse(accessToken);
 		} catch (ParseException e) {
-			logger.log(Level.getLevel("oauth"),e.getMessage());
+			Logging.logger.log(Logging.getLevel("oauth"),e.getMessage());
 			return new ClientAuthorization("invalid_request", "ParseException: " + e.getMessage());
 		}
 
 		// Verify token
 		try {
 			if (!signedJWT.verify(verifier)) {
-				logger.log(Level.getLevel("oauth"),"Signed JWT not verified");
+				Logging.logger.log(Logging.getLevel("oauth"),"Signed JWT not verified");
 				return new ClientAuthorization("invalid_grant", "Signed JWT not verified");
 			}
 
 		} catch (JOSEException e) {
-			logger.log(Level.getLevel("oauth"),e.getMessage());
+			Logging.logger.log(Logging.getLevel("oauth"),e.getMessage());
 			return new ClientAuthorization("invalid_grant", "JOSEException: " + e.getMessage());
 		}
 		
@@ -91,23 +91,23 @@ public class KeyCloakSecurityManager extends SecurityManager {
 		JWTClaimsSet claimsSet = null;
 		try {
 			claimsSet = signedJWT.getJWTClaimsSet();
-			logger.log(Level.getLevel("oauth"),claimsSet);
+			Logging.logger.log(Logging.getLevel("oauth"),claimsSet);
 			// Get client credentials for accessing the SPARQL endpoint
 			uid = claimsSet.getStringClaim("username");
 			if (uid == null) {
-				logger.log(Level.getLevel("oauth"),"<username> claim is null. Look for <preferred_username>");
+				Logging.logger.log(Logging.getLevel("oauth"),"<username> claim is null. Look for <preferred_username>");
 				uid = claimsSet.getStringClaim("preferred_username");
 				if (uid == null) {
-					logger.log(Level.getLevel("oauth"),"USER ID not found...");
+					Logging.logger.log(Logging.getLevel("oauth"),"USER ID not found...");
 					return new ClientAuthorization("invalid_grant", "Username claim not found");
 				}
 			}
 			
-			logger.log(Level.getLevel("oauth"),"Subject: "+claimsSet.getSubject());
-			logger.log(Level.getLevel("oauth"),"Issuer: "+claimsSet.getIssuer());
-			logger.log(Level.getLevel("oauth"),"Username: "+uid);
+			Logging.logger.log(Logging.getLevel("oauth"),"Subject: "+claimsSet.getSubject());
+			Logging.logger.log(Logging.getLevel("oauth"),"Issuer: "+claimsSet.getIssuer());
+			Logging.logger.log(Logging.getLevel("oauth"),"Username: "+uid);
 		} catch (ParseException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_grant", "ParseException. " + e.getMessage());
 		}
 
@@ -120,7 +120,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 		Date notBefore = claimsSet.getNotBeforeTime();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 		if (expiring.getTime() - nowUnixSeconds < 0) {
-			logger.log(Level.getLevel("oauth"),"Token is expired: " + sdf.format(claimsSet.getExpirationTime()) + " < "
+			Logging.logger.log(Logging.getLevel("oauth"),"Token is expired: " + sdf.format(claimsSet.getExpirationTime()) + " < "
 					+ sdf.format(new Date(nowUnixSeconds)));
 
 			return new ClientAuthorization("invalid_grant", "Token issued at " + sdf.format(claimsSet.getIssueTime())
@@ -128,7 +128,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 		}
 
 		if (notBefore != null && nowUnixSeconds < notBefore.getTime()) {
-			logger.log(Level.getLevel("oauth"),"Token can not be used before: " + claimsSet.getNotBeforeTime());
+			Logging.logger.log(Logging.getLevel("oauth"),"Token can not be used before: " + claimsSet.getNotBeforeTime());
 			return new ClientAuthorization("invalid_grant",
 					"Token can not be used before: " + claimsSet.getNotBeforeTime());
 		}
@@ -136,9 +136,9 @@ public class KeyCloakSecurityManager extends SecurityManager {
 		Credentials cred = null;
 		try {
 			cred = getEndpointCredentials(uid);
-			logger.log(Level.getLevel("oauth"),"Endpoint credentials: "+cred);
+			Logging.logger.log(Logging.getLevel("oauth"),"Endpoint credentials: "+cred);
 		} catch (SEPASecurityException e) {
-			logger.log(Level.getLevel("oauth"),"Failed to retrieve credentials (" + uid + ")");
+			Logging.logger.log(Logging.getLevel("oauth"),"Failed to retrieve credentials (" + uid + ")");
 			return new ClientAuthorization("invalid_grant", "Failed to get credentials (" + uid + ")");
 		}
 

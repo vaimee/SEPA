@@ -22,12 +22,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.gson.Gson;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * <pre>
@@ -71,7 +69,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
  * </pre>
  */
 public class EngineProperties {
-	private static final transient Logger logger = LogManager.getLogger();
 
 	private static final transient String defaultsFileName = "engine.jpar";
 
@@ -99,15 +96,15 @@ public class EngineProperties {
 		try {
 			result = gson.fromJson(new FileReader(propertiesFile), EngineProperties.class);
 		} catch (Exception e) {
-			logger.warn(e.getMessage());
+			Logging.logger.warn(e.getMessage());
 			result = defaults();
 			try {
 				result.storeProperties(defaultsFileName);
 			} catch (IOException e1) {
-				logger.error(e1.getMessage());
+				Logging.logger.error(e1.getMessage());
 				throw new SEPAPropertiesException(e1);
 			}
-			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
+			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
 		}
 		return result;
 	}
@@ -130,7 +127,7 @@ public class EngineProperties {
 
 		// Processor
 		result.parameters.processor.updateTimeout = 5000;
-		result.parameters.processor.queryTimeout = 5000;
+		result.parameters.processor.queryTimeout = 30000;
 		result.parameters.processor.maxConcurrentRequests = 5;
 		result.parameters.processor.reliableUpdate = true;
 		result.parameters.processor.inMemoryDoubleStore = true;
@@ -151,8 +148,8 @@ public class EngineProperties {
 
 		// Gates -> Paths
 		result.parameters.gates.paths.secure = "/secure";
-		result.parameters.gates.paths.update = "/update";
-		result.parameters.gates.paths.query = "/query";
+		result.parameters.gates.paths.update = "/sparql";
+		result.parameters.gates.paths.query = "/sparql";
 		result.parameters.gates.paths.subscribe = "/subscribe";
 		result.parameters.gates.paths.unsubscribe = "/unsubscribe";
 		result.parameters.gates.paths.register = "/oauth/register";
