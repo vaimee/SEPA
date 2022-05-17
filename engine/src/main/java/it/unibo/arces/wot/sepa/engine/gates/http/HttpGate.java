@@ -49,8 +49,9 @@ public class HttpGate {
 		this.scheduler = scheduler;
 		
 		final SPARQL11Handler handler = new SPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
-                
-		final SPARQL11Handler aclHandler = new SPARQL11Handler(scheduler,properties.getAclQueryPath(),properties.getAclUpdatePath());
+             
+		// NOT USED (experimental?) TO BE FIXED
+		//final SPARQL11Handler aclHandler = new SPARQL11Handler(scheduler,properties.getAclQueryPath(),properties.getAclUpdatePath());
 	
 		server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort())
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
