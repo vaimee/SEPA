@@ -92,7 +92,8 @@ class SPUSmart extends SPU {
 
 		// Query the SPARQL processing service
 		try {
-			logger.log(Level.getLevel("spu"),"Query endpoint");			
+			logger.log(Level.getLevel("spu"),"Query endpoint");	
+			System.out.println("postUpdateInternalProcessing: "+ subscribe.getSparql());
 			ret = manager.processQuery(subscribe);
 		} catch (SEPASecurityException | IOException e) {
 			if (logger.isTraceEnabled()) e.printStackTrace();

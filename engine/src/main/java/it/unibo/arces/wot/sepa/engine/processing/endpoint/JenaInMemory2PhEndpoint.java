@@ -53,13 +53,13 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
 	protected static final Logger logger = LogManager.getLogger();
 
 	//static final Dataset dataset = DatasetFactory.createTxnMem();
-	private static final Dataset primaryDataset    = DatasetFactory.createTxnMem();
-	private static final Dataset alternateDataset  = DatasetFactory.createTxnMem();
+	private static final Dataset firstDataset    = DatasetFactory.createTxnMem();
+	private static final Dataset secondDataset  = DatasetFactory.createTxnMem();
 
 	
-	private boolean _secondPhase=false;
-	public JenaInMemory2PhEndpoint(boolean secondPhase) {
-		this._secondPhase=secondPhase;
+	private boolean firstStore=false;
+	public JenaInMemory2PhEndpoint(boolean firstStore) {
+		this.firstStore=firstStore;
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
 	
 	public Response query(String sparqlQuery) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		RDFConnection conn = this._secondPhase ? RDFConnectionFactory.connect(alternateDataset):RDFConnectionFactory.connect(primaryDataset);
+		RDFConnection conn = this.firstStore ?RDFConnectionFactory.connect(firstDataset): RDFConnectionFactory.connect(secondDataset);
 		Txn.executeRead(conn, ()-> {
 			ResultSet rs = conn.query(QueryFactory.create(sparqlQuery)).execSelect();
 			ResultSetFormatter.outputAsJSON(out, rs);
@@ -89,7 +89,7 @@ public class JenaInMemory2PhEndpoint implements SPARQLEndpoint{
 	}
 
 	public Response update(String sparqlUpdate) {
-		RDFConnection conn = this._secondPhase ? RDFConnectionFactory.connect(alternateDataset):RDFConnectionFactory.connect(primaryDataset);
+		RDFConnection conn = this.firstStore ?RDFConnectionFactory.connect(firstDataset): RDFConnectionFactory.connect(secondDataset);
 		final Set<Quad> updated = new TreeSet<>(new QuadComparator());
 		final Set<Quad> removed = new TreeSet<>(new QuadComparator());
 		try {

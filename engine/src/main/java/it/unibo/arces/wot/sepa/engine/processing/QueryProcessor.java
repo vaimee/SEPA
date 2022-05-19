@@ -51,7 +51,8 @@ class QueryProcessor implements QueryProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	private Response process(InternalQueryRequest req,Boolean secondPhase) throws SEPASecurityException, IOException {
+	private Response process(InternalQueryRequest req,Boolean firstStore) throws SEPASecurityException, IOException {
+		System.out.println("------------------->QUERY ON: "+firstStore );
 		// Build the request
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
@@ -65,7 +66,7 @@ class QueryProcessor implements QueryProcessorMBean {
 			long start = Timings.getTime();
 			SPARQLEndpoint endpoint;
 			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) 
-                endpoint = new JenaInMemory2PhEndpoint(secondPhase);
+                endpoint = new JenaInMemory2PhEndpoint(firstStore);
 			else 
 				endpoint = new RemoteEndpoint();
                         
@@ -100,10 +101,20 @@ class QueryProcessor implements QueryProcessorMBean {
 	}
 	
 	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
+		//as default we will use second storage for updated
+		//if the double store system is enabled
+		if(properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) {
+			return process(req,false);
+		}
+		//else we use the first (and the only one) storage 
+		return process(req,true);
+	}
+	
+	public Response processOnSecondStore(InternalQueryRequest req) throws SEPASecurityException, IOException {
 		return process(req,false);
 	}
 	
-	public Response process2Ph(InternalQueryRequest req) throws SEPASecurityException, IOException {
+	public Response processOnFirstStore(InternalQueryRequest req) throws SEPASecurityException, IOException {
 		return process(req,true);
 	}
 	

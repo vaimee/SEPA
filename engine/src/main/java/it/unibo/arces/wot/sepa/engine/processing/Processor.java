@@ -178,7 +178,7 @@ public class Processor implements ProcessorMBean {
 				//in this case the "preRequest" is 
 				//INSERT DATA and DELETE DATA update built with the AR
 				//ret = updateEndpoint2Ph(preRequest); //INSERT-DELETE do not work properly yet
-				ret = updateEndpoint2Ph(preRequest);
+				ret = updateEndpoint(preRequest,false);
 			}else {
 				ret = updateEndpoint(preRequest);
 			}
@@ -203,8 +203,12 @@ public class Processor implements ProcessorMBean {
 //		spuManager.killSubscription(sid, gid);
 //	}
 	
-	private Response updateEndpoint2Ph(InternalUpdateRequest preRequest) throws SEPASecurityException, IOException {
-		return updateProcessor.process2Ph(preRequest);
+	private Response updateEndpoint(InternalUpdateRequest preRequest,boolean useFirstStore) throws SEPASecurityException, IOException {
+		if(useFirstStore) {
+			return updateProcessor.processOnFirstStore(preRequest);
+		}else {
+			return updateProcessor.processOnSecondStore(preRequest);
+		}
 	}
 	
 	private Response updateEndpoint(InternalUpdateRequest preRequest) throws SEPASecurityException, IOException {
@@ -215,8 +219,13 @@ public class Processor implements ProcessorMBean {
 		return queryProcessor.process(query);
 	}
 	
-	public Response processQuery2Ph(InternalQueryRequest query) throws SEPASecurityException, IOException {
-		return queryProcessor.process2Ph(query);
+	
+	public Response processQueryOnSecondStore(InternalQueryRequest query) throws SEPASecurityException, IOException {
+		return queryProcessor.processOnSecondStore(query);
+	}
+	
+	public Response processQueryOnFirstStore(InternalQueryRequest query) throws SEPASecurityException, IOException {
+		return queryProcessor.processOnFirstStore(query);
 	}
 
 	boolean isUpdateReliable() {

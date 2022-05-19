@@ -89,6 +89,8 @@ public class GeneralTest {
 		assertTrue(((QueryResponse)responseQuery).getBindingsResults().getBindings().size()==12);
 	}
 
+	
+	
 	@Test
 	public void TEST_02_INSERT_DATA_WITH_PREFIX(){
 		cleanDataSet();
@@ -119,6 +121,36 @@ public class GeneralTest {
 		assertTrue(!responseQuery.isError());
 		System.out.println("TEST: "+((QueryResponse)responseQuery).getBindingsResults().toString());
 		assertTrue(((QueryResponse)responseQuery).getBindingsResults().getBindings().size()==5);
+	}
+	
+	@Test
+	public void TEST_03_DATATYPE(){
+		cleanDataSet();
+		String sparqlUpdate = "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
+					"INSERT DATA  {  \r\n"
+					+ "	GRAPH <http://g1> { \r\n"
+					+ "		<http://s1> <http://p1> <http://o1> .\r\n"
+					+ "		<http://s1> <http://p2> \"true\"^^xsd:boolean.\r\n"
+					+ "	}\r\n"
+					+ "	GRAPH <http://g2> { \r\n"
+					+ "		<http://s1> <http://p1> <http://o1> .\r\n"
+					+ "		<http://s1> <http://p2> \"true\" .\r\n"
+					+ "	}\r\n"
+					+ "}	";
+		String sparqlQuery = 
+				"SELECT ?g WHERE  {"
+				+ "	GRAPH ?g { \r\n"
+				+ "		<http://s1> <http://p2> \"true\" .\r\n"
+				+ "	}\r\n"
+				+ "}	";
+		UpdateRequest reqUpdate= generateUpdate(sparqlUpdate);
+		Response responseUpdate = client.update(reqUpdate);
+		assertTrue(!responseUpdate.isError());
+		QueryRequest reqQuery= generateQuery(sparqlQuery);
+		Response responseQuery = client.query(reqQuery);
+		assertTrue(!responseQuery.isError());
+		System.out.println("TEST: "+((QueryResponse)responseQuery).getBindingsResults().toString());
+		assertTrue(((QueryResponse)responseQuery).getBindingsResults().getBindings().size()==2);
 	}
 	
 	private static void cleanDataSet() {

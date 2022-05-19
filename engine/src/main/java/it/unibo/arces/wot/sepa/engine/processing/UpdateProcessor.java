@@ -49,7 +49,8 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	private Response process(InternalUpdateRequest req,Boolean secondPhase) throws SEPASecurityException, IOException {
+	private Response process(InternalUpdateRequest req,Boolean firstStore) throws SEPASecurityException, IOException {
+		System.out.println("------------------->UPDATE ON: "+firstStore );
 		// ENDPOINT UPDATE (set timeout and set retry = 0)
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
@@ -63,7 +64,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 			long start = Timings.getTime();
 			SPARQLEndpoint endpoint;
 			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) 
-                endpoint =new JenaInMemory2PhEndpoint(secondPhase);
+                endpoint =new JenaInMemory2PhEndpoint(firstStore);
 			else 
                 endpoint = new RemoteEndpoint();
                         
@@ -99,11 +100,24 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	}
 	
 	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		return process(req,false);
+		//as default we will use first storage for updated
+		return process(req,true);
 	}
 	
-	public Response process2Ph(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		return process(req,true);
+	public Response processOnSecondStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
+		if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) {
+			return process(req,false);
+		}else {
+			throw new IOException("You are not use double storage system.");
+		}
+	}
+	
+	public Response processOnFirstStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
+		if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) {
+	        return process(req,true);
+		}else {
+			throw new IOException("You are not use double storage system.");
+		}
 	}
 
 	@Override
