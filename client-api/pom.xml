@@ -70,4 +70,5 @@
 			<version>2.3.0</version>
 		</dependency>
 	</dependencies>
+    <version>0.9.0-SNAPSHOT</version>
 </project>
