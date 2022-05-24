@@ -79,7 +79,7 @@ public class ITPattern {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(10)
+	@Timeout(100)
 	public void subscribe() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll = new ConsumerTestUnit(provider, "ALL");
@@ -88,7 +88,7 @@ public class ITPattern {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(10)
+	@Timeout(100)
 	public void produce() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		randomProducer = new Producer(provider.getJsap(), "RANDOM");
@@ -97,7 +97,7 @@ public class ITPattern {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(10)
+	@Timeout(100)
 	public void subscribeAndResults() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		consumerAll = new ConsumerTestUnit(provider, "ALL");
@@ -107,7 +107,7 @@ public class ITPattern {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(10)
+	@Timeout(100)
 	public void notification() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		consumerAll = new ConsumerTestUnit(provider, "ALL");
@@ -121,7 +121,7 @@ public class ITPattern {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(10)
+	@Timeout(100)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		Logging.logger.debug("Aggregator");
@@ -144,7 +144,7 @@ public class ITPattern {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(10)
+	@Timeout(100)
 	public void genericClientSingleSubscribe() {
 		try {
 			genericClient = new GenericClient(provider.getJsap(), handler);
@@ -168,7 +168,7 @@ public class ITPattern {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(10)
+	@Timeout(100)
 	public void genericClientDoubleSubscribe() {
 		try {
 			genericClient = new GenericClient(provider.getJsap(), handler);
