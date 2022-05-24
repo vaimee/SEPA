@@ -28,7 +28,6 @@ import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.system.Txn;
 
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
@@ -68,7 +67,7 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint {
 	@Override
 	public Response query(QueryRequest req) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		RDFConnection conn = RDFConnectionFactory.connect(dataset);
+		RDFConnection conn =    RDFConnection.connect(dataset);
 		Txn.executeRead(conn, () -> {
 			ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
 			ResultSetFormatter.outputAsJSON(out, rs);
@@ -83,7 +82,7 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint {
 
 	@Override
 	public Response update(UpdateRequest req) {
-		RDFConnection conn = RDFConnectionFactory.connect(dataset);
+		RDFConnection conn = RDFConnection.connect(dataset);
 		Txn.executeWrite(conn, () -> {
 			conn.update(req.getSPARQL());
 		});
