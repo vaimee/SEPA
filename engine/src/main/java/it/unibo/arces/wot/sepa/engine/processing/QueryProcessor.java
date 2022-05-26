@@ -31,6 +31,7 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
@@ -52,7 +53,7 @@ class QueryProcessor implements QueryProcessorMBean {
 	}
 
 	private Response process(InternalQueryRequest req,Boolean firstStore) throws SEPASecurityException, IOException {
-		System.out.println("------------------->QUERY ON: "+firstStore );
+		//System.out.println("------------------->QUERY ON: "+firstStore );
 		// Build the request
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
@@ -103,7 +104,7 @@ class QueryProcessor implements QueryProcessorMBean {
 	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
 		//as default we will use second storage for updated
 		//if the double store system is enabled
-		if(properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) {
+		if(EngineProperties.getIstance().isInMemoryDoubleStore()) {
 			return process(req,false);
 		}
 		//else we use the first (and the only one) storage 

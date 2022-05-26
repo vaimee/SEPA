@@ -31,6 +31,7 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
@@ -50,7 +51,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	}
 
 	private Response process(InternalUpdateRequest req,Boolean firstStore) throws SEPASecurityException, IOException {
-		System.out.println("------------------->UPDATE ON: "+firstStore );
+		//System.out.println("------------------->UPDATE ON: "+firstStore );
 		// ENDPOINT UPDATE (set timeout and set retry = 0)
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
@@ -105,7 +106,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	}
 	
 	public Response processOnSecondStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) {
+		if (EngineProperties.getIstance().isInMemoryDoubleStore()) {
 			return process(req,false);
 		}else {
 			throw new IOException("You are not use double storage system.");
@@ -113,7 +114,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	}
 	
 	public Response processOnFirstStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) {
+		if (EngineProperties.getIstance().isInMemoryDoubleStore()) {
 	        return process(req,true);
 		}else {
 			throw new IOException("You are not use double storage system.");

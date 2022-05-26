@@ -150,7 +150,7 @@ public class GeneralTest {
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 		System.out.println("TEST: "+((QueryResponse)responseQuery).getBindingsResults().toString());
-		assertTrue(((QueryResponse)responseQuery).getBindingsResults().getBindings().size()==2);
+		assertTrue(((QueryResponse)responseQuery).getBindingsResults().getBindings().size()==1);
 	}
 	
 	private static void cleanDataSet() {

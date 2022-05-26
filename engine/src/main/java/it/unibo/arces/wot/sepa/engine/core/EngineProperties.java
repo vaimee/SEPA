@@ -75,6 +75,15 @@ public class EngineProperties {
 
 	private static final transient String defaultsFileName = "engine.jpar";
 
+	
+	private static EngineProperties _istance=null;
+	public static EngineProperties getIstance() {
+		if(_istance==null) {
+			//load from jpar
+		}
+		return _istance;
+	}
+	
 	private Parameters parameters = new Parameters();
 
 	private EngineProperties() {}
@@ -82,6 +91,7 @@ public class EngineProperties {
 	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		EngineProperties result = EngineProperties.load(propertiesFile);
 		result.parameters.gates.security.enabled = secure;
+		_istance=result;
 		return result;
 	}
 
@@ -106,6 +116,8 @@ public class EngineProperties {
 			}
 			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
 		}
+
+		_istance=result;
 		return result;
 	}
 
@@ -293,7 +305,8 @@ public class EngineProperties {
 			updateTimeout = 5000;
 			queryTimeout = 5000;
 			maxConcurrentRequests = 5;
-			inMemoryDoubleStore=true;
+			//inMemoryDoubleStore=true;
+			inMemoryDoubleStore=false;
 		}
 	}
 

@@ -71,13 +71,17 @@ public class Subscriptions {
 	// SPUID ==> SPU
 	private final static HashMap<String, SPU> spus = new HashMap<String, SPU>();
 	
+	
 	//TODO: a different SPU can be created based on the InternalSubscribeRequest
 	public static SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
 		logger.log(Level.getLevel("subscriptions"),"@createSPU");
-		System.out.println("SOTTOSCRIZIONE:\n"+req.getSparql());
+		//System.out.println("SOTTOSCRIZIONE:\n"+req.getSparql());
 		try {
-			//return new SPUNaive(req, manager);
-			return new SPUSmart(req, manager);
+			if(manager.isInMemoryDoubleStore()) {
+				return new SPUSmart(req, manager);
+			}else {
+				return new SPUNaive(req, manager);
+			}
 		} catch (SEPAProtocolException e) {
 			return null;
 		}
@@ -123,7 +127,7 @@ public class Subscriptions {
 		int preFilterSpus = activeSpus.size();
 		long start = Timings.getTime();
 		activeSpus.removeIf(spu -> (
-			!spu.lutt.hit(update.getHitterLUTT())
+				!spu.lutt.hit(update.getHitterLUTT())
 		));
 		long stop = Timings.getTime();
 		int postFilterSpus = activeSpus.size();

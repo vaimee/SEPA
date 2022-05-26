@@ -262,7 +262,7 @@ public class DoubleStoreSystemTest {
 
 		InternalUpdateRequestWithQuads req2ph= ARQuadsAlgorithm.generateLUTTandInsertDelete(sparqlUpdate, res1, null, null, null);
 		assertTrue(req2ph.getResponseNothingToDo()==null && req2ph.getSparql().length()>0);
-		
+		System.out.println("->TEST_09_INSERT_DATA_2STORE_DATATYPE\n"+req2ph.getSparql());
 		UpdateResponse res2= (UpdateResponse)secondStore.update(req2ph.getSparql());
 		
 		assertTrue(TestUtils.quadsSetCompare(res2.updatedTuples,expected,"09.store2"));

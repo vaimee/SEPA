@@ -13,6 +13,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
+import it.unibo.arces.wot.sepa.engine.processing.lutt.FakeLUTT;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTT;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTTTriple;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
@@ -32,7 +33,7 @@ public class ARQuadsAlgorithm {
 	private static SPARQLParser sparqlParser = SPARQLParser.createParser(Syntax.syntaxSPARQL_11);
 	
 	public static InternalUpdateRequestWithQuads extractARQuads(InternalUpdateRequest update, QueryProcessor queryProcessor) throws SEPAProcessingException, SPARQL11ProtocolException, SEPASparqlParsingException {
-		return new InternalUpdateRequestWithQuads(update.getSparql(), update.getDefaultGraphUri(), update.getNamedGraphUri(), update.getClientAuthorization(), null);
+		return new InternalUpdateRequestWithQuads(update.getSparql(), update.getDefaultGraphUri(), update.getNamedGraphUri(), update.getClientAuthorization(), new FakeLUTT());
 	}
 
 	public static InternalUpdateRequestWithQuads generateLUTTandInsertDelete(
@@ -48,8 +49,7 @@ public class ARQuadsAlgorithm {
 		
 		HashMap<String, ArrayList<LUTTTriple>> quads = new 	HashMap<String, ArrayList<LUTTTriple>>();
 		
-		//exstract prefixs we will use them to resolve datatype of literals
-		HashMap<String, String> resolvedPrefix= new HashMap<String, String>();
+		//exstract prefixs
 		String sparqlOriginalLower = originalSparql.toLowerCase();
 		String sparqlPrefix="";
 		int cut1= sparqlOriginalLower.lastIndexOf("prefix");
@@ -59,11 +59,16 @@ public class ARQuadsAlgorithm {
 				sparqlPrefix = originalSparql.substring(0,cut1+cut2+1)+"\n";
 			}
 		}
-		//this query is just for take prefix as "PrefixMapping" from JENA
-		//we will NOT run it
-		String sparqlUpdateToQuery = sparqlPrefix+"SELECT ?s WHERE {?s ?p ?o}";
-		Query jenaQuery = sparqlParser.parse(new Query(),sparqlUpdateToQuery);
-		PrefixMapping prefixs=jenaQuery.getPrefixMapping();
+		
+//		DEPRECATE
+//		DEPRECATE
+//		DEPRECATE
+//		HashMap<String, String> resolvedPrefix= new HashMap<String, String>();
+//		//this query is just for take prefix as "PrefixMapping" from JENA
+//		//we will NOT run it
+//		String sparqlUpdateToQuery = sparqlPrefix+"SELECT ?s WHERE {?s ?p ?o}";
+//		Query jenaQuery = sparqlParser.parse(new Query(),sparqlUpdateToQuery);
+//		PrefixMapping prefixs=jenaQuery.getPrefixMapping();
 	
 		String sparql = "";
 		String rollback = "";
@@ -77,7 +82,7 @@ public class ARQuadsAlgorithm {
 				Quad q = removedIterator.next();
 				String graph = q.getGraph().getURI();
 				Triple t = q.asTriple();
-				String triples = tripleToStringForSparql(t,prefixs,resolvedPrefix);
+				String triples = tripleToStringForSparql(t);
 				//---- for update delete-insert
 				if(graph_triples.containsKey(graph)) {
 					graph_triples.put(graph, graph_triples.get(graph) +"\n"+ triples);
@@ -110,7 +115,7 @@ public class ARQuadsAlgorithm {
 				Quad q = updatedIterator.next();
 				String graph = q.getGraph().getURI();
 				Triple t = q.asTriple();
-				String triples = tripleToStringForSparql(t,prefixs,resolvedPrefix);
+				String triples = tripleToStringForSparql(t);
 				//---- for update delete-insert
 				if(graph_triples.containsKey(graph)) {
 					graph_triples.put(graph, graph_triples.get(graph) +"\n"+ triples);
@@ -141,7 +146,7 @@ public class ARQuadsAlgorithm {
 	
 	public static InternalUpdateRequestWithQuads extractJenaARQuads(InternalUpdateRequest update, UpdateProcessor updateProcessor) throws SEPAProcessingException, SPARQL11ProtocolException, SEPASparqlParsingException, SEPASecurityException, IOException {
 		
-		System.out.println("###########################update: \n"+update.getSparql());
+		//System.out.println("###########################update: \n"+update.getSparql());
 		Response resp = updateProcessor.process(update);
 		if(resp.isError()) {
 			//is possible that exception "SEPAProcessingException" is not the right one
@@ -171,10 +176,10 @@ public class ARQuadsAlgorithm {
 		
 	}
 
-	private static String tripleToStringForSparql(Triple t,PrefixMapping prefixs,HashMap<String, String> resolvedPrefix) {
-		return nodeToStringForSparql(t.getSubject(),prefixs,resolvedPrefix)+ 
-				" " + nodeToStringForSparql(t.getPredicate(),prefixs,resolvedPrefix) + 
-				" " + nodeToStringForSparql(t.getObject(),prefixs,resolvedPrefix) + ".";
+	private static String tripleToStringForSparql(Triple t) {
+		return nodeToStringForSparql(t.getSubject())+ 
+				" " + nodeToStringForSparql(t.getPredicate()) + 
+				" " + nodeToStringForSparql(t.getObject()) + ".";
 	}
 
 	private static LUTTTriple tripleToLUTTTriple(Triple t) {
@@ -184,32 +189,13 @@ public class ARQuadsAlgorithm {
 				nodeToStringForLUTTTriple(t.getObject()));
 	}
 
-	private static String nodeToStringForSparql(Node n,PrefixMapping prefixs,HashMap<String, String> resolvedPrefix) {
+	private static String nodeToStringForSparql(Node n) {
 		if(n.isURI()) {
 			return "<"+n.getURI()+">"; 			
 		}else if(n.isLiteral()) {
 			String datatype = n.getLiteralDatatype().getURI();
 			if(datatype!=null && datatype.length()>0) {
-				String pref=null;
-				if(resolvedPrefix.keySet().contains(datatype)) {
-					pref= resolvedPrefix.get(datatype);
-				}else {
-					ArrayList<String> te = new ArrayList<>(prefixs.getNsPrefixMap().values());
-					for(int x=0;x<te.size();x++) {
-						String temp= te.get(x);
-						if(datatype.startsWith(temp)) {
-							pref= prefixs.getNsURIPrefix(temp)+":"+datatype.substring(temp.length());
-							resolvedPrefix.put(datatype, pref);
-							break;
-						}
-					}
-				}
-				if(pref!=null) {
-					//String temp2 = n.getLiteralLexicalForm(); 
-					//String temp1 = n.getLiteralValue().toString();
-					//String temp3 =n.getLiteralLexicalForm()+"^^"+pref;
-					return "'''"+n.getLiteralLexicalForm()+"'''^^<"+pref+">";
-				}
+					return "'''"+n.getLiteralLexicalForm()+"'''^^<"+datatype+">";
 			}
 			String justDataType =n.getLiteralDatatypeURI();
 			String result = n.toString();
