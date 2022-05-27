@@ -175,3 +175,4 @@ buildNumber.properties
 /blazegraph.jnl
 engine/run/*
 
+/engine/nbproject/

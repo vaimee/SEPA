@@ -9,12 +9,13 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 
 public class SjenarEndpoint implements SPARQLEndpoint {
 
 	@Override
-	public Response query(QueryRequest req) {
+	public Response query(QueryRequest req,SEPAUserInfo usr) {
 		String header = req.getAuthorizationHeader();
 		if (!header.toLowerCase().startsWith("bearer"))
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "wrong or missing bearer token",
@@ -34,7 +35,7 @@ public class SjenarEndpoint implements SPARQLEndpoint {
 	}
 
 	@Override
-	public Response update(UpdateRequest req) {
+	public Response update(UpdateRequest req,SEPAUserInfo usr) {
 		// TODO Auto-generated method stub
 
 		Response ret = new UpdateResponseWithAR("QUI CI PIAZZI IL JSON CHE RAPPRESENTA A/R");
