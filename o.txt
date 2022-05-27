@@ -1,0 +1,112 @@
+[INFO] Scanning for projects...
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for it.unibo.arces.wot:client-api:jar:0-SNAPSHOT
+[WARNING] 'dependencies.dependency.systemPath' for com.vaimee:jenar-arq:jar should not point at files within the project directory, ${project.basedir}/../lib/jenar-arq-4.3.2.jar will be unresolvable by dependent projects @ it.unibo.arces.wot:client-api:${revision}, C:\progs\vaimee\SEPA\client-api\pom.xml, line 119, column 18
+[WARNING] 
+[WARNING] Some problems were encountered while building the effective model for it.unibo.arces.wot:engine:jar:0-SNAPSHOT
+[WARNING] 'dependencies.dependency.systemPath' for com.vaimee:jenar:jar should not point at files within the project directory, ${project.basedir}/../lib/apache-jena-4.3.2-jar-with-dependencies.jar will be unresolvable by dependent projects @ it.unibo.arces.wot:engine:${revision}, C:\progs\vaimee\SEPA\engine\pom.xml, line 270, column 18
+[WARNING] 
+[WARNING] It is highly recommended to fix these problems because they threaten the stability of your build.
+[WARNING] 
+[WARNING] For this reason, future Maven versions might no longer support building such malformed projects.
+[WARNING] 
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] SEPA Project                                                       [pom]
+[INFO] client-api                                                         [jar]
+[INFO] engine                                                             [jar]
+[INFO] 
+[INFO] ----------------------< it.unibo.arces.wot:sepa >-----------------------
+[INFO] Building SEPA Project 0-SNAPSHOT                                   [1/3]
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ sepa ---
+[WARNING] The artifact xml-apis:xml-apis:jar:2.0.2 has been relocated to xml-apis:xml-apis:jar:1.0.b2
+[INFO] it.unibo.arces.wot:sepa:pom:0-SNAPSHOT
+[INFO] 
+[INFO] -------------------< it.unibo.arces.wot:client-api >--------------------
+[INFO] Building client-api 0-SNAPSHOT                                     [2/3]
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ client-api ---
+[INFO] it.unibo.arces.wot:client-api:jar:0-SNAPSHOT
+[INFO] +- org.apache.commons:commons-rdf-api:jar:0.5.0:compile
+[INFO] +- org.junit.jupiter:junit-jupiter-api:jar:5.6.2:test
+[INFO] |  +- org.apiguardian:apiguardian-api:jar:1.1.0:test
+[INFO] |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[INFO] |  \- org.junit.platform:junit-platform-commons:jar:1.6.2:test
+[INFO] +- org.junit.jupiter:junit-jupiter-engine:jar:5.6.2:test
+[INFO] |  \- org.junit.platform:junit-platform-engine:jar:1.6.2:test
+[INFO] +- org.apache.logging.log4j:log4j-api:jar:2.13.2:compile
+[INFO] +- org.apache.logging.log4j:log4j-core:jar:2.13.2:compile
+[INFO] +- org.java-websocket:Java-WebSocket:jar:1.5.1:compile
+[INFO] |  \- org.slf4j:slf4j-api:jar:1.7.25:compile
+[INFO] +- com.google.code.gson:gson:jar:2.8.0:compile
+[INFO] +- org.apache.httpcomponents:httpclient:jar:4.5.2:compile
+[INFO] |  +- commons-logging:commons-logging:jar:1.2:compile
+[INFO] |  \- commons-codec:commons-codec:jar:1.9:compile
+[INFO] +- org.apache.httpcomponents:httpcore:jar:4.4.6:compile
+[INFO] +- org.slf4j:slf4j-simple:jar:1.7.26:compile
+[INFO] +- org.glassfish.tyrus.bundles:tyrus-standalone-client:jar:1.12:compile
+[INFO] +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] +- com.nimbusds:nimbus-jose-jwt:jar:7.9:compile
+[INFO] |  +- com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile
+[INFO] |  \- net.minidev:json-smart:jar:2.3:compile (version selected from constraint [1.3.1,2.3])
+[INFO] |     \- net.minidev:accessors-smart:jar:1.2:compile
+[INFO] |        \- org.ow2.asm:asm:jar:5.0.4:compile
+[INFO] +- javax.xml.bind:jaxb-api:jar:2.3.0:compile
+[INFO] +- com.vaimee:jenar-arq:jar:4.3.2:system
+[INFO] \- org.apache.httpcomponents:httpcore-nio:jar:4.4.6:compile
+[INFO] 
+[INFO] ---------------------< it.unibo.arces.wot:engine >----------------------
+[INFO] Building engine 0-SNAPSHOT                                         [3/3]
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ engine ---
+[INFO] it.unibo.arces.wot:engine:jar:0-SNAPSHOT
+[INFO] +- org.apache.logging.log4j:log4j-api:jar:2.13.2:compile
+[INFO] +- org.apache.logging.log4j:log4j-core:jar:2.13.2:compile
+[INFO] +- org.apache.httpcomponents:httpcore-nio:jar:4.4.6:compile
+[INFO] |  \- org.apache.httpcomponents:httpcore:jar:4.4.6:compile
+[INFO] +- com.google.code.gson:gson:jar:2.8.0:compile
+[INFO] +- com.nimbusds:nimbus-jose-jwt:jar:7.9:compile
+[INFO] |  +- com.github.stephenc.jcip:jcip-annotations:jar:1.0-1:compile
+[INFO] |  \- net.minidev:json-smart:jar:2.3:compile (version selected from constraint [1.3.1,2.3])
+[INFO] |     \- net.minidev:accessors-smart:jar:1.2:compile
+[INFO] |        \- org.ow2.asm:asm:jar:5.0.4:compile
+[INFO] +- org.java-websocket:Java-WebSocket:jar:1.5.1:compile
+[INFO] +- junit:junit:jar:4.13.1:test
+[INFO] |  \- org.hamcrest:hamcrest-core:jar:1.3:test
+[INFO] +- it.unibo.arces.wot:client-api:jar:0-SNAPSHOT:compile
+[INFO] |  +- org.apache.commons:commons-rdf-api:jar:0.5.0:compile
+[INFO] |  +- org.apache.httpcomponents:httpclient:jar:4.5.2:compile
+[INFO] |  |  \- commons-logging:commons-logging:jar:1.2:compile
+[INFO] |  +- org.slf4j:slf4j-simple:jar:1.7.26:compile
+[INFO] |  |  \- org.slf4j:slf4j-api:jar:1.7.26:compile
+[INFO] |  +- org.glassfish.tyrus.bundles:tyrus-standalone-client:jar:1.12:compile
+[INFO] |  +- commons-lang:commons-lang:jar:2.6:compile
+[INFO] |  +- javax.xml.bind:jaxb-api:jar:2.3.0:compile
+[INFO] |  \- com.vaimee:jenar-arq:jar:4.3.2:system
+[INFO] +- org.apache.directory.api:api-all:jar:2.0.0.AM4:compile
+[INFO] |  +- org.apache.servicemix.bundles:org.apache.servicemix.bundles.xpp3:jar:1.1.4c_7:compile
+[INFO] |  +- org.apache.servicemix.bundles:org.apache.servicemix.bundles.dom4j:jar:2.1.1_1:compile
+[INFO] |  +- org.apache.commons:commons-pool2:jar:2.6.2:compile
+[INFO] |  +- org.apache.mina:mina-core:jar:2.1.3:compile
+[INFO] |  +- org.apache.commons:commons-lang3:jar:3.9:compile
+[INFO] |  +- org.apache.commons:commons-collections4:jar:4.3:compile
+[INFO] |  +- org.apache.servicemix.bundles:org.apache.servicemix.bundles.antlr:jar:2.7.7_5:compile
+[INFO] |  \- commons-codec:commons-codec:jar:1.12:compile
+[INFO] \- com.vaimee:jenar:jar:4.3.2:system
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for SEPA Project 0-SNAPSHOT:
+[INFO] 
+[INFO] SEPA Project ....................................... SUCCESS [  0.742 s]
+[INFO] client-api ......................................... SUCCESS [  0.200 s]
+[INFO] engine ............................................. SUCCESS [  0.342 s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.566 s
+[INFO] Finished at: 2022-05-05T04:06:44+02:00
+[INFO] ------------------------------------------------------------------------

@@ -27,9 +27,13 @@
 
 
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
-		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
 
 		<!-- https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket -->
+		<dependency>
+			<groupId>org.java-websocket</groupId>
+			<artifactId>Java-WebSocket</artifactId>
+			<version>1.5.3</version>
+		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
@@ -48,7 +52,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.26</version>
+			<version>1.7.25</version>
 		</dependency>
 
 		<dependency>
@@ -69,5 +73,15 @@
 			<artifactId>jaxb-api</artifactId>
 			<version>2.3.0</version>
 		</dependency>
+	 <dependency>
+	  <groupId>com.vaimee</groupId>
+	  <artifactId>jenar-arq</artifactId>
+	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	  <groupId>org.apache.logging.log4j</groupId>
+	  <artifactId>log4j-slf4j-impl</artifactId>
+	  <version>2.16.0</version>
+	 </dependency>
 	</dependencies>
 </project>

@@ -30,6 +30,7 @@ import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11Handler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
@@ -48,7 +49,10 @@ public class HttpGate {
 		this.properties = properties;
 		this.scheduler = scheduler;
 		
-		SPARQL11Handler handler = new SPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
+                JenaInMemoryEndpoint.init();
+                
+		final SPARQL11Handler handler = new SPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
+                final SPARQL11Handler aclHandler = new SPARQL11Handler(scheduler,properties.getAclQueryPath(),properties.getAclUpdatePath());
 	
 		server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort())
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
@@ -66,8 +70,9 @@ public class HttpGate {
 			throw new SEPAProtocolException(server.getEndpoint().getException());	
 		}
 
-		System.out.println("SPARQL 1.1 Query     | " + EngineBeans.getQueryURL());
-		System.out.println("SPARQL 1.1 Update    | " + EngineBeans.getUpdateURL());
+		System.out.println("SPARQL 1.1 Query        | " + EngineBeans.getQueryURL());
+		System.out.println("SPARQL 1.1 Update       | " + EngineBeans.getUpdateURL());
+                
 	}
 	
 	public void shutdown() {
