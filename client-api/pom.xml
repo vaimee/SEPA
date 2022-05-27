@@ -74,8 +74,8 @@
 			<version>2.3.0</version>
 		</dependency>
 	 <dependency>
-	  <groupId>com.vaimee</groupId>
-	  <artifactId>jenar-arq</artifactId>
+	  <groupId>it.vaimee.sjenar</groupId>
+	  <artifactId>sjenar-arq</artifactId>
 	  <version>4.3.2</version>
 	 </dependency>
 	 <dependency>
