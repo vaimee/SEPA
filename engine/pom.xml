@@ -113,9 +113,9 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
 		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
 		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>apache-jena-libs</artifactId>
-			<version>4.6.0-SNAPSHOT</version>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>vaimee-sjenar-libs</artifactId>
+			<version>4.3.2</version>
 			<type>pom</type>
 			<exclusions>
 				<exclusion>
