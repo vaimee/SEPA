@@ -143,4 +143,74 @@ public class EngineBeans {
 		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
 		return "https://"+getHost()+port+getTokenRequestPath();
 	}
+        
+        public static boolean  isAclEnabled() {
+            return properties.isAclEnabled();
+        }
+        
+        public static String getAclType() {
+            return properties.getAclType();
+        }
+        public static String getAclMode() {
+            return properties.getAclMode();
+        }
+        public static String getAclPath() {
+            return properties.getAclPath();
+        }
+        
+        
+	public static String getAclQueryPath() {
+		return properties.getAclQueryPath();
+	}
+
+	public static String getAclUpdatePath() {
+		return properties.getAclUpdatePath();
+	}
+        
+	public static String getAclQueryURL() {
+		String port = "";
+		if (getHttpPort() != -1) 
+                    port = ":"+getHttpPort();
+		return "http://"+getHost()+port+getAclQueryPath();
+	}
+
+	public static String getAclUpdateURL() {
+		String port = "";
+		if (getHttpPort() != -1) 
+                    port = ":"+getHttpPort();
+		return "http://"+getHost()+port+getAclUpdatePath();
+	}
+        
+	public static String getSecureAclQueryURL() {
+		String port = "";
+		if (getHttpsPort() != -1) 
+                    port = ":"+getHttpsPort();
+		return "https://"+getHost()+port+getSecurePath()+getAclQueryPath();
+	}
+
+	public static String getSecureAclUpdateURL() {
+		String port = "";
+		if (getHttpsPort() != -1) 
+                    port = ":"+getHttpsPort();
+		return "https://"+getHost()+port+getSecurePath()+getAclUpdatePath();
+	}
+        
+        
+        
+        public static boolean is2PEnabled() {
+            return properties.is2PEnabled();
+        }
+        
+        public static String   getFirstDatasetMode() {
+            return properties.getFirstDatasetMode();
+        }
+        public static String   getFirstDatasetPath() {
+            return properties.getFirstDatasetPath();
+        }
+        public static String   getSecondDatasetMode() {
+            return properties.getSecondDatasetMode();
+        }
+        public static String   getSecondDatasetPath() {
+            return properties.getSecondDatasetPath();
+        }        
 }

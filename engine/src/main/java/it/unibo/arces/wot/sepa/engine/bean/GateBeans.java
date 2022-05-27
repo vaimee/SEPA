@@ -18,6 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.bean;
 
+
 import it.unibo.arces.wot.sepa.logging.Timings;
 
 public class GateBeans {
