@@ -157,8 +157,8 @@
     	</dependency>
     	<dependency>
     		<groupId>org.java-websocket</groupId>
-    		<artifactId>Java-Websocket</artifactId>
-    		<version>1.5.1</version>
+    		<artifactId>Java-WebSocket</artifactId>
+    		<version>1.5.3</version>
     	</dependency>
     	<dependency>
     		<groupId>com.google.code.gson</groupId>
