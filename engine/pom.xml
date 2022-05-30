@@ -317,11 +317,6 @@
 	  <version>4.3.2</version>
 	 </dependency>
 	 <dependency>
-	  <groupId>it.unibo.arces.wot</groupId>
-	  <artifactId>client-api</artifactId>
-	  <version>1.0.0-j4.3.2</version>
-	 </dependency>
-	 <dependency>
 	  <groupId>it.vaimee.sjenar</groupId>
 	  <artifactId>sjenar-iri</artifactId>
 	  <version>4.3.2</version>
@@ -335,6 +330,11 @@
 	  <groupId>it.vaimee.sjenar</groupId>
 	  <artifactId>sjenar-dboe-transaction</artifactId>
 	  <version>4.3.2</version>
+	 </dependency>
+	 <dependency>
+	 	<groupId>it.unibo.arces.wot</groupId>
+	 	<artifactId>client-api</artifactId>
+	 	<version>${revision}</version>
 	 </dependency>
 	</dependencies>
 
