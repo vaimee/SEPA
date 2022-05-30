@@ -7,7 +7,6 @@ package it.unibo.arces.wot.sepa.engine.acl.storage;
 
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.ReadWrite;
 
 /**
