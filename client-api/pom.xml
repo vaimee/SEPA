@@ -1,6 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>it.unibo.arces.wot</groupId>
@@ -49,11 +47,6 @@
 			<version>4.4.6</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.25</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.glassfish.tyrus.bundles</groupId>
@@ -73,15 +66,28 @@
 			<artifactId>jaxb-api</artifactId>
 			<version>2.3.0</version>
 		</dependency>
-	 <dependency>
-	  <groupId>it.vaimee.sjenar</groupId>
-	  <artifactId>sjenar-arq</artifactId>
-	  <version>4.3.2</version>
-	 </dependency>
-	 <dependency>
-	  <groupId>org.apache.logging.log4j</groupId>
-	  <artifactId>log4j-slf4j-impl</artifactId>
-	  <version>2.17.2</version>
-	 </dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-arq</artifactId>
+			<version>4.3.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.fasterxml.jackson</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson</groupId>
+					<artifactId>jackson-annotations</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 	</dependencies>
 </project>
