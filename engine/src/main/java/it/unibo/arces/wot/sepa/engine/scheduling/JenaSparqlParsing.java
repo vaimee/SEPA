@@ -67,6 +67,7 @@ public class JenaSparqlParsing {
 
 	public Set<String> getUpdateGraphURIs(String sparql) throws SEPASparqlParsingException {
 		UpdateRequest upd = new UpdateRequest(Context.emptyContext());
+
 		UpdateRequestSink sink = new UpdateRequestSink(upd);
 
 		Set<String> rdfDataSet = new HashSet<String>();
