@@ -1292,6 +1292,8 @@ public class JSAP extends SPARQL11SEProperties {
 	 */
 
 	public String addPrefixesAndReplaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
+		//System.out.println("BEFORE:\n"+sparql);
+		//System.out.println("AFTER:\n"+replaceBindings(sparql, bindings));
 		return prefixes + replaceBindings(sparql, bindings);
 	}
 
@@ -1316,6 +1318,10 @@ public class JSAP extends SPARQL11SEProperties {
 //		
 //	}
 
+	private static final char quoteDelimiter_1= '"';
+	private static final String quoteDelimiter_2= "'";
+	private static final String quoteDelimiter_3= "'''";
+	
 	public static final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 		if (bindings == null || sparql == null)
 			return sparql;
@@ -1371,7 +1377,15 @@ public class JSAP extends SPARQL11SEProperties {
 			 * are equivalent to a typed literal with the lexical value of the token and the
 			 * corresponding datatype (xsd:integer, xsd:decimal, xsd:double, xsd:boolean).
 			 */
-
+			String delimiter= quoteDelimiter_1+"";
+			if(value.contains(quoteDelimiter_1+"")) {
+				if(value.contains(quoteDelimiter_2)) {
+					delimiter=quoteDelimiter_3;
+				}else {
+					delimiter=quoteDelimiter_2;
+				}
+			}
+			
 			if (bindings.isLiteral(var)) {
 				String datatype = bindings.getDatatype(var);
 				String lang = bindings.getLanguage(var);
@@ -1380,7 +1394,7 @@ public class JSAP extends SPARQL11SEProperties {
 					if (lang != null)
 						value += "@" + bindings.getLanguage(var);
 					else {
-						value = "'''" + StringEscapeUtils.escapeJava(value) + "'''";
+						value = delimiter + StringEscapeUtils.escapeJava(value) + delimiter;
 					}
 				} else if (!numbersOrBoolean.contains(datatype)) {
 					// Check if datatype is a qname or not
@@ -1396,7 +1410,7 @@ public class JSAP extends SPARQL11SEProperties {
 							datatype = "<" + datatype + ">";
 					}
 
-					value = "'''" + StringEscapeUtils.escapeJava(value) + "'''";
+					value = delimiter + StringEscapeUtils.escapeJava(value) +delimiter;
 					value += "^^" + datatype;
 				}
 			} else if (bindings.isURI(var)) {

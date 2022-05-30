@@ -75,7 +75,10 @@ public class EngineProperties {
 	private Parameters parameters = new Parameters();
 
 	private EngineProperties() {}
-
+        public static EngineProperties newInstanceDefault() throws SEPAPropertiesException  {
+            EngineProperties result  = EngineProperties.load(defaultsFileName);
+            return result;
+        }
 	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		EngineProperties result = EngineProperties.load(propertiesFile);
 		result.parameters.gates.security.enabled = secure;
@@ -127,7 +130,8 @@ public class EngineProperties {
 		result.parameters.processor.queryTimeout = 30000;
 		result.parameters.processor.maxConcurrentRequests = 5;
 		result.parameters.processor.reliableUpdate = true;
-
+		result.parameters.processor.inMemoryDoubleStore = true;
+		
 		// SPU
 		result.parameters.spu.timeout = 5000;
 
@@ -150,6 +154,8 @@ public class EngineProperties {
 		result.parameters.gates.paths.unsubscribe = "/unsubscribe";
 		result.parameters.gates.paths.register = "/oauth/register";
 		result.parameters.gates.paths.tokenRequest = "/oauth/token";
+
+		
 		return result;
 	}
 
@@ -247,15 +253,24 @@ public class EngineProperties {
 		return this.parameters.processor.reliableUpdate;
 	}
 
+	public boolean isInMemoryDoubleStore() {
+		return this.parameters.processor.inMemoryDoubleStore;
+	}
+	
 	public int getSchedulerTimeout() {
 		return this.parameters.scheduler.timeout;
 	}
+	
 	
 	static private class Parameters {
 		public Scheduler scheduler = new Scheduler();
 		public Processor processor = new Processor();
 		public Spu spu = new Spu();
 		public Gates gates = new Gates();
+		
+		public Acl   acl = new Acl();
+		public DatasetConfiguration dsConfig = new DatasetConfiguration();
+
 	}
 
 	static private class Scheduler {
@@ -273,12 +288,15 @@ public class EngineProperties {
 		public int queryTimeout;
 		public int maxConcurrentRequests;
 		public boolean reliableUpdate;
+		
+		public boolean inMemoryDoubleStore;
 
 		public Processor(){
 			reliableUpdate = true;
 			updateTimeout = 5000;
 			queryTimeout = 5000;
 			maxConcurrentRequests = 5;
+			inMemoryDoubleStore=true;
 		}
 	}
 
@@ -341,5 +359,96 @@ public class EngineProperties {
 			wss   = 9443;
 		}
 	}
+        
+        static private class Acl {
+                public  boolean     enabled     =   true;
+                public  String      type        =   ACL_TYPE_DS;  //allowed: dataset/json
+                public  String      mode        =   DS_MODE_MEM;     /*
+                                                                    Valid values depends on type :
+                                                                    *) type == dataset
+                                                                        -) mode = tdb2  tdb2 persistency
+                                                                        -) mode = tdb1  tdb1 persistency
+                                                                        -) mode = mem   not persistent
+                                                                    *) type == json : no value required
+                                                                        
+                                                                */
+                public String       path = "./acl";             /*
+                                                                    Valid values depends on type :
+                                                                    *) type == dataset/tdb1|tdb2
+                                                                        -) path = path of tdbx persistent data
+
+                                                                    *) type == json : full path of json file
+                                                                        
+                                                                */
+                
+                
+                public String       queryPath       = "/acl/query//";
+                public String       updatePath      = "/acl/update/";
+                
+        }
+        
+        public boolean  isAclEnabled() {
+            return parameters.acl.enabled;
+        }
+        
+        public String getAclType() {
+            return parameters.acl.type;
+        }
+        
+        public String getAclMode() {
+            return parameters.acl.mode;
+        }
+        
+        public String getAclPath() {
+            return parameters.acl.path;
+        }
+        
+        
+        public String getAclQueryPath() {
+            return parameters.acl.queryPath;
+        }
+        public String getAclUpdatePath() {
+            return parameters.acl.updatePath;
+        }
+        
+        private static class    DatasetData {
+                public  String      mode        =   DS_MODE_MEM ;     /*
+                                                                    -) mode = tdb2  tdb2 persistency
+                                                                    -) mode = tdb1  tdb1 persistency
+                                                                    -) mode = mem   not persistent
+                                                                */
+                public String       path        =   "";         //path of dataset is mode is tdb1 or tdb2
+        }
+        private static class    DatasetConfiguration {
+            public boolean          enable2P = false;
+            public DatasetData      firstDS  = new DatasetData();
+            public DatasetData      secondDS = new DatasetData();
+            
+            
+        }
+        
+        public static final String    DS_MODE_MEM     =   "mem";
+        public static final String    DS_MODE_TDB2    =   "tdb2";
+        public static final String    DS_MODE_TDB1    =   "tdb1";
+        
+        public static final String    ACL_TYPE_DS     =   "dataset";
+        public static final String    ACL_TYPE_JSON   =   "json";
+        
+        public boolean is2PEnabled() {
+            return parameters.dsConfig.enable2P;
+        }
+        
+        public String   getFirstDatasetMode() {
+            return parameters.dsConfig.firstDS.mode;
+        }
+        public String   getFirstDatasetPath() {
+            return parameters.dsConfig.firstDS.path;
+        }
+        public String   getSecondDatasetMode() {
+            return parameters.dsConfig.secondDS.mode;
+        }
+        public String   getSecondDatasetPath() {
+            return parameters.dsConfig.secondDS.path;
+        }
 	
 }
