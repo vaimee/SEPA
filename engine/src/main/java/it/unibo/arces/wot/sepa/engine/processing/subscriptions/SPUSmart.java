@@ -47,7 +47,9 @@ import org.apache.logging.log4j.LogManager;
     The SPUSmart will keep it just if there will not too much
     otherwise, it will query the dataset before and after the update.
 */
+
 class SPUSmart extends SPU {
+	private static final int maxBindings = 10000;
 	private final Logger logger;
 
 	public SPUSmart(InternalSubscribeRequest subscribe, SPUManager manager) throws SEPAProtocolException {
@@ -75,13 +77,33 @@ class SPUSmart extends SPU {
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
 
 		logger.trace("First results: " + lastBindings.toString());
-
+		
+		if(lastBindings.size()>maxBindings) {
+			lastBindings=null;
+		}
+		
 		return new SubscribeResponse(getSPUID(), subscribe.getAlias(), lastBindings);
 	}
 
 	@Override
 	public void preUpdateInternalProcessing(InternalUpdateRequest req) throws SEPAProcessingException {
 		logger.log(Level.getLevel("spu"),"@preUpdateInternalProcessing");
+		
+		if(lastBindings==null) {
+			try {
+				logger.log(Level.getLevel("spu"),"Query endpoint");	
+				Response ret = manager.processQuery(subscribe);
+				if (ret.isError()) {
+					logger.log(Level.getLevel("spu"),"SEPAProcessingException "+ret);
+					throw new SEPAProcessingException("preUpdateInternalProcessing exception "+ret.toString());
+				}
+				lastBindings= ((QueryResponse) ret).getBindingsResults();
+			} catch (SEPASecurityException | IOException e) {
+				if (logger.isTraceEnabled()) e.printStackTrace();
+				logger.log(Level.getLevel("spu"),"SEPASecurityException "+e.getMessage());
+				throw new SEPAProcessingException("preUpdateInternalProcessing exception "+e.getMessage());
+			}
+		}
 	}
 
 	@Override
@@ -142,7 +164,11 @@ class SPUSmart extends SPU {
 		logger.trace("Added bindings: " + added + " found in " + (stop - start) + " ns");
 
 		// Update the last bindings with the current ones
-		lastBindings = currentBindings;
+		if(currentBindings.size()>maxBindings) {
+			lastBindings=null;
+		}else {
+			lastBindings = currentBindings;
+		}
 
 		// Send notification (or end processing indication)
 		if (!added.isEmpty() || !removed.isEmpty()) {

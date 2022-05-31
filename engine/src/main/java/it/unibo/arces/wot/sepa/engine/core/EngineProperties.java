@@ -143,6 +143,7 @@ public class EngineProperties {
 		result.parameters.processor.maxConcurrentRequests = 5;
 		result.parameters.processor.reliableUpdate = true;
 		result.parameters.processor.inMemoryDoubleStore = true;
+		result.parameters.processor.spuSmart = true;
 		
 		// SPU
 		result.parameters.spu.timeout = 5000;
@@ -269,6 +270,10 @@ public class EngineProperties {
 		return this.parameters.processor.inMemoryDoubleStore;
 	}
 	
+	public boolean isSPUSmart() {
+		return this.parameters.processor.spuSmart;
+	}
+	
 	public int getSchedulerTimeout() {
 		return this.parameters.scheduler.timeout;
 	}
@@ -299,14 +304,15 @@ public class EngineProperties {
 		public boolean reliableUpdate;
 		
 		public boolean inMemoryDoubleStore;
+		public boolean spuSmart;
 
 		public Processor(){
 			reliableUpdate = true;
 			updateTimeout = 5000;
 			queryTimeout = 5000;
 			maxConcurrentRequests = 5;
-			//inMemoryDoubleStore=true;
-			inMemoryDoubleStore=false;
+			inMemoryDoubleStore=true;
+			spuSmart=true;
 		}
 	}
 

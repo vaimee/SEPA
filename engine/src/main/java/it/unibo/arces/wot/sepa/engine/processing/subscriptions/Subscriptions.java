@@ -31,6 +31,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPANotExistsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
@@ -77,7 +78,7 @@ public class Subscriptions {
 		logger.log(Level.getLevel("subscriptions"),"@createSPU");
 		//System.out.println("SOTTOSCRIZIONE:\n"+req.getSparql());
 		try {
-			if(manager.isInMemoryDoubleStore()) {
+			if(EngineProperties.getIstance().isSPUSmart()) {
 				return new SPUSmart(req, manager);
 			}else {
 				return new SPUNaive(req, manager);

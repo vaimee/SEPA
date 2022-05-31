@@ -454,7 +454,4 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		return SPUManagerBeans.getNotifyExceptions();
 	}
 	
-	public boolean isInMemoryDoubleStore() {
-		return this.processor.isInMemoryDoubleStore();
-	}
 }
