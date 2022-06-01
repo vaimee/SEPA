@@ -29,13 +29,17 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * The Class Encryption.
  */
 class Encryption {
+	private final Logger logger = LogManager.getLogger();
+
 	/** The Constant ALGO. */
 	// AES 128 bits (16 bytes)
 	private static final String ALGO = "AES";
@@ -96,7 +100,7 @@ class Encryption {
 		try {
 			c = Cipher.getInstance(ALGO);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-			if (Logging.logger.isTraceEnabled())
+			if (logger.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
@@ -104,7 +108,7 @@ class Encryption {
 		try {
 			c.init(Cipher.DECRYPT_MODE, key);
 		} catch (InvalidKeyException e) {
-			if (Logging.logger.isTraceEnabled())
+			if (logger.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
@@ -114,7 +118,7 @@ class Encryption {
 			decoded = Base64.getDecoder().decode(encryptedData);
 		}
 		catch (IllegalArgumentException e) {
-			if (Logging.logger.isTraceEnabled())
+			if (logger.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
@@ -123,7 +127,7 @@ class Encryption {
 		try {
 			decrypted = c.doFinal(decoded);
 		} catch (IllegalBlockSizeException | BadPaddingException e) {
-			if (Logging.logger.isTraceEnabled())
+			if (logger.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}

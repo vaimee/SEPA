@@ -22,6 +22,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -35,9 +38,10 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implements ISubscriptionHandler {
+	protected final Logger logger = LogManager.getLogger();
+
 	protected final URI url;
 	protected Request lastRequest = null;
 	protected WebsocketClientEndpoint client;
@@ -58,14 +62,14 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			try {
 				url = new URI(scheme + host + path);
 			} catch (URISyntaxException e) {
-				Logging.logger.error(e.getMessage());
+				logger.error(e.getMessage());
 				throw new SEPAProtocolException(e);
 			}
 		else
 			try {
 				url = new URI(scheme + host + ":" + port + path);
 			} catch (URISyntaxException e) {
-				Logging.logger.error(e.getMessage());
+				logger.error(e.getMessage());
 				throw new SEPAProtocolException(e);
 			}
 
@@ -79,7 +83,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			try {
 				client.connect(url);
 			} catch (SEPAProtocolException e) {
-				//Logging.logger.error(e.getMessage());
+				//logger.error(e.getMessage());
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e1) {
@@ -88,7 +92,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 				try {
 					client.close();
 				} catch (IOException e1) {
-					Logging.logger.error(e1.getMessage());
+					logger.error(e1.getMessage());
 				}
 				client = new WebsocketClientEndpoint(sm, this);
 			}
@@ -97,12 +101,12 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	@Override
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException, SEPASecurityException {
-		Logging.logger.trace("subscribe: " + request);
+		logger.trace("subscribe: " + request);
 
 		synchronized (mutex) {
 			if (lastRequest != null)
 				try {
-					Logging.logger.debug("wait. last request: "+lastRequest);
+					logger.debug("wait. last request: "+lastRequest);
 					mutex.wait();
 				} catch (InterruptedException e) {
 					throw new SEPAProtocolException(e.getMessage());
@@ -116,12 +120,12 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	@Override
 	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException {
-		Logging.logger.trace("unsubscribe: " + request);
+		logger.trace("unsubscribe: " + request);
 
 		synchronized (mutex) {
 			if (lastRequest != null)
 				try {
-					Logging.logger.debug("wait. last request: "+lastRequest);
+					logger.debug("wait. last request: "+lastRequest);
 					mutex.wait();
 				} catch (InterruptedException e) {
 					throw new SEPAProtocolException(e.getMessage());
@@ -155,14 +159,14 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			try {
 				Response ret = sm.refreshToken();
 				if (ret.isError()) {
-					Logging.logger.error(ret);
+					logger.error(ret);
 					handler.onError((ErrorResponse)ret);
 					return;
 				}
 				JWTResponse token = (JWTResponse) ret;
 				authHeader = token.getTokenType()+" "+token.getAccessToken();
 			} catch (SEPAPropertiesException | SEPASecurityException e1) {
-				Logging.logger.error(e1.getMessage());
+				logger.error(e1.getMessage());
 				handler.onError(errorResponse);
 				return;
 			}
@@ -176,12 +180,12 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 			try {
 				lastRequest.setAuthorizationHeader(authHeader);
-				Logging.logger.trace("SEND LAST REQUEST WITH NEW TOKEN");
+				logger.trace("SEND LAST REQUEST WITH NEW TOKEN");
 				
 				client.send(lastRequest.toString());
 			} catch (SEPAProtocolException e) {
-				Logging.logger.error(e.getMessage());
-				if (Logging.logger.isTraceEnabled())
+				logger.error(e.getMessage());
+				if (logger.isTraceEnabled())
 					e.printStackTrace();
 				ErrorResponse err = new ErrorResponse(401, "invalid_grant",
 						"Failed to send request after refreshing token. " + e.getMessage());
@@ -193,7 +197,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		Logging.logger.trace("@onSubscribe " + spuid + " alias: " + alias);
+		logger.trace("@onSubscribe " + spuid + " alias: " + alias);
 		handler.onSubscribe(spuid, alias);
 
 		synchronized (mutex) {
@@ -205,7 +209,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		Logging.logger.trace("@onUnsubscribe " + spuid);
+		logger.trace("@onUnsubscribe " + spuid);
 		handler.onUnsubscribe(spuid);
 
 		synchronized (mutex) {

@@ -4,6 +4,8 @@ import it.unibo.arces.wot.sepa.AggregatorTestUnit;
 import it.unibo.arces.wot.sepa.ConsumerTestUnit;
 import it.unibo.arces.wot.sepa.Sync;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -17,13 +19,15 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 
 public class ITPattern {
+
+	protected static final Logger logger = LogManager.getLogger();
+
 	protected static ConfigurationProvider provider;
 
 	protected static ConsumerTestUnit consumerAll;
@@ -124,23 +128,23 @@ public class ITPattern {
 	@Timeout(10)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		Logging.logger.debug("Aggregator");
+		logger.debug("Aggregator");
 		consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
 		consumerRandom1.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
-		Logging.logger.debug("Aggregator first subscribe ok");
+		logger.debug("Aggregator first subscribe ok");
 
 		randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1");
 		randomAggregator.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
-		Logging.logger.debug("Aggregator second subscribe ok");
+		logger.debug("Aggregator second subscribe ok");
 
 		randomProducer = new Producer(provider.getJsap(), "RANDOM");
 		Response ret = randomProducer.update(provider.TIMEOUT, provider.NRETRY);
 		assertFalse(ret.isError(),ret.toString());
-		Logging.logger.debug("Aggregator Update Done");
+		logger.debug("Aggregator Update Done");
 
 		randomAggregator.waitNotification();
 		consumerRandom1.waitNotification();
-		Logging.logger.debug("Aggregator stop");
+		logger.debug("Aggregator stop");
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)

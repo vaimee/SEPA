@@ -18,12 +18,16 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 class SubscribeProcessingThread extends Thread {
+	private static final Logger logger = LogManager.getLogger();
+
 	private final Processor processor;
 
 	public SubscribeProcessingThread(Processor processor) {
@@ -37,18 +41,18 @@ class SubscribeProcessingThread extends Thread {
 			try {
 				// Wait request...
 				ScheduledRequest request = processor.waitSubscribeRequest();
-				Logging.logger.debug(">> " + request);
+				logger.debug(">> " + request);
 
 				// Process request
 				Response response = processor.processSubscribe((InternalSubscribeRequest) request.getRequest());
 				
-				Logging.logger.debug("<< " + response);
+				logger.debug("<< " + response);
 
 				// Send back response
 				processor.addResponse(request.getToken(), response);
 
 			} catch (InterruptedException e) {
-				Logging.logger.warn("Exit");
+				logger.warn("Exit");
 				return;
 			}
 		}

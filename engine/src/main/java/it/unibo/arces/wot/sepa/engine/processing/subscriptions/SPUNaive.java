@@ -18,6 +18,8 @@
 
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -31,62 +33,67 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 import java.io.IOException;
 import java.util.UUID;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+
 class SPUNaive extends SPU {
+	private final Logger logger;
+
 	public SPUNaive(InternalSubscribeRequest subscribe, SPUManager manager) throws SEPAProtocolException {
 		super(subscribe, manager);
 
 		this.spuid = "sepa://spu/naive/" + UUID.randomUUID();
 
-		Logging.logger.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
+		logger = LogManager.getLogger("SPUNaive" + getSPUID());
+		logger.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
 	}
 
 	@Override
 	public Response init() throws SEPASecurityException, IOException {
-		Logging.logger.log(Logging.getLevel("spu"),"@init");
+		logger.log(Level.getLevel("spu"),"@init");
 
 		// Process the SPARQL query
 		Response ret = manager.processQuery(subscribe);
 
 		if (ret.isError()) {
-			Logging.logger.error("Not initialized");
+			logger.error("Not initialized");
 			return ret;
 		}
 
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
 
-		Logging.logger.trace("First results: " + lastBindings.toString());
+		logger.trace("First results: " + lastBindings.toString());
 
 		return new SubscribeResponse(getSPUID(), subscribe.getAlias(), lastBindings);
 	}
 
 	@Override
 	public void preUpdateInternalProcessing(InternalUpdateRequest req) throws SEPAProcessingException {
-		Logging.logger.log(Logging.getLevel("spu"),"@preUpdateInternalProcessing");
+		logger.log(Level.getLevel("spu"),"@preUpdateInternalProcessing");
 	}
 
 	@Override
 	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException {
-		Logging.logger.log(Logging.getLevel("spu"),"@postUpdateInternalProcessing");
+		logger.log(Level.getLevel("spu"),"@postUpdateInternalProcessing");
 		
 		Response ret = null;
 
 		// Query the SPARQL processing service
 		try {
-			Logging.logger.log(Logging.getLevel("spu"),"Query endpoint");
+			logger.log(Level.getLevel("spu"),"Query endpoint");
 			ret = manager.processQuery(subscribe);
 		} catch (SEPASecurityException | IOException e) {
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
-			Logging.logger.log(Logging.getLevel("spu"),"SEPASecurityException "+e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
+			logger.log(Level.getLevel("spu"),"SEPASecurityException "+e.getMessage());
 			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+e.getMessage());
 		}
 
 		if (ret.isError()) {
-			Logging.logger.log(Logging.getLevel("spu"),"SEPAProcessingException "+ret);
+			logger.log(Level.getLevel("spu"),"SEPAProcessingException "+ret);
 			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+ret.toString());
 		}
 
@@ -102,8 +109,8 @@ class SPUNaive extends SPU {
 		if (lastBindings == null)
 			lastBindings = new BindingsResults(null, null);
 
-		Logging.logger.trace("Current bindings: " + currentBindings);
-		Logging.logger.trace("Last bindings: " + lastBindings);
+		logger.trace("Current bindings: " + currentBindings);
+		logger.trace("Last bindings: " + lastBindings);
 
 		// Find removed bindings
 		long start = System.nanoTime();
@@ -114,7 +121,7 @@ class SPUNaive extends SPU {
 				results.remove(solution);
 		}
 		long stop = System.nanoTime();
-		Logging.logger.trace("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
+		logger.trace("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
 
 		// Find added bindings
 		start = System.nanoTime();
@@ -123,18 +130,18 @@ class SPUNaive extends SPU {
 				added.add(solution);
 		}
 		stop = System.nanoTime();
-		Logging.logger.trace("Added bindings: " + added + " found in " + (stop - start) + " ns");
+		logger.trace("Added bindings: " + added + " found in " + (stop - start) + " ns");
 
 		// Update the last bindings with the current ones
 		lastBindings = currentBindings;
 
 		// Send notification (or end processing indication)
 		if (!added.isEmpty() || !removed.isEmpty()) {
-			Logging.logger.log(Logging.getLevel("spu"),"Send notification");
+			logger.log(Level.getLevel("spu"),"Send notification");
 			return new Notification(getSPUID(), new ARBindingsResults(added, removed));
 		}
 
-		Logging.logger.log(Logging.getLevel("spu"),"Nothing to be notified");
+		logger.log(Level.getLevel("spu"),"Nothing to be notified");
 		return null;
 	}
 }

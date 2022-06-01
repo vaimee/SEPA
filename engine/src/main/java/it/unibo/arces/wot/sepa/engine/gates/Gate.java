@@ -22,9 +22,9 @@ import java.util.Set;
 import java.util.UUID;
 
 import it.unibo.arces.wot.sepa.engine.scheduling.*;
-import it.unibo.arces.wot.sepa.logging.Logging;
-
 import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -46,6 +46,7 @@ import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 
 public abstract class Gate implements ResponseHandler, EventHandler {
+	private static final Logger logger = LogManager.getLogger();
 
 	protected final String gid;
 	protected final Scheduler scheduler;
@@ -83,7 +84,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 
 	@Override
 	public final void notifyEvent(Notification notify) throws SEPAProtocolException {
-		Logging.logger.trace("@notifyEvent: " + notify);
+		logger.trace("@notifyEvent: " + notify);
 		send(notify);
 		
 		GateBeans.notification();
@@ -91,7 +92,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 
 	@Override
 	public final void sendResponse(Response response) throws SEPAProtocolException {
-		Logging.logger.trace("@sendResponse: " + response);
+		logger.trace("@sendResponse: " + response);
 		send(response);
 
 		// JMX
@@ -101,7 +102,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			GateBeans.unsubscribeResponse();
 		} else if (response.isError()) {
 			GateBeans.errorResponse();
-			Logging.logger.error(response);
+			logger.error(response);
 		}
 	}
 
@@ -133,19 +134,19 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		// Parse the request
 		InternalRequest req = parseRequest(message, auth);
 		if (req instanceof InternalDiscardRequest) {
-			Logging.logger.error("@onMessage " + getGID() + " failed to parse message: " + message);
+			logger.error("@onMessage " + getGID() + " failed to parse message: " + message);
 			setAliasIfPresent(((InternalDiscardRequest) req).getError(), message);
 			sendResponse(((InternalDiscardRequest) req).getError());
 			return;
 		}
 
 		// Schedule the request
-		Logging.logger.trace("@onMessage: " + getGID() + " schedule request: " + req);
+		logger.trace("@onMessage: " + getGID() + " schedule request: " + req);
 		ScheduledRequest request = scheduler.schedule(req, this);
 
 		// Request not scheduled
 		if (request == null) {
-			Logging.logger.error("@onMessage: " + getGID() + " out of tokens");
+			logger.error("@onMessage: " + getGID() + " out of tokens");
 			ErrorResponse response = new ErrorResponse(500, "too_many_requests", "Too many pending requests");
 			setAliasIfPresent(response, message);
 			sendResponse(response);
@@ -217,7 +218,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		try {
 			request = new JsonParser().parse(message).getAsJsonObject();	
 		} catch (Exception e) {
-			Logging.logger.error(e.getMessage());
+			logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_request","Failed to parse JSON message: "+message);
 		}
 
@@ -230,35 +231,35 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			subUnsub = request.get("unsubscribe").getAsJsonObject();
 
 		if (subUnsub == null) {
-			Logging.logger.error("Neither subscribe or unsuscribe found");
+			logger.error("Neither subscribe or unsuscribe found");
 			return new ClientAuthorization("invalid_request","Neither subscribe or unsuscribe found");
 		}
 
 		if (!subUnsub.has("authorization")) {
-			Logging.logger.error("authorization member is missing");
+			logger.error("authorization member is missing");
 			return new ClientAuthorization("invalid_request","authorization member is missing");
 		}
 
 		try {
 			bearer = subUnsub.get("authorization").getAsString();
 		} catch (Exception e) {
-			Logging.logger.error("Authorization member is not a string");
+			logger.error("Authorization member is not a string");
 			return new ClientAuthorization("invalid_request","authorization member is not a string");
 		}
 
 		if (!bearer.toUpperCase().startsWith("BEARER ")) {
-			Logging.logger.error("Authorization value MUST be of type Bearer");
+			logger.error("Authorization value MUST be of type Bearer");
 			return new ClientAuthorization("unsupported_grant_type","Authorization value MUST be of type Bearer");
 		}
 
 		String jwt = bearer.substring(7);
 
 		if (jwt == null) {
-			Logging.logger.error("Token is null");
+			logger.error("Token is null");
 			return new ClientAuthorization("invalid_request","Token is null");
 		}
 		if (jwt.equals("")) {
-			Logging.logger.error("Token is empty");
+			logger.error("Token is empty");
 			return new ClientAuthorization("invalid_request","Token is empty");
 		}
 

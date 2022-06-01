@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,9 +22,10 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
+	protected static final Logger logger = LogManager.getLogger();
+
 	private static ConfigurationProvider provider;
 	private static URI url;
 
@@ -44,7 +47,7 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 			try {
 				url = new URI(scheme + provider.getJsap().getSubscribeHost() + provider.getJsap().getSubscribePath());
 			} catch (URISyntaxException e) {
-				Logging.logger.error(e.getMessage());
+				logger.error(e.getMessage());
 				throw new SEPAProtocolException(e);
 			}
 		else
@@ -52,7 +55,7 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 				url = new URI(scheme + provider.getJsap().getSubscribeHost() + ":"
 						+ provider.getJsap().getSubscribePort() + provider.getJsap().getSubscribePath());
 			} catch (URISyntaxException e) {
-				Logging.logger.error(e.getMessage());
+				logger.error(e.getMessage());
 				throw new SEPAProtocolException(e);
 			}
 	}

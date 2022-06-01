@@ -1,17 +1,20 @@
 /* This class implements a JENA base in-memory RDF data set
  * 
  * Author: Luca Roffia (luca.roffia@unibo.it)
+
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
     (at your option) any later version.
+
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
+
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
@@ -19,7 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ResultSet;
@@ -36,22 +38,53 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
-import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.modify.UpdateResult;
+
 
 public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	protected static final Logger logger = LogManager.getLogger();
-	
-	static final Dataset dataset = DatasetFactory.createTxnMem();
-	
+	public enum datasetId {
+		dsiPrimary,             //where to write first
+		dsiAlternate,           //where to read first
+	}
+	//static final Dataset dataset = DatasetFactory.createTxnMem();
+	private static final Dataset      primaryDataset    = DatasetFactory.createTxnMem();
+	private static final Dataset      alternateDataset  = DatasetFactory.createTxnMem();
+
+	private final Dataset             dataset;  
+
+	private JenaInMemoryEndpoint (final Dataset src) {
+		dataset = src;
+	}
+
+	public static JenaInMemoryEndpoint newInstanceda(final datasetId id) {
+		JenaInMemoryEndpoint ret = null;
+		switch(id) {
+		case dsiAlternate:
+			ret = new JenaInMemoryEndpoint(alternateDataset);
+			break;
+		case dsiPrimary:
+			ret = new JenaInMemoryEndpoint(primaryDataset);
+			break;
+		}
+
+		return ret;
+	}
 	@Override
-	public Response query(QueryRequest req,SEPAUserInfo notUsed) {
+	public Response query(QueryRequest req) {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		RDFConnection conn = RDFConnection.connect(dataset);
+		RDFConnection conn = RDFConnectionFactory.connect(dataset);
 		Txn.executeRead(conn, ()-> {
 			ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
 			ResultSetFormatter.outputAsJSON(out, rs);
 		});
-	 
+
 		try {
 			return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
 		} catch (UnsupportedEncodingException e) {
@@ -60,16 +93,48 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	}
 
 	@Override
-	public Response update(UpdateRequest req,SEPAUserInfo notUsed) {
-		RDFConnection conn = RDFConnection.connect(dataset);
+	public Response update(UpdateRequest req) {
+		RDFConnection conn = RDFConnectionFactory.connect(dataset);
+		final Set<Quad> updated = new TreeSet<>(new QuadComparator());
+		final Set<Quad> removed = new TreeSet<>(new QuadComparator());
 		Txn.executeWrite(conn, ()-> {
-			conn.update(req.getSPARQL());
+			final List<UpdateResult> lur = conn.update(req.getSPARQL());
+			if (lur != null) {
+				for(final UpdateResult ur : lur) {
+					if (ur.deletedTuples != null) {
+						for(final Quad q : ur.deletedTuples) {
+							removed.add(q);
+						}
+					}
+
+					if (ur.updatedTuples != null) {
+						for(final Quad q : ur.updatedTuples) {
+							updated.add(q);
+						}
+					}
+
+				}
+
+			}                    
+
 		});
-		return new UpdateResponse("Jena-in-memory-update");
+
+
+		return new UpdateResponse(removed,updated);
 	}
 
 	@Override
 	public void close() {
+	}
+
+
+	private class QuadComparator implements Comparator<Quad> {
+
+		@Override
+		public int compare(Quad o1, Quad o2) {
+			return o1.toString().compareTo(o2.toString());
+		}
+
 	}
 
 }

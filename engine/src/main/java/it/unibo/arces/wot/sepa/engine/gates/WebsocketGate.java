@@ -18,6 +18,8 @@
 
 package it.unibo.arces.wot.sepa.engine.gates;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.java_websocket.WebSocket;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 
@@ -25,9 +27,10 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class WebsocketGate extends Gate {
+	protected static final Logger logger = LogManager.getLogger();
+	
 	protected final WebSocket socket;
 	
 	protected boolean isConnected = true;
@@ -40,18 +43,18 @@ public class WebsocketGate extends Gate {
 	public void send(Response ret) throws SEPAProtocolException {
 		try{
 			socket.send(ret.toString());
-			Logging.logger.trace("Sent: "+ret);
+			logger.trace("Sent: "+ret);
 		}
 		catch(WebsocketNotConnectedException e){
-			Logging.logger.error("WebsocketNotConnectedException "+e.getMessage());
+			logger.error("WebsocketNotConnectedException "+e.getMessage());
 			isConnected = false;
 			if (ret.isNotification()) {
 				Notification notify = (Notification) ret;
-				Logging.logger.error("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
+				logger.error("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
 				throw new SEPAProtocolException("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
 			}
 			else {
-				Logging.logger.error("WebsocketNotConnectedException failed to send error response "+ret);
+				logger.error("WebsocketNotConnectedException failed to send error response "+ret);
 				throw new SEPAProtocolException("WebsocketNotConnectedException failed to send error response "+ret);
 			}
 		}	

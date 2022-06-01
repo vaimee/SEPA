@@ -9,7 +9,6 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties.OAUTH_PROVIDER;
-import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
@@ -18,7 +17,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class ConfigurationProvider implements Closeable {
+	protected final Logger logger = LogManager.getLogger();
+
 	private final JSAP appProfile;
 	private String prefixes = "";
 	private final String jsapPath;
@@ -34,21 +38,20 @@ public class ConfigurationProvider implements Closeable {
 
 		if (System.getProperty("testConfiguration") != null) {
 			jsapFileName = System.getProperty("testConfiguration");
-			Logging.logger.debug("JSAP from property testConfiguration: " + jsapFileName);
+			logger.debug("JSAP from property testConfiguration: " + jsapFileName);
 		} else if (System.getProperty("secure") != null) {
 			jsapFileName = "sepatest-secure.jsap";
-			Logging.logger.debug("JSAP secure default: " + jsapFileName);
+			logger.debug("JSAP secure default: " + jsapFileName);
 		}
 
 		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
-        //TRIVO!!! jsapPath = System.getProperty("user.dir") + File.separator + "target" + File.separator + "test-classes" + File.separator + jsapFileName;
 		File f = new File(jsapPath);
 		if (!f.exists()) {
-			Logging.logger.error("File not found: " + jsapPath);
+			logger.error("File not found: " + jsapPath);
 			throw new SEPAPropertiesException("File not found: " + jsapPath);
 		}
 
-		Logging.logger.debug("Loading JSAP from: " + jsapPath);
+		logger.debug("Loading JSAP from: " + jsapPath);
 
 		appProfile = new JSAP(jsapPath);
 
@@ -66,7 +69,7 @@ public class ConfigurationProvider implements Closeable {
 		
 		sm = buildSecurityManager();
 		
-		Logging.logger.debug("Loaded JSAP: " + appProfile);
+		logger.debug("Loaded JSAP: " + appProfile);
 	}
 
 	private String getSPARQLUpdate(String id) {

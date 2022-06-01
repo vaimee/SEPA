@@ -56,17 +56,24 @@ import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
-import it.unibo.arces.wot.sepa.logging.Logging;
-import it.unibo.arces.wot.sepa.logging.Timings;
+import it.unibo.arces.wot.sepa.timing.Timings;
+
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import org.apache.logging.log4j.LogManager;
 
 /**
  * This class implements the SPARQL 1.1 Protocol
  */
 
 public class SPARQL11Protocol implements Closeable {
+
+	/** The log4j2 logger. */
+	private static final Logger logger = LogManager.getLogger();
+
 	/** The Java bean name. */
 	protected static String mBeanName = "arces.unibo.SEPA.server:type=SPARQL11Protocol";
 
@@ -132,7 +139,7 @@ public class SPARQL11Protocol implements Closeable {
 
 		try {
 			// Execute HTTP request
-			Logging.logger.trace(req.toString() + " " + request.toString() + " (timeout: " + request.getTimeout() + " ms) ");
+			logger.trace(req.toString() + " " + request.toString() + " (timeout: " + request.getTimeout() + " ms) ");
 
 			long start = Timings.getTime();
 
@@ -152,7 +159,7 @@ public class SPARQL11Protocol implements Closeable {
 			responseEntity = httpResponse.getEntity();
 			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
 
-			Logging.logger.trace(String.format("Response code: %d", responseCode));
+			logger.trace(String.format("Response code: %d", responseCode));
 
 			EntityUtils.consume(responseEntity);
 		} catch (Exception e) {
@@ -171,7 +178,7 @@ public class SPARQL11Protocol implements Closeable {
 				if (httpResponse != null)
 					httpResponse.close();
 			} catch (IOException e) {
-				Logging.logger.error(e.getMessage());
+				logger.error(e.getMessage());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
 
@@ -188,7 +195,7 @@ public class SPARQL11Protocol implements Closeable {
 						ret.get("error_description").getAsString());
 			} catch (Exception e) {
 				// E.g. parsing response from a "common" SPARQL endpoint
-				Logging.logger.warn(e.getMessage() + " response code:" + responseCode + " response body: " + responseBody);
+				logger.warn(e.getMessage() + " response code:" + responseCode + " response body: " + responseBody);
 				if (responseBody.equals(""))
 					responseBody = httpResponse.toString();
 				errorResponse = new ErrorResponse(responseCode, "sparql11_endpoint", responseBody);
@@ -196,34 +203,34 @@ public class SPARQL11Protocol implements Closeable {
 		}
 
 		if (errorResponse != null) {
-			Logging.logger.error(errorResponse + " Token expired: " + errorResponse.isTokenExpiredError() + " Security manager: " + (sm != null)
+			logger.error(errorResponse + " Token expired: " + errorResponse.isTokenExpiredError() + " Security manager: " + (sm != null)
 					+ " nRetry: " + request.getNRetry());
 
 			// TOKEN EXPIRED
 			if (errorResponse.isTokenExpiredError()) {
 				try {
-					Logging.logger.info("Refresh token");
+					logger.info("Refresh token");
 					Response ret = sm.refreshToken();
 
 					if (ret.isError())
 						return ret;
 
 					JWTResponse token = (JWTResponse) ret;
-					Logging.logger.debug(token.getAccessToken());
+					logger.debug(token.getAccessToken());
 					req.setHeader("Authorization", token.getTokenType() + " " + token.getAccessToken());
 					// request.setAuthorizationHeader(token.getTokenType()+"
 					// "+token.getAccessToken());
 
 				} catch (SEPAPropertiesException | SEPASecurityException e) {
-					Logging.logger.error("Failed to refresh token. " + e.getMessage());
+					logger.error("Failed to refresh token. " + e.getMessage());
 					return errorResponse;
 				}
 				return executeRequest(req, request);
 			}
 			// TIMEOUT
 			else if (errorResponse.isTimeout() && request.getNRetry() > 0) {
-				Logging.logger.warn(errorResponse);
-				Logging.logger.warn("*** TIMEOUT RETRY " + request.getNRetry() + " ***");
+				logger.warn(errorResponse);
+				logger.warn("*** TIMEOUT RETRY " + request.getNRetry() + " ***");
 
 				request.retry();
 
@@ -469,10 +476,10 @@ public class SPARQL11Protocol implements Closeable {
 							Consts.UTF_8);
 			}
 		} catch (URISyntaxException e) {
-			Logging.logger.error(e.getMessage());
+			logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "URISyntaxException", e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			Logging.logger.error(e.getMessage());
+			logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",
 					e.getMessage());
 		}
@@ -572,10 +579,10 @@ public class SPARQL11Protocol implements Closeable {
 							Consts.UTF_8);
 			}
 		} catch (URISyntaxException e) {
-			Logging.logger.error(e.getMessage());
+			logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "URISyntaxException", e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			Logging.logger.error(e.getMessage());
+			logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",
 					e.getMessage());
 		}
@@ -613,7 +620,7 @@ public class SPARQL11Protocol implements Closeable {
 //		try {
 //			query = "query=" + req.getSPARQL(); //URLEncoder.encode(req.getSPARQL(), "UTF-8");
 //		} catch (UnsupportedEncodingException e1) {
-//			Logging.logger.error(e1.getMessage());
+//			logger.error(e1.getMessage());
 //			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",
 //					e1.getMessage());
 //		}

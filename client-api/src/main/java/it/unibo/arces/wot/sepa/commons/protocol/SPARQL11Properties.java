@@ -22,6 +22,9 @@ import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -29,7 +32,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * The Class SPARQL11Properties includes all the properties needed to connect to
@@ -84,6 +86,10 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  */
 
 public class SPARQL11Properties {
+
+	/** The Constant logger. */
+	private static final Logger logger = LogManager.getLogger();
+
 	/**
 	 * The Enum SPARQLPrimitive (QUERY, UPDATE).
 	 */
@@ -183,7 +189,7 @@ public class SPARQL11Properties {
 			this.propertiesFile = jsapFile;
 		} catch (Exception e) {
 
-			Logging.logger.warn("jsapFile: " + jsapFile + " Exception: " + e.getMessage());
+			logger.warn("jsapFile: " + jsapFile + " Exception: " + e.getMessage());
 
 			defaults();
 
@@ -193,7 +199,7 @@ public class SPARQL11Properties {
 				throw new SEPAPropertiesException(e1);
 			}
 
-			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed)");
+			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed)");
 
 			this.propertiesFile = defaultsFileName;
 		}
@@ -230,20 +236,20 @@ public class SPARQL11Properties {
 	 * </pre>
 	 */
 	protected void defaults() {
-		jsap.add("host", new JsonPrimitive("in-memory"));
+		jsap.add("host", new JsonPrimitive("localhost"));
 
 		JsonObject sparql11protocol = new JsonObject();
-		sparql11protocol.add("protocol", new JsonPrimitive("jena-api"));
+		sparql11protocol.add("protocol", new JsonPrimitive("http"));
 		sparql11protocol.add("port", new JsonPrimitive(9999));
 
 		JsonObject query = new JsonObject();
-		query.add("path", new JsonPrimitive("/sparql"));
+		query.add("path", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
 		query.add("method", new JsonPrimitive("POST"));
 		query.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("query", query);
 
 		JsonObject update = new JsonObject();
-		update.add("path", new JsonPrimitive("/sparql"));
+		update.add("path", new JsonPrimitive("/blazegraph/namespace/kb/sparql"));
 		update.add("method", new JsonPrimitive("POST"));
 		update.add("format", new JsonPrimitive("JSON"));
 		sparql11protocol.add("update", update);

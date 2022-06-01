@@ -20,13 +20,13 @@
 			<PatternLayout
 				pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
 		</Console>
-		<File name="Log" fileName="logs/sepa-test.csv">
+		<File name="Log" fileName="logs/${sys:logFilename}.csv">
 			<PatternLayout
 				pattern="%d{ISO8601}|[%-5level]|%t|(%F:%L)|%msg%n%throwable\n" />
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="error">
+		<Root level="debug">
 			<AppenderRef ref="Console" level="debug" />
 			<AppenderRef ref="Log" level="off" />
 		</Root>

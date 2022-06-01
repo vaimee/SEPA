@@ -21,6 +21,8 @@ package it.unibo.arces.wot.sepa.engine.protocol.sparql11;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
@@ -28,10 +30,11 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
-import it.unibo.arces.wot.sepa.logging.Logging;
-import it.unibo.arces.wot.sepa.logging.Timings;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 public class SPARQL11ResponseHandler implements ResponseHandler {
+	protected final Logger logger = LogManager.getLogger();
+	
 	private HttpAsyncExchange handler;
 	private HTTPHandlerBeans jmx;
 	
@@ -46,7 +49,7 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 		if (response.isError()) {
 			ErrorResponse err = (ErrorResponse) response;
 			HttpUtilities.sendFailureResponse(handler,err);
-			Logging.logger.error(err);
+			logger.error(err);
 			jmx.timeoutRequest();
 		}
 		else
@@ -54,6 +57,6 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 		
 		Timings.log(response);
 		jmx.stop(handler);
-		Logging.logger.trace(response);	
+		logger.trace(response);	
 	}
 }

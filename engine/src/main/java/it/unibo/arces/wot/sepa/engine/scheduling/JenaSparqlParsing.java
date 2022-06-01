@@ -22,14 +22,15 @@ import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.syntax.Element;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementNamedGraph;
-import org.apache.jena.sparql.util.Context;
 import org.apache.jena.update.Update;
 import org.apache.jena.update.UpdateRequest;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class JenaSparqlParsing {
+	protected final static Logger logger = LogManager.getLogger();
 	
 	protected final static String arqDefaultGraphNodeUri = "urn:x-arq:DefaultGraphNode";
 	
@@ -66,8 +67,7 @@ public class JenaSparqlParsing {
 	 */
 
 	public Set<String> getUpdateGraphURIs(String sparql) throws SEPASparqlParsingException {
-		UpdateRequest upd = new UpdateRequest(Context.emptyContext());
-
+		UpdateRequest upd = new UpdateRequest();
 		UpdateRequestSink sink = new UpdateRequestSink(upd);
 
 		Set<String> rdfDataSet = new HashSet<String>();
@@ -75,9 +75,9 @@ public class JenaSparqlParsing {
 		try {
 			new ParserSPARQL11Update().parse(sink, new Prologue(),sparql);
 		} catch (Exception e) {
-			Logging.logger.error("SPARQL: "+sparql+" MESSAGE: "+e.getMessage());
+			logger.error("SPARQL: "+sparql+" MESSAGE: "+e.getMessage());
 			throw new SEPASparqlParsingException("SPARQL: "+sparql+" MESSAGE: "+e.getMessage());
-//			Logging.logger.warn("Parsing exception "+e.getMessage());
+//			logger.warn("Parsing exception "+e.getMessage());
 //			rdfDataSet.add("*");
 //			return rdfDataSet;
 		}
@@ -211,33 +211,33 @@ public class JenaSparqlParsing {
 			return ret;
 
 		Query q = null;
-		Logging.logger.trace("Parsing query: " + sparql);
+		logger.trace("Parsing query: " + sparql);
 		try{
 			q = QueryFactory.create(sparql);
 		}
 		catch(Exception e) {
-//			Logging.logger.error("FAILED TO CREATE QUERY WITH JENA "+e.getMessage()+" Query "+sparql);
+//			logger.error("FAILED TO CREATE QUERY WITH JENA "+e.getMessage()+" Query "+sparql);
 //			ret.add("*");
 //			return ret;
-			Logging.logger.error(e.getMessage());
+			logger.error(e.getMessage());
 			throw new SEPASparqlParsingException(e.getMessage());
 		}
 
-		Logging.logger.trace("Get dataset descriptiors");
+		logger.trace("Get dataset descriptiors");
 		if (q.hasDatasetDescription()) {
-			Logging.logger.trace("Get default graph URIs");
+			logger.trace("Get default graph URIs");
 			for (String gr : q.getDatasetDescription().getDefaultGraphURIs()) {
 				ret.add(gr);
 			}
-			Logging.logger.trace("Get named graph URIs");
+			logger.trace("Get named graph URIs");
 			for (String gr : q.getDatasetDescription().getNamedGraphURIs()) {
 				ret.add(gr);
 			}
 		}
 
-		Logging.logger.trace("Get graph URIs");
+		logger.trace("Get graph URIs");
 		List<String> graphs = q.getGraphURIs();
-		Logging.logger.trace("Get named graph URIs");
+		logger.trace("Get named graph URIs");
 		List<String> namedGraphs = q.getNamedGraphURIs();
 
 		ret.addAll(extractGraphs(q.getQueryPattern()));
@@ -253,7 +253,7 @@ public class JenaSparqlParsing {
 		if (e == null)
 			return ret;
 
-		Logging.logger.trace("Extract graphs " + e);
+		logger.trace("Extract graphs " + e);
 		if (e.getClass().equals(ElementGroup.class)) {
 			ElementGroup group = (ElementGroup) e;
 			for (Element element : group.getElements()) {

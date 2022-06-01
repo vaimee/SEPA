@@ -20,6 +20,9 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -30,9 +33,9 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public abstract class Client implements java.io.Closeable {
+	protected final Logger logger = LogManager.getLogger();
 
 	protected long TIMEOUT = 60000;
 	protected long NRETRY = 3;
@@ -50,12 +53,12 @@ public abstract class Client implements java.io.Closeable {
 	
 	public Client(JSAP appProfile) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		if (appProfile == null) {
-			Logging.logger.fatal("Application profile is null. Client cannot be initialized");
+			logger.fatal("Application profile is null. Client cannot be initialized");
 			throw new SEPAProtocolException(new IllegalArgumentException("Application profile is null"));
 		}
 		this.appProfile = appProfile;
 
-		Logging.logger.trace("SEPA parameters: " + appProfile.printParameters());
+		logger.trace("SEPA parameters: " + appProfile.printParameters());
 
 		// Security manager
 		if (appProfile.isSecure()) {
@@ -69,7 +72,7 @@ public abstract class Client implements java.io.Closeable {
 			if (oauth.isTokenExpired()) {
 				Response ret = sm.refreshToken();
 				if (ret.isError()) {
-					Logging.logger.error(ret);
+					logger.error(ret);
 					throw new SEPASecurityException(ret.toString());
 				}
 			}

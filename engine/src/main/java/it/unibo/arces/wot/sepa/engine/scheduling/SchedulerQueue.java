@@ -22,12 +22,16 @@ package it.unibo.arces.wot.sepa.engine.scheduling;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SchedulerBeans;
 import it.unibo.arces.wot.sepa.engine.core.ResponseHandler;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 class SchedulerQueue {
+	private static final Logger logger = LogManager.getLogger();
+	
 	// Tokens
 	private final static Vector<Integer> tokens = new Vector<Integer>();
 
@@ -71,14 +75,14 @@ class SchedulerQueue {
 	 */
 	private synchronized int getToken() {
 		if (tokens.size() == 0) {
-			Logging.logger.error("No tokens available");
+			logger.error("No tokens available");
 			return -1;
 		}
 
 		Integer token = tokens.get(0);
 		tokens.removeElementAt(0);
 
-		Logging.logger.trace("Get token #" + token + " (Available: " + tokens.size() + ")");
+		logger.trace("Get token #" + token + " (Available: " + tokens.size() + ")");
 
 		SchedulerBeans.tokenLeft(tokens.size());
 
@@ -96,11 +100,11 @@ class SchedulerQueue {
 			return false;
 
 		if (tokens.contains(token)) {
-			Logging.logger.warn("Token #" + token + " is available (Available tokens: " + tokens.size() + ")");
+			logger.warn("Token #" + token + " is available (Available tokens: " + tokens.size() + ")");
 			return false;
 		} else {
 			tokens.insertElementAt(token, tokens.size());
-			Logging.logger.trace("Release token #" + token + " (Available: " + tokens.size() + ")");
+			logger.trace("Release token #" + token + " (Available: " + tokens.size() + ")");
 
 			SchedulerBeans.tokenLeft(tokens.size());
 		}

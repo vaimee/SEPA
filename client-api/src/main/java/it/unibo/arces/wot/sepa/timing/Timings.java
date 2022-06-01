@@ -16,24 +16,30 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.logging;
+package it.unibo.arces.wot.sepa.timing;
+
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public class Timings {
+	private static final Logger logger = LogManager.getLogger();
+	
 	public static long getTime() {
 		return System.nanoTime();
 	}
 	
 	public synchronized static void log(String tag,long start,long stop) {
 		String message = String.format("%d,%d,%s",System.currentTimeMillis(),stop-start,tag);
-		org.apache.logging.log4j.Level level =Logging.getLevel("timing");
+		Level level =Level.getLevel("timing");
 		if(level==null) {
 			//default
-			Logging.logger.log(org.apache.logging.log4j.Level.TRACE,message);
+			logger.log(Level.TRACE,message);
 		}else {
-			Logging.logger.log(level,message);
+			logger.log(level,message);
 		}
 	}
 	

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -21,6 +23,8 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 
 public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
+	protected static final Logger logger = LogManager.getLogger();
+
 	private static ConfigurationProvider provider;	
 	
 	private static Object mutex = new Object();

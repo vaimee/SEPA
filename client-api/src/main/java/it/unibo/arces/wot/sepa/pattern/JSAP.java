@@ -32,7 +32,9 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.logging.log4j.Logger;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.logging.log4j.LogManager;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -51,7 +53,6 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermBNode;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * JSAP file example
@@ -243,7 +244,7 @@ public class JSAP extends SPARQL11SEProperties {
 		if (uri.startsWith("file:/")) {
 			loadFromFile(uri, dir,validate);
 		} else {
-			Logging.logger.warn("URI not supported: " + uri);
+			logger.warn("URI not supported: " + uri);
 		}
 	}
 
@@ -355,7 +356,7 @@ public class JSAP extends SPARQL11SEProperties {
 			out.write(jsap.toString());
 			out.close();
 		} catch (IOException e) {
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
+			if (logger.isTraceEnabled()) e.printStackTrace();
 			throw new SEPAPropertiesException(e.getMessage());
 		}	
 	}
@@ -433,9 +434,11 @@ public class JSAP extends SPARQL11SEProperties {
 			for (Entry<String, JsonElement> ns : jsap.getAsJsonObject("namespaces").entrySet())
 				namespaces.put(ns.getKey(), ns.getValue().getAsString());
 		} catch (Exception e) {
-			Logging.logger.error("getPrefixes exception: " + e.getMessage());
+			logger.error("getPrefixes exception: " + e.getMessage());
 		}
 	}
+
+	protected static Logger logger = LogManager.getLogger();
 
 	public OAuthProperties getAuthenticationProperties() {
 		return oauth;
@@ -449,7 +452,7 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("sparql11seprotocol").get("reconnect").getAsBoolean();
 		} catch (Exception e) {
-			Logging.logger.warn("sparql11seprotocol-reconnect not found. Default: false");
+			logger.warn("sparql11seprotocol-reconnect not found. Default: false");
 		}
 
 		return false;
@@ -460,7 +463,7 @@ public class JSAP extends SPARQL11SEProperties {
 			if (jsap.has("extended")) return jsap.getAsJsonObject("extended");
 			
 		} catch (Exception e) {
-			Logging.logger.error("Extended data section not found");
+			logger.error("Extended data section not found");
 		}
 		
 		return new JsonObject();
@@ -494,7 +497,7 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("updates").getAsJsonObject(id).get("sparql").getAsString();
 		} catch (Exception e) {
-			Logging.logger.error("SPARQL Update " + id + "  not found");
+			logger.error("SPARQL Update " + id + "  not found");
 		}
 		return null;
 	}
@@ -713,7 +716,7 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("queries").getAsJsonObject(id).get("sparql").getAsString();
 		} catch (Exception e) {
-			Logging.logger.fatal("SPARQL query " + id + " not found");
+			logger.fatal("SPARQL query " + id + " not found");
 		}
 		return null;
 	}
@@ -1092,7 +1095,7 @@ public class JSAP extends SPARQL11SEProperties {
 				ret.add(key.getKey());
 			}
 		} catch (Exception e) {
-			Logging.logger.warn(e.getMessage());
+			logger.warn(e.getMessage());
 		}
 
 		return ret;
@@ -1109,7 +1112,7 @@ public class JSAP extends SPARQL11SEProperties {
 				ret.add(key.getKey());
 			}
 		} catch (Exception e) {
-			Logging.logger.warn(e.getMessage());
+			logger.warn(e.getMessage());
 		}
 
 		return ret;
@@ -1151,7 +1154,7 @@ public class JSAP extends SPARQL11SEProperties {
 					.getAsJsonObject("forcedBindings").entrySet()) {
 
 				if (!binding.getValue().getAsJsonObject().has("type")) {
-					Logging.logger.error("JSAP missing binding type: " + binding);
+					logger.error("JSAP missing binding type: " + binding);
 					continue;
 				}
 
@@ -1179,14 +1182,14 @@ public class JSAP extends SPARQL11SEProperties {
 					bindingValue = new RDFTermBNode(value);
 					break;
 				default:
-					Logging.logger.error("JSAP unknown type: " + binding);
+					logger.error("JSAP unknown type: " + binding);
 					continue;
 				}
 
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
-			Logging.logger.error("getUpdateBindings " + id + " exception: " + e.getMessage());
+			logger.error("getUpdateBindings " + id + " exception: " + e.getMessage());
 		}
 
 		return ret;
@@ -1229,14 +1232,14 @@ public class JSAP extends SPARQL11SEProperties {
 					bindingValue = new RDFTermBNode(value);
 					break;
 				default:
-					Logging.logger.error("JSAP unknown type: " + binding);
+					logger.error("JSAP unknown type: " + binding);
 					continue;
 				}
 
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
-			Logging.logger.error("getQueryBindings " + id + " exception: " + e.getMessage());
+			logger.error("getQueryBindings " + id + " exception: " + e.getMessage());
 		}
 
 		return ret;
@@ -1402,7 +1405,7 @@ public class JSAP extends SPARQL11SEProperties {
 					try {
 						uri = new URI(datatype);
 					} catch (URISyntaxException e) {
-						Logging.logger.error(e.getMessage());
+						logger.error(e.getMessage());
 					}
 
 					if (uri != null) {
@@ -1437,7 +1440,7 @@ public class JSAP extends SPARQL11SEProperties {
 				try {
 					uri = new URI(value);
 				} catch (URISyntaxException e) {
-					Logging.logger.error(e.getMessage());
+					logger.error(e.getMessage());
 				}
 
 				if (uri != null) {
@@ -1446,7 +1449,7 @@ public class JSAP extends SPARQL11SEProperties {
 				}
 			} else {
 				// A blank node
-				Logging.logger.trace("Blank node: " + value);
+				logger.trace("Blank node: " + value);
 				
 				// Not a BLANK_NODE_LABEL
 				// [142]  	BLANK_NODE_LABEL	  ::=  	'_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')* PN_CHARS)?

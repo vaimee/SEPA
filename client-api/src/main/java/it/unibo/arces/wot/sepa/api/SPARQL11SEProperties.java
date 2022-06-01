@@ -19,13 +19,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package it.unibo.arces.wot.sepa.api;
 
 import com.google.gson.JsonElement;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * The Class SPARQL11SEProperties.
@@ -46,6 +47,10 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  * </pre>
  */
 public class SPARQL11SEProperties extends SPARQL11Properties {
+
+	/** The Constant logger. */
+	private static final Logger logger = LogManager.getLogger();
+
 	/**
 	 * The primitives introduced by the SPARQL 1.1 SE Protocol are:
 	 *
@@ -188,7 +193,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 						.get(jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()).getAsJsonObject().get("path").getAsString();
 			
 		} catch (Exception e) {
-			Logging.logger.error(e.getMessage());
+			logger.error(e.getMessage());
 			return null;
 		}
 	}
@@ -204,7 +209,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 						.get(jsap.get("sparql11seprotocol").getAsJsonObject().get("protocol").getAsString()).getAsJsonObject().get("port").getAsInt();
 			
 		} catch (Exception e) {
-			Logging.logger.error(e.getMessage());
+			logger.error(e.getMessage());
 			return -1;
 		}
 	}

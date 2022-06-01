@@ -8,7 +8,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.pattern.Consumer;
 
 public class ConsumerTestUnit extends Consumer {
@@ -21,7 +20,7 @@ public class ConsumerTestUnit extends Consumer {
 	}
 
 	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
-		Logging.logger.debug("subscribe");
+		logger.debug("subscribe");
 		
 		notificationReceived = false;
 		firstResultsReceived = false;
@@ -30,43 +29,43 @@ public class ConsumerTestUnit extends Consumer {
 		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
-			Logging.logger.debug("subscribed");
+			logger.debug("subscribed");
 		}
 	}
 	
 	public void syncUnsubscribe(long timeout,long nretry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
-		Logging.logger.debug("unsubscribe");
+		logger.debug("unsubscribe");
 		
 		super.unsubscribe(timeout,nretry);
 		
 		synchronized(this) {
 			while (isSubscribed()) wait();
-			Logging.logger.debug("ussubscribed");
+			logger.debug("ussubscribed");
 		}
 	}
 	
 	public void waitNotification() throws InterruptedException {
 		synchronized(this) {
-			Logging.logger.debug("waitNotification");
+			logger.debug("waitNotification");
 			while (!notificationReceived) wait();
 			notificationReceived = false;
-			Logging.logger.debug("notification received");
+			logger.debug("notification received");
 		}
 	}
 	
 	public void waitFirstNotification() throws InterruptedException {
 		synchronized(this) {
-			Logging.logger.debug("waitFirstNotification");
+			logger.debug("waitFirstNotification");
 			while (!firstResultsReceived) wait();
 			firstResultsReceived = false;
-			Logging.logger.debug("notification received");
+			logger.debug("notification received");
 		}
 	}
 	
 	@Override
 	public void onResults(ARBindingsResults results) {
 		synchronized(this) {
-			Logging.logger.debug("onResults");
+			logger.debug("onResults");
 			notificationReceived = true;
 			notify();
 		}
@@ -75,7 +74,7 @@ public class ConsumerTestUnit extends Consumer {
 	@Override
 	public void onFirstResults(BindingsResults results) {
 		synchronized(this) {
-			Logging.logger.debug("onFirstResults");
+			logger.debug("onFirstResults");
 			firstResultsReceived = true;
 			notify();
 		}	

@@ -20,6 +20,9 @@ package it.unibo.arces.wot.sepa.engine.processing;
 
 import java.io.IOException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
@@ -34,13 +37,16 @@ import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
-import it.unibo.arces.wot.sepa.logging.Logging;
-import it.unibo.arces.wot.sepa.logging.Timings;
+import it.unibo.arces.wot.sepa.timing.Timings;
 
 class QueryProcessor implements QueryProcessorMBean {
+	protected static final Logger logger = LogManager.getLogger();
+
+//	protected final SPARQL11Protocol endpoint;
 	protected final SPARQL11Properties properties;
 
 	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
+//		this.endpoint = new SPARQL11Protocol();
 		this.properties = properties;
 		
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
@@ -70,25 +76,25 @@ class QueryProcessor implements QueryProcessorMBean {
 			long stop = Timings.getTime();
 			
 			UpdateProcessorBeans.timings(start, stop);
-			Logging.logger.trace("Response: " + ret.toString());
+			logger.trace("Response: " + ret.toString());
 			Timings.log("QUERY_PROCESSING_TIME", start, stop);
 			
 			n++;
 			
 			if (ret.isTimeoutError()) {
 				QueryProcessorBeans.timedOutRequest();
-				Logging.logger.error("*** TIMEOUT *** ("+n+"/"+QueryProcessorBeans.getTimeoutNRetry()+") "+req);
+				logger.error("*** TIMEOUT *** ("+n+"/"+QueryProcessorBeans.getTimeoutNRetry()+") "+req);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					Logging.logger.warn("Failed to sleep...");
+					logger.warn("Failed to sleep...");
 				}
 			}
 		} while(ret.isTimeoutError() && n < QueryProcessorBeans.getTimeoutNRetry());
 		
 		// Request ABORTED
 		if (ret.isTimeoutError()) {
-			Logging.logger.error("*** REQUEST ABORTED *** "+request);
+			logger.error("*** REQUEST ABORTED *** "+request);
 			QueryProcessorBeans.abortedRequest();
 		}
 		

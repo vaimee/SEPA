@@ -26,6 +26,9 @@ import org.apache.http.impl.nio.bootstrap.HttpServer;
 import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
@@ -35,9 +38,10 @@ import it.unibo.arces.wot.sepa.engine.protocol.oauth.JWTRequestHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.oauth.RegisterHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SecureSPARQL11Handler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class HttpsGate {
+	protected static final Logger logger = LogManager.getLogger();
+
 	protected EngineProperties properties;
 	protected Scheduler scheduler;
 
@@ -49,8 +53,7 @@ public class HttpsGate {
 	public HttpsGate(EngineProperties properties, Scheduler scheduler) throws SEPASecurityException, SEPAProtocolException {
 
 		try {
-			final SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
-                        final SecureSPARQL11Handler aclHandler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getAclQueryPath(),properties.getSecurePath() + properties.getAclUpdatePath());
+			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
 
 			server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
 					.setIOReactorConfig(config).setSslContext(Dependability.getSSLContext())
@@ -73,7 +76,6 @@ public class HttpsGate {
 
 		System.out.println("SPARQL 1.1 SE Query  | " + EngineBeans.getSecureQueryURL());
 		System.out.println("SPARQL 1.1 SE Update | " + EngineBeans.getSecureUpdateURL());
-                
 		System.out.println("Client registration  | " + EngineBeans.getRegistrationURL());
 		System.out.println("Token request        | " + EngineBeans.getTokenRequestURL());
 	}
@@ -84,7 +86,7 @@ public class HttpsGate {
 		try {
 			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
-			Logging.logger.debug(serverInfo+" interrupted: " + e.getMessage());
+			logger.debug(serverInfo+" interrupted: " + e.getMessage());
 		}
 	}
 }

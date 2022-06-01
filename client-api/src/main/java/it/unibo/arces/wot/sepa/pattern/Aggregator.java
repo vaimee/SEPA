@@ -18,8 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
-import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -29,6 +31,8 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 
 public abstract class Aggregator extends Consumer implements IConsumer, IProducer {
+	protected static final Logger logger = LogManager.getLogger();
+	
 	private final String sparqlUpdate;
 	protected final String updateId;
 	private final ForcedBindings updateForcedBindings;
@@ -39,12 +43,12 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		super(appProfile, subscribeID);
 
 		if (updateID == null) {
-			Logging.logger.fatal("Update ID is null");
+			logger.fatal("Update ID is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Update ID is null null"));
 		}
 
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
-			Logging.logger.fatal("UPDATE ID " + updateID + " not found in " + appProfile.getFileName());
+			logger.fatal("UPDATE ID " + updateID + " not found in " + appProfile.getFileName());
 			throw new IllegalArgumentException("UPDATE ID " + updateID + " not found in " + appProfile.getFileName());
 		}
 
@@ -70,7 +74,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 					appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
 					appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),authorizationHeader,timeout,nRetry);
 		
-		Logging.logger.debug("UPDATE "+req);
+		logger.debug("UPDATE "+req);
 		
 		 Response retResponse = sparql11.update(req);
 		 
@@ -81,10 +85,10 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 //					try {
 //						sm.refreshToken();
 //					} catch (SEPAPropertiesException | SEPASecurityException e) {
-//						Logging.logger.error("Failed to refresh token: " + e.getMessage());
+//						logger.error("Failed to refresh token: " + e.getMessage());
 //					}
 //				} else {
-//					Logging.logger.error("Failed to refresh token: " + errorResponse);
+//					logger.error("Failed to refresh token: " + errorResponse);
 //					return errorResponse;
 //				}
 //

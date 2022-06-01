@@ -4,14 +4,18 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class UsersSync {
+	protected static Logger logger = LogManager.getLogger();
+
 	private final IUsersSync ldap;
 	private final IUsersAcl isql;
 
@@ -27,14 +31,14 @@ public class UsersSync {
 					try {
 						Thread.sleep(5000);
 					} catch (InterruptedException e) {
-						Logging.logger.debug(e.getMessage());
+						logger.debug(e.getMessage());
 						return;
 					}
 
 					try {
 						updateUsers(ldap.sync(), users);
 					} catch (SEPASecurityException e) {
-						Logging.logger.error(e.getMessage());
+						logger.error(e.getMessage());
 					}
 				}
 			}

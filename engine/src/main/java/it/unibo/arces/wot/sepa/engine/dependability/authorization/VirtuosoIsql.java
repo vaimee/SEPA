@@ -9,16 +9,19 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Map.Entry;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class VirtuosoIsql implements IUsersAcl{
-
+	protected static Logger logger = LogManager.getLogger();
+	
 	private final String endpointUsersPassword;
 	private final ProcessBuilder ps;
 	
@@ -30,7 +33,7 @@ public class VirtuosoIsql implements IUsersAcl{
 	}
 	
 	public void createUser(String uid, JsonElement graphs) throws SEPASecurityException {
-		Logging.logger.info("createUser "+uid+" "+graphs);
+		logger.info("createUser "+uid+" "+graphs);
 		new File("command.sql").delete();
 		
 		try {
@@ -62,7 +65,7 @@ public class VirtuosoIsql implements IUsersAcl{
 	}
 
 	public void updateUser(String uid, JsonObject addGraphs, JsonArray removeGraphs) throws SEPASecurityException {
-		Logging.logger.info("updateUser "+uid+" add:"+addGraphs+" remove:"+removeGraphs);
+		logger.info("updateUser "+uid+" add:"+addGraphs+" remove:"+removeGraphs);
 		
 		if (new File("command.sql").exists()) new File("command.sql").delete();
 		
@@ -87,7 +90,7 @@ public class VirtuosoIsql implements IUsersAcl{
 	}
 
 	public void removeUser(String uid) throws SEPASecurityException {
-		Logging.logger.info("removeUser "+uid);
+		logger.info("removeUser "+uid);
 		
 		if (new File("command.sql").exists()) new File("command.sql").delete();
 		
@@ -106,19 +109,19 @@ public class VirtuosoIsql implements IUsersAcl{
 	}
 	
 	private void isql() throws IOException, InterruptedException {
-		Logging.logger.log(Logging.getLevel("ldap"),"*** Execute isql *** ");
+		logger.log(Level.getLevel("ldap"),"*** Execute isql *** ");
 
 		Process pr = ps.start();
 
 		BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 		String line;
 		while ((line = in.readLine()) != null) {
-			Logging.logger.log(Logging.getLevel("ldap"),line);
+			logger.log(Level.getLevel("ldap"),line);
 		}
 		pr.waitFor();
 
 		in.close();
 
-		Logging.logger.log(Logging.getLevel("ldap"),"*** Execute isql END ***");
+		logger.log(Level.getLevel("ldap"),"*** Execute isql END ***");
 	}
 }

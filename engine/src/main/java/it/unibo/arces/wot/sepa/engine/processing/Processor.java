@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -37,9 +39,9 @@ import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolExceptio
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * This class implements the processing of the requests coming form the
@@ -50,6 +52,8 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  * @version 0.9.12
  */
 public class Processor implements ProcessorMBean {
+	private final Logger logger = LogManager.getLogger();
+
 	// Processor threads
 	private final UpdateProcessingThread updateProcessingThread;
 	private final SubscribeProcessingThread subscribeProcessingThread;
@@ -100,6 +104,8 @@ public class Processor implements ProcessorMBean {
 		QueryProcessorBeans.setTimeout(properties.getQueryTimeout());
 		UpdateProcessorBeans.setTimeout(properties.getUpdateTimeout());
 		UpdateProcessorBeans.setReilable(properties.isUpdateReliable());
+		
+		this.inMemoryDoubleStore=properties.isInMemoryDoubleStore();
 	}
 
 	public boolean isRunning() {
@@ -182,7 +188,7 @@ public class Processor implements ProcessorMBean {
 
 		// STOP processing?
 		if (ret.isError()) {
-			Logging.logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
+			logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
 			spuManager.abortSubscriptionsProcessing();
 			return ret;
 		}
@@ -274,5 +280,9 @@ public class Processor implements ProcessorMBean {
 	@Override
 	public String getEndpointQueryMethod() {
 		return ProcessorBeans.getEndpointQueryMethod();
+	}
+	
+	public boolean isInMemoryDoubleStore() {
+		return this.inMemoryDoubleStore;
 	}
 }

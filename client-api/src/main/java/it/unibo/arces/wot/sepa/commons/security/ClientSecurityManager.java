@@ -25,6 +25,8 @@ import java.util.Date;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -33,9 +35,12 @@ import it.unibo.arces.wot.sepa.commons.response.JWTResponse;
 import it.unibo.arces.wot.sepa.commons.response.RegistrationResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties.OAUTH_PROVIDER;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class ClientSecurityManager implements Closeable {
+
+	/** The log4j2 logger. */
+	private static final Logger logger = LogManager.getLogger();
+
 	private final OAuthProperties oauthProperties;
 	
 	private final AuthenticationService oauth;
@@ -65,7 +70,7 @@ public class ClientSecurityManager implements Closeable {
 			RegistrationResponse reg = (RegistrationResponse) ret;
 			oauthProperties.setCredentials(reg.getClientId(), reg.getClientSecret());
 		} else {
-			Logging.logger.error(ret);
+			logger.error(ret);
 		}
 
 		return ret;
@@ -85,11 +90,11 @@ public class ClientSecurityManager implements Closeable {
 		if (ret.isJWTResponse()) {
 			JWTResponse jwt = (JWTResponse) ret;
 
-			Logging.logger.debug("New token: " + jwt);
+			logger.debug("New token: " + jwt);
 
 			oauthProperties.setJWT(jwt);
 		} else {
-			Logging.logger.error("FAILED to refresh token " + new Date() + " Response: " + ret);
+			logger.error("FAILED to refresh token " + new Date() + " Response: " + ret);
 		}
 
 		return ret;

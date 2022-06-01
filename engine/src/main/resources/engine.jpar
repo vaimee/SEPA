@@ -6,7 +6,7 @@
 		},
 		"processor": {
 			"updateTimeout": 5000,
-			"queryTimeout": 30000,
+			"queryTimeout": 10000,
 			"maxConcurrentRequests": 5
 		},
 		"spu": {
@@ -23,8 +23,8 @@
 				"wss": 9443
 			},
 			"paths": {
-				"update": "/sparql",
-				"query": "/sparql",
+				"update": "/update",
+				"query": "/query",
 				"subscribe": "/subscribe",
 				"register": "/oauth/register",
 				"tokenRequest": "/oauth/token",

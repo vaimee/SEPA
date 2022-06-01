@@ -3,14 +3,18 @@ package it.unibo.arces.wot.sepa;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class Sync implements ISubscriptionHandler {
+	protected final Logger logger = LogManager.getLogger();
+
 	private static long events = 0;
 	private static long subscribes = 0;
 	private static long unsubscribes = 0;
@@ -30,7 +34,7 @@ public class Sync implements ISubscriptionHandler {
 	}
 
 	public synchronized void reset() {
-		Logging.logger.trace("ISubscriptionHandler reset");
+		logger.trace("ISubscriptionHandler reset");
 		subscribes = 0;
 		events = 0;
 		unsubscribes = 0;
@@ -58,7 +62,7 @@ public class Sync implements ISubscriptionHandler {
 		synchronized (subscribesMutex) {
 			while (subscribes < total) {
 				try {
-					Logging.logger.trace("waitSubscribes");
+					logger.trace("waitSubscribes");
 					subscribesMutex.wait();
 				} catch (InterruptedException e) {
 					break;
@@ -69,7 +73,7 @@ public class Sync implements ISubscriptionHandler {
 
 	public void onConnection() {
 		synchronized (connectionsMutex) {
-			Logging.logger.trace("onUnsubscribe");
+			logger.trace("onUnsubscribe");
 			connections++;
 			connectionsMutex.notify();
 		}
@@ -79,7 +83,7 @@ public class Sync implements ISubscriptionHandler {
 		synchronized (connectionsMutex) {
 			while (connections < total) {
 				try {
-					Logging.logger.trace("waitEvents");
+					logger.trace("waitEvents");
 					connectionsMutex.wait();
 				} catch (InterruptedException e) {
 					break;
@@ -92,7 +96,7 @@ public class Sync implements ISubscriptionHandler {
 		synchronized (eventsMutex) {
 			while (events < total) {
 				try {
-					Logging.logger.trace("waitEvents");
+					logger.trace("waitEvents");
 					eventsMutex.wait();
 				} catch (InterruptedException e) {
 					break;
@@ -105,7 +109,7 @@ public class Sync implements ISubscriptionHandler {
 		synchronized (unsubscribesMutex) {
 			while (unsubscribes < total) {
 				try {
-					Logging.logger.trace("waitUnsubscribes");
+					logger.trace("waitUnsubscribes");
 					unsubscribesMutex.wait();
 				} catch (InterruptedException e) {
 					break;
@@ -117,7 +121,7 @@ public class Sync implements ISubscriptionHandler {
 	@Override
 	public void onSemanticEvent(Notification notify) {
 		synchronized (eventsMutex) {
-			Logging.logger.trace("onSemanticEvent");
+			logger.trace("onSemanticEvent");
 			events++;
 			eventsMutex.notify();
 		}
@@ -125,25 +129,25 @@ public class Sync implements ISubscriptionHandler {
 
 	@Override
 	public void onBrokenConnection(ErrorResponse errorResponse) {
-		if (errorResponse.getStatusCode() != 1000) Logging.logger.error(errorResponse);
-		else Logging.logger.warn(errorResponse);
+		if (errorResponse.getStatusCode() != 1000) logger.error(errorResponse);
+		else logger.warn(errorResponse);
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		Logging.logger.error(errorResponse);
+		logger.error(errorResponse);
 //		if (errorResponse.isTokenExpiredError())
 //			try {
 //				sm.refreshToken();
 //			} catch (SEPAPropertiesException | SEPASecurityException e) {
-//				Logging.logger.error("Failed to refresh token. "+e.getMessage());
+//				logger.error("Failed to refresh token. "+e.getMessage());
 //			}
 	}
 
 	@Override
 	public void onSubscribe(String id, String alias) {
 		synchronized (subscribesMutex) {
-			Logging.logger.trace("onSubscribe");
+			logger.trace("onSubscribe");
 			spuid.put(alias, id);
 			subscribes++;
 			subscribesMutex.notify();
@@ -153,7 +157,7 @@ public class Sync implements ISubscriptionHandler {
 	@Override
 	public void onUnsubscribe(String id) {
 		synchronized (unsubscribesMutex) {
-			Logging.logger.trace("onUnsubscribe");
+			logger.trace("onUnsubscribe");
 			spuid.remove(id);
 			unsubscribes++;
 			unsubscribesMutex.notify();

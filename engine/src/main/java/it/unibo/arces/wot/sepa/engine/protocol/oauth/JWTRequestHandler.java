@@ -29,19 +29,22 @@ import org.apache.http.nio.protocol.HttpAsyncExchange;
 import org.apache.http.nio.protocol.HttpAsyncRequestConsumer;
 import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 import org.apache.http.protocol.HttpContext;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * The class implements the "client_credentials" OAuth 2.0 grant
  * */
 
 public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
+	protected static final Logger logger = LogManager.getLogger();
+
 	public JWTRequestHandler() throws IllegalArgumentException {
 
 	}
@@ -62,13 +65,13 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 
 	protected boolean corsHandling(HttpAsyncExchange exchange) {
 		if (!Dependability.processCORSRequest(exchange)) {
-			Logging.logger.error("CORS origin not allowed");
+			logger.error("CORS origin not allowed");
 			HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error","CORS origin not allowed"));
 			return false;
 		}
 
 		if (Dependability.isPreFlightRequest(exchange)) {
-			Logging.logger.warn("Preflight request");
+			logger.warn("Preflight request");
 			HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
 			return false;
 		}
@@ -77,7 +80,7 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 	}
 	
 	private void handleTokenRequest(HttpRequest request, HttpAsyncExchange httpExchange) {
-		Logging.logger.info(">> REQUEST TOKEN");
+		logger.info(">> REQUEST TOKEN");
 
 		Header[] headers;
 		// Parsing and validating request headers
@@ -85,17 +88,17 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		// Accept: application/json
 		headers = request.getHeaders("Content-Type");
 		if (headers.length == 0) {
-			Logging.logger.error("Content-Type is missing");
+			logger.error("Content-Type is missing");
 			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "content_type_error","Content-Type is missing"));
 			return;
 		}
 		if (headers.length > 1) {
-			Logging.logger.error("Too many Content-Type headers");
+			logger.error("Too many Content-Type headers");
 			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "content_type_error","Too many Content-Type headers"));
 			return;
 		}
 		if (!headers[0].getValue().equals("application/json")) {
-			Logging.logger.error("Content-Type must be: application/json");
+			logger.error("Content-Type must be: application/json");
 			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_BAD_REQUEST,"content_type_error",
 					"Content-Type must be: application/json"));
 			return;
@@ -103,17 +106,17 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 
 		headers = request.getHeaders("Accept");
 		if (headers.length == 0) {
-			Logging.logger.error("Accept is missing");
+			logger.error("Accept is missing");
 			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "accept_error","Accept is missing"));
 			return;
 		}
 		if (headers.length > 1) {
-			Logging.logger.error("Too many Accept headers");
+			logger.error("Too many Accept headers");
 			HttpUtilities.sendFailureResponse(httpExchange,new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "accept_error","Too many Accept headers"));
 			return;
 		}
 		if (!headers[0].getValue().equals("application/json")) {
-			Logging.logger.error("Accept must be: application/json");
+			logger.error("Accept must be: application/json");
 			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "accept_error","Accept must be: application/json"));
 			return;
 		}
@@ -121,7 +124,7 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		// Authorization header
 		headers = request.getHeaders("Authorization");
 		if (headers.length != 1) {
-			Logging.logger.error("Authorization is missing or multiple");
+			logger.error("Authorization is missing or multiple");
 			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"unauthorized_client", "Authorization is missing or multiple"));
 			return;
 		}
@@ -130,7 +133,7 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		String basic = headers[0].getValue();
 
 		if (!basic.startsWith("Basic ")) {
-			Logging.logger.error("Authorization must be \"Basic Basic64(<client_id>:<client_secret>)\"");
+			logger.error("Authorization must be \"Basic Basic64(<client_id>:<client_secret>)\"");
 			HttpUtilities.sendFailureResponse(httpExchange,  new ErrorResponse(HttpStatus.SC_UNAUTHORIZED,"unauthorized_client","Authorization must be \"Basic Basic64(<client_id>:<client_secret>)\""));
 			return;
 		}
@@ -142,15 +145,15 @@ public class JWTRequestHandler implements HttpAsyncRequestHandler<HttpRequest> {
 		try {
 			token = Dependability.getToken(basic.split(" ")[1]);
 		} catch (SEPASecurityException e) {
-			Logging.logger.error(e.getMessage());
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
+			logger.error(e.getMessage());
+			if (logger.isTraceEnabled()) e.printStackTrace();
 			HttpUtilities.sendFailureResponse(httpExchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR,"dependability_not_configured", e.getMessage()));
 			return;
 		}
 
 		if (token.getClass().equals(ErrorResponse.class)) {
 			ErrorResponse error = (ErrorResponse) token;
-			Logging.logger.error(token.toString());
+			logger.error(token.toString());
 			HttpUtilities.sendFailureResponse(httpExchange, error);
 		} else {
 			HttpUtilities.sendResponse(httpExchange, HttpStatus.SC_CREATED, token.toString());

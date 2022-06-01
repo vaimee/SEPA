@@ -1,11 +1,13 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
@@ -28,6 +30,8 @@ import org.apache.jena.sparql.lang.SPARQLParser;
 
 public class ARQuadsAlgorithm {
 
+	private static SPARQLParser sparqlParser = SPARQLParser.createParser(Syntax.syntaxSPARQL_11);
+	
 	public static InternalUpdateRequestWithQuads extractARQuads(InternalUpdateRequest update, QueryProcessor queryProcessor) throws SEPAProcessingException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		return new InternalUpdateRequestWithQuads(update.getSparql(), update.getDefaultGraphUri(), update.getNamedGraphUri(), update.getClientAuthorization(), new FakeLUTT());
 	}
