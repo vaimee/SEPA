@@ -22,12 +22,10 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import com.google.gson.Gson;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * <pre>
@@ -71,7 +69,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
  * </pre>
  */
 public class EngineProperties {
-	private static final transient Logger logger = LogManager.getLogger();
 
 	private static final transient String defaultsFileName = "engine.jpar";
 
@@ -87,7 +84,10 @@ public class EngineProperties {
 	private Parameters parameters = new Parameters();
 
 	private EngineProperties() {}
-
+        public static EngineProperties newInstanceDefault() throws SEPAPropertiesException  {
+            EngineProperties result  = EngineProperties.load(defaultsFileName);
+            return result;
+        }
 	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		EngineProperties result = EngineProperties.load(propertiesFile);
 		result.parameters.gates.security.enabled = secure;
@@ -106,15 +106,15 @@ public class EngineProperties {
 		try {
 			result = gson.fromJson(new FileReader(propertiesFile), EngineProperties.class);
 		} catch (Exception e) {
-			logger.warn(e.getMessage());
+			Logging.logger.warn(e.getMessage());
 			result = defaults();
 			try {
 				result.storeProperties(defaultsFileName);
 			} catch (IOException e1) {
-				logger.error(e1.getMessage());
+				Logging.logger.error(e1.getMessage());
 				throw new SEPAPropertiesException(e1);
 			}
-			logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
+			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
 		}
 
 		_istance=result;
@@ -139,7 +139,7 @@ public class EngineProperties {
 
 		// Processor
 		result.parameters.processor.updateTimeout = 5000;
-		result.parameters.processor.queryTimeout = 5000;
+		result.parameters.processor.queryTimeout = 30000;
 		result.parameters.processor.maxConcurrentRequests = 5;
 		result.parameters.processor.reliableUpdate = true;
 		result.parameters.processor.inMemoryDoubleStore = true;
@@ -161,8 +161,8 @@ public class EngineProperties {
 
 		// Gates -> Paths
 		result.parameters.gates.paths.secure = "/secure";
-		result.parameters.gates.paths.update = "/update";
-		result.parameters.gates.paths.query = "/query";
+		result.parameters.gates.paths.update = "/sparql";
+		result.parameters.gates.paths.query = "/sparql";
 		result.parameters.gates.paths.subscribe = "/subscribe";
 		result.parameters.gates.paths.unsubscribe = "/unsubscribe";
 		result.parameters.gates.paths.register = "/oauth/register";
@@ -284,7 +284,10 @@ public class EngineProperties {
 		public Processor processor = new Processor();
 		public Spu spu = new Spu();
 		public Gates gates = new Gates();
-	
+		
+		public Acl   acl = new Acl();
+		public DatasetConfiguration dsConfig = new DatasetConfiguration();
+
 	}
 
 	static private class Scheduler {
@@ -375,5 +378,96 @@ public class EngineProperties {
 			wss   = 9443;
 		}
 	}
+        
+        static private class Acl {
+                public  boolean     enabled     =   true;
+                public  String      type        =   ACL_TYPE_DS;  //allowed: dataset/json
+                public  String      mode        =   DS_MODE_MEM;     /*
+                                                                    Valid values depends on type :
+                                                                    *) type == dataset
+                                                                        -) mode = tdb2  tdb2 persistency
+                                                                        -) mode = tdb1  tdb1 persistency
+                                                                        -) mode = mem   not persistent
+                                                                    *) type == json : no value required
+                                                                        
+                                                                */
+                public String       path = "./acl";             /*
+                                                                    Valid values depends on type :
+                                                                    *) type == dataset/tdb1|tdb2
+                                                                        -) path = path of tdbx persistent data
+
+                                                                    *) type == json : full path of json file
+                                                                        
+                                                                */
+                
+                
+                public String       queryPath       = "/acl/query//";
+                public String       updatePath      = "/acl/update/";
+                
+        }
+        
+        public boolean  isAclEnabled() {
+            return parameters.acl.enabled;
+        }
+        
+        public String getAclType() {
+            return parameters.acl.type;
+        }
+        
+        public String getAclMode() {
+            return parameters.acl.mode;
+        }
+        
+        public String getAclPath() {
+            return parameters.acl.path;
+        }
+        
+        
+        public String getAclQueryPath() {
+            return parameters.acl.queryPath;
+        }
+        public String getAclUpdatePath() {
+            return parameters.acl.updatePath;
+        }
+        
+        private static class    DatasetData {
+                public  String      mode        =   DS_MODE_MEM ;     /*
+                                                                    -) mode = tdb2  tdb2 persistency
+                                                                    -) mode = tdb1  tdb1 persistency
+                                                                    -) mode = mem   not persistent
+                                                                */
+                public String       path        =   "";         //path of dataset is mode is tdb1 or tdb2
+        }
+        private static class    DatasetConfiguration {
+            public boolean          enable2P = false;
+            public DatasetData      firstDS  = new DatasetData();
+            public DatasetData      secondDS = new DatasetData();
+            
+            
+        }
+        
+        public static final String    DS_MODE_MEM     =   "mem";
+        public static final String    DS_MODE_TDB2    =   "tdb2";
+        public static final String    DS_MODE_TDB1    =   "tdb1";
+        
+        public static final String    ACL_TYPE_DS     =   "dataset";
+        public static final String    ACL_TYPE_JSON   =   "json";
+        
+        public boolean is2PEnabled() {
+            return parameters.dsConfig.enable2P;
+        }
+        
+        public String   getFirstDatasetMode() {
+            return parameters.dsConfig.firstDS.mode;
+        }
+        public String   getFirstDatasetPath() {
+            return parameters.dsConfig.firstDS.path;
+        }
+        public String   getSecondDatasetMode() {
+            return parameters.dsConfig.secondDS.mode;
+        }
+        public String   getSecondDatasetPath() {
+            return parameters.dsConfig.secondDS.path;
+        }
 	
 }

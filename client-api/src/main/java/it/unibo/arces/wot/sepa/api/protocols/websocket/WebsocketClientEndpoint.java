@@ -29,9 +29,6 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
@@ -46,10 +43,9 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class WebsocketClientEndpoint extends Endpoint implements Closeable {
-	protected final Logger logger = LogManager.getLogger();
-
 	protected final ISubscriptionHandler handler;
 
 	protected final ClientManager client;
@@ -71,14 +67,14 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		try {
 			session = client.connectToServer(this, url);
 		} catch (DeploymentException | IOException e) {
-			logger.error("Connect to: "+url+" exception "+e.getClass().getName()+" "+e.getMessage());
+			Logging.logger.error("Connect to: "+url+" exception "+e.getClass().getName()+" "+e.getMessage());
 			throw new SEPAProtocolException(e.getMessage());
 		}
 	}
 
 	@Override
 	public void close() throws IOException {
-		logger.trace("Close");
+		Logging.logger.trace("Close");
 		
 		if (session != null)
 			session.close();
@@ -88,21 +84,21 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 
 	@Override
 	public void onOpen(Session session, EndpointConfig config) {
-		logger.debug("@onOpen session: " + session.getId());
+		Logging.logger.debug("@onOpen session: " + session.getId());
 
 		this.session = session;
 
 		session.addMessageHandler(String.class, new MessageHandler.Whole<String>() {
 			@Override
 			public void onMessage(String message) {
-				logger.trace("@onMessage: " + message);
+				Logging.logger.trace("@onMessage: " + message);
 
 				// Parse message
 				JsonObject jsonMessage = null;
 				try {
 					jsonMessage = new JsonParser().parse(message).getAsJsonObject();
 				} catch (Exception e) {
-					logger.error("Exception on parsing message: " + message + " exception: " + e.getMessage());
+					Logging.logger.error("Exception on parsing message: " + message + " exception: " + e.getMessage());
 					return;
 				}
 
@@ -117,11 +113,11 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 						if (notification.has("alias"))
 							alias = notification.get("alias").getAsString();
 						try {
-							logger.trace("Subscribed: " + spuid + " alias: " + alias);
+							Logging.logger.trace("Subscribed: " + spuid + " alias: " + alias);
 							handler.onSubscribe(spuid, alias);
 						} catch (Exception e) {
 							e.printStackTrace();
-							logger.error("Exception on handling onSubscribe. Handler: " + handler + " Exception: "
+							Logging.logger.error("Exception on handling onSubscribe. Handler: " + handler + " Exception: "
 									+ e.getMessage());
 							return;
 						}
@@ -129,48 +125,48 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 
 					// Event
 					try {
-						logger.trace("Message received: " + jsonMessage);
+						Logging.logger.trace("Message received: " + jsonMessage);
 						Notification notify = new Notification(jsonMessage);
-						logger.trace("Notification: " + notify);
+						Logging.logger.trace("Notification: " + notify);
 						handler.onSemanticEvent(notify);
 					} catch (Exception e) {
-						logger.error("Exception on handling onSemanticEvent. Handler: " + handler + " Exception: "
+						Logging.logger.error("Exception on handling onSemanticEvent. Handler: " + handler + " Exception: "
 								+ e.getMessage());
 					}
 				} else if (jsonMessage.has("error")) {
 					ErrorResponse error = new ErrorResponse(jsonMessage.get("status_code").getAsInt(),
 							jsonMessage.get("error").getAsString(), jsonMessage.get("error_description").getAsString());
-					logger.error(error);
+					Logging.logger.error(error);
 					try {
 						handler.onError(error);
 					} catch (Exception e) {
 						e.printStackTrace();
-						logger.error(
+						Logging.logger.error(
 								"Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
 					}
 				} else if (jsonMessage.has("unsubscribed")) {
-					logger.debug("unsubscribed");
+					Logging.logger.debug("unsubscribed");
 					try {
 						handler.onUnsubscribe(
 								jsonMessage.get("unsubscribed").getAsJsonObject().get("spuid").getAsString());
 					} catch (Exception e) {
-						logger.error("Exception on handling onUnsubscribe. Handler: " + handler + " Exception: "
+						Logging.logger.error("Exception on handling onUnsubscribe. Handler: " + handler + " Exception: "
 								+ e.getMessage());
 					}
 				} else
-					logger.error("Unknown message: " + message);
+					Logging.logger.error("Unknown message: " + message);
 			}
 		});
 	}
 
 	@Override
 	public void onClose(Session session, CloseReason closeReason) {
-		logger.warn("onClose session: " + session + " reason: " + closeReason);
+		Logging.logger.warn("onClose session: " + session + " reason: " + closeReason);
 
 		try {
 			handler.onBrokenConnection(new ErrorResponse(closeReason.getCloseCode().getCode(), closeReason.getCloseCode().toString(), closeReason.getReasonPhrase()));
 		} catch (Exception e) {
-			logger.error(
+			Logging.logger.error(
 					"Exception on handling onBrokenConnection. Handler: " + handler + " Exception: " + e.getMessage());
 		}
 	}
@@ -190,14 +186,14 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		}
 		
 		if (error.getStatusCode() != 1000) {
-			logger.error(error);
+			Logging.logger.error(error);
 			try {
 				handler.onError(error);
 			} catch (Exception e) {
-				logger.error("Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
+				Logging.logger.error("Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
 			}
 		}
-		else logger.warn(error);
+		else Logging.logger.warn(error);
 
 	}
 

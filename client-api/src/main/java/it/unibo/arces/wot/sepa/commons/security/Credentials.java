@@ -29,13 +29,10 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class Credentials implements Serializable  {
-	private static final Logger logger = LogManager.getLogger();
 	private static final long serialVersionUID = 7444283028651497389L;
 	private String user;
 	private String password;
@@ -64,7 +61,7 @@ public class Credentials implements Serializable  {
 		try {
 			return "Basic " + new String(Base64.getEncoder().encode(plainString.getBytes("UTF-8")), "UTF-8");
 		} catch (UnsupportedEncodingException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			throw new SEPASecurityException(e.getMessage());
 		}
 	}
@@ -78,7 +75,7 @@ public class Credentials implements Serializable  {
 			out.flush();
 			return bos.toByteArray();
 		} catch (IOException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			throw new SEPASecurityException("Serialize exception: "+e.getMessage());
 		} finally {
 			try {
@@ -96,7 +93,7 @@ public class Credentials implements Serializable  {
 		  in = new ObjectInputStream(bis);
 		 return (Credentials) in.readObject(); 
 		} catch (IOException | ClassNotFoundException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			throw new SEPASecurityException("Deserialize exception: "+e.getMessage());
 		} finally {
 		  try {

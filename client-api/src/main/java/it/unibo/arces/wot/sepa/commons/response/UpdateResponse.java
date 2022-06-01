@@ -20,8 +20,6 @@ package it.unibo.arces.wot.sepa.commons.response;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import java.util.Set;
-import org.apache.jena.sparql.core.Quad;
 
 
 
@@ -36,17 +34,9 @@ public class UpdateResponse extends Response {
 	 * @param body
 	 *            the body
 	 */
-        public final Set<Quad>     updatedTuples;
-        public final Set<Quad>     removedTuples;
-        
-        public UpdateResponse(Set<Quad> r, Set<Quad> u) {
-            updatedTuples = u;
-            removedTuples = r;
-        }
 	public UpdateResponse(String body) {
 		super();
-                updatedTuples = null;
-                removedTuples = null;
+
 		try {
 			JsonObject jbody = new JsonParser().parse(body).getAsJsonObject();
 			

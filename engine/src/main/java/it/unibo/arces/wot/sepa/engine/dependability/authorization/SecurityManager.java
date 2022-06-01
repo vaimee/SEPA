@@ -29,8 +29,6 @@ import java.util.UUID;
 import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -60,9 +58,9 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.commons.security.Credentials;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public abstract class SecurityManager implements IAuthorization,ISecurityManager {
-	protected static final Logger logger = LogManager.getLogger();
 	
 	// *************************
 	// JWT signing and verifying
@@ -87,8 +85,8 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 			
 			if (signing) setupSigning(jwk);
 		} catch (JOSEException e) {
-			logger.error(e.getMessage());
-			if (logger.isTraceEnabled()) e.printStackTrace();
+			Logging.logger.error(e.getMessage());
+			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
 	}
@@ -115,8 +113,8 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		// Serialize the public key to be deliverer during registration
 		jwkPublicKey = new JsonParser().parse(jwk.toPublicJWK().toJSONString());
 		
-		logger.debug("Public key to validate JWT");
-		logger.debug(jwkPublicKey);
+		Logging.logger.debug("Public key to validate JWT");
+		Logging.logger.debug(jwkPublicKey);
 
 		// Set up a JWT processor to parse the tokens and then check their signature
 		// and validity time window (bounded by the "iat", "nbf" and "exp" claims)
@@ -130,7 +128,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 	}
 	
 	public void securityCheck(String identity) throws SEPASecurityException {
-		logger.info("*** Security check ***");
+		Logging.logger.info("*** Security check ***");
 		// Add identity
 		addAuthorizedIdentity(new ApplicationIdentity(identity));
 
@@ -142,30 +140,30 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 
 			// Get token
 			String encodedCredentials = Base64.getEncoder().encodeToString(basicAuth.getBytes());
-			logger.debug("Authorization Basic " + encodedCredentials);
+			Logging.logger.debug("Authorization Basic " + encodedCredentials);
 			response = getToken(encodedCredentials);
 
 			if (response.getClass().equals(JWTResponse.class)) {
-				logger.debug("Access token: " + ((JWTResponse) response).getAccessToken());
+				Logging.logger.debug("Access token: " + ((JWTResponse) response).getAccessToken());
 
 				// Validate token
 				ClientAuthorization authRet = validateToken(((JWTResponse) response).getAccessToken());
 				if (authRet.isAuthorized()) {
 					removeCredentials(new ApplicationIdentity(ret.getClientId()));
 					removeJwt(ret.getClientId());
-					logger.info("*** PASSED ***");
+					Logging.logger.info("*** PASSED ***");
 				}
 				else {
-					logger.error(authRet.getError());
-					logger.info("*** FAILED ***");
+					Logging.logger.error(authRet.getError());
+					Logging.logger.info("*** FAILED ***");
 				}
 			} else {
-				logger.debug(response.toString());
-				logger.info("*** FAILED ***");
+				Logging.logger.debug(response.toString());
+				Logging.logger.info("*** FAILED ***");
 			}
 		} else {
-			logger.debug(response.toString());
-			logger.info("*** FAILED ***");
+			Logging.logger.debug(response.toString());
+			Logging.logger.info("*** FAILED ***");
 			// Remove identity
 			removeAuthorizedIdentity(identity);
 		}
@@ -207,17 +205,17 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 	 * @throws SEPASecurityException
 	 */
 	public synchronized Response register(String uid) {
-		logger.info("REGISTER: " + uid);
+		Logging.logger.info("REGISTER: " + uid);
 
 		// Check if entity is authorized to request credentials
 		try {
 			if (!isAuthorized(uid)) {
-				logger.warn("Not authorized identity " + uid);
+				Logging.logger.warn("Not authorized identity " + uid);
 				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "not_authorized_identity",
 						"Client " + uid + " is not authorized");
 			}
 		} catch (SEPASecurityException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "not_authorized_identity",
 					"Exception on authorizing client " + uid+ " "+e.getMessage());
 		}
@@ -228,7 +226,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		try {
 			forTesting = isForTesting(uid);
 		} catch (SEPASecurityException e1) {
-			logger.error(e1.getMessage());
+			Logging.logger.error(e1.getMessage());
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "check_for_testing",
 			
 					"Exception on for test checking " + uid+ " "+e1.getMessage());
@@ -243,7 +241,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 						"Failed to store credentials for uid:"+uid);
 			}
 		} catch (SEPASecurityException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "storing_credentials",
 					"Exception on storing credentials " + uid+ " "+e.getMessage());
 		}
@@ -253,7 +251,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 			try {
 				removeAuthorizedIdentity(uid);
 			} catch (SEPASecurityException e) {
-				logger.error(e.getMessage());
+				Logging.logger.error(e.getMessage());
 				return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "remove_identity",
 						"Exception on removing identity " + uid+ " "+e.getMessage());
 			}
@@ -332,14 +330,14 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		</pre>
 	 */
 	public synchronized Response getToken(String encodedCredentials) {
-		logger.debug("GET TOKEN");
+		Logging.logger.debug("GET TOKEN");
 
 		// Decode credentials
 		byte[] decoded = null;
 		try {
 			decoded = Base64.getDecoder().decode(encodedCredentials);
 		} catch (IllegalArgumentException e) {
-			logger.error("Not authorized");
+			Logging.logger.error("Not authorized");
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_request", e.getMessage());
 		}
 
@@ -350,7 +348,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		// e.g., urn:epc:id:gid:0.1.410D23751450344850323220
 		int marker = decodedCredentials.lastIndexOf(":");
 		if (marker == -1) {
-			logger.error("Wrong Basic authorization");
+			Logging.logger.error("Wrong Basic authorization");
 			return new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "invalid_client",
 					"Delimiter ':' is missing. Wrong credentials format: " + decodedCredentials);
 		}
@@ -373,12 +371,12 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		String secret = decodedCredentials.substring(marker+1);		
 		
 		
-		logger.debug("Credentials: " + id + " " + secret);
+		Logging.logger.debug("Credentials: " + id + " " + secret);
 
 		// Verify credentials
 		try {
 			if (!containsCredentials(id)) {
-				logger.error("Client id: " + id + " is not registered");
+				Logging.logger.error("Client id: " + id + " is not registered");
 				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Client identity " + id + " not found");
 			}
 		} catch (SEPASecurityException e2) {
@@ -387,7 +385,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 
 		try {
 			if (!checkCredentials(id, secret)) {
-				logger.error("Wrong secret: " + secret + " for client id: " + id);
+				Logging.logger.error("Wrong secret: " + secret + " for client id: " + id);
 				return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "unauthorized_client", "Wrong credentials for identity " + id);
 			}
 		} catch (SEPASecurityException e2) {
@@ -407,22 +405,22 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 				long delta = expiringUnixSeconds - nowUnixSeconds;
 				
 				// Expires if major than current time
-				logger.debug("ID: " + id + " ==> Token will expire in: " + delta + " ms");
+				Logging.logger.debug("ID: " + id + " ==> Token will expire in: " + delta + " ms");
 				if (delta > 0) {
-					logger.warn("Token is NOT EXPIRED. Return the current token.");
+					Logging.logger.warn("Token is NOT EXPIRED. Return the current token.");
 					
 					JWTResponse jwt = null;
 					try {
 						jwt = new JWTResponse(getJwt(id));
 					} catch (SEPASecurityException e) {
-						logger.error(e.getMessage());
+						Logging.logger.error(e.getMessage());
 						return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
 								"Failed to retrieve expiring period");
 					}
 					
 					return jwt;
 				}
-				logger.debug("Token is EXPIRED. Release a fresh token.");
+				Logging.logger.debug("Token is EXPIRED. Release a fresh token.");
 			}
 		} catch (SEPASecurityException e2) {
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "security_error", e2.getMessage());
@@ -507,7 +505,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		try {
 			expires = new Date(now.getTime() + (getTokenExpiringPeriod(id) * 1000));
 		} catch (SEPASecurityException e1) {
-			logger.error(e1.getMessage());
+			Logging.logger.error(e1.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
 					"Failed to retrieve expiring period");
 		}
@@ -559,7 +557,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		try {
 			signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.RS256), JWTClaimsSet.parse(jwtClaims.toString()));
 		} catch (ParseException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "parsing_exception", "ParseException: " + e.getMessage());
 		}
 		
@@ -568,7 +566,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		try {
 			signedJWT.sign(signer);
 		} catch (JOSEException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "sign_exception", "JOSEException: " + e.getMessage());
 		}
 
@@ -576,7 +574,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		try {
 			addJwt(id, signedJWT);
 		} catch (SEPASecurityException e1) {
-			logger.error(e1.getMessage());
+			Logging.logger.error(e1.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
 					e1.getMessage());
 		}
@@ -585,11 +583,11 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		try {
 			jwt = new JWTResponse(signedJWT);
 		} catch (SEPASecurityException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "security_error",
 					"Failed to retrieve expiring period");
 		}
-		logger.debug("Released token: " + jwt);
+		Logging.logger.debug("Released token: " + jwt);
 		
 		return jwt;
 	}
@@ -654,26 +652,26 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 	 * @param accessToken the JWT token to be validate according to points 4-6
 	 */
 	public synchronized ClientAuthorization validateToken(String accessToken) {
-		logger.debug("VALIDATE TOKEN");
+		Logging.logger.debug("VALIDATE TOKEN");
 
 		// Parse token
 		SignedJWT signedJWT = null;
 		try {
 			signedJWT = SignedJWT.parse(accessToken);
 		} catch (ParseException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_request","ParseException: " + e.getMessage());
 		}
 
 		// Verify token
 		try {
 			if (!signedJWT.verify(verifier)) {
-				logger.error("Signed JWT not verified");
+				Logging.logger.error("Signed JWT not verified");
 				return new ClientAuthorization("invalid_grant","Signed JWT not verified");
 			}
 
 		} catch (JOSEException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_grant","JOSEException: " + e.getMessage());
 		}
 
@@ -682,13 +680,13 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		try {
 			claimsSet = jwtProcessor.process(accessToken, new SEPASecurityContext());
 		} catch (ParseException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_grant","ParseException. " + e.getMessage());
 		} catch (BadJOSEException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_grant","BadJOSEException. " + e.getMessage());
 		} catch (JOSEException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_grant","JOSEException. " + e.getMessage());
 		}
 
@@ -699,7 +697,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		Date notBefore = claimsSet.getNotBeforeTime();
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
 		if (expiring.getTime() - nowUnixSeconds < 0) {
-			logger.warn("Token is expired: " + sdf.format(claimsSet.getExpirationTime()) + " < "
+			Logging.logger.warn("Token is expired: " + sdf.format(claimsSet.getExpirationTime()) + " < "
 					+ sdf.format(new Date(nowUnixSeconds)));
 			
 			return new ClientAuthorization("invalid_grant","Token issued at "+sdf.format(claimsSet.getIssueTime())+" is expired: " + sdf.format(claimsSet.getExpirationTime())
@@ -707,21 +705,21 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		}
 
 		if (notBefore != null && nowUnixSeconds < notBefore.getTime()) {
-			logger.warn("Token can not be used before: " + claimsSet.getNotBeforeTime());
+			Logging.logger.warn("Token can not be used before: " + claimsSet.getNotBeforeTime());
 			return new ClientAuthorization("invalid_grant","Token can not be used before: " + claimsSet.getNotBeforeTime());
 		}
 		
 		// Get client credentials for accessing the SPARQL endpoint
 		String id = claimsSet.getSubject();
 		
-		logger.debug("Get credentials for uid: "+id);
+		Logging.logger.debug("Get credentials for uid: "+id);
 		
 		Credentials cred = null;
 		try {
 			cred = getEndpointCredentials(id);
-			logger.trace(cred);
+			Logging.logger.trace(cred);
 		} catch (SEPASecurityException e) {
-			logger.error("Failed to retrieve credentials ("+id+")");
+			Logging.logger.error("Failed to retrieve credentials ("+id+")");
 			return new ClientAuthorization("invalid_grant","Failed to get credentials ("+id+")");
 		}
 
