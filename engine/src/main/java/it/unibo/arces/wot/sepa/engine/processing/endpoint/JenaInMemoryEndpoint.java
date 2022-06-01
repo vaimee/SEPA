@@ -94,8 +94,8 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
                 
                 try (final RDFConnection conn = 
                         (usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
-                        RDFConnectionFactory.connect(dataset,usr.userName)                              :
-                        RDFConnectionFactory.connect(dataset); 
+                        RDFConnection.connect(dataset,usr.userName)                              :
+                        RDFConnection.connect(dataset); 
                 ) {
                         
                 
