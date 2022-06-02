@@ -29,9 +29,10 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.logging.Timings;
@@ -59,10 +60,13 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		do {
 			long start = Timings.getTime();
 			SPARQLEndpoint endpoint;
-			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) 
-                endpoint =new JenaInMemory2PhEndpoint(firstStore);
-			else 
-                endpoint = new RemoteEndpoint();
+			if(EngineProperties.getIstance().isLUTTEnabled()) {
+				endpoint = new SjenarEndpointDoubleStore(firstStore);
+			}else if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) {
+				endpoint = new SjenarEndpoint();
+			}else {
+				endpoint = new RemoteEndpoint();
+			}
                         
                         
 			ret = endpoint.update(request);
@@ -101,18 +105,18 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	}
 	
 	public Response processOnSecondStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		if (EngineProperties.getIstance().isInMemoryDoubleStore()) {
+		if (EngineProperties.getIstance().isLUTTEnabled()) {
 			return process(req,false);
 		}else {
-			throw new IOException("You are not use double storage system.");
+			throw new IOException("You are not using double storage and LUTT system.");
 		}
 	}
 	
 	public Response processOnFirstStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		if (EngineProperties.getIstance().isInMemoryDoubleStore()) {
+		if (EngineProperties.getIstance().isLUTTEnabled()) {
 	        return process(req,true);
 		}else {
-			throw new IOException("You are not use double storage system.");
+			throw new IOException("You are not using double storage and LUTT system.");
 		}
 	}
 

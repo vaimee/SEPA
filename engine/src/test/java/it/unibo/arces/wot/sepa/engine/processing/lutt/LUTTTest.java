@@ -1,6 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.processing.lutt;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;

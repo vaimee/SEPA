@@ -70,7 +70,7 @@ public class Subscriptions {
 	
 	//TODO: a different SPU can be created based on the InternalSubscribeRequest
 	public static SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
-		logger.log(Level.getLevel("subscriptions"),"@createSPU");
+		//logger.log(Level.getLevel("subscriptions"),"@createSPU");
 		//System.out.println("SOTTOSCRIZIONE:\n"+req.getSparql());
 		try {
 			if(EngineProperties.getIstance().isSPUSmart()) {
@@ -122,12 +122,14 @@ public class Subscriptions {
 	public static Collection<SPU> filterOnQuads(Collection<SPU> activeSpus, InternalUpdateRequestWithQuads update) {
 		int preFilterSpus = activeSpus.size();
 		long start = Timings.getTime();
-		activeSpus.removeIf(spu -> (
-				!spu.lutt.hit(update.getHitterLUTT())
-		));
+		if(activeSpus.iterator().next() instanceof SPUSmart) {
+			activeSpus.removeIf(spu -> (
+					!((SPUSmart)spu).lutt.hit(update.getHitterLUTT())
+			));
+		}
 		long stop = Timings.getTime();
 		int postFilterSpus = activeSpus.size();
-		logger.log(Level.getLevel("subscriptions"),"FilterOnQuads pre filter spu: " + preFilterSpus+ ", after filter:"+postFilterSpus + ". In "+(stop-start)+"ns");
+		Logging.logger.log(Logging.getLevel("subscriptions"),"FilterOnQuads pre filter spu: " + preFilterSpus+ ", after filter:"+postFilterSpus + ". In "+(stop-start)+"ns");
 		return activeSpus;
 	}
 	

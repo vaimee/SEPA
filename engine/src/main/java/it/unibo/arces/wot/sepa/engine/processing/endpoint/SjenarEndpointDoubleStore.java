@@ -26,30 +26,37 @@ import org.apache.jena.system.Txn;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class SjenarEndpoint implements SPARQLEndpoint {
+public class SjenarEndpointDoubleStore implements SPARQLEndpoint {
 	protected static final Logger logger = LogManager.getLogger();
 
-	private static Dataset       dataset;
+	private static Dataset       firstDataset;
+	private static Dataset       secondDataset;
 	private static boolean       hasInit;
+	private boolean firstStore=false;
 
 	public  synchronized static void init() {
 		if (hasInit == false) {
 
-			dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
+			firstDataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
+			secondDataset = JenaDatasetFactory.newInstance(EngineBeans.getSecondDatasetMode(), EngineBeans.getSecondDatasetPath(),true);
+			
 			hasInit = true;
 		}
 	}
 
+	public SjenarEndpointDoubleStore(boolean firstStore) {
+		this.firstStore=firstStore;
+	}
 
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo usr) {
 		init();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-
+		Dataset store = firstStore?firstDataset:secondDataset;
 		try (final RDFConnection conn = 
 				(usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
-						RDFConnection.connect(dataset,usr.userName)                              :
-							RDFConnection.connect(dataset); 
+						RDFConnection.connect(store,usr.userName)                              :
+							RDFConnection.connect(store); 
 				) {
 
 
@@ -69,11 +76,11 @@ public class SjenarEndpoint implements SPARQLEndpoint {
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo usr) {
 		init();
-
+		Dataset store = firstStore?firstDataset:secondDataset;
 		try (final RDFConnection conn = 
 				(usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
-						RDFConnection.connect(dataset,usr.userName)                              :
-							RDFConnection.connect(dataset); 
+						RDFConnection.connect(store,usr.userName)                              :
+							RDFConnection.connect(store); 
 				) {
 
 

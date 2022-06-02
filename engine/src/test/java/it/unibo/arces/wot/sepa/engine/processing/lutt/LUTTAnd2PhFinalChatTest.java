@@ -1,18 +1,14 @@
 package it.unibo.arces.wot.sepa.engine.processing.lutt;
 
-import static org.junit.Assert.assertFalse;
 
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.jena.sparql.core.Quad;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -20,24 +16,21 @@ import org.junit.runners.MethodSorters;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.processing.ARQuadsAlgorithm;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.TempQuadForTest;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.TestUtils;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LUTTAnd2PhFinalChatTest {
 	
-	private static JenaInMemory2PhEndpoint store_ph_1;
-	private static JenaInMemory2PhEndpoint store_ph_2;
+	private static SjenarEndpointDoubleStore store_ph_1;
+	private static SjenarEndpointDoubleStore store_ph_2;
 	
 	private static String prefixs = "PREFIX schema:<http://schema.org/>\n" +
 			 "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
@@ -139,12 +132,12 @@ public class LUTTAnd2PhFinalChatTest {
 	@BeforeClass
 	public static void init() throws SEPASecurityException {
 		
-		store_ph_1=new JenaInMemory2PhEndpoint(false);
-		store_ph_2=new JenaInMemory2PhEndpoint(true);
+		store_ph_1=new SjenarEndpointDoubleStore(false);
+		store_ph_2=new SjenarEndpointDoubleStore(true);
 		//clean dataset (this is not necessary)
 		String delete_all = "DELETE WHERE { GRAPH ?g {?s ?p ?o}}";
-		store_ph_1.update(delete_all);
-		store_ph_2.update(delete_all);
+		store_ph_1.update(TestUtils.generateUpdate(delete_all));
+		store_ph_2.update(TestUtils.generateUpdate(delete_all));
 
 	}
 
@@ -548,12 +541,12 @@ public class LUTTAnd2PhFinalChatTest {
 	
 	private static void check(String sparqlUpdate,Set<TempQuadForTest> expectedAdded,Set<TempQuadForTest> expectedRemoved,List<String> subscriptionHit,List<String> subscriptionNOTHit) throws SPARQL11ProtocolException, SEPASparqlParsingException{
 		//###################ph1
-		Response res1ph= store_ph_1.update(sparqlUpdate);
+		Response res1ph= store_ph_1.update(TestUtils.generateUpdate(sparqlUpdate));
 		if(res1ph.isError()) {
 			System.out.println(((ErrorResponse)res1ph).getErrorDescription());
 			assertTrue(false);
 		}else {
-			UpdateResponse updateRes1ph = (UpdateResponse)res1ph;
+			UpdateResponseWithAR updateRes1ph = (UpdateResponseWithAR)res1ph;
 			if(expectedAdded.size()>0) {
 				assertTrue(TestUtils.quadsSetCompare(updateRes1ph.updatedTuples,expectedAdded,"ph1.added"));
 			}else {
@@ -570,12 +563,12 @@ public class LUTTAnd2PhFinalChatTest {
 			InternalUpdateRequestWithQuads req2ph= ARQuadsAlgorithm.generateLUTTandInsertDelete(sparqlUpdate, updateRes1ph, null, null, null);
 			assertTrue(req2ph.getResponseNothingToDo()==null && req2ph.getSparql().length()>0);
 			
-			Response res2ph= store_ph_2.update(req2ph.getSparql());
+			Response res2ph= store_ph_2.update(TestUtils.generateUpdate(req2ph.getSparql()));
 			if(res2ph.isError()) {
 				System.out.println(((ErrorResponse)res2ph).getErrorDescription());
 				assertTrue(false);
 			}else {
-				UpdateResponse updateRes2ph = (UpdateResponse)res2ph;
+				UpdateResponseWithAR updateRes2ph = (UpdateResponseWithAR)res2ph;
 				if(expectedAdded.size()>0) {
 					assertTrue(TestUtils.quadsSetCompare(updateRes2ph.updatedTuples,expectedAdded,"ph2.added"));
 				}else {
@@ -635,6 +628,8 @@ public class LUTTAnd2PhFinalChatTest {
 			assertTrue(luttstrict.isIn(b));
 		}
 	}
+	
+
 
 	
 }

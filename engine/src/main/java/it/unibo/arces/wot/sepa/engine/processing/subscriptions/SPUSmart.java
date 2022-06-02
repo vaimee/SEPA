@@ -31,6 +31,9 @@ import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.processing.lutt.FakeLUTT;
+import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTT;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.QueryLUTTextraction;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
@@ -44,14 +47,16 @@ import org.apache.logging.log4j.LogManager;
 //For now is the same to SPUNaive
 /*
     The SPUNaive keep always the last bindings in memory
-    The SPUSmart will keep it just if there will not too much
+    The SPUSmart will keep it just if there will not too much (<maxBindings)
     otherwise, it will query the dataset before and after the update.
+    SPUSmart is needed if you want to use LUTT, but it can be used without LUTT too
 */
 
 class SPUSmart extends SPU {
 	private static final int maxBindings = 10000;
 	private final Logger logger;
-
+	protected LUTT lutt;
+	
 	public SPUSmart(InternalSubscribeRequest subscribe, SPUManager manager) throws SEPAProtocolException {
 		super(subscribe, manager);
 
@@ -59,7 +64,11 @@ class SPUSmart extends SPU {
 
 		logger = LogManager.getLogger("SPUSmart" + getSPUID());
 		logger.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
-		this.lutt= QueryLUTTextraction.exstract(subscribe.getSparql());
+		if(EngineProperties.getIstance().isLUTTEnabled()) {
+			this.lutt= QueryLUTTextraction.exstract(subscribe.getSparql());
+		}else {
+			this.lutt=new FakeLUTT();
+		}
 	}
 
 	@Override

@@ -142,8 +142,7 @@ public class EngineProperties {
 		result.parameters.processor.queryTimeout = 30000;
 		result.parameters.processor.maxConcurrentRequests = 5;
 		result.parameters.processor.reliableUpdate = true;
-		result.parameters.processor.inMemoryDoubleStore = true;
-		result.parameters.processor.spuSmart = true;
+		result.parameters.processor.lutt = true;
 		
 		// SPU
 		result.parameters.spu.timeout = 5000;
@@ -266,12 +265,16 @@ public class EngineProperties {
 		return this.parameters.processor.reliableUpdate;
 	}
 
-	public boolean isInMemoryDoubleStore() {
-		return this.parameters.processor.inMemoryDoubleStore;
+	public boolean isLUTTEnabled() {
+		return this.parameters.processor.lutt;
 	}
 	
 	public boolean isSPUSmart() {
-		return this.parameters.processor.spuSmart;
+		//If LUTT is enabled, spuSmart need to be enabled!
+		if(this.parameters.processor.lutt && !this.parameters.processor.spuSmart) {
+			Logging.logger.warn("SPUSmart is disabled, but LUTT is enabled, force enable on SPUSmart, you need it if you use LUTT.");
+		}
+		return this.parameters.processor.lutt || this.parameters.processor.spuSmart;
 	}
 	
 	public int getSchedulerTimeout() {
@@ -306,7 +309,7 @@ public class EngineProperties {
 		public int maxConcurrentRequests;
 		public boolean reliableUpdate;
 		
-		public boolean inMemoryDoubleStore;
+		public boolean lutt;
 		public boolean spuSmart;
 
 		public Processor(){
@@ -314,7 +317,7 @@ public class EngineProperties {
 			updateTimeout = 5000;
 			queryTimeout = 5000;
 			maxConcurrentRequests = 5;
-			inMemoryDoubleStore=true;
+			lutt=true;
 			spuSmart=true;
 		}
 	}

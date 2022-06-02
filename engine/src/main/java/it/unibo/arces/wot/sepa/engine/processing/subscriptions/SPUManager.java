@@ -276,6 +276,10 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		return new UnsubscribeResponse(sid);
 	}
+	
+	public void setNoActiveSPU() {
+		activeSpus= new HashSet<>(); 
+	}
 
 	@Override
 	public void notifyEvent(Notification notify) {

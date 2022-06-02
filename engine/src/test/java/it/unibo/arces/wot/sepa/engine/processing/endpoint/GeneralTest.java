@@ -2,9 +2,6 @@ package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
@@ -13,27 +10,16 @@ import org.junit.runners.MethodSorters;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.QueryHTTPMethod;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.UpdateHTTPMethod;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
-import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.Engine;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class GeneralTest {
 	
-	private static final UpdateHTTPMethod updateMethod = UpdateHTTPMethod.POST;
-	private static final QueryHTTPMethod queryMethod = QueryHTTPMethod.POST;
-	private static final String scheme = "http";
-	private static final String host = "localhost";
-	private static final int port = 8000;
-	private static final String updatePath = "/update";
-	private static final String queryPath = "/query";
+
 	
 	private static SPARQL11Protocol client;
 	
@@ -79,10 +65,10 @@ public class GeneralTest {
 				+ "		?s ?p ?o .\r\n"
 				+ "	}\r\n"
 				+ "}	";
-		UpdateRequest reqUpdate= generateUpdate(sparqlUpdate);
+		UpdateRequest reqUpdate= TestUtils.generateUpdate(sparqlUpdate);
 		Response responseUpdate = client.update(reqUpdate);
 		assertTrue(!responseUpdate.isError());
-		QueryRequest reqQuery= generateQuery(sparqlQuery);
+		QueryRequest reqQuery= TestUtils.generateQuery(sparqlQuery);
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 		System.out.println("TEST: "+((QueryResponse)responseQuery).getBindingsResults().toString());
@@ -113,10 +99,10 @@ public class GeneralTest {
 				+ "		?s ?p ?o .\r\n"
 				+ "	}\r\n"
 				+ "}	";
-		UpdateRequest reqUpdate= generateUpdate(sparqlUpdate);
+		UpdateRequest reqUpdate= TestUtils.generateUpdate(sparqlUpdate);
 		Response responseUpdate = client.update(reqUpdate);
 		assertTrue(!responseUpdate.isError());
-		QueryRequest reqQuery= generateQuery(sparqlQuery);
+		QueryRequest reqQuery= TestUtils.generateQuery(sparqlQuery);
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 		System.out.println("TEST: "+((QueryResponse)responseQuery).getBindingsResults().toString());
@@ -143,10 +129,10 @@ public class GeneralTest {
 				+ "		<http://s1> <http://p2> \"true\" .\r\n"
 				+ "	}\r\n"
 				+ "}	";
-		UpdateRequest reqUpdate= generateUpdate(sparqlUpdate);
+		UpdateRequest reqUpdate= TestUtils.generateUpdate(sparqlUpdate);
 		Response responseUpdate = client.update(reqUpdate);
 		assertTrue(!responseUpdate.isError());
-		QueryRequest reqQuery= generateQuery(sparqlQuery);
+		QueryRequest reqQuery= TestUtils.generateQuery(sparqlQuery);
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 		System.out.println("TEST: "+((QueryResponse)responseQuery).getBindingsResults().toString());
@@ -155,39 +141,9 @@ public class GeneralTest {
 	
 	private static void cleanDataSet() {
 		String sparqlUpdate = "DELETE WHERE { GRAPH ?g { ?s ?p ?o.}}";
-		UpdateRequest reqUpdate= generateUpdate(sparqlUpdate);
+		UpdateRequest reqUpdate= TestUtils.generateUpdate(sparqlUpdate);
 		Response responseUpdate = client.update(reqUpdate);
 		assertTrue(!responseUpdate.isError());
-	}
-	
-	private static UpdateRequest generateUpdate(String sparql) {
-		 return new UpdateRequest(
-						updateMethod,
-						scheme,
-						host,
-						port,
-						updatePath,
-						sparql,
-						null, 
-						null,
-						null
-					);
-	}
-	
-	private static QueryRequest generateQuery(String sparql) {
-		 return new QueryRequest(
-				 		queryMethod,
-				 		scheme,
-						host,
-						port,
-						queryPath,
-						sparql,
-						null, 
-						null,
-						null,
-						60000,
-						0
-					);
 	}
 	
 

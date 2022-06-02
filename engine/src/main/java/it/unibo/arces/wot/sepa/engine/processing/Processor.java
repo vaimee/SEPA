@@ -37,6 +37,7 @@ import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolExceptio
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.logging.Logging;
@@ -137,12 +138,11 @@ public class Processor implements ProcessorMBean {
 		//WE NEEED exstract the AR (if inMemoryDoubleStore is true) anyway
 		//if there are not SPU we need anyway extract the AR for build the INSERT-DELETE
 		try {
-			if(this.inMemoryDoubleStore) {
+			if(EngineProperties.getIstance().isLUTTEnabled()) {
 				//JENAR-AR 		(done)	
 				preRequest = ARQuadsAlgorithm.extractJenaARQuads(update, updateProcessor);
-			}else {
 				//alghoritm AR 	(...pending)
-				preRequest = ARQuadsAlgorithm.extractARQuads(update, queryProcessor);
+				//preRequest = ARQuadsAlgorithm.extractARQuads(update, queryProcessor);
 			}
 		} catch (SEPAProcessingException | SPARQL11ProtocolException | SEPASparqlParsingException | SEPASecurityException | IOException e) {
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "update_processing", e.getMessage());
@@ -275,4 +275,5 @@ public class Processor implements ProcessorMBean {
 	public String getEndpointQueryMethod() {
 		return ProcessorBeans.getEndpointQueryMethod();
 	}
+	
 }

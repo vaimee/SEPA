@@ -1,6 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.processing.lutt;
 
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 
 public class LUTTTriple {
 	//null value is as jolly *

@@ -29,10 +29,10 @@ import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemory2PhEndpoint;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.logging.Timings;
@@ -60,10 +60,13 @@ class QueryProcessor implements QueryProcessorMBean {
 		do {
 			long start = Timings.getTime();
 			SPARQLEndpoint endpoint;
-			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) 
-                endpoint = new JenaInMemory2PhEndpoint(firstStore);
-			else 
+			if(EngineProperties.getIstance().isLUTTEnabled()) {
+				endpoint = new SjenarEndpointDoubleStore(firstStore);
+			}else if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) {
+				endpoint = new SjenarEndpoint();
+			}else {
 				endpoint = new RemoteEndpoint();
+			}
                         
 			ret = endpoint.query(request);
 			endpoint.close();
@@ -96,9 +99,9 @@ class QueryProcessor implements QueryProcessorMBean {
 	}
 	
 	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
-		//as default we will use second storage for updated
+		//as default we will use second storage for query
 		//if the double store system is enabled
-		if(EngineProperties.getIstance().isInMemoryDoubleStore()) {
+		if(EngineProperties.getIstance().isLUTTEnabled()) {
 			return process(req,false);
 		}
 		//else we use the first (and the only one) storage 

@@ -1,16 +1,18 @@
 package it.unibo.arces.wot.sepa.engine.processing;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.FakeLUTT;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTT;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTTTriple;
@@ -20,21 +22,18 @@ import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.query.Query;
-import org.apache.jena.query.Syntax;
-import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.core.Quad;
-import org.apache.jena.sparql.lang.SPARQLParser;
 
 public class ARQuadsAlgorithm {
 
+	//this is for the future
 	public static InternalUpdateRequestWithQuads extractARQuads(InternalUpdateRequest update, QueryProcessor queryProcessor) throws SEPAProcessingException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		return new InternalUpdateRequestWithQuads(update.getSparql(), update.getDefaultGraphUri(), update.getNamedGraphUri(), update.getClientAuthorization(), new FakeLUTT());
 	}
 
 	public static InternalUpdateRequestWithQuads generateLUTTandInsertDelete(
 					String originalSparql,
-					UpdateResponse ret,
+					UpdateResponseWithAR ret,
 					Set<String> defaultGraphUri, 
 					Set<String> namedGraphUri,
 					ClientAuthorization auth
@@ -148,7 +147,7 @@ public class ARQuadsAlgorithm {
 			//is possible that exception "SEPAProcessingException" is not the right one
 			throw new SEPAProcessingException(((ErrorResponse)resp).getError());
 		}else {
-			UpdateResponse ret = (UpdateResponse)resp;
+			UpdateResponseWithAR ret = (UpdateResponseWithAR)resp;
 			
 		
 		
