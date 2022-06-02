@@ -20,9 +20,6 @@ package it.unibo.arces.wot.sepa.api;
 
 import java.io.IOException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
@@ -33,6 +30,7 @@ import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * This class implements the SPARQL 1.1 Secure event protocol with SPARQL 1.1
@@ -44,8 +42,6 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
  *      1.1 Subscribe Language</a>
  */
 public class SPARQL11SEProtocol extends SPARQL11Protocol {
-	private static final Logger logger = LogManager.getLogger();
-
 	private final SubscriptionProtocol subscriptionProtocol;
 	
 	public SPARQL11SEProtocol(SubscriptionProtocol protocol) throws SEPAProtocolException, SEPASecurityException {
@@ -71,7 +67,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * @throws SEPASecurityException 
 	 */
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException, SEPASecurityException {
-		logger.debug("SUBSCRIBE: "+request.toString());
+		Logging.logger.debug("SUBSCRIBE: "+request.toString());
 		
 		subscriptionProtocol.subscribe(request);
 	}
@@ -88,7 +84,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * @throws SEPAProtocolException 
 	 */
 	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException {
-		logger.debug(request.toString());
+		Logging.logger.debug(request.toString());
 		
 		subscriptionProtocol.unsubscribe(request);
 	}

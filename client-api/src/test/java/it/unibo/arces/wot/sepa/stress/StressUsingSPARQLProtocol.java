@@ -9,8 +9,8 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import it.unibo.arces.wot.sepa.logging.Logging;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
@@ -23,8 +23,6 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 public class StressUsingSPARQLProtocol {
-	protected static final Logger logger = LogManager.getLogger();
-
 	private static ConfigurationProvider provider;
 
 	private static Sync sync;
@@ -43,7 +41,7 @@ public class StressUsingSPARQLProtocol {
 
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
 
-		logger.debug(ret);
+		Logging.logger.debug(ret);
 
 		assertFalse(ret.isError(), String.valueOf(ret));
 

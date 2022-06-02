@@ -5,8 +5,6 @@ import java.io.IOException;
 
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
@@ -15,10 +13,9 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class Subscriber extends Thread implements Closeable, ISubscriptionHandler {
-	protected final Logger logger = LogManager.getLogger();
-
 	private SPARQL11SEProtocol client;
 	private final String id;
 	private ConfigurationProvider provider;
@@ -46,7 +43,7 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 			client.subscribe(provider.buildSubscribeRequest(id));
 			//if (sm != null) sm.close();
 		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException  e2) {
-			logger.error(e2.getMessage());
+			Logging.logger.error(e2.getMessage());
 			return;
 		}
 
@@ -66,7 +63,7 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 				try {
 					client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
 				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
-					logger.error(e.getMessage());
+					Logging.logger.error(e.getMessage());
 				}
 			client.notify();
 			client.close();
@@ -77,35 +74,35 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 
 	@Override
 	public void onSemanticEvent(Notification notify) {
-		logger.debug(notify);
+		Logging.logger.debug(notify);
 		handler.onSemanticEvent(notify);
 	}
 
 	@Override
 	public void onBrokenConnection(ErrorResponse errorResponse) {
 		if (errorResponse.getStatusCode() != 1000)
-			logger.error(errorResponse);
+			Logging.logger.error(errorResponse);
 		else
-			logger.warn(errorResponse);
+			Logging.logger.warn(errorResponse);
 		handler.onBrokenConnection(errorResponse);
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		logger.error(errorResponse);
+		Logging.logger.error(errorResponse);
 		handler.onError(errorResponse);
 	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		logger.debug("onSubscribe: " + spuid + " alias: " + alias);
+		Logging.logger.debug("onSubscribe: " + spuid + " alias: " + alias);
 		this.spuid = spuid;
 		handler.onSubscribe(spuid, alias);
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		logger.debug("onUnsubscribe: " + spuid);
+		Logging.logger.debug("onUnsubscribe: " + spuid);
 		handler.onUnsubscribe(spuid);
 	}
 }

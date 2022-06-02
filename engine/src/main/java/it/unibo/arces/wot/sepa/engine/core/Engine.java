@@ -17,23 +17,11 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Optional;
-import java.util.TimeZone;
 
-import java.util.Iterator;
 import java.util.regex.PatternSyntaxException;
 
 import javax.net.ssl.SSLContext;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.AppenderRef;
-import org.apache.logging.log4j.core.config.Configuration;
-import org.apache.logging.log4j.core.config.LoggerConfig;
 
 import com.nimbusds.jose.jwk.RSAKey;
 
@@ -55,6 +43,7 @@ import it.unibo.arces.wot.sepa.engine.gates.websocket.SecureWebsocketServer;
 import it.unibo.arces.wot.sepa.engine.gates.websocket.WebsocketServer;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the SPARQL
@@ -65,7 +54,9 @@ import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.10.20220419";
+
+	private final static String version = "0.10.20220519";
+
 
 	private EngineProperties properties = null;
 
@@ -125,21 +116,6 @@ public class Engine implements EngineMBean {
 	RSAKey jwt = null;
 	LdapProperties ldap = null;
 	IsqlProperties isql = null;
-
-	// Logging file name
-	static {
-		// Logging
-		TimeZone tz = TimeZone.getTimeZone("UTC");
-		DateFormat df = new SimpleDateFormat("yyyyMMdd_HH_mm_ss"); // Quoted "Z" to indicate GMT, no timezone offset
-		df.setTimeZone(tz);
-		String nowAsISO = df.format(new Date());
-		System.setProperty("logFilename", nowAsISO);
-		org.apache.logging.log4j.core.LoggerContext ctx = (org.apache.logging.log4j.core.LoggerContext) LogManager
-				.getContext(false);
-		ctx.reconfigure();
-	}
-	// Logging
-	private static final Logger logger = LogManager.getLogger();
 
 	private void printUsage() {
 		System.out.println("Usage:");
@@ -276,38 +252,38 @@ public class Engine implements EngineMBean {
 			}
 		}
 
-		logger.debug("--- SSL ---");
-		logger.debug("-cacertificate: " + caCertificate);
-		logger.debug("-capwd: " + caPassword);
-		logger.debug("-capath: " + caPath);
-		logger.debug("-sslstore: " + sslStoreName);
-		logger.debug("-sslpass: " + sslStorePass);
+		Logging.logger.debug("--- SSL ---");
+		Logging.logger.debug("-cacertificate: " + caCertificate);
+		Logging.logger.debug("-capwd: " + caPassword);
+		Logging.logger.debug("-capath: " + caPath);
+		Logging.logger.debug("-sslstore: " + sslStoreName);
+		Logging.logger.debug("-sslpass: " + sslStorePass);
 
-		logger.debug("--- JWT ---");
-		logger.debug("-jwtstore: " + jwtKeyStore);
-		logger.debug("-jwtpass: " + jwtKeyStorePass);
-		logger.debug("-jwtalias: " + jwtKeyAlias);
-		logger.debug("-jwtaliaspass: " + jwtKeyAliasPass);
+		Logging.logger.debug("--- JWT ---");
+		Logging.logger.debug("-jwtstore: " + jwtKeyStore);
+		Logging.logger.debug("-jwtpass: " + jwtKeyStorePass);
+		Logging.logger.debug("-jwtalias: " + jwtKeyAlias);
+		Logging.logger.debug("-jwtaliaspass: " + jwtKeyAliasPass);
 
-		logger.debug("--- Engine/endpoint ---");
-		logger.debug("-engine: " + engineJpar);
-		logger.debug("-endpoint: " + endpointJpar);
-		logger.debug("-secure: " + secure);
+		Logging.logger.debug("--- Engine/endpoint ---");
+		Logging.logger.debug("-engine: " + engineJpar);
+		Logging.logger.debug("-endpoint: " + endpointJpar);
+		Logging.logger.debug("-secure: " + secure);
 
-		logger.debug("--- LDAP ---");
-		logger.debug("-ldaphost: " + ldapHost);
-		logger.debug("-ldapport: " + ldapPort);
-		logger.debug("-ldapdn: " + ldapDn);
-		logger.debug("-ldapusersdn: " + ldapUsersDn);
-		logger.debug("-ldapuser: " + ldapUser);
-		logger.debug("-ldappwd: " + ldapPwd);
+		Logging.logger.debug("--- LDAP ---");
+		Logging.logger.debug("-ldaphost: " + ldapHost);
+		Logging.logger.debug("-ldapport: " + ldapPort);
+		Logging.logger.debug("-ldapdn: " + ldapDn);
+		Logging.logger.debug("-ldapusersdn: " + ldapUsersDn);
+		Logging.logger.debug("-ldapuser: " + ldapUser);
+		Logging.logger.debug("-ldappwd: " + ldapPwd);
 
-		logger.debug("--- ISQL ---");
-		logger.debug("-isqlpath: " + isqlPath);
-		logger.debug("-isqlhost: " + isqlHost);
-		logger.debug("-isqlport: " + isqlPort);
-		logger.debug("-isqluser: " + isqlUser);
-		logger.debug("-isqlpass: " + isqlPass);
+		Logging.logger.debug("--- ISQL ---");
+		Logging.logger.debug("-isqlpath: " + isqlPath);
+		Logging.logger.debug("-isqlhost: " + isqlHost);
+		Logging.logger.debug("-isqlport: " + isqlPort);
+		Logging.logger.debug("-isqluser: " + isqlUser);
+		Logging.logger.debug("-isqlpass: " + isqlPass);
 	}
 
 	private void setSecurity() throws SEPASecurityException {
@@ -464,6 +440,8 @@ public class Engine implements EngineMBean {
 			System.out.println("*                        Let Things Talk and Data Be Free!                              *");
 			System.out.println("*****************************************************************************************");
 			System.out.print("Version "+version);
+			
+			Logging.init();
 
 		} catch (SEPAPropertiesException | SEPASecurityException | IllegalArgumentException | SEPAProtocolException e) {
 			System.err.println(e.getMessage());
@@ -472,19 +450,6 @@ public class Engine implements EngineMBean {
 			e.printStackTrace();
 		}
 
-	}
-
-	public static void printLog4jConfiguration() {
-		System.out.println(">>> Logging <<<");
-		System.out.println("Level: " + logger.getLevel().toString());
-		final LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-		final Configuration config = ctx.getConfiguration();
-		LoggerConfig rootLoggerConfig = config.getLoggers().get("");
-		Iterator<AppenderRef> it = rootLoggerConfig.getAppenderRefs().iterator();
-		while (it.hasNext()) {
-			AppenderRef ref = it.next();
-			System.out.println("Appender: <" + ref.getRef() + "> Level: " + ref.getLevel());
-		}
 	}
 
 	public static void main(String[] args) throws SEPASecurityException, SEPAProtocolException {
@@ -598,7 +563,7 @@ public class Engine implements EngineMBean {
 		try {
 			setSecurity();
 		} catch (SEPASecurityException e) {
-			logger.error(e.getMessage());
+			Logging.logger.error(e.getMessage());
 		}
 	}
 }
