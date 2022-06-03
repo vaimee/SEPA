@@ -5,7 +5,7 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 
-public interface SPARQLEndpoint {
+public interface SPARQLEndpoint extends AutoCloseable {
 	public Response query(QueryRequest req,SEPAUserInfo usr);
 	public Response update(UpdateRequest req,SEPAUserInfo usr);
         
