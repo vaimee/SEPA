@@ -26,8 +26,10 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.EndpointFactory;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
@@ -56,11 +58,13 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		int n = 0;
 		do {
 			long start = Timings.getTime();
-			SPARQLEndpoint endpoint;
-			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) endpoint = new JenaInMemoryEndpoint();
-			else endpoint = new RemoteEndpoint();
-			ret = endpoint.update(request);
-			endpoint.close();
+                        try (
+                                final SPARQLEndpoint endpoint = EndpointFactory.newInstance(properties.getProtocolScheme());			
+                        ) {
+                            final SEPAUserInfo ui = SEPAUserInfo.newInstance(req);
+                            ret = endpoint.update(request,ui);
+                        }
+			
 			long stop = Timings.getTime();
 
 			UpdateProcessorBeans.timings(start, stop);
