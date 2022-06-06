@@ -361,7 +361,7 @@ public class EngineProperties {
 	}
         
         static private class Acl {
-                public  boolean     enabled     =   true;
+                public  boolean     enabled     =   false;
                 public  String      type        =   ACL_TYPE_DS;  //allowed: dataset/json
                 public  String      mode        =   DS_MODE_MEM;     /*
                                                                     Valid values depends on type :
