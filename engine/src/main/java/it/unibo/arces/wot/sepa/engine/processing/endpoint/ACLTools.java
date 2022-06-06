@@ -75,9 +75,12 @@ public class ACLTools {
         //if test, populate with default values FOR TESTING ONLY
         if (GlobalSystemProperties.checkIfACLIntegrationTest()) {
             ret.addUser("user1");
-            ret.addGraphToUser("monger", "http://mysparql.com/gtaph1", DatasetACL.aclId.aiCreate);
-            ret.addGraphToUser("monger", "http://mysparql.com/gtaph1", DatasetACL.aclId.aiQuery);
-            ret.addGraphToUser("monger", "http://mysparql.com/gtaph1", DatasetACL.aclId.aiUpdate);
+            ret.addGraphToUser("user1", "http://mysparql.com/gtaph1", DatasetACL.aclId.aiCreate);
+            ret.addGraphToUser("user1", "http://mysparql.com/gtaph1", DatasetACL.aclId.aiQuery);
+            ret.addGraphToUser("user1", "http://mysparql.com/gtaph1", DatasetACL.aclId.aiUpdate);
+            ret.addGraphToUser("user1", "http://mysparql.com/gtaph2", DatasetACL.aclId.aiQuery);
+            ret.addGraphToUser("user1", "http://mysparql.com/gtaph2", DatasetACL.aclId.aiUpdate);
+            
         }
         //end of integration test code
         return ret;
