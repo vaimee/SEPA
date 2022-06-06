@@ -12,8 +12,10 @@ import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageFactory;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.core.GlobalSystemProperties;
 import java.util.Map;
 import java.util.TreeMap;
+import org.apache.jena.acl.DatasetACL;
 
 /**
  *
@@ -68,6 +70,16 @@ public class ACLTools {
         final Map<String,Object>      paramMap = makeStorageParamMap(id);
         
         final ACLStorageOperations  ret = ACLStorageFactory.newInstance(id, paramMap);
+        
+        
+        //if test, populate with default values FOR TESTING ONLY
+        if (GlobalSystemProperties.checkIfACLIntegrationTest()) {
+            ret.addUser("user1");
+            ret.addGraphToUser("monger", "http://mysparql.com/gtaph1", DatasetACL.aclId.aiCreate);
+            ret.addGraphToUser("monger", "http://mysparql.com/gtaph1", DatasetACL.aclId.aiQuery);
+            ret.addGraphToUser("monger", "http://mysparql.com/gtaph1", DatasetACL.aclId.aiUpdate);
+        }
+        //end of integration test code
         return ret;
     }
 }

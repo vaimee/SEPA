@@ -651,7 +651,7 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 	}
 
-	public void setUpdateProtocolScheme(String id, ProtocolScheme scheme) {
+	public void setUpdateProtocolScheme(String id, NetworkProtocolScheme  scheme) {
 		JsonObject prop = checkAndCreate(id, true);
 
 		switch (scheme) {
@@ -877,7 +877,7 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 	}
 
-	public void setQueryProtocolScheme(String id, ProtocolScheme scheme) {
+	public void setQueryProtocolScheme(String id, NetworkProtocolScheme scheme) {
 		JsonObject prop = checkAndCreate(id, false);
 
 		switch (scheme) {

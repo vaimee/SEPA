@@ -141,11 +141,23 @@ public class SPARQL11Properties {
 	/**
 	 * The Enum UpdateResultsFormat (HTTP,HTTPS).
 	 */
-	public enum ProtocolScheme {
+	public enum NetworkProtocolScheme {
 		/** The http protocol scheme. */
 		HTTP,
 		/** The https protocol scheme. */
 		HTTPS
+        }        
+	public enum ProtocolScheme {
+/*            
+		/** The http protocol scheme. */
+//		HTTP,
+		/** The https protocol scheme. */
+//		HTTPS
+
+            JenaAPI,
+            SJenarAPI,
+            Remote
+            
 	};
         /**
          * Note that if EndpointType is \a PROTOCOL_SCHEMA_STD_JENA or \a PROTOCOL_SCHEMA_EX_JENA then the properties of the datasets are stored
@@ -692,13 +704,19 @@ public class SPARQL11Properties {
 	}
 
 	public void setProtocolScheme(ProtocolScheme scheme) {
-		switch (scheme) {
-		case HTTP:
-			jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive("http"));
-			break;
-		case HTTPS:
-			jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive("https"));
-			break;
-		}
+            String protocolScheme = PROTOCOL_SCHEMA_STD_JENA;
+           
+            switch (scheme) {
+                case JenaAPI:
+                    break;
+                case Remote:
+                    protocolScheme = PROTOCOL_SCHEMA_REMOTE;
+                    break;
+                case SJenarAPI:
+                    protocolScheme = PROTOCOL_SCHEMA_EX_JENA;
+                    break;
+            }
+                
+            jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive(protocolScheme));
 	}
 }
