@@ -14,10 +14,13 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.ARQuadsAlgorithm;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.TempQuadForTest;
@@ -130,8 +133,10 @@ public class LUTTAnd2PhFinalChatTest {
 
 	
 	@BeforeClass
-	public static void init() throws SEPASecurityException {
-		
+	public static void init() throws SEPASecurityException, SEPAPropertiesException {
+		String engineJpar = "engine.jpar";	
+		EngineProperties properties = EngineProperties.load(engineJpar);
+		EngineBeans.setEngineProperties(properties);
 		store_ph_1=new SjenarEndpointDoubleStore(false);
 		store_ph_2=new SjenarEndpointDoubleStore(true);
 		//clean dataset (this is not necessary)

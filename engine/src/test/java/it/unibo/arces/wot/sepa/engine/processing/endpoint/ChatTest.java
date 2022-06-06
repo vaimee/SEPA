@@ -22,6 +22,9 @@ import it.unibo.arces.wot.sepa.engine.core.Engine;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ChatTest {
 
+
+
+
 	/*
 	 * NOTE: the count of quads can changed if you do not use JENA AR as endpoint
 	 */
@@ -52,13 +55,13 @@ public class ChatTest {
 	@BeforeClass
 	public static void init() throws SEPASecurityException {
 		Engine engine =new Engine(new String[] {});
-		client=new SPARQL11Protocol(null);
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		client=new SPARQL11Protocol(null);
 
 	}
 
@@ -389,7 +392,7 @@ public class ChatTest {
 		assertTrue(!responseQuery.isError());
 		assertTrue(Integer.parseInt(((QueryResponse)responseQuery).getBindingsResults().getBindings().get(0).getRDFTerm("count").getValue())==datasetSizeAfterUpdate);
 	}
-	
+
 	@Test
 	public void TEST_12_SET_RECEIVED_bis() throws NumberFormatException, SEPABindingsException{
 		//same of test 12 but we use ' instead of "
@@ -481,7 +484,7 @@ public class ChatTest {
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 	}
-	
+
 	@Test
 	public void TEST_16_QUERY_CPU() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
@@ -490,7 +493,7 @@ public class ChatTest {
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 	}
-	
+
 	@Test
 	public void TEST_17_QUERY_LOG_MONITOR() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
@@ -507,7 +510,7 @@ public class ChatTest {
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 	}
-	
+
 	@Test
 	public void TEST_18_QUERY_LEAKER_1() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
@@ -521,7 +524,7 @@ public class ChatTest {
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 	}
-	
+
 	@Test
 	public void TEST_19_QUERY_LEAKER_2() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
@@ -534,7 +537,7 @@ public class ChatTest {
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 	}
-	
+
 	@Test
 	public void TEST_20_QUERY_LEAKER_3() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
@@ -551,10 +554,10 @@ public class ChatTest {
 		Response responseQuery = client.query(reqQuery);
 		assertTrue(!responseQuery.isError());
 	}
-	
-	
-	
-	
+
+
+
+
 	private static UpdateRequest generateUpdate(String sparql) {
 		return new UpdateRequest(
 				updateMethod,
