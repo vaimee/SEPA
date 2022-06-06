@@ -37,6 +37,7 @@ import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTT;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.QueryLUTTextraction;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -54,7 +55,6 @@ import org.apache.logging.log4j.LogManager;
 
 class SPUSmart extends SPU {
 	private static final int maxBindings = 10000;
-	private final Logger logger;
 	protected LUTT lutt;
 	
 	public SPUSmart(InternalSubscribeRequest subscribe, SPUManager manager) throws SEPAProtocolException {
@@ -62,8 +62,7 @@ class SPUSmart extends SPU {
 
 		this.spuid = "sepa://spu/naive/" + UUID.randomUUID();
 
-		logger = LogManager.getLogger("SPUSmart" + getSPUID());
-		logger.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
+		Logging.logger.debug("SPUSmart: " +"; request: " + subscribe);
 		if(EngineProperties.getIstance().isLUTTEnabled()) {
 			this.lutt= QueryLUTTextraction.exstract(subscribe.getSparql());
 		}else {
@@ -73,19 +72,18 @@ class SPUSmart extends SPU {
 
 	@Override
 	public Response init() throws SEPASecurityException, IOException {
-		logger.log(Level.getLevel("spu"),"@init");
-
+		Logging.logger.info("SPUSmart: "+getSPUID()+" @init");
 		// Process the SPARQL query
 		Response ret = manager.processQuery(subscribe);
 
 		if (ret.isError()) {
-			logger.error("Not initialized");
+			Logging.logger.error("SPUSmart Not initialized");
 			return ret;
 		}
 
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
 
-		logger.trace("First results: " + lastBindings.toString());
+		Logging.logger.trace("SPUSmart: "+getSPUID()+"; First results: " + lastBindings.toString());
 		
 		if(lastBindings.size()>maxBindings) {
 			lastBindings=null;
@@ -96,20 +94,20 @@ class SPUSmart extends SPU {
 
 	@Override
 	public void preUpdateInternalProcessing(InternalUpdateRequest req) throws SEPAProcessingException {
-		logger.log(Level.getLevel("spu"),"@preUpdateInternalProcessing");
+		Logging.logger.debug("SPUSmart: "+getSPUID()+"; @preUpdateInternalProcessing");
 		
 		if(lastBindings==null) {
 			try {
-				logger.log(Level.getLevel("spu"),"Query endpoint");	
+				Logging.logger.trace("SPUSmart: "+getSPUID()+"; Query endpoint");
 				Response ret = manager.processQuery(subscribe);
 				if (ret.isError()) {
-					logger.log(Level.getLevel("spu"),"SEPAProcessingException "+ret);
+					Logging.logger.error("SPUSmart: "+getSPUID()+"; SEPAProcessingException "+ret);
 					throw new SEPAProcessingException("preUpdateInternalProcessing exception "+ret.toString());
 				}
 				lastBindings= ((QueryResponse) ret).getBindingsResults();
 			} catch (SEPASecurityException | IOException e) {
-				if (logger.isTraceEnabled()) e.printStackTrace();
-				logger.log(Level.getLevel("spu"),"SEPASecurityException "+e.getMessage());
+				//if (logger.isTraceEnabled()) e.printStackTrace();
+				Logging.logger.error("SPUSmart: "+getSPUID()+"; SEPASecurityException "+e.getMessage());
 				throw new SEPAProcessingException("preUpdateInternalProcessing exception "+e.getMessage());
 			}
 		}
@@ -117,23 +115,22 @@ class SPUSmart extends SPU {
 
 	@Override
 	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException {
-		logger.log(Level.getLevel("spu"),"@postUpdateInternalProcessing");
-		
+		Logging.logger.debug("SPUSmart: "+getSPUID()+"; @postUpdateInternalProcessing");
 		Response ret = null;
 
 		// Query the SPARQL processing service
 		try {
-			logger.log(Level.getLevel("spu"),"Query endpoint");	
-			//System.out.println("postUpdateInternalProcessing: "+ subscribe.getSparql());
+			Logging.logger.trace("SPUSmart: "+getSPUID()+"; Query endpoint");
 			ret = manager.processQuery(subscribe);
 		} catch (SEPASecurityException | IOException e) {
-			if (logger.isTraceEnabled()) e.printStackTrace();
-			logger.log(Level.getLevel("spu"),"SEPASecurityException "+e.getMessage());
+			//if (logger.isTraceEnabled()) e.printStackTrace();
+
+			Logging.logger.error("SPUSmart: "+getSPUID()+"; SEPASecurityException "+e.getMessage());
 			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+e.getMessage());
 		}
 
 		if (ret.isError()) {
-			logger.log(Level.getLevel("spu"),"SEPAProcessingException "+ret);
+			Logging.logger.error("SPUSmart: "+getSPUID()+"; SEPAProcessingException "+ret);
 			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+ret.toString());
 		}
 
@@ -149,8 +146,9 @@ class SPUSmart extends SPU {
 		if (lastBindings == null)
 			lastBindings = new BindingsResults(null, null);
 
-		logger.trace("Current bindings: " + currentBindings);
-		logger.trace("Last bindings: " + lastBindings);
+		Logging.logger.trace("SPUSmart: "+getSPUID()+"; Current bindings: "+currentBindings);
+		Logging.logger.trace("SPUSmart: "+getSPUID()+"; Last bindings: "+lastBindings);
+		
 
 		// Find removed bindings
 		long start = System.nanoTime();
@@ -161,8 +159,7 @@ class SPUSmart extends SPU {
 				results.remove(solution);
 		}
 		long stop = System.nanoTime();
-		logger.trace("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
-
+		Logging.logger.trace("SPUSmart: "+getSPUID()+"; Removed bindings: "+removed + " found in " + (stop - start) + " ns");
 		// Find added bindings
 		start = System.nanoTime();
 		for (Bindings solution : results.getBindings()) {
@@ -170,7 +167,8 @@ class SPUSmart extends SPU {
 				added.add(solution);
 		}
 		stop = System.nanoTime();
-		logger.trace("Added bindings: " + added + " found in " + (stop - start) + " ns");
+		Logging.logger.trace("SPUSmart: "+getSPUID()+"; Added bindings: " + added + " found in " + (stop - start) + " ns");
+		
 
 		// Update the last bindings with the current ones
 		if(currentBindings.size()>maxBindings) {
@@ -181,11 +179,11 @@ class SPUSmart extends SPU {
 
 		// Send notification (or end processing indication)
 		if (!added.isEmpty() || !removed.isEmpty()) {
-			logger.log(Level.getLevel("spu"),"Send notification");
+			Logging.logger.debug("SPUSmart: "+getSPUID()+"; Send notification");
 			return new Notification(getSPUID(), new ARBindingsResults(added, removed));
 		}
 
-		logger.log(Level.getLevel("spu"),"Nothing to be notified");
+		Logging.logger.debug("SPUSmart: "+getSPUID()+"; Nothing to be notified");
 		return null;
 	}
 }

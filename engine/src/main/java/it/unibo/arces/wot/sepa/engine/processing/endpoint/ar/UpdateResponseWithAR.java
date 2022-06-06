@@ -5,7 +5,8 @@
  */
 package it.unibo.arces.wot.sepa.engine.processing.endpoint.ar;
 
-import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+
 import java.util.Set;
 import org.apache.jena.sparql.core.Quad;
 
@@ -13,10 +14,13 @@ import org.apache.jena.sparql.core.Quad;
  *
  * @author Lorenzo
  */
-public class UpdateResponseWithAR extends Response {
-    public final Set<Quad>     updatedTuples;
+public class UpdateResponseWithAR extends UpdateResponse {
+    
+	public final Set<Quad>     updatedTuples;
     public final Set<Quad>     removedTuples;    
+
     public UpdateResponseWithAR(Set<Quad> removed, Set<Quad> updated) {
+    	super("");
         updatedTuples = updated;
         removedTuples = removed;
     }

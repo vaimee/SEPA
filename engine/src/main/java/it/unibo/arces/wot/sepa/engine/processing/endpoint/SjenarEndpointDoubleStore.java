@@ -8,6 +8,8 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
+import it.unibo.arces.wot.sepa.logging.Logging;
+
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -23,11 +25,8 @@ import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.modify.UpdateResult;
 import org.apache.jena.system.Txn;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class SjenarEndpointDoubleStore implements SPARQLEndpoint {
-	protected static final Logger logger = LogManager.getLogger();
 
 	private static Dataset       firstDataset;
 	private static Dataset       secondDataset;
@@ -45,12 +44,18 @@ public class SjenarEndpointDoubleStore implements SPARQLEndpoint {
 	}
 
 	public SjenarEndpointDoubleStore(boolean firstStore) {
-		this.firstStore=firstStore;
+		try {
+			this.firstStore=firstStore;
+			init();
+		}catch (Exception e) {
+			// TODO: handle exception
+			Logging.logger.error(e.getMessage());
+		}
 	}
 
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo usr) {
-		init();
+		//init();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		Dataset store = firstStore?firstDataset:secondDataset;
 		try (final RDFConnection conn = 
@@ -75,7 +80,7 @@ public class SjenarEndpointDoubleStore implements SPARQLEndpoint {
 
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo usr) {
-		init();
+		//init();
 		Dataset store = firstStore?firstDataset:secondDataset;
 		try (final RDFConnection conn = 
 				(usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?

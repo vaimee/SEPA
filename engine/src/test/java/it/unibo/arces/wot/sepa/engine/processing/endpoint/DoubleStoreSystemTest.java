@@ -6,17 +6,17 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.jena.sparql.core.Quad;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.ARQuadsAlgorithm;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
@@ -29,7 +29,10 @@ public class DoubleStoreSystemTest {
 	private static SjenarEndpointDoubleStore secondStore;
 	
 	@BeforeClass
-	public static void init() throws SEPASecurityException {
+	public static void init() throws SEPASecurityException, SEPAPropertiesException {
+		String engineJpar = "engine.jpar";	
+		EngineProperties properties = EngineProperties.load(engineJpar);
+		EngineBeans.setEngineProperties(properties);
 		firstStore=new SjenarEndpointDoubleStore(true);
 		secondStore=new SjenarEndpointDoubleStore(false);
 		//clean datasets
