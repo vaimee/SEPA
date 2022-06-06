@@ -141,13 +141,35 @@ public class SPARQL11Properties {
 	/**
 	 * The Enum UpdateResultsFormat (HTTP,HTTPS).
 	 */
-	public enum ProtocolScheme {
+	public enum NetworkProtocolScheme {
 		/** The http protocol scheme. */
 		HTTP,
 		/** The https protocol scheme. */
 		HTTPS
-	};
+        }        
+	public enum ProtocolScheme {
+/*            
+		/** The http protocol scheme. */
+//		HTTP,
+		/** The https protocol scheme. */
+//		HTTPS
 
+            JenaAPI,
+            SJenarAPI,
+            Remote
+            
+	};
+        /**
+         * Note that if EndpointType is \a PROTOCOL_SCHEMA_STD_JENA or \a PROTOCOL_SCHEMA_EX_JENA then the properties of the datasets are stored
+         * in EngineProperties / EngineBeans classes, this simply select if behaviour is standard or extended
+         *  
+         */
+
+        public final static String PROTOCOL_SCHEMA_REMOTE       =   "remote";
+        public final static String PROTOCOL_SCHEMA_STD_JENA     =   "jena-api";
+        public final static String PROTOCOL_SCHEMA_EX_JENA      =   "sjenar-api";
+        
+        
 	/** The defaults file name. */
 	protected String defaultsFileName = "endpoint.jpar";
 
@@ -233,7 +255,7 @@ public class SPARQL11Properties {
 		jsap.add("host", new JsonPrimitive("in-memory"));
 
 		JsonObject sparql11protocol = new JsonObject();
-		sparql11protocol.add("protocol", new JsonPrimitive("jena-api"));
+		sparql11protocol.add("protocol", new JsonPrimitive(PROTOCOL_SCHEMA_STD_JENA));
 		sparql11protocol.add("port", new JsonPrimitive(9999));
 
 		JsonObject query = new JsonObject();
@@ -682,13 +704,19 @@ public class SPARQL11Properties {
 	}
 
 	public void setProtocolScheme(ProtocolScheme scheme) {
-		switch (scheme) {
-		case HTTP:
-			jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive("http"));
-			break;
-		case HTTPS:
-			jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive("https"));
-			break;
-		}
+            String protocolScheme = PROTOCOL_SCHEMA_STD_JENA;
+           
+            switch (scheme) {
+                case JenaAPI:
+                    break;
+                case Remote:
+                    protocolScheme = PROTOCOL_SCHEMA_REMOTE;
+                    break;
+                case SJenarAPI:
+                    protocolScheme = PROTOCOL_SCHEMA_EX_JENA;
+                    break;
+            }
+                
+            jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive(protocolScheme));
 	}
 }

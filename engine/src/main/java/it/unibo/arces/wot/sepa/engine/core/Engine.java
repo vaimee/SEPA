@@ -351,6 +351,12 @@ public class Engine implements EngineMBean {
 			EngineBeans.setEngineProperties(properties);
 
 			SPARQL11Properties endpointProperties = new SPARQL11Properties(endpointJpar);
+                        
+                        if (GlobalSystemProperties.checkIfACLIntegrationTest()) {
+                            endpointProperties.setProtocolScheme(SPARQL11Properties.ProtocolScheme.SJenarAPI);
+                            
+                            //next, load ACL with default dummy data 
+                        }
 
 			setSecurity();
 

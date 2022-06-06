@@ -167,6 +167,12 @@ public class EngineProperties {
 		result.parameters.gates.paths.register = "/oauth/register";
 		result.parameters.gates.paths.tokenRequest = "/oauth/token";
 
+                //do some acl Checks
+                if (GlobalSystemProperties.checkIfACLIntegrationTest()) {
+                    result.parameters.acl.enabled = true;
+                    result.parameters.acl.type  = ACL_TYPE_DS;
+                    result.parameters.acl.mode = DS_MODE_MEM;
+                }
 		
 		return result;
 	}
@@ -383,7 +389,7 @@ public class EngineProperties {
 	}
         
         static private class Acl {
-                public  boolean     enabled     =   true;
+                public  boolean     enabled     =   false;
                 public  String      type        =   ACL_TYPE_DS;  //allowed: dataset/json
                 public  String      mode        =   DS_MODE_MEM;     /*
                                                                     Valid values depends on type :
