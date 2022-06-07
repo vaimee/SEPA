@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 package it.unibo.arces.wot.sepa.engine.core;
 
 import java.io.FileReader;
@@ -72,26 +72,34 @@ public class EngineProperties {
 
 	private static final transient String defaultsFileName = "engine.jpar";
 
-	
+
 	private static EngineProperties _istance=null;
 	public static EngineProperties getIstance() {
 		if(_istance==null) {
-			//load from jpar
+			try {
+				_istance=newInstanceDefault();
+			} catch (SEPAPropertiesException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return _istance;
 	}
-	
+
 	private Parameters parameters = new Parameters();
 
 	private EngineProperties() {}
-        public static EngineProperties newInstanceDefault() throws SEPAPropertiesException  {
-            EngineProperties result  = EngineProperties.load(defaultsFileName);
-            return result;
-        }
+	public static EngineProperties newInstanceDefault() throws SEPAPropertiesException  {
+		EngineProperties result  = EngineProperties.load(defaultsFileName);
+		_istance=result;
+		Logging.logger.trace("EngineProperties loaded as newInstanceDefault: "+result.toString());
+		return result;
+	}
 	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		EngineProperties result = EngineProperties.load(propertiesFile);
 		result.parameters.gates.security.enabled = secure;
 		_istance=result;
+		Logging.logger.trace("EngineProperties loaded as secure from file "+propertiesFile+": "+result.toString());
 		return result;
 	}
 
@@ -118,6 +126,7 @@ public class EngineProperties {
 		}
 
 		_istance=result;
+		Logging.logger.trace("EngineProperties loaded from file "+propertiesFile+": "+result.toString());
 		return result;
 	}
 
@@ -142,8 +151,7 @@ public class EngineProperties {
 		result.parameters.processor.queryTimeout = 30000;
 		result.parameters.processor.maxConcurrentRequests = 5;
 		result.parameters.processor.reliableUpdate = true;
-		result.parameters.processor.lutt = true;
-		
+
 		// SPU
 		result.parameters.spu.timeout = 5000;
 
@@ -151,7 +159,7 @@ public class EngineProperties {
 		result.parameters.gates.security.enabled = false;
 		result.parameters.gates.security.type = "local";
 		result.parameters.gates.security.tls = false;
-		
+
 		// Gates -> Ports
 		result.parameters.gates.ports.http = 8000;
 		result.parameters.gates.ports.https = 8443;
@@ -167,12 +175,14 @@ public class EngineProperties {
 		result.parameters.gates.paths.register = "/oauth/register";
 		result.parameters.gates.paths.tokenRequest = "/oauth/token";
 
-                //do some acl Checks
-                if (GlobalSystemProperties.checkIfACLIntegrationTest()) {
-                    result.parameters.acl.enabled = true;
-                    result.parameters.acl.type  = ACL_TYPE_DS;
-                    result.parameters.acl.mode = DS_MODE_MEM;
-                }
+		//do some acl Checks
+		if (GlobalSystemProperties.checkIfACLIntegrationTest()) {
+			result.parameters.acl.enabled = true;
+			result.parameters.acl.type  = ACL_TYPE_DS;
+			result.parameters.acl.mode = DS_MODE_MEM;
+		}
+
+		result.parameters.dsConfig.lutt=false;
 		
 		return result;
 	}
@@ -186,23 +196,23 @@ public class EngineProperties {
 	public boolean isSecure() {
 		return this.parameters.gates.security.enabled;
 	}
-	
+
 	public boolean isTls() {
 		return this.parameters.gates.security.tls;
 	}
-	
+
 	public boolean isLDAPEnabled() {
 		return this.parameters.gates.security.type.equals("ldap");
 	}
-	
+
 	public boolean isLocalEnabled() {
 		return this.parameters.gates.security.type.equals("local");
 	}
-	
+
 	public boolean isKeycìCloakEnabled() {
 		return this.parameters.gates.security.type.equals("keycloak");
 	}
-	
+
 	public int getMaxConcurrentRequests() {
 		return this.parameters.processor.maxConcurrentRequests;
 	}
@@ -271,31 +281,21 @@ public class EngineProperties {
 		return this.parameters.processor.reliableUpdate;
 	}
 
-	public boolean isLUTTEnabled() {
-		return this.parameters.processor.lutt;
-	}
-	
-	public boolean isSPUSmart() {
-		//If LUTT is enabled, spuSmart need to be enabled!
-		if(this.parameters.processor.lutt && !this.parameters.processor.spuSmart) {
-			Logging.logger.warn("SPUSmart is disabled, but LUTT is enabled, force enable on SPUSmart, you need it if you use LUTT.");
-		}
-		return this.parameters.processor.lutt || this.parameters.processor.spuSmart;
-	}
-	
+
 	public int getSchedulerTimeout() {
 		return this.parameters.scheduler.timeout;
 	}
-	
-	
+
+
 	static private class Parameters {
 		public Scheduler scheduler = new Scheduler();
 		public Processor processor = new Processor();
-		public Spu spu = new Spu();
 		public Gates gates = new Gates();
-		
+		public Spu spu = new Spu();
+
 		public Acl   acl = new Acl();
 		public DatasetConfiguration dsConfig = new DatasetConfiguration();
+		
 
 	}
 
@@ -314,33 +314,30 @@ public class EngineProperties {
 		public int queryTimeout;
 		public int maxConcurrentRequests;
 		public boolean reliableUpdate;
-		
-		public boolean lutt;
-		public boolean spuSmart;
+
 
 		public Processor(){
 			reliableUpdate = true;
 			updateTimeout = 5000;
 			queryTimeout = 5000;
 			maxConcurrentRequests = 5;
-			lutt=true;
-			spuSmart=true;
 		}
 	}
 
 	static private class Spu {
 		public int timeout;
-
+		
 		public Spu(){
 			timeout = 5000;
 		}
+		
 	}
-	
+
 	static private class Security {
 		public boolean tls;
 		public boolean enabled;
 		public String type;
-		
+
 		public Security(){
 			enabled = false;
 			type = "local";
@@ -387,96 +384,96 @@ public class EngineProperties {
 			wss   = 9443;
 		}
 	}
-        
-        static private class Acl {
-                public  boolean     enabled     =   false;
-                public  String      type        =   ACL_TYPE_DS;  //allowed: dataset/json
-                public  String      mode        =   DS_MODE_MEM;     /*
+
+	static private class Acl {
+		public  boolean     enabled     =   false;
+		public  String      type        =   ACL_TYPE_DS;  //allowed: dataset/json
+		public  String      mode        =   DS_MODE_MEM;     /*
                                                                     Valid values depends on type :
-                                                                    *) type == dataset
+		 *) type == dataset
                                                                         -) mode = tdb2  tdb2 persistency
                                                                         -) mode = tdb1  tdb1 persistency
                                                                         -) mode = mem   not persistent
-                                                                    *) type == json : no value required
-                                                                        
-                                                                */
-                public String       path = "./acl";             /*
+		 *) type == json : no value required
+
+		 */
+		public String       path = "./acl";             /*
                                                                     Valid values depends on type :
-                                                                    *) type == dataset/tdb1|tdb2
+		 *) type == dataset/tdb1|tdb2
                                                                         -) path = path of tdbx persistent data
 
-                                                                    *) type == json : full path of json file
-                                                                        
-                                                                */
-                
-                
-                public String       queryPath       = "/acl/query//";
-                public String       updatePath      = "/acl/update/";
-                
-        }
-        
-        public boolean  isAclEnabled() {
-            return parameters.acl.enabled;
-        }
-        
-        public String getAclType() {
-            return parameters.acl.type;
-        }
-        
-        public String getAclMode() {
-            return parameters.acl.mode;
-        }
-        
-        public String getAclPath() {
-            return parameters.acl.path;
-        }
-        
-        
-        public String getAclQueryPath() {
-            return parameters.acl.queryPath;
-        }
-        public String getAclUpdatePath() {
-            return parameters.acl.updatePath;
-        }
-        
-        private static class    DatasetData {
-                public  String      mode        =   DS_MODE_MEM ;     /*
+		 *) type == json : full path of json file
+
+		 */
+
+
+		public String       queryPath       = "/acl/query//";
+		public String       updatePath      = "/acl/update/";
+
+	}
+
+	public boolean  isAclEnabled() {
+		return parameters.acl.enabled;
+	}
+
+	public String getAclType() {
+		return parameters.acl.type;
+	}
+
+	public String getAclMode() {
+		return parameters.acl.mode;
+	}
+
+	public String getAclPath() {
+		return parameters.acl.path;
+	}
+
+
+	public String getAclQueryPath() {
+		return parameters.acl.queryPath;
+	}
+	public String getAclUpdatePath() {
+		return parameters.acl.updatePath;
+	}
+
+	private static class    DatasetData {
+		public  String      mode        =   DS_MODE_MEM ;     /*
                                                                     -) mode = tdb2  tdb2 persistency
                                                                     -) mode = tdb1  tdb1 persistency
                                                                     -) mode = mem   not persistent
-                                                                */
-                public String       path        =   "";         //path of dataset is mode is tdb1 or tdb2
-        }
-        private static class    DatasetConfiguration {
-            public boolean          enable2P = false;
-            public DatasetData      firstDS  = new DatasetData();
-            public DatasetData      secondDS = new DatasetData();
-            
-            
-        }
-        
-        public static final String    DS_MODE_MEM     =   "mem";
-        public static final String    DS_MODE_TDB2    =   "tdb2";
-        public static final String    DS_MODE_TDB1    =   "tdb1";
-        
-        public static final String    ACL_TYPE_DS     =   "dataset";
-        public static final String    ACL_TYPE_JSON   =   "json";
-        
-        public boolean is2PEnabled() {
-            return parameters.dsConfig.enable2P;
-        }
-        
-        public String   getFirstDatasetMode() {
-            return parameters.dsConfig.firstDS.mode;
-        }
-        public String   getFirstDatasetPath() {
-            return parameters.dsConfig.firstDS.path;
-        }
-        public String   getSecondDatasetMode() {
-            return parameters.dsConfig.secondDS.mode;
-        }
-        public String   getSecondDatasetPath() {
-            return parameters.dsConfig.secondDS.path;
-        }
-	
+		 */
+		public String       path        =   "";         //path of dataset is mode is tdb1 or tdb2
+	}
+	private static class    DatasetConfiguration {
+		public boolean          lutt = false;
+		public DatasetData      firstDS  = new DatasetData();
+		public DatasetData      secondDS = new DatasetData();
+
+
+	}
+
+	public static final String    DS_MODE_MEM     =   "mem";
+	public static final String    DS_MODE_TDB2    =   "tdb2";
+	public static final String    DS_MODE_TDB1    =   "tdb1";
+
+	public static final String    ACL_TYPE_DS     =   "dataset";
+	public static final String    ACL_TYPE_JSON   =   "json";
+
+	public boolean isLUTTEnabled() {
+		return parameters.dsConfig.lutt;
+	}
+
+	public String   getFirstDatasetMode() {
+		return parameters.dsConfig.firstDS.mode;
+	}
+	public String   getFirstDatasetPath() {
+		return parameters.dsConfig.firstDS.path;
+	}
+	public String   getSecondDatasetMode() {
+		return parameters.dsConfig.secondDS.mode;
+	}
+	public String   getSecondDatasetPath() {
+		return parameters.dsConfig.secondDS.path;
+	}
+
 }

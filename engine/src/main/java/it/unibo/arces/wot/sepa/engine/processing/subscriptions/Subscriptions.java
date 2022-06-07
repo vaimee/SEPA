@@ -73,7 +73,7 @@ public class Subscriptions {
 		//logger.log(Level.getLevel("subscriptions"),"@createSPU");
 		//System.out.println("SOTTOSCRIZIONE:\n"+req.getSparql());
 		try {
-			if(EngineProperties.getIstance().isSPUSmart()) {
+			if(EngineProperties.getIstance().isLUTTEnabled()) {
 				return new SPUSmart(req, manager);
 			}else {
 				return new SPUNaive(req, manager);

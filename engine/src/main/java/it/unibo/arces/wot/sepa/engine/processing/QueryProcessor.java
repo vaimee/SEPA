@@ -30,10 +30,10 @@ import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.EndpointFactory;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.logging.Timings;
@@ -59,18 +59,19 @@ class QueryProcessor implements QueryProcessorMBean {
 		int n = 0;
 		Response ret;
 		do {
+			
 			long start = Timings.getTime();
-			SPARQLEndpoint endpoint;
-			if(EngineProperties.getIstance().isLUTTEnabled()) {
-				endpoint = new SjenarEndpointDoubleStore(firstStore);
-			}else if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) {
-				endpoint = new SjenarEndpoint();
-			}else {
-				endpoint = new RemoteEndpoint();
-			}
-                        
-			ret = endpoint.query(request);
-			endpoint.close();
+			try (
+				/*
+				 * The check on double-store-system is done in more than one point
+				 * there is in "EndpointFactory.newInstance" too
+				 * "firstStore" is passed anyway, though the double-store-system is disable
+				 */
+                final SPARQLEndpoint endpoint = EndpointFactory.newInstance(properties.getProtocolScheme(),firstStore);
+            ){
+                final SEPAUserInfo ui = SEPAUserInfo.newInstance(req);
+                ret = endpoint.query(request,ui);
+            } 
 			long stop = Timings.getTime();
 			
 			UpdateProcessorBeans.timings(start, stop);

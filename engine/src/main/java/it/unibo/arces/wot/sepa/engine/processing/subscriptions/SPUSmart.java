@@ -18,7 +18,6 @@
 
 package it.unibo.arces.wot.sepa.engine.processing.subscriptions;
 
-import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -42,8 +41,7 @@ import it.unibo.arces.wot.sepa.logging.Logging;
 import java.io.IOException;
 import java.util.UUID;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
+
 
 //For now is the same to SPUNaive
 /*

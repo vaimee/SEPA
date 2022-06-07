@@ -8,6 +8,8 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
+import it.unibo.arces.wot.sepa.logging.Logging;
+
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -23,11 +25,8 @@ import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.modify.UpdateResult;
 import org.apache.jena.system.Txn;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class SjenarEndpoint implements SPARQLEndpoint {
-	protected static final Logger logger = LogManager.getLogger();
 
 	private static Dataset       dataset;
 	private static boolean       hasInit;
@@ -61,6 +60,7 @@ public class SjenarEndpoint implements SPARQLEndpoint {
 			try {
 				return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
 			} catch (UnsupportedEncodingException e) {
+				Logging.logger.error("SjenarEndpoint.query error: "+e.getMessage());
 				return new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
 			}
 		}

@@ -70,9 +70,7 @@ public class Processor implements ProcessorMBean {
 	// Running flag
 	private final AtomicBoolean running = new AtomicBoolean(true);
 
-	//flag for boost mode, if true, we use JenaInMemory with double store, and LUTT
-	private boolean inMemoryDoubleStore;
-	
+		
 	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties, Scheduler scheduler)
 			throws IllegalArgumentException, SEPAProtocolException, SEPASecurityException {
 
@@ -168,7 +166,7 @@ public class Processor implements ProcessorMBean {
 		// Endpoint UPDATE
 		Response ret;
 		try {
-			if(this.inMemoryDoubleStore) {
+			if(EngineProperties.getIstance().isLUTTEnabled()) {
 				//in this case the "preRequest" is 
 				//INSERT DATA and DELETE DATA update built with the AR
 				//ret = updateEndpoint2Ph(preRequest); //INSERT-DELETE do not work properly yet

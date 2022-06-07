@@ -62,10 +62,25 @@ public class ChatTest {
 			e.printStackTrace();
 		}
 		client=new SPARQL11Protocol(null);
-
+	
 	}
-
-
+	
+//	@Test
+//	public void TEST_00() throws NumberFormatException, SEPABindingsException, SEPASecurityException{
+//	SPARQL11Protocol client= new SPARQL11Protocol(null);
+//	Response responseUpdate = client.update(new UpdateRequest(
+//			UpdateHTTPMethod.POST,
+//			"http",
+//			"localhost",
+//			8000,
+//			"/update",
+//			"DELETE WHERE { GRAPH ?g { ?s ?p ?o } }",
+//			null, 
+//			null,
+//			null
+//			));
+//	}
+	
 	@Test
 	public void TEST_01_DELETE_ALL() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 0;

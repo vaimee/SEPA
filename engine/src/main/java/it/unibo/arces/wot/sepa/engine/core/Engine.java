@@ -333,6 +333,8 @@ public class Engine implements EngineMBean {
 		System.out.println("##########################################################################################");
 		System.out.println("");
 
+		Logging.init();
+		
 		// Command arguments
 		parsingArgument(args);
 
@@ -447,7 +449,6 @@ public class Engine implements EngineMBean {
 			System.out.println("*****************************************************************************************");
 			System.out.print("Version "+version);
 			
-			Logging.init();
 
 		} catch (SEPAPropertiesException | SEPASecurityException | IllegalArgumentException | SEPAProtocolException e) {
 			System.err.println(e.getMessage());
