@@ -6,8 +6,12 @@
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
 import com.google.gson.Gson;
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
@@ -15,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.acl.DatasetACL.aclId;
 
@@ -150,6 +155,31 @@ public class ACLStorageJSon implements ACLStorageOperations {
             throw new ACLStorageException("Group not found : " + groupName,ACLStorageId.aiJSon);
         
         return gd;
+    }
+
+    @Override
+    public void register(ACLStorageRegistrableParams params) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Response query(QueryRequest req, SEPAUserInfo usr) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public Response update(UpdateRequest req, SEPAUserInfo usr) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+ 
+    @Override
+    public void close() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void registerSecure(ACLStorageRegistrableParams params) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     public static class JSonArchive {
         public  Map<String, SEPAAcl.UserData>           aclUserData;

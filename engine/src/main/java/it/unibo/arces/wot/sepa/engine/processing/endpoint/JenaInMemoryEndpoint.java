@@ -45,27 +45,13 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo notUsed) {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		RDFConnection conn = RDFConnection.connect(dataset);
-		Txn.executeRead(conn, ()-> {
-			ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
-			ResultSetFormatter.outputAsJSON(out, rs);
-		});
-	 
-		try {
-			return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
-		} catch (UnsupportedEncodingException e) {
-			return new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
-		}
+            return EndpointBasicOps.query(req, dataset);
+
 	}
 
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo notUsed) {
-		RDFConnection conn = RDFConnection.connect(dataset);
-		Txn.executeWrite(conn, ()-> {
-			conn.update(req.getSPARQL());
-		});
-		return new UpdateResponse("Jena-in-memory-update");
+            return EndpointBasicOps.update(req, dataset);
 	}
 
 	@Override

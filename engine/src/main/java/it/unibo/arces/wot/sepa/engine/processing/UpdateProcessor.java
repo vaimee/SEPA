@@ -26,6 +26,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
@@ -34,6 +35,7 @@ import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.logging.Timings;
+import org.apache.jena.acl.DatasetACL;
 
 class UpdateProcessor implements UpdateProcessorMBean {
 	protected final SPARQL11Properties properties;
@@ -57,7 +59,11 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		do {
 			long start = Timings.getTime();
                         try (
-                                final SPARQLEndpoint endpoint = EndpointFactory.newInstance(properties.getProtocolScheme());			
+                                final SPARQLEndpoint endpoint = 
+                                        req.isAclRequest() == false                                     ?  
+                                        EndpointFactory.newInstance(properties.getProtocolScheme())     : 
+                                        SEPAAcl.getInstance().asEndpoint();
+                                
                         ) {
                             final SEPAUserInfo ui = SEPAUserInfo.newInstance(req);
                             ret = endpoint.update(request,ui);

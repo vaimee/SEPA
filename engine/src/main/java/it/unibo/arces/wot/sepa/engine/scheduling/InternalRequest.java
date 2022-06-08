@@ -29,11 +29,11 @@ public abstract class InternalRequest {
 	}
 	
 	public boolean isQueryRequest() {
-		return this.getClass().equals(InternalQueryRequest.class);
+		return this.getClass().equals(InternalQueryRequest.class) || this.getClass().equals(InternalAclQueryRequest.class) ;
 	}
 
 	public boolean isUpdateRequest() {
-		return this.getClass().equals(InternalUpdateRequest.class);
+		return this.getClass().equals(InternalUpdateRequest.class) || this.getClass().equals(InternalAclUpdateRequest.class);
 	}
 
 	public boolean isSubscribeRequest() {
@@ -51,4 +51,8 @@ public abstract class InternalRequest {
 	public ClientAuthorization getClientAuthorization() {
 		return auth;
 	}
+        
+        public boolean isAclRequest() {
+            return this.getClass().equals(InternalAclUpdateRequest.class) || this.getClass().equals(InternalAclQueryRequest.class);
+        }
 }

@@ -7,6 +7,7 @@ package it.unibo.arces.wot.sepa.engine.acl.storage;
 
 import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
 import java.util.Map;
 import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
