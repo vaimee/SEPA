@@ -33,8 +33,8 @@ public class ChatTest {
 	private static final String scheme = "http";
 	private static final String host = "localhost";
 	private static final int port = 8000;
-	private static final String updatePath = "/update";
-	private static final String queryPath = "/query";
+	private static final String updatePath ="/sparql" ;//"/update";
+	private static final String queryPath ="/sparql" ;//"/query";
 
 	private static final String sparqlCountQuad = 
 			"SELECT (COUNT(?quad) AS ?count) WHERE  {"
