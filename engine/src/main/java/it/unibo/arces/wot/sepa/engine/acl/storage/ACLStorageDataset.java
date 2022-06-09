@@ -5,21 +5,29 @@
  */
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl.UserData;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.EndpointBasicOps;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11Handler;
+import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SecureSPARQL11Handler;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalAclRequestFactory;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.swing.GroupLayout;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
+import org.apache.jena.shared.AccessDeniedException;
 
 /**
  *
@@ -39,6 +47,58 @@ public class ACLStorageDataset implements ACLStorageOperations {
         final String groupURI = "sepaACLGroups:" + groupName;
         final Map<String, Set<DatasetACL.aclId>> ret = loadGroupData(groupURI);
         return ret;
+    }
+
+    @Override
+    public void register(ACLStorageRegistrableParams params) {
+        final SPARQL11Handler aclHandler = new SPARQL11Handler(
+            params.scheduler,
+            EngineBeans.getAclQueryPath(),
+            EngineBeans.getAclUpdatePath(),
+            new InternalAclRequestFactory()
+        );
+        
+        params.sp.registerHandler(EngineBeans.getAclQueryPath(), aclHandler);
+        params.sp.registerHandler(EngineBeans.getAclUpdatePath(), aclHandler);
+        
+    }
+
+    @Override
+    public Response query(QueryRequest req, SEPAUserInfo usr) {
+        if (usr == null || usr.userName.equals(DatasetACL.ADMIN_USER) == false)
+            throw new AccessDeniedException();
+        
+        return EndpointBasicOps.query(req, storageDataset);
+        
+        
+    }
+
+    @Override
+    public Response update(UpdateRequest req, SEPAUserInfo usr) {
+        if (usr == null || usr.userName.equals(DatasetACL.ADMIN_USER) == false)
+            throw new AccessDeniedException();
+        
+        return EndpointBasicOps.update(req, storageDataset);
+
+    }
+
+    @Override
+    public void close() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void registerSecure(ACLStorageRegistrableParams params) {
+        final SPARQL11Handler aclHandler = new SecureSPARQL11Handler(
+            params.scheduler,
+            EngineBeans.getAclQueryPath(),
+            EngineBeans.getAclUpdatePath(),
+            new InternalAclRequestFactory()
+        );
+        
+        params.sp.registerHandler(EngineBeans.getSecurePath() +  EngineBeans.getAclQueryPath(), aclHandler);
+        params.sp.registerHandler(EngineBeans.getSecurePath() + EngineBeans.getAclUpdatePath(), aclHandler);
+
     }
     //bare implementation of ACL of ACL
     private static class ACLStorageDatasetACL extends DatasetACL {
@@ -159,7 +219,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
             }
         }
         
-        dsConnection = RDFConnectionFactory.connect(storageDataset);
+        dsConnection = RDFConnection.connect(storageDataset);
     }
 
     @Override

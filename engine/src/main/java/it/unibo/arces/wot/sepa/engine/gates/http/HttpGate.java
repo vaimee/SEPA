@@ -28,13 +28,18 @@ import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrable;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrableParams;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.ACLTools;
 
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11Handler;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalStdRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.logging.Logging;
+import org.apache.jena.acl.DatasetACL;
 
 public class HttpGate {
 	protected EngineProperties properties;
@@ -51,16 +56,26 @@ public class HttpGate {
 
 		// [TRIVO CHECK!!!] JenaInMemoryEndpoint.init();
 
-		final SPARQL11Handler handler = new SPARQL11Handler(scheduler, properties.getQueryPath(),
-				properties.getUpdatePath());
+		final SPARQL11Handler handler = new SPARQL11Handler(
+                    scheduler, 
+                    properties.getQueryPath(),
+                    properties.getUpdatePath(),
+                    new InternalStdRequestFactory()
+                );
 		// [TRIVO CHECK!!!] final SPARQL11Handler aclHandler = new SPARQL11Handler(scheduler,properties.getAclQueryPath(),properties.getAclUpdatePath());
 
-		server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort()).setServerInfo(serverInfo)
+                final ServerBootstrap sp = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort()).setServerInfo(serverInfo)
 				.setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
 				.registerHandler(properties.getQueryPath(), handler)
-				.registerHandler(properties.getUpdatePath(), handler).registerHandler("/echo", new EchoHandler())
-				.create();
+				.registerHandler(properties.getUpdatePath(), handler).registerHandler("/echo", new EchoHandler());
+				
+                
+                if (EngineBeans.isAclEnabled()) {
+                    final ACLStorageRegistrable ari = SEPAAcl.getInstance(ACLTools.makeACLStorage());
+                    ari.register( new ACLStorageRegistrableParams(sp, scheduler));
+                }
 
+                server = sp.create();
 		try {
 			server.start();
 		} catch (IOException e) {
@@ -74,6 +89,10 @@ public class HttpGate {
 		System.out.println("SPARQL 1.1 Query        | " + EngineBeans.getQueryURL());
 		System.out.println("SPARQL 1.1 Update       | " + EngineBeans.getUpdateURL());
 
+                if (EngineBeans.isAclEnabled()) {
+                    System.out.println("SPARQL 1.1 ACL Query        | " + EngineBeans.getQueryURL());
+                    System.out.println("SPARQL 1.1 ACL Update       | " + EngineBeans.getUpdateURL());
+                }
 	}
 
 	public void shutdown() {

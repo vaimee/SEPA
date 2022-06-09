@@ -25,13 +25,14 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class SecureSPARQL11Handler extends SPARQL11Handler implements SecureSPARQL11HandlerMBean {
 
-	public SecureSPARQL11Handler(Scheduler scheduler,String queryPath,String updatePath) throws IllegalArgumentException {
-		super(scheduler,queryPath,updatePath);
+	public SecureSPARQL11Handler(Scheduler scheduler,String queryPath,String updatePath,InternalRequestFactory irf ) throws IllegalArgumentException {
+		super(scheduler,queryPath,updatePath,irf );
 		
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
