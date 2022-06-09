@@ -197,8 +197,8 @@ public class EngineBeans {
         
         
         
-        public static boolean is2PEnabled() {
-            return properties.is2PEnabled();
+        public static boolean isLUTTEnabled() {
+            return properties.isLUTTEnabled();
         }
         
         public static String   getFirstDatasetMode() {
