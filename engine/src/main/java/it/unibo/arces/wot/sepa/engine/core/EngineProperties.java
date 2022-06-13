@@ -382,7 +382,7 @@ public class EngineProperties {
                                                                 */
                 
                 
-                public String       queryPath       = "/acl/query//";
+                public String       queryPath       = "/acl/query/";
                 public String       updatePath      = "/acl/update/";
                 
         }

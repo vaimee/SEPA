@@ -18,11 +18,16 @@ public class SEPAUserInfo {
     
     private static boolean  hasACLSupport;
     private static boolean  hasInit;
+    private static boolean  hasAclDebug;
     
     public static SEPAUserInfo newInstance(InternalRequest req) throws SEPASecurityException {
         if (hasInit == false) {
             hasACLSupport = EngineBeans.isAclEnabled();
+            hasAclDebug  = System.getProperty("acl.debug") != null;
             hasInit = true;
+            
+            System.out.println("hasACLSupport : " + hasACLSupport);
+            System.out.println("hasAclDebug : " + hasAclDebug);
         }
         
         if (hasACLSupport == false)
@@ -37,7 +42,7 @@ public class SEPAUserInfo {
             ret  = new SEPAUserInfo(req.getClientAuthorization().getCredentials().user());
         }
         
-        if (ret == null || ret.validate() == false ) {
+        if ((ret == null || ret.validate() == false) && hasAclDebug == false   ) {
             throw new SEPASecurityException("Unable to find user information for ACL check");
         }
         

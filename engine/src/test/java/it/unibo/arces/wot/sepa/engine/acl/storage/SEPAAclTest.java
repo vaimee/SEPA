@@ -29,8 +29,12 @@ import org.junit.Test;
  * @Test SEPA Acl operations
  */
 public class SEPAAclTest {
-    
-     private final String initQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"          + System.lineSeparator() +   
+     public static void main(String[] args) {
+         System.out.println(initQuery);
+         System.out.println(initGroupsQuery);
+         
+     }
+     private static final String initQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"          + System.lineSeparator() +   
                             "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
                             "INSERT DATA { GRAPH sepaACL:acl { "                        + System.lineSeparator() + 
                             "   sepaACL:monger"                                         + System.lineSeparator() + 		
@@ -62,7 +66,7 @@ public class SEPAAclTest {
              
                             "}}"                                                        + System.lineSeparator();
      
-     private final String initGroupsQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"            + System.lineSeparator() + 
+     private static final String initGroupsQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"            + System.lineSeparator() + 
                             "PREFIX sepaACLGroups: <http://groups.acl.sepa.com/>"               + System.lineSeparator() + 
                             "PREFIX mp: <http://mysparql.com/>"                                 + System.lineSeparator() + 
                             ""                                                                  + System.lineSeparator() + 

@@ -62,6 +62,9 @@ public class HttpGate {
                     properties.getUpdatePath(),
                     new InternalStdRequestFactory()
                 );
+                
+                System.out.println("Registed query path " + properties.getQueryPath());
+                System.out.println("Registed update path " + properties.getUpdatePath());
 		// [TRIVO CHECK!!!] final SPARQL11Handler aclHandler = new SPARQL11Handler(scheduler,properties.getAclQueryPath(),properties.getAclUpdatePath());
 
                 final ServerBootstrap sp = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort()).setServerInfo(serverInfo)
@@ -90,8 +93,8 @@ public class HttpGate {
 		System.out.println("SPARQL 1.1 Update       | " + EngineBeans.getUpdateURL());
 
                 if (EngineBeans.isAclEnabled()) {
-                    System.out.println("SPARQL 1.1 ACL Query        | " + EngineBeans.getQueryURL());
-                    System.out.println("SPARQL 1.1 ACL Update       | " + EngineBeans.getUpdateURL());
+                    System.out.println("SPARQL 1.1 ACL Query        | " + EngineBeans.getAclQueryURL());
+                    System.out.println("SPARQL 1.1 ACL Update       | " + EngineBeans.getAclUpdateURL());
                 }
 	}
 
