@@ -565,6 +565,15 @@ public class JSAP extends SPARQL11SEProperties {
 
 		return super.getUpdatePath();
 	}
+	public String getAclUpdatePath(String id) {
+		try {
+			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
+					.getAsJsonObject("acl").getAsJsonObject("update").get("path").getAsString();
+		} catch (Exception e) {
+		}
+
+		return super.getUpdatePath();
+	}
 
 	public int getUpdatePort(String id) {
 		try {
@@ -665,6 +674,15 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public void setUpdatePath(String id, String path) {
+		JsonObject prop = checkAndCreate(id, true);
+
+		if (!prop.has("update"))
+			prop.add("update", new JsonObject());
+		JsonObject temp = prop.getAsJsonObject("update");
+
+		temp.add("path", new JsonPrimitive(path));
+	}
+	public void setAclUpdatePath(String id, String path) {
 		JsonObject prop = checkAndCreate(id, true);
 
 		if (!prop.has("update"))
