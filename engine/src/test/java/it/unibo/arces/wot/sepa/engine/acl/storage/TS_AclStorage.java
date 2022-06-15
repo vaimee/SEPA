@@ -5,13 +5,15 @@
  */
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
 
 /**
  *
  * @author Lorenzo
  */
+
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+
 @RunWith(Suite.class)
 @Suite.SuiteClasses( {
     ACLStorageFactoryTest.class,
