@@ -158,7 +158,7 @@ public class ACLStorageJSon implements ACLStorageOperations {
     }
 
     @Override
-    public void register(ACLStorageRegistrableParams params) {
+    public void register(ACLStorageRegistrableParams params,ACLStorage owner) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -178,7 +178,7 @@ public class ACLStorageJSon implements ACLStorageOperations {
     }
 
     @Override
-    public void registerSecure(ACLStorageRegistrableParams params) {
+    public void registerSecure(ACLStorageRegistrableParams params,ACLStorage owner) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     public static class JSonArchive {

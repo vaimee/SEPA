@@ -29,7 +29,7 @@ import org.apache.http.impl.nio.reactor.IOReactorConfig;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrable;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLRegistrable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrableParams;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
@@ -39,7 +39,6 @@ import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11Handler;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalStdRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.logging.Logging;
-import org.apache.jena.acl.DatasetACL;
 
 public class HttpGate {
 	protected EngineProperties properties;
@@ -74,7 +73,7 @@ public class HttpGate {
 				
                 
                 if (EngineBeans.isAclEnabled()) {
-                    final ACLStorageRegistrable ari = SEPAAcl.getInstance(ACLTools.makeACLStorage());
+                    final ACLRegistrable ari = SEPAAcl.getInstance(ACLTools.makeACLStorage());
                     ari.register( new ACLStorageRegistrableParams(sp, scheduler));
                 }
 

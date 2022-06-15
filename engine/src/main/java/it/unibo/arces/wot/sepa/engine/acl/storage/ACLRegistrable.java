@@ -4,12 +4,13 @@
  * and open the template in the editor.
  */
 package it.unibo.arces.wot.sepa.engine.acl.storage;
-import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
+
 /**
  *
  * @author Lorenzo
  */
-public interface ACLStorageRegistrable {
-    void register(ACLStorageRegistrableParams params,ACLStorage owner);
-    void registerSecure(ACLStorageRegistrableParams params,ACLStorage owner);
+public interface ACLRegistrable {
+    void register(ACLStorageRegistrableParams params);
+    void registerSecure(ACLStorageRegistrableParams params);
+    
 }

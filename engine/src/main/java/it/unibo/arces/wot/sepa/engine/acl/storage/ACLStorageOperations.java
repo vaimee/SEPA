@@ -12,7 +12,9 @@ import org.apache.jena.acl.DatasetACL;
  *
  * @author Lorenzo
  */
-public interface ACLStorageOperations extends ACLStorage,ACLStorageRegistrable,SPARQLEndpoint  {
+public interface ACLStorageOperations extends ACLStorage,SPARQLEndpoint ,ACLStorageRegistrable {
     void    addGraphToUser(String user, String graph,DatasetACL.aclId firstId);
     void    addGraphToGroup(String group, String graph,DatasetACL.aclId firstId);
+    
+    
 }

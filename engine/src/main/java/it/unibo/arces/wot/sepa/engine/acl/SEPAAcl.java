@@ -5,11 +5,11 @@
  */
 package it.unibo.arces.wot.sepa.engine.acl;
 
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLRegistrable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorage;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageListable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrableParams;
 import it.unibo.arces.wot.sepa.engine.processing.SEPAAclProcessor;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
@@ -25,7 +25,7 @@ import org.apache.jena.acl.DatasetACL;
  *
  * @author Lorenzo
  */
-public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable, ACLStorageRegistrable {
+public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable, ACLRegistrable {
     private static SEPAAcl                                              aclInstance;
     
     //where persistence is archieved
@@ -109,12 +109,12 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
 
     @Override
     public void register(ACLStorageRegistrableParams params) {
-        aclStorage.register(params);
+        aclStorage.register(params,this);
     }
 
     @Override
     public void registerSecure(ACLStorageRegistrableParams params) {
-        aclStorage.registerSecure(params);
+        aclStorage.registerSecure(params,this);
     }
     //local caching of ACL
     public static class UserData implements Serializable{

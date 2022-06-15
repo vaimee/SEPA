@@ -50,13 +50,14 @@ public class ACLStorageDataset implements ACLStorageOperations {
     }
 
     @Override
-    public void register(ACLStorageRegistrableParams params) {
+    public void register(ACLStorageRegistrableParams params,ACLStorage owner) {
         final SPARQL11Handler aclHandler = new SPARQL11Handler(
             params.scheduler,
             EngineBeans.getAclQueryPath(),
             EngineBeans.getAclUpdatePath(),
             new InternalAclRequestFactory()
         );
+        this.owner = owner;
         
         System.out.println("Registerd query path :  " + EngineBeans.getAclQueryPath());
         System.out.println("Registerd update path :  " + EngineBeans.getAclUpdatePath());
@@ -79,7 +80,13 @@ public class ACLStorageDataset implements ACLStorageOperations {
     @Override
     public Response update(UpdateRequest req, SEPAUserInfo usr) {
         checkAclAccess(usr);
-        return EndpointBasicOps.update(req, storageDataset);
+        final Response ret = EndpointBasicOps.update(req, storageDataset);
+        if (ret.isError() == false) {
+            owner.loadGroups();
+            owner.loadUsers();
+            
+        }
+        return ret;
 
     }
     private void checkAclAccess(SEPAUserInfo usr) throws AccessDeniedException {
@@ -96,14 +103,14 @@ public class ACLStorageDataset implements ACLStorageOperations {
     }
 
     @Override
-    public void registerSecure(ACLStorageRegistrableParams params) {
+    public void registerSecure(ACLStorageRegistrableParams params,ACLStorage owner) {
         final SPARQL11Handler aclHandler = new SecureSPARQL11Handler(
             params.scheduler,
             EngineBeans.getAclQueryPath(),
             EngineBeans.getAclUpdatePath(),
             new InternalAclRequestFactory()
         );
-        
+        this.owner = owner;
         params.sp.registerHandler(EngineBeans.getSecurePath() +  EngineBeans.getAclQueryPath(), aclHandler);
         params.sp.registerHandler(EngineBeans.getSecurePath() + EngineBeans.getAclUpdatePath(), aclHandler);
 
@@ -187,6 +194,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
     private final Map<String,Object>    params;
     private final Dataset               storageDataset;
     private final RDFConnection         dsConnection;
+    private ACLStorage                  owner;
     
     public ACLStorageDataset(Map<String,Object> params ) throws ACLStorageException{
         this.params = params;

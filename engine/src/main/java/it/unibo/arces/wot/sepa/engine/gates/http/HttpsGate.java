@@ -29,7 +29,7 @@ import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrable;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLRegistrable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrableParams;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
@@ -73,7 +73,7 @@ public class HttpsGate {
 					.registerHandler("", new EchoHandler());
                         
                         if (EngineBeans.isAclEnabled()) {
-                            final ACLStorageRegistrable ari = SEPAAcl.getInstance(ACLTools.makeACLStorage());
+                            final ACLRegistrable ari = SEPAAcl.getInstance(ACLTools.makeACLStorage());
                             ari.registerSecure(new ACLStorageRegistrableParams(sp, scheduler));
                         }
                         
