@@ -88,6 +88,13 @@ public class ConfigurationProvider implements Closeable {
 				getSPARQLUpdate(id), appProfile.getUsingGraphURI(id), appProfile.getUsingNamedGraphURI(id),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), TIMEOUT, NRETRY);
 	}
+	public UpdateRequest buildAclUpdateRequest(String id)
+			throws SEPASecurityException, SEPAPropertiesException {
+		return new UpdateRequest(appProfile.getUpdateMethod(id), appProfile.getUpdateProtocolScheme(id),
+				appProfile.getUpdateHost(id), appProfile.getUpdatePort(id), appProfile.getAclUpdatePath(id),
+				getSPARQLUpdate(id), appProfile.getUsingGraphURI(id), appProfile.getUsingNamedGraphURI(id),
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), TIMEOUT, NRETRY);
+	}
 
 	public QueryRequest buildQueryRequest(String id)
 			throws SEPASecurityException, SEPAPropertiesException {
