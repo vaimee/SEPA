@@ -7,7 +7,6 @@ package it.unibo.arces.wot.sepa.acl;
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
-import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -15,12 +14,10 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Timeout;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -64,5 +61,29 @@ public class ITSEPAACLWithForcedUser {
 	public void endTest() throws IOException, InterruptedException, SEPAProtocolException {		
 		client.close();
 	}
+        
+        
+        @Test
+        public void testAddGroup() {
+            try {
+                final Response ret = client.update(provider.buildUpdateRequest("ACL_ADD_GROUP_1"));
+                assertFalse(ret.isError(),String.valueOf(ret));
+            } catch(Exception e )  {
+                Assertions.fail(e);
+            }
+        }
+        @Test
+        public void testAddUser() {
+            try {
+                final Response ret1 = client.update(provider.buildUpdateRequest("ACL_ADD_GROUP_1"));
+                assertFalse(ret1.isError(),String.valueOf(ret1));
+                
+                final Response ret2 = client.update(provider.buildUpdateRequest("ACL_ADD_USER_1"));
+                assertFalse(ret2.isError(),String.valueOf(ret2));
+                
+            } catch(Exception e )  {
+                Assertions.fail(e);
+            }
+        }
         
 }
