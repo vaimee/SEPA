@@ -40,11 +40,7 @@ public class ConfigurationProvider implements Closeable {
 			Logging.logger.debug("JSAP secure default: " + jsapFileName);
 		}
 
-                final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("window");
-                if (isWindows)
-                    jsapPath = System.getProperty("user.dir") + File.separator + "target" + File.separator + "test-classes" + File.separator + jsapFileName;
-                else
-                    jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
+                jsapPath = JSAP.getFullPath(this, jsapFileName);
         
 		File f = new File(jsapPath);
 		if (!f.exists()) {
