@@ -74,9 +74,11 @@ public class Engine implements EngineMBean {
 	private HttpsGate httpsGate = null;
 	private int wsShutdownTimeout = 5000;
 
+        public static final String defaultEngineJpar = "engine.jpar";
+        public static final String defaultEndpointJpar = "endpoint.jpar";
 	// Properties files
-	private String engineJpar = "engine.jpar";
-	private String endpointJpar = "endpoint.jpar";
+	private String engineJpar = defaultEngineJpar;
+	private String endpointJpar = defaultEndpointJpar;
 
 	// Secure option
 	private Optional<Boolean> secure = Optional.empty();
