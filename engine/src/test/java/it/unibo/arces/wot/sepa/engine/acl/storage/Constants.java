@@ -9,7 +9,7 @@ package it.unibo.arces.wot.sepa.engine.acl.storage;
  *
  * @author Lorenzo
  */
-class Constants {
+public class Constants {
      public static final String initQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"    + System.lineSeparator() +   
                             "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
                             "INSERT DATA { GRAPH sepaACL:acl { "                        + System.lineSeparator() + 
