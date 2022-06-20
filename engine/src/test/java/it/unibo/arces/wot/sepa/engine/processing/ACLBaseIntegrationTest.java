@@ -32,40 +32,91 @@ import it.unibo.arces.wot.sepa.engine.processing.endpoint.ACLTools;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalAclRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequestFactory;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalStdRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import org.apache.jena.acl.ACLException;
+import org.apache.jena.acl.DatasetACL;
+import org.apache.jena.shared.AccessDeniedException;
 import org.junit.jupiter.api.Assertions;
 
 public class ACLBaseIntegrationTest {
-    private  final   InternalAclRequestFactory       reqFactory = new InternalAclRequestFactory();
+    private  final   InternalAclRequestFactory       aclReqFactory = new InternalAclRequestFactory();
+    private  final   InternalStdRequestFactory       stdReqFactory = new InternalStdRequestFactory();
     //direct copy & paste from ACLStorageDataset.java
     private static final  String    SEPACL_NS_PFIX              =          "<http://acl.sepa.com/>";
     private static final  String    SEPACL_NS_GRP_PFIX          =          "<http://groups.acl.sepa.com/>";
     private static final  String    SEPACL_GRAPH_NAME           =          "sepaACL:acl";
     private static final  String    SEPACL_GRAPH_GROUP_NAME     =          "sepaACL:aclGroups";
+    //should succeed for monger and fail for gonger
     
-    
+    private final String  spqlInsertData = 
+    "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+    "INSERT DATA  {  "                                          + System.lineSeparator() + 
+    "	GRAPH mp:XXGRAPH { "                                    + System.lineSeparator() + 
+    "		<http://s1> <http://p1> <http://o1> ."          + System.lineSeparator() + 
+    "		<http://s2> <http://p2> <http://o3> ."          + System.lineSeparator() + 
+    "		<http://s2> <http://p3> <http://o3> ."          + System.lineSeparator() + 
+    "		<http://s3> <http://p3> <http://o3> ."          + System.lineSeparator() + 
+    "		<http://s3> <http://p1> <http://o3> ."          + System.lineSeparator() + 
+    "	}}" ;
+	            
     public ACLBaseIntegrationTest() {
         
     }
-    private boolean checkInsertData(String user,String graph)throws Exception {
-        return true;
+    private void checkInsertData(
+        InternalRequestFactory      reqFactory,
+        UpdateProcessor             sepaUpdater, 
+        String                      user,
+        String                      graph,
+        boolean                     expect
+    )throws Exception {
+        final String finalQuery  = spqlInsertData.replaceAll("XXGRAPH", graph);
+        doUpdate(reqFactory,sepaUpdater, finalQuery, user,expect);
+        
+        
     }
-    private void checkUser1(QueryProcessor qp) throws Exception {
+    private void checkUser1(UpdateProcessor up,QueryProcessor qp) throws Exception {
         //monger can : update/query graph2
         //do insert
         final String userName = "monger";
+        final String selectQuery1 = 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o WHERE {GRAPH mp:graph1  {?s ?p ?o}}";
         
-        boolean f = checkInsertData(userName, "mp:graph1");
+        final String selectQuery3 = 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o WHERE {GRAPH  mp:graph3  {?s ?p ?o}}";
         
         
+        checkInsertData(stdReqFactory,up, userName, "graph1",false);
+        checkInsertData(stdReqFactory,up, userName, "graph2",false);
+        checkInsertData(stdReqFactory,up, DatasetACL.ADMIN_USER, "graph1",true);
+        //now query on graph 1
+        doQuery(
+                stdReqFactory,
+                qp, 
+                selectQuery1,
+                userName,
+                new QueryResponseValidator() {
+                    @Override
+                    public boolean validate(QueryResponse resp) {
+                        return resp.getBindingsResults().getBindings().size() == 5;
+                    }
+                }
+        );
+        
+        
+
     }
     private void checkUserList(QueryProcessor qp) throws Exception {
         final String selectQuery = 
                 "PREFIX sepaACL: " + SEPACL_NS_PFIX + System.lineSeparator()                    +
                 "SELECT * WHERE { GRAPH " + SEPACL_GRAPH_NAME + " { ?user sepaACL:userName ?value }}";
         doQuery(
+                aclReqFactory,
                 qp, 
                 selectQuery, 
                 SEPAAcl.ADMIN_USER, 
@@ -96,6 +147,7 @@ public class ACLBaseIntegrationTest {
                 "PREFIX sepaACL: " + SEPACL_NS_PFIX + System.lineSeparator()                    +
                 "SELECT * WHERE { GRAPH " + SEPACL_GRAPH_GROUP_NAME + " { ?group sepaACL:groupName ?value }}";
             doQuery(
+                    aclReqFactory,
                     qp, 
                     selectQuery, 
                     SEPAAcl.ADMIN_USER, 
@@ -103,7 +155,7 @@ public class ACLBaseIntegrationTest {
                         @Override
                             public boolean validate(QueryResponse resp) {
                                 final BindingsResults br = resp.getBindingsResults();
-                                
+                                Assertions.assertTrue(br.getBindings().size() > 0 );
                                 for (final Bindings bs : br.getBindings()) {
                                     final String gprName = bs.getValue("value");
                                     switch(gprName) {
@@ -127,6 +179,7 @@ public class ACLBaseIntegrationTest {
             final SPARQL11Properties sepaEndpointProps = new SPARQL11Properties(Engine.defaultEndpointJpar);
             final EngineProperties   sepaEngineProps = EngineProperties.getIstance();
             
+            sepaEndpointProps.setProtocolScheme(SPARQL11Properties.ProtocolScheme.SJenarAPI);
             //adjust properties
             adjustEngineProperties(sepaEngineProps);
             //set them to Bean
@@ -141,20 +194,26 @@ public class ACLBaseIntegrationTest {
             final UpdateProcessor sepaUpdater = new UpdateProcessor(sepaEndpointProps);
             final QueryProcessor sepaQuerier = new QueryProcessor(sepaEndpointProps);
             //load ACL with default test data
-            doUpdate(sepaUpdater, initGroupsQuery,SEPAAcl.ADMIN_USER);
-            doUpdate(sepaUpdater, initQuery,SEPAAcl.ADMIN_USER);
+            doUpdate(aclReqFactory, sepaUpdater, initGroupsQuery,SEPAAcl.ADMIN_USER);
+            doUpdate(aclReqFactory,sepaUpdater, initQuery,SEPAAcl.ADMIN_USER);
             //first. do some query on ACL to check for loaded data
             checkGroupList(sepaQuerier);
             checkUserList(sepaQuerier);
             
             //now, starts graph tests
-            
+            checkUser1(sepaUpdater, sepaQuerier);
         }catch(Exception e ) {
             Assertions.fail(e);
         }
     }
     
-    private void doQuery(QueryProcessor sepaQuerier, String sparql, String userName,QueryResponseValidator rv ) throws SEPASparqlParsingException, SEPASecurityException, IOException {
+    private void doQuery(
+        InternalRequestFactory  reqFactory, 
+        QueryProcessor          sepaQuerier, 
+        String                  sparql, 
+        String                  userName,
+        QueryResponseValidator  rv 
+    ) throws SEPASparqlParsingException, SEPASecurityException, IOException {
         final InternalQueryRequest  req = reqFactory.newQueryInstance(
             sparql, 
             null, 
@@ -174,19 +233,46 @@ public class ACLBaseIntegrationTest {
         }
         
     }
-    private void doUpdate( UpdateProcessor sepaUpdater,String sparql,String userName) throws SPARQL11ProtocolException, SEPASparqlParsingException, SEPASecurityException, IOException {
-        final InternalUpdateRequest req = reqFactory.newUpdateInstance(
-                sparql, 
-                null, 
-                null, 
-                new ClientAuthorization(new Credentials(userName,"mecojioni"))
-        );
-        
-        final Response resp = sepaUpdater.process(req);
-        Assertions.assertFalse(resp.isError());
-        Assertions.assertTrue(resp.isUpdateResponse());
-        
-        
+    private void doUpdate(
+        InternalRequestFactory  reqFactory,
+        UpdateProcessor         sepaUpdater,
+        String                  sparql,
+        String                  userName,
+        boolean expected
+    ) throws SPARQL11ProtocolException, SEPASparqlParsingException, SEPASecurityException, IOException {
+        try {
+            final InternalUpdateRequest req = reqFactory.newUpdateInstance(
+                    sparql, 
+                    null, 
+                    null, 
+                    new ClientAuthorization(new Credentials(userName,"mecojioni"))
+            );
+
+            final Response resp = sepaUpdater.process(req);
+            if (expected) {
+                Assertions.assertFalse(resp.isError());
+                Assertions.assertTrue(resp.isUpdateResponse());
+            } else {
+                Assertions.assertTrue(resp.isError());
+                Assertions.assertFalse(resp.isUpdateResponse());
+
+            }
+        } catch(AccessDeniedException e)  {
+            if (expected)
+                Assertions.fail(e);
+        }catch(ACLException e)  {
+            if (expected)
+                Assertions.fail(e);
+        }
+    }
+    
+    private void doUpdate( 
+        InternalRequestFactory reqFactory,
+        UpdateProcessor         sepaUpdater,
+        String                  sparql,
+        String                  userName
+    ) throws SPARQL11ProtocolException, SEPASparqlParsingException, SEPASecurityException, IOException {
+        doUpdate(reqFactory,sepaUpdater, sparql, userName, true);
     }
     private void setStorageOwner(SEPAAcl owner, ACLStorageOperations data) throws Exception {
         final Field f = ACLStorageDataset.class.getDeclaredField("owner");
