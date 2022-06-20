@@ -63,6 +63,22 @@ public class ACLBaseIntegrationTest {
     "		<http://s3> <http://p1> <http://o3> ."          + System.lineSeparator() + 
     "	}}" ;
 	            
+    private final String selectQuery1 = 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o WHERE {GRAPH mp:graph1  {?s ?p ?o}}";
+        
+    private final String selectQuery2= 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o WHERE {GRAPH mp:graph2  {?s ?p ?o}}";
+    
+    private final String selectQuery3 = 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o WHERE {GRAPH  mp:graph3  {?s ?p ?o}}";
+
+    private final String selectQuery4 = 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o WHERE {GRAPH  mp:graph4  {?s ?p ?o}}";
+    
     public ACLBaseIntegrationTest() {
         
     }
@@ -78,17 +94,13 @@ public class ACLBaseIntegrationTest {
         
         
     }
+    private void checkUser2(UpdateProcessor up,QueryProcessor qp) throws Exception { 
+        
+    }
     private void checkUser1(UpdateProcessor up,QueryProcessor qp) throws Exception {
         //monger can : update/query graph2
         //do insert
         final String userName = "monger";
-        final String selectQuery1 = 
-            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
-            "SELECT ?s ?p ?o WHERE {GRAPH mp:graph1  {?s ?p ?o}}";
-        
-        final String selectQuery3 = 
-            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
-            "SELECT ?s ?p ?o WHERE {GRAPH  mp:graph3  {?s ?p ?o}}";
         
         
         checkInsertData(stdReqFactory,up, userName, "graph1",false);
@@ -108,8 +120,39 @@ public class ACLBaseIntegrationTest {
                 }
         );
         
+        //insert data in graph3 as admin 
+        checkInsertData(stdReqFactory,up, DatasetACL.ADMIN_USER, "graph3",true);
+        //check that group access works
+        doQuery(
+                stdReqFactory,
+                qp, 
+                selectQuery3,
+                userName,
+                new QueryResponseValidator() {
+                    @Override
+                    public boolean validate(QueryResponse resp) {
+                        return resp.getBindingsResults().getBindings().size() == 5;
+                    }
+                }
+        );
+     
+        //insert data in graph4 as admin
+        checkInsertData(stdReqFactory,up, DatasetACL.ADMIN_USER, "graph4",true);
         
-
+        doQuery(
+                stdReqFactory,
+                qp, 
+                selectQuery4,
+                userName,
+                new QueryResponseValidator() {
+                    @Override
+                    public boolean validate(QueryResponse resp) {
+                        return resp.getBindingsResults().getBindings().size() == 0;
+                    }
+                }
+        );
+        
+        
     }
     private void checkUserList(QueryProcessor qp) throws Exception {
         final String selectQuery = 
