@@ -20,4 +20,9 @@ public class UpdateResponseWithAR extends Response {
         updatedTuples = updated;
         removedTuples = removed;
     }
+
+    @Override
+    public boolean isUpdateResponse() {
+        return true;
+    }
 }

@@ -52,7 +52,7 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  * "scope":"profile email"}
  */
 
-public class JWTResponse extends Response {
+public class JWTResponse extends BaseClientResponse {
 	/**
 	 * Instantiates a new JWT response.
 	 * @throws SEPASecurityException 

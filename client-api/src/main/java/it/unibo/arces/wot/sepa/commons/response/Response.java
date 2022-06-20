@@ -49,9 +49,7 @@ public abstract class Response {
 	public boolean isUnsubscribeResponse() {
 		return this instanceof UnsubscribeResponse;
 	}
-	public boolean isUpdateResponse() {
-		return this instanceof UpdateResponse;
-	}
+	public abstract boolean isUpdateResponse();
 	public boolean isTimeoutError() {
 		if (this instanceof ErrorResponse) {
 			return ((ErrorResponse) this).isTimeout();

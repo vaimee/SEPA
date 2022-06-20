@@ -153,7 +153,7 @@ RFC 6749                        OAuth 2.0                   October 2012
      }
 </pre>
 * */
-public class ErrorResponse extends Response {	
+public class ErrorResponse extends BaseClientResponse {	
 	/**
 	 * Instantiates a new error response.
 	 * The JSON representation of an error response follows:
@@ -228,4 +228,6 @@ public class ErrorResponse extends Response {
 		// {"error":"IOException","status_code":404,"error_description":"Bad file descriptor"}
 		return getStatusCode() == HttpStatus.SC_NOT_FOUND && getError().equals("IOException") && getErrorDescription().equals("Bad file descriptor");
 	}
+
+ 
 }

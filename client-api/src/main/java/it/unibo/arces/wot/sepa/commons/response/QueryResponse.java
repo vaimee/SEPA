@@ -26,7 +26,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  * This class represents the results of a SPARQL 1.1 Query
  */
 
-public class QueryResponse extends Response {
+public class QueryResponse extends BaseClientResponse {
 	/**
 	 * Instantiates a new query response.
 	 *

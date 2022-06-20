@@ -30,7 +30,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  * {"notification" : {"spuid":"SPUID","alias":"ALIAS"(optional),"addedResults":<BindingsResults>,"removedResults:{},"sequence":0}}
  */
 
-public class SubscribeResponse extends Response {
+public class SubscribeResponse extends BaseClientResponse {
 
 	public BindingsResults getBindingsResults() {
 		return new BindingsResults(json.get("notification").getAsJsonObject().get("addedResults").getAsJsonObject());
