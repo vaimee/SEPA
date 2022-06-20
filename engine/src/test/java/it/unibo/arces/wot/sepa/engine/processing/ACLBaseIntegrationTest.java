@@ -95,6 +95,55 @@ public class ACLBaseIntegrationTest {
         
     }
     private void checkUser2(UpdateProcessor up,QueryProcessor qp) throws Exception { 
+        //NOTE: requires checkUser1 to be called before
+        final String userName = "gonger";
+        
+        
+        checkInsertData(stdReqFactory,up, userName, "graph1",false);
+        checkInsertData(stdReqFactory,up, userName, "graph2",true);
+        //now query on graph 2
+        doQuery(
+                stdReqFactory,
+                qp, 
+                selectQuery2,
+                userName,
+                new QueryResponseValidator() {
+                    @Override
+                    public boolean validate(QueryResponse resp) {
+                        return resp.getBindingsResults().getBindings().size() == 5;
+                    }
+                }
+        );
+        //now query on graph 1
+        doQuery(
+                stdReqFactory,
+                qp, 
+                selectQuery1,
+                userName,
+                new QueryResponseValidator() {
+                    @Override
+                    public boolean validate(QueryResponse resp) {
+                        return resp.getBindingsResults().getBindings().size() == 0;
+                    }
+                }
+        );
+        
+
+        //check that group access works
+        doQuery(
+                stdReqFactory,
+                qp, 
+                selectQuery4,
+                userName,
+                new QueryResponseValidator() {
+                    @Override
+                    public boolean validate(QueryResponse resp) {
+                        return resp.getBindingsResults().getBindings().size() == 5;
+                    }
+                }
+        );
+     
+      
         
     }
     private void checkUser1(UpdateProcessor up,QueryProcessor qp) throws Exception {
@@ -245,6 +294,7 @@ public class ACLBaseIntegrationTest {
             
             //now, starts graph tests
             checkUser1(sepaUpdater, sepaQuerier);
+            checkUser2(sepaUpdater, sepaQuerier);
         }catch(Exception e ) {
             Assertions.fail(e);
         }
