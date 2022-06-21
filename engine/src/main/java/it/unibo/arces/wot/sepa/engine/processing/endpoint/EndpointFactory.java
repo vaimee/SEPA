@@ -9,7 +9,7 @@ import static it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.PROTOC
 import static it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.PROTOCOL_SCHEMA_REMOTE;
 import static it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.PROTOCOL_SCHEMA_STD_JENA;
 
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
@@ -37,7 +37,7 @@ public class EndpointFactory {
 	}
 
 	public static SPARQLEndpoint newInstance(final String protocolSchema,boolean firstStore) {
-		if(EngineProperties.getIstance().isLUTTEnabled()) {
+		if(EngineBeans.isLUTTEnabled()) {
 			Logging.logger.trace("EndpointFactory using: SjenarEndpointDoubleStore");
 			return new SjenarEndpointDoubleStore(firstStore);
 		}else {

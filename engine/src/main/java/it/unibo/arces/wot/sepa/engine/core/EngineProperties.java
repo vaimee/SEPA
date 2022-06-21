@@ -73,32 +73,17 @@ public class EngineProperties {
 	private static final transient String defaultsFileName = "engine.jpar";
 
 
-	private static EngineProperties _istance=null;
-	public static EngineProperties getIstance() {
-		if(_istance==null) {
-			try {
-				_istance=newInstanceDefault();
-			} catch (SEPAPropertiesException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return _istance;
-	}
-
 	private Parameters parameters = new Parameters();
 
 	private EngineProperties() {}
 	public static EngineProperties newInstanceDefault() throws SEPAPropertiesException  {
 		EngineProperties result  = EngineProperties.load(defaultsFileName);
-		_istance=result;
 		Logging.logger.trace("EngineProperties loaded as newInstanceDefault: "+result.toString());
 		return result;
 	}
 	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		EngineProperties result = EngineProperties.load(propertiesFile);
 		result.parameters.gates.security.enabled = secure;
-		_istance=result;
 		Logging.logger.trace("EngineProperties loaded as secure from file "+propertiesFile+": "+result.toString());
 		return result;
 	}
@@ -124,8 +109,6 @@ public class EngineProperties {
 			}
 			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
 		}
-
-		_istance=result;
 		Logging.logger.trace("EngineProperties loaded from file "+propertiesFile+": "+result.toString());
 		return result;
 	}

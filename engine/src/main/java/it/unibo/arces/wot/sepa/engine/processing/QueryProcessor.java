@@ -26,14 +26,12 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.EndpointFactory;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.logging.Timings;
@@ -103,7 +101,7 @@ class QueryProcessor implements QueryProcessorMBean {
 	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
 		//as default we will use second storage for query
 		//if the double store system is enabled
-		if(EngineProperties.getIstance().isLUTTEnabled()) {
+		if(EngineBeans.isLUTTEnabled()) {
 			return process(req,false);
 		}
 		//else we use the first (and the only one) storage 

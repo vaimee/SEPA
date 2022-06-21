@@ -30,7 +30,7 @@ import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.commons.sparql.ARBindingsResults;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.FakeLUTT;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.LUTT;
 import it.unibo.arces.wot.sepa.engine.processing.lutt.QueryLUTTextraction;
@@ -61,7 +61,7 @@ class SPUSmart extends SPU {
 		this.spuid = "sepa://spu/naive/" + UUID.randomUUID();
 
 		Logging.logger.debug("SPUSmart: " +"; request: " + subscribe);
-		if(EngineProperties.getIstance().isLUTTEnabled()) {
+		if(EngineBeans.isLUTTEnabled()) {
 			this.lutt= QueryLUTTextraction.exstract(subscribe.getSparql());
 		}else {
 			this.lutt=new FakeLUTT();

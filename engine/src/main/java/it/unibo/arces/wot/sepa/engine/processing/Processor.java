@@ -27,6 +27,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
@@ -136,7 +137,7 @@ public class Processor implements ProcessorMBean {
 		//WE NEEED exstract the AR (if inMemoryDoubleStore is true) anyway
 		//if there are not SPU we need anyway extract the AR for build the INSERT-DELETE
 		try {
-			if(EngineProperties.getIstance().isLUTTEnabled()) {
+			if(EngineBeans.isLUTTEnabled()) {
 				//JENAR-AR 		(done)	
 				preRequest = ARQuadsAlgorithm.extractJenaARQuads(update, updateProcessor);
 				//alghoritm AR 	(...pending)
@@ -166,7 +167,7 @@ public class Processor implements ProcessorMBean {
 		// Endpoint UPDATE
 		Response ret;
 		try {
-			if(EngineProperties.getIstance().isLUTTEnabled()) {
+			if(EngineBeans.isLUTTEnabled()) {
 				//in this case the "preRequest" is 
 				//INSERT DATA and DELETE DATA update built with the AR
 				//ret = updateEndpoint2Ph(preRequest); //INSERT-DELETE do not work properly yet

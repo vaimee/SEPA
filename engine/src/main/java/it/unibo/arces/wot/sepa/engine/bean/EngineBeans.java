@@ -209,4 +209,8 @@ public class EngineBeans {
         public static String   getSecondDatasetPath() {
             return properties.getSecondDatasetPath();
         }        
+        
+        public static boolean isLUTTEnabled() {
+    		return properties.isLUTTEnabled();
+    	}
 }

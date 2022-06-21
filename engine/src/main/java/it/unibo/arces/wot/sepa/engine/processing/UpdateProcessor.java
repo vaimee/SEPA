@@ -27,14 +27,11 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.EndpointFactory;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.logging.Timings;
@@ -107,7 +104,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	}
 	
 	public Response processOnSecondStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		if (EngineProperties.getIstance().isLUTTEnabled()) {
+		if (EngineBeans.isLUTTEnabled()) {
 			return process(req,false);
 		}else {
 			throw new IOException("You are not using double storage and LUTT system.");
@@ -115,7 +112,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	}
 	
 	public Response processOnFirstStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		if (EngineProperties.getIstance().isLUTTEnabled()) {
+		if (EngineBeans.isLUTTEnabled()) {
 	        return process(req,true);
 		}else {
 			throw new IOException("You are not using double storage and LUTT system.");
