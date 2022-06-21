@@ -148,6 +148,10 @@ public class EngineBeans {
             return properties.isAclEnabled();
         }
         
+        public static void  setAclEnabled(boolean enable) {
+            properties.setAclEnabled(enable);
+        }
+        
         public static String getAclType() {
             return properties.getAclType();
         }
@@ -212,4 +216,8 @@ public class EngineBeans {
         public static boolean isLUTTEnabled() {
     		return properties.isLUTTEnabled();
     	}
+        
+        public static void setLUTTEnabled(boolean enable) {
+            properties.setLUTTEnabled(enable);
+        }
 }

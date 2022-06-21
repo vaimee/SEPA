@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import org.apache.jena.acl.ACLException;
 import org.apache.jena.acl.DatasetACL;
+import org.apache.jena.base.Sys;
 import org.apache.jena.shared.AccessDeniedException;
 import org.junit.jupiter.api.Assertions;
 
@@ -312,13 +313,10 @@ public class ACLBaseIntegrationTest {
     public void testACLEndpoints() {
         try {
             final SPARQL11Properties sepaEndpointProps = new SPARQL11Properties(Engine.defaultEndpointJpar);
-            final EngineProperties   sepaEngineProps = EngineProperties.getIstance();
-            
+            EngineBeans.setEngineProperties(EngineProperties.load("engine.jpar"));
             sepaEndpointProps.setProtocolScheme(SPARQL11Properties.ProtocolScheme.SJenarAPI);
             //adjust properties
-            adjustEngineProperties(sepaEngineProps);
-            //set them to Bean
-            EngineBeans.setEngineProperties(sepaEngineProps);
+            adjustEngineProperties();
             
             //creates ACL objects
             final ACLStorageOperations      aclStorage = ACLTools.makeACLStorage();
@@ -339,7 +337,8 @@ public class ACLBaseIntegrationTest {
             checkUser1(sepaUpdater, sepaQuerier);
             checkUser2(sepaUpdater, sepaQuerier);
         }catch(Exception e ) {
-            Assertions.fail("Unexèpected Exception",e);
+        	System.out.println("Test error: "+ e);
+            Assertions.fail("Unexepected Exception",e);
         }
     }
     
@@ -415,24 +414,10 @@ public class ACLBaseIntegrationTest {
         f.setAccessible(true);
         f.set(data, owner);
     }
-    private void adjustEngineProperties(EngineProperties p) throws Exception  {
-        final Field paramsField = EngineProperties.class.getDeclaredField("parameters");
-        
-        paramsField.setAccessible(true);
-        
-        final Object paramsData = paramsField.get(p);
-        
-        //now go deep in ACL
-        
-        final Field aclField = paramsData.getClass().getField("acl");
-        aclField.setAccessible(true);
-        final Object aclData = aclField.get(paramsData);
-        
-        final Field aclEnabledField = aclData.getClass().getField("enabled");
-        aclEnabledField.setAccessible(true);
-        aclEnabledField.set(aclData, true);
-        
-        
+    
+    private void adjustEngineProperties() {
+        EngineBeans.setAclEnabled(true);
+        EngineBeans.setLUTTEnabled(false);
     }
     
     

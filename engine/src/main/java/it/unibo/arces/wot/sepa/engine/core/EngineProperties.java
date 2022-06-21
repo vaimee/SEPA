@@ -75,6 +75,7 @@ public class EngineProperties {
 
 	private Parameters parameters = new Parameters();
 
+	
 	private EngineProperties() {}
 	public static EngineProperties newInstanceDefault() throws SEPAPropertiesException  {
 		EngineProperties result  = EngineProperties.load(defaultsFileName);
@@ -392,6 +393,10 @@ public class EngineProperties {
             return parameters.acl.enabled;
         }
         
+        public void setAclEnabled(boolean enable) {
+            parameters.acl.enabled=enable;
+        }
+        
         public String getAclType() {
             return parameters.acl.type;
         }
@@ -438,6 +443,11 @@ public class EngineProperties {
 	public boolean isLUTTEnabled() {
 		return parameters.dsConfig.lutt;
 	}
+	
+	public void setLUTTEnabled(boolean enable) {
+		parameters.dsConfig.lutt=enable;
+	}
+	
 
 	public String   getFirstDatasetMode() {
 		return parameters.dsConfig.firstDS.mode;
