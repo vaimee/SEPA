@@ -172,6 +172,20 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  * </pre>
  */
 public class JSAP extends SPARQL11SEProperties {
+    
+        public static String getFullPath(Object caller,String jsapFileName) {
+            String jsapPath;
+            final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("window");
+            if (isWindows)
+                jsapPath = System.getProperty("user.dir") + File.separator + "target" + File.separator + "test-classes" + File.separator + jsapFileName;
+            else
+                jsapPath = caller.getClass().getClassLoader().getResource(jsapFileName).getPath();
+            
+            return jsapPath;
+            
+        }
+        
+        
 	protected static Set<String> numbersOrBoolean = new HashSet<String>();
 
 	protected String prefixes = "";
@@ -490,9 +504,27 @@ public class JSAP extends SPARQL11SEProperties {
 	/*
 	 * UPDATE
 	 */
+        
+        private String getSPARQLString(String root, String id) throws Exception  {
+            final JsonElement e = jsap.getAsJsonObject(root).getAsJsonObject(id).get("sparql");
+            if (e.isJsonArray()) {
+                final JsonArray ja = e.getAsJsonArray();
+                final StringBuilder sb = new StringBuilder();
+                if (ja.size() >= 1) {
+                    sb.append(ja.get(0).getAsString());
+                    for(int i = 1; i < ja.size();++i ) {
+                        sb.append(System.lineSeparator());
+                        sb.append(ja.get(i).getAsString());
+                    }
+                }
+                return sb.toString();
+            } else
+                return e.getAsString();
+            
+        }
 	public String getSPARQLUpdate(String id) {
 		try {
-			return jsap.getAsJsonObject("updates").getAsJsonObject(id).get("sparql").getAsString();
+                    return getSPARQLString("updates", id);
 		} catch (Exception e) {
 			Logging.logger.error("SPARQL Update " + id + "  not found");
 		}
@@ -560,6 +592,15 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
 					.getAsJsonObject("update").get("path").getAsString();
+		} catch (Exception e) {
+		}
+
+		return super.getUpdatePath();
+	}
+	public String getAclUpdatePath(String id) {
+		try {
+			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
+					.getAsJsonObject("acl").getAsJsonObject("update").get("path").getAsString();
 		} catch (Exception e) {
 		}
 
@@ -673,6 +714,15 @@ public class JSAP extends SPARQL11SEProperties {
 
 		temp.add("path", new JsonPrimitive(path));
 	}
+	public void setAclUpdatePath(String id, String path) {
+		JsonObject prop = checkAndCreate(id, true);
+
+		if (!prop.has("update"))
+			prop.add("update", new JsonObject());
+		JsonObject temp = prop.getAsJsonObject("update");
+
+		temp.add("path", new JsonPrimitive(path));
+	}
 
 	public void setUpdatePort(String id, int port) {
 		JsonObject prop = checkAndCreate(id, true);
@@ -711,7 +761,7 @@ public class JSAP extends SPARQL11SEProperties {
 	 */
 	public String getSPARQLQuery(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).get("sparql").getAsString();
+			return getSPARQLString("queries",id);
 		} catch (Exception e) {
 			Logging.logger.fatal("SPARQL query " + id + " not found");
 		}

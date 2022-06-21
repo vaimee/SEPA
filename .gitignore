@@ -182,3 +182,4 @@ engine/run/*
 /rebuild.bat
 /runSepaAR.sh
 /start-sepa.bat
+/client-api/nbproject/

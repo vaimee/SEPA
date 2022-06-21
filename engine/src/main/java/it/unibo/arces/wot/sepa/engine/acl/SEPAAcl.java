@@ -5,11 +5,14 @@
  */
 package it.unibo.arces.wot.sepa.engine.acl;
 
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLRegistrable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorage;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageListable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrableParams;
 import it.unibo.arces.wot.sepa.engine.processing.SEPAAclProcessor;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
 import java.io.Serializable;
 
 import java.util.Map;
@@ -22,13 +25,16 @@ import org.apache.jena.acl.DatasetACL;
  *
  * @author Lorenzo
  */
-public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable{
+public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable, ACLRegistrable {
     private static SEPAAcl                                              aclInstance;
     
     //where persistence is archieved
     private final ACLStorageOperations                                aclStorage;
     private final SEPAAclProcessor                                    jmx;
 
+    public SPARQLEndpoint asEndpoint() {
+        return aclStorage;
+    }
     @Override
     public void addUserToGroup(String user, String group) throws EngineACLException,ACLStorageException {
         if (cachedGroupsACL.containsKey(group) == false) {
@@ -99,6 +105,16 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         final Map<String, Set<aclId>> gd = aclStorage.loadGroup(groupName);
         cachedGroupsACL.put(groupName, gd);
         return gd;
+    }
+
+    @Override
+    public void register(ACLStorageRegistrableParams params) {
+        aclStorage.register(params,this);
+    }
+
+    @Override
+    public void registerSecure(ACLStorageRegistrableParams params) {
+        aclStorage.registerSecure(params,this);
     }
     //local caching of ACL
     public static class UserData implements Serializable{

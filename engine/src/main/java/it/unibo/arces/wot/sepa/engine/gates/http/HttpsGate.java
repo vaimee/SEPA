@@ -28,12 +28,17 @@ import org.apache.http.impl.nio.reactor.IOReactorConfig;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLRegistrable;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrableParams;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.ACLTools;
 import it.unibo.arces.wot.sepa.engine.protocol.oauth.JWTRequestHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.oauth.RegisterHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SecureSPARQL11Handler;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalStdRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
@@ -49,10 +54,15 @@ public class HttpsGate {
 	public HttpsGate(EngineProperties properties, Scheduler scheduler) throws SEPASecurityException, SEPAProtocolException {
 
 		try {
-			final SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
-                        final SecureSPARQL11Handler aclHandler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getAclQueryPath(),properties.getSecurePath() + properties.getAclUpdatePath());
+			final SecureSPARQL11Handler handler = new SecureSPARQL11Handler(
+                            scheduler,
+                            properties.getSecurePath() + properties.getQueryPath(),
+                            properties.getSecurePath() + properties.getUpdatePath(),
+                            new InternalStdRequestFactory()
+                        );
+                        //final SecureSPARQL11Handler aclHandler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getAclQueryPath(),properties.getSecurePath() + properties.getAclUpdatePath());
 
-			server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
+			final ServerBootstrap sp = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
 					.setIOReactorConfig(config).setSslContext(Dependability.getSSLContext())
 					.setExceptionLogger(ExceptionLogger.STD_ERR)
 					.registerHandler(properties.getRegisterPath(), new RegisterHandler())
@@ -60,7 +70,14 @@ public class HttpsGate {
 					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),handler)
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
 					.registerHandler("/echo", new EchoHandler())
-					.registerHandler("", new EchoHandler()).create();
+					.registerHandler("", new EchoHandler());
+                        
+                        if (EngineBeans.isAclEnabled()) {
+                            final ACLRegistrable ari = SEPAAcl.getInstance(ACLTools.makeACLStorage());
+                            ari.registerSecure(new ACLStorageRegistrableParams(sp, scheduler));
+                        }
+                        
+                        server = sp.create();
 		} catch (IllegalArgumentException e) {
 			throw new SEPASecurityException(e);
 		}
@@ -76,6 +93,12 @@ public class HttpsGate {
                 
 		System.out.println("Client registration  | " + EngineBeans.getRegistrationURL());
 		System.out.println("Token request        | " + EngineBeans.getTokenRequestURL());
+                
+                if (EngineBeans.isAclEnabled()) {
+                    System.out.println("SPARQL 1.1 SE ACL Query  | " + properties.getSecurePath() + properties.getAclQueryPath());
+                    System.out.println("SPARQL 1.1 SE ACL Update | " + properties.getSecurePath() + properties.getAclUpdatePath());
+                    
+                }
 	}
 	
 	public void shutdown() {

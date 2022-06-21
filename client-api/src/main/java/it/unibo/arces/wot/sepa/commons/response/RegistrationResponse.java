@@ -29,7 +29,7 @@ import com.google.gson.JsonPrimitive;
  * {"kty":"RSA", "e":"AQAB", "x5t":"...", "kid":"sepacertificate",
  * "x5c":["..."], "n":"..."}}}
  */
-public class RegistrationResponse extends Response {
+public class RegistrationResponse extends BaseClientResponse {
 
 	/**
 	 * Instantiates a new registration response.

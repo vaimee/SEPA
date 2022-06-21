@@ -158,13 +158,6 @@ public class EngineProperties {
 		result.parameters.gates.paths.register = "/oauth/register";
 		result.parameters.gates.paths.tokenRequest = "/oauth/token";
 
-		//do some acl Checks
-		if (GlobalSystemProperties.checkIfACLIntegrationTest()) {
-			result.parameters.acl.enabled = true;
-			result.parameters.acl.type  = ACL_TYPE_DS;
-			result.parameters.acl.mode = DS_MODE_MEM;
-		}
-
 		result.parameters.dsConfig.lutt=false;
 		
 		return result;
@@ -385,42 +378,42 @@ public class EngineProperties {
 		 *) type == dataset/tdb1|tdb2
                                                                         -) path = path of tdbx persistent data
 
-		 *) type == json : full path of json file
-
-		 */
-
-
-		public String       queryPath       = "/acl/query//";
-		public String       updatePath      = "/acl/update/";
-
-	}
-
-	public boolean  isAclEnabled() {
-		return parameters.acl.enabled;
-	}
-
-	public String getAclType() {
-		return parameters.acl.type;
-	}
-
-	public String getAclMode() {
-		return parameters.acl.mode;
-	}
-
-	public String getAclPath() {
-		return parameters.acl.path;
-	}
-
-
-	public String getAclQueryPath() {
-		return parameters.acl.queryPath;
-	}
-	public String getAclUpdatePath() {
-		return parameters.acl.updatePath;
-	}
-
-	private static class    DatasetData {
-		public  String      mode        =   DS_MODE_MEM ;     /*
+                                                                    *) type == json : full path of json file
+                                                                        
+                                                                */
+                
+                
+                public String       queryPath       = "/acl/query/";
+                public String       updatePath      = "/acl/update/";
+                
+        }
+        
+        public boolean  isAclEnabled() {
+            return parameters.acl.enabled;
+        }
+        
+        public String getAclType() {
+            return parameters.acl.type;
+        }
+        
+        public String getAclMode() {
+            return parameters.acl.mode;
+        }
+        
+        public String getAclPath() {
+            return parameters.acl.path;
+        }
+        
+        
+        public String getAclQueryPath() {
+            return parameters.acl.queryPath;
+        }
+        public String getAclUpdatePath() {
+            return parameters.acl.updatePath;
+        }
+        
+        private static class    DatasetData {
+                public  String      mode        =   DS_MODE_MEM ;     /*
                                                                     -) mode = tdb2  tdb2 persistency
                                                                     -) mode = tdb1  tdb1 persistency
                                                                     -) mode = mem   not persistent

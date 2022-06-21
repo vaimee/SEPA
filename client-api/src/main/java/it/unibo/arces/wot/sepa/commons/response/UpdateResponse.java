@@ -27,7 +27,7 @@ import com.google.gson.JsonPrimitive;
  * This class represents the response of a SPARQL 1.1 Update
  */
 
-public class UpdateResponse extends Response {
+public class UpdateResponse extends BaseClientResponse {
 	/**
 	 * Instantiates a new update response.
 	 *
@@ -51,4 +51,6 @@ public class UpdateResponse extends Response {
 			json.get("response").getAsJsonObject().add("isJson", new JsonPrimitive(false));
 		}
 	}
+
+
 }

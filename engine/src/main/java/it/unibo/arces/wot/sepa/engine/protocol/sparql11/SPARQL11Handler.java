@@ -50,9 +50,8 @@ import it.unibo.arces.wot.sepa.engine.bean.HTTPHandlerBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.gates.http.HttpUtilities;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUQRequest;
-import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.engine.timing.Timings;
@@ -63,10 +62,11 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 
 	protected HTTPHandlerBeans jmx = new HTTPHandlerBeans();
 
-	protected final String queryPath;
-	protected final String updatePath;
+	protected final String                  queryPath;
+	protected final String                  updatePath;
+        private final InternalRequestFactory    intReqFact;
 
-	public SPARQL11Handler(Scheduler scheduler, String queryPath, String updatePath) throws IllegalArgumentException {
+	public SPARQL11Handler(Scheduler scheduler, String queryPath, String updatePath,InternalRequestFactory irf) throws IllegalArgumentException {
 
 		if (scheduler == null)
 			throw new IllegalArgumentException("Scheduler is null");
@@ -74,6 +74,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 		this.scheduler = scheduler;
 		this.queryPath = queryPath;
 		this.updatePath = updatePath;
+                this.intReqFact = irf;
 
 		// JMX
 		if(this.getClass().getSimpleName().equals("SPARQL11Handler")) SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
@@ -164,9 +165,9 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 
 				Header[] headers = exchange.getRequest().getHeaders("Accept");
 				if (headers.length != 1)
-					return new InternalQueryRequest(sparql, graphUri, namedGraphUri, auth);
+					return intReqFact.newQueryInstance(sparql, graphUri, namedGraphUri, auth);
 				else
-					return new InternalQueryRequest(sparql, graphUri, namedGraphUri, auth, headers[0].getValue());
+					return intReqFact.newQueryInstance(sparql, graphUri, namedGraphUri, auth, headers[0].getValue());
 			} catch (SEPASparqlParsingException | UnsupportedEncodingException e) {
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}
@@ -241,13 +242,13 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 						headers = exchange.getRequest().getHeaders("Accept");
 						if (headers.length != 1)
 							try {
-								return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri, auth);
+								return intReqFact.newQueryInstance(sparql, default_graph_uri, named_graph_uri, auth);
 							} catch (SEPASparqlParsingException e) {
 								throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,e.getMessage());
 							}
 						else
 							try {
-								return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri, auth,
+								return intReqFact.newQueryInstance(sparql, default_graph_uri, named_graph_uri, auth,
 										headers[0].getValue());
 							} catch (SEPASparqlParsingException e) {
 								throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,e.getMessage());
@@ -266,7 +267,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 						named_graph_uri = params.get(namedGraph);
 						
 						try {
-							return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri, auth);
+							return intReqFact.newUpdateInstance(sparql, default_graph_uri, named_graph_uri, auth);
 						} catch (SPARQL11ProtocolException | SEPASparqlParsingException e) {
 							throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,e.getMessage());
 						}
@@ -299,13 +300,13 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 				headers = exchange.getRequest().getHeaders("Accept");
 				if (headers.length != 1)
 					try {
-						return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri, auth);
+						return intReqFact.newQueryInstance(sparql, default_graph_uri, named_graph_uri, auth);
 					} catch (SEPASparqlParsingException e) {
 						throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,e.getMessage());
 					}
 				else
 					try {
-						return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri, auth,
+						return intReqFact.newQueryInstance(sparql, default_graph_uri, named_graph_uri, auth,
 								headers[0].getValue());
 					} catch (SEPASparqlParsingException e) {
 						throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,e.getMessage());
@@ -334,7 +335,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 				sparql = body;
 				
 				try {
-					return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri, auth);
+					return intReqFact.newUpdateInstance(sparql, default_graph_uri, named_graph_uri, auth);
 				} catch (SPARQL11ProtocolException | SEPASparqlParsingException e) {
 					throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,e.getMessage());
 				}
@@ -372,9 +373,9 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 //
 //				Header[] headers = exchange.getRequest().getHeaders("Accept");
 //				if (headers.length != 1)
-//					return new InternalQueryRequest(sparql, graphUri, namedGraphUri, auth);
+//					return intReqFact.newQueryInstance(sparql, graphUri, namedGraphUri, auth);
 //				else
-//					return new InternalQueryRequest(sparql, graphUri, namedGraphUri, auth, headers[0].getValue());
+//					return intReqFact.newQueryInstance(sparql, graphUri, namedGraphUri, auth, headers[0].getValue());
 //			} catch (SEPASparqlParsingException | UnsupportedEncodingException e) {
 //				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 //			}
@@ -486,12 +487,12 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 //				Header[] headers = exchange.getRequest().getHeaders("Accept");
 //				Logging.logger.debug("query Accept headers: " + headers.length);
 //				if (headers.length != 1)
-//					return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri, auth);
+//					return intReqFact.newQueryInstance(sparql, default_graph_uri, named_graph_uri, auth);
 //				else
-//					return new InternalQueryRequest(sparql, default_graph_uri, named_graph_uri, auth,
+//					return intReqFact.newQueryInstance(sparql, default_graph_uri, named_graph_uri, auth,
 //							headers[0].getValue());
 //			} else
-//				return new InternalUpdateRequest(sparql, default_graph_uri, named_graph_uri, auth);
+//				return intReqFact.newUpdateInstance(sparql, default_graph_uri, named_graph_uri, auth);
 //		} catch (SEPASparqlParsingException e) {
 //			Logging.logger.error(e.getMessage());
 //			throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());

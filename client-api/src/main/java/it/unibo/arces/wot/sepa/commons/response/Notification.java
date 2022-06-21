@@ -33,7 +33,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
  * 
  */
 
-public class Notification extends Response {
+public class Notification extends BaseClientResponse{
 	/**
 	 * Instantiates a new notification.
 	 *

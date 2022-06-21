@@ -40,11 +40,7 @@ public class ConfigurationProvider implements Closeable {
 			Logging.logger.debug("JSAP secure default: " + jsapFileName);
 		}
 
-                final boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("window");
-                if (isWindows)
-                    jsapPath = System.getProperty("user.dir") + File.separator + "target" + File.separator + "test-classes" + File.separator + jsapFileName;
-                else
-                    jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
+                jsapPath = JSAP.getFullPath(this, jsapFileName);
         
 		File f = new File(jsapPath);
 		if (!f.exists()) {
@@ -85,6 +81,13 @@ public class ConfigurationProvider implements Closeable {
 			throws SEPASecurityException, SEPAPropertiesException {
 		return new UpdateRequest(appProfile.getUpdateMethod(id), appProfile.getUpdateProtocolScheme(id),
 				appProfile.getUpdateHost(id), appProfile.getUpdatePort(id), appProfile.getUpdatePath(id),
+				getSPARQLUpdate(id), appProfile.getUsingGraphURI(id), appProfile.getUsingNamedGraphURI(id),
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), TIMEOUT, NRETRY);
+	}
+	public UpdateRequest buildAclUpdateRequest(String id)
+			throws SEPASecurityException, SEPAPropertiesException {
+		return new UpdateRequest(appProfile.getUpdateMethod(id), appProfile.getUpdateProtocolScheme(id),
+				appProfile.getUpdateHost(id), appProfile.getUpdatePort(id), appProfile.getAclUpdatePath(id),
 				getSPARQLUpdate(id), appProfile.getUsingGraphURI(id), appProfile.getUsingNamedGraphURI(id),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), TIMEOUT, NRETRY);
 	}

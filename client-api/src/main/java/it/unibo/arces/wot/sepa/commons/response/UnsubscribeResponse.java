@@ -31,7 +31,7 @@ import com.google.gson.JsonPrimitive;
  *
  */
 
-public class UnsubscribeResponse extends Response {
+public class UnsubscribeResponse extends BaseClientResponse {
 
 	/**
 	 * Instantiates a new unsubscribe response.

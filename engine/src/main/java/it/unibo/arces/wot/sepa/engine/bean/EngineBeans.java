@@ -195,7 +195,6 @@ public class EngineBeans {
 		return "https://"+getHost()+port+getSecurePath()+getAclUpdatePath();
 	}
         
-        
                
         public static String   getFirstDatasetMode() {
             return properties.getFirstDatasetMode();
