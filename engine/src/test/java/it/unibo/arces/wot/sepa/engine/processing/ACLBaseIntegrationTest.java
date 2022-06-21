@@ -143,6 +143,32 @@ public class ACLBaseIntegrationTest {
                 }
         );
      
+      //removes user2 from group2 
+       final String baseQuery  =
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                             + System.lineSeparator()    +
+                "DELETE WHERE { GRAPH " + SEPACL_GRAPH_NAME          +"  { "    + System.lineSeparator()    +  
+                "   sepaACL:$$USERNAME sepaACL:memberOf     \"$$GROUPNAME\" "   + System.lineSeparator()    +  
+                "}}";
+        
+        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", "group2")
+                                            .replaceAll("\\$\\$USERNAME", userName);
+        
+        
+        doUpdate(aclReqFactory, up, finalQuery, DatasetACL.ADMIN_USER);
+        
+        doQuery(
+                stdReqFactory,
+                qp, 
+                selectQuery4,
+                userName,
+                new QueryResponseValidator() {
+                    @Override
+                    public boolean validate(QueryResponse resp) {
+                        return resp.getBindingsResults().getBindings().size() == 0;
+                    }
+                }
+        );
+        
       
         
     }
