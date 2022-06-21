@@ -290,7 +290,7 @@ public class ACLBaseIntegrationTest {
                         @Override
                             public boolean validate(QueryResponse resp) {
                                 final BindingsResults br = resp.getBindingsResults();
-                                Assertions.assertTrue(br.getBindings().size() > 0 );
+                                Assertions.assertTrue(br.getBindings().size() > 0 ,"Group count must be > 0 ");
                                 for (final Bindings bs : br.getBindings()) {
                                     final String gprName = bs.getValue("value");
                                     switch(gprName) {
@@ -339,7 +339,7 @@ public class ACLBaseIntegrationTest {
             checkUser1(sepaUpdater, sepaQuerier);
             checkUser2(sepaUpdater, sepaQuerier);
         }catch(Exception e ) {
-            Assertions.fail(e);
+            Assertions.fail("Unexèpected Exception",e);
         }
     }
     
@@ -359,13 +359,13 @@ public class ACLBaseIntegrationTest {
         
         final Response resp = sepaQuerier.process(req);
         
-        Assertions.assertFalse(resp.isError());
-        Assertions.assertTrue(resp.isQueryResponse());
+        Assertions.assertFalse(resp.isError(),"Response is error for " + sparql + " /" + userName);
+        Assertions.assertTrue(resp.isQueryResponse(),"Response is not query " + sparql + " /" + userName);
         
         
         if (rv != null) {
             final QueryResponse qresp = (QueryResponse) resp;
-            Assertions.assertTrue(rv.validate(qresp));
+            Assertions.assertTrue(rv.validate(qresp),"Response validation failed for " + sparql + " /" + userName);
         }
         
     }
@@ -386,19 +386,19 @@ public class ACLBaseIntegrationTest {
 
             final Response resp = sepaUpdater.process(req);
             if (expected) {
-                Assertions.assertFalse(resp.isError());
-                Assertions.assertTrue(resp.isUpdateResponse());
+                Assertions.assertFalse(resp.isError(),"Response is error for " + sparql + " /" + userName);
+                Assertions.assertTrue(resp.isUpdateResponse(),"Response is not update for " + sparql + " /" + userName);
             } else {
-                Assertions.assertTrue(resp.isError());
-                Assertions.assertFalse(resp.isUpdateResponse());
+                Assertions.assertTrue(resp.isError(),"Response is not error for " + sparql + " /" + userName);
+                Assertions.assertFalse(resp.isUpdateResponse(),"Response is update for " + sparql + " /" + userName);
 
             }
         } catch(AccessDeniedException e)  {
             if (expected)
-                Assertions.fail(e);
+                Assertions.fail("Unexpected AccessDenisedException",e);
         }catch(ACLException e)  {
             if (expected)
-                Assertions.fail(e);
+                Assertions.fail("Unexpected ACLException",e);
         }
     }
     
