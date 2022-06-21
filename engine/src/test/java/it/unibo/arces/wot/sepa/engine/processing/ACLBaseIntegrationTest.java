@@ -21,9 +21,11 @@ import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageDataset;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initGroupsQuery;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initQuery;
+import it.unibo.arces.wot.sepa.engine.acl.storage.LocalDatasetActions;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import org.junit.jupiter.api.Test;
 import it.unibo.arces.wot.sepa.engine.core.Engine;
@@ -144,17 +146,7 @@ public class ACLBaseIntegrationTest {
         );
      
       //removes user2 from group2 
-       final String baseQuery  =
-                "PREFIX sepaACL: " + SEPACL_NS_PFIX                             + System.lineSeparator()    +
-                "DELETE WHERE { GRAPH " + SEPACL_GRAPH_NAME          +"  { "    + System.lineSeparator()    +  
-                "   sepaACL:$$USERNAME sepaACL:memberOf     \"$$GROUPNAME\" "   + System.lineSeparator()    +  
-                "}}";
-        
-        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", "group2")
-                                            .replaceAll("\\$\\$USERNAME", userName);
-        
-        
-        doUpdate(aclReqFactory, up, finalQuery, DatasetACL.ADMIN_USER);
+        removeUserFromGroup(up, userName, "group2");
         
         doQuery(
                 stdReqFactory,
@@ -169,7 +161,33 @@ public class ACLBaseIntegrationTest {
                 }
         );
         
-      
+      //adds user2 to group1
+        addUserToGroup(up, userName, "group1");
+        //and check reads
+        doQuery(
+                stdReqFactory,
+                qp, 
+                selectQuery1,
+                userName,
+                new QueryResponseValidator() {
+                    @Override
+                    public boolean validate(QueryResponse resp) {
+                        return resp.getBindingsResults().getBindings().size() == 5;
+                    }
+                }
+        );
+        doQuery(
+                stdReqFactory,
+                qp, 
+                selectQuery3,
+                userName,
+                new QueryResponseValidator() {
+                    @Override
+                    public boolean validate(QueryResponse resp) {
+                        return resp.getBindingsResults().getBindings().size() == 5;
+                    }
+                }
+        );
         
     }
     private void checkUser1(UpdateProcessor up,QueryProcessor qp) throws Exception {
@@ -417,4 +435,38 @@ public class ACLBaseIntegrationTest {
         
         
     }
+    
+    
+    private void addUserToGroup(UpdateProcessor up,String user, String group) throws ACLStorageException, SPARQL11ProtocolException, SEPASparqlParsingException, SEPASecurityException, IOException {
+        final String baseQuery  =
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                             + System.lineSeparator()    +
+                "INSERT DATA { GRAPH " + SEPACL_GRAPH_NAME          +"  { "     + System.lineSeparator()    +  
+                "   sepaACL:$$USERNAME sepaACL:memberOf     \"$$GROUPNAME\" "   + System.lineSeparator()    +  
+                "}}";
+        
+        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", group)
+                                            .replaceAll("\\$\\$USERNAME", user);
+        
+        doUpdate(aclReqFactory, up, finalQuery, DatasetACL.ADMIN_USER);
+        
+
+    }
+
+    
+    private void removeUserFromGroup(UpdateProcessor up,String user, String group) throws ACLStorageException, SPARQL11ProtocolException, SEPASparqlParsingException, SEPASecurityException, IOException {
+       final String baseQuery  =
+                "PREFIX sepaACL: " + SEPACL_NS_PFIX                             + System.lineSeparator()    +
+                "DELETE WHERE { GRAPH " + SEPACL_GRAPH_NAME          +"  { "    + System.lineSeparator()    +  
+                "   sepaACL:$$USERNAME sepaACL:memberOf     \"$$GROUPNAME\" "   + System.lineSeparator()    +  
+                "}}";
+        
+        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", group)
+                                            .replaceAll("\\$\\$USERNAME", user);
+        
+        doUpdate(aclReqFactory, up, finalQuery, DatasetACL.ADMIN_USER);
+        
+
+        
+    }
+    
 }
