@@ -40,7 +40,6 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import org.apache.jena.acl.ACLException;
 import org.apache.jena.acl.DatasetACL;
-import org.apache.jena.base.Sys;
 import org.apache.jena.shared.AccessDeniedException;
 import org.junit.jupiter.api.Assertions;
 

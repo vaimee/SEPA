@@ -1,15 +1,15 @@
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
 
-import static org.junit.Assert.assertTrue;
-
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -22,13 +22,13 @@ import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithA
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(OrderAnnotation.class)
 public class DoubleStoreSystemTest {
 
 	private static SjenarEndpointDoubleStore firstStore;
 	private static SjenarEndpointDoubleStore secondStore;
 	
-	@BeforeClass
+	@BeforeAll
 	public static void init() throws SEPASecurityException, SEPAPropertiesException {
 		String engineJpar = "engine.jpar";	
 		EngineProperties properties = EngineProperties.load(engineJpar);
@@ -42,6 +42,7 @@ public class DoubleStoreSystemTest {
 
 
 	@Test
+	@Order(1)
 	public void TEST_01_INSERT_DATA() throws SEPASecurityException {
 		String sparqlUpdate = 
 				"INSERT DATA  {  \r\n"
@@ -86,6 +87,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(2)
 	public void TEST_02_INSERT_DATA_DATATYPE() throws SEPASecurityException {
 		String sparqlUpdate = "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"INSERT DATA  {  \r\n"
@@ -110,6 +112,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(3)
 	public void TEST_03_QUERY_DATATYPE_BOOLEAN() throws SEPASecurityException {
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"SELECT ?g  {  \r\n"
@@ -126,6 +129,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(4)
 	public void TEST_04_QUERY_DATATYPE_STR() throws SEPASecurityException {
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"SELECT ?g  {  \r\n"
@@ -142,6 +146,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(5)
 	public void TEST_05_QUERY_DATATYPE_DEFAULT() throws SEPASecurityException {
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"SELECT ?g  {  \r\n"
@@ -158,6 +163,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(6)
 	public void TEST_06_QUERY_DATATYPE_INTEGER() throws SEPASecurityException {
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"SELECT ?g  {  \r\n"
@@ -174,6 +180,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(7)
 	public void TEST_07_CLEAN() throws SEPASecurityException {
 		clean();
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
@@ -191,6 +198,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(8)
 	public void TEST_08_INSERT_DATA_2STORE() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = 
 				"INSERT DATA  {  \r\n"
@@ -242,6 +250,7 @@ public class DoubleStoreSystemTest {
 	}
 	
 	@Test
+	@Order(9)
 	public void TEST_09_INSERT_DATA_2STORE_DATATYPE() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"INSERT DATA  {  \r\n"
@@ -273,6 +282,7 @@ public class DoubleStoreSystemTest {
 	}
 	
 	@Test
+	@Order(10)
 	public void TEST_10_QUERY_DATATYPE_BOOLEAN() throws SEPASecurityException {
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"SELECT ?g  {  \r\n"
@@ -291,6 +301,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(11)
 	public void TEST_11_QUERY_DATATYPE_STR() throws SEPASecurityException {
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"SELECT ?g  {  \r\n"
@@ -309,6 +320,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(12)
 	public void TEST_12_QUERY_DATATYPE_DEFAULT() throws SEPASecurityException {
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"SELECT ?g  {  \r\n"
@@ -327,6 +339,7 @@ public class DoubleStoreSystemTest {
 	}
 
 	@Test
+	@Order(13)
 	public void TEST_13_QUERY_DATATYPE_INTEGER() throws SEPASecurityException {
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"SELECT ?g  {  \r\n"
@@ -344,6 +357,7 @@ public class DoubleStoreSystemTest {
 	}
 	
 	@Test
+	@Order(14)
 	public void TEST_14_QUERY_DATATYPE_VAR() throws SEPASecurityException {
 		String sparqlQuery= "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+
 				"SELECT ?g ?p {  \r\n"

@@ -1,30 +1,31 @@
 package it.unibo.arces.wot.sepa.engine.processing.lutt;
 
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(OrderAnnotation.class)
 public class LUTTTest {
 	
 	
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() throws SEPASecurityException {
 
 	}
 
 
 	@Test
+	@Order(1)
 	public void Test_01_General() throws SEPASecurityException {
 		String sparqlQuery = 
 					"PREFIX pp:<http://prefix.prova/> "
@@ -44,6 +45,7 @@ public class LUTTTest {
 	}
 	
 	@Test
+	@Order(2)
 	public void Test_02_General() throws SEPASecurityException {
 		String sparqlQuery = 
 					"PREFIX pp:<http://prefix.prova/> "
@@ -81,6 +83,7 @@ public class LUTTTest {
 	}
 	
 	@Test
+	@Order(3)
 	public void Test_03_General() throws SEPASecurityException {
 		String sparqlQuery = 
 					"PREFIX xsd:<http://www.w3.org/2001/XMLSchema> "
@@ -104,6 +107,7 @@ public class LUTTTest {
 	}
 	
 	@Test
+	@Order(4)
 	public void Test_04_Chat_sent() throws SEPASecurityException {
 		String sparqlQuery = 
 					"		PREFIX	schema: <http://schema.org/>\n"
@@ -170,6 +174,7 @@ public class LUTTTest {
 	}
 	
 	@Test
+	@Order(5)
 	public void Test_05_Chat_received() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 					+ "		PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -197,6 +202,7 @@ public class LUTTTest {
 	
 	
 	@Test
+	@Order(6)
 	public void Test_06_Chat_received_monitor() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+ 				"PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -222,6 +228,7 @@ public class LUTTTest {
 	
 
 	@Test
+	@Order(7)
 	public void Test_07_Chat_log_sent() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+ 				"PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -247,6 +254,7 @@ public class LUTTTest {
 	}
 	
 	@Test
+	@Order(8)
 	public void Test_08_Chat_log_received() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+				"SELECT ?message ?dateReceived FROM <http://wot.arces.unibo.it/chat/log> WHERE {"
@@ -281,6 +289,7 @@ public class LUTTTest {
 	}
 	
 	@Test
+	@Order(10)
 	public void Test_10_Chat_query_all() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+ 				"PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -303,6 +312,7 @@ public class LUTTTest {
 	}
 	
 	@Test
+	@Order(11)
 	public void Test_11_Hitter() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX	schema: <http://schema.org/>\n"
 				+ 				"PREFIX	rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
@@ -397,6 +407,7 @@ public class LUTTTest {
 	}
 	
 	@Test
+	@Order(12)
 	public void Test_11_final_chat() throws SEPASecurityException {
 		String sparqlQuery = 	"PREFIX chat:<http://wot.arces.unibo.it/chat/>\r\n"
 				+ "PREFIX schema:<http://schema.org/>\r\n"

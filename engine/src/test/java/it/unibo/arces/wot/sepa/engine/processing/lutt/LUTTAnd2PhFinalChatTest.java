@@ -1,7 +1,6 @@
 package it.unibo.arces.wot.sepa.engine.processing.lutt;
 
 
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -9,10 +8,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -29,7 +30,7 @@ import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithA
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(OrderAnnotation.class)
 public class LUTTAnd2PhFinalChatTest {
 	
 	private static SjenarEndpointDoubleStore store_ph_1;
@@ -132,7 +133,7 @@ public class LUTTAnd2PhFinalChatTest {
 	
 
 	
-	@BeforeClass
+	@BeforeAll
 	public static void init() throws SEPASecurityException, SEPAPropertiesException {
 		String engineJpar = "engine.jpar";	
 		EngineProperties properties = EngineProperties.load(engineJpar);
@@ -149,6 +150,7 @@ public class LUTTAnd2PhFinalChatTest {
 
 //
 	@Test
+	@Order(1)
 	public void TEST_01_Register_A() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 						"INSERT {\r\n"
@@ -185,6 +187,7 @@ public class LUTTAnd2PhFinalChatTest {
 	}
 	
 	@Test
+	@Order(2)
 	public void TEST_02_Register_B() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 						"INSERT {\r\n"
@@ -222,6 +225,7 @@ public class LUTTAnd2PhFinalChatTest {
 	
 	
 	@Test
+	@Order(3)
 	public void TEST_03_CreateRoom() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 						"INSERT DATA {\r\n"
@@ -240,6 +244,7 @@ public class LUTTAnd2PhFinalChatTest {
 	}
 	
 	@Test
+	@Order(4)
 	public void TEST_04_EnterRoom_A() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 						"DELETE {\r\n"
@@ -270,6 +275,7 @@ public class LUTTAnd2PhFinalChatTest {
 	}
 	
 	@Test
+	@Order(5)
 	public void TEST_05_EnterRoom_B() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 						"DELETE {\r\n"
@@ -300,6 +306,7 @@ public class LUTTAnd2PhFinalChatTest {
 	}
 	
 	@Test
+	@Order(6)
 	public void TEST_06_SEND_A_to_B() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 						"INSERT {\r\n"
@@ -348,6 +355,7 @@ public class LUTTAnd2PhFinalChatTest {
 	}
 	
 	@Test
+	@Order(7)
 	public void TEST_07_LOG_SEND() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 						"DELETE {\r\n"
@@ -390,6 +398,7 @@ public class LUTTAnd2PhFinalChatTest {
 	}
 	
 	@Test
+	@Order(8)
 	public void TEST_08_SET_RECEIVED() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 						"INSERT DATA {\r\n"
@@ -420,6 +429,7 @@ public class LUTTAnd2PhFinalChatTest {
 	}
 	
 	@Test
+	@Order(9)
 	public void TEST_09_LOG_RECEIVED() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 				"DELETE {\r\n"
@@ -462,6 +472,7 @@ public class LUTTAnd2PhFinalChatTest {
 	}
 	
 	@Test
+	@Order(10)
 	public void TEST_10_DELETE_MSG() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 				"DELETE {\r\n"
@@ -498,6 +509,7 @@ public class LUTTAnd2PhFinalChatTest {
 	}
 	
 	@Test
+	@Order(11)
 	public void TEST_11_LOG_DELETED() throws SEPASecurityException, SPARQL11ProtocolException, SEPASparqlParsingException {
 		String sparqlUpdate = prefixs+
 				"DELETE {\r\n"

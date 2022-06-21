@@ -1,12 +1,12 @@
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
-import static org.junit.Assert.assertTrue;
 
-
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -16,13 +16,13 @@ import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.core.Engine;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(OrderAnnotation.class)
 public class GeneralTest {
 
 
 	private static SPARQL11Protocol client;
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() throws SEPASecurityException {
 		Engine engine =new Engine(new String[] {});
 		try {
@@ -37,6 +37,7 @@ public class GeneralTest {
 
 
 	@Test
+	@Order(1)
 	public void TEST_01_INSERT_DATA_NO_PREFIX(){
 		cleanDataSet();
 		String sparqlUpdate = 
@@ -77,6 +78,7 @@ public class GeneralTest {
 
 
 	@Test
+	@Order(2)
 	public void TEST_02_INSERT_DATA_WITH_PREFIX(){
 		cleanDataSet();
 		String sparqlUpdate = 
@@ -109,6 +111,7 @@ public class GeneralTest {
 	}
 
 	@Test
+	@Order(3)
 	public void TEST_03_DATATYPE(){
 		cleanDataSet();
 		String sparqlUpdate = "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"+

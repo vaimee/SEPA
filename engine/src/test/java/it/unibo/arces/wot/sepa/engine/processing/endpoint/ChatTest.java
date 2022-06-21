@@ -1,12 +1,14 @@
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
-import static org.junit.Assert.assertTrue;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
 
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
@@ -19,7 +21,7 @@ import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.core.Engine;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(OrderAnnotation.class)
 public class ChatTest {
 
 
@@ -52,7 +54,7 @@ public class ChatTest {
 
 	private static SPARQL11Protocol client;
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() throws SEPASecurityException {
 		Engine engine =new Engine(new String[] {});
 		try {
@@ -82,6 +84,7 @@ public class ChatTest {
 //	}
 	
 	@Test
+	@Order(1)
 	public void TEST_01_DELETE_ALL() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 0;
 		String sparqlUpdate = 
@@ -96,6 +99,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(2)
 	public void TEST_02_REGISTER_USER() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 10;
 
@@ -132,6 +136,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(3)
 	public void TEST_03_REGISTER_USER() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 20;
 		String sparqlUpdate = prefixs
@@ -163,6 +168,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(4)
 	public void TEST_04_CREATE_ROOM() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 22;
 		String sparqlUpdate = prefixs					
@@ -182,6 +188,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(5)
 	public void TEST_05_ENTER_ROOM() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 23;
 		String sparqlUpdate = prefixs
@@ -213,6 +220,7 @@ public class ChatTest {
 
 
 	@Test
+	@Order(6)
 	public void TEST_06_ENTER_ROOM() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 24;
 		String sparqlUpdate = prefixs
@@ -241,6 +249,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(7)
 	public void TEST_07_SEND() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 29;
 		String sparqlUpdate = prefixs
@@ -274,6 +283,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(8)
 	public void TEST_08_LOG_SEND() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 29;
 		String sparqlUpdate = prefixs
@@ -304,6 +314,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(9)
 	public void TEST_09_QUERY_RECEIVED() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
 				+ "	SELECT ?message ?sender ?type ?content ?time \r\n"
@@ -328,6 +339,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(10)
 	public void TEST_10_SEND() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 34;
 		String sparqlUpdate = prefixs
@@ -361,6 +373,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(11)
 	public void TEST_11_LOG_SEND() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 34;
 		String sparqlUpdate = prefixs
@@ -391,6 +404,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(12)
 	public void TEST_12_SET_RECEIVED() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 35;
 		String sparqlUpdate = prefixs
@@ -409,6 +423,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(13)
 	public void TEST_12_SET_RECEIVED_bis() throws NumberFormatException, SEPABindingsException{
 		//same of test 12 but we use ' instead of "
 		int datasetSizeAfterUpdate = 36;
@@ -428,6 +443,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(14)
 	public void TEST_13_DELETE_MSG() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 31;
 		String sparqlUpdate = prefixs
@@ -460,6 +476,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(15)
 	public void TEST_14_CPU_STATUS() throws NumberFormatException, SEPABindingsException{
 		int datasetSizeAfterUpdate = 35;
 		String sparqlUpdate = prefixs
@@ -492,6 +509,7 @@ public class ChatTest {
 
 
 	@Test
+	@Order(16)
 	public void TEST_15_QUERY_ROOM() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
 				+ "	SELECT ?p ?o WHERE { GRAPH ?g {chat:partecipants ?p ?o.}}";
@@ -510,6 +528,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(17)
 	public void TEST_17_QUERY_LOG_MONITOR() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
 				+ "SELECT ?person ?log ?count WHERE { \r\n"
@@ -527,6 +546,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(18)
 	public void TEST_18_QUERY_LEAKER_1() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
 				+ "SELECT ?content WHERE { \r\n"
@@ -541,6 +561,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(19)
 	public void TEST_19_QUERY_LEAKER_2() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
 				+ "SELECT ?person WHERE { \r\n"
@@ -554,6 +575,7 @@ public class ChatTest {
 	}
 
 	@Test
+	@Order(20)
 	public void TEST_20_QUERY_LEAKER_3() throws NumberFormatException, SEPABindingsException{
 		String sparqlQ = prefixs
 				+ "SELECT ?person ?room ?time WHERE { \r\n"
