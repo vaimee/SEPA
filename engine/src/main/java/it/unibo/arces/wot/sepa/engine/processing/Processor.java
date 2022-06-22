@@ -137,7 +137,7 @@ public class Processor implements ProcessorMBean {
 		//WE NEEED exstract the AR (if inMemoryDoubleStore is true) anyway
 		//if there are not SPU we need anyway extract the AR for build the INSERT-DELETE
 		try {
-			if(EngineBeans.isLUTTEnabled()) {
+			if(EngineBeans.isLUTTEnabled() && !update.isAclRequest()) {
 				//JENAR-AR 		(done)	
 				preRequest = ARQuadsAlgorithm.extractJenaARQuads(update, updateProcessor);
 				//alghoritm AR 	(...pending)
@@ -167,7 +167,7 @@ public class Processor implements ProcessorMBean {
 		// Endpoint UPDATE
 		Response ret;
 		try {
-			if(EngineBeans.isLUTTEnabled()) {
+			if(EngineBeans.isLUTTEnabled() && !update.isAclRequest()) {
 				//in this case the "preRequest" is 
 				//INSERT DATA and DELETE DATA update built with the AR
 				//ret = updateEndpoint2Ph(preRequest); //INSERT-DELETE do not work properly yet

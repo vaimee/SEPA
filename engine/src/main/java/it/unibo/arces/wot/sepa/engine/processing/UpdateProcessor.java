@@ -99,8 +99,17 @@ class UpdateProcessor implements UpdateProcessorMBean {
 	}
 	
 	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		//as default we will use first storage for updated
-		return process(req,true);
+		//as default we will use
+		//first storage for updated if LUTT are disabled (because we will just one store)
+		//second storage if LUTT are enabled
+		if (EngineBeans.isLUTTEnabled()) {
+			//this is skipping the double phase  (it is bypassing the general call on Processor)
+			//(It is used only by test or at least if we do not have any subscription)
+			return process(req,false);
+		}else {
+			return process(req,true);
+		}
+		
 	}
 	
 	public Response processOnSecondStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {

@@ -55,7 +55,7 @@ public class SjenarEndpointDoubleStore implements SPARQLEndpoint {
 
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo usr) {
-		//init();
+		Logging.logger.trace("SjenarEndpointDoubleStore.query on "+ (firstStore?"FIRST STORE":"SECOND STORE"));
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		Dataset store = firstStore?firstDataset:secondDataset;
 		try (final RDFConnection conn = 
@@ -80,7 +80,7 @@ public class SjenarEndpointDoubleStore implements SPARQLEndpoint {
 
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo usr) {
-		//init();
+		Logging.logger.trace("SjenarEndpointDoubleStore.update on "+ (firstStore?"FIRST STORE":"SECOND STORE"));
 		Dataset store = firstStore?firstDataset:secondDataset;
 		try (final RDFConnection conn = 
 				(usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?

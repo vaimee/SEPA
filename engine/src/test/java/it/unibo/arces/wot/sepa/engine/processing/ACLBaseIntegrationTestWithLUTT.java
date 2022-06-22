@@ -48,7 +48,7 @@ import org.apache.jena.shared.AccessDeniedException;
 import org.junit.jupiter.api.Assertions;
 
 @TestMethodOrder(OrderAnnotation.class)
-public class ACLBaseIntegrationTest {
+public class ACLBaseIntegrationTestWithLUTT {
     private  final   InternalAclRequestFactory       aclReqFactory = new InternalAclRequestFactory();
     private  final   InternalStdRequestFactory       stdReqFactory = new InternalStdRequestFactory();
     //direct copy & paste from ACLStorageDataset.java
@@ -85,7 +85,7 @@ public class ACLBaseIntegrationTest {
             "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
             "SELECT ?s ?p ?o WHERE {GRAPH  mp:graph4  {?s ?p ?o}}";
     
-    public ACLBaseIntegrationTest() {
+    public ACLBaseIntegrationTestWithLUTT() {
         
     }
     private void checkInsertData(
@@ -349,16 +349,10 @@ public class ACLBaseIntegrationTest {
     @Test 
     @Order(1)
     public void testACLEndpoints() {
-    	internalTestACLEndpoints(false);
+    	internalTestACLEndpoints(true);
     }
     
-// THAT is not working, because we need a clean on all dataset after the test "testACLEndpoints" with "@Order(1)"
-// so that test is in another junit file--> ACLBaseIntegrationTestWithLUTT.java
-//    @Test 
-//    @Order(2)
-//    public void testACLEndpointsWithLUTT() {
-//    	internalTestACLEndpoints(true);
-//    }
+
     
     private void doQuery(
         InternalRequestFactory  reqFactory, 

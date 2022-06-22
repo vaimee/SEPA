@@ -61,14 +61,14 @@ class QueryProcessor implements QueryProcessorMBean {
 			
 			long start = Timings.getTime();
 			try (
-                                final SPARQLEndpoint endpoint = 
-                                        req.isAclRequest() == false                                     ?  
-                                        EndpointFactory.newInstance(properties.getProtocolScheme(),firstStore)     : 
-                                        SEPAAcl.getInstance().asEndpoint();
-                        ){
-                            final SEPAUserInfo ui = SEPAUserInfo.newInstance(req);
-                            ret = endpoint.query(request,ui);
-                        } 
+					final SPARQLEndpoint endpoint = 
+					req.isAclRequest() == false                                     ?  
+							EndpointFactory.newInstance(properties.getProtocolScheme(),firstStore)     : 
+								SEPAAcl.getInstance().asEndpoint();
+					){
+				final SEPAUserInfo ui = SEPAUserInfo.newInstance(req);
+				ret = endpoint.query(request,ui);
+			} 
 			
 			long stop = Timings.getTime();
 			
