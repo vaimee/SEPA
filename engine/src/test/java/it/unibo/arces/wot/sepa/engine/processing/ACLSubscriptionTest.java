@@ -114,7 +114,15 @@ public class ACLSubscriptionTest  {
             "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
             "SELECT ?o WHERE {GRAPH  mp:graph1 {?o ?p ?o1} GRAPH  mp:graph3 {?o ?p ?o2}}";
     
-
+    private static final String sub_form_1 = 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o FROM NAMED  mp:graph1 \n WHERE {GRAPH ?g {?s ?p ?o}}";
+    
+    private static final String sub_form_2 = 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o FROM NAMED  mp:graph2 \n WHERE {GRAPH ?g {?s ?p ?o}}";
+    
+ 
 	@BeforeAll
 	public static void init() throws SEPASecurityException {
 		try {
@@ -238,7 +246,6 @@ public class ACLSubscriptionTest  {
 			//################################################	24 //NOT PASSED
 //			List<String> expected_24= new ArrayList<>();
 //			expected_24.add("http://o1");
-//			expected_24.add("http://o3");
 //			subscribe(sub_1_and_2,"24",expected_24,Constants.USER1);
 			//################################################	24b
 			subscribe(sub_1_and_2_no_from,"24b",new ArrayList<>(),Constants.USER1);
@@ -246,6 +253,12 @@ public class ACLSubscriptionTest  {
 			List<String> expected_25= new ArrayList<>();
 			expected_25.add("http://s1");
 			subscribe(sub_1_and_3_no_from,"25",expected_25,Constants.USER1);
+			//################################################	26
+			List<String> expected_26= new ArrayList<>();
+			expected_26.add("http://o1");
+			subscribe(sub_form_1,"26",expected_26,Constants.USER1);
+			//################################################	27 NOT PASSED
+			//subscribe(sub_form_2,"27",new ArrayList<>(),Constants.USER1);
 			
 		}catch(Exception e ) {
 			System.out.println("Test error: "+ e);
