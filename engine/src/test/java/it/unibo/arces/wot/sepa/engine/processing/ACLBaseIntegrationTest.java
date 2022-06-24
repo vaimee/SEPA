@@ -85,6 +85,11 @@ public class ACLBaseIntegrationTest {
             "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
             "SELECT ?s ?p ?o WHERE {GRAPH  mp:graph4  {?s ?p ?o}}";
     
+    
+    private static final String selectQuery5 = 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o FROM NAMED  mp:graph2 \n WHERE {GRAPH ?g {?s ?p ?o}}";
+    
     public ACLBaseIntegrationTest() {
         
     }
@@ -249,6 +254,20 @@ public class ACLBaseIntegrationTest {
                 }
         );
         
+        
+        //check from named
+        doQuery(
+            stdReqFactory,
+            qp,
+            selectQuery5,
+            userName,
+            new QueryResponseValidator() {
+                @Override
+                public boolean validate(QueryResponse resp) {
+                    return resp.getBindingsResults().getBindings().size() == 0;
+                }
+            }
+        );
         
     }
     private void checkUserList(QueryProcessor qp) throws Exception {
