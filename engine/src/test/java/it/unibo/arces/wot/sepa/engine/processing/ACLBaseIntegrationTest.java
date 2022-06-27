@@ -88,7 +88,7 @@ public class ACLBaseIntegrationTest {
     
     private static final String selectQuery5 = 
             "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
-            "SELECT ?s ?p ?o FROM NAMED  mp:graph2 \n WHERE {GRAPH ?g {?s ?p ?o}}";
+            "SELECT ?s ?p ?o FROM NAMED  mp:graph4 \n WHERE {GRAPH ?g {?s ?p ?o}}";
     
     public ACLBaseIntegrationTest() {
         
