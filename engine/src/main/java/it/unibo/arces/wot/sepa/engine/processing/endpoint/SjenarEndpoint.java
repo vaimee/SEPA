@@ -28,6 +28,10 @@ import org.apache.jena.system.Txn;
 
 public class SjenarEndpoint implements SPARQLEndpoint {
 
+        public static synchronized void reset() {
+            hasInit = false;
+            dataset = null;
+        }
 	private static Dataset       dataset;
 	private static boolean       hasInit;
 

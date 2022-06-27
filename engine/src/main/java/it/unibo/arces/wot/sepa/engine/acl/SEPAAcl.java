@@ -8,6 +8,7 @@ package it.unibo.arces.wot.sepa.engine.acl;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLRegistrable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorage;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageFactory;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageListable;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageRegistrableParams;
@@ -140,7 +141,11 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         
         return aclInstance;
     }
-    
+    public static synchronized void reset() {
+        aclInstance = null;
+        
+        ACLStorageFactory.reset();
+    }
     private SEPAAcl(ACLStorageOperations storage) throws EngineACLException,ACLStorageException{
         aclStorage = storage;
         cachedACL = aclStorage.loadUsers();
