@@ -22,6 +22,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageDataset;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageFactory;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initGroupsQuery;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initQuery;
@@ -34,6 +35,7 @@ import org.junit.jupiter.api.Order;
 import it.unibo.arces.wot.sepa.engine.core.Engine;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ACLTools;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalAclRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
@@ -333,15 +335,58 @@ public class ACLBaseIntegrationTest {
         
     }
     
-    private void internalTestACLEndpoints(boolean enableLutt) {
+    @Test
+    public void testACLEndpointMemory() {
+        //default should be mem
+        try {
+            internalTestACLEndpoints(false, EngineProperties.load("engine.jpar"));
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointMemory()",e);
+        }
+            
+    }
+    
+    @Test
+    public void testACLEndpointTDB1() {
+        try {
+            final EngineProperties props = EngineProperties.load("engine.jpar");
+            
+            props.setAclPath("./run/AclIntegrationTdb1");
+            props.setAclMode(EngineProperties.DS_MODE_TDB1);
+            internalTestACLEndpoints(false, props);
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointTDB1()",e);
+        }
+        
+    }
+    
+    @Test
+    public void testACLEndpointTDB2() {
+        
+            try {
+            final EngineProperties props = EngineProperties.load("engine.jpar");
+            
+            props.setAclPath("./run/AclIntegrationTdb2");
+            props.setAclMode(EngineProperties.DS_MODE_TDB2);
+            internalTestACLEndpoints(true, props);
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointTDB2()",e);
+        }
+
+    }
+    
+    private void internalTestACLEndpoints(boolean enableLutt, EngineProperties props) {
     	try {
+            
             final SPARQL11Properties sepaEndpointProps = new SPARQL11Properties(Engine.defaultEndpointJpar);
-            EngineBeans.setEngineProperties(EngineProperties.load("engine.jpar"));
+            EngineBeans.setEngineProperties(props);
             sepaEndpointProps.setProtocolScheme(SPARQL11Properties.ProtocolScheme.SJenarAPI);
             //adjust properties
             adjustEngineProperties(enableLutt);
             
             //creates ACL objects
+            SEPAAcl.reset();
+            SjenarEndpoint.reset();
             final ACLStorageOperations      aclStorage = ACLTools.makeACLStorage();
             final SEPAAcl                   aclData = SEPAAcl.getInstance(aclStorage);
             setStorageOwner(aclData, aclStorage);
@@ -350,9 +395,10 @@ public class ACLBaseIntegrationTest {
             final UpdateProcessor sepaUpdater = new UpdateProcessor(sepaEndpointProps);
             final QueryProcessor sepaQuerier = new QueryProcessor(sepaEndpointProps);
             //load ACL with default test data
+            doUpdate(aclReqFactory, sepaUpdater, "DELETE WHERE { GRAPH ?g {?s ?p ?o}}",SEPAAcl.ADMIN_USER);
             doUpdate(aclReqFactory, sepaUpdater, initGroupsQuery,SEPAAcl.ADMIN_USER);
             doUpdate(aclReqFactory,sepaUpdater, initQuery,SEPAAcl.ADMIN_USER);
-            //first. do some query on ACL to check for loaded data
+            //first. do some query on ACL to check for loaded dat
             checkGroupList(sepaQuerier);
             checkUserList(sepaQuerier);
             
@@ -364,12 +410,13 @@ public class ACLBaseIntegrationTest {
             Assertions.fail("Unexepected Exception",e);
         }
     }
-    
+/*    
     @Test 
     @Order(1)
     public void testACLEndpoints() {
     	internalTestACLEndpoints(false);
     }
+*/
     
 // THAT is not working, because we need a clean on all dataset after the test "testACLEndpoints" with "@Order(1)"
 // so that test is in another junit file--> ACLBaseIntegrationTestWithLUTT.java
