@@ -73,7 +73,7 @@ public class LocalDatasetActions {
     public static void insertData(Dataset dataset, String query) {
         dataset.begin(ReadWrite.WRITE);
         System.out.println("[INSERT] : "+ System.lineSeparator() + query + System.lineSeparator());
-        UpdateAction.parseExecute(query, dataset,null);
+        List<UpdateResult> ur = UpdateAction.parseExecute(query, dataset,null);
         RDFDataMgr.write(System.out, dataset, Lang.TRIG);
         dataset.commit();
             
