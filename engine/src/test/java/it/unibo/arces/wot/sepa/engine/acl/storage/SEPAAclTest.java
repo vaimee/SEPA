@@ -154,6 +154,7 @@ public class SEPAAclTest {
 
     private void testNewInstanceDataset(final Map<String,Object> paramMap,boolean fMem ) throws Exception {
         System.out.println(this.getClass().getName() + "testNewInstanceDataset()");
+        ACLStorageFactory.reset();
         final ACLStorageOperations obj  = ACLStorageFactory.newInstance(ACLStorage.ACLStorageId.asiDataset, paramMap);
         assertNotEquals(null, obj);
         
@@ -173,7 +174,7 @@ public class SEPAAclTest {
             }
             
         }
-        
+         
         final SEPAAcl as = SEPAAcl.newInstance(obj);
         
         testNewInstance(as);
