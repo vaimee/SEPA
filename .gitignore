@@ -183,3 +183,5 @@ engine/run/*
 /runSepaAR.sh
 /start-sepa.bat
 /client-api/nbproject/
+/engine/run/
+/client-api/run/
