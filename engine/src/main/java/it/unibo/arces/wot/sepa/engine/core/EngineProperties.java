@@ -462,4 +462,11 @@ public class EngineProperties {
 		return parameters.dsConfig.secondDS.path;
 	}
 
+        public void setAclPath(String s ) {
+            parameters.acl.path = s;
+        }
+        
+        public void setAclMode(String s) {
+            parameters.acl.mode = s;
+        }
 }
