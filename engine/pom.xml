@@ -316,6 +316,12 @@
 		</dependency>
 		<dependency>
 			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-dboe-transaction</artifactId>
+			<version>4.3.2-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
 			<artifactId>sjenar-dboe-trans-data</artifactId>
 			<version>4.3.2-SNAPSHOT</version>
 		</dependency>
