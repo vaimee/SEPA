@@ -14,7 +14,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 
 package it.unibo.arces.wot.sepa.commons.security;
 
@@ -23,18 +23,18 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 public class ClientAuthorization {
 
 	private boolean authorized = true;
-	
+
 	private String error = null;
 	private String description = null;
-	
+
 	private Credentials credentials = null;
-	
+
 	public ClientAuthorization(String error,String description) {
 		this.authorized = false;
 		this.error = error;
 		this.description = description;
 	}
-	
+
 	public ClientAuthorization(Credentials credentials) {
 		this.credentials = credentials;
 	}
@@ -47,21 +47,21 @@ public class ClientAuthorization {
 	public boolean isAuthorized() {
 		return authorized;
 	}
-	
+
 	public String getError() {
 		return error;
 	}
-	
+
 	public String getDescription() {
 		return description;
 	}
-	
+
 	public String getBasicAuthorizationHeader() throws SEPASecurityException {
 		if (credentials == null) return null;
 		return credentials.getBasicAuthorizationHeader();
 	}
 
-        public Credentials getCredentials() {
-            return credentials;
-        }
+	public Credentials getCredentials() {
+		return credentials;
+	}
 }

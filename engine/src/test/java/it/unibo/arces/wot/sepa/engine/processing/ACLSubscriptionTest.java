@@ -147,82 +147,81 @@ public class ACLSubscriptionTest  {
 
 			controllers= new ArrayList<SubscriptionController>();
 			
-			//create subscriptions
+//			//create subscriptions
 			//########################################################## AS ADMIN
 			//################################################	01
-//			List<String> expected_01= new ArrayList<>();
-//			expected_01.add("http://o1");
-//			subscribe(sub1,"01",expected_01,SEPAAcl.ADMIN_USER);
-//			//################################################	02
-//			List<String> expected_02= new ArrayList<>();
-//			expected_02.add("http://o2");
-//			subscribe(sub2,"02",expected_02,SEPAAcl.ADMIN_USER);
-//			//################################################	03
-//			List<String> expected_03= new ArrayList<>();
-//			expected_03.add("http://o3");
-//			subscribe(sub3,"03",expected_03,SEPAAcl.ADMIN_USER);
-//			//################################################	04
-//			List<String> expected_04= new ArrayList<>();
-//			expected_04.add("http://o4");
-//			subscribe(sub4,"04",expected_04,SEPAAcl.ADMIN_USER);
-//			//################################################	05
-//			List<String> expected_05= new ArrayList<>();
-//			expected_05.add("http://o1");
-//			expected_05.add("http://o2");
-//			expected_05.add("http://o3");
-//			expected_05.add("http://o4");
-//			subscribe(subAll,"05",expected_05,SEPAAcl.ADMIN_USER);
-//			//################################################	06
-//			List<String> expected_06= new ArrayList<>();
-//			expected_06.add("http://o1");
-//			expected_06.add("http://o2");
-//			subscribe(sub_1_and_2,"06",expected_06,SEPAAcl.ADMIN_USER);
-//			//################################################	06b
-//			List<String> expected_06b= new ArrayList<>();
-//			expected_06b.add("http://s1");
-//			subscribe(sub_1_and_2_no_from,"06b",expected_06b,SEPAAcl.ADMIN_USER);
+			List<String> expected_01= new ArrayList<>();
+			expected_01.add("http://o1");
+			subscribe(sub1,"01",expected_01,SEPAAcl.ADMIN_USER);
+			//################################################	02
+			List<String> expected_02= new ArrayList<>();
+			expected_02.add("http://o2");
+			subscribe(sub2,"02",expected_02,SEPAAcl.ADMIN_USER);
+			//################################################	03
+			List<String> expected_03= new ArrayList<>();
+			expected_03.add("http://o3");
+			subscribe(sub3,"03",expected_03,SEPAAcl.ADMIN_USER);
+			//################################################	04
+			List<String> expected_04= new ArrayList<>();
+			expected_04.add("http://o4");
+			subscribe(sub4,"04",expected_04,SEPAAcl.ADMIN_USER);
+			//################################################	05
+			List<String> expected_05= new ArrayList<>();
+			expected_05.add("http://o1");
+			expected_05.add("http://o2");
+			expected_05.add("http://o3");
+			expected_05.add("http://o4");
+			subscribe(subAll,"05",expected_05,SEPAAcl.ADMIN_USER);
+			//################################################	06
+			List<String> expected_06= new ArrayList<>();
+			expected_06.add("http://o1");
+			expected_06.add("http://o2");
+			subscribe(sub_1_and_2,"06",expected_06,SEPAAcl.ADMIN_USER);
+			//################################################	06b
+			List<String> expected_06b= new ArrayList<>();
+			expected_06b.add("http://s1");
+			subscribe(sub_1_and_2_no_from,"06b",expected_06b,SEPAAcl.ADMIN_USER);
 
 			//########################################################## AS inexistent user 
 			//################################################	07
-//			subscribe(sub1,"07",new ArrayList<>(),"I_m_a_ghost");
-//			//################################################	08
-//			subscribe(sub2,"08",new ArrayList<>(),"I_m_a_ghost");
-//			//################################################	09
-//			subscribe(sub3,"09",new ArrayList<>(),"I_m_a_ghost");
-//			//################################################	10
-//			subscribe(sub4,"10",new ArrayList<>(),"I_m_a_ghost");
-//			//################################################	11
-//			subscribe(subAll,"11",new ArrayList<>(),"I_m_a_ghost");
-//			//################################################	12
-//			subscribe(sub_1_and_2,"12",new ArrayList<>(),"I_m_a_ghost");	//NOT PASSED
-//			//################################################	12b
-//			subscribe(sub_1_and_2_no_from,"12b",new ArrayList<>(),"I_m_a_ghost");
+			subscribe(sub1,"07",new ArrayList<>(),"I_m_a_ghost");
+			//################################################	08
+			subscribe(sub2,"08",new ArrayList<>(),"I_m_a_ghost");
+			//################################################	09
+			subscribe(sub3,"09",new ArrayList<>(),"I_m_a_ghost");
+			//################################################	10
+			subscribe(sub4,"10",new ArrayList<>(),"I_m_a_ghost");
+			//################################################	11
+			subscribe(subAll,"11",new ArrayList<>(),"I_m_a_ghost");
+			//################################################	12
+			subscribe(sub_1_and_2,"12",new ArrayList<>(),"I_m_a_ghost");	
+			//################################################	12b
+			subscribe(sub_1_and_2_no_from,"12b",new ArrayList<>(),"I_m_a_ghost");
 
-//			//########################################################## AS gonger
-//			//################################################	13
-//			subscribe(sub1,"13",new ArrayList<>(),Constants.USER2);
-//			//################################################	14
-//			List<String> expected_14= new ArrayList<>();
-//			expected_14.add("http://o2");
-//			subscribe(sub2,"14",expected_14,Constants.USER2);
-//			//################################################	15
-//			subscribe(sub3,"15",new ArrayList<>(),Constants.USER2);
-//			//################################################	16
-//			List<String> expected_16= new ArrayList<>();
-//			expected_16.add("http://o4");
-//			subscribe(sub4,"16",expected_16,Constants.USER2);
-//			//################################################	17
-//			List<String> expected_17= new ArrayList<>();
-//			expected_17.add("http://o2");
-//			expected_17.add("http://o4");
-//			subscribe(subAll,"17",expected_17,Constants.USER2);
-//			//################################################	18 //NOT PASSED
-////			List<String> expected_18= new ArrayList<>();
-////			expected_18.add("http://o2");
-////			expected_18.add("http://o4");
-////			subscribe(sub_1_and_2,"18",expected_18,Constants.USER2);
+			//########################################################## AS gonger
+			//################################################	13
+			subscribe(sub1,"13",new ArrayList<>(),Constants.USER2);
+			//################################################	14
+			List<String> expected_14= new ArrayList<>();
+			expected_14.add("http://o2");
+			subscribe(sub2,"14",expected_14,Constants.USER2);
+			//################################################	15
+			subscribe(sub3,"15",new ArrayList<>(),Constants.USER2);
+			//################################################	16
+			List<String> expected_16= new ArrayList<>();
+			expected_16.add("http://o4");
+			subscribe(sub4,"16",expected_16,Constants.USER2);
+			//################################################	17
+			List<String> expected_17= new ArrayList<>();
+			expected_17.add("http://o2");
+			expected_17.add("http://o4");
+			subscribe(subAll,"17",expected_17,Constants.USER2);
+//			//################################################	18 
+			List<String> expected_18= new ArrayList<>();
+			expected_18.add("http://o2");
+			subscribe(sub_1_and_2,"18",expected_18,Constants.USER2);
 //			//################################################	18b 
-//			subscribe(sub_1_and_2_no_from,"18b",new ArrayList<>(),Constants.USER2);
+			subscribe(sub_1_and_2_no_from,"18b",new ArrayList<>(),Constants.USER2);
 			
 			
 			//########################################################## AS monger
@@ -243,10 +242,10 @@ public class ACLSubscriptionTest  {
 			expected_23.add("http://o1");
 			expected_23.add("http://o3");
 			subscribe(subAll,"23",expected_23,Constants.USER1);
-			//################################################	24 //NOT PASSED
-//			List<String> expected_24= new ArrayList<>();
-//			expected_24.add("http://o1");
-//			subscribe(sub_1_and_2,"24",expected_24,Constants.USER1);
+			//################################################	24 
+			List<String> expected_24= new ArrayList<>();
+			expected_24.add("http://o1");
+			subscribe(sub_1_and_2,"24",expected_24,Constants.USER1);
 			//################################################	24b
 			subscribe(sub_1_and_2_no_from,"24b",new ArrayList<>(),Constants.USER1);
 			//################################################	25
@@ -257,11 +256,11 @@ public class ACLSubscriptionTest  {
 			List<String> expected_26= new ArrayList<>();
 			expected_26.add("http://o1");
 			subscribe(sub_form_1,"26",expected_26,Constants.USER1);
-			//################################################	27 NOT PASSED
-			//subscribe(sub_form_2,"27",new ArrayList<>(),Constants.USER1);
+			//################################################	27 
+			subscribe(sub_form_2,"27",new ArrayList<>(),Constants.USER1);
 			
 		}catch(Exception e ) {
-			System.out.println("Test error: "+ e);
+			e.printStackTrace();
 			Assertions.fail("Unexepected Exception",e);
 		}
 	}
@@ -347,10 +346,12 @@ public class ACLSubscriptionTest  {
 
 class SubscriptionController implements EventHandler{
 	private List<String> validationObj;
+	private String failed;
 	private String alias;
 	public SubscriptionController(String alias,List<String> validationObj ) {
 		this.validationObj= validationObj;
 		this.alias=alias;
+		this.failed=null;
 	}
 	
 	public String getAlias() {
@@ -359,31 +360,38 @@ class SubscriptionController implements EventHandler{
 
 	@Override
 	public void notifyEvent(Notification notify) throws SEPAProtocolException {
-		if(notify.getARBindingsResults().getAddedBindings().size()!=validationObj.size()) {
-			System.out.println("Fail on notifyEvent info for alias["+this.alias+"]:\n"+notify.getARBindingsResults().getAddedBindings().toJson().toString());
-			assertTrue(notify.getARBindingsResults().getAddedBindings().size()==validationObj.size(), "Fail notifyEvent for subscription alias["+this.alias+"]");
-		}
-		String obj_received="";
-		try {
-			List<Bindings> binds = notify.getARBindingsResults().getAddedBindings().getBindings();
-			for (Bindings bindings : binds) {
-				obj_received=bindings.getRDFTerm("o").getValue();
-				System.out.println("##Subscriprion alias["+this.alias+"] received: "+obj_received);
-				if(this.validationObj.contains(obj_received)) {
-					this.validationObj.remove(obj_received);
-				}else {
-					assertTrue(false,"Received a query danied query result for subscription alias["+this.alias+"]");
+			if(notify.getARBindingsResults().getAddedBindings().size()!=validationObj.size()) {
+				System.out.println("Fail on notifyEvent info for alias["+this.alias+"]:\n"+notify.getARBindingsResults().getAddedBindings().toJson().toString());
+				//assertTrue(notify.getARBindingsResults().getAddedBindings().size()==validationObj.size(), "Fail notifyEvent for subscription alias["+this.alias+"]");
+				failed="Fail notifyEvent for subscription alias["+this.alias+"]";
+			}else {
+				String obj_received="";
+				try {
+					List<Bindings> binds = notify.getARBindingsResults().getAddedBindings().getBindings();
+					for (Bindings bindings : binds) {
+						obj_received=bindings.getRDFTerm("o").getValue();
+						System.out.println("##Subscriprion alias["+this.alias+"] received: "+obj_received);
+						if(this.validationObj.contains(obj_received)) {
+							this.validationObj.remove(obj_received);
+						}else {
+							failed="Received a query danied query result for subscription alias["+this.alias+"]";
+							//assertTrue(false,"Received a query danied query result for subscription alias["+this.alias+"]");
+						}
+					}
+				} catch (SEPABindingsException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					failed="notifyEvent Exception: "+e.getMessage();
+					//Assertions.fail("notifyEvent Exception",e);
 				}
 			}
-		} catch (SEPABindingsException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			Assertions.fail("notifyEvent Exception",e);
-		}
-		
 	}
 	
 	public boolean doIReceivedAll() {
+		if(failed!=null) {
+			Assertions.fail(failed);
+			return false;
+		}
 		if(this.validationObj.size()==0) {
 			return true;
 		}else {

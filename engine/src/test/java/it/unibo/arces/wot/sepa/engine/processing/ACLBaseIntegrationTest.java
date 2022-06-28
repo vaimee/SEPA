@@ -36,6 +36,7 @@ import it.unibo.arces.wot.sepa.engine.core.Engine;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ACLTools;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalAclRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
@@ -368,6 +369,46 @@ public class ACLBaseIntegrationTest {
             
             props.setAclPath("./run/AclIntegrationTdb2");
             props.setAclMode(EngineProperties.DS_MODE_TDB2);
+            internalTestACLEndpoints(false, props);
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointTDB2()",e);
+        }
+
+    }
+    
+    @Test
+    public void testACLEndpointMemoryLUTT() {
+        //default should be mem
+        try {
+            internalTestACLEndpoints(true, EngineProperties.load("engine.jpar"));
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointMemory()",e);
+        }
+            
+    }
+    
+    @Test
+    public void testACLEndpointTDB1LUTT() {
+        try {
+            final EngineProperties props = EngineProperties.load("engine.jpar");
+            
+            props.setAclPath("./run/AclIntegrationTdb1");
+            props.setAclMode(EngineProperties.DS_MODE_TDB1);
+            internalTestACLEndpoints(true, props);
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointTDB1()",e);
+        }
+        
+    }
+    
+    @Test
+    public void testACLEndpointTDB2LUTT() {
+        
+            try {
+            final EngineProperties props = EngineProperties.load("engine.jpar");
+            
+            props.setAclPath("./run/AclIntegrationTdb2");
+            props.setAclMode(EngineProperties.DS_MODE_TDB2);
             internalTestACLEndpoints(true, props);
         } catch(Exception e ) {
             Assertions.fail("testACLEndpointTDB2()",e);
@@ -387,6 +428,8 @@ public class ACLBaseIntegrationTest {
             //creates ACL objects
             SEPAAcl.reset();
             SjenarEndpoint.reset();
+            SjenarEndpointDoubleStore.reset();
+            
             final ACLStorageOperations      aclStorage = ACLTools.makeACLStorage();
             final SEPAAcl                   aclData = SEPAAcl.getInstance(aclStorage);
             setStorageOwner(aclData, aclStorage);

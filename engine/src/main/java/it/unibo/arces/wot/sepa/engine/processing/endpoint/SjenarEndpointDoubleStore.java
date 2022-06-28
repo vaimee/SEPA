@@ -6,6 +6,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageFactory;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.logging.Logging;
@@ -130,6 +131,12 @@ public class SjenarEndpointDoubleStore implements SPARQLEndpoint {
 			return o1.toString().compareTo(o2.toString());
 		}
 
+	}
+	
+	public static void reset() {
+		firstDataset = null;
+		secondDataset  = null;
+		hasInit=false;	
 	}
 
 }
