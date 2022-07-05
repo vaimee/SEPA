@@ -35,7 +35,7 @@
 			"lutt" : false,
 			"firstDS" : {
 				"mode" : "tdb2",
-				"path" : "./run/tdb2/ds1"
+				"path" : "../run/tdb2/ds1"
 			}
 		}
 	}
