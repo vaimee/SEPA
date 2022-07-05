@@ -15,40 +15,46 @@
 
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
 
 import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetFormatter;
-import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
-import org.apache.jena.system.Txn;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
-import it.unibo.arces.wot.sepa.logging.Logging;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 
 public class JenaInMemoryEndpoint implements SPARQLEndpoint{
+	protected static final Logger logger = LogManager.getLogger();
 	
-	static final Dataset dataset = DatasetFactory.createTxnMem();
+    	public static synchronized void reset() {
+		hasInit = false;
+		dataset = null;
+	}
+
+    private static Dataset       dataset;
+	private static boolean       hasInit;
+
+	public  synchronized static void init() {
+            if (hasInit == false) {
+                dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
+                hasInit = true;
+            }
+	}
+
 	
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo notUsed) {
+            init();
             return EndpointBasicOps.query(req, dataset);
 
 	}
 
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo notUsed) {
+            init();
             return EndpointBasicOps.update(req, dataset);
 	}
 
