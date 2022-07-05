@@ -35,38 +35,20 @@ import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	
-    	public static synchronized void reset() {
-		hasInit = false;
-		dataset = null;
-	}
-
-        private static Dataset       dataset;
-	private static boolean       hasInit;
-
-	public  synchronized static void init() {
-		if (hasInit == false) {
-
-			dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
-			hasInit = true;
-		}
-	}
-
+	static final Dataset dataset = DatasetFactory.createTxnMem();
 	
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo notUsed) {
-            init();
             return EndpointBasicOps.query(req, dataset);
 
 	}
 
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo notUsed) {
-            init();
             return EndpointBasicOps.update(req, dataset);
 	}
 
