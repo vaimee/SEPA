@@ -51,7 +51,7 @@ public class JenaDatasetFactory {
              final DatasetACL acl = SEPAAcl.getInstance(ACLTools.makeACLStorage());
              ret = newInstance(mode, path,acl);
          } else {
-            switch(mode.trim().toUpperCase()) {
+            switch(mode.trim().toLowerCase()) {
                 case EngineProperties.DS_MODE_MEM:
                 default:
                     ret = DatasetFactory.createTxnMem();
