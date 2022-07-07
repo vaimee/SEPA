@@ -65,12 +65,12 @@ public class DataGenerator {
 		}
 		client=new SPARQL11Protocol(null);
 		
-//		T1();
-//		T2();
-//		T3();
+		T1();
+		T2();
+		T3();
 		T4();
-//		T5();
-//		T6();
+		T5();
+		T6();
 		
 		System.out.println("FINISH!!!!");
 		
@@ -84,16 +84,16 @@ public class DataGenerator {
 	
 	private static void T2() throws Exception{
 		//GENERATE MEDIUM GRAPH 1.000 triple
-		generateGraphSafe(1,1000);
+		generateGraphSafe(2,1000);
 	}
 	
 	private static void T3() throws Exception{
 		//GENERATE SMALL GRAPH 10 triple
-		generateGraphSafe(1,10);
+		generateGraphSafe(3,10);
 	}
 	
 	private static void T4() throws Exception{ 
-		int seed=1;
+		int seed=4;
 		//GENERATE SMALL GRAPH 10 triple
 		seed=generateGraphs(seed,1,10);
 		//GENERATE MEDIUM GRAPH 1.000 triple
