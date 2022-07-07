@@ -148,6 +148,10 @@ public class EngineBeans {
             return properties.isAclEnabled();
         }
         
+        public static void  setAclEnabled(boolean enable) {
+            properties.setAclEnabled(enable);
+        }
+        
         public static String getAclType() {
             return properties.getAclType();
         }
@@ -195,12 +199,7 @@ public class EngineBeans {
 		return "https://"+getHost()+port+getSecurePath()+getAclUpdatePath();
 	}
         
-        
-        
-        public static boolean isLUTTEnabled() {
-            return properties.isLUTTEnabled();
-        }
-        
+               
         public static String   getFirstDatasetMode() {
             return properties.getFirstDatasetMode();
         }
@@ -213,4 +212,12 @@ public class EngineBeans {
         public static String   getSecondDatasetPath() {
             return properties.getSecondDatasetPath();
         }        
+        
+        public static boolean isLUTTEnabled() {
+    		return properties.isLUTTEnabled();
+    	}
+        
+        public static void setLUTTEnabled(boolean enable) {
+            properties.setLUTTEnabled(enable);
+        }
 }

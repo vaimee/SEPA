@@ -22,8 +22,10 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
+import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.processing.Processor;
@@ -276,6 +278,10 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		return new UnsubscribeResponse(sid);
 	}
+	
+	public void setNoActiveSPU() {
+		activeSpus= new HashSet<>(); 
+	}
 
 	@Override
 	public void notifyEvent(Notification notify) {
@@ -378,6 +384,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	Response processQuery(InternalSubscribeRequest subscribe) throws SEPASecurityException, IOException {
 		return processor.processQuery(subscribe);
 	}
+	
 
 	@Override
 	public long getPreProcessingRequests() {
@@ -443,4 +450,5 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	public long getNotifyExceptions() {
 		return SPUManagerBeans.getNotifyExceptions();
 	}
+	
 }

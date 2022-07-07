@@ -19,13 +19,13 @@ import java.util.Map;
 import java.util.TreeMap;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
-import org.junit.Assert;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.Test;
+
 
 
 /**
@@ -154,6 +154,7 @@ public class SEPAAclTest {
 
     private void testNewInstanceDataset(final Map<String,Object> paramMap,boolean fMem ) throws Exception {
         System.out.println(this.getClass().getName() + "testNewInstanceDataset()");
+        ACLStorageFactory.reset();
         final ACLStorageOperations obj  = ACLStorageFactory.newInstance(ACLStorage.ACLStorageId.asiDataset, paramMap);
         assertNotEquals(null, obj);
         
@@ -173,7 +174,7 @@ public class SEPAAclTest {
             }
             
         }
-        
+         
         final SEPAAcl as = SEPAAcl.newInstance(obj);
         
         testNewInstance(as);
@@ -183,29 +184,29 @@ public class SEPAAclTest {
     
     private void testNewInstance(SEPAAcl acl) {
         //pass through group AND USER
-        Assert.assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH1), USER1));
-        Assert.assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH1), USER1));
+        assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH1), USER1));
+        assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH1), USER1));
         //pass through group only
-        Assert.assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH3), USER1));
-        Assert.assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH3), USER1));
+        assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH3), USER1));
+        assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH3), USER1));
         //pass through user only
-        Assert.assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH5), USER1));
-        Assert.assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH5), USER1));
+        assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH5), USER1));
+        assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH5), USER1));
         
         //removes group from user
         acl.removeUserFromGroup(USER1, Constants.GROUP1);
         
-        Assert.assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH1), USER1));
-        Assert.assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH1), USER1));
-        Assert.assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH3), USER1));
-        Assert.assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH3), USER1));
-        Assert.assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH5), USER1));
-        Assert.assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH5), USER1));
+        assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH1), USER1));
+        assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH1), USER1));
+        assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH3), USER1));
+        assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH3), USER1));
+        assertTrue(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH5), USER1));
+        assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiUpdate,expandDataGraph(GRAPH5), USER1));
         
         //cross check
-        Assert.assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH1), USER2));        
-        Assert.assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH3), USER2));        
-        Assert.assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH5), USER2));        
+        assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH1), USER2));        
+        assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH3), USER2));        
+        assertFalse(acl.checkGrapBase(DatasetACL.aclId.aiQuery,expandDataGraph(GRAPH5), USER2));        
     }
     
     private String expandUri(String pfixedUri, String pfixName, String pfixValue) {

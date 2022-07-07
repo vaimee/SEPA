@@ -1,6 +1,5 @@
 package it.unibo.arces.wot.sepa.engine.dependability.authorization;
 
-import static org.junit.Assert.assertFalse;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -13,8 +12,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.UUID;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
@@ -90,7 +90,7 @@ public class SecurityManagerTest {
 		return signedJWT;
 	}
 
-	@BeforeClass
+	@BeforeAll
 	public static void init() throws SEPASecurityException {
 		configurationProvider = new ConfigurationProvider();
 		auth = new InMemorySecurityManager(configurationProvider.getSslContext(),configurationProvider.getRsaKey());
@@ -100,16 +100,16 @@ public class SecurityManagerTest {
 	public void entitiesAuthorization() throws SEPASecurityException {
 		String uid = UUID.randomUUID().toString();
 
-		assertFalse("xyz is not authorized",auth.isAuthorized("xyz"));
+		assertFalse(auth.isAuthorized("xyz"),"xyz is not authorized");
 
 		auth.addAuthorizedIdentity(new DeviceIdentity(uid));
 
-		assertFalse("Failed to authorized",!auth.isAuthorized(uid));
-		assertFalse("Failed to get identity",!auth.getIdentity(uid).getUid().equals(uid));
+		assertFalse(!auth.isAuthorized(uid),"Failed to authorized");
+		assertFalse(!auth.getIdentity(uid).getUid().equals(uid),"Failed to get identity");
 
 		auth.removeAuthorizedIdentity(uid);
 
-		assertFalse(uid+" should not be authorized",auth.isAuthorized(uid));
+		assertFalse(auth.isAuthorized(uid),uid+" should not be authorized");
 	}
 
 	//@Test
@@ -122,7 +122,7 @@ public class SecurityManagerTest {
 		String uid = UUID.randomUUID().toString();
 
 		auth.setIssuer(uid);
-		assertFalse("Failed to set issuer",!auth.getIssuer().equals(uid));
+		assertFalse(!auth.getIssuer().equals(uid),"Failed to set issuer");
 		
 		auth.setIssuer(issuer);
 //		
@@ -150,12 +150,12 @@ public class SecurityManagerTest {
 
 		auth.storeCredentials(device, uid);
 
-		assertFalse("Identity not registered",!auth.containsCredentials(uid));
-		assertFalse("Failed to check password",!auth.checkCredentials(uid, uid));
+		assertFalse(!auth.containsCredentials(uid),"Identity not registered");
+		assertFalse(!auth.checkCredentials(uid, uid),"Failed to check password");
 
 		auth.removeCredentials(device);
 		
-		assertFalse("Identity removed: password check failed",auth.checkCredentials(uid, uid));
+		assertFalse(auth.checkCredentials(uid, uid),"Identity removed: password check failed");
 	}
 	
 	//@Test
@@ -170,15 +170,15 @@ public class SecurityManagerTest {
 		Date expirationDate = token.getJWTClaimsSet().getExpirationTime();
 		
 		auth.addJwt(uid,token);
-		assertFalse("Failed to check token presence",!auth.containsJwt(uid));
-		assertFalse("Failed to get expiring period",auth.getTokenExpiringPeriod(uid) != auth.getDeviceExpiringPeriod());
-		assertFalse("Failed to get expiring date",!auth.getTokenExpiringDate(uid).equals(expirationDate));
+		assertFalse(!auth.containsJwt(uid),"Failed to check token presence");
+		assertFalse(auth.getTokenExpiringPeriod(uid) != auth.getDeviceExpiringPeriod(),"Failed to get expiring period");
+		assertFalse(!auth.getTokenExpiringDate(uid).equals(expirationDate),"Failed to get expiring date");
 		
 		SignedJWT stored = auth.getJwt(uid);
-		assertFalse("Token does not match",!stored.serialize().equals(token.serialize()));
+		assertFalse(!stored.serialize().equals(token.serialize()),"Token does not match");
 		
 		auth.setTokenExpiringPeriod(uid,0);
-		assertFalse("Failed to set expiring period",auth.getTokenExpiringPeriod(uid) != 0);
+		assertFalse(auth.getTokenExpiringPeriod(uid) != 0,"Failed to set expiring period");
 		
 	}
 }

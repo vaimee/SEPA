@@ -73,32 +73,18 @@ public class EngineProperties {
 	private static final transient String defaultsFileName = "engine.jpar";
 
 
-	private static EngineProperties _istance=null;
-	public static EngineProperties getIstance() {
-		if(_istance==null) {
-			try {
-				_istance=newInstanceDefault();
-			} catch (SEPAPropertiesException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		return _istance;
-	}
-
 	private Parameters parameters = new Parameters();
 
+	
 	private EngineProperties() {}
 	public static EngineProperties newInstanceDefault() throws SEPAPropertiesException  {
 		EngineProperties result  = EngineProperties.load(defaultsFileName);
-		_istance=result;
 		Logging.logger.trace("EngineProperties loaded as newInstanceDefault: "+result.toString());
 		return result;
 	}
 	public static EngineProperties load(String propertiesFile, boolean secure) throws SEPAPropertiesException {
 		EngineProperties result = EngineProperties.load(propertiesFile);
 		result.parameters.gates.security.enabled = secure;
-		_istance=result;
 		Logging.logger.trace("EngineProperties loaded as secure from file "+propertiesFile+": "+result.toString());
 		return result;
 	}
@@ -124,8 +110,6 @@ public class EngineProperties {
 			}
 			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
 		}
-
-		_istance=result;
 		Logging.logger.trace("EngineProperties loaded from file "+propertiesFile+": "+result.toString());
 		return result;
 	}
@@ -409,6 +393,10 @@ public class EngineProperties {
             return parameters.acl.enabled;
         }
         
+        public void setAclEnabled(boolean enable) {
+            parameters.acl.enabled=enable;
+        }
+        
         public String getAclType() {
             return parameters.acl.type;
         }
@@ -455,6 +443,11 @@ public class EngineProperties {
 	public boolean isLUTTEnabled() {
 		return parameters.dsConfig.lutt;
 	}
+	
+	public void setLUTTEnabled(boolean enable) {
+		parameters.dsConfig.lutt=enable;
+	}
+	
 
 	public String   getFirstDatasetMode() {
 		return parameters.dsConfig.firstDS.mode;
@@ -469,4 +462,11 @@ public class EngineProperties {
 		return parameters.dsConfig.secondDS.path;
 	}
 
+        public void setAclPath(String s ) {
+            parameters.acl.path = s;
+        }
+        
+        public void setAclMode(String s) {
+            parameters.acl.mode = s;
+        }
 }

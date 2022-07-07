@@ -22,14 +22,21 @@ import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageDataset;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageFactory;
 import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initGroupsQuery;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initQuery;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+
 import it.unibo.arces.wot.sepa.engine.core.Engine;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ACLTools;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalAclRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
@@ -43,6 +50,7 @@ import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.shared.AccessDeniedException;
 import org.junit.jupiter.api.Assertions;
 
+@TestMethodOrder(OrderAnnotation.class)
 public class ACLBaseIntegrationTest {
     private  final   InternalAclRequestFactory       aclReqFactory = new InternalAclRequestFactory();
     private  final   InternalStdRequestFactory       stdReqFactory = new InternalStdRequestFactory();
@@ -79,6 +87,11 @@ public class ACLBaseIntegrationTest {
     private final String selectQuery4 = 
             "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
             "SELECT ?s ?p ?o WHERE {GRAPH  mp:graph4  {?s ?p ?o}}";
+    
+    
+    private static final String selectQuery5 = 
+            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() + 
+            "SELECT ?s ?p ?o FROM NAMED  mp:graph4 \n WHERE {GRAPH ?g {?s ?p ?o}}";
     
     public ACLBaseIntegrationTest() {
         
@@ -245,6 +258,20 @@ public class ACLBaseIntegrationTest {
         );
         
         
+        //check from named
+        doQuery(
+            stdReqFactory,
+            qp,
+            selectQuery5,
+            userName,
+            new QueryResponseValidator() {
+                @Override
+                public boolean validate(QueryResponse resp) {
+                    return resp.getBindingsResults().getBindings().size() == 0;
+                }
+            }
+        );
+        
     }
     private void checkUserList(QueryProcessor qp) throws Exception {
         final String selectQuery = 
@@ -308,19 +335,101 @@ public class ACLBaseIntegrationTest {
         
         
     }
-    @Test 
-    public void testACLEndpoints() {
+    
+    @Test
+    public void testACLEndpointMemory() {
+        //default should be mem
         try {
-            final SPARQL11Properties sepaEndpointProps = new SPARQL11Properties(Engine.defaultEndpointJpar);
-            final EngineProperties   sepaEngineProps = EngineProperties.getIstance();
+            internalTestACLEndpoints(false, EngineProperties.load("engine.jpar"));
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointMemory()",e);
+        }
             
+    }
+    
+    @Test
+    public void testACLEndpointTDB1() {
+        try {
+            final EngineProperties props = EngineProperties.load("engine.jpar");
+            
+            props.setAclPath("./run/AclIntegrationTdb1");
+            props.setAclMode(EngineProperties.DS_MODE_TDB1);
+            internalTestACLEndpoints(false, props);
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointTDB1()",e);
+        }
+        
+    }
+    
+    @Test
+    public void testACLEndpointTDB2() {
+        
+            try {
+            final EngineProperties props = EngineProperties.load("engine.jpar");
+            
+            props.setAclPath("./run/AclIntegrationTdb2");
+            props.setAclMode(EngineProperties.DS_MODE_TDB2);
+            internalTestACLEndpoints(false, props);
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointTDB2()",e);
+        }
+
+    }
+    
+    @Test
+    public void testACLEndpointMemoryLUTT() {
+        //default should be mem
+        try {
+            internalTestACLEndpoints(true, EngineProperties.load("engine.jpar"));
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointMemory()",e);
+        }
+            
+    }
+    
+    @Test
+    public void testACLEndpointTDB1LUTT() {
+        try {
+            final EngineProperties props = EngineProperties.load("engine.jpar");
+            
+            props.setAclPath("./run/AclIntegrationTdb1");
+            props.setAclMode(EngineProperties.DS_MODE_TDB1);
+            internalTestACLEndpoints(true, props);
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointTDB1()",e);
+        }
+        
+    }
+    
+    @Test
+    public void testACLEndpointTDB2LUTT() {
+        
+            try {
+            final EngineProperties props = EngineProperties.load("engine.jpar");
+            
+            props.setAclPath("./run/AclIntegrationTdb2");
+            props.setAclMode(EngineProperties.DS_MODE_TDB2);
+            internalTestACLEndpoints(true, props);
+        } catch(Exception e ) {
+            Assertions.fail("testACLEndpointTDB2()",e);
+        }
+
+    }
+    
+    private void internalTestACLEndpoints(boolean enableLutt, EngineProperties props) {
+    	try {
+            
+            final SPARQL11Properties sepaEndpointProps = new SPARQL11Properties(Engine.defaultEndpointJpar);
+            EngineBeans.setEngineProperties(props);
             sepaEndpointProps.setProtocolScheme(SPARQL11Properties.ProtocolScheme.SJenarAPI);
             //adjust properties
-            adjustEngineProperties(sepaEngineProps);
-            //set them to Bean
-            EngineBeans.setEngineProperties(sepaEngineProps);
+            adjustEngineProperties(enableLutt);
             
             //creates ACL objects
+            SEPAAcl.reset();
+            SjenarEndpoint.reset();
+            SjenarEndpointDoubleStore.reset();
+            
             final ACLStorageOperations      aclStorage = ACLTools.makeACLStorage();
             final SEPAAcl                   aclData = SEPAAcl.getInstance(aclStorage);
             setStorageOwner(aclData, aclStorage);
@@ -329,9 +438,10 @@ public class ACLBaseIntegrationTest {
             final UpdateProcessor sepaUpdater = new UpdateProcessor(sepaEndpointProps);
             final QueryProcessor sepaQuerier = new QueryProcessor(sepaEndpointProps);
             //load ACL with default test data
+            doUpdate(aclReqFactory, sepaUpdater, "DELETE WHERE { GRAPH ?g {?s ?p ?o}}",SEPAAcl.ADMIN_USER);
             doUpdate(aclReqFactory, sepaUpdater, initGroupsQuery,SEPAAcl.ADMIN_USER);
             doUpdate(aclReqFactory,sepaUpdater, initQuery,SEPAAcl.ADMIN_USER);
-            //first. do some query on ACL to check for loaded data
+            //first. do some query on ACL to check for loaded dat
             checkGroupList(sepaQuerier);
             checkUserList(sepaQuerier);
             
@@ -339,9 +449,25 @@ public class ACLBaseIntegrationTest {
             checkUser1(sepaUpdater, sepaQuerier);
             checkUser2(sepaUpdater, sepaQuerier);
         }catch(Exception e ) {
-            Assertions.fail("Unexèpected Exception",e);
+        	System.out.println("Test error: "+ e);
+            Assertions.fail("Unexepected Exception",e);
         }
     }
+/*    
+    @Test 
+    @Order(1)
+    public void testACLEndpoints() {
+    	internalTestACLEndpoints(false);
+    }
+*/
+    
+// THAT is not working, because we need a clean on all dataset after the test "testACLEndpoints" with "@Order(1)"
+// so that test is in another junit file--> ACLBaseIntegrationTestWithLUTT.java
+//    @Test 
+//    @Order(2)
+//    public void testACLEndpointsWithLUTT() {
+//    	internalTestACLEndpoints(true);
+//    }
     
     private void doQuery(
         InternalRequestFactory  reqFactory, 
@@ -415,24 +541,10 @@ public class ACLBaseIntegrationTest {
         f.setAccessible(true);
         f.set(data, owner);
     }
-    private void adjustEngineProperties(EngineProperties p) throws Exception  {
-        final Field paramsField = EngineProperties.class.getDeclaredField("parameters");
-        
-        paramsField.setAccessible(true);
-        
-        final Object paramsData = paramsField.get(p);
-        
-        //now go deep in ACL
-        
-        final Field aclField = paramsData.getClass().getField("acl");
-        aclField.setAccessible(true);
-        final Object aclData = aclField.get(paramsData);
-        
-        final Field aclEnabledField = aclData.getClass().getField("enabled");
-        aclEnabledField.setAccessible(true);
-        aclEnabledField.set(aclData, true);
-        
-        
+    
+    private void adjustEngineProperties(boolean enableLutt) {
+        EngineBeans.setAclEnabled(true);
+        EngineBeans.setLUTTEnabled(enableLutt);
     }
     
     

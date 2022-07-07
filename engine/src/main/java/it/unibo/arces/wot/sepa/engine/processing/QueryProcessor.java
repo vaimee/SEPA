@@ -27,6 +27,7 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
@@ -45,7 +46,8 @@ class QueryProcessor implements QueryProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
+	private Response process(InternalQueryRequest req,Boolean firstStore) throws SEPASecurityException, IOException {
+		//System.out.println("------------------->QUERY ON: "+firstStore );
 		// Build the request
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
@@ -56,16 +58,17 @@ class QueryProcessor implements QueryProcessorMBean {
 		int n = 0;
 		Response ret;
 		do {
+			
 			long start = Timings.getTime();
 			try (
-                                final SPARQLEndpoint endpoint = 
-                                        req.isAclRequest() == false                                     ?  
-                                        EndpointFactory.newInstance(properties.getProtocolScheme())     : 
-                                        SEPAAcl.getInstance().asEndpoint();
-                        ){
-                            final SEPAUserInfo ui = SEPAUserInfo.newInstance(req);
-                            ret = endpoint.query(request,ui);
-                        } 
+					final SPARQLEndpoint endpoint = 
+					req.isAclRequest() == false                                     ?  
+							EndpointFactory.newInstance(properties.getProtocolScheme(),firstStore)     : 
+								SEPAAcl.getInstance().asEndpoint();
+					){
+				final SEPAUserInfo ui = SEPAUserInfo.newInstance(req);
+				ret = endpoint.query(request,ui);
+			} 
 			
 			long stop = Timings.getTime();
 			
@@ -94,7 +97,25 @@ class QueryProcessor implements QueryProcessorMBean {
 		
 		return ret;
 	}
-
+	
+	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
+		//as default we will use second storage for query
+		//if the double store system is enabled
+		if(EngineBeans.isLUTTEnabled()) {
+			return process(req,false);
+		}
+		//else we use the first (and the only one) storage 
+		return process(req,true);
+	}
+	
+	public Response processOnSecondStore(InternalQueryRequest req) throws SEPASecurityException, IOException {
+		return process(req,false);
+	}
+	
+	public Response processOnFirstStore(InternalQueryRequest req) throws SEPASecurityException, IOException {
+		return process(req,true);
+	}
+	
 	@Override
 	public void reset() {
 		QueryProcessorBeans.reset();

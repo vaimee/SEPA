@@ -34,7 +34,7 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 		dataset = null;
 	}
 
-        private static Dataset       dataset;
+    private static Dataset       dataset;
 	private static boolean       hasInit;
 
 	public  synchronized static void init() {

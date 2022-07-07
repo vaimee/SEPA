@@ -6,6 +6,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageFactory;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.logging.Logging;
@@ -26,29 +27,42 @@ import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.modify.UpdateResult;
 import org.apache.jena.system.Txn;
 
-public class SjenarEndpoint implements SPARQLEndpoint {
+public class SjenarEndpointDoubleStore implements SPARQLEndpoint {
 
-	private static Dataset       dataset;
+	private static Dataset       firstDataset;
+	private static Dataset       secondDataset;
 	private static boolean       hasInit;
+	private boolean firstStore=false;
 
 	public  synchronized static void init() {
 		if (hasInit == false) {
 
-			dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
+			firstDataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
+			secondDataset = JenaDatasetFactory.newInstance(EngineBeans.getSecondDatasetMode(), EngineBeans.getSecondDatasetPath(),true);
+			
 			hasInit = true;
 		}
 	}
 
+	public SjenarEndpointDoubleStore(boolean firstStore) {
+		try {
+			this.firstStore=firstStore;
+			init();
+		}catch (Exception e) {
+			// TODO: handle exception
+			Logging.logger.error(e.getMessage());
+		}
+	}
 
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo usr) {
-		init();
+		Logging.logger.trace("SjenarEndpointDoubleStore.query on "+ (firstStore?"FIRST STORE":"SECOND STORE"));
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-
+		Dataset store = firstStore?firstDataset:secondDataset;
 		try (final RDFConnection conn = 
 				(usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
-						RDFConnection.connect(dataset,usr.userName)                              :
-							RDFConnection.connect(dataset); 
+						RDFConnection.connect(store,usr.userName)                              :
+							RDFConnection.connect(store); 
 				) {
 
 
@@ -60,7 +74,6 @@ public class SjenarEndpoint implements SPARQLEndpoint {
 			try {
 				return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
 			} catch (UnsupportedEncodingException e) {
-				Logging.logger.error("SjenarEndpoint.query error: "+e.getMessage());
 				return new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
 			}
 		}
@@ -68,12 +81,12 @@ public class SjenarEndpoint implements SPARQLEndpoint {
 
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo usr) {
-		init();
-
+		Logging.logger.trace("SjenarEndpointDoubleStore.update on "+ (firstStore?"FIRST STORE":"SECOND STORE"));
+		Dataset store = firstStore?firstDataset:secondDataset;
 		try (final RDFConnection conn = 
 				(usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
-						RDFConnection.connect(dataset,usr.userName)                              :
-							RDFConnection.connect(dataset); 
+						RDFConnection.connect(store,usr.userName)                              :
+							RDFConnection.connect(store); 
 				) {
 
 
@@ -119,9 +132,11 @@ public class SjenarEndpoint implements SPARQLEndpoint {
 		}
 
 	}
-
-	public static synchronized void reset() {
-		hasInit = false;
-		dataset = null;
+	
+	public static void reset() {
+		firstDataset = null;
+		secondDataset  = null;
+		hasInit=false;	
 	}
+
 }

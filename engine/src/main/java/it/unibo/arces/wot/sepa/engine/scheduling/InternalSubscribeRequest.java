@@ -61,4 +61,10 @@ public class InternalSubscribeRequest extends InternalQueryRequest {
 		}
 		return null;
 	}
+	
+	
+	@Override
+	public int hashCode() {
+		return (sparql+getClientAuthorization().getCredentials().user()).hashCode();
+	}
 }
