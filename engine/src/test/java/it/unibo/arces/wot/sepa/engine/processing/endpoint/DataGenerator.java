@@ -25,7 +25,8 @@ public class DataGenerator {
 
 
 	private static int tripleSeed =0;
-	private static final boolean exsternalSEPA = true;
+	private static final boolean exsternalSEPA = false;
+	private static final int maxTripleForUpdate = 5000;
 
 	private static final UpdateHTTPMethod updateMethod = UpdateHTTPMethod.POST;
 	private static final QueryHTTPMethod queryMethod = QueryHTTPMethod.POST;
@@ -67,9 +68,9 @@ public class DataGenerator {
 //		T1();
 //		T2();
 //		T3();
-//		T4();
+		T4();
 //		T5();
-		T6();
+//		T6();
 		
 		System.out.println("FINISH!!!!");
 		
@@ -78,52 +79,71 @@ public class DataGenerator {
 
 	private static void T1() throws Exception{
 		//GENERATE BIG GRAPH 1.000.000 triple
-		//same graph 10.000 triple * 100 = 1.000.000
-		for(int x=0;x<100;x++) {
-			generateGraphs(1,1,10000);
-		}
+		generateGraphSafe(1,1000000);
 	}
 	
 	private static void T2() throws Exception{
 		//GENERATE MEDIUM GRAPH 1.000 triple
-		generateGraphs(1,1,1000);
+		generateGraphSafe(1,1000);
 	}
 	
 	private static void T3() throws Exception{
 		//GENERATE SMALL GRAPH 10 triple
-		generateGraphs(1,1,10);
+		generateGraphSafe(1,10);
 	}
 	
-	private static void T4() throws Exception{ //<-------FAIL
+	private static void T4() throws Exception{ 
 		int seed=1;
 		//GENERATE SMALL GRAPH 10 triple
 		seed=generateGraphs(seed,1,10);
 		//GENERATE MEDIUM GRAPH 1.000 triple
 		seed=generateGraphs(seed,1,1000);
 		//GENERATE BIG GRAPH 1.000.000 triple
-		//same graph 10.000 triple * 100 = 1.000.000
-		for(int x=0;x<100;x++) {
-			generateGraphs(seed,1,10000);
-		}
+		generateGraphSafe(seed,1000000);
 	}
 	
 	private static void T5() throws Exception{
 		//GENERATE 100 GRAPH each with 10000 triples
 		for(int x=0;x<100;x++) {
-			generateGraphs(x,1,10000);
+			generateGraphSafe(x,10000);
 		}
 	}
 	
-	private static void T6() throws Exception{ //<-------FAIL
+	private static void T6() throws Exception{
 		//GENERATE 100 GRAPH each with different count of triple
 		//the first one has 100 triple
 		//the 50° has 100*50=5000 triple
 		//the last one has 100*100=10000 triple
 		for(int x=0;x<100;x++) {
-			generateGraphs(x,1,100*(x+1));
+			generateGraphSafe(x,100*(x+1));
 		}
 	}
 
+	public static void generateGraphSafe(int seed,int triplesCount) throws Exception {
+		int actualTripleCount;
+		int remainTripleCount;
+		if(triplesCount>maxTripleForUpdate) {
+			actualTripleCount=maxTripleForUpdate;
+			remainTripleCount=actualTripleCount-triplesCount;
+		}else {
+			actualTripleCount=triplesCount;
+			remainTripleCount=0;
+		}
+		String graphs ="\nGRAPH <http://sepa.test/g"+seed+"> {\n";
+		for(int y=0;y<actualTripleCount;y++) {
+			graphs+=generateRandomTriple()+"\n";
+		}
+		graphs+="}\n";
+		String sparqlUpdate = "INSERT DATA {"+graphs+"}";
+		UpdateRequest reqUpdate= generateUpdate(sparqlUpdate);
+		Response responseUpdate = client.update(reqUpdate);
+		if(responseUpdate.isError()) {
+			throw new Exception("INSERT DATA fail!");
+		}
+		if(remainTripleCount>0) {
+			generateGraphSafe(seed,remainTripleCount);
+		}
+	}
 
 	public static int generateGraphs(int seed,int graphsCount, int triplesCount) throws Exception{
 		int _seed = seed;
