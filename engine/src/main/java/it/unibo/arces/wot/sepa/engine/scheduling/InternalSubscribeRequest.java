@@ -23,6 +23,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.gates.Gate;
 
@@ -65,6 +66,11 @@ public class InternalSubscribeRequest extends InternalQueryRequest {
 	
 	@Override
 	public int hashCode() {
-		return (sparql+getClientAuthorization().getCredentials().user()).hashCode();
+		if(EngineBeans.isAclEnabled()) {
+			//This need to be tested with ACL
+			return (sparql+getClientAuthorization().getCredentials().user()).hashCode();
+		}else {
+			return sparql.hashCode();
+		}
 	}
 }
