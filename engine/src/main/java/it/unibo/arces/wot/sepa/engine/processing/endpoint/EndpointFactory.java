@@ -17,33 +17,63 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  * @author Lorenzo
  */
 public class EndpointFactory {
-	public static SPARQLEndpoint newInstance(final String protocolSchema) {
-
-		Logging.logger.trace("EndpointFactory using: " + protocolSchema);
-		SPARQLEndpoint ret = null;
-		switch(protocolSchema.toLowerCase().trim()) {
-		default:
-		case PROTOCOL_SCHEMA_STD_JENA:
-			ret = new JenaInMemoryEndpoint();
-			break;
-		case PROTOCOL_SCHEMA_EX_JENA:
-			ret = new SjenarEndpoint();
-			break;
-		case PROTOCOL_SCHEMA_REMOTE:
-			ret = new RemoteEndpoint();
-			break;
+	
+	private static SPARQLEndpoint firstDataset;
+	private static SPARQLEndpoint secondDataset;
+	
+	/*
+	 * As default the EndpointFactory will return THE instance of the correct Endpoint
+	 * following the protocolSchema, and in case of a not "remote" endpoint using the firstDataset specification.
+	 */
+	public static SPARQLEndpoint getInstance(final String protocolSchema) {
+		if(firstDataset==null) {
+			Logging.logger.trace("EndpointFactory using: " + protocolSchema);
+			switch(protocolSchema.toLowerCase().trim()) {
+			default:
+			case PROTOCOL_SCHEMA_STD_JENA:
+				firstDataset = new JenaInMemoryEndpoint(EngineBeans.getFirstDatasetMode(),EngineBeans.getFirstDatasetPath()); 
+				break;
+			case PROTOCOL_SCHEMA_EX_JENA:
+				firstDataset = new SjenarEndpoint(EngineBeans.getFirstDatasetMode(),EngineBeans.getFirstDatasetPath());
+				break;
+			case PROTOCOL_SCHEMA_REMOTE:
+				firstDataset = new RemoteEndpoint();
+				break;
+			}
 		}
-		return ret;
+		return firstDataset;
 	}
 
-	public static SPARQLEndpoint newInstance(final String protocolSchema,boolean firstStore) {
+	/*
+	 * This is a specific case, used for the LUTT double dataset system
+	 * will return a compliant endpoint (for the use of LUTT) 
+	 * setted as SECOND DATASET
+	 * WARN: if LUTT are disable, the first dataset will be returned instead the second
+	 */
+	public static SPARQLEndpoint getInstanceSecondStore(final String protocolSchema) {
 		if(EngineBeans.isLUTTEnabled()) {
-			Logging.logger.trace("EndpointFactory using: SjenarEndpointDoubleStore");
-			return new SjenarEndpointDoubleStore(firstStore);
-		}else {
-			return newInstance(protocolSchema);
+			if(secondDataset==null) {
+				Logging.logger.trace("EndpointFactory[second dataset] using: SjenarEndpointDoubleStore");
+				switch(protocolSchema.toLowerCase().trim()) {
+				default:
+				case PROTOCOL_SCHEMA_STD_JENA:
+					secondDataset = new JenaInMemoryEndpoint(EngineBeans.getSecondDatasetMode(),EngineBeans.getSecondDatasetPath()); 
+					break;
+				case PROTOCOL_SCHEMA_EX_JENA:
+					secondDataset = new SjenarEndpoint(EngineBeans.getSecondDatasetMode(),EngineBeans.getSecondDatasetPath());
+					break;
+				}
+			}
+			return secondDataset;
+		}else{
+			Logging.logger.warn("EndpointFactory: request for an istance for the second dataset with LUTT disabled! (this not make sense, return the first dataset)");
+			return getInstance(protocolSchema);
 		}
 	}
 
+	public static void reset() {
+		firstDataset=null;
+		secondDataset=null;
+	}
 
 }

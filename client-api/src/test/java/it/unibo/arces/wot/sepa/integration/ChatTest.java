@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.processing.endpoint;
+package it.unibo.arces.wot.sepa.integration;
 
 
 import org.junit.jupiter.api.Test;
@@ -19,7 +19,6 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.engine.core.Engine;
 
 @TestMethodOrder(OrderAnnotation.class)
 public class ChatTest {
@@ -56,33 +55,12 @@ public class ChatTest {
 
 	@BeforeAll
 	public static void init() throws SEPASecurityException {
-		Engine engine =new Engine(new String[] {});
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		
 		client=new SPARQL11Protocol(null);
 	
 	}
 	
-//	@Test
-//	public void TEST_00() throws NumberFormatException, SEPABindingsException, SEPASecurityException{
-//	SPARQL11Protocol client= new SPARQL11Protocol(null);
-//	Response responseUpdate = client.update(new UpdateRequest(
-//			UpdateHTTPMethod.POST,
-//			"http",
-//			"localhost",
-//			8000,
-//			"/update",
-//			"DELETE WHERE { GRAPH ?g { ?s ?p ?o } }",
-//			null, 
-//			null,
-//			null
-//			));
-//	}
-	
+
 	@Test
 	@Order(1)
 	public void TEST_01_DELETE_ALL() throws NumberFormatException, SEPABindingsException{

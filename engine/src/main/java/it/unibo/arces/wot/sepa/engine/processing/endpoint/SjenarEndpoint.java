@@ -6,7 +6,6 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
@@ -28,21 +27,26 @@ import org.apache.jena.system.Txn;
 
 public class SjenarEndpoint implements SPARQLEndpoint {
 
-	private static Dataset       dataset;
-	private static boolean       hasInit;
+	protected Dataset dataset;
+	protected String mode;
+	protected String path;
+	protected boolean acl;
 
-	public  synchronized static void init() {
-		if (hasInit == false) {
 
-			dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
-			hasInit = true;
-		}
+	public SjenarEndpoint(String mode, String path, boolean acl) {
+		this.mode = mode;
+		this.path = path;
+		this.acl = acl;
+		reset();
 	}
 
+	public SjenarEndpoint(String mode, String path) {
+		this(mode,path,true);
+	}
+	
 
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo usr) {
-		init();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
 		try (final RDFConnection conn = 
@@ -68,8 +72,6 @@ public class SjenarEndpoint implements SPARQLEndpoint {
 
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo usr) {
-		init();
-
 		try (final RDFConnection conn = 
 				(usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
 						RDFConnection.connect(dataset,usr.userName)                              :
@@ -120,8 +122,7 @@ public class SjenarEndpoint implements SPARQLEndpoint {
 
 	}
 
-	public static synchronized void reset() {
-		hasInit = false;
-		dataset = null;
+	public synchronized void reset() {
+		dataset =JenaDatasetFactory.newInstance(mode, path,acl);
 	}
 }

@@ -24,42 +24,49 @@ import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 
+/**
+ * @author Lorenzo, Andrea
+ */
 public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	protected static final Logger logger = LogManager.getLogger();
+
+	protected Dataset dataset;
+	protected String mode;
+	protected String path;
+	protected boolean acl;
+
 	
-    	public static synchronized void reset() {
-		hasInit = false;
-		dataset = null;
+	public JenaInMemoryEndpoint(String mode, String path, boolean acl) {
+		this.mode = mode;
+		this.path = path;
+		this.acl = acl;
+		reset();
 	}
 
-    private static Dataset       dataset;
-	private static boolean       hasInit;
 
-	public  synchronized static void init() {
-            if (hasInit == false) {
-                dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
-                hasInit = true;
-            }
+	public JenaInMemoryEndpoint(String mode,String path){
+		this(mode,path,true);
 	}
-
+	
 	
 	@Override
 	public Response query(QueryRequest req,SEPAUserInfo notUsed) {
-            init();
             return EndpointBasicOps.query(req, dataset);
-
 	}
 
 	@Override
 	public Response update(UpdateRequest req,SEPAUserInfo notUsed) {
-            init();
             return EndpointBasicOps.update(req, dataset);
 	}
 
 	@Override
 	public void close() {
+	}
+	
+	public synchronized void reset() {
+		logger.info("JenaInMemoryEndpoint has been resetted!");
+		dataset = JenaDatasetFactory.newInstance(mode, path,acl);
 	}
 
 }

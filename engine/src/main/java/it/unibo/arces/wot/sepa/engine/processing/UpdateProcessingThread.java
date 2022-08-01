@@ -25,9 +25,9 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
 class UpdateProcessingThread extends Thread {
-	private final Processor processor;
+	private final IProcessor processor;
 
-	public UpdateProcessingThread(Processor processor) {
+	public UpdateProcessingThread(IProcessor processor) {
 		this.processor = processor;
 		setName("SEPA-Update-Processor");
 	}

@@ -24,9 +24,9 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
 class UnsubscribeProcessingThread extends Thread {
-	private final Processor processor;
+	private final IProcessor processor;
 
-	public UnsubscribeProcessingThread(Processor processor) {
+	public UnsubscribeProcessingThread(IProcessor processor) {
 		this.processor = processor;
 
 		setName("SEPA-Unsubscribe-Processor");

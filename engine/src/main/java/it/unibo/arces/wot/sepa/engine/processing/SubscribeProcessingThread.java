@@ -24,9 +24,9 @@ import it.unibo.arces.wot.sepa.engine.scheduling.ScheduledRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
 class SubscribeProcessingThread extends Thread {
-	private final Processor processor;
+	private final IProcessor processor;
 
-	public SubscribeProcessingThread(Processor processor) {
+	public SubscribeProcessingThread(IProcessor processor) {
 		this.processor = processor;
 
 		setName("SEPA-Subscribe-Processor");

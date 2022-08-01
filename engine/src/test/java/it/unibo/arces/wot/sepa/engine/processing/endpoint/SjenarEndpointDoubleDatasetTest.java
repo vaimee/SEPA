@@ -21,20 +21,22 @@ import it.unibo.arces.wot.sepa.engine.processing.ARQuadsAlgorithm;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
+import static it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.PROTOCOL_SCHEMA_EX_JENA;
 
 @TestMethodOrder(OrderAnnotation.class)
-public class DoubleStoreSystemTest {
+public class SjenarEndpointDoubleDatasetTest {
 
-	private static SjenarEndpointDoubleStore firstStore;
-	private static SjenarEndpointDoubleStore secondStore;
+	private static SjenarEndpoint firstStore;
+	private static SjenarEndpoint secondStore;
 	
 	@BeforeAll
 	public static void init() throws SEPASecurityException, SEPAPropertiesException {
 		String engineJpar = "engine.jpar";	
 		EngineProperties properties = EngineProperties.load(engineJpar);
 		EngineBeans.setEngineProperties(properties);
-		firstStore=new SjenarEndpointDoubleStore(true);
-		secondStore=new SjenarEndpointDoubleStore(false);
+		EngineBeans.setLUTTEnabled(true);
+		firstStore=(SjenarEndpoint)EndpointFactory.getInstance(PROTOCOL_SCHEMA_EX_JENA);
+		secondStore=(SjenarEndpoint)EndpointFactory.getInstanceSecondStore(PROTOCOL_SCHEMA_EX_JENA);
 		//clean datasets
 		clean();
 	}

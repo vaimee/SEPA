@@ -23,18 +23,20 @@ import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.ARQuadsAlgorithm;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.EndpointFactory;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.TempQuadForTest;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.TestUtils;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ar.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
+import static it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.PROTOCOL_SCHEMA_EX_JENA;
 
 @TestMethodOrder(OrderAnnotation.class)
-public class LUTTAnd2PhFinalChatTest {
+public class LUTTSjenarEndpointChatTest {
 	
-	private static SjenarEndpointDoubleStore store_ph_1;
-	private static SjenarEndpointDoubleStore store_ph_2;
+	private static SjenarEndpoint store_ph_1;
+	private static SjenarEndpoint store_ph_2;
 	
 	private static String prefixs = "PREFIX schema:<http://schema.org/>\n" +
 			 "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n" +
@@ -138,8 +140,9 @@ public class LUTTAnd2PhFinalChatTest {
 		String engineJpar = "engine.jpar";	
 		EngineProperties properties = EngineProperties.load(engineJpar);
 		EngineBeans.setEngineProperties(properties);
-		store_ph_1=new SjenarEndpointDoubleStore(false);
-		store_ph_2=new SjenarEndpointDoubleStore(true);
+		EngineBeans.setLUTTEnabled(true);
+		store_ph_1=(SjenarEndpoint)EndpointFactory.getInstance(PROTOCOL_SCHEMA_EX_JENA);
+		store_ph_2=(SjenarEndpoint)EndpointFactory.getInstanceSecondStore(PROTOCOL_SCHEMA_EX_JENA);
 		//clean dataset (this is not necessary)
 		String delete_all = "DELETE WHERE { GRAPH ?g {?s ?p ?o}}";
 		store_ph_1.update(TestUtils.generateUpdate(delete_all));

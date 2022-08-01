@@ -22,13 +22,11 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.SubscribeResponse;
 import it.unibo.arces.wot.sepa.commons.response.UnsubscribeResponse;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.SPUManagerBeans;
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.core.EventHandler;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
-import it.unibo.arces.wot.sepa.engine.processing.Processor;
+import it.unibo.arces.wot.sepa.engine.processing.IProcessor;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalSubscribeRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
@@ -53,9 +51,9 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	private Collection<SPU> activeSpus = new HashSet<>();
 	private Collection<SPU> processingPool = new HashSet<>();
 
-	private final Processor processor;
+	private final IProcessor processor;
 
-	public SPUManager(Processor processor) {
+	public SPUManager(IProcessor processor) {
 		this.processor = processor;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);

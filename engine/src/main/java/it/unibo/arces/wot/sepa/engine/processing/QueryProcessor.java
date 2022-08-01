@@ -39,15 +39,21 @@ import it.unibo.arces.wot.sepa.logging.Timings;
 
 class QueryProcessor implements QueryProcessorMBean {
 	protected final SPARQL11Properties properties;
-
-	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
+	protected final SPARQLEndpoint endpoint;
+	
+	public QueryProcessor(SPARQL11Properties properties,SPARQLEndpoint endpoint) throws SEPAProtocolException, SEPASecurityException {
 		this.properties = properties;
-		
+		this.endpoint =endpoint;
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	private Response process(InternalQueryRequest req,Boolean firstStore) throws SEPASecurityException, IOException {
-		//System.out.println("------------------->QUERY ON: "+firstStore );
+	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
+		this.properties = properties;
+		endpoint =EndpointFactory.getInstance(properties.getProtocolScheme());
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+	}
+
+	public Response process(InternalQueryRequest req,Boolean firstStore) throws SEPASecurityException, IOException {
 		// Build the request
 		QueryRequest request;
 		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
@@ -61,13 +67,11 @@ class QueryProcessor implements QueryProcessorMBean {
 			
 			long start = Timings.getTime();
 			try (
-					final SPARQLEndpoint endpoint = 
-					req.isAclRequest() == false                                     ?  
-							EndpointFactory.newInstance(properties.getProtocolScheme(),firstStore)     : 
-								SEPAAcl.getInstance().asEndpoint();
-					){
+					final SPARQLEndpoint _endpoint = 
+					req.isAclRequest() == false ? endpoint: SEPAAcl.getInstance().asEndpoint();
+				){
 				final SEPAUserInfo ui = SEPAUserInfo.newInstance(req);
-				ret = endpoint.query(request,ui);
+				ret = _endpoint.query(request,ui);
 			} 
 			
 			long stop = Timings.getTime();
@@ -108,14 +112,7 @@ class QueryProcessor implements QueryProcessorMBean {
 		return process(req,true);
 	}
 	
-	public Response processOnSecondStore(InternalQueryRequest req) throws SEPASecurityException, IOException {
-		return process(req,false);
-	}
-	
-	public Response processOnFirstStore(InternalQueryRequest req) throws SEPASecurityException, IOException {
-		return process(req,true);
-	}
-	
+
 	@Override
 	public void reset() {
 		QueryProcessorBeans.reset();

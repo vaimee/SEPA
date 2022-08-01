@@ -28,7 +28,6 @@ import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.EndpointFactory;
@@ -36,19 +35,25 @@ import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalUpdateRequest;
 import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.logging.Timings;
-import org.apache.jena.acl.DatasetACL;
 
 class UpdateProcessor implements UpdateProcessorMBean {
 	protected final SPARQL11Properties properties;
+	protected final SPARQLEndpoint endpoint;
+	
 
+	public UpdateProcessor(SPARQL11Properties properties,SPARQLEndpoint endpoint) throws SEPAProtocolException, SEPASecurityException {
+		this.properties = properties;
+		this.endpoint=endpoint;
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+	}
+	
 	public UpdateProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
 		this.properties = properties;
-
+		endpoint=EndpointFactory.getInstance(properties.getProtocolScheme());
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	private Response process(InternalUpdateRequest req,Boolean firstStore) throws SEPASecurityException, IOException {
-		//System.out.println("------------------->UPDATE ON: "+firstStore );
+	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
 		// ENDPOINT UPDATE (set timeout and set retry = 0)
 		UpdateRequest request = new UpdateRequest(properties.getUpdateMethod(), properties.getProtocolScheme(),
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
@@ -61,14 +66,11 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		do {
 			long start = Timings.getTime();
 				try (
-						final SPARQLEndpoint endpoint = 
-								req.isAclRequest() == false                                     ?  
-								EndpointFactory.newInstance(properties.getProtocolScheme(),firstStore)     : 
-								SEPAAcl.getInstance().asEndpoint();
-						
+						final SPARQLEndpoint _endpoint = 
+						req.isAclRequest() == false ? endpoint : SEPAAcl.getInstance().asEndpoint();
 				) {
 					final SEPAUserInfo ui = SEPAUserInfo.newInstance(req);
-					ret = endpoint.update(request,ui);
+					ret = _endpoint.update(request,ui);
 				}
 			long stop = Timings.getTime();
 
@@ -98,35 +100,6 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		return ret;
 	}
 	
-	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		//as default we will use
-		//first storage for updated if LUTT are disabled (because we will just one store)
-		//second storage if LUTT are enabled
-		if (EngineBeans.isLUTTEnabled()) {
-			//this is skipping the double phase  (it is bypassing the general call on Processor)
-			//(It is used only by test or at least if we do not have any subscription)
-			return process(req,false);
-		}else {
-			return process(req,true);
-		}
-		
-	}
-	
-	public Response processOnSecondStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		if (EngineBeans.isLUTTEnabled()) {
-			return process(req,false);
-		}else {
-			throw new IOException("You are not using double storage and LUTT system.");
-		}
-	}
-	
-	public Response processOnFirstStore(InternalUpdateRequest req) throws SEPASecurityException, IOException {
-		if (EngineBeans.isLUTTEnabled()) {
-	        return process(req,true);
-		}else {
-			throw new IOException("You are not using double storage and LUTT system.");
-		}
-	}
 
 	@Override
 	public void reset() {

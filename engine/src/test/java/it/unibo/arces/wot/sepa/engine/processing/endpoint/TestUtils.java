@@ -9,7 +9,6 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.UpdateHTTPMet
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
-import it.unibo.arces.wot.sepa.engine.core.Engine;
 
 public class TestUtils {
 
@@ -22,16 +21,7 @@ public class TestUtils {
 	private static final String queryPath = "/sparql";
 	
 	
-	private static void RunEnginAs() {
-		Engine engine =new Engine(new String[] {});
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
+
 	public static boolean quadsSetCompare(Set<Quad> found,Set<TempQuadForTest> expected, String testName) {
 		if(found.size()==expected.size()) {
 			for (TempQuadForTest tempQuadForTest : expected) {
@@ -74,7 +64,7 @@ public class TestUtils {
 		return false;
 	}
 
-	public static void printQueryAll(SjenarEndpointDoubleStore inMemEndPoint) {
+	public static void printQueryAll(SjenarEndpoint inMemEndPoint) {
 		QueryResponse qr= (QueryResponse)inMemEndPoint.query(generateQuery("SELECT ?g ?s ?p ?o WHERE { GRAPH  ?g{ ?s ?p ?o}}"));
 		System.out.println("#############Query all: \n"+qr.toString());
 	}

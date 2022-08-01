@@ -35,8 +35,8 @@ import org.junit.jupiter.api.Order;
 import it.unibo.arces.wot.sepa.engine.core.Engine;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.ACLTools;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.EndpointFactory;
 import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpoint;
-import it.unibo.arces.wot.sepa.engine.processing.endpoint.SjenarEndpointDoubleStore;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SPARQL11ProtocolException;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalAclRequestFactory;
 import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
@@ -427,8 +427,7 @@ public class ACLBaseIntegrationTest {
             
             //creates ACL objects
             SEPAAcl.reset();
-            SjenarEndpoint.reset();
-            SjenarEndpointDoubleStore.reset();
+            EndpointFactory.reset();
             
             final ACLStorageOperations      aclStorage = ACLTools.makeACLStorage();
             final SEPAAcl                   aclData = SEPAAcl.getInstance(aclStorage);
