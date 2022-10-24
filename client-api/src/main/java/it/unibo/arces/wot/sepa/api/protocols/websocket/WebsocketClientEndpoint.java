@@ -22,12 +22,12 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.websocket.CloseReason;
-import javax.websocket.DeploymentException;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.DeploymentException;
+import jakarta.websocket.Endpoint;
+import jakarta.websocket.EndpointConfig;
+import jakarta.websocket.MessageHandler;
+import jakarta.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
@@ -45,6 +45,7 @@ import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
+
 public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 	protected final ISubscriptionHandler handler;
 
@@ -53,7 +54,8 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 
 	public WebsocketClientEndpoint(ClientSecurityManager sm,ISubscriptionHandler handler) throws SEPASecurityException {
 		client = ClientManager.createClient();
-
+		client.getProperties().put("org.glassfish.tyrus.incomingBufferSize", 200*1024*1024);
+		
 		if (sm != null) {
 			SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext());
 			config.setHostVerificationEnabled(false);
@@ -82,7 +84,6 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		client.shutdown();
 	}
 
-	@Override
 	public void onOpen(Session session, EndpointConfig config) {
 		Logging.logger.debug("@onOpen session: " + session.getId());
 
@@ -159,7 +160,6 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		});
 	}
 
-	@Override
 	public void onClose(Session session, CloseReason closeReason) {
 		Logging.logger.warn("onClose session: " + session + " reason: " + closeReason);
 
@@ -171,7 +171,6 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		}
 	}
 
-	@Override
 	public void onError(Session session, Throwable thr) {
 		// Parsing error as JSON
 		String msg = thr.getMessage();
