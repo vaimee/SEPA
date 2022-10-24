@@ -32,8 +32,11 @@ public class StressUsingPAC implements ISubscriptionHandler {
 
 	protected static ConsumerTestUnit consumerAll;
 	protected static Producer randomProducer;
+	protected static Producer hugeProducer;
+	protected static Producer deleteAll;
 	protected static AggregatorTestUnit randomAggregator;
 	protected static ConsumerTestUnit consumerRandom1;
+	protected static ConsumerTestUnit consumerHuge;
 
 	protected static GenericClient genericClient;
 	protected static HashMap<String, String> subscriptions = new HashMap<>();
@@ -74,10 +77,14 @@ public class StressUsingPAC implements ISubscriptionHandler {
 	public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		consumerAll = new ConsumerTestUnit(provider, "ALL");
 		randomProducer = new Producer(provider.getJsap(), "RANDOM");
+		hugeProducer = new Producer(provider.getJsap(), "HUGE");
 		randomAggregator = new AggregatorTestUnit(provider, "RANDOM", "RANDOM1");
 		consumerRandom1 = new ConsumerTestUnit(provider, "RANDOM1");
 		genericClient = new GenericClient(provider.getJsap(), this);
+		consumerHuge = new ConsumerTestUnit(provider, "HUGE");
+		deleteAll = new Producer(provider.getJsap(), "DELETE_ALL");
 	}
+	
 
 	@AfterEach
 	public void afterTest() throws IOException {
@@ -85,6 +92,7 @@ public class StressUsingPAC implements ISubscriptionHandler {
 		randomProducer.close();
 		randomAggregator.close();
 		consumerRandom1.close();
+		consumerHuge.close();
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
@@ -123,6 +131,21 @@ public class StressUsingPAC implements ISubscriptionHandler {
 			randomAggregator.waitNotification();
 			consumerRandom1.waitNotification();
 		}
+	}
+	
+	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Timeout(60)
+	public void hugex1000() throws InterruptedException, SEPASecurityException, IOException,
+			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
+		for (int i = 0; i < 1000; i++) {
+			hugeProducer.update(provider.TIMEOUT, provider.NRETRY);
+		}
+		
+		consumerHuge.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
+		consumerHuge.waitFirstNotification();
+		consumerHuge.unsubscribe();
+		
+		deleteAll.update();
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
