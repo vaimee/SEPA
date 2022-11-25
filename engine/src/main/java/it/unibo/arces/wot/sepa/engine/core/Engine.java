@@ -54,7 +54,7 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.10.20220519";
+	private final static String version = "0.11.20221125";
 
 	private EngineProperties properties = null;
 
