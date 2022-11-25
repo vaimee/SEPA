@@ -174,7 +174,7 @@ public class SPARQL11Properties {
 
 	private void loadProperties(String jsapFile, boolean val) throws SEPAPropertiesException {
 		try (final FileReader in = new FileReader(jsapFile)) {
-			jsap = new JsonParser().parse(in).getAsJsonObject();
+			jsap = JsonParser.parseReader(in).getAsJsonObject();
 
 			// Validate the JSON elements
 			if (val)

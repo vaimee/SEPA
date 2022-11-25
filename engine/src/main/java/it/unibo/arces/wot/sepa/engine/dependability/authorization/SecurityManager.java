@@ -111,7 +111,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		verifier = new RSASSAVerifier(publicKey);
 
 		// Serialize the public key to be deliverer during registration
-		jwkPublicKey = new JsonParser().parse(jwk.toPublicJWK().toJSONString());
+		jwkPublicKey = JsonParser.parseString(jwk.toPublicJWK().toJSONString());
 		
 		Logging.logger.debug("Public key to validate JWT");
 		Logging.logger.debug(jwkPublicKey);

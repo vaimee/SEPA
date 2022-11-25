@@ -97,7 +97,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 				// Parse message
 				JsonObject jsonMessage = null;
 				try {
-					jsonMessage = new JsonParser().parse(message).getAsJsonObject();
+					jsonMessage = JsonParser.parseString(message).getAsJsonObject();
 				} catch (Exception e) {
 					Logging.logger.error("Exception on parsing message: " + message + " exception: " + e.getMessage());
 					return;
@@ -177,7 +177,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		ErrorResponse error = null;
 		try{
 			msg = msg.substring(0, msg.lastIndexOf('}')+1);
-			JsonObject err = new JsonParser().parse(msg).getAsJsonObject();
+			JsonObject err = JsonParser.parseString(msg).getAsJsonObject();
 			error = new ErrorResponse(err.get("status_code").getAsInt(), err.get("error").getAsString(), err.get("error_description").getAsString());
 		}
 		catch(JsonParseException e) {

@@ -108,7 +108,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	private static void setAliasIfPresent(ErrorResponse error, String message) {
 		JsonObject request;
 		try {
-			request = new JsonParser().parse(message).getAsJsonObject();
+			request = JsonParser.parseString(message).getAsJsonObject();
 		} catch (Exception e) {
 			return;
 		}
@@ -215,7 +215,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		JsonObject request;
 
 		try {
-			request = new JsonParser().parse(message).getAsJsonObject();	
+			request = JsonParser.parseString(message).getAsJsonObject();	
 		} catch (Exception e) {
 			Logging.logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_request","Failed to parse JSON message: "+message);
@@ -293,7 +293,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		ErrorResponse error;
 		
 		try {
-			req = new JsonParser().parse(request).getAsJsonObject();
+			req = JsonParser.parseString(request).getAsJsonObject();
 		} catch (JsonParseException e) {
 			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException",
 					"JsonParseException: " + request);

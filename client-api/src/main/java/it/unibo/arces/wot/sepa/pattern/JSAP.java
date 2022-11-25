@@ -273,7 +273,7 @@ public class JSAP extends SPARQL11SEProperties {
 	public void read(InputStream input,boolean replace,boolean validate) throws SEPAPropertiesException, SEPASecurityException {
 		InputStreamReader in  = new InputStreamReader(input);
 		
-		JsonObject temp = new JsonParser().parse(in).getAsJsonObject();
+		JsonObject temp = JsonParser.parseReader(in).getAsJsonObject();
 
 		merge(temp, jsap, replace);
 
@@ -312,7 +312,7 @@ public class JSAP extends SPARQL11SEProperties {
 			throw new SEPAPropertiesException(e.getMessage());
 		}
 		
-		JsonObject temp = new JsonParser().parse(in).getAsJsonObject();
+		JsonObject temp = JsonParser.parseReader(in).getAsJsonObject();
 		
 		try {
 			in.close();

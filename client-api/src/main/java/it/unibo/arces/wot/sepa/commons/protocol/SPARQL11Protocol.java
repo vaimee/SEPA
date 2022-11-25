@@ -184,7 +184,7 @@ public class SPARQL11Protocol implements Closeable {
 			// suggests to use a JSON format
 			// http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
 			try {
-				JsonObject ret = new JsonParser().parse(responseBody).getAsJsonObject();
+				JsonObject ret = JsonParser.parseString(responseBody).getAsJsonObject();
 				errorResponse = new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),
 						ret.get("error_description").getAsString());
 			} catch (Exception e) {

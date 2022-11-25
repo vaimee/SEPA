@@ -36,7 +36,7 @@ public class UpdateResponse extends Response {
 		super();
 
 		try {
-			JsonObject jbody = new JsonParser().parse(body).getAsJsonObject();
+			JsonObject jbody = JsonParser.parseString(body).getAsJsonObject();
 			
 			json.add("response", new JsonObject());
 			json.get("response").getAsJsonObject().add("body", jbody);

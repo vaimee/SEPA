@@ -118,7 +118,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 
 			EntityUtils.consume(entity);
 
-			JsonObject json = new JsonParser().parse(jsonResponse).getAsJsonObject();
+			JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
 
 			if (json.has("error")) {
 				// int code = json.get("status_code").getAsInt();
@@ -204,7 +204,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 			EntityUtils.consume(entity);
 
 			// Parse response
-			JsonObject json = new JsonParser().parse(jsonResponse).getAsJsonObject();
+			JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
 
 			if (json.has("error")) {
 				Timings.log("TOKEN_REQUEST", start, Timings.getTime());

@@ -144,7 +144,7 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 				HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ParseException",e.getMessage()));
 				return;
 			}
-			JsonObject json = new JsonParser().parse(jsonString).getAsJsonObject();
+			JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
 
 			// Client identity
 			name = json.get("register").getAsJsonObject().get("client_identity").getAsString();

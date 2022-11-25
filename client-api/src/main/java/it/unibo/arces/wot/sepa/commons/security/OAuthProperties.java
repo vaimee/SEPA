@@ -102,7 +102,7 @@ public class OAuthProperties {
 	public OAuthProperties(InputStream input,byte[] secret) throws SEPAPropertiesException {
 		InputStreamReader in = new InputStreamReader(input);
 		
-		jsap = new JsonParser().parse(in).getAsJsonObject();
+		jsap = JsonParser.parseReader(in).getAsJsonObject();
 
 		try {
 		
@@ -171,7 +171,7 @@ public class OAuthProperties {
 			throw new SEPAPropertiesException("FileNotFoundException. " + e.getMessage());
 		}
 
-		jsap = new JsonParser().parse(in).getAsJsonObject();
+		jsap = JsonParser.parseReader(in).getAsJsonObject();
 
 		try {
 			in.close();
