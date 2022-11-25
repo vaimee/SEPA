@@ -44,42 +44,57 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	private final Object mutex;
 
+	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler)
+			throws SEPASecurityException, SEPAProtocolException {
+		this(host, port, path, handler, null);
+	}
+
+	public WebsocketSubscriptionProtocol(String scheme, String host, int port, String path,
+			ISubscriptionHandler handler) throws SEPASecurityException, SEPAProtocolException {
+		this(scheme, host, port, path, handler, null);
+	}
+
 	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler,
 			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
+		this("ws", host, port, path, handler, sm);
+	}
+
+	public WebsocketSubscriptionProtocol(String scheme, String host, int port, String path,
+			ISubscriptionHandler handler, ClientSecurityManager sm)
+			throws SEPASecurityException, SEPAProtocolException {
 		super(handler, sm);
 
 		mutex = new Object();
 
-		// Connect
-		String scheme = "ws://";
-		if (sm != null)
-			scheme = "wss://";
+		if (!scheme.equals("ws") && scheme.equals("wss"))
+			throw new SEPAProtocolException("Scheme must be 'ws' or 'wss'");
+
 		if (port == -1)
 			try {
-				url = new URI(scheme + host + path);
+				url = new URI(scheme + "://" + host + path);
 			} catch (URISyntaxException e) {
 				Logging.logger.error(e.getMessage());
 				throw new SEPAProtocolException(e);
 			}
 		else
 			try {
-				url = new URI(scheme + host + ":" + port + path);
+				url = new URI(scheme + "://" + host + ":" + port + path);
 			} catch (URISyntaxException e) {
 				Logging.logger.error(e.getMessage());
 				throw new SEPAProtocolException(e);
 			}
 
 		client = new WebsocketClientEndpoint(sm, this);
-		
-		connect();
 	}
-	
+
 	private void connect() throws SEPASecurityException {
+		Logging.logger.trace("connect");
+
 		while (!client.isConnected()) {
 			try {
 				client.connect(url);
 			} catch (SEPAProtocolException e) {
-				//Logging.logger.error(e.getMessage());
+				// Logging.logger.error(e.getMessage());
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e1) {
@@ -92,17 +107,19 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 				}
 				client = new WebsocketClientEndpoint(sm, this);
 			}
-		}	
+		}
 	}
 
 	@Override
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException, SEPASecurityException {
 		Logging.logger.trace("subscribe: " + request);
 
+		connect();
+
 		synchronized (mutex) {
 			if (lastRequest != null)
 				try {
-					Logging.logger.debug("wait. last request: "+lastRequest);
+					Logging.logger.debug("wait. last request: " + lastRequest);
 					mutex.wait();
 				} catch (InterruptedException e) {
 					throw new SEPAProtocolException(e.getMessage());
@@ -121,7 +138,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 		synchronized (mutex) {
 			if (lastRequest != null)
 				try {
-					Logging.logger.debug("wait. last request: "+lastRequest);
+					Logging.logger.debug("wait. last request: " + lastRequest);
 					mutex.wait();
 				} catch (InterruptedException e) {
 					throw new SEPAProtocolException(e.getMessage());
@@ -129,7 +146,8 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			lastRequest = request;
 		}
 
-		if (client.isConnected()) client.send(lastRequest.toString());
+		if (client.isConnected())
+			client.send(lastRequest.toString());
 	}
 
 	@Override
@@ -156,11 +174,11 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 				Response ret = sm.refreshToken();
 				if (ret.isError()) {
 					Logging.logger.error(ret);
-					handler.onError((ErrorResponse)ret);
+					handler.onError((ErrorResponse) ret);
 					return;
 				}
 				JWTResponse token = (JWTResponse) ret;
-				authHeader = token.getTokenType()+" "+token.getAccessToken();
+				authHeader = token.getTokenType() + " " + token.getAccessToken();
 			} catch (SEPAPropertiesException | SEPASecurityException e1) {
 				Logging.logger.error(e1.getMessage());
 				handler.onError(errorResponse);
@@ -177,7 +195,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			try {
 				lastRequest.setAuthorizationHeader(authHeader);
 				Logging.logger.trace("SEND LAST REQUEST WITH NEW TOKEN");
-				
+
 				client.send(lastRequest.toString());
 			} catch (SEPAProtocolException e) {
 				Logging.logger.error(e.getMessage());

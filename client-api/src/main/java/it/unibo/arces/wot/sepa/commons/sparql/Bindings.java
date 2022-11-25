@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.commons.sparql;
 
 import java.util.HashSet;
 import java.util.Map.Entry;
+
 import java.util.Set;
 
 import com.google.gson.JsonElement;
@@ -231,7 +232,17 @@ public class Bindings {
 	 * @return true, if successful
 	 */
 	public boolean equals(Bindings qs) {
-		return this.solution.equals(qs.solution);
+		if (this.isEmpty() && qs.isEmpty()) return true;
+		if (this.getVariables().size() != qs.getVariables().size()) return false; 
+		if (!this.getVariables().containsAll(qs.getVariables())) return false;
+		for (String var : this.getVariables()) {
+			try {
+				if(!this.getRDFTerm(var).equals(qs.getRDFTerm(var))) return false;
+			} catch (SEPABindingsException e) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
