@@ -1,3 +1,12 @@
+# ignoring local engine configuration files
+engine/*.jpar
+engine/sepa.jks
+
+# timing created by engine
+engine/logs
+
+# timing created by maven tests
+logs
 
 # Created by https://www.gitignore.io/api/java,maven,eclipse,intellij
 
@@ -163,3 +172,4 @@ buildNumber.properties
 !/.mvn/wrapper/maven-wrapper.jar
 
 # End of https://www.gitignore.io/api/java,maven,eclipse,intellij
+/blazegraph.jnl

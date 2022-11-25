@@ -1,0 +1,36 @@
+{
+	"parameters": {
+		"scheduler": {
+			"queueSize": 100,
+			"timeout": 3000
+		},
+		"processor": {
+			"updateTimeout": 5000,
+			"queryTimeout": 5000,
+			"maxConcurrentRequests": 5
+		},
+		"spu": {
+			"timeout": 2000
+		},
+		"gates": {
+			"security": {
+				"enabled" : true,
+				"type" : "local"
+			},
+			"ports": {
+				"http": 8000,
+				"ws": 9000,
+				"https": 8443,
+				"wss": 9443
+			},
+			"paths": {
+				"update": "/update",
+				"query": "/query",
+				"subscribe": "/subscribe",
+				"register": "/oauth/register",
+				"tokenRequest": "/oauth/token",
+				"securePath": "/secure"
+			}
+		}
+	}
+}

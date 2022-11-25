@@ -26,12 +26,9 @@ import javax.management.MalformedObjectNameException;
 import javax.management.NotCompliantMBeanException;
 import javax.management.ObjectName;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class SEPABeans {
-	private static final Logger logger = LogManager.getLogger("SEPABeans");
-	
 	//Get the MBean server
 	static final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
     
@@ -44,19 +41,19 @@ public class SEPABeans {
       }
       catch (MalformedObjectNameException badObjectName)
       {
-    	  logger.error(badObjectName.getMessage());
+    	  Logging.logger.error(badObjectName.getMessage());
       }
       catch (InstanceAlreadyExistsException duplicateMBeanInstance)
       {
-    	  logger.error(duplicateMBeanInstance.getMessage());
+    	  Logging.logger.error(duplicateMBeanInstance.getMessage());
       }
       catch (MBeanRegistrationException mbeanRegistrationProblem)
       {
-    	  logger.error(mbeanRegistrationProblem.getMessage());
+    	  Logging.logger.error(mbeanRegistrationProblem.getMessage());
       }
       catch (NotCompliantMBeanException badMBean)
       {
-    	  logger.error(badMBean.getMessage());
+    	  Logging.logger.error(badMBean.getMessage());
       }
    }
 }

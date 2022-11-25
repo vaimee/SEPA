@@ -1,34 +1,51 @@
+/* This class belongs to the JMX classes used for the remote monitoring of the engine
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.bean;
 
-import java.time.Instant;
 import java.util.HashMap;
 
 import org.apache.http.nio.protocol.HttpAsyncExchange;
 
-public class HTTPHandlerBeans {
-	private long requests = 0;
+import it.unibo.arces.wot.sepa.logging.Timings;
 
+public class HTTPHandlerBeans {
 	private long timeoutRequests = 0;
+	
 	private long CORSFailedRequests = 0;
 	private long parsingFailedRequests = 0;
-	private long validatingFailedRequests = 0;
 	private long authorizingFailedRequests = 0;
 	
-	private float requestHandlingTime = -1;
+	private long requestHandlingTime = -1;
 	private float requestHandlingAverageTime = -1;
-	private float requestHandlingMinTime = -1;
-	private float requestHandlingMaxTime = -1;
-	private float handledRequests = 0;
+	private long requestHandlingMinTime = -1;
+	private long requestHandlingMaxTime = -1;
+	private long handledRequests = 0;
 
-	private HashMap<HttpAsyncExchange,Instant> timings = new HashMap<HttpAsyncExchange,Instant>();
+	private int outOfTokens;
+	
+	private HashMap<HttpAsyncExchange,Long> timings = new HashMap<HttpAsyncExchange,Long>();
 	
 	public void reset() {
-		 requests = 0;
-
 		 timeoutRequests = 0;
+		 
 		 CORSFailedRequests = 0;
 		 parsingFailedRequests = 0;
-		 validatingFailedRequests = 0;
 		 authorizingFailedRequests = 0;
 		
 		 requestHandlingTime = -1;
@@ -36,19 +53,23 @@ public class HTTPHandlerBeans {
 		 requestHandlingMinTime = -1;
 		 requestHandlingMaxTime = -1;
 		 handledRequests = 0;
+		 
+		 outOfTokens = 0;
 	}
 
-	public void newRequest(HttpAsyncExchange handler, Instant start) {
-		requests++;
-		timings.put(handler, start);
+	public synchronized long start(HttpAsyncExchange handler) {
+		long start = Timings.getTime();
+		timings.put(handler, start );
+		return start;
 	}
 	
-	public float timings(HttpAsyncExchange handler) {
-
+	public synchronized long stop(HttpAsyncExchange handler) {
 		handledRequests++;
+		
 		if (timings.get(handler) == null) return 0;
 		
-		requestHandlingTime = Instant.now().toEpochMilli() - timings.get(handler).toEpochMilli();
+		requestHandlingTime = Timings.getTime() - timings.get(handler);
+		
 		timings.remove(handler);
 
 		if (requestHandlingMinTime == -1)
@@ -68,27 +89,46 @@ public class HTTPHandlerBeans {
 					/ handledRequests;
 		
 		return requestHandlingTime;
-
 	}
 
-	public float getHandlingTime_ms() {
-		return requestHandlingTime;
+	private static long unitScale = 1000000;
+	
+	public static void scale_ms() {
+		unitScale = 1000000;
+	}
+	
+	public static void scale_us() {
+		unitScale = 1000;
+	}
+	
+	public static void scale_ns() {
+		unitScale = 1;
+	}
+	
+	public static String getUnitScale() {
+		if (unitScale == 1) return "ns";
+		else if (unitScale == 1000) return "us";
+		return "ms";
+	}
+	
+	public long getHandlingTime() {
+		return requestHandlingTime/unitScale;
 	}
 
-	public float getHandlingMinTime_ms() {
-		return requestHandlingMinTime;
+	public long getHandlingMinTime() {
+		return requestHandlingMinTime/unitScale;
 	}
 
-	public float getHandlingAvgTime_ms() {
-		return requestHandlingAverageTime;
+	public float getHandlingAvgTime() {
+		return requestHandlingAverageTime/unitScale;
 	}
 
-	public float getHandlingMaxTime_ms() {
-		return requestHandlingMaxTime;
+	public long getHandlingMaxTime_ms() {
+		return requestHandlingMaxTime/unitScale;
 	}
 	
 	public long getRequests() {
-		return requests;
+		return handledRequests;
 	}
 
 	public long getErrors_Timeout() {
@@ -101,10 +141,6 @@ public class HTTPHandlerBeans {
 	
 	public long getErrors_ParsingFailed() {
 		return parsingFailedRequests;
-	}
-	
-	public long getErrors_ValidatingFailed() {
-		return validatingFailedRequests;
 	}
 	
 	public long getErrors_AuthorizingFailed() {
@@ -123,11 +159,15 @@ public class HTTPHandlerBeans {
 		parsingFailedRequests++;
 	}
 	
-	public void validatingFailed() {
-		validatingFailedRequests++;
-	}
-	
 	public void authorizingFailed() {
 		authorizingFailedRequests++;
+	}
+
+	public void outOfTokens() {
+		outOfTokens++;
+	}
+	
+	public long getErrors_OutOfTokens() {
+		return outOfTokens;
 	}
 }
