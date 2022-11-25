@@ -17,29 +17,36 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-public interface EngineMBean {	
+public interface EngineMBean {
+	public String getVersion();
+	
 	public String getUpTime();
 	
-	public String getURL_Query();
-	public String getURL_Update();
+	public String getQueryPath();
 	
-	public String getURL_SecureQuery();
-	public String getURL_SecureUpdate();
+	public String getUpdatePath();
 	
-	public String getURL_Registration();
-	public String getURL_TokenRequest();
+	public String getSubscribePath();
+
+	public String getSecurePath();
 	
-	public String getEndpoint_Host();
-
-	public String getEndpoint_Port();
-
-	public String getEndpoint_QueryPath();
-
-	public String getEndpoint_UpdatePath();
-
-	public String getEndpoint_UpdateMethod();
-
-	public String getEndpoint_QueryMethod();
+	public String getRegisterPath();
+	
+	public String getTokenRequestPath();
+	
+	public int getHttpPort();
+	
+	public int getHttpsPort();
+	
+	public int getWsPort();
+	
+	public int getWssPort();
+	
+	public boolean getSecure();
 	
 	public void resetAll();
+	
+	public String getSSLCertificate();
+	
+	public void refreshSSLCertificate();
 }

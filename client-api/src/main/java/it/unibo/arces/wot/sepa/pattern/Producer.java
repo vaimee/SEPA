@@ -1,0 +1,129 @@
+/* This class implements a SEPA producer
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+package it.unibo.arces.wot.sepa.pattern;
+
+import java.io.IOException;
+
+import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
+import it.unibo.arces.wot.sepa.logging.Logging;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
+import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.Response;
+
+public class Producer extends Client implements IProducer {
+	protected String sparqlUpdate = null;
+	protected String SPARQL_ID = "";
+	private ForcedBindings forcedBindings;
+
+	private SPARQL11Protocol client;
+
+	public Producer(JSAP appProfile, String updateID)
+			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
+		super(appProfile);
+
+		if (appProfile.getSPARQLUpdate(updateID) == null) {
+			Logging.logger.fatal("UPDATE ID [" + updateID + "] not found in " + appProfile.getFileName());
+			throw new IllegalArgumentException("UPDATE ID [" + updateID + "] not found in " + appProfile.getFileName());
+		}
+
+		SPARQL_ID = updateID;
+
+		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
+
+		forcedBindings = appProfile.getUpdateBindings(updateID);
+
+		client = new SPARQL11Protocol(sm);
+	}
+
+	public final Response update()
+			throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
+		return update(TIMEOUT,NRETRY);
+	}
+
+	public final Response update(long timeout,long nRetry)
+			throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
+		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
+				appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
+				appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
+				appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
+						addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
+				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
+
+		Logging.logger.debug(req);
+		
+		Response retResponse = client.update(req);
+
+		Logging.logger.debug(retResponse);
+		
+//		if (appProfile.isSecure() && retResponse.isError()) {
+//			ErrorResponse errorResponse = (ErrorResponse) retResponse;
+//			if (errorResponse.isTokenExpiredError()) {
+//				sm.refreshToken();
+//				req.setAuthorizationHeader(appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
+//				retResponse = client.update(req);
+//			} 
+//		}
+		
+//		while (isSecure() && retResponse.isError()) {
+//
+//			ErrorResponse errorResponse = (ErrorResponse) retResponse;
+//
+//			if (errorResponse.isTokenExpiredError()) {
+//				try {
+//					sm.refreshToken();
+//				} catch (SEPAPropertiesException | SEPASecurityException e) {
+//					Logging.logger.error("Failed to refresh token: " + e.getMessage());
+//				}
+//			} else {
+//				Logging.logger.error(errorResponse);
+//				return errorResponse;
+//			}
+//
+//			authorizationHeader = sm.getAuthorizationHeader();
+//			
+//			Logging.logger.debug("Authorization header: "+authorizationHeader);
+//
+//			req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
+//					appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
+//					appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
+//					appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
+//							addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
+//					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
+//					authorizationHeader, timeout,nRetry);
+//
+//			retResponse = client.update(req);
+//		}
+
+		return retResponse;
+	}
+
+	@Override
+	public void close() throws IOException {
+		client.close();
+	}
+
+	public final void setUpdateBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
+		forcedBindings.setBindingValue(variable, value);
+	}
+}

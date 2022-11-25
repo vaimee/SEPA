@@ -1,27 +1,28 @@
+/* JMX class for processor monitoring
+ * 
+ * Author: Luca Roffia (luca.roffia@unibo.it)
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package it.unibo.arces.wot.sepa.engine.processing;
 
 public interface ProcessorMBean {
-
-	public void reset();
-	
-	public long getProcessedRequests();
-	public long getProcessedQueryRequests();
-//	public long getProcessedSPURequests();
-	public long getProcessedUpdateRequests();
-	
-	public float getTimings_UpdateTime_ms();
-	public float getTimings_UpdateTime_Min_ms();
-	public float getTimings_UpdateTime_Average_ms();
-	public float getTimings_UpdateTime_Max_ms();
-	
-	public float getTimings_QueryTime_ms();
-	public float getTimings_QueryTime_Min_ms();
-	public float getTimings_QueryTime_Average_ms();
-	public float getTimings_QueryTime_Max_ms();
-	
-	public int getUpdateTimeout();
-	public int getQueryTimeout();
-	
-	public void setUpdateTimeout(int t);
-	public void setQueryTimeout(int t);
+	public  String getEndpointHost();
+	public  int getEndpointPort();
+	public  String getEndpointQueryPath();
+	public  String getEndpointUpdatePath();
+	public  String getEndpointUpdateMethod();
+	public  String getEndpointQueryMethod();
 }

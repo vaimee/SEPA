@@ -18,50 +18,155 @@
 
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import java.util.concurrent.Semaphore;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import java.io.IOException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.engine.bean.QueryProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import it.unibo.arces.wot.sepa.engine.bean.UpdateProcessorBeans;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.RemoteEndpoint;
+import it.unibo.arces.wot.sepa.engine.processing.endpoint.SPARQLEndpoint;
+import it.unibo.arces.wot.sepa.engine.scheduling.InternalQueryRequest;
+import it.unibo.arces.wot.sepa.logging.Logging;
+import it.unibo.arces.wot.sepa.logging.Timings;
 
-import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
+class QueryProcessor implements QueryProcessorMBean {
+	protected final SPARQL11Properties properties;
 
-public class QueryProcessor {
-	private static final Logger logger = LogManager.getLogger("QueryProcessor");
-
-	private SPARQL11Protocol endpoint;	
-	private Semaphore endpointSemaphore;
-	
-	public QueryProcessor(SPARQL11Properties properties,Semaphore endpointSemaphore) throws SEPAProtocolException  {	
-		endpoint = new SPARQL11Protocol(properties);
-		this.endpointSemaphore = endpointSemaphore;
+	public QueryProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
+		this.properties = properties;
+		
+		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 	}
 
-	public synchronized Response process(QueryRequest req, int timeout) {		
-		if (endpointSemaphore != null)
-			try {
-				endpointSemaphore.acquire();
-			} catch (InterruptedException e) {
-				return new ErrorResponse(500,e.getMessage());
+	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
+		// Build the request
+		QueryRequest request;
+		request = new QueryRequest(properties.getQueryMethod(), properties.getProtocolScheme(),
+				properties.getHost(), properties.getPort(), properties.getQueryPath(),
+				req.getSparql(), req.getDefaultGraphUri(), req.getNamedGraphUri(),
+				req.getBasicAuthorizationHeader(),req.getInternetMediaType(),QueryProcessorBeans.getTimeout(),0);
+		
+		int n = 0;
+		Response ret;
+		do {
+			long start = Timings.getTime();
+			SPARQLEndpoint endpoint;
+			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) endpoint = new JenaInMemoryEndpoint();
+			else endpoint = new RemoteEndpoint();
+			ret = endpoint.query(request);
+			endpoint.close();
+			long stop = Timings.getTime();
+			
+			UpdateProcessorBeans.timings(start, stop);
+			Logging.logger.trace("Response: " + ret.toString());
+			Timings.log("QUERY_PROCESSING_TIME", start, stop);
+			
+			n++;
+			
+			if (ret.isTimeoutError()) {
+				QueryProcessorBeans.timedOutRequest();
+				Logging.logger.error("*** TIMEOUT *** ("+n+"/"+QueryProcessorBeans.getTimeoutNRetry()+") "+req);
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					Logging.logger.warn("Failed to sleep...");
+				}
 			}
+		} while(ret.isTimeoutError() && n < QueryProcessorBeans.getTimeoutNRetry());
 		
-		//QUERY the endpoint
-		long start = System.currentTimeMillis();
-		Response ret = endpoint.query(req, timeout);
-		long stop = System.currentTimeMillis();
-		
-		if (endpointSemaphore != null) endpointSemaphore.release();
-
-		logger.debug("* QUERY PROCESSING ("+(stop-start)+" ms) *");
-		
-		ProcessorBeans.queryTimings(start, stop);
+		// Request ABORTED
+		if (ret.isTimeoutError()) {
+			Logging.logger.error("*** REQUEST ABORTED *** "+request);
+			QueryProcessorBeans.abortedRequest();
+		}
 		
 		return ret;
+	}
+
+	@Override
+	public void reset() {
+		QueryProcessorBeans.reset();
+	}
+
+	@Override
+	public long getRequests() {
+		return QueryProcessorBeans.getRequests();
+	}
+
+	@Override
+	public float getTimingsCurrent() {
+		return QueryProcessorBeans.getCurrent();
+	}
+
+	@Override
+	public float getTimingsMin() {
+		return QueryProcessorBeans.getMin();
+	}
+
+	@Override
+	public float getTimingsAverage() {
+		return QueryProcessorBeans.getAverage();
+	}
+
+	@Override
+	public float getTimingsMax() {
+		return QueryProcessorBeans.getMax();
+	}
+
+	@Override
+	public int getTimeout() {
+		return QueryProcessorBeans.getTimeout();
+	}
+
+	@Override
+	public void setTimeout(int t) {
+		QueryProcessorBeans.setTimeout(t);
+	}
+
+	@Override
+	public void scale_ms() {
+		QueryProcessorBeans.scale_ms();
+		
+	}
+
+	@Override
+	public void scale_us() {
+		QueryProcessorBeans.scale_us();
+	}
+
+	@Override
+	public void scale_ns() {
+		QueryProcessorBeans.scale_ns();
+	}
+
+	@Override
+	public String getUnitScale() {
+		return QueryProcessorBeans.getUnitScale();
+	}
+
+	@Override
+	public int getTimeoutNRetry() {
+		return QueryProcessorBeans.getTimeoutNRetry();
+	}
+
+	@Override
+	public void setTimeoutNRetry(int n) {
+		QueryProcessorBeans.setTimeoutNRetry(n);
+	}
+
+	@Override
+	public long getTimedOutRequests() {
+		return QueryProcessorBeans.getTimedOutRequests();
+	}
+
+	@Override
+	public long getAbortedRequests() {
+		return QueryProcessorBeans.getAbortedRequests();
 	}
 }

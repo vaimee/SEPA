@@ -3,17 +3,12 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>it.unibo.arces.wot</groupId>
   <artifactId>sepa</artifactId>
-  <version>0.8.0</version>
+    <version>${revision}</version>
   <packaging>pom</packaging>
   <description>The project aims at developing a SPARQL Event Processing Architecture using JAVA technologies, including APIs and tools</description>
-  <modules>
-  	<module>commons</module>
-  	<module>client-api</module>
-  	<module>client-pac-pattern</module>
-  	<module>tools</module>
-  	<module>engine</module>  
-  	<module>client-wot-framework</module>
-    <!--<module>WebThings</module>-->
+    <modules>
+        <module>client-api</module>
+        <module>engine</module>
   </modules>
   <name>SEPA Project</name>
   <url>https://github.com/arces-wot/sepa.git</url>
@@ -55,63 +50,140 @@
       <url>https://github.com/arces-wot/SEPA</url>
   </scm>
   <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+      <maven.compiler.source>11</maven.compiler.source>
+      <maven.compiler.target>11</maven.compiler.target>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <revision>1.0.0-SNAPSHOT</revision>
+      <update>0</update>
   </properties>
     <distributionManagement>
         <repository>
-            <id>bintray-arces-wot-sepa-java-libs</id>
-            <name>arces-wot-sepa-java-libs</name>
-            <url>https://api.bintray.com/maven/arces-wot/sepa-java-libs/${project.artifactId}/;publish=1</url>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/arces-wot/SEPA</url>
         </repository>
     </distributionManagement>
     <build>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
+                <groupId>com.hbakkum.maven.plugins</groupId>
+                <artifactId>resolve-parent-version-maven-plugin</artifactId>
+                <version>0.7</version>
                 <executions>
                     <execution>
-                        <id>attach-sources</id>
                         <goals>
-                            <goal>jar</goal>
+                            <goal>resolve-parent-version</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M4</version>
                 <configuration>
-                    <additionalparam>-Xdoclint:none</additionalparam>
+                    <excludes>
+                        <exclude>**/IT*.java</exclude>
+                        <exclude>**/Stress*.java</exclude>
+                    </excludes>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.0.0-M1</version>
                 <executions>
                     <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
                         <goals>
-                            <goal>sign</goal>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
+        <pluginManagement>
+        	<plugins>
+        		<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+        		<plugin>
+        			<groupId>org.eclipse.m2e</groupId>
+        			<artifactId>lifecycle-mapping</artifactId>
+        			<version>1.0.0</version>
+        			<configuration>
+        				<lifecycleMappingMetadata>
+        					<pluginExecutions>
+        						<pluginExecution>
+        							<pluginExecutionFilter>
+        								<groupId>
+        									com.hbakkum.maven.plugins
+        								</groupId>
+        								<artifactId>
+        									resolve-parent-version-maven-plugin
+        								</artifactId>
+        								<versionRange>
+        									[0.7,)
+        								</versionRange>
+        								<goals>
+        									<goal>
+        										resolve-parent-version
+        									</goal>
+        								</goals>
+        							</pluginExecutionFilter>
+        							<action>
+        								<ignore></ignore>
+        							</action>
+        						</pluginExecution>
+        					</pluginExecutions>
+        				</lifecycleMappingMetadata>
+        			</configuration>
+        		</plugin>
+        	</plugins>
+        </pluginManagement>
     </build>
     <organization>
     	<name>Web of Things Research Group @ ARCES</name>
     	<url>https://http://wot.arces.unibo.it/</url>
     </organization>
+    <dependencies>
+    	<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-api</artifactId>
+    		<version>2.17.2</version>
+    	</dependency>
+    	<dependency>
+    		<groupId>org.apache.logging.log4j</groupId>
+    		<artifactId>log4j-core</artifactId>
+    		<version>2.17.2</version>
+    	</dependency>
+    	<dependency>
+    		<groupId>org.java-websocket</groupId>
+    		<artifactId>Java-Websocket</artifactId>
+    		<version>1.5.1</version>
+    	</dependency>
+    	<dependency>
+    		<groupId>com.google.code.gson</groupId>
+    		<artifactId>gson</artifactId>
+    		<version>2.8.0</version>
+    	</dependency>
+    	<dependency>
+    		<groupId>com.nimbusds</groupId>
+    		<artifactId>nimbus-jose-jwt</artifactId>
+    		<version>7.9</version>
+    	</dependency>
+    	<dependency>
+    		<groupId>junit</groupId>
+    		<artifactId>junit</artifactId>
+    		<version>4.13.1</version>
+    	</dependency>
+    	<dependency>
+    		<groupId>org.junit.jupiter</groupId>
+    		<artifactId>junit-jupiter-api</artifactId>
+    		<version>5.6.2</version>
+    	</dependency>
+    	<dependency>
+    		<groupId>org.junit.jupiter</groupId>
+    		<artifactId>junit-jupiter-engine</artifactId>
+    		<version>5.6.2</version>
+    	</dependency>
+    </dependencies>
 </project>

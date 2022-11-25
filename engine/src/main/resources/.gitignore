@@ -1,1 +1,29 @@
+<<<<<<< HEAD
 /config/
+=======
+/init.ldif
+/vaimee.ldif
+/sepa.engine.csv
+/keycloak.rsa
+/keycloak.cer
+/command.sql
+/keycloak.readme
+/keycloak.jks
+/keycloak.pem
+/engine-secure-vaimee.jpar
+/engine-secure-keycloak.jpar
+/engine-secure-ldap.jpar
+/engine-secure-local.jpar
+/endpoint-virtuoso-vaimee.jpar
+/vaimee.jks
+/endpoint-virtuoso.jpar
+/log4j2.debug.xml
+/jwt.jks
+/ssl.jks
+/arces143100.arces.unibo.it-selfsigned.jks
+/arces143100.arces.unibo.it.jks
+/endpoint-virtuoso-arces143100.jpar
+/engine-secure-arces143100.jpar
+/config/
+/sepa.api.csv
+>>>>>>> refs/heads/dev
