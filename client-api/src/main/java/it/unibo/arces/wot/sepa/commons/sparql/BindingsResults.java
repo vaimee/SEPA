@@ -24,6 +24,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
+import it.unibo.arces.wot.sepa.logging.Logging;
+
 // TODO: Auto-generated Javadoc
 /**
  * This class represents the results of a SPARQL 1.1 Query
@@ -197,13 +200,28 @@ public class BindingsResults {
 	 * @return true, if successful
 	 */
 	public boolean contains(Bindings solution) {
-		if (solution == null)
-			return false;
+		if (solution == null) return false;
+		
 		JsonArray bindings = getBindingsArray();
-		if (bindings == null)
-			return false;
-
-		return bindings.contains(solution.toJson());
+		if (bindings == null) return false;
+		
+		for (JsonElement b : bindings) {
+			Bindings temp = new Bindings(b.getAsJsonObject());
+			if (solution.getVariables().size() == temp.getVariables().size()) {
+				if(solution.getVariables().containsAll(temp.getVariables())) {
+					for(String var : solution.getVariables()) {
+						try {
+							if(!solution.getRDFTerm(var).equals(temp.getRDFTerm(var))) return false;
+						} catch (SEPABindingsException e) {
+							Logging.logger.error(e.getMessage());
+							return false;
+						}						
+					}
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	/**

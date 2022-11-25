@@ -83,6 +83,7 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint {
 	@Override
 	public Response update(UpdateRequest req) {
 		RDFConnection conn = RDFConnection.connect(dataset);
+
 		Txn.executeWrite(conn, () -> {
 			conn.update(req.getSPARQL());
 		});

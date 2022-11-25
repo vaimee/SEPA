@@ -153,6 +153,7 @@ public class SPARQL11Protocol implements Closeable {
 			responseBody = EntityUtils.toString(responseEntity, Charset.forName("UTF-8"));
 
 			Logging.logger.trace(String.format("Response code: %d", responseCode));
+			Logging.logger.trace(String.format("Response boby: %s", responseBody));
 
 			EntityUtils.consume(responseEntity);
 		} catch (Exception e) {
@@ -188,7 +189,7 @@ public class SPARQL11Protocol implements Closeable {
 						ret.get("error_description").getAsString());
 			} catch (Exception e) {
 				// E.g. parsing response from a "common" SPARQL endpoint
-				Logging.logger.warn(e.getMessage() + " response code:" + responseCode + " response body: " + responseBody);
+				Logging.logger.warn(e.getMessage() + " response code: " + responseCode + " response body: " + responseBody);
 				if (responseBody.equals(""))
 					responseBody = httpResponse.toString();
 				errorResponse = new ErrorResponse(responseCode, "sparql11_endpoint", responseBody);
