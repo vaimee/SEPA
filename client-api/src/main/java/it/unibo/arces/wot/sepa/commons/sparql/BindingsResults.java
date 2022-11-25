@@ -20,13 +20,12 @@ package it.unibo.arces.wot.sepa.commons.sparql;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.management.QueryEval;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import it.unibo.arces.wot.sepa.pattern.ForcedBindings;
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
+import it.unibo.arces.wot.sepa.logging.Logging;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -211,7 +210,12 @@ public class BindingsResults {
 			if (solution.getVariables().size() == temp.getVariables().size()) {
 				if(solution.getVariables().containsAll(temp.getVariables())) {
 					for(String var : solution.getVariables()) {
-						if(!solution.equals(temp)) return false;
+						try {
+							if(!solution.getRDFTerm(var).equals(temp.getRDFTerm(var))) return false;
+						} catch (SEPABindingsException e) {
+							Logging.logger.error(e.getMessage());
+							return false;
+						}						
 					}
 					return true;
 				}
