@@ -74,7 +74,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 
 			EntityUtils.consume(entity);
 
-			JsonObject json = new JsonParser().parse(jsonResponse).getAsJsonObject();
+			JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
 
 			if (json.has("error")) {
 				int code = json.get("status_code").getAsInt();
@@ -157,7 +157,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 			EntityUtils.consume(entity);
 
 			// Parse response
-			JsonObject json = new JsonParser().parse(jsonResponse).getAsJsonObject();
+			JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
 
 			if (json.has("error")) {
 				Timings.log("TOKEN_REQUEST", start, Timings.getTime());

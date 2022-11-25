@@ -39,7 +39,7 @@ public class QueryResponse extends Response {
 		super();
 
 		try {
-			json = new JsonParser().parse(responseBody).getAsJsonObject();
+			json = JsonParser.parseString(responseBody).getAsJsonObject();
 		} catch (JsonParseException e) {
 			json = null;
 		}

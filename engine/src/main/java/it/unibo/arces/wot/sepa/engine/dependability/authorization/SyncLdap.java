@@ -100,7 +100,7 @@ public class SyncLdap implements IUsersSync {
 				String uid = entry.get("uid").getString();
 				String description = entry.get("description").getString();
 			
-				ret.add(uid,new JsonParser().parse(description).getAsJsonObject());
+				ret.add(uid,JsonParser.parseString(description).getAsJsonObject());
 			}
 		} catch (LdapException | SEPASecurityException  e) {
 			Logging.logger.error("[LDAP] LdapException|CursorException : " + e.getMessage());
