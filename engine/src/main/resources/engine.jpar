@@ -23,8 +23,8 @@
 				"wss": 9443
 			},
 			"paths": {
-				"update": "/sparql",
-				"query": "/sparql",
+				"update": "/update",
+				"query": "/query",
 				"subscribe": "/subscribe",
 				"register": "/oauth/register",
 				"tokenRequest": "/oauth/token",
