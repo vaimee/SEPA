@@ -127,6 +127,8 @@ class SPUNaive extends SPU {
 
 		// Update the last bindings with the current ones
 		lastBindings = currentBindings;
+//		BindingsResults(null, null);
+//		for (Bindings b : currentBindings.getBindings()) lastBindings.add(b);
 
 		// Send notification (or end processing indication)
 		if (!added.isEmpty() || !removed.isEmpty()) {
