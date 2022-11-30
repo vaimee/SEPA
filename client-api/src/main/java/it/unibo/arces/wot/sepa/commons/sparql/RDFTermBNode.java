@@ -36,4 +36,43 @@ public class RDFTermBNode extends RDFTerm {
 		
 		json.add("type", new JsonPrimitive("bnode"));
 	}
+	
+	/**
+	 * Equals.
+	 *
+	 * @param t
+	 *            the t
+	 * @return true, if successful
+	 * 
+	 * https://www.w3.org/TR/rdf-concepts/#section-blank-nodes
+	 * 
+	 * 6.6 Blank Nodes
+
+The blank nodes in an RDF graph are drawn from an infinite set. 
+
+This set of blank nodes, the set of all RDF URI references and the set of all literals are pairwise disjoint.
+
+Otherwise, this set of blank nodes is arbitrary.
+
+RDF makes no reference to any internal structure of blank nodes. 
+
+**** Given two blank nodes, it is possible to determine whether or not they are the same. ****
+
+References:
+- https://www.w3.org/DesignIssues/Diff (Tim Berners Lee 2001)
+
+
+	 */
+	@Override
+	public boolean equals(Object t) {
+		if (t == this) return true;
+		if (!t.getClass().equals(RDFTermBNode.class)) return false;
+		
+		return true;
+	}
+	
+	@Override
+	public final int hashCode() {
+		return 0;
+	}
 }
