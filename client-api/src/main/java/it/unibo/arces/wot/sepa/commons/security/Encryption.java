@@ -35,7 +35,7 @@ import it.unibo.arces.wot.sepa.logging.Logging;
 /**
  * The Class Encryption.
  */
-class Encryption {
+public class Encryption {
 	/** The Constant ALGO. */
 	// AES 128 bits (16 bytes)
 	private static final String ALGO = "AES";
@@ -70,7 +70,7 @@ class Encryption {
 	 * @throws SEPASecurityException
 	 *
 	 */
-	String encrypt(String Data) throws SEPASecurityException {
+	public String encrypt(String Data) throws SEPASecurityException {
 		Cipher c;
 		try {
 			c = Cipher.getInstance(ALGO);
@@ -90,7 +90,7 @@ class Encryption {
 	 * @throws SEPASecurityException
 	 *
 	 */
-	String decrypt(String encryptedData) throws SEPASecurityException {
+	public String decrypt(String encryptedData) throws SEPASecurityException {
 		Cipher c;
 
 		try {
