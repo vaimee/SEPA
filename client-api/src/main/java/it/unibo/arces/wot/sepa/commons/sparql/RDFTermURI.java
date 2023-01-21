@@ -52,9 +52,4 @@ public class RDFTermURI extends RDFTerm {
 
 		return this.getValue().equals(((RDFTermURI) t).getValue());
 	}
-
-	@Override
-	public final int hashCode() {
-		return this.getValue().hashCode();
-	}
 }
