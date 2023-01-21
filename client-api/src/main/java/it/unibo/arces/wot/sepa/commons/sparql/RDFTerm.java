@@ -81,4 +81,9 @@ public abstract class RDFTerm {
 	public String toString() {
 		return json.toString();
 	}
+	
+	@Override
+	public int hashCode() {
+		return this.getValue().hashCode();
+	}
 }

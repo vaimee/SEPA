@@ -65,14 +65,11 @@ References:
 	 */
 	@Override
 	public boolean equals(Object t) {
-		if (t == this) return true;
-		if (!t.getClass().equals(RDFTermBNode.class)) return false;
-		
-		return true;
-	}
-	
-	@Override
-	public final int hashCode() {
-		return 0;
+		if (t == this)
+			return true;
+		if (!t.getClass().equals(RDFTermBNode.class))
+			return false;
+
+		return this.getValue().equals(((RDFTermBNode) t).getValue());
 	}
 }

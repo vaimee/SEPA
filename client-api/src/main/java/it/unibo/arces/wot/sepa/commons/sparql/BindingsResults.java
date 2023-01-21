@@ -212,6 +212,8 @@ public class BindingsResults {
 					boolean found = true;
 					for(String var : solution.getVariables()) {
 						try {
+							// Comparing BNODE between two different queries is not possible
+							if (solution.isBNode(var) && temp.isBNode(var)) continue;
 							if(!solution.getRDFTerm(var).equals(temp.getRDFTerm(var))) {
 								found = false;
 								break;
