@@ -132,7 +132,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		BindingsResults added = results.getAddedBindings();
 		BindingsResults removed = results.getRemovedBindings();
 
-		Logging.logger.debug("onSemanticEvent: "+notify.getSpuid()+" "+notify.getSequence());
+		Logging.logger.trace("onSemanticEvent: "+notify.getSpuid()+" "+notify.getSequence());
 		
 		if (notify.getSequence() == 0) {
 			onFirstResults(added);
@@ -212,7 +212,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	@Override
 	public void onSubscribe(String spuid, String alias) {
 		synchronized(client) {
-			Logging.logger.debug("onSubscribe");
+			Logging.logger.trace("onSubscribe");
 			subscribed = true;
 			this.spuid = spuid;
 			client.notify();
@@ -221,27 +221,27 @@ public abstract class Consumer extends Client implements IConsumer {
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		Logging.logger.debug("onUnsubscribe");
+		Logging.logger.trace("onUnsubscribe");
 		subscribed = false;		
 	}
 	
 	@Override
 	public void onAddedResults(BindingsResults results) {
-		Logging.logger.debug("Added results "+results);
+		Logging.logger.trace("Added results "+results);
 	}
 
 	@Override
 	public void onRemovedResults(BindingsResults results) {
-		Logging.logger.debug("Removed results "+results);
+		Logging.logger.trace("Removed results "+results);
 	}
 	
 	@Override
 	public void onResults(ARBindingsResults results) {
-		Logging.logger.debug("Results "+results);
+		Logging.logger.trace("Results "+results);
 	}
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
-		Logging.logger.debug("First results "+results);
+		Logging.logger.trace("First results "+results);
 	}
 }
