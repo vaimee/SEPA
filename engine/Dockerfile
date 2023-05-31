@@ -1,6 +1,7 @@
 #How to publish on Docker HUB
-# 1) docker login -u YOUR-USER-NAME.
-#
+# 1) docker build -t vaimeedock/sepa:latest -f Dockerfile .
+# 2) docker login -u YOUR-USER-NAME.
+# Build command on Apple M1: docker buildx build --platform linux/amd64 --push -t vaimeedock/engine:0.11.20221125 .
 
 FROM openjdk:13-alpine
 
