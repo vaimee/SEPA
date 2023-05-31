@@ -85,7 +85,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 	}
 
 	public void onOpen(Session session, EndpointConfig config) {
-		Logging.logger.debug("@onOpen session: " + session.getId());
+		Logging.logger.trace("@onOpen session: " + session.getId());
 
 		this.session = session;
 

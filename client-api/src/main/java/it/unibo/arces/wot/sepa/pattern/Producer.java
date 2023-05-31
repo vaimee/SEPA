@@ -70,11 +70,11 @@ public class Producer extends Client implements IProducer {
 				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
 
-		Logging.logger.debug(req);
+		Logging.logger.trace(req);
 		
 		Response retResponse = client.update(req);
 
-		Logging.logger.debug(retResponse);
+		Logging.logger.trace(retResponse);
 		
 //		if (appProfile.isSecure() && retResponse.isError()) {
 //			ErrorResponse errorResponse = (ErrorResponse) retResponse;
