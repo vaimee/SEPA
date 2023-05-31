@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.commons.protocol;
 
 import java.io.*;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.google.gson.JsonArray;
@@ -230,25 +231,44 @@ public class SPARQL11Properties {
 	 * </pre>
 	 */
 	protected void defaults() {
-		jsap.add("host", new JsonPrimitive("in-memory"));
+		//Read from environmental variables (if any)
+		Map<String, String> env = System.getenv();
+		if (env.get("host")!= null) jsap.addProperty("host", (env.get("host")));		
+		else jsap.add("host", new JsonPrimitive("in-memory"));
 
 		JsonObject sparql11protocol = new JsonObject();
-		sparql11protocol.add("protocol", new JsonPrimitive("jena-api"));
-		sparql11protocol.add("port", new JsonPrimitive(9999));
+		if (env.get("protocol")!= null) sparql11protocol.addProperty("protocol", (env.get("protocol")));		
+		else sparql11protocol.add("protocol", new JsonPrimitive("jena-api"));
+		
+		if (env.get("port")!= null) sparql11protocol.addProperty("port", (env.get("port")));		
+		else sparql11protocol.add("port", new JsonPrimitive(9999));
 
 		JsonObject query = new JsonObject();
-		query.add("path", new JsonPrimitive("/sparql"));
-		query.add("method", new JsonPrimitive("POST"));
-		query.add("format", new JsonPrimitive("JSON"));
+		if (env.get("query-path")!= null) query.addProperty("path", (env.get("query-path")));		
+		else query.add("path", new JsonPrimitive("/sparql"));
+		
+		if (env.get("query-method")!= null) query.addProperty("method", (env.get("query-method")));		
+		else query.add("method", new JsonPrimitive("POST"));
+		
+		if (env.get("query-format")!= null) query.addProperty("format", (env.get("query-format")));		
+		else query.add("format", new JsonPrimitive("JSON"));
+		
 		sparql11protocol.add("query", query);
 
 		JsonObject update = new JsonObject();
-		update.add("path", new JsonPrimitive("/sparql"));
-		update.add("method", new JsonPrimitive("POST"));
-		update.add("format", new JsonPrimitive("JSON"));
+		if (env.get("update-path")!= null) update.addProperty("path", (env.get("update-path")));		
+		else update.add("path", new JsonPrimitive("/sparql"));
+		
+		if (env.get("update-method")!= null) update.addProperty("method", (env.get("update-method")));		
+		else update.add("method", new JsonPrimitive("POST"));
+		
+		if (env.get("update-format")!= null) update.addProperty("format", (env.get("update-format")));		
+		else update.add("format", new JsonPrimitive("JSON"));
+		
 		sparql11protocol.add("update", update);
 
 		jsap.add("sparql11protocol", sparql11protocol);
+
 	}
 
 	protected void validate() throws SEPAPropertiesException {
