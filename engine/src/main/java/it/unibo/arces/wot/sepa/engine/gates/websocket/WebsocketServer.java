@@ -151,7 +151,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 					Logging.logger.error("Gate NOT FOUND: " + conn);
 				}
 			} catch (SEPAProtocolException | SEPASecurityException | SEPASparqlParsingException e) {
-				Logging.logger.error(e);
+				Logging.logger.error(e+" in message "+message);
 
 				ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "parsing failed", e.getMessage());
 				try {

@@ -56,9 +56,9 @@ public class EngineBeans {
 		return properties.getSubscribePath();
 	}
 
-	public static String getSecurePath() {
-		return properties.getSecurePath();
-	}
+//	public static String getSecurePath() {
+//		return properties.getSecurePath();
+//	}
 
 	public static String getRegisterPath() {
 		return properties.getRegisterPath();
@@ -72,17 +72,17 @@ public class EngineBeans {
 		return properties.getHttpPort();
 	}
 
-	public static int getHttpsPort() {
-		return properties.getHttpsPort();
-	}
+//	public static int getHttpsPort() {
+//		return properties.getHttpsPort();
+//	}
 
 	public static int getWsPort() {
 		return properties.getWsPort();
 	}
 
-	public static int getWssPort() {
-		return properties.getWssPort();
-	}
+//	public static int getWssPort() {
+//		return properties.getWssPort();
+//	}
 
 	public static boolean getSecure() {
 		return properties.isSecure();
@@ -121,26 +121,30 @@ public class EngineBeans {
 	}
 
 	public static String getSecureQueryURL() {
-		String port = "";
-		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
-		return "https://"+getHost()+port+getSecurePath()+getQueryPath();
+//		String port = "";
+//		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
+//		return "https://"+getHost()+port+getSecurePath()+getQueryPath();
+		return "https://"+getHost()+getQueryPath();
 	}
 
 	public static String getSecureUpdateURL() {
-		String port = "";
-		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
-		return "https://"+getHost()+port+getSecurePath()+getUpdatePath();
+//		String port = "";
+//		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
+//		return "https://"+getHost()+port+getSecurePath()+getUpdatePath();
+		return "https://"+getHost()+getUpdatePath();
 	}
 
 	public static String getRegistrationURL() {
-		String port = "";
-		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
-		return "https://"+getHost()+port+getRegisterPath();
+//		String port = "";
+//		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
+//		return "https://"+getHost()+port+getRegisterPath();
+		return "https://"+getHost()+getRegisterPath();
 	}
 
 	public static String getTokenRequestURL() {
-		String port = "";
-		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
-		return "https://"+getHost()+port+getTokenRequestPath();
+//		String port = "";
+//		if (getHttpsPort() != -1) port = ":"+getHttpsPort();
+//		return "https://"+getHost()+port+getTokenRequestPath();
+		return "https://"+getHost()+getTokenRequestPath();
 	}
 }

@@ -89,7 +89,7 @@ public class StressUsingSPARQLProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	// @Timeout(60)
+	@Timeout(60)
 	public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
 			SEPAPropertiesException, SEPASecurityException {
 
@@ -119,7 +119,7 @@ public class StressUsingSPARQLProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	// @Timeout(5)
+	@Timeout(5)
 	public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
 			InterruptedException, SEPAPropertiesException, SEPASecurityException {
 

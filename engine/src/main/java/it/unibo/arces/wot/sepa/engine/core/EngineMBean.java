@@ -28,7 +28,7 @@ public interface EngineMBean {
 	
 	public String getSubscribePath();
 
-	public String getSecurePath();
+//	public String getSecurePath();
 	
 	public String getRegisterPath();
 	
@@ -36,11 +36,11 @@ public interface EngineMBean {
 	
 	public int getHttpPort();
 	
-	public int getHttpsPort();
+//	public int getHttpsPort();
 	
 	public int getWsPort();
 	
-	public int getWssPort();
+//	public int getWssPort();
 	
 	public boolean getSecure();
 	

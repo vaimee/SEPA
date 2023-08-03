@@ -12,12 +12,8 @@ import it.unibo.arces.wot.sepa.logging.Logging;
 public class RemoteEndpoint implements SPARQLEndpoint {
 	SPARQL11Protocol endpoint;
 
-	public RemoteEndpoint() {
-		try {
-			endpoint = new SPARQL11Protocol();
-		} catch (SEPASecurityException e) {
-			Logging.logger.error(e.getMessage());
-		}
+	public RemoteEndpoint() throws SEPASecurityException {
+		endpoint = new SPARQL11Protocol();
 	}
 
 	@Override
