@@ -54,7 +54,7 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.11.20221125";
+	private final static String version = "0.11.2023.06.07";
 
 	private EngineProperties properties = null;
 
@@ -73,8 +73,8 @@ public class Engine implements EngineMBean {
 	private int wsShutdownTimeout = 5000;
 
 	// Properties files
-	private String engineJpar = "engine.jpar";
-	private String endpointJpar = "endpoint.jpar";
+	private String engineJpar = null; //"engine.jpar";
+	private String endpointJpar = null; //"endpoint.jpar";
 
 	// Secure option
 	private Optional<Boolean> secure = Optional.empty();
@@ -343,8 +343,7 @@ public class Engine implements EngineMBean {
 
 		try {
 			// Initialize SPARQL 1.1 SE processing service properties
-			properties = secure.isPresent() ? EngineProperties.load(engineJpar, secure.get())
-					: EngineProperties.load(engineJpar);
+			properties = new EngineProperties(engineJpar, secure);
 
 			EngineBeans.setEngineProperties(properties);
 
@@ -416,8 +415,8 @@ public class Engine implements EngineMBean {
 			if (!properties.isSecure()) {
 				wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler);
 			} else {
-				wsServer = new SecureWebsocketServer(properties.getWssPort(),
-						properties.getSecurePath() + properties.getSubscribePath(), scheduler);
+				wsServer = new SecureWebsocketServer(443,
+						properties.getSubscribePath(), scheduler);
 			}
 
 			// Start all
@@ -510,11 +509,6 @@ public class Engine implements EngineMBean {
 	}
 
 	@Override
-	public String getSecurePath() {
-		return EngineBeans.getSecurePath();
-	}
-
-	@Override
 	public String getRegisterPath() {
 		return EngineBeans.getRegisterPath();
 	}
@@ -530,18 +524,8 @@ public class Engine implements EngineMBean {
 	}
 
 	@Override
-	public int getHttpsPort() {
-		return EngineBeans.getHttpsPort();
-	}
-
-	@Override
 	public int getWsPort() {
 		return EngineBeans.getWsPort();
-	}
-
-	@Override
-	public int getWssPort() {
-		return EngineBeans.getWssPort();
 	}
 
 	@Override

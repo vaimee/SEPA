@@ -22,38 +22,28 @@ import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 
 public class ProcessorBeans {
 	
-	private static String host;
-	private static int port;
-	private static String queryPath;
-	private static String updatePath;
-	private static String updateMethod;
-	private static String queryMethod;
+	private static SPARQL11Properties prop;
 	
-	public static void setEndpoint(SPARQL11Properties prop) {
-		host = prop.getHost();
-		port = prop.getPort();
-		queryPath = prop.getQueryPath();
-		updatePath = prop.getUpdatePath();
-		updateMethod = prop.getUpdateMethod().name();
-		queryMethod = prop.getQueryMethod().name();
+	public static void setEndpoint(SPARQL11Properties p) {
+		prop = p;
 	}
 
 	public static String getEndpointHost() {
-		return host;
+		return prop.getHost();
 	}
 	public static int getEndpointPort() {
-		return port;
+		return prop.getPort();
 	}
 	public static String getEndpointQueryPath() {
-		return queryPath;
+		return prop.getQueryPath();
 	}
 	public static String getEndpointUpdatePath() {
-		return updatePath;
+		return prop.getUpdatePath();
 	}
 	public static String getEndpointUpdateMethod() {
-		return updateMethod;
+		return prop.getUpdateMethod().name();
 	}
 	public static String getEndpointQueryMethod() {
-		return queryMethod;
+		return prop.getQueryMethod().name();
 	}
 }

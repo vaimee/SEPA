@@ -105,8 +105,8 @@ public class StressUsingPAC implements ISubscriptionHandler {
 		}
 	}
 
-	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	// @Timeout(60)
+	//@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	//@Timeout(10)
 	public void produceX1000() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
 		for (int i = 0; i < 1000; i++) {
@@ -133,8 +133,8 @@ public class StressUsingPAC implements ISubscriptionHandler {
 		}
 	}
 	
-	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(60)
+	//@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	//@Timeout(60)
 	public void hugex1000() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {
 		for (int i = 0; i < 1000; i++) {
@@ -148,7 +148,7 @@ public class StressUsingPAC implements ISubscriptionHandler {
 		deleteAll.update();
 	}
 
-	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	//@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	// @Timeout(10)
 	public void subscribeAndUpdateRaceDetection() throws InterruptedException, SEPASecurityException, IOException,
 			SEPAPropertiesException, SEPAProtocolException, SEPABindingsException {

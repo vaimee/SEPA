@@ -30,10 +30,11 @@ public class My2SecEvents implements ISubscriptionHandler {
 	protected static GenericClient genericClient;
 	protected static Producer deleteAll;
 
-	private String ADD_TRAINING_EVENT = "INSERT {GRAPH <http://sepatest> { ?b rdf:type sepa:TrainingEvent ; sepa:hasMember <http://user/graph>; rdf:type <http://event/type>; sepa:nameApp 'AppName'; sepa:titleFile 'Title'; sepa:inXSDDateTimeStamp 'dateTime'; sepa:hasActivityType <http://activity/type>; sepa:taskTitle 'TaskTitle'; sepa:hasTimeInterval _:d . _:d rdf:type sepa:Duration; sepa:unitType sepa:unitSecond ; sepa:numericDuration 10 }}  WHERE {BIND(UUID() AS ?b )}";
-	private String QUERY_TRAINING_EVENT = "SELECT * WHERE {GRAPH <http://sepatest> { ?b rdf:type sepa:TrainingEvent}}";
-	private String DELETE_TRAINING_EVENT = "DELETE {GRAPH <http://sepatest> {?event ?p ?o ; sepa:hasTimeInterval ?d .?d ?p1 ?o1 } } WHERE{GRAPH <http://sepatest> {?event ?p ?o ; sepa:hasTimeInterval ?d . ?d ?p1 ?o1 } VALUES ?event {%values%}}";
-	private String DELETE_ALL_TRAINING_EVENT = "DELETE {GRAPH <http://sepatest> {%values%} } WHERE{GRAPH <http://sepatest> {%values%}}";
+	private String prefixes = "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX sepa:<https://github.com/arces-wot/SEPA>";
+	private String ADD_TRAINING_EVENT = prefixes + "INSERT {GRAPH <http://sepatest> { ?b rdf:type sepa:TrainingEvent ; sepa:hasMember <http://user/graph>; rdf:type <http://event/type>; sepa:nameApp 'AppName'; sepa:titleFile 'Title'; sepa:inXSDDateTimeStamp 'dateTime'; sepa:hasActivityType <http://activity/type>; sepa:taskTitle 'TaskTitle'; sepa:hasTimeInterval _:d . _:d rdf:type sepa:Duration; sepa:unitType sepa:unitSecond ; sepa:numericDuration 10 }}  WHERE {BIND(UUID() AS ?b )}";
+	private String QUERY_TRAINING_EVENT = prefixes+ "SELECT * WHERE {GRAPH <http://sepatest> { ?b rdf:type sepa:TrainingEvent}}";
+	private String DELETE_TRAINING_EVENT = prefixes + "DELETE {GRAPH <http://sepatest> {?event ?p ?o ; sepa:hasTimeInterval ?d .?d ?p1 ?o1 } } WHERE{GRAPH <http://sepatest> {?event ?p ?o ; sepa:hasTimeInterval ?d . ?d ?p1 ?o1 } VALUES ?event {%values%}}";
+	private String DELETE_ALL_TRAINING_EVENT = prefixes + "DELETE {GRAPH <http://sepatest> {%values%} } WHERE{GRAPH <http://sepatest> {%values%}}";
 	
 	@BeforeAll
 	public static void init() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
@@ -109,7 +110,7 @@ public class My2SecEvents implements ISubscriptionHandler {
 
 		res = (QueryResponse) ret;
 		assertFalse(res.getBindingsResults().getBindings().size() != 100,
-				"Results size is wrong" + res.getBindingsResults().getBindings().size());
+				"Results size is wrong " + res.getBindingsResults().getBindings().size() + " on 100");
 
 		String pattern = "?event ?p ?o ; sepa:hasTimeInterval ?d . ?d ?dp ?do";
 		String values = "";

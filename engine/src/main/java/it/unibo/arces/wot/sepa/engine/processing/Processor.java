@@ -25,6 +25,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.ProtocolScheme;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
@@ -73,7 +74,10 @@ public class Processor implements ProcessorMBean {
 			throws IllegalArgumentException, SEPAProtocolException, SEPASecurityException {
 
 		this.scheduler = scheduler;
-
+		
+		if (endpointProperties.getHost() == null) endpointProperties.setHost("in-memory");
+		if (endpointProperties.getProtocolScheme() == null) endpointProperties.setProtocolScheme(ProtocolScheme.jena_api);
+		
 		// Processors
 		queryProcessor = new QueryProcessor(endpointProperties);
 		updateProcessor = new UpdateProcessor(endpointProperties);
