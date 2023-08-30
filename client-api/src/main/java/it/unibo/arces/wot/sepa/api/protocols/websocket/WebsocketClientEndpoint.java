@@ -33,9 +33,9 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -97,7 +97,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 				// Parse message
 				JsonObject jsonMessage = null;
 				try {
-					jsonMessage = new JsonParser().parse(message).getAsJsonObject();
+					jsonMessage = new Gson().fromJson(message, JsonObject.class);
 				} catch (Exception e) {
 					Logging.logger.error("Exception on parsing message: " + message + " exception: " + e.getMessage());
 					return;
@@ -177,7 +177,7 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		ErrorResponse error = null;
 		try{
 			msg = msg.substring(0, msg.lastIndexOf('}')+1);
-			JsonObject err = new JsonParser().parse(msg).getAsJsonObject();
+			JsonObject err = new Gson().fromJson(msg, JsonObject.class);
 			error = new ErrorResponse(err.get("status_code").getAsInt(), err.get("error").getAsString(), err.get("error_description").getAsString());
 		}
 		catch(JsonParseException e) {

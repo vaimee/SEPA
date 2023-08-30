@@ -15,9 +15,13 @@ public class ConsumerTestUnit extends Consumer {
 	protected static boolean notificationReceived = false;
 	protected static boolean firstResultsReceived = false;
 	
-	public ConsumerTestUnit(ConfigurationProvider provider, String subscribeID)
+	private Sync sync;
+	
+	public ConsumerTestUnit(ConfigurationProvider provider, String subscribeID,Sync sync)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		super(provider.getJsap(), subscribeID);
+		
+		this.sync = sync;
 	}
 
 	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
@@ -32,6 +36,8 @@ public class ConsumerTestUnit extends Consumer {
 			while (!isSubscribed()) wait();
 			Logging.logger.debug("subscribed");
 		}
+		
+		sync.onSubscribe();
 	}
 	
 	public void syncUnsubscribe(long timeout,long nretry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
@@ -41,8 +47,10 @@ public class ConsumerTestUnit extends Consumer {
 		
 		synchronized(this) {
 			while (isSubscribed()) wait();
-			Logging.logger.debug("ussubscribed");
+			Logging.logger.debug("unsubscribed");
 		}
+		
+		sync.onUnsubscribe();
 	}
 	
 	public void waitNotification() throws InterruptedException {
@@ -69,6 +77,7 @@ public class ConsumerTestUnit extends Consumer {
 			Logging.logger.debug("onResults");
 			notificationReceived = true;
 			notify();
+			sync.onSemanticEvent();
 		}
 	}
 

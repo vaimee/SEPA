@@ -78,8 +78,9 @@ public abstract class Client implements java.io.Closeable {
 		}
 	}
 
+	@Override
 	public void close() throws IOException {
-		sm.close();
+		if (sm != null) sm.close();
 	}
 
 	/**

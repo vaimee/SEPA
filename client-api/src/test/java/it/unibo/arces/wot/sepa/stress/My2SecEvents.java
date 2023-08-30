@@ -54,9 +54,11 @@ public class My2SecEvents implements ISubscriptionHandler {
 	}
 
 	@AfterEach
-	public void afterTest() throws IOException {
+	public void afterTest() throws IOException, InterruptedException {
 		deleteAll.close();
 		genericClient.close();
+		
+		Thread.sleep(ConfigurationProvider.SLEEP);
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)

@@ -17,8 +17,8 @@
 */
 package it.unibo.arces.wot.sepa.commons.response;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 /**
@@ -36,7 +36,7 @@ public class UpdateResponse extends Response {
 		super();
 
 		try {
-			JsonObject jbody = new JsonParser().parse(body).getAsJsonObject();
+			JsonObject jbody = new Gson().fromJson(body,JsonObject.class);
 			
 			json.add("response", new JsonObject());
 			json.get("response").getAsJsonObject().add("body", jbody);

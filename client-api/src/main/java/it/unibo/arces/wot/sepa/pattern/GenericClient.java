@@ -305,10 +305,12 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 
 	public void unsubscribe(String subID, long timeout, long nRetry)
 			throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
-		if (!subscriptions.containsKey(subID))
-			return;
-
+	
 		synchronized (subLock) {
+			if (subID == null) return;
+			if (!subscriptions.containsKey(subID))
+				return;
+			
 			if (req != null)
 				subLock.wait();
 
@@ -433,6 +435,8 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 
 	@Override
 	public void close() throws IOException {
+		super.close();
+		
 		for (SPARQL11SEProtocol client : activeClients.values())
 			client.close();
 		for (SubscriptionProtocol protocol : protocols.values())

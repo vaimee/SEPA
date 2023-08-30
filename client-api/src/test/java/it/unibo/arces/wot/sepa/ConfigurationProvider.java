@@ -26,7 +26,8 @@ public class ConfigurationProvider implements Closeable {
 	public long TIMEOUT;
 	public long NRETRY;
 	public static final int REPEATED_TEST = 1;
-
+	public static final long SLEEP = 0;
+	
 	protected ClientSecurityManager sm = null;
 	
 	public ConfigurationProvider() throws SEPAPropertiesException, SEPASecurityException {

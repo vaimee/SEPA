@@ -16,9 +16,13 @@ public class AggregatorTestUnit extends Aggregator {
 	protected static boolean notificationReceived = false;
 	protected static boolean firstResultsReceived = false;
 	
-	public AggregatorTestUnit(ConfigurationProvider provider, String subscribeID, String updateID)
+	private Sync sync;
+	
+	public AggregatorTestUnit(ConfigurationProvider provider, String subscribeID, String updateID, Sync sync)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		super(provider.getJsap(), subscribeID, updateID);
+		
+		this.sync = sync;
 	}
 
 	@Override
@@ -26,6 +30,7 @@ public class AggregatorTestUnit extends Aggregator {
 		synchronized(this) {
 			notificationReceived = true;
 			notify();
+			sync.onSemanticEvent();
 		}
 		
 		try {
@@ -34,7 +39,6 @@ public class AggregatorTestUnit extends Aggregator {
 		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
 			Logging.logger.error(e);
 		}
-		
 	}
 	
 	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
@@ -48,7 +52,8 @@ public class AggregatorTestUnit extends Aggregator {
 		synchronized(this) {
 			while (!isSubscribed()) wait();
 			Logging.logger.debug("subscribed");
-		}
+			sync.onSubscribe();
+		}	
 	}
 	
 	public void syncUnsubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
@@ -59,6 +64,7 @@ public class AggregatorTestUnit extends Aggregator {
 		synchronized(this) {
 			while (isSubscribed()) wait();
 			Logging.logger.debug("unsubscribed");
+			sync.onUnsubscribe();
 		}
 	}
 	
