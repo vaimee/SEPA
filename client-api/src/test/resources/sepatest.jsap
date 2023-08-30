@@ -19,6 +19,7 @@
 	},
 	"sparql11seprotocol": {
 		"protocol": "ws",
+		"reconnect" : false,
 		"availableProtocols": {
 			"ws": {
 				"port": 9000,

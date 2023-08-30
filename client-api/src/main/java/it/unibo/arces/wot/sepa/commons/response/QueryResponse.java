@@ -17,8 +17,9 @@
 */
 package it.unibo.arces.wot.sepa.commons.response;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.commons.sparql.BindingsResults;
 
@@ -39,7 +40,7 @@ public class QueryResponse extends Response {
 		super();
 
 		try {
-			json = new JsonParser().parse(responseBody).getAsJsonObject();
+			json = new Gson().fromJson(responseBody,JsonObject.class);
 		} catch (JsonParseException e) {
 			json = null;
 		}

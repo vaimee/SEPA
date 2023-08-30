@@ -23,6 +23,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.logging.Logging;
@@ -209,8 +211,8 @@ public class SPARQL11Properties {
 	
 	protected static class SPARQL11Protocol {
 		public String host = null;
-		public ProtocolScheme protocol = ProtocolScheme.http;
-		public int port = 8000;
+		public ProtocolScheme protocol = null;
+		public int port = -1;
 		public Query query = new Query();
 		public Update update = new Update();
 
@@ -263,48 +265,29 @@ public class SPARQL11Properties {
 		public Set<String> using_named_graph_uri = new HashSet<String>();
 	}
 	
-	public SPARQL11Properties() {
-		__init("","localhost",ProtocolScheme.http);
+	public SPARQL11Properties(String host,ProtocolScheme scheme) {
+		this.host = host;
+		this.sparql11protocol = new SPARQL11Protocol();
+		this.sparql11protocol.protocol = scheme;
 	}
 
-	public SPARQL11Properties(String jsapFile)  {
-		__init(jsapFile,"in-memory",ProtocolScheme.jena_api);
-	}
-	
-	public SPARQL11Properties(String jsapFile,String host) {
-		__init(jsapFile,host,ProtocolScheme.http);
-	}
-	
-	public SPARQL11Properties(String jsapFile,String host,ProtocolScheme scheme) {
-		__init(jsapFile,host,scheme);
-	}
-	
-	private void __init(String jsapFile,String host,ProtocolScheme scheme) {
+	public SPARQL11Properties(String jsapFile) throws SEPAPropertiesException  {
+		SPARQL11Properties jsap = null;
+		if (jsapFile == null) throw new SEPAPropertiesException("File is null");
 		try {
-			SPARQL11Properties jsap = new Gson().fromJson(new FileReader(jsapFile), SPARQL11Properties.class);
-			
-			this.host = jsap.host;
-			this.sparql11protocol = jsap.sparql11protocol;
-			this.graphs = jsap.graphs;
-			
-			propertiesFile = jsapFile;
-		} catch (Exception e) {
-			Logging.logger.warn(e.getMessage());
-			
-			this.host = host;
-			this.sparql11protocol = new SPARQL11Protocol();
-			this.sparql11protocol.protocol = scheme;
-			
-			this.graphs = new Graphs();
-			
-			propertiesFile = defaultsFileName;
-			try {
-				Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
-				storeProperties(defaultsFileName);
-			} catch (SEPAPropertiesException e1) {
-				Logging.logger.error(e1.getMessage());
-			}
+			FileReader reader = new FileReader(jsapFile);
+			jsap = new Gson().fromJson(reader, SPARQL11Properties.class);
+		} catch (JsonSyntaxException | JsonIOException | FileNotFoundException  e) {
+			Logging.logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new SEPAPropertiesException(e);
 		}
+		
+		this.host = jsap.host;
+		this.sparql11protocol = jsap.sparql11protocol;
+		this.graphs = jsap.graphs;
+		
+		propertiesFile = jsapFile;
 	}
 
 	public String getJSAPFilename() {
@@ -384,11 +367,13 @@ public class SPARQL11Properties {
 	 * @return the default graph URI
 	 */
 	public Set<String> getDefaultGraphURI() {
+		if (graphs == null) return null;
 		return graphs.default_graph_uri;
 
 	}
 
 	public void setDefaultGraphURI(Set<String> graph) {
+		if (graphs == null) graphs = new Graphs();
 		graphs.default_graph_uri.clear();
 		graphs.default_graph_uri.addAll(graph);
 	}
@@ -408,10 +393,12 @@ public class SPARQL11Properties {
 	 * @return the default graph URI
 	 */
 	public Set<String> getNamedGraphURI() {
+		if (graphs == null) return null;
 		return graphs.named_graph_uri;
 	}
 
 	public void setNamedGraphURI(Set<String> graph) {
+		if (graphs == null) graphs = new Graphs();
 		graphs.named_graph_uri.clear();
 		graphs.named_graph_uri.addAll(graph);
 	}
@@ -431,10 +418,12 @@ public class SPARQL11Properties {
 	 * @return the default graph URI
 	 */
 	public Set<String> getUsingGraphURI() {
+		if (graphs == null) return null;
 		return graphs.using_graph_uri;
 	}
 
 	public void setUsingGraphURI(Set<String> graph) {
+		if (graphs == null) graphs = new Graphs();
 		graphs.using_graph_uri.clear();
 		graphs.using_named_graph_uri.addAll(graph);
 	}
@@ -454,10 +443,12 @@ public class SPARQL11Properties {
 	 * @return the default graph URI
 	 */
 	public Set<String> getUsingNamedGraphURI() {
+		if (graphs == null) return null;
 		return graphs.using_named_graph_uri;
 	}
 
 	public void setUsingNamedGraphURI(Set<String> graph) {
+		if (graphs == null) graphs = new Graphs();
 		graphs.using_named_graph_uri.clear();
 		graphs.using_named_graph_uri.addAll(graph);
 	}

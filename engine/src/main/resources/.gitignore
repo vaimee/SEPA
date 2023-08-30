@@ -23,3 +23,7 @@
 /engine-secure-arces143100.jpar
 /config/
 /sepa.api.csv
+/cacerts.jks
+/jmx.cer
+/jmx.jks
+/logging-jconsole.properties

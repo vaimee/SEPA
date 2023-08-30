@@ -117,6 +117,7 @@ public abstract class Consumer extends Client implements IConsumer {
 
 	@Override
 	public void close() throws IOException {
+		super.close();
 		client.close();
 		protocol.close();
 	}
@@ -187,26 +188,6 @@ public abstract class Consumer extends Client implements IConsumer {
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		Logging.logger.error(errorResponse);
-//		Logging.logger.error("Subscribed: "+subscribed+ " Token expired: "+errorResponse.isTokenExpiredError()+" SM: "+(sm != null));
-//		
-//		if (!subscribed && errorResponse.isTokenExpiredError() && sm != null) {
-//			try {
-//				Logging.logger.info("refreshToken");
-//				
-//				sm.refreshToken();
-//				
-//			} catch (SEPAPropertiesException | SEPASecurityException e) {
-//				Logging.logger.error("Failed to refresh token "+e.getMessage());
-//			}
-//			
-//			try {
-//				Logging.logger.debug("subscribe");
-//				subscribe(TIMEOUT,0);
-//			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
-//					| SEPABindingsException e) {
-//				Logging.logger.error("Failed to subscribe "+e.getMessage());
-//			}
-//		}
 	}
 
 	@Override
@@ -216,13 +197,24 @@ public abstract class Consumer extends Client implements IConsumer {
 			subscribed = true;
 			this.spuid = spuid;
 			client.notify();
+			synchronized(this) {
+				notify();
+			}
 		}
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
 		Logging.logger.trace("onUnsubscribe");
-		subscribed = false;		
+		synchronized(client) {
+			Logging.logger.trace("onUnsubscribe");
+			subscribed = false;
+			this.spuid = null;
+			client.notify();
+			synchronized(this) {
+				notify();
+			}
+		}
 	}
 	
 	@Override

@@ -29,8 +29,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.Date;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -102,7 +102,7 @@ public class OAuthProperties {
 	public OAuthProperties(InputStream input,byte[] secret) throws SEPAPropertiesException {
 		InputStreamReader in = new InputStreamReader(input);
 		
-		jsap = new JsonParser().parse(in).getAsJsonObject();
+		jsap = new Gson().fromJson(in,JsonObject.class);
 
 		try {
 		
@@ -171,7 +171,7 @@ public class OAuthProperties {
 			throw new SEPAPropertiesException("FileNotFoundException. " + e.getMessage());
 		}
 
-		jsap = new JsonParser().parse(in).getAsJsonObject();
+		jsap = new Gson().fromJson(in,JsonObject.class);
 
 		try {
 			in.close();

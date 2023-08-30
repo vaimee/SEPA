@@ -18,10 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.api;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.HashMap;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
@@ -121,33 +124,41 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	 * @param propertiesFile the properties file
 	 * @throws SEPAPropertiesException
 	 */
-	public SPARQL11SEProperties(String propertiesFile) {
+	public SPARQL11SEProperties(String propertiesFile) throws SEPAPropertiesException {
 		super(propertiesFile);
 
 		SPARQL11SEProperties jsap;
-
 		try {
 			jsap = new Gson().fromJson(new FileReader(propertiesFile), SPARQL11SEProperties.class);
-		} catch (Exception e) {
-			Logging.logger.warn("Create from file: " + propertiesFile);
-			Logging.logger.warn(e.getMessage());
-			jsap = new SPARQL11SEProperties();
-			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
-			try {
-				jsap.storeProperties(defaultsFileName);
-			} catch (SEPAPropertiesException e1) {
-				Logging.logger.error(e1.getMessage());
-			}
-			
+			sparql11seprotocol = jsap.sparql11seprotocol;
+		} catch (JsonSyntaxException | JsonIOException | FileNotFoundException e2) {
+			Logging.logger.error(e2.getMessage());
+			e2.printStackTrace();
+			throw new SEPAPropertiesException(e2);
 		}
 
-		sparql11seprotocol = jsap.sparql11seprotocol;
+//		try {
+//			jsap = new Gson().fromJson(new FileReader(propertiesFile), SPARQL11SEProperties.class);
+//		} catch (Exception e) {
+//			Logging.logger.warn("Create from file: " + propertiesFile);
+//			Logging.logger.warn(e.getMessage());
+//			jsap = new SPARQL11SEProperties();
+//			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
+//			try {
+//				jsap.storeProperties(defaultsFileName);
+//			} catch (SEPAPropertiesException e1) {
+//				Logging.logger.error(e1.getMessage());
+//			}
+//			
+//		}
+
+		
 	}
 
-	public SPARQL11SEProperties() {
-		super();
-		sparql11seprotocol = new SPARQL11SEProtocol();
-	}
+//	public SPARQL11SEProperties() {
+//		super();
+//		sparql11seprotocol = new SPARQL11SEProtocol();
+//	}
 
 	public String toString() {
 		return new Gson().toJson(this);

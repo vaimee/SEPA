@@ -145,17 +145,8 @@
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore-nio</artifactId>
-			<version>4.4.6</version>
+			<version>4.4.16</version>
 		</dependency>
-
-
-		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
-
-		<!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->
-
-		<!-- https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket -->
-
-
 
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>

@@ -47,7 +47,7 @@ public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 
 	@AfterEach
 	public void after() throws IOException, SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, InterruptedException {		
-		
+		Thread.sleep(ConfigurationProvider.SLEEP);
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)

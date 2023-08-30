@@ -92,6 +92,6 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint {
 
 	@Override
 	public void close() {
+		
 	}
-
 }

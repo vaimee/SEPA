@@ -120,7 +120,8 @@ public class Producer extends Client implements IProducer {
 
 	@Override
 	public void close() throws IOException {
-		client.close();
+		super.close();
+		if (client != null) client.close();
 	}
 
 	public final void setUpdateBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
