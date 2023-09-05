@@ -66,7 +66,7 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 		mutex = new Object();
 
-		if (!scheme.equals("ws") && scheme.equals("wss"))
+		if (!scheme.equals("ws") && !scheme.equals("wss"))
 			throw new SEPAProtocolException("Scheme must be 'ws' or 'wss'");
 
 		if (port == -1)

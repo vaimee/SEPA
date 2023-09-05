@@ -18,12 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -216,19 +215,12 @@ public class JSAP extends SPARQL11SEProperties {
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#boolean");
 
 		// Default namespaces
+		if (namespaces == null) namespaces = new HashMap<String, String>();
 		namespaces.put("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 		namespaces.put("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
 		namespaces.put("owl", "http://www.w3.org/2002/07/owl#");
 		namespaces.put("xsd", "http://www.w3.org/2001/XMLSchema#");
 	}
-
-//	public JSAP() throws SEPAPropertiesException {
-//		super();
-//
-//		defaultNamespaces();
-//
-//		buildSPARQLPrefixes();
-//	}
 
 	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
 		super(propertiesFile);
@@ -394,14 +386,16 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 
 		for (String file : files) {
-			//loadFromFile(new File(uri).getParent() + File.separator + file, false);
-			loadFromFile(file, false);
+			String path = new File(uri).getParent();
+			if (path == null) loadFromFile(file, false);
+			else loadFromFile(path + File.separator + file, false);
 		}
 			
 	}
 
-	public void read(InputStream input, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
-		__read(new InputStreamReader(input), replace);
+	public void read(Reader input, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
+		//__read(new InputStreamReader(input), replace);
+		__read(input, replace);
 	}
 
 	/**
@@ -458,6 +452,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	private void buildSPARQLPrefixes() {
 		prefixes = "";
+		if (namespaces == null) return;
 		for (String prefix : namespaces.keySet()) {
 			prefixes += "PREFIX " + prefix + ":<" + namespaces.get(prefix) + "> ";
 		}
