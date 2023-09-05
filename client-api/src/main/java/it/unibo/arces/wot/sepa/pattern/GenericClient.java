@@ -420,7 +420,7 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 			if (activeClients.containsKey(url)) {
 				subscription = activeClients.get(url);
 			} else {
-				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
+				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeProtocol(ID).scheme,appProfile.getSubscribeHost(ID),
 						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), this, sm);
 				subscription = new SPARQL11SEProtocol(protocol);
 			}

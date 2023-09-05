@@ -70,7 +70,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 					appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
 					appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),authorizationHeader,timeout,nRetry);
 		
-		Logging.logger.debug("UPDATE "+req);
+		Logging.logger.trace("UPDATE "+req);
 		
 		 Response retResponse = sparql11.update(req);
 		 
