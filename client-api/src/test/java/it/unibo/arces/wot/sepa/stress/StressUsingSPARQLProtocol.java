@@ -62,14 +62,16 @@ public class StressUsingSPARQLProtocol {
 		client.close();
 		
 		provider.close();
+		
+		Thread.sleep(ConfigurationProvider.SLEEP);
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(60)
 	public void Subscribe3xN()
-			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException {
+			throws SEPAPropertiesException, SEPASecurityException, SEPAProtocolException, InterruptedException, IOException, URISyntaxException {
 		int n = 10;
-
+		
 		for (int i = 0; i < n; i++) {
 			subscribers.add(new Subscriber(provider, "ALL", sync));
 			subscribers.add(new Subscriber(provider, "RANDOM", sync));
@@ -89,10 +91,9 @@ public class StressUsingSPARQLProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	// @Timeout(60)
+	@Timeout(60)
 	public void NotifyNxN() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
-			SEPAPropertiesException, SEPASecurityException {
-
+			SEPAPropertiesException, SEPASecurityException, URISyntaxException {
 		int n = 10;
 
 		for (int i = 0; i < n; i++) {
@@ -119,10 +120,9 @@ public class StressUsingSPARQLProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	// @Timeout(5)
+	@Timeout(5)
 	public void NotifyNx2NWithMalformedUpdates() throws IOException, IllegalArgumentException, SEPAProtocolException,
-			InterruptedException, SEPAPropertiesException, SEPASecurityException {
-
+			InterruptedException, SEPAPropertiesException, SEPASecurityException, URISyntaxException {
 		int n = 4;
 
 		for (int i = 0; i < n; i++) {
@@ -152,8 +152,8 @@ public class StressUsingSPARQLProtocol {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
-	@Timeout(30)
-	public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException {
+	@Timeout(60)
+	public void UpdateHeavyLoad() throws InterruptedException, SEPAPropertiesException, SEPASecurityException, IOException, SEPAProtocolException, URISyntaxException {
 		int n = 10;
 
 		for (int i = 0; i < n; i++) {
@@ -173,7 +173,7 @@ public class StressUsingSPARQLProtocol {
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
 	@Timeout(60)
 	public void Notify3Nx2N() throws IOException, IllegalArgumentException, SEPAProtocolException, InterruptedException,
-			SEPAPropertiesException, SEPASecurityException {
+			SEPAPropertiesException, SEPASecurityException, URISyntaxException {
 		int n = 10;
 
 		for (int i = 0; i < n; i++) {

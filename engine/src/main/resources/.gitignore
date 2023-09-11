@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-/config/
-=======
 /init.ldif
 /vaimee.ldif
 /sepa.engine.csv
@@ -25,7 +22,7 @@
 /endpoint-virtuoso-arces143100.jpar
 /engine-secure-arces143100.jpar
 /config/
-/sepa.api.csv
+=======
 >>>>>>> refs/heads/dev
 /cacerts.jks
 /jmx.cer

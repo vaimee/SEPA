@@ -1,22 +1,20 @@
 #How to publish on Docker HUB
-# 1) docker login -u YOUR-USER-NAME.
-#
+# 1) docker build -t vaimeedock/sepa:latest -f Dockerfile .
+# 2) docker login -u YOUR-USER-NAME.
+# Build command on Apple M1: docker buildx build --platform linux/amd64 --push -t vaimeedock/engine .
 
-FROM openjdk:13-alpine
+FROM openjdk
+#FROM bellsoft/liberica-runtime-container:jdk-all-17-glibc
 
 COPY ./target/engine-1.0.0-SNAPSHOT.jar /engine.jar
-#COPY ./target/jmx.properties /jmx.properties
-#COPY ./target/jmxremote.access /jmxremote.access
-#COPY ./target/jmxremote.password /jmxremote.password
+COPY ./src/main/resources/jmxremote.password /jmxremote.password
+COPY ./src/main/resources/jmxremote.access /jmxremote.access
+COPY ./src/main/resources/jmx.properties /jmx.properties
 
-#WORKDIR /
-
-#RUN chmod 600 /jmxremote.password
+RUN chmod 600 /jmxremote.password
 
 EXPOSE 8000
 EXPOSE 9000
-EXPOSE 5555
+EXPOSE 7091
 
-#TODO: need to enable JMX!!!!!
-ENTRYPOINT ["java","-jar","engine.jar"]
-#ENTRYPOINT ["java","-Dcom.sun.management.jmxremote.port=5555","-Dcom.sun.management.jmxremote.authenticate=false","-Dcom.sun.management.jmxremote.ssl=false","-Dcom.sun.management.jmxremote.rmi.port=5555","-Djava.rmi.server.hostname=criteria.vaimee.it","-jar","engine.jar"]
+ENTRYPOINT ["java","-Djava.rmi.server.hostname=dld.arces.unibo.it","-Dcom.sun.management.config.file=jmx.properties","-jar","engine.jar"]

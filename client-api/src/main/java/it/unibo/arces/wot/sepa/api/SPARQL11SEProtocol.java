@@ -67,7 +67,7 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * @throws SEPASecurityException 
 	 */
 	public void subscribe(SubscribeRequest request) throws SEPAProtocolException, SEPASecurityException {
-		Logging.logger.debug("SUBSCRIBE: "+request.toString());
+		Logging.logger.trace("SUBSCRIBE: "+request.toString());
 		
 		subscriptionProtocol.subscribe(request);
 	}

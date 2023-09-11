@@ -16,9 +16,9 @@ import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.Level;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.RegistrationRequest;
@@ -74,7 +74,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 
 			EntityUtils.consume(entity);
 
-			JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
+			JsonObject json = new Gson().fromJson(jsonResponse,JsonObject.class);
 
 			if (json.has("error")) {
 				int code = json.get("status_code").getAsInt();
@@ -157,7 +157,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 			EntityUtils.consume(entity);
 
 			// Parse response
-			JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
+			JsonObject json = new Gson().fromJson(jsonResponse,JsonObject.class);
 
 			if (json.has("error")) {
 				Timings.log("TOKEN_REQUEST", start, Timings.getTime());

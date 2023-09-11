@@ -23,10 +23,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -34,17 +34,16 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.security.Credentials;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
@@ -172,221 +171,37 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  * </pre>
  */
 public class JSAP extends SPARQL11SEProperties {
-	protected static Set<String> numbersOrBoolean = new HashSet<String>();
+	private static Set<String> numbersOrBoolean = new HashSet<String>();
 
-	protected String prefixes = "";
+	private String prefixes = "";
 
-	protected HashMap<String, String> namespaces = new HashMap<String, String>();
+	// Members
+	private HashMap<String, Query> queries = null;// new HashMap<String, Query>();
+	private HashMap<String, Update> updates = null;// new HashMap<String, Update>();
+	private HashMap<String, String> namespaces = new HashMap<String, String>();
+	private JsonObject extended = null;// new JsonObject();
+	private JsonArray include = null; // new JsonArray();
 
-	protected OAuthProperties oauth = new OAuthProperties();
-
-	public JSAP() {
-		super();
-
-		buildSPARQLPrefixes();
-		
-		jsap.add("extended", new JsonObject());
+	private static class Query {
+		public String sparql = null;
+		public HashMap<String, ForcedBinding> forcedBindings = null;
+		public SPARQL11Properties sparql11protocol = null;
+		public SPARQL11SEProperties sparql11seprotocol = null;
 	}
 
-	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
-		this(propertiesFile,false);
-	}
-	
-	public JSAP(String propertiesFile,byte[] aes128) throws SEPAPropertiesException, SEPASecurityException {
-		this(propertiesFile,false,aes128);
+	private static class Update {
+		public String sparql = null;
+		public HashMap<String, ForcedBinding> forcedBindings = null;
+		public SPARQL11Properties sparql11protocol = null;
 	}
 
-	public JSAP(String propertiesFile, boolean validate,byte[] aes128) throws SEPAPropertiesException, SEPASecurityException {
-		super(propertiesFile, validate);
-
-		if (jsap.has("oauth"))
-			oauth = new OAuthProperties(propertiesFile,aes128);
-
-		if (jsap.has("#include"))
-			loadIncluded(jsap, validate, propertiesFile);
-
-		buildSPARQLPrefixes();
+	private static class ForcedBinding {
+		public String type = null;
+		public String datatype = null;
+		public String value = null;
+		public String language = null;
 	}
 	
-	public JSAP(String propertiesFile, boolean validate) throws SEPAPropertiesException, SEPASecurityException {
-		super(propertiesFile, validate);
-
-		if (jsap.has("oauth"))
-			oauth = new OAuthProperties(propertiesFile);
-
-		if (jsap.has("#include"))
-			loadIncluded(jsap, validate, propertiesFile);
-
-		buildSPARQLPrefixes();
-	}
-
-	public void setClientCredentials(Credentials cred) throws SEPAPropertiesException, SEPASecurityException {
-		if (cred == null) throw new SEPASecurityException("Credentials are null");
-		oauth.setCredentials(cred.user(), cred.password());
-	}
-	
-	private void loadIncluded(JsonObject jsap, boolean validate, String parentFile) throws SEPAPropertiesException, SEPASecurityException {
-		File path = new File(parentFile);
-
-		HashSet<String> files = new HashSet<>();
-		for (JsonElement element : jsap.get("#include").getAsJsonArray())
-			files.add(element.getAsString());
-		jsap.remove("#include");
-
-		for (String uri : files) includeJsap(uri, path.getParent(),validate);
-		
-		if (jsap.has("#include")) loadIncluded(jsap, validate, parentFile);		
-	}
-
-	private void includeJsap(String uri, String dir,boolean validate )
-			throws SEPAPropertiesException, SEPASecurityException {
-		if (uri.startsWith("file:/")) {
-			loadFromFile(uri, dir,validate);
-		} else {
-			Logging.logger.warn("URI not supported: " + uri);
-		}
-	}
-
-	private void loadFromFile(String uri,  String dir,boolean validate)
-			throws SEPAPropertiesException, SEPASecurityException {
-		String path;
-		// String hostName;
-		if (uri.charAt(6) != '/') {
-			// file:/path
-			path = uri.substring(6);
-		} else if (uri.charAt(8) == '/') {
-			// file:///path
-			path = uri.substring(9);
-		} else {
-			// file://hostname/path
-			// hostName = uri.substring(7, uri.indexOf('/', 7)+1);
-			path = uri.substring(uri.indexOf('/', 7) + 1);
-		}
-
-		File file = new File(path);
-		if (file.getParent() == null && dir != null)
-			path = dir + File.separator + path;
-
-		read(path, true, validate);
-	}
-
-	public void read(InputStream input,boolean replace,boolean validate) throws SEPAPropertiesException, SEPASecurityException {
-		InputStreamReader in  = new InputStreamReader(input);
-		
-		JsonObject temp = JsonParser.parseReader(in).getAsJsonObject();
-
-		merge(temp, jsap, replace);
-
-		// Validate the JSON elements
-		if (validate)
-			validate();
-
-		// OAuth
-		if (temp.has("oauth")) {
-			oauth = new OAuthProperties(input);
-		}
-
-		buildSPARQLPrefixes();
-	}
-	
-	public void read(InputStream filename)
-			throws SEPAPropertiesException, SEPASecurityException {
-		read(filename, true, false);
-	}
-	
-	/**
-	 * Parse the file and merge the content with the actual JSAP object. Primitive
-	 * values are replaced if replace = true.
-	 * 
-	 * @throws IOException
-	 * @throws FileNotFoundException
-	 * @throws SEPAPropertiesException
-	 * @throws SEPASecurityException
-	 */
-	public void read(String filename, boolean replace, boolean validate)
-			throws SEPAPropertiesException, SEPASecurityException {
-		FileReader in;
-		try {
-			in = new FileReader(filename);
-		} catch (IOException e) {
-			throw new SEPAPropertiesException(e.getMessage());
-		}
-		
-		JsonObject temp = JsonParser.parseReader(in).getAsJsonObject();
-		
-		try {
-			in.close();
-		} catch (IOException e) {
-			throw new SEPAPropertiesException(e.getMessage());
-		}
-
-		merge(temp, jsap, replace);
-
-		// Validate the JSON elements
-		if (validate)
-			validate();
-
-		// OAuth
-		if (temp.has("oauth")) {
-			oauth = new OAuthProperties(filename);
-		}
-
-		buildSPARQLPrefixes();
-	}
-
-	public void read(String filename, boolean replace)
-			throws SEPAPropertiesException, SEPASecurityException {
-		read(filename, replace, false);
-	}
-
-	public void read(String filename)
-			throws SEPAPropertiesException, SEPASecurityException {
-		read(filename, true, false);
-	}
-
-	public void write() throws SEPAPropertiesException {
-		write(getFileName());
-	}
-	
-	public void write(String fileName) throws SEPAPropertiesException {
-		FileWriter out;
-		try {
-			out = new FileWriter(fileName);
-			out.write(jsap.toString());
-			out.close();
-		} catch (IOException e) {
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
-			throw new SEPAPropertiesException(e.getMessage());
-		}	
-	}
-	
-	private JsonObject merge(JsonObject temp, JsonObject jsap, boolean replace) {
-		for (Entry<String, JsonElement> entry : temp.entrySet()) {
-			JsonElement value = entry.getValue();
-			String key = entry.getKey();
-
-			if (!jsap.has(key)) {
-				jsap.add(key, value);
-				continue;
-			}
-
-			if (value.isJsonPrimitive()) {
-				if (!replace)
-					continue;
-				jsap.add(key, value);
-			} else if (value.isJsonObject()) {
-				JsonObject obj = merge(value.getAsJsonObject(), jsap.getAsJsonObject(key), replace);
-				jsap.add(key, obj);
-			} else if (value.isJsonArray()) {
-				for (JsonElement arr : value.getAsJsonArray()) {
-					jsap.getAsJsonArray(key).add(arr);
-				}
-			}
-		}
-
-		return jsap;
-	}
-
 	private void defaultNamespaces() {
 		// Numbers or boolean
 		numbersOrBoolean.add("xsd:integer");
@@ -400,10 +215,230 @@ public class JSAP extends SPARQL11SEProperties {
 		numbersOrBoolean.add("http://www.w3.org/2001/XMLSchema#boolean");
 
 		// Default namespaces
+		if (namespaces == null) namespaces = new HashMap<String, String>();
 		namespaces.put("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 		namespaces.put("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
 		namespaces.put("owl", "http://www.w3.org/2002/07/owl#");
 		namespaces.put("xsd", "http://www.w3.org/2001/XMLSchema#");
+	}
+
+	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
+		super(propertiesFile);
+
+		loadFromFile(propertiesFile, true);
+		
+		defaultNamespaces();
+
+		buildSPARQLPrefixes();
+	}
+
+	private JSAP merge(JSAP temp) {
+		host = (temp.host != null ? temp.host : this.host);
+
+		sparql11protocol = mergeSparql11protocol(sparql11protocol, temp.sparql11protocol);
+		sparql11seprotocol = mergeSparql11seprotocol(sparql11seprotocol, temp.sparql11seprotocol);
+		extended = mergeExtended(extended, temp.extended);
+		graphs = mergeGraphs(graphs, temp.graphs);
+		namespaces = mergeNamespaces(namespaces, temp.namespaces);
+		queries = mergeQueries(queries, temp.queries);
+		updates = mergeUpdates(updates, temp.updates);
+
+		return this;
+	}
+
+	private SPARQL11SEProtocol mergeSparql11seprotocol(SPARQL11SEProtocol jsap, SPARQL11SEProtocol temp) {
+		if (jsap == null)
+			return temp;
+		if (temp == null)
+			return jsap;
+		return jsap.merge(temp);
+	}
+
+	private SPARQL11Protocol mergeSparql11protocol(SPARQL11Protocol jsap, SPARQL11Protocol temp) {
+		if (jsap == null)
+			return temp;
+		if (temp == null)
+			return jsap;
+		return jsap.merge(temp);
+	}
+
+	private JsonObject mergeExtended(JsonObject jsap, JsonObject temp) {
+		if (jsap == null)
+			return temp;
+		if (temp == null)
+			return jsap;
+
+		for (Entry<String, JsonElement> entry : temp.entrySet()) {
+			JsonElement value = entry.getValue();
+			String key = entry.getKey();
+
+			if (!jsap.has(key)) {
+				jsap.add(key, value);
+				continue;
+			}
+
+			if (value.isJsonPrimitive()) {
+				jsap.add(key, value);
+			} else if (value.isJsonObject()) {
+				JsonObject obj = mergeExtended(value.getAsJsonObject(), jsap.getAsJsonObject(key));
+				jsap.add(key, obj);
+			} else if (value.isJsonArray()) {
+				for (JsonElement arr : value.getAsJsonArray()) {
+					jsap.getAsJsonArray(key).add(arr);
+				}
+			}
+		}
+
+		return jsap;
+	}
+
+	private HashMap<String, Update> mergeUpdates(HashMap<String, Update> jsap, HashMap<String, Update> temp) {
+		if (jsap == null)
+			return temp;
+		if (temp == null)
+			return jsap;
+		jsap.putAll(temp);
+		return jsap;
+	}
+
+	private HashMap<String, Query> mergeQueries(HashMap<String, Query> jsap, HashMap<String, Query> temp) {
+		if (jsap == null)
+			return temp;
+		if (temp == null)
+			return jsap;
+		jsap.putAll(temp);
+		return jsap;
+	}
+
+	private HashMap<String, String> mergeNamespaces(HashMap<String, String> jsap, HashMap<String, String> temp) {
+		if (jsap == null)
+			return temp;
+		if (temp == null)
+			return jsap;
+		jsap.putAll(temp);
+		return jsap;
+	}
+
+	private Graphs mergeGraphs(Graphs jsap, Graphs temp) {
+		if (jsap == null)
+			return temp;
+		if (temp == null)
+			return jsap;
+
+		try {
+			jsap.default_graph_uri.addAll(temp.default_graph_uri);
+		} catch (Exception e) {
+
+		}
+		try {
+			jsap.named_graph_uri.addAll(temp.named_graph_uri);
+		} catch (Exception e) {
+
+		}
+		try {
+			jsap.using_graph_uri.addAll(temp.using_graph_uri);
+		} catch (Exception e) {
+
+		}
+		try {
+			jsap.using_named_graph_uri.addAll(temp.using_named_graph_uri);
+		} catch (Exception e) {
+
+		}
+
+		return jsap;
+	}
+
+	public JsonObject getExtendedData() {
+		return extended;
+	}
+
+	private void __read(Reader in, boolean replace) {
+		JSAP jsap = new Gson().fromJson(in, JSAP.class);
+
+		if (replace) {
+			this.include = jsap.include;
+			this.host = jsap.host;
+			this.sparql11protocol = jsap.sparql11protocol;
+			this.sparql11seprotocol = jsap.sparql11seprotocol;
+			this.extended = jsap.extended;
+			this.graphs = jsap.graphs;
+			this.namespaces = jsap.namespaces;
+			this.queries = jsap.queries;
+			this.updates = jsap.updates;
+		} else {
+			merge(jsap);
+		}
+
+		buildSPARQLPrefixes();
+	}
+
+	private void loadFromFile(String uri, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
+		read(uri, replace);
+
+		ArrayList<String> files = new ArrayList<>();
+
+		if (include != null) {
+			for (JsonElement element : include)
+				files.add(element.getAsString());
+
+			include = new JsonArray();
+		}
+
+		for (String file : files) {
+			String path = new File(uri).getParent();
+			if (path == null) loadFromFile(file, false);
+			else loadFromFile(path + File.separator + file, false);
+		}
+			
+	}
+
+	public void read(Reader input, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
+		//__read(new InputStreamReader(input), replace);
+		__read(input, replace);
+	}
+
+	/**
+	 * Parse the file and merge the content with the actual JSAP object. Primitive
+	 * values are replaced if replace = true.
+	 * 
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 * @throws SEPAPropertiesException
+	 * @throws SEPASecurityException
+	 */
+	public void read(String filename, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
+		FileReader in;
+		try {
+			in = new FileReader(filename);
+		} catch (FileNotFoundException e) {
+			throw new SEPAPropertiesException(e.getMessage());
+		}
+
+		__read(in, replace);
+
+		try {
+			in.close();
+		} catch (IOException e) {
+			Logging.logger.error(e.getMessage());
+		}
+	}
+
+	public void write() throws SEPAPropertiesException {
+		write(getFileName());
+	}
+
+	public void write(String fileName) throws SEPAPropertiesException {
+		FileWriter out;
+		try {
+			out = new FileWriter(fileName);
+			out.write(this.toString());
+			out.close();
+		} catch (IOException e) {
+			if (Logging.logger.isTraceEnabled())
+				e.printStackTrace();
+			throw new SEPAPropertiesException(e.getMessage());
+		}
 	}
 
 	// TODO: add the query as parameter and get just the namespaces required
@@ -416,705 +451,351 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	private void buildSPARQLPrefixes() {
-		defaultNamespaces();
-		readNamespaces();
-
 		prefixes = "";
+		if (namespaces == null) return;
 		for (String prefix : namespaces.keySet()) {
 			prefixes += "PREFIX " + prefix + ":<" + namespaces.get(prefix) + "> ";
 		}
 	}
 
-	private void readNamespaces() {
-		if (!jsap.has("namespaces"))
-			return;
-
-		try {
-			for (Entry<String, JsonElement> ns : jsap.getAsJsonObject("namespaces").entrySet())
-				namespaces.put(ns.getKey(), ns.getValue().getAsString());
-		} catch (Exception e) {
-			Logging.logger.error("getPrefixes exception: " + e.getMessage());
-		}
-	}
-
 	public OAuthProperties getAuthenticationProperties() {
-		return oauth;
+		return null;
 	}
 
 	public boolean isSecure() {
-		return oauth.isEnabled();
-	}
-
-	public boolean reconnect() {
-		try {
-			return jsap.getAsJsonObject("sparql11seprotocol").get("reconnect").getAsBoolean();
-		} catch (Exception e) {
-			Logging.logger.warn("sparql11seprotocol-reconnect not found. Default: false");
-		}
-
 		return false;
 	}
 
-	public JsonObject getExtendedData() {
-		try {
-			if (jsap.has("extended")) return jsap.getAsJsonObject("extended");
-			
-		} catch (Exception e) {
-			Logging.logger.error("Extended data section not found");
-		}
-		
-		jsap.add("extended", new JsonObject());
-		
-		return jsap.getAsJsonObject("extended");
-	}
-
-	private JsonObject checkAndCreate(String id, boolean update) {
-		if (update) {
-			if (!jsap.has("updates"))
-				jsap.add("updates", new JsonObject());
-			if (!jsap.getAsJsonObject("updates").has(id))
-				jsap.getAsJsonObject("updates").add(id, new JsonObject());
-			if (!jsap.getAsJsonObject("updates").getAsJsonObject(id).has("sparql11protocol"))
-				jsap.getAsJsonObject("updates").getAsJsonObject(id).add("sparql11protocol", new JsonObject());
-			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol");
-		} else {
-			if (!jsap.has("queries"))
-				jsap.add("queries", new JsonObject());
-			if (!jsap.getAsJsonObject("queries").has(id))
-				jsap.getAsJsonObject("queries").add(id, new JsonObject());
-			if (!jsap.getAsJsonObject("queries").getAsJsonObject(id).has("sparql11protocol"))
-				jsap.getAsJsonObject("queries").getAsJsonObject(id).add("sparql11protocol", new JsonObject());
-
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol");
-		}
+	public boolean reconnect() {
+		return super.getReconnect();
 	}
 
 	/*
 	 * UPDATE
 	 */
 	public String getSPARQLUpdate(String id) {
-		try {
-			return jsap.getAsJsonObject("updates").getAsJsonObject(id).get("sparql").getAsString();
-		} catch (Exception e) {
-			Logging.logger.error("SPARQL Update " + id + "  not found");
-		}
-		return null;
+		return (updates.get(id) == null ? null : updates.get(id).sparql);
 	}
 
 	public String getUpdateHost(String id) {
 		try {
-			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("host")
-					.getAsString();
+			return updates.get(id).sparql11protocol.getHost();
 		} catch (Exception e) {
-			try {
-				return jsap.get("updates").getAsJsonObject().get(id).getAsJsonObject().get("host").getAsString();
-			} catch (Exception e1) {
-
-			}
+			return host;
 		}
-
-		return super.getSubscribeHost();
 	}
 
 	public String getUpdateAcceptHeader(String id) {
 		try {
-			if (jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
-					.getAsJsonObject("update").get("format").getAsString().equals("JSON"))
-				return "application/json";
-			else
-				return "application/html";
+			return updates.get(id).sparql11protocol.getUpdateAcceptHeader();
 		} catch (Exception e) {
-
+			return sparql11protocol.update.format.getUpdateAcceptHeader();
 		}
-
-		return super.getUpdateAcceptHeader();
 	}
 
 	public UpdateHTTPMethod getUpdateMethod(String id) {
 		try {
-			switch (jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
-					.getAsJsonObject("update").get("method").getAsString()) {
-			case "URL_ENCODED_POST":
-				return UpdateHTTPMethod.URL_ENCODED_POST;
-			case "POST":
-				return UpdateHTTPMethod.POST;
-//			case "GET":
-//				// Virtuoso PATCH
-//				return HTTPMethod.GET;
-			}
+			return updates.get(id).sparql11protocol.getUpdateMethod();
 		} catch (Exception e) {
+			return sparql11protocol.update.method;
 		}
-
-		return super.getUpdateMethod();
 	}
 
 	public String getUpdateProtocolScheme(String id) {
 		try {
-			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
-					.get("protocol").getAsString();
+			return updates.get(id).sparql11protocol.getProtocolScheme();
 		} catch (Exception e) {
+			return sparql11protocol.protocol.getProtocolScheme();
 		}
-
-		return super.getProtocolScheme();
 	}
 
 	public String getUpdatePath(String id) {
 		try {
-			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
-					.getAsJsonObject("update").get("path").getAsString();
+			return updates.get(id).sparql11protocol.getUpdatePath();
 		} catch (Exception e) {
+			return sparql11protocol.update.path;
 		}
-
-		return super.getUpdatePath();
 	}
 
 	public int getUpdatePort(String id) {
 		try {
-			return jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("port")
-					.getAsInt();
+			return updates.get(id).sparql11protocol.getPort();
 		} catch (Exception e) {
+			return sparql11protocol.port;
 		}
-
-		return super.getPort();
-	}
-
-	public Set<String> getUsingGraphURI(String id) {
-		try {
-			JsonArray array = jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("graphs")
-					.get("using-graph-uri").getAsJsonArray();
-			HashSet<String> ret = new HashSet<>();
-			for (JsonElement e : array) ret.add(e.getAsString());
-			return ret;
-		} catch (Exception e) {
-		}
-
-		return super.getUsingGraphURI();
 	}
 
 	public Set<String> getUsingNamedGraphURI(String id) {
 		try {
-			JsonArray array = jsap.getAsJsonObject("updates").getAsJsonObject(id).getAsJsonObject("graphs")
-					.get("using-named-graph-uri").getAsJsonArray();
-			HashSet<String> ret = new HashSet<>();
-			for (JsonElement e : array) ret.add(e.getAsString());
-			return ret;
+			return updates.get(id).sparql11protocol.getUsingNamedGraphURI();
 		} catch (Exception e) {
+			if (graphs == null) return null;
+			return graphs.using_named_graph_uri;
 		}
+	}
 
-		return super.getUsingNamedGraphURI();
+	public Set<String> getUsingGraphURI(String id) {
+		try {
+			return updates.get(id).sparql11protocol.getUsingGraphURI();
+		} catch (Exception e) {
+			if (graphs == null) return null;
+			return graphs.using_graph_uri;
+		}
 	}
 
 	public void setSPARQLUpdate(String id, String sparql) {
-		if (!jsap.has("updates"))
-			jsap.add("updates", new JsonObject());
-		jsap.getAsJsonObject("updates").add(id, new JsonObject());
-		jsap.getAsJsonObject("updates").getAsJsonObject(id).add("sparql", new JsonPrimitive(sparql));
+		if (updates.get(id) != null)
+			updates.get(id).sparql = sparql;
 	}
 
 	public void setUpdateHost(String id, String host) {
-		JsonObject prop = checkAndCreate(id, true);
-		prop.add("host", new JsonPrimitive(host));
+		if (updates.get(id) == null)
+			return;
+		updates.get(id).sparql11protocol.setHost(host);
 	}
 
 	public void setUpdateAcceptHeader(String id, UpdateResultsFormat format) {
-		JsonObject prop = checkAndCreate(id, true);
-
-		if (!prop.has("update"))
-			prop.add("update", new JsonObject());
-		JsonObject temp = prop.getAsJsonObject("update");
-
-		switch (format) {
-		case JSON:
-			temp.add("format", new JsonPrimitive("application/json"));
-			break;
-		case HTML:
-			temp.add("format", new JsonPrimitive("application/html"));
-			break;
-		}
+		if (updates.get(id) == null)
+			return;
+		updates.get(id).sparql11protocol.setUpdateAcceptHeader(format);
 	}
 
 	public void setUpdateMethod(String id, UpdateHTTPMethod method) {
-		JsonObject prop = checkAndCreate(id, true);
-
-		if (!prop.has("update"))
-			prop.add("update", new JsonObject());
-		JsonObject temp = prop.getAsJsonObject("update");
-
-		switch (method) {
-//		case GET:
-//			temp.add("method", new JsonPrimitive("GET"));
-//			break;
-		case POST:
-			temp.add("method", new JsonPrimitive("POST"));
-			break;
-		case URL_ENCODED_POST:
-			temp.add("method", new JsonPrimitive("URL_ENCODED_POST"));
-			break;
-		}
+		if (updates.get(id) == null)
+			return;
+		updates.get(id).sparql11protocol.setUpdateMethod(method);
 	}
 
 	public void setUpdateProtocolScheme(String id, ProtocolScheme scheme) {
-		JsonObject prop = checkAndCreate(id, true);
-
-		switch (scheme) {
-		case HTTP:
-			prop.add("protocol", new JsonPrimitive("http"));
-			break;
-		case HTTPS:
-			prop.add("protocol", new JsonPrimitive("https"));
-			break;
-		}
+		if (updates.get(id) == null)
+			return;
+		updates.get(id).sparql11protocol.setProtocolScheme(scheme);
 	}
 
 	public void setUpdatePath(String id, String path) {
-		JsonObject prop = checkAndCreate(id, true);
-
-		if (!prop.has("update"))
-			prop.add("update", new JsonObject());
-		JsonObject temp = prop.getAsJsonObject("update");
-
-		temp.add("path", new JsonPrimitive(path));
+		if (updates.get(id) == null)
+			return;
+		updates.get(id).sparql11protocol.setUpdatePath(path);
 	}
 
 	public void setUpdatePort(String id, int port) {
-		JsonObject prop = checkAndCreate(id, true);
-
-		if (!prop.has("update"))
-			prop.add("update", new JsonObject());
-		JsonObject temp = prop.getAsJsonObject("update");
-
-		temp.add("port", new JsonPrimitive(port));
+		if (updates.get(id) == null)
+			return;
+		updates.get(id).sparql11protocol.setPort(port);
 	}
 
 	public void setUsingNamedGraphUri(String id, Set<String> graph) {
-		if (!jsap.has("updates"))
-			jsap.add("updates", new JsonObject());
-		if (!jsap.getAsJsonObject("updates").has("graphs"))
-			jsap.getAsJsonObject("updates").add("graphs", new JsonObject());
-		
-		JsonArray array = new JsonArray();
-		for(String s: graph) array.add(s);
-		jsap.getAsJsonObject("updates").getAsJsonObject("graphs").add("using-named-graph-uri",array);
+		if (updates.get(id) == null)
+			return;
+		updates.get(id).sparql11protocol.setUsingNamedGraphURI(graph);
 	}
 
 	public void setUsingGraphURI(String id, Set<String> graph) {
-		if (!jsap.has("updates"))
-			jsap.add("updates", new JsonObject());
-		if (!jsap.getAsJsonObject("updates").has("graphs"))
-			jsap.getAsJsonObject("updates").add("graphs", new JsonObject());
-		
-		JsonArray array = new JsonArray();
-		for(String s: graph) array.add(s);
-		jsap.getAsJsonObject("updates").getAsJsonObject("graphs").add("using-graph-uri", array);
+		if (updates.get(id) == null)
+			return;
+		updates.get(id).sparql11protocol.setUsingGraphURI(graph);
 	}
 
 	/*
 	 * QUERY
 	 */
 	public String getSPARQLQuery(String id) {
-		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).get("sparql").getAsString();
-		} catch (Exception e) {
-			Logging.logger.fatal("SPARQL query " + id + " not found");
-		}
-		return null;
+		return (queries.get(id) == null ? null : queries.get(id).sparql);
 	}
 
 	public String getQueryHost(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("host")
-					.getAsString();
+			return queries.get(id).sparql11protocol.getHost();
 		} catch (Exception e) {
-			try {
-				return jsap.getAsJsonObject("queries").getAsJsonObject(id).get("host").getAsString();
-			} catch (Exception e1) {
-
-			}
+			return host;
 		}
-
-		return super.getSubscribeHost();
 	}
 
 	public String getQueryProtocolScheme(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
-					.get("protocol").getAsString();
+			return queries.get(id).sparql11protocol.getProtocolScheme();
 		} catch (Exception e) {
+			return sparql11protocol.protocol.getProtocolScheme();
 		}
-
-		return super.getProtocolScheme();
 	}
 
 	public int getQueryPort(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol").get("port")
-					.getAsInt();
+			return queries.get(id).sparql11protocol.getPort();
 		} catch (Exception e) {
+			return sparql11protocol.port;
 		}
-
-		return super.getPort();
 	}
 
 	public String getQueryPath(String id) {
 		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
-					.getAsJsonObject("query").get("path").getAsString();
+			return queries.get(id).sparql11protocol.getQueryPath();
 		} catch (Exception e) {
+			return sparql11protocol.query.path;
 		}
-
-		return super.getQueryPath();
 	}
 
 	public QueryHTTPMethod getQueryMethod(String id) {
 		try {
-			switch (jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11protocol")
-					.getAsJsonObject("query").get("method").getAsString()) {
-			case "URL_ENCODED_POST":
-				return QueryHTTPMethod.URL_ENCODED_POST;
-			case "POST":
-				return QueryHTTPMethod.POST;
-			case "GET":
-				return QueryHTTPMethod.GET;
-			}
+			return queries.get(id).sparql11protocol.getQueryMethod();
 		} catch (Exception e) {
-			
+			return sparql11protocol.query.method;
 		}
-
-		return super.getQueryMethod();
 	}
 
 	public String getQueryAcceptHeader(String id) {
 		try {
-			switch (jsap.getAsJsonObject("queries").getAsJsonObject(id).get("format").getAsString()) {
-			case "JSON":
-				return "application/sparql-results+json";
-			case "XML":
-				return "application/sparql-results+xml";
-			case "CSV":
-				return "text/csv";
-			default:
-				return "application/sparql-results+json";
-			}
+			return queries.get(id).sparql11protocol.getQueryAcceptHeader();
 		} catch (Exception e) {
-
+			return sparql11protocol.query.format.getQueryAcceptHeader();
 		}
-
-		return super.getQueryAcceptHeader();
 	}
 
 	public Set<String> getNamedGraphURI(String id) {
 		try {
-			JsonArray array = jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs")
-					.get("named-graph-uri").getAsJsonArray();
-			HashSet<String> ret = new HashSet<>();
-			for (JsonElement e : array) ret.add(e.getAsString());
-			return ret;
+			return queries.get(id).sparql11protocol.getNamedGraphURI();
 		} catch (Exception e) {
+			if (graphs == null) return null;
+			return graphs.named_graph_uri;
 		}
-
-		return super.getNamedGraphURI();
 	}
 
 	public Set<String> getDefaultGraphURI(String id) {
 		try {
-			JsonArray array = jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("graphs")
-					.get("default-graph-uri").getAsJsonArray();
-			HashSet<String> ret = new HashSet<>();
-			for (JsonElement e : array) ret.add(e.getAsString());
-			return ret;
+			return queries.get(id).sparql11protocol.getDefaultGraphURI();
 		} catch (Exception e) {
+			if (graphs == null) return null;
+			return graphs.default_graph_uri;
 		}
-
-		return super.getDefaultGraphURI();
 	}
 
 	public void setSPARQLQuery(String id, String sparql) {
-		if (!jsap.has("queries"))
-			jsap.add("queries", new JsonObject());
-		jsap.getAsJsonObject("queries").add(id, new JsonObject());
-		jsap.getAsJsonObject("queries").getAsJsonObject(id).add("sparql", new JsonPrimitive(sparql));
+		if (queries.get(id) != null)
+			queries.get(id).sparql = sparql;
 	}
 
 	public void setQueryHost(String id, String host) {
-		JsonObject prop = checkAndCreate(id, false);
-		prop.add("host", new JsonPrimitive(host));
+		if (queries.get(id) == null)
+			return;
+		queries.get(id).sparql11protocol.setHost(host);
 	}
 
 	public void setQueryAcceptHeader(String id, QueryResultsFormat format) {
-		JsonObject prop = checkAndCreate(id, true);
-
-		if (!prop.has("query"))
-			prop.add("query", new JsonObject());
-		JsonObject temp = prop.getAsJsonObject("query");
-
-		switch (format) {
-		case JSON:
-			temp.add("format", new JsonPrimitive("application/sparql-results+json"));
-			break;
-		case XML:
-			temp.add("format", new JsonPrimitive("application/sparql-results+xml"));
-		case CSV:
-			temp.add("format", new JsonPrimitive("text/csv"));
-			break;
-		}
+		if (queries.get(id) == null)
+			return;
+		queries.get(id).sparql11protocol.setQueryAcceptHeader(format);
 	}
 
 	public void setQueryMethod(String id, QueryHTTPMethod method) {
-		JsonObject prop = checkAndCreate(id, false);
-
-		if (!prop.has("query"))
-			prop.add("query", new JsonObject());
-		JsonObject temp = prop.getAsJsonObject("query");
-
-		switch (method) {
-		case GET:
-			temp.add("method", new JsonPrimitive("GET"));
-			break;
-		case POST:
-			temp.add("method", new JsonPrimitive("POST"));
-			break;
-		case URL_ENCODED_POST:
-			temp.add("method", new JsonPrimitive("URL_ENCODED_POST"));
-			break;
-		}
+		if (queries.get(id) == null)
+			return;
+		queries.get(id).sparql11protocol.setQueryMethod(method);
 	}
 
 	public void setQueryProtocolScheme(String id, ProtocolScheme scheme) {
-		JsonObject prop = checkAndCreate(id, false);
-
-		switch (scheme) {
-		case HTTP:
-			prop.add("protocol", new JsonPrimitive("http"));
-			break;
-		case HTTPS:
-			prop.add("protocol", new JsonPrimitive("https"));
-			break;
-		}
+		if (queries.get(id) == null)
+			return;
+		queries.get(id).sparql11protocol.setProtocolScheme(scheme);
 	}
 
 	public void setQueryPath(String id, String path) {
-		JsonObject prop = checkAndCreate(id, false);
-
-		if (!prop.has("query"))
-			prop.add("query", new JsonObject());
-		JsonObject temp = prop.getAsJsonObject("query");
-
-		temp.add("path", new JsonPrimitive(path));
+		if (queries.get(id) == null)
+			return;
+		queries.get(id).sparql11protocol.setQueryPath(path);
 	}
 
 	public void setQueryPort(String id, int port) {
-		JsonObject prop = checkAndCreate(id, false);
-
-		if (!prop.has("query"))
-			prop.add("query", new JsonObject());
-		JsonObject temp = prop.getAsJsonObject("query");
-
-		temp.add("port", new JsonPrimitive(port));
+		if (queries.get(id) == null)
+			return;
+		queries.get(id).sparql11protocol.setPort(port);
 	}
 
 	public void setNamedGraphUri(String id, Set<String> graph) {
-		if (!jsap.has("queries"))
-			jsap.add("queries", new JsonObject());
-		if (!jsap.getAsJsonObject("queries").has("graphs"))
-			jsap.getAsJsonObject("queries").add("graphs", new JsonObject());
-		
-		JsonArray array = new JsonArray();
-		for(String s: graph) array.add(s);
-		jsap.getAsJsonObject("queries").getAsJsonObject("graphs").add("named-graph-uri", array);
+		if (queries.get(id) == null)
+			return;
+		queries.get(id).sparql11protocol.setNamedGraphURI(graph);
 	}
 
 	public void setDefaultGraphURI(String id, Set<String> graph) {
-		if (!jsap.has("queries"))
-			jsap.add("queries", new JsonObject());
-		if (!jsap.getAsJsonObject("queries").has("graphs"))
-			jsap.getAsJsonObject("queries").add("graphs", new JsonObject());
-		
-		JsonArray array = new JsonArray();
-		for(String s: graph) array.add(s);
-		jsap.getAsJsonObject("queries").getAsJsonObject("graphs").add("default-graph-uri", array);
+		if (queries.get(id) == null)
+			return;
+		queries.get(id).sparql11protocol.setDefaultGraphURI(graph);
 	}
 
 	/*
 	 * SUBSCRIBE
 	 */
 
-	public JsonObject getSubscriptionProperties(String id) {
-		SubscriptionProtocol sp = getSubscribeProtocol(id);
-		String protocol = "ws";
-		switch (sp) {
-		case WS:
-			protocol = "ws";
-			break;
-		case WSS:
-			protocol = "wss";
-			break;
-		}
-
-		if (!jsap.has("queries")) {
-			jsap.add("queries", new JsonObject());
-			jsap.getAsJsonObject("queries").add(id, new JsonObject());
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).add("sparql11seprotocol", new JsonObject());
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.add("availableProtocols", new JsonObject());
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.getAsJsonObject("availableProtocols").add(protocol, new JsonObject());
-		} else if (!jsap.getAsJsonObject("queries").has(id)) {
-			jsap.getAsJsonObject("queries").add(id, new JsonObject());
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).add("sparql11seprotocol", new JsonObject());
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.add("availableProtocols", new JsonObject());
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.getAsJsonObject("availableProtocols").add(protocol, new JsonObject());
-		} else if (!jsap.getAsJsonObject("queries").getAsJsonObject(id).has("sparql11seprotocol")) {
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).add("sparql11seprotocol", new JsonObject());
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.add("availableProtocols", new JsonObject());
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.getAsJsonObject("availableProtocols").add(protocol, new JsonObject());
-		} else if (!jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-				.has("availableProtocols")) {
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.add("availableProtocols", new JsonObject());
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.getAsJsonObject("availableProtocols").add(protocol, new JsonObject());
-		} else if (!jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-				.getAsJsonObject("availableProtocols").has(protocol)) {
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.getAsJsonObject("availableProtocols").add(protocol, new JsonObject());
-		}
-
-		return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-				.getAsJsonObject("availableProtocols").getAsJsonObject(protocol);
-	}
-
 	public String getSubscribeHost(String id) {
-		String protocol = null;
 		try {
-			protocol = jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.get("protocol").getAsString();
+			return queries.get(id).sparql11seprotocol.getHost();
 		} catch (Exception e) {
-			try {
-				return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-						.get("host").getAsString();
-			} catch (Exception e1) {
-				return super.getSubscribeHost();
-			}
+			return host;
 		}
-
-		try {
-			return jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.getAsJsonObject("availableProtocols").getAsJsonObject(protocol).get("host").getAsString();
-		} catch (Exception e) {
-
-		}
-
-		return super.getSubscribeHost();
 	}
 
 	public void setSubscribeHost(String id, String host) {
-		JsonObject prop = getSubscriptionProperties(id);
-
-		prop.add("host", new JsonPrimitive(host));
+		if (queries.get(id) == null)
+			return;
+//		if (queries.get(id).sparql11seprotocol == null)
+//			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
+		queries.get(id).sparql11seprotocol.setHost(host);
 	}
 
 	public int getSubscribePort(String id) {
 		try {
-			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11seprotocol")
-					.getAsJsonObject().get("availableProtocols").getAsJsonObject()
-					.get(jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11seprotocol")
-							.getAsJsonObject().get("protocol").getAsString())
-					.getAsJsonObject().get("port").getAsInt();
+			return queries.get(id).sparql11seprotocol.getPort();
 		} catch (Exception e) {
+			return sparql11seprotocol.getPort();
 		}
-
-		return super.getSubscribePort();
 	}
 
 	public void setSubscribePort(String id, int port) {
-		JsonObject prop = getSubscriptionProperties(id);
-
-		prop.add("port", new JsonPrimitive(port));
+		if (queries.get(id) == null)
+			return;
+//		if (queries.get(id).sparql11seprotocol == null)
+//			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
+		queries.get(id).sparql11seprotocol.setPort(port);
 	}
 
 	public String getSubscribePath(String id) {
 		try {
-			return jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11seprotocol")
-					.getAsJsonObject().get("availableProtocols").getAsJsonObject()
-					.get(jsap.get("queries").getAsJsonObject().get(id).getAsJsonObject().get("sparql11seprotocol")
-							.getAsJsonObject().get("protocol").getAsString())
-					.getAsJsonObject().get("path").getAsString();
+			return queries.get(id).sparql11seprotocol.getQueryPath();
 		} catch (Exception e) {
+			return sparql11seprotocol.getPath();
 		}
-
-		return super.getSubscribePath();
 	}
 
 	public void setSubscribePath(String id, String path) {
-		JsonObject prop = getSubscriptionProperties(id);
-
-		prop.add("path", new JsonPrimitive(path));
+		if (queries.get(id) == null)
+			return;
+//		if (queries.get(id).sparql11seprotocol == null)
+//			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
+		queries.get(id).sparql11seprotocol.setSubscribePath(path);
 	}
 
 	public SubscriptionProtocol getSubscribeProtocol(String id) {
 		try {
-			if (jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.get("protocol").getAsString().equals("ws"))
-				return SubscriptionProtocol.WS;
-
-			if (jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol")
-					.get("protocol").getAsString().equals("wss"))
-				return SubscriptionProtocol.WSS;
-		} catch (Exception e1) {
+			return queries.get(id).sparql11seprotocol.getSubscriptionProtocol();
+		} catch (Exception e) {
+			return sparql11seprotocol.getSubscriptionProtocol();
 		}
-
-		return super.getSubscriptionProtocol();
 	}
 
 	public void setSubscribeProtocol(String id, SubscriptionProtocol sp) {
-		switch (sp) {
-		case WS:
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol").add("protocol",
-					new JsonPrimitive("ws"));
-			break;
-		case WSS:
-			jsap.getAsJsonObject("queries").getAsJsonObject(id).getAsJsonObject("sparql11seprotocol").add("protocol",
-					new JsonPrimitive("wss"));
-			break;
-		}
+		if (queries.get(id) == null)
+			return;
+//		if (queries.get(id).sparql11seprotocol == null)
+//			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
+		queries.get(id).sparql11seprotocol.setSubscriptionProtocol(sp.scheme);
 	}
 
 	public Set<String> getUpdateIds() {
-		HashSet<String> ret = new HashSet<String>();
-
-		if (!jsap.has("updates"))
-			return ret;
-
-		try {
-			for (Entry<String, JsonElement> key : jsap.getAsJsonObject("updates").entrySet()) {
-				ret.add(key.getKey());
-			}
-		} catch (Exception e) {
-			Logging.logger.warn(e.getMessage());
-		}
-
-		return ret;
+		return updates.keySet();
 	}
 
 	public Set<String> getQueryIds() {
-		HashSet<String> ret = new HashSet<String>();
-
-		if (!jsap.has("queries"))
-			return ret;
-
-		try {
-			for (Entry<String, JsonElement> key : jsap.getAsJsonObject("queries").entrySet()) {
-				ret.add(key.getKey());
-			}
-		} catch (Exception e) {
-			Logging.logger.warn(e.getMessage());
-		}
-
-		return ret;
+		return queries.keySet();
 	}
 
 	/**
@@ -1140,37 +821,26 @@ public class JSAP extends SPARQL11SEProperties {
 	 * </pre>
 	 */
 	public ForcedBindings getUpdateBindings(String id) throws IllegalArgumentException {
-		if (!jsap.get("updates").getAsJsonObject().has(id))
+		if (updates.get(id) == null)
 			throw new IllegalArgumentException("Update ID not found: " + id);
 
 		ForcedBindings ret = new ForcedBindings();
 
-		if (!jsap.getAsJsonObject("updates").getAsJsonObject(id).has("forcedBindings"))
+		if (updates.get(id).forcedBindings == null)
 			return ret;
 
 		try {
-			for (Entry<String, JsonElement> binding : jsap.getAsJsonObject("updates").getAsJsonObject(id)
-					.getAsJsonObject("forcedBindings").entrySet()) {
-
-				if (!binding.getValue().getAsJsonObject().has("type")) {
-					Logging.logger.error("JSAP missing binding type: " + binding);
+			for (Entry<String, ForcedBinding> binding : updates.get(id).forcedBindings.entrySet()) {
+				if (binding.getValue().type == null)
 					continue;
-				}
 
 				RDFTerm bindingValue = null;
-				String value = null;
-				if (binding.getValue().getAsJsonObject().has("value"))
-					value = binding.getValue().getAsJsonObject().get("value").getAsString();
+				String value = binding.getValue().value;
 
-				switch (binding.getValue().getAsJsonObject().get("type").getAsString()) {
+				switch (binding.getValue().type) {
 				case "literal":
-					String datatype = null;
-					if (binding.getValue().getAsJsonObject().has("datatype"))
-						datatype = binding.getValue().getAsJsonObject().get("datatype").getAsString();
-
-					String language = null;
-					if (binding.getValue().getAsJsonObject().has("language"))
-						language = binding.getValue().getAsJsonObject().get("language").getAsString();
+					String datatype = (binding.getValue().datatype == null ? null : binding.getValue().datatype);
+					String language = (binding.getValue().language == null ? null : binding.getValue().language);
 
 					bindingValue = new RDFTermLiteral(value, datatype, language);
 					break;
@@ -1195,32 +865,26 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public ForcedBindings getQueryBindings(String id) throws IllegalArgumentException {
-		if (!jsap.get("queries").getAsJsonObject().has(id))
-			throw new IllegalArgumentException("Query ID not found: "+id);
+		if (queries.get(id) == null)
+			throw new IllegalArgumentException("Query ID not found: " + id);
 
 		ForcedBindings ret = new ForcedBindings();
 
-		if (!jsap.getAsJsonObject("queries").getAsJsonObject(id).has("forcedBindings"))
+		if (queries.get(id).forcedBindings == null)
 			return ret;
 
 		try {
-			for (Entry<String, JsonElement> binding : jsap.getAsJsonObject("queries").getAsJsonObject(id)
-					.getAsJsonObject("forcedBindings").entrySet()) {
+			for (Entry<String, ForcedBinding> binding : queries.get(id).forcedBindings.entrySet()) {
+				if (binding.getValue().type == null)
+					continue;
 
 				RDFTerm bindingValue = null;
-				String value = null;
-				if (binding.getValue().getAsJsonObject().has("value"))
-					value = binding.getValue().getAsJsonObject().get("value").getAsString();
+				String value = binding.getValue().value;
 
-				switch (binding.getValue().getAsJsonObject().get("type").getAsString()) {
+				switch (binding.getValue().type) {
 				case "literal":
-					String datatype = null;
-					if (binding.getValue().getAsJsonObject().has("datatype"))
-						datatype = binding.getValue().getAsJsonObject().get("datatype").getAsString();
-
-					String language = null;
-					if (binding.getValue().getAsJsonObject().has("language"))
-						language = binding.getValue().getAsJsonObject().get("language").getAsString();
+					String datatype = (binding.getValue().datatype == null ? null : binding.getValue().datatype);
+					String language = (binding.getValue().language == null ? null : binding.getValue().language);
 
 					bindingValue = new RDFTermLiteral(value, datatype, language);
 					break;
@@ -1248,34 +912,38 @@ public class JSAP extends SPARQL11SEProperties {
 		return propertiesFile;
 	}
 
-	public String printParameters() {
-		return jsap.toString();
+	public String toString() {
+		return new Gson().toJson(this);
 	}
 
-	public String getUpdateUrl(String id) {
+//	public String printParameters() {
+//		return this.toString();
+//	}
+
+	public String getUpdateUrl(String id) throws IllegalArgumentException {
+		if (updates.get(id) == null)
+			throw new IllegalArgumentException("Update ID not found: " + id);
 		String port = "";
 		if (getUpdatePort(id) != -1)
 			port = ":" + getUpdatePort(id);
 		return getUpdateProtocolScheme(id) + "://" + getUpdateHost(id) + port + getUpdatePath(id);
 	}
 
-	public String getQueryUrl(String id) {
+	public String getQueryUrl(String id) throws IllegalArgumentException {
+		if (queries.get(id) == null)
+			throw new IllegalArgumentException("Query ID not found: " + id);
 		String port = "";
 		if (getQueryPort(id) != -1)
 			port = ":" + getQueryPort(id);
 		return getQueryProtocolScheme(id) + "://" + getQueryHost(id) + port + getQueryPath(id);
 	}
 
-	public String getSubscribeUrl(String id) {
-		String scheme = "";
+	public String getSubscribeUrl(String id) throws IllegalArgumentException {
+		if (queries.get(id) == null)
+			throw new IllegalArgumentException("Subscribe ID not found: " + id);
+
+		String scheme = queries.get(id).sparql11seprotocol.getSubscriptionProtocol().scheme;
 		String port = "";
-
-		SubscriptionProtocol prot = getSubscribeProtocol(id);
-
-		if (prot.equals(SubscriptionProtocol.WS))
-			scheme = "ws";
-		else if (prot.equals(SubscriptionProtocol.WSS))
-			scheme = "wss";
 
 		if (getSubscribePort(id) != -1)
 			port = ":" + getSubscribePort(id);
@@ -1323,12 +991,6 @@ public class JSAP extends SPARQL11SEProperties {
 			return sparql;
 
 		String replacedSparql = String.format("%s", sparql);
-//		String selectPattern = "";
-//
-//		if (sparql.toUpperCase().contains("SELECT")) {
-//			selectPattern = replacedSparql.substring(0, sparql.indexOf('{'));
-//			replacedSparql = replacedSparql.substring(sparql.indexOf('{'), replacedSparql.length());
-//		}
 
 		for (String var : bindings.getVariables()) {
 			String value = bindings.getValue(var);
@@ -1357,17 +1019,13 @@ public class JSAP extends SPARQL11SEProperties {
 			 * 
 			 * Examples of literal syntax in SPARQL include:
 			 * 
-			 * - "chat" 
-			 * - 'chat'@fr with language tag "fr" 
-			 * - "xyz"^^<http://example.org/ns/userDatatype> 
-			 * - "abc"^^appNS:appDataType 
-			 * - '''The librarian said, "Perhaps you would enjoy 'War and Peace'."''' 
-			 * - 1, which is the same as "1"^^xsd:integer 
-			 * - 1.3, which is the same as "1.3"^^xsd:decimal 
-			 * - 1.300, which is the same as "1.300"^^xsd:decimal 
-			 * - 1.0e6, which is the same as "1.0e6"^^xsd:double 
-			 * - true, which is the same as "true"^^xsd:boolean 
-			 * - false, which is the same as "false"^^xsd:boolean
+			 * - "chat" - 'chat'@fr with language tag "fr" -
+			 * "xyz"^^<http://example.org/ns/userDatatype> - "abc"^^appNS:appDataType -
+			 * '''The librarian said, "Perhaps you would enjoy 'War and Peace'."''' - 1,
+			 * which is the same as "1"^^xsd:integer - 1.3, which is the same as
+			 * "1.3"^^xsd:decimal - 1.300, which is the same as "1.300"^^xsd:decimal -
+			 * 1.0e6, which is the same as "1.0e6"^^xsd:double - true, which is the same as
+			 * "true"^^xsd:boolean - false, which is the same as "false"^^xsd:boolean
 			 * 
 			 * Tokens matching the productions INTEGER, DECIMAL, DOUBLE and BooleanLiteral
 			 * are equivalent to a typed literal with the lexical value of the token and the
@@ -1429,16 +1087,18 @@ public class JSAP extends SPARQL11SEProperties {
 				}
 
 				if (uri != null) {
-					if (uri.getSchemeSpecificPart().startsWith("/") || uri.getScheme().equals("urn") || uri.getScheme().equals("meta") )
+					if (uri.getSchemeSpecificPart().startsWith("/") || uri.getScheme().equals("urn"))
 						value = "<" + value + ">";
 				}
 			} else {
 				// A blank node
 				Logging.logger.trace("Blank node: " + value);
-				
+
 				// Not a BLANK_NODE_LABEL
-				// [142]  	BLANK_NODE_LABEL	  ::=  	'_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')* PN_CHARS)?
-				if (!value.startsWith("_:")) value = "<" + value + ">";
+				// [142] BLANK_NODE_LABEL ::= '_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')*
+				// PN_CHARS)?
+				if (!value.startsWith("_:"))
+					value = "<" + value + ">";
 			}
 			// Matching variables
 			/*
@@ -1472,12 +1132,9 @@ public class JSAP extends SPARQL11SEProperties {
 				} else
 					start = index;
 			}
-
-//			selectPattern = selectPattern.replace(" ?" + var + " ", "");
 		}
 
 		return replacedSparql;
-//		return selectPattern + replacedSparql;
 	}
 
 	private static boolean isValidVarChar(int c) {
@@ -1488,11 +1145,9 @@ public class JSAP extends SPARQL11SEProperties {
 				|| (0x2070 <= c && c <= 0x218F) || (0x2C00 <= c && c <= 0x2FEF) || (0x3001 <= c && c <= 0xD7FF)
 				|| (0xF900 <= c && c <= 0xFDCF) || (0xFDF0 <= c && c <= 0xFFFD) || (0x10000 <= c && c <= 0xEFFFF));
 	}
-	
+
 	public void setAutoReconnect(boolean b) {
-		if (jsap.has("sparql11seprotocol")) {
-			jsap.getAsJsonObject("sparql11seprotocol").add("reconnect", new JsonPrimitive(b));
-		}
+		sparql11seprotocol.reconnect = b;
 	}
-	
+
 }

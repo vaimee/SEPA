@@ -91,4 +91,46 @@ public class RDFTermLiteral extends RDFTerm {
 		if (!json.has("datatype")) return null;
 		return json.get("datatype").getAsString();
 	}
+	
+	@Override
+	public boolean equals(Object t) {
+		if (t == this)
+			return true;
+		if (!t.getClass().equals(RDFTermLiteral.class))
+			return false;
+
+		RDFTermLiteral tl = (RDFTermLiteral) t;
+		
+		if (getDatatype() != null) {
+			if (tl.getDatatype() == null) return false;
+			if (!getDatatype().equals(tl.getDatatype())) return false;
+		} else if (tl.getDatatype() != null) return false;
+		
+		if (getLanguageTag() != null) {
+			if (tl.getLanguageTag() == null) return false;
+			if (!getLanguageTag().equals(tl.getLanguageTag())) return false;
+		} else if (tl.getLanguageTag() != null) return false;
+		
+		return this.getValue().equals(((RDFTermLiteral) t).getValue());
+	}
+
+	@Override
+	public final int hashCode() {
+		if (getDatatype() == null) {
+			if(getLanguageTag() == null) {
+				return getValue().hashCode();
+			}
+			else {
+				return getValue().concat(getLanguageTag()).hashCode();
+			}
+		}
+		else {
+			if(getLanguageTag() == null) {
+				return getValue().concat(getDatatype()).hashCode();
+			}
+			else {
+				return getValue().concat(getDatatype()).concat(getLanguageTag()).hashCode();
+			}
+		}
+	}
 }

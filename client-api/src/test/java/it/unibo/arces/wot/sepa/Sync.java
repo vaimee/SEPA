@@ -1,11 +1,8 @@
 package it.unibo.arces.wot.sepa;
 
-
 import java.util.concurrent.ConcurrentHashMap;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.logging.Logging;
@@ -23,14 +20,12 @@ public class Sync implements ISubscriptionHandler {
 
 	private static ConcurrentHashMap<String, String> spuid = new ConcurrentHashMap<String, String>();
 
-//	private ClientSecurityManager sm;
+	public Sync() {
 
-	public Sync() throws SEPASecurityException, SEPAProtocolException {
-//		this.sm = sm;
 	}
 
 	public synchronized void reset() {
-		Logging.logger.trace("ISubscriptionHandler reset");
+		Logging.logger.trace("Sync reset");
 		subscribes = 0;
 		events = 0;
 		unsubscribes = 0;
@@ -132,12 +127,6 @@ public class Sync implements ISubscriptionHandler {
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		Logging.logger.error(errorResponse);
-//		if (errorResponse.isTokenExpiredError())
-//			try {
-//				sm.refreshToken();
-//			} catch (SEPAPropertiesException | SEPASecurityException e) {
-//				Logging.logger.error("Failed to refresh token. "+e.getMessage());
-//			}
 	}
 
 	@Override
@@ -158,6 +147,18 @@ public class Sync implements ISubscriptionHandler {
 			unsubscribes++;
 			unsubscribesMutex.notify();
 		}
+	}
+
+	public synchronized void onSubscribe() {
+		subscribes++;
+	}
+
+	public synchronized void onUnsubscribe() {
+		unsubscribes++;
+	}
+	
+	public synchronized void onSemanticEvent() {
+		events++;
 	}
 
 }

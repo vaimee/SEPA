@@ -117,6 +117,7 @@ public abstract class Consumer extends Client implements IConsumer {
 
 	@Override
 	public void close() throws IOException {
+		super.close();
 		client.close();
 		protocol.close();
 	}
@@ -132,7 +133,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		BindingsResults added = results.getAddedBindings();
 		BindingsResults removed = results.getRemovedBindings();
 
-		Logging.logger.debug("onSemanticEvent: "+notify.getSpuid()+" "+notify.getSequence());
+		Logging.logger.trace("onSemanticEvent: "+notify.getSpuid()+" "+notify.getSequence());
 		
 		if (notify.getSequence() == 0) {
 			onFirstResults(added);
@@ -187,61 +188,52 @@ public abstract class Consumer extends Client implements IConsumer {
 	@Override
 	public void onError(ErrorResponse errorResponse) {
 		Logging.logger.error(errorResponse);
-//		Logging.logger.error("Subscribed: "+subscribed+ " Token expired: "+errorResponse.isTokenExpiredError()+" SM: "+(sm != null));
-//		
-//		if (!subscribed && errorResponse.isTokenExpiredError() && sm != null) {
-//			try {
-//				Logging.logger.info("refreshToken");
-//				
-//				sm.refreshToken();
-//				
-//			} catch (SEPAPropertiesException | SEPASecurityException e) {
-//				Logging.logger.error("Failed to refresh token "+e.getMessage());
-//			}
-//			
-//			try {
-//				Logging.logger.debug("subscribe");
-//				subscribe(TIMEOUT,0);
-//			} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
-//					| SEPABindingsException e) {
-//				Logging.logger.error("Failed to subscribe "+e.getMessage());
-//			}
-//		}
 	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
 		synchronized(client) {
-			Logging.logger.debug("onSubscribe");
+			Logging.logger.trace("onSubscribe");
 			subscribed = true;
 			this.spuid = spuid;
 			client.notify();
+			synchronized(this) {
+				notify();
+			}
 		}
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		Logging.logger.debug("onUnsubscribe");
-		subscribed = false;		
+		Logging.logger.trace("onUnsubscribe");
+		synchronized(client) {
+			Logging.logger.trace("onUnsubscribe");
+			subscribed = false;
+			this.spuid = null;
+			client.notify();
+			synchronized(this) {
+				notify();
+			}
+		}
 	}
 	
 	@Override
 	public void onAddedResults(BindingsResults results) {
-		Logging.logger.debug("Added results "+results);
+		Logging.logger.trace("Added results "+results);
 	}
 
 	@Override
 	public void onRemovedResults(BindingsResults results) {
-		Logging.logger.debug("Removed results "+results);
+		Logging.logger.trace("Removed results "+results);
 	}
 	
 	@Override
 	public void onResults(ARBindingsResults results) {
-		Logging.logger.debug("Results "+results);
+		Logging.logger.trace("Results "+results);
 	}
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
-		Logging.logger.debug("First results "+results);
+		Logging.logger.trace("First results "+results);
 	}
 }

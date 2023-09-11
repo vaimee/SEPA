@@ -37,11 +37,14 @@ import it.unibo.arces.wot.sepa.logging.Timings;
 
 class UpdateProcessor implements UpdateProcessorMBean {
 	protected final SPARQL11Properties properties;
-
+	protected SPARQLEndpoint endpoint;
+	
 	public UpdateProcessor(SPARQL11Properties properties) throws SEPAProtocolException, SEPASecurityException {
 		this.properties = properties;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+		
+		if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) endpoint = new JenaInMemoryEndpoint();
 	}
 
 	public Response process(InternalUpdateRequest req) throws SEPASecurityException, IOException {
@@ -56,9 +59,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		int n = 0;
 		do {
 			long start = Timings.getTime();
-			SPARQLEndpoint endpoint;
-			if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) endpoint = new JenaInMemoryEndpoint();
-			else endpoint = new RemoteEndpoint();
+			if (!(properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory"))) endpoint = new RemoteEndpoint();
 			ret = endpoint.update(request);
 			endpoint.close();
 			long stop = Timings.getTime();

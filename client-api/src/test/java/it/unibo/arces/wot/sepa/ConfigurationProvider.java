@@ -23,10 +23,11 @@ public class ConfigurationProvider implements Closeable {
 	private String prefixes = "";
 	private final String jsapPath;
 
-	public final long TIMEOUT;
-	public final long NRETRY;
+	public long TIMEOUT;
+	public long NRETRY;
 	public static final int REPEATED_TEST = 1;
-
+	public static final long SLEEP = 0;
+	
 	protected ClientSecurityManager sm = null;
 	
 	public ConfigurationProvider() throws SEPAPropertiesException, SEPASecurityException {
@@ -53,16 +54,23 @@ public class ConfigurationProvider implements Closeable {
 
 		prefixes = appProfile.getPrefixes();
 
-		if (appProfile.getExtendedData().has("timeout")) {
+		try {
 			TIMEOUT = appProfile.getExtendedData().get("timeout").getAsLong();
-		} else
+		}
+		catch(Exception e) {
+			Logging.logger.warn("Extended-timeout NOT FOUND. Use default 15 s");
 			TIMEOUT = 15000;
-
-		if (appProfile.getExtendedData().has("nretry")) {
-			NRETRY = appProfile.getExtendedData().get("nretry").getAsLong();
-		} else
-			NRETRY = 3;
+		}
 		
+		try {
+			NRETRY = appProfile.getExtendedData().get("nretry").getAsLong();
+		}
+		catch(Exception e) {
+			Logging.logger.warn("Extended-nretry NOT FOUND. Use default 3");
+			NRETRY = 3;
+			
+		}
+
 		sm = buildSecurityManager();
 		
 		Logging.logger.debug("Loaded JSAP: " + appProfile);

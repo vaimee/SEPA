@@ -24,7 +24,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.ProtocolScheme;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;
@@ -69,14 +69,17 @@ public class Processor implements ProcessorMBean {
 	// Running flag
 	private final AtomicBoolean running = new AtomicBoolean(true);
 
-	public Processor(SPARQL11Properties endpointProperties, EngineProperties properties, Scheduler scheduler)
+	public Processor(EngineProperties properties, Scheduler scheduler)
 			throws IllegalArgumentException, SEPAProtocolException, SEPASecurityException {
 
 		this.scheduler = scheduler;
-
+		
+		if (properties.getEndpointProperties().getHost() == null) properties.getEndpointProperties().setHost("in-memory");
+		if (properties.getEndpointProperties().getProtocolScheme() == null) properties.getEndpointProperties().setProtocolScheme(ProtocolScheme.jena_api);
+		
 		// Processors
-		queryProcessor = new QueryProcessor(endpointProperties);
-		updateProcessor = new UpdateProcessor(endpointProperties);
+		queryProcessor = new QueryProcessor(properties.getEndpointProperties());
+		updateProcessor = new UpdateProcessor(properties.getEndpointProperties());
 
 		// SPU Manager
 		spuManager = new SPUManager(this);
@@ -93,7 +96,7 @@ public class Processor implements ProcessorMBean {
 
 		// JMX
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
-		ProcessorBeans.setEndpoint(endpointProperties);
+		ProcessorBeans.setEndpoint(properties.getEndpointProperties());
 		QueryProcessorBeans.setTimeout(properties.getQueryTimeout());
 		UpdateProcessorBeans.setTimeout(properties.getUpdateTimeout());
 		UpdateProcessorBeans.setReilable(properties.isUpdateReliable());

@@ -23,7 +23,6 @@ import java.net.URISyntaxException;
 import java.util.Hashtable;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
-import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
@@ -82,33 +81,6 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-//		if (errorResponse.isTokenExpiredError()) {
-//			String message = "Failed to refresh token";
-//			try {
-//				sm.refreshToken();
-//				
-//				message = "Failed to get authorization header after token refresh";
-//				req.setAuthorizationHeader(appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
-//				
-//				if (req.isSubscribeRequest()) {
-//					message = "Failed to subscribe after token refresh";
-//					subscription.subscribe((SubscribeRequest) req);
-//				}
-//				else {
-//					message = "Failed to unsubscribe after token refresh";
-//					subscription.unsubscribe((UnsubscribeRequest) req);
-//				}			
-//			} catch (SEPAPropertiesException | SEPASecurityException | SEPAProtocolException e) {
-//				logger.error(e.getMessage());
-//				if (logger.isTraceEnabled())
-//					e.printStackTrace();
-//				if (handler != null)
-//					handler.onError(
-//							new ErrorResponse(401, "invalid_grant", message +" "+ e.getMessage()));
-//				return;
-//			}
-//		}
-
 		if (handler != null)
 			handler.onError(errorResponse);
 
@@ -139,17 +111,6 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 		if (handler != null)
 			handler.onUnsubscribe(spuid);
 	}
-
-//	/**
-//	 * Instantiates a new generic client.
-//	 *
-//	 * @param appProfile the JSAP profile
-//	 * @param sm         the security manager (needed for secure connections)
-//	 * @throws SEPAProtocolException the SEPA protocol exception
-//	 */
-//	public GenericClient(JSAP appProfile, ClientSecurityManager sm) throws SEPAProtocolException {
-//		this(appProfile, sm, null);
-//	}
 
 	public GenericClient(JSAP appProfile, ISubscriptionHandler handler)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
@@ -344,10 +305,12 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 
 	public void unsubscribe(String subID, long timeout, long nRetry)
 			throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
-		if (!subscriptions.containsKey(subID))
-			return;
-
+	
 		synchronized (subLock) {
+			if (subID == null) return;
+			if (!subscriptions.containsKey(subID))
+				return;
+			
 			if (req != null)
 				subLock.wait();
 
@@ -362,7 +325,7 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	 *
 	 * @param ID      the identifier of the update within the JSAP
 	 * @param sparql  if specified it replaces the default SPARQL in the JSAP
-	 * @param forced  the forced
+	 * @param forced  the forced bindings
 	 * @param timeout the timeout
 	 * @return the response
 	 * @throws SEPAProtocolException   the SEPA protocol exception
@@ -374,31 +337,17 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	private Response _update(String ID, String sparql, Bindings forced, long timeout, long nRetry)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		if (sparql == null)
-			sparql = appProfile.getSPARQLUpdate(ID);
-
+			sparql = appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLUpdate(ID), addDefaultDatatype(forced, ID, false));
+		else if (ID != null) sparql = appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false));
+		
 		if (sparql == null)
 			throw new SEPAProtocolException("SPARQL update not found " + ID);
 
 		Response ret = client
 				.update(new UpdateRequest(appProfile.getUpdateMethod(ID), appProfile.getUpdateProtocolScheme(ID),
-						appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),
-						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
+						appProfile.getUpdateHost(ID), appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),sparql
+						,
 						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
-
-//		if (appProfile.isSecure() && ret.isError()) {
-//			ErrorResponse errorResponse = (ErrorResponse) ret;
-//
-//			if (errorResponse.isTokenExpiredError()) {
-//				sm.refreshToken();
-//
-//				ret = client.update(new UpdateRequest(appProfile.getUpdateMethod(ID),
-//						appProfile.getUpdateProtocolScheme(ID), appProfile.getUpdateHost(ID),
-//						appProfile.getUpdatePort(ID), appProfile.getUpdatePath(ID),
-//						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false)),
-//						appProfile.getUsingGraphURI(ID), appProfile.getUsingNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
-//			}
-//		}
-
 		return ret;
 	}
 
@@ -407,7 +356,7 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	 *
 	 * @param ID      the identifier of the query within the JSAP
 	 * @param sparql  if specified it replaces the default SPARQL in the JSAP
-	 * @param forced  the forced
+	 * @param forced  the forced bindings
 	 * @param timeout the timeout
 	 * @return the response
 	 * @throws SEPAProtocolException   the SEPA protocol exception
@@ -419,30 +368,17 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	private Response _query(String ID, String sparql, Bindings forced, long timeout, long nRetry)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		if (sparql == null)
-			sparql = appProfile.getSPARQLQuery(ID);
-
+			sparql = appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLQuery(ID), addDefaultDatatype(forced, ID, true));
+		else if (ID != null) sparql = appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true));
+		
 		if (sparql == null)
 			throw new SEPAProtocolException("SPARQL query not found " + ID);
 
 		Response ret = client
 				.query(new QueryRequest(appProfile.getQueryMethod(ID), appProfile.getQueryProtocolScheme(ID),
 						appProfile.getQueryHost(ID), appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
-						appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
+						sparql,
 						appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
-
-//		if (appProfile.isSecure() && ret.isError()) {
-//			ErrorResponse errorResponse = (ErrorResponse) ret;
-//
-//			if (errorResponse.isTokenExpiredError()) {
-//				sm.refreshToken();
-//
-//				ret = client
-//						.query(new QueryRequest(appProfile.getQueryMethod(ID), appProfile.getQueryProtocolScheme(ID),
-//								appProfile.getQueryHost(ID), appProfile.getQueryPort(ID), appProfile.getQueryPath(ID),
-//								appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)),
-//								appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRetry));
-//			}
-//		}
 
 		return ret;
 	}
@@ -452,7 +388,7 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	 *
 	 * @param ID      the identifier of the subscribe within the JSAP
 	 * @param sparql  if specified it replaces the default SPARQL in the JSAP
-	 * @param forced  the forced
+	 * @param forced  the forced bindings
 	 * @param handler the handler
 	 * @param timeout the timeout
 	 * @throws SEPAProtocolException   the SEPA protocol exception
@@ -468,8 +404,9 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 			InterruptedException {
 
 		if (sparql == null)
-			sparql = appProfile.getSPARQLQuery(ID);
-
+			sparql = appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLQuery(ID), addDefaultDatatype(forced, ID, true));
+		else if (ID != null) sparql = appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true));
+		
 		if (sparql == null)
 			throw new SEPAProtocolException("SPARQL query not found " + ID);
 
@@ -477,24 +414,19 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 			if (req != null)
 				subLock.wait();
 
-			if (appProfile.getSubscribeProtocol(ID).equals(SPARQL11SEProperties.SubscriptionProtocol.WS)) {
-				url = "ws_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
-						+ appProfile.getSubscribePath(ID);
-			} else {
-				url = "wss_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
-						+ appProfile.getSubscribePath(ID);
-			}
+			url = appProfile.getSubscribeProtocol(ID).scheme+ "_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
+					+ appProfile.getSubscribePath(ID);
 
 			if (activeClients.containsKey(url)) {
 				subscription = activeClients.get(url);
 			} else {
-				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),
+				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeProtocol(ID).scheme,appProfile.getSubscribeHost(ID),
 						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), this, sm);
 				subscription = new SPARQL11SEProtocol(protocol);
 			}
 
 			req = new SubscribeRequest(
-					appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true)), alias,
+					sparql, alias,
 					appProfile.getDefaultGraphURI(ID), appProfile.getNamedGraphURI(ID), (appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout, nRretry);
 
 			subscription.subscribe((SubscribeRequest) req);
@@ -503,6 +435,8 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 
 	@Override
 	public void close() throws IOException {
+		super.close();
+		
 		for (SPARQL11SEProtocol client : activeClients.values())
 			client.close();
 		for (SubscriptionProtocol protocol : protocols.values())

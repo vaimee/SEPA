@@ -36,8 +36,8 @@ import org.apache.http.protocol.HttpContext;
 
 import org.apache.http.util.EntityUtils;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -144,7 +144,7 @@ public class RegisterHandler implements HttpAsyncRequestHandler<HttpRequest> {
 				HttpUtilities.sendFailureResponse(exchange, new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ParseException",e.getMessage()));
 				return;
 			}
-			JsonObject json = JsonParser.parseString(jsonString).getAsJsonObject();
+			JsonObject json = new Gson().fromJson(jsonString,JsonObject.class);
 
 			// Client identity
 			name = json.get("register").getAsJsonObject().get("client_identity").getAsString();

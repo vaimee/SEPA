@@ -60,5 +60,9 @@ public class Subscriber {
 	public String getGID() {
 		return sub.getGID();
 	}
+
+	public boolean ping() {
+		return sub.ping();
+	}
 	
 }

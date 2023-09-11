@@ -209,15 +209,21 @@ public class BindingsResults {
 			Bindings temp = new Bindings(b.getAsJsonObject());
 			if (solution.getVariables().size() == temp.getVariables().size()) {
 				if(solution.getVariables().containsAll(temp.getVariables())) {
+					boolean found = true;
 					for(String var : solution.getVariables()) {
 						try {
-							if(!solution.getRDFTerm(var).equals(temp.getRDFTerm(var))) return false;
+							// Comparing BNODE between two different queries is not possible
+							if (solution.isBNode(var) && temp.isBNode(var)) continue;
+							if(!solution.getRDFTerm(var).equals(temp.getRDFTerm(var))) {
+								found = false;
+								break;
+							}
 						} catch (SEPABindingsException e) {
 							Logging.logger.error(e.getMessage());
 							return false;
 						}						
 					}
-					return true;
+					if (found) return true;
 				}
 			}
 		}
