@@ -62,7 +62,7 @@ jobs:
           cat engine.jpar
           echo launching engine with this log4j2 configuration
           cat log4j2.xml
-          java -Dlog4j.configurationFile=./log4j2.xml -jar engine-0-SNAPSHOT.jar -engine engine.jpar > log.txt &
+          java -Dlog4j.configurationFile=./log4j2.xml -jar engine-1.0.0-SNAPSHOT.jar -engine engine.jpar > log.txt &
         shell: bash
       - name: wait for SEPA engine
         uses: nev7n/wait_for_response@v1
