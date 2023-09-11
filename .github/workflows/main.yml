@@ -57,12 +57,14 @@ jobs:
           mvn package 
           cd engine/target
           mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
-          cat endpoint.jpar
           echo launching engine with this configuration
+          echo SPARQL ENDPOINT
+          cat endpoint.jpar
+          echo ENGINE PROPERTIES
           cat engine.jpar
-          echo launching engine with this log4j2 configuration
+          echo LOG4J
           cat log4j2.xml
-          java -Dlog4j.configurationFile=./log4j2.xml -jar engine-1.0.0-SNAPSHOT.jar -engine engine.jpar > log.txt &
+          java -Dlog4j.configurationFile=./log4j2.xml -jar engine-1.0.0-SNAPSHOT.jar -engine engine.jpar -endpoint endpoint.jpar > log.txt &
         shell: bash
       - name: wait for SEPA engine
         uses: nev7n/wait_for_response@v1
