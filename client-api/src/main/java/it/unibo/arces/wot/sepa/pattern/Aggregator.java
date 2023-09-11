@@ -70,32 +70,9 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 					appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
 					appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),authorizationHeader,timeout,nRetry);
 		
-		Logging.logger.debug("UPDATE "+req);
+		Logging.logger.trace("UPDATE "+req);
 		
 		 Response retResponse = sparql11.update(req);
-		 
-//		 while (isSecure() && retResponse.isError()) {
-//				ErrorResponse errorResponse = (ErrorResponse) retResponse;
-//
-//				if (errorResponse.isTokenExpiredError()) {
-//					try {
-//						sm.refreshToken();
-//					} catch (SEPAPropertiesException | SEPASecurityException e) {
-//						Logging.logger.error("Failed to refresh token: " + e.getMessage());
-//					}
-//				} else {
-//					Logging.logger.error("Failed to refresh token: " + errorResponse);
-//					return errorResponse;
-//				}
-//
-//				authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
-//
-//				req = new UpdateRequest(appProfile.getUpdateMethod(updateId), appProfile.getUpdateProtocolScheme(updateId),appProfile.getUpdateHost(updateId), appProfile.getUpdatePort(updateId),
-//						appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
-//						appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),authorizationHeader,timeout,nRetry);
-//
-//				retResponse = sparql11.update(req);
-//			}
 		 
 		 return retResponse;
 	}

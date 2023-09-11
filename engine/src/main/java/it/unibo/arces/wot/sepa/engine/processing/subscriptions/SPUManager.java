@@ -57,6 +57,21 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		this.processor = processor;
 
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
+		
+		Thread thread = new Thread() {
+			public void run() {
+				while (true) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						return;
+					}
+					ping();
+				}
+			}
+		};
+		thread.setName("SEPA-SPUManager-Ping");
+		thread.start();	
 	}
 
 	public void abortSubscriptionsProcessing() {
@@ -108,15 +123,32 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 			// Wait all SPUs to complete processing
 			while (!processingPool.isEmpty()) {
+				Collection<SPU> brokenSpus = new HashSet<>();
+				for (SPU spu : processingPool) {
+					if (!spu.isAlive()) brokenSpus.add(spu);
+				}
+				for (SPU spu: brokenSpus) {
+					activeSpus.remove(spu);
+					processingPool.remove(spu);
+				}
 				Logging.logger.log(Logging.getLevel("SPUManager"),
 						String.format("Wait (%d ms) for %d SPUs to complete processing...",
 								SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size(),
 								processingPool.size()));
 
 				try {
-					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
+					if (!processingPool.isEmpty()) processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
 				} catch (InterruptedException e) {
 					Logging.logger.error(e.getMessage());
+					Logging.logger.error(e.getMessage());
+					brokenSpus.clear();
+					for (SPU spu : activeSpus) {
+						if (!spu.isAlive()) brokenSpus.add(spu);
+					}
+					for (SPU spu: brokenSpus) {
+						activeSpus.remove(spu);
+						processingPool.remove(spu);
+					}
 				}
 			}
 		}
@@ -162,15 +194,31 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 			// Wait all SPUs to complete processing
 			while (!processingPool.isEmpty()) {
+				Collection<SPU> brokenSpus = new HashSet<>();
+				for (SPU spu : processingPool) {
+					if (!spu.isAlive()) brokenSpus.add(spu);
+				}
+				for (SPU spu: brokenSpus) {
+					activeSpus.remove(spu);
+					processingPool.remove(spu);
+				}
 				Logging.logger.log(Logging.getLevel("SPUManager"),
 						String.format("Wait (%d ms) for %d SPUs to complete processing...",
 								SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size(),
 								processingPool.size()));
 
 				try {
-					processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
+					if (!processingPool.isEmpty()) processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
 				} catch (InterruptedException e) {
 					Logging.logger.error(e.getMessage());
+					brokenSpus.clear();
+					for (SPU spu : activeSpus) {
+						if (!spu.isAlive()) brokenSpus.add(spu);
+					}
+					for (SPU spu: brokenSpus) {
+						activeSpus.remove(spu);
+						processingPool.remove(spu);
+					}
 				}
 			}
 		}
@@ -287,6 +335,11 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		}
 
 		Subscriptions.notifySubscribers(notify);
+	}
+	
+	@Override
+	public boolean ping() {
+		return Subscriptions.ping();
 	}
 
 	@Override

@@ -38,11 +38,13 @@
 		"availableProtocols": {
 			"ws": {
 				"port": 9000,
-				"path": "/subscribe"
+				"path": "/subscribe",
+				"scheme" : "ws"
 			},
 			"wss": {
 				"port": 9443,
-				"path": "/secure/subscribe"
+				"path": "/secure/subscribe",
+				"scheme" : "wss"
 			}
 		}
 	},

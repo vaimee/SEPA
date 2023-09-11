@@ -8,8 +8,8 @@ import org.apache.directory.api.ldap.model.exception.LdapException;
 import org.apache.directory.api.ldap.model.message.SearchScope;
 import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.logging.Logging;
@@ -100,7 +100,7 @@ public class SyncLdap implements IUsersSync {
 				String uid = entry.get("uid").getString();
 				String description = entry.get("description").getString();
 			
-				ret.add(uid,JsonParser.parseString(description).getAsJsonObject());
+				ret.add(uid,new Gson().fromJson(description,JsonObject.class)); 
 			}
 		} catch (LdapException | SEPASecurityException  e) {
 			Logging.logger.error("[LDAP] LdapException|CursorException : " + e.getMessage());

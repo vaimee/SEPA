@@ -30,8 +30,8 @@ import javax.net.ssl.SSLContext;
 
 import org.apache.http.HttpStatus;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -111,7 +111,7 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 		verifier = new RSASSAVerifier(publicKey);
 
 		// Serialize the public key to be deliverer during registration
-		jwkPublicKey = JsonParser.parseString(jwk.toPublicJWK().toJSONString());
+		jwkPublicKey = new Gson().fromJson(jwk.toPublicJWK().toJSONString(),JsonElement.class);
 		
 		Logging.logger.debug("Public key to validate JWT");
 		Logging.logger.debug(jwkPublicKey);

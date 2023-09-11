@@ -63,10 +63,12 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 	}
 
 	@BeforeEach
-	public void before() throws IOException {
+	public void before() throws IOException, InterruptedException {
 		ITWebsocketClientEndpoint.spuid = null;
 		ITWebsocketClientEndpoint.error = false;
 		ITWebsocketClientEndpoint.results = false;
+		
+		Thread.sleep(ConfigurationProvider.SLEEP);
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)

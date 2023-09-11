@@ -26,11 +26,11 @@ import it.unibo.arces.wot.sepa.logging.Logging;
 
 import org.apache.http.HttpStatus;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
@@ -108,7 +108,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 	private static void setAliasIfPresent(ErrorResponse error, String message) {
 		JsonObject request;
 		try {
-			request = JsonParser.parseString(message).getAsJsonObject();
+			request = new Gson().fromJson(message,JsonObject.class);
 		} catch (Exception e) {
 			return;
 		}
@@ -215,7 +215,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		JsonObject request;
 
 		try {
-			request = JsonParser.parseString(message).getAsJsonObject();	
+			request = new Gson().fromJson(message,JsonObject.class);	
 		} catch (Exception e) {
 			Logging.logger.error(e.getMessage());
 			return new ClientAuthorization("invalid_request","Failed to parse JSON message: "+message);
@@ -293,7 +293,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		ErrorResponse error;
 		
 		try {
-			req = JsonParser.parseString(request).getAsJsonObject();
+			req = new Gson().fromJson(request,JsonObject.class);
 		} catch (JsonParseException e) {
 			error = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "JsonParseException",
 					"JsonParseException: " + request);

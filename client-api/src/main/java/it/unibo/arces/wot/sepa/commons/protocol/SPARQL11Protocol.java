@@ -59,8 +59,8 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.logging.Timings;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 /**
  * This class implements the SPARQL 1.1 Protocol
@@ -90,7 +90,7 @@ public class SPARQL11Protocol implements Closeable {
 
 	@Override
 	public void close() throws IOException {
-		httpClient.close();
+		if (httpClient != null) httpClient.close();
 	}
 
 	/*
@@ -184,7 +184,7 @@ public class SPARQL11Protocol implements Closeable {
 			// suggests to use a JSON format
 			// http://mml.arces.unibo.it/TR/sparql11-se-protocol.html#ErrorResponses
 			try {
-				JsonObject ret = JsonParser.parseString(responseBody).getAsJsonObject();
+				JsonObject ret = new Gson().fromJson(responseBody, JsonObject.class);
 				errorResponse = new ErrorResponse(ret.get("status_code").getAsInt(), ret.get("error").getAsString(),
 						ret.get("error_description").getAsString());
 			} catch (Exception e) {

@@ -16,9 +16,9 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.Level;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
@@ -118,7 +118,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 
 			EntityUtils.consume(entity);
 
-			JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
+			JsonObject json = new Gson().fromJson(jsonResponse,JsonObject.class);
 
 			if (json.has("error")) {
 				// int code = json.get("status_code").getAsInt();
@@ -204,7 +204,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 			EntityUtils.consume(entity);
 
 			// Parse response
-			JsonObject json = JsonParser.parseString(jsonResponse).getAsJsonObject();
+			JsonObject json = new Gson().fromJson(jsonResponse,JsonObject.class);
 
 			if (json.has("error")) {
 				Timings.log("TOKEN_REQUEST", start, Timings.getTime());

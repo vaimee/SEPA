@@ -52,6 +52,8 @@ public class ITSPARQL11SEProtocol {
 		client.close();
 		protocol.close();
 		protocol.close();
+		
+		Thread.sleep(ConfigurationProvider.SLEEP);
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)

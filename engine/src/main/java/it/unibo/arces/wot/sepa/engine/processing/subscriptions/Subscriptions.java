@@ -263,4 +263,28 @@ public class Subscriptions {
 	public synchronized static long size() {
 		return spus.size();
 	}
+
+	public synchronized static boolean ping() {
+		Logging.logger.log(Logging.getLevel("subscriptions"),"@ping");
+		
+		HashSet<Subscriber> brokenSubscribers = new HashSet<Subscriber>();		
+		
+		for (String spuid : spus.keySet()) {
+		for (Subscriber client : handlers.get(spuid)) {
+			if (!client.ping()) brokenSubscribers.add(client);
+		}
+		}
+		
+		for (Subscriber client : brokenSubscribers) {
+			try {
+				removeSubscriber(client.getSID());
+			} catch (SEPANotExistsException e) {
+				Logging.logger.error(e.getMessage());
+				if (Logging.logger.isTraceEnabled())
+					e.printStackTrace();
+			}
+		}
+		
+		return brokenSubscribers.size() != 0;
+	}
 }

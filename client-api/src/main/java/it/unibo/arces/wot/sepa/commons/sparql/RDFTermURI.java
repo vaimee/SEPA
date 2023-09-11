@@ -28,19 +28,28 @@ public class RDFTermURI extends RDFTerm {
 	/**
 	 * Instantiates a new RDF term URI.
 	 *
-	 * @param value
-	 *            the value
+	 * @param value the value
 	 */
 	public RDFTermURI(String value) {
 		super(value);
 		json.add("type", new JsonPrimitive("uri"));
 	}
-	
+
 	/**
 	 * Instantiates a new RDF term URI with null value
 	 *
 	 */
 	public RDFTermURI() {
 		this(null);
+	}
+
+	@Override
+	public boolean equals(Object t) {
+		if (t == this)
+			return true;
+		if (!t.getClass().equals(RDFTermURI.class))
+			return false;
+
+		return this.getValue().equals(((RDFTermURI) t).getValue());
 	}
 }

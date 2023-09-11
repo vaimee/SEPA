@@ -22,11 +22,9 @@ import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.logging.Logging;
@@ -74,16 +72,27 @@ import it.unibo.arces.wot.sepa.logging.Logging;
 		"type": "XPrHEX2xHy+5IuXHPHigMw=="
 	},
 	"graphs": {							(optional)
-		"default-graph-uri": "http://default",
-		"named-graph-uri": "http://default",
-		"using-graph-uri": "http://default",
-		"using-named-graph-uri": "http://default"
+		"default_graph_uri": ["http://default"],
+		"named_graph_uri": ["http://default"],
+		"using_graph_uri": ["http://default"],
+		"using_named_graph_uri": ["http://default"]
 	},
 }
  * </pre>
  */
 
 public class SPARQL11Properties {
+	/** The defaults file name. */
+	protected String defaultsFileName = "endpoint.jpar";
+
+	/** The properties file. */
+	protected String propertiesFile = defaultsFileName;
+	
+	// Members.
+	protected String host;
+	protected SPARQL11Protocol sparql11protocol;
+	protected Graphs graphs = null;
+	
 	/**
 	 * The Enum SPARQLPrimitive (QUERY, UPDATE).
 	 */
@@ -99,11 +108,21 @@ public class SPARQL11Properties {
 	 */
 	public enum QueryHTTPMethod {
 		/** The get. */
-		GET,
+		GET("application/sparql-query"),
 		/** The post. */
-		POST,
+		POST("application/sparql-query"),
 		/** The url encoded post. */
-		URL_ENCODED_POST
+		URL_ENCODED_POST("application/x-www-form-urlencoded");
+		
+		private final String label;
+		
+		private QueryHTTPMethod(String value) {
+			label = value;
+		}
+
+		public String getQueryContentTypeHeader() {
+			return label;
+    	}
 	};
 
 	/**
@@ -111,9 +130,19 @@ public class SPARQL11Properties {
 	 */
 	public enum UpdateHTTPMethod {
 		/** The post. */
-		POST,
+		POST("application/sparql-update"),
 		/** The url encoded post. */
-		URL_ENCODED_POST
+		URL_ENCODED_POST("application/x-www-form-urlencoded");
+		
+		private final String label;
+		
+		private UpdateHTTPMethod(String value) {
+			label = value;
+		}
+
+		public String getUpdateContentTypeHeader() {
+			return label;
+    	}
 	};
 
 	/**
@@ -121,11 +150,21 @@ public class SPARQL11Properties {
 	 */
 	public enum QueryResultsFormat {
 		/** The json. */
-		JSON,
+		JSON("application/sparql-results+json"),
 		/** The xml. */
-		XML,
+		XML("application/sparql-results+xml"),
 		/** The csv. */
-		CSV
+		CSV("text/csv");
+
+		private final String label;
+		
+		private QueryResultsFormat(String value) {
+			label = value;
+		}
+		
+		public String getQueryAcceptHeader() {
+			return label;
+		}
 	};
 
 	/**
@@ -133,9 +172,19 @@ public class SPARQL11Properties {
 	 */
 	public enum UpdateResultsFormat {
 		/** The html. */
-		HTML,
+		HTML("application/html"),
 		/** The json. */
-		JSON
+		JSON("application/json");
+		
+		private final String label;
+		
+		private UpdateResultsFormat(String value) {
+			label = value;
+		}
+
+		public String getUpdateAcceptHeader() {
+			return label;
+    	}
 	};
 
 	/**
@@ -143,60 +192,102 @@ public class SPARQL11Properties {
 	 */
 	public enum ProtocolScheme {
 		/** The http protocol scheme. */
-		HTTP,
+		http("http"),
 		/** The https protocol scheme. */
-		HTTPS
-	};
-
-	/** The defaults file name. */
-	protected String defaultsFileName = "endpoint.jpar";
-
-	/** The properties file. */
-	protected String propertiesFile = defaultsFileName;
-
-	/** The parameters. */
-	protected JsonObject jsap = new JsonObject();
-
-	public SPARQL11Properties(String propertiesFile) throws SEPAPropertiesException {
-		this(propertiesFile, false);
-	}
-
-	public SPARQL11Properties(String propertiesFile, boolean validate) throws SEPAPropertiesException {
-		if (propertiesFile == null)
-			throw new SEPAPropertiesException("JSAP file is null");
-		loadProperties(propertiesFile, validate);
-	}
-
-	public SPARQL11Properties() {
-		defaults();
-		this.propertiesFile = null;
-	}
-
-	private void loadProperties(String jsapFile, boolean val) throws SEPAPropertiesException {
-		try (final FileReader in = new FileReader(jsapFile)) {
-			jsap = JsonParser.parseReader(in).getAsJsonObject();
-
-			// Validate the JSON elements
-			if (val)
-				validate();
-
-			this.propertiesFile = jsapFile;
-		} catch (Exception e) {
-
-			Logging.logger.warn("jsapFile: " + jsapFile + " Exception: " + e.getMessage());
-
-			defaults();
-
-			try {
-				storeProperties(defaultsFileName);
-			} catch (Exception e1) {
-				throw new SEPAPropertiesException(e1);
-			}
-
-			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed)");
-
-			this.propertiesFile = defaultsFileName;
+		https("https"),
+		/* In memory JENA API*/
+		jena_api("jena-api");
+		
+		private final String label;
+		
+		private ProtocolScheme(String value) {
+			label = value;
 		}
+
+		public String getProtocolScheme() {
+			return label;
+		}
+	};
+	
+	protected static class SPARQL11Protocol {
+		public String host = null;
+		public ProtocolScheme protocol = null;
+		public int port = -1;
+		public Query query = new Query();
+		public Update update = new Update();
+
+		public SPARQL11Protocol merge(SPARQL11Protocol temp) {
+			if (temp != null) {
+				this.host = (temp.host != null ? temp.host : this.host);
+				this.protocol = (temp.protocol != null ? temp.protocol : this.protocol);
+				this.port = (temp.port != -1 ? temp.port : this.port);
+				this.query = temp.query;
+				this.update = temp.update;
+			} 
+			
+			return this;
+		}
+
+		public String getUpdateAcceptHeader() {
+			return update.format.getUpdateAcceptHeader();
+		}
+
+		public UpdateHTTPMethod getUpdateMethod() {
+			return update.method;
+		}
+
+		public String getProtocolScheme() {
+			return protocol.getProtocolScheme();
+		}
+
+		public String getUpdatePath() {
+			return update.path;
+		}
+		
+	}
+	
+	protected static class Query {
+		public String path = "/sparql";
+		public QueryHTTPMethod method = QueryHTTPMethod.URL_ENCODED_POST;
+		public QueryResultsFormat format = QueryResultsFormat.JSON;
+	}
+	
+	protected static class Update {
+		public String path = "/sparql";
+		public UpdateHTTPMethod method = UpdateHTTPMethod.URL_ENCODED_POST;
+		public UpdateResultsFormat format = UpdateResultsFormat.JSON;
+	}
+	
+	protected static class Graphs {
+		public Set<String> default_graph_uri = new HashSet<String>();
+		public Set<String> named_graph_uri = new HashSet<String>();
+		public Set<String> using_graph_uri = new HashSet<String>();
+		public Set<String> using_named_graph_uri = new HashSet<String>();
+	}
+	
+	public SPARQL11Properties(String host,ProtocolScheme scheme) {
+		this.host = host;
+		this.sparql11protocol = new SPARQL11Protocol();
+		this.sparql11protocol.protocol = scheme;
+	}
+
+	public SPARQL11Properties(String jsapFile) throws SEPAPropertiesException  {
+		SPARQL11Properties jsap = null;
+		if (jsapFile == null) throw new SEPAPropertiesException("File is null");
+		try {
+			FileReader reader = new FileReader(jsapFile);
+			jsap = new Gson().fromJson(reader, SPARQL11Properties.class);
+		} catch (JsonSyntaxException | JsonIOException | FileNotFoundException  e) {
+			Logging.logger.error(e.getMessage());
+			e.printStackTrace();
+			throw new SEPAPropertiesException(e);
+		}
+		
+		this.host = jsap.host;
+		this.sparql11protocol = jsap.sparql11protocol;
+		this.graphs = jsap.graphs;
+		
+		propertiesFile = jsapFile;
 	}
 
 	public String getJSAPFilename() {
@@ -204,70 +295,7 @@ public class SPARQL11Properties {
 	}
 
 	public String toString() {
-		return jsap.get("sparql11protocol").toString();
-	}
-
-	/**
-	 * <pre>
-	{
-	"host" : "localhost" ,
-	"sparql11protocol": {
-		"protocol": "http",
-		"port": 8000,
-		"query": {
-			"path": "/query",
-			"method": "GET | POST | URL_ENCODED_POST",
-			"format": "JSON | XML | CSV"
-		},
-		"update": {
-			"path": "/update",
-			"method": "POST | URL_ENCODED_POST",
-			"format": "JSON | HTML",
-			"urlEncodedGraphs" : "true | false" (optional, default: true)
-		}
-	}
-	}
-	 * </pre>
-	 */
-	protected void defaults() {
-		jsap.add("host", new JsonPrimitive("in-memory"));
-
-		JsonObject sparql11protocol = new JsonObject();
-		sparql11protocol.add("protocol", new JsonPrimitive("jena-api"));
-		sparql11protocol.add("port", new JsonPrimitive(9999));
-
-		JsonObject query = new JsonObject();
-		query.add("path", new JsonPrimitive("/sparql"));
-		query.add("method", new JsonPrimitive("POST"));
-		query.add("format", new JsonPrimitive("JSON"));
-		sparql11protocol.add("query", query);
-
-		JsonObject update = new JsonObject();
-		update.add("path", new JsonPrimitive("/sparql"));
-		update.add("method", new JsonPrimitive("POST"));
-		update.add("format", new JsonPrimitive("JSON"));
-		sparql11protocol.add("update", update);
-
-		jsap.add("sparql11protocol", sparql11protocol);
-	}
-
-	protected void validate() throws SEPAPropertiesException {
-		try {
-			jsap.get("host").getAsString();
-
-			jsap.getAsJsonObject("sparql11protocol").get("protocol").getAsString();
-
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("path").getAsString();
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("method").getAsString();
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("format").getAsString();
-
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("path").getAsString();
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("method").getAsString();
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("format").getAsString();
-		} catch (Exception e) {
-			throw new SEPAPropertiesException(e);
-		}
-
+		return new Gson().toJson(this);
 	}
 
 	/**
@@ -281,7 +309,7 @@ public class SPARQL11Properties {
 		FileWriter out;
 		try {
 			out = new FileWriter(propertiesFile);
-			out.write(jsap.toString());
+			out.write(this.toString());
 			out.close();
 		} catch (Exception e) {
 			throw new SEPAPropertiesException(e);
@@ -295,15 +323,7 @@ public class SPARQL11Properties {
 	 * @return the host (default is localhost)
 	 */
 	public String getHost() {
-		try {
-			return jsap.getAsJsonObject("sparql11protocol").get("host").getAsString();
-		} catch (Exception e) {
-			try {
-				return jsap.get("host").getAsString();
-			} catch (Exception e1) {
-				return null;
-			}
-		}
+		return (sparql11protocol.host != null ? sparql11protocol.host : host);
 	}
 
 	/**
@@ -311,7 +331,7 @@ public class SPARQL11Properties {
 	 *
 	 */
 	public void setHost(String host) {
-		jsap.add("host", new JsonPrimitive(host));
+		this.host = host;
 	}
 
 	/**
@@ -320,11 +340,7 @@ public class SPARQL11Properties {
 	 * @return the update port
 	 */
 	public int getPort() {
-		try {
-			return jsap.getAsJsonObject("sparql11protocol").get("port").getAsInt();
-		} catch (Exception e) {
-			return -1;
-		}
+		return sparql11protocol.port;
 	}
 
 	/**
@@ -333,169 +349,121 @@ public class SPARQL11Properties {
 	 * @return the update port
 	 */
 	public void setPort(int port) {
-		jsap.getAsJsonObject("sparql11protocol").add("port", new JsonPrimitive(port));
+		sparql11protocol.port = port;
 	}
 
 	/**
 	 * Gets the default graph URI.
 	 * 
 	 * <pre>
-	"graphs": { 
-		"default-graph-uri": ["http://default"], 
-		"named-graph-uri": ["http://default"], 
-		"using-graph-uri": ["http://default"],
-		"using-named-graph-uri": ["http://default"]
-	}
+	"graphs": {							(optional)
+		"default_graph_uri": ["http://default"],
+		"named_graph_uri": ["http://default"],
+		"using_graph_uri": ["http://default"],
+		"using_named_graph_uri": ["http://default"]
+	},
 	 * </pre>
 	 * 
 	 * @return the default graph URI
 	 */
 	public Set<String> getDefaultGraphURI() {
-		HashSet<String> ret = new HashSet<>();
+		if (graphs == null) return null;
+		return graphs.default_graph_uri;
 
-		try {
-			JsonArray array = jsap.getAsJsonObject("graphs").get("default-graph-uri").getAsJsonArray();
-			for (JsonElement element : array)
-				ret.add(element.getAsString());
-		} catch (Exception e) {
-		}
-
-		return ret;
 	}
 
 	public void setDefaultGraphURI(Set<String> graph) {
-		JsonArray array = new JsonArray();
-		for (String s : graph)
-			array.add(s);
-		if (!jsap.has("graphs"))
-			jsap.add("graphs", new JsonObject());
-		jsap.getAsJsonObject("graphs").add("default-graph-uri", array);
+		if (graphs == null) graphs = new Graphs();
+		graphs.default_graph_uri.clear();
+		graphs.default_graph_uri.addAll(graph);
 	}
 
 	/**
 	 * Gets the named graph URI.
 	 *
 	 * <pre>
-	"graphs": { 
-		"default-graph-uri": "http://default", 
-		"named-graph-uri": "http://default", 
-		"using-graph-uri": "http://default",
-		"using-named-graph-uri": "http://default"
-	}
+	"graphs": {							(optional)
+		"default_graph_uri": ["http://default"],
+		"named_graph_uri": ["http://default"],
+		"using_graph_uri": ["http://default"],
+		"using_named_graph_uri": ["http://default"]
+	},
 	 * </pre>
 	 * 
 	 * @return the default graph URI
 	 */
 	public Set<String> getNamedGraphURI() {
-		HashSet<String> ret = new HashSet<>();
-
-		try {
-			JsonArray array = jsap.getAsJsonObject("graphs").get("named-graph-uri").getAsJsonArray();
-			for (JsonElement element : array)
-				ret.add(element.getAsString());
-		} catch (Exception e) {
-		}
-
-		return ret;
+		if (graphs == null) return null;
+		return graphs.named_graph_uri;
 	}
 
 	public void setNamedGraphURI(Set<String> graph) {
-		JsonArray array = new JsonArray();
-		for (String s : graph)
-			array.add(s);
-		if (!jsap.has("graphs"))
-			jsap.add("graphs", new JsonObject());
-		jsap.getAsJsonObject("graphs").add("named-graph-uri", array);
+		if (graphs == null) graphs = new Graphs();
+		graphs.named_graph_uri.clear();
+		graphs.named_graph_uri.addAll(graph);
 	}
 
 	/**
 	 * Gets the using graph URI.
 	 *
 	 * <pre>
-	"graphs": { 
-		"default-graph-uri": "http://default", 
-		"named-graph-uri": "http://default", 
-		"using-graph-uri": "http://default",
-		"using-named-graph-uri": "http://default"
-	}
+	"graphs": {							(optional)
+		"default_graph_uri": ["http://default"],
+		"named_graph_uri": ["http://default"],
+		"using_graph_uri": ["http://default"],
+		"using_named_graph_uri": ["http://default"]
+	},
 	 * </pre>
 	 * 
 	 * @return the default graph URI
 	 */
 	public Set<String> getUsingGraphURI() {
-		HashSet<String> ret = new HashSet<>();
-
-		try {
-			JsonArray array = jsap.getAsJsonObject("graphs").get("using-graph-uri").getAsJsonArray();
-			for (JsonElement element : array)
-				ret.add(element.getAsString());
-		} catch (Exception e) {
-
-		}
-
-		return ret;
+		if (graphs == null) return null;
+		return graphs.using_graph_uri;
 	}
 
 	public void setUsingGraphURI(Set<String> graph) {
-		JsonArray array = new JsonArray();
-		for (String s : graph)
-			array.add(s);
-		if (!jsap.has("graphs"))
-			jsap.add("graphs", new JsonObject());
-		jsap.getAsJsonObject("graphs").add("using-graph-uri", array);
+		if (graphs == null) graphs = new Graphs();
+		graphs.using_graph_uri.clear();
+		graphs.using_named_graph_uri.addAll(graph);
 	}
 
 	/**
 	 * Gets the using named graph URI.
 	 *
 	 * <pre>
-	"graphs": { 
-		"default-graph-uri": "http://default", 
-		"named-graph-uri": "http://default", 
-		"using-graph-uri": "http://default",
-		"using-named-graph-uri": "http://default"
-	}
+	"graphs": {							(optional)
+		"default_graph_uri": ["http://default"],
+		"named_graph_uri": ["http://default"],
+		"using_graph_uri": ["http://default"],
+		"using_named_graph_uri": ["http://default"]
+	},
 	 * </pre>
 	 * 
 	 * @return the default graph URI
 	 */
 	public Set<String> getUsingNamedGraphURI() {
-		HashSet<String> ret = new HashSet<>();
-
-		try {
-			JsonArray array = jsap.getAsJsonObject("graphs").get("using-named-graph-uri").getAsJsonArray();
-			for (JsonElement element : array)
-				ret.add(element.getAsString());
-		} catch (Exception e) {
-		}
-
-		return ret;
+		if (graphs == null) return null;
+		return graphs.using_named_graph_uri;
 	}
 
 	public void setUsingNamedGraphURI(Set<String> graph) {
-		JsonArray array = new JsonArray();
-		for (String s : graph)
-			array.add(s);
-		if (!jsap.has("graphs"))
-			jsap.add("graphs", new JsonObject());
-		jsap.getAsJsonObject("graphs").add("using-named-graph-uri", array);
+		if (graphs == null) graphs = new Graphs();
+		graphs.using_named_graph_uri.clear();
+		graphs.using_named_graph_uri.addAll(graph);
 	}
 
 	/**
 	 * Gets the update path.
 	 *
-	 * @return the update path (default is /update)
+	 * @return the update path (default is /sparql)
 	 */
 	public String getUpdatePath() {
-		try {
-			return jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("path").getAsString();
-		} catch (NullPointerException e) {
-			return "/update";
-		}
+		return sparql11protocol.update.path;
 	}
 
 	public void setUpdatePath(String path) {
-		jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("path", new JsonPrimitive(path));
+		sparql11protocol.update.path = path;
 	}
 
 	/**
@@ -506,31 +474,11 @@ public class SPARQL11Properties {
 	 * @see QueryHTTPMethod
 	 */
 	public UpdateHTTPMethod getUpdateMethod() {
-		try {
-			switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("method").getAsString()) {
-
-			case "POST":
-				return UpdateHTTPMethod.POST;
-			case "URL_ENCODED_POST":
-				return UpdateHTTPMethod.URL_ENCODED_POST;
-			default:
-				return UpdateHTTPMethod.POST;
-			}
-		} catch (NullPointerException e) {
-			return UpdateHTTPMethod.POST;
-		}
+		return sparql11protocol.update.method;
 	}
 
 	public void setUpdateMethod(UpdateHTTPMethod method) {
-		switch (method) {
-		case POST:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("method", new JsonPrimitive("POST"));
-			break;
-		case URL_ENCODED_POST:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("method",
-					new JsonPrimitive("URL_ENCODED_POST"));
-			break;
-		}
+		sparql11protocol.update.method = method;
 	}
 
 	/**
@@ -539,44 +487,24 @@ public class SPARQL11Properties {
 	 * @return the update HTTP Accept header string
 	 */
 	public String getUpdateAcceptHeader() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("format").getAsString()) {
-		case "JSON":
-			return "application/json";
-		case "HTML":
-			return "application/html";
-		default:
-			return "application/json";
-		}
+		return sparql11protocol.update.format.getUpdateAcceptHeader();
 	}
 
 	public void setUpdateAcceptHeader(UpdateResultsFormat format) {
-		switch (format) {
-		case JSON:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("format",
-					new JsonPrimitive("application/json"));
-			break;
-		case HTML:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").add("format",
-					new JsonPrimitive("application/html"));
-			break;
-		}
+		sparql11protocol.update.format = format;
 	}
-
+	
 	/**
 	 * Gets the query path.
 	 *
-	 * @return the query path (default is /query)
+	 * @return the query path (default is /sparql)
 	 */
 	public String getQueryPath() {
-		try {
-			return jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("path").getAsString();
-		} catch (NullPointerException e) {
-			return "/query";
-		}
+		return sparql11protocol.query.path;
 	}
 
 	public void setQueryPath(String path) {
-		jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("path", new JsonPrimitive(path));
+		sparql11protocol.query.path = path;
 	}
 
 	/**
@@ -587,35 +515,11 @@ public class SPARQL11Properties {
 	 * @see QueryHTTPMethod
 	 */
 	public QueryHTTPMethod getQueryMethod() {
-		try {
-			switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("method").getAsString()) {
-			case "POST":
-				return QueryHTTPMethod.POST;
-			case "GET":
-				return QueryHTTPMethod.GET;
-			case "URL_ENCODED_POST":
-				return QueryHTTPMethod.URL_ENCODED_POST;
-			default:
-				return QueryHTTPMethod.POST;
-			}
-		} catch (NullPointerException e) {
-			return QueryHTTPMethod.POST;
-		}
+		return sparql11protocol.query.method;
 	}
 
 	public void setQueryMethod(QueryHTTPMethod method) {
-		switch (method) {
-		case POST:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("method", new JsonPrimitive("POST"));
-			break;
-		case URL_ENCODED_POST:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("method",
-					new JsonPrimitive("URL_ENCODED_POST"));
-			break;
-		case GET:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("method", new JsonPrimitive("GET"));
-			break;
-		}
+		sparql11protocol.query.method = method;
 	}
 
 	/**
@@ -625,70 +529,30 @@ public class SPARQL11Properties {
 	 * 
 	 */
 	public String getQueryAcceptHeader() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("format").getAsString()) {
-		case "JSON":
-			return "application/sparql-results+json";
-		case "XML":
-			return "application/sparql-results+xml";
-		case "CSV":
-			return "text/csv";
-		default:
-			return "application/sparql-results+json";
-		}
+		return sparql11protocol.query.format.getQueryAcceptHeader();
 	}
 
 	public void setQueryAcceptHeader(QueryResultsFormat format) {
-		switch (format) {
-		case JSON:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("format",
-					new JsonPrimitive("application/sparql-results+json"));
-			break;
-		case XML:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("format",
-					new JsonPrimitive("application/sparql-results+xml"));
-			break;
-		case CSV:
-			jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").add("format",
-					new JsonPrimitive("text/csv"));
-			break;
-		}
-
+		sparql11protocol.query.format = format;
 	}
-
+	
 	public String getUpdateContentTypeHeader() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("update").get("method").getAsString()) {
-		case "POST":
-			return "application/sparql-update";
-		case "URL_ENCODED_POST":
-			return "application/x-www-form-urlencoded";
-		default:
-			return "application/sparql-update";
-		}
+		return sparql11protocol.update.method.getUpdateContentTypeHeader();
 	}
 
 	public String getQueryContentTypeHeader() {
-		switch (jsap.getAsJsonObject("sparql11protocol").getAsJsonObject("query").get("method").getAsString()) {
-		case "POST":
-			return "application/sparql-query";
-		case "URL_ENCODED_POST":
-			return "application/x-www-form-urlencoded";
-		default:
-			return "application/sparql-query";
-		}
+		return sparql11protocol.query.method.getQueryContentTypeHeader();
 	}
 
 	public String getProtocolScheme() {
-		return jsap.getAsJsonObject("sparql11protocol").get("protocol").getAsString();
+		return (sparql11protocol.protocol == null ? null : sparql11protocol.protocol.getProtocolScheme());
 	}
 
 	public void setProtocolScheme(ProtocolScheme scheme) {
-		switch (scheme) {
-		case HTTP:
-			jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive("http"));
-			break;
-		case HTTPS:
-			jsap.getAsJsonObject("sparql11protocol").add("protocol", new JsonPrimitive("https"));
-			break;
-		}
+		sparql11protocol.protocol = scheme;
 	}
+
+	
+
+	
 }

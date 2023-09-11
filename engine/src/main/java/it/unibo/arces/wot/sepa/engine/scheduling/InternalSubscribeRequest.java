@@ -61,4 +61,9 @@ public class InternalSubscribeRequest extends InternalQueryRequest {
 		}
 		return null;
 	}
+
+	public boolean ping() {
+		if (gate != null) return gate.ping();
+		return false;
+	}
 }

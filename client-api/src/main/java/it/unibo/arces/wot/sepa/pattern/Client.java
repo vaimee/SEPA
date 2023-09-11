@@ -55,7 +55,7 @@ public abstract class Client implements java.io.Closeable {
 		}
 		this.appProfile = appProfile;
 
-		Logging.logger.trace("SEPA parameters: " + appProfile.printParameters());
+		Logging.logger.trace("SEPA parameters: " + appProfile);
 
 		// Security manager
 		if (appProfile.isSecure()) {
@@ -78,8 +78,9 @@ public abstract class Client implements java.io.Closeable {
 		}
 	}
 
+	@Override
 	public void close() throws IOException {
-		sm.close();
+		if (sm != null) sm.close();
 	}
 
 	/**

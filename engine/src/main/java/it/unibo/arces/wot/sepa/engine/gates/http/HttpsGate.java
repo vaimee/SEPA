@@ -49,14 +49,15 @@ public class HttpsGate {
 	public HttpsGate(EngineProperties properties, Scheduler scheduler) throws SEPASecurityException, SEPAProtocolException {
 
 		try {
-			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
-
-			server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
+//			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
+			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
+			
+			server = ServerBootstrap.bootstrap().setListenerPort(443).setServerInfo(serverInfo)
 					.setIOReactorConfig(config).setSslContext(Dependability.getSSLContext())
 					.setExceptionLogger(ExceptionLogger.STD_ERR)
 					.registerHandler(properties.getRegisterPath(), new RegisterHandler())
-					.registerHandler(properties.getSecurePath() + properties.getQueryPath(),handler)
-					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),handler)
+					.registerHandler(properties.getQueryPath(),handler)
+					.registerHandler(properties.getUpdatePath(),handler)
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
 					.registerHandler("/echo", new EchoHandler())
 					.registerHandler("", new EchoHandler()).create();

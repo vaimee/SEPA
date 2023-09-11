@@ -53,37 +53,6 @@ public abstract class RDFTerm {
 	}
 
 	/**
-	 * Equals.
-	 *
-	 * @param t
-	 *            the t
-	 * @return true, if successful
-	 */
-	public boolean equals(RDFTerm t) {
-		if (this.isBNode()) {
-			if (t.isLiteral()) return false;
-			if (t.isURI()) return false;
-			
-			// TWO BLANK NODES ARE EQUALS AS ASSUMPTION
-			//if (t.isBNode()) return true;
-			// TWO BLANK NODES ARE EQUALS IF THEIR SYNTAXES ARE EQUALS
-			return this.getValue().equals(t.getValue());
-		}
-		if (this.isLiteral()) {
-			if (t.isBNode()) return false;
-			if (t.isURI()) return false;
-			return this.getValue().equals(t.getValue());
-		}
-		if (this.isURI()) {
-			if (t.isBNode()) return false;
-			if (t.isLiteral()) return false;
-			return this.getValue().equals(t.getValue());
-		}
-		
-		return false;
-	}
-
-	/**
 	 * To json.
 	 *
 	 * @return the json object
@@ -111,5 +80,10 @@ public abstract class RDFTerm {
 	 */
 	public String toString() {
 		return json.toString();
+	}
+	
+	@Override
+	public int hashCode() {
+		return this.getValue().hashCode();
 	}
 }
