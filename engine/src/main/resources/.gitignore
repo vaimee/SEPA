@@ -27,3 +27,7 @@
 /config/
 /sepa.api.csv
 >>>>>>> refs/heads/dev
+/cacerts.jks
+/jmx.cer
+/jmx.jks
+/logging-jconsole.properties
