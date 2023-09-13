@@ -39,11 +39,16 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import it.unibo.arces.wot.sepa.api.SPARQL11SEProperties;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+import it.unibo.arces.wot.sepa.commons.properties.QueryProperties.QueryHTTPMethod;
+import it.unibo.arces.wot.sepa.commons.properties.QueryProperties.QueryResultsFormat;
+import it.unibo.arces.wot.sepa.commons.properties.SPARQL11SEProperties;
+import it.unibo.arces.wot.sepa.commons.properties.SubscriptionProtocolProperties;
+import it.unibo.arces.wot.sepa.commons.properties.UpdateProperties;
+import it.unibo.arces.wot.sepa.commons.properties.UpdateProperties.UpdateHTTPMethod;
+import it.unibo.arces.wot.sepa.commons.properties.UpdateProperties.UpdateResultsFormat;
 import it.unibo.arces.wot.sepa.commons.security.OAuthProperties;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
@@ -51,6 +56,7 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermBNode;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 import it.unibo.arces.wot.sepa.logging.Logging;
+import it.unibo.arces.wot.sepa.pattern.JSAPPrimitive.ForcedBinding;
 
 /**
  * JSAP file example
@@ -172,35 +178,17 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  */
 public class JSAP extends SPARQL11SEProperties {
 	private static Set<String> numbersOrBoolean = new HashSet<String>();
-
 	private String prefixes = "";
 
 	// Members
-	private HashMap<String, Query> queries = null;// new HashMap<String, Query>();
-	private HashMap<String, Update> updates = null;// new HashMap<String, Update>();
-	private HashMap<String, String> namespaces = new HashMap<String, String>();
-	private JsonObject extended = null;// new JsonObject();
-	private JsonArray include = null; // new JsonArray();
-
-	private static class Query {
-		public String sparql = null;
-		public HashMap<String, ForcedBinding> forcedBindings = null;
-		public SPARQL11Properties sparql11protocol = null;
-		public SPARQL11SEProperties sparql11seprotocol = null;
-	}
-
-	private static class Update {
-		public String sparql = null;
-		public HashMap<String, ForcedBinding> forcedBindings = null;
-		public SPARQL11Properties sparql11protocol = null;
-	}
-
-	private static class ForcedBinding {
-		public String type = null;
-		public String datatype = null;
-		public String value = null;
-		public String language = null;
-	}
+//	private String host = null;
+//	protected SPARQL11Properties sparql11protocol;
+//	protected SPARQL11SEProperties sparql11seprotocol;
+	protected HashMap<String, QueryPrimitive> queries = null;// new HashMap<String, Query>();
+	protected HashMap<String, UpdatePrimitive> updates = null;// new HashMap<String, Update>();
+	protected HashMap<String, String> namespaces = new HashMap<String, String>();
+	protected JsonObject extended = null;// new JsonObject();
+	protected JsonArray include = null; // new JsonArray()
 	
 	private void defaultNamespaces() {
 		// Numbers or boolean
@@ -235,10 +223,14 @@ public class JSAP extends SPARQL11SEProperties {
 	private JSAP merge(JSAP temp) {
 		host = (temp.host != null ? temp.host : this.host);
 
-		sparql11protocol = mergeSparql11protocol(sparql11protocol, temp.sparql11protocol);
-		sparql11seprotocol = mergeSparql11seprotocol(sparql11seprotocol, temp.sparql11seprotocol);
+		if (sparql11protocol != null) sparql11protocol.merge(temp.sparql11protocol);
+		else sparql11protocol = temp.sparql11protocol;
+		if (sparql11seprotocol != null) sparql11seprotocol.merge(temp.sparql11seprotocol);
+		else sparql11seprotocol = temp.sparql11seprotocol;
+		if (graphs != null) graphs.merge(temp.graphs);
+		else graphs = temp.graphs;
+		
 		extended = mergeExtended(extended, temp.extended);
-		graphs = mergeGraphs(graphs, temp.graphs);
 		namespaces = mergeNamespaces(namespaces, temp.namespaces);
 		queries = mergeQueries(queries, temp.queries);
 		updates = mergeUpdates(updates, temp.updates);
@@ -246,53 +238,37 @@ public class JSAP extends SPARQL11SEProperties {
 		return this;
 	}
 
-	private SPARQL11SEProtocol mergeSparql11seprotocol(SPARQL11SEProtocol jsap, SPARQL11SEProtocol temp) {
-		if (jsap == null)
+	private JsonObject mergeExtended(JsonObject extended,JsonObject temp) {
+		if (extended == null)
 			return temp;
 		if (temp == null)
-			return jsap;
-		return jsap.merge(temp);
-	}
-
-	private SPARQL11Protocol mergeSparql11protocol(SPARQL11Protocol jsap, SPARQL11Protocol temp) {
-		if (jsap == null)
-			return temp;
-		if (temp == null)
-			return jsap;
-		return jsap.merge(temp);
-	}
-
-	private JsonObject mergeExtended(JsonObject jsap, JsonObject temp) {
-		if (jsap == null)
-			return temp;
-		if (temp == null)
-			return jsap;
+			return extended;
 
 		for (Entry<String, JsonElement> entry : temp.entrySet()) {
 			JsonElement value = entry.getValue();
 			String key = entry.getKey();
 
-			if (!jsap.has(key)) {
-				jsap.add(key, value);
+			if (!extended.has(key)) {
+				extended.add(key, value);
 				continue;
 			}
 
 			if (value.isJsonPrimitive()) {
-				jsap.add(key, value);
+				extended.add(key, value);
 			} else if (value.isJsonObject()) {
-				JsonObject obj = mergeExtended(value.getAsJsonObject(), jsap.getAsJsonObject(key));
-				jsap.add(key, obj);
+				JsonObject obj = mergeExtended(value.getAsJsonObject(), extended.getAsJsonObject(key));
+				extended.add(key, obj);
 			} else if (value.isJsonArray()) {
 				for (JsonElement arr : value.getAsJsonArray()) {
-					jsap.getAsJsonArray(key).add(arr);
+					extended.getAsJsonArray(key).add(arr);
 				}
 			}
 		}
 
-		return jsap;
+		return extended;
 	}
 
-	private HashMap<String, Update> mergeUpdates(HashMap<String, Update> jsap, HashMap<String, Update> temp) {
+	private HashMap<String, UpdatePrimitive> mergeUpdates(HashMap<String, UpdatePrimitive> jsap, HashMap<String, UpdatePrimitive> temp) {
 		if (jsap == null)
 			return temp;
 		if (temp == null)
@@ -301,7 +277,7 @@ public class JSAP extends SPARQL11SEProperties {
 		return jsap;
 	}
 
-	private HashMap<String, Query> mergeQueries(HashMap<String, Query> jsap, HashMap<String, Query> temp) {
+	private HashMap<String, QueryPrimitive> mergeQueries(HashMap<String, QueryPrimitive> jsap, HashMap<String, QueryPrimitive> temp) {
 		if (jsap == null)
 			return temp;
 		if (temp == null)
@@ -319,35 +295,7 @@ public class JSAP extends SPARQL11SEProperties {
 		return jsap;
 	}
 
-	private Graphs mergeGraphs(Graphs jsap, Graphs temp) {
-		if (jsap == null)
-			return temp;
-		if (temp == null)
-			return jsap;
-
-		try {
-			jsap.default_graph_uri.addAll(temp.default_graph_uri);
-		} catch (Exception e) {
-
-		}
-		try {
-			jsap.named_graph_uri.addAll(temp.named_graph_uri);
-		} catch (Exception e) {
-
-		}
-		try {
-			jsap.using_graph_uri.addAll(temp.using_graph_uri);
-		} catch (Exception e) {
-
-		}
-		try {
-			jsap.using_named_graph_uri.addAll(temp.using_named_graph_uri);
-		} catch (Exception e) {
-
-		}
-
-		return jsap;
-	}
+	
 
 	public JsonObject getExtendedData() {
 		return extended;
@@ -479,7 +427,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getUpdateHost(String id) {
 		try {
-			return updates.get(id).sparql11protocol.getHost();
+			return updates.get(id).sparql11protocol.host;
 		} catch (Exception e) {
 			return host;
 		}
@@ -487,15 +435,15 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getUpdateAcceptHeader(String id) {
 		try {
-			return updates.get(id).sparql11protocol.getUpdateAcceptHeader();
+			return updates.get(id).sparql11protocol.update.format.getUpdateAcceptHeader();
 		} catch (Exception e) {
 			return sparql11protocol.update.format.getUpdateAcceptHeader();
 		}
 	}
 
-	public UpdateHTTPMethod getUpdateMethod(String id) {
+	public UpdateProperties.UpdateHTTPMethod getUpdateMethod(String id) {
 		try {
-			return updates.get(id).sparql11protocol.getUpdateMethod();
+			return updates.get(id).sparql11protocol.update.method;
 		} catch (Exception e) {
 			return sparql11protocol.update.method;
 		}
@@ -503,7 +451,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getUpdateProtocolScheme(String id) {
 		try {
-			return updates.get(id).sparql11protocol.getProtocolScheme();
+			return updates.get(id).sparql11protocol.protocol.getProtocolScheme();
 		} catch (Exception e) {
 			return sparql11protocol.protocol.getProtocolScheme();
 		}
@@ -511,7 +459,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getUpdatePath(String id) {
 		try {
-			return updates.get(id).sparql11protocol.getUpdatePath();
+			return updates.get(id).sparql11protocol.update.path;
 		} catch (Exception e) {
 			return sparql11protocol.update.path;
 		}
@@ -519,7 +467,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public int getUpdatePort(String id) {
 		try {
-			return updates.get(id).sparql11protocol.getPort();
+			return updates.get(id).sparql11protocol.port;
 		} catch (Exception e) {
 			return sparql11protocol.port;
 		}
@@ -527,7 +475,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public Set<String> getUsingNamedGraphURI(String id) {
 		try {
-			return updates.get(id).sparql11protocol.getUsingNamedGraphURI();
+			return updates.get(id).graphs.using_named_graph_uri;
 		} catch (Exception e) {
 			if (graphs == null) return null;
 			return graphs.using_named_graph_uri;
@@ -536,7 +484,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public Set<String> getUsingGraphURI(String id) {
 		try {
-			return updates.get(id).sparql11protocol.getUsingGraphURI();
+			return updates.get(id).graphs.using_graph_uri;
 		} catch (Exception e) {
 			if (graphs == null) return null;
 			return graphs.using_graph_uri;
@@ -551,49 +499,49 @@ public class JSAP extends SPARQL11SEProperties {
 	public void setUpdateHost(String id, String host) {
 		if (updates.get(id) == null)
 			return;
-		updates.get(id).sparql11protocol.setHost(host);
+		updates.get(id).sparql11protocol.host = host;
 	}
 
 	public void setUpdateAcceptHeader(String id, UpdateResultsFormat format) {
 		if (updates.get(id) == null)
 			return;
-		updates.get(id).sparql11protocol.setUpdateAcceptHeader(format);
+		updates.get(id).sparql11protocol.update.format = format;
 	}
 
 	public void setUpdateMethod(String id, UpdateHTTPMethod method) {
 		if (updates.get(id) == null)
 			return;
-		updates.get(id).sparql11protocol.setUpdateMethod(method);
+		updates.get(id).sparql11protocol.update.method = method;
 	}
 
 	public void setUpdateProtocolScheme(String id, ProtocolScheme scheme) {
 		if (updates.get(id) == null)
 			return;
-		updates.get(id).sparql11protocol.setProtocolScheme(scheme);
+		updates.get(id).sparql11protocol.protocol = scheme;
 	}
 
 	public void setUpdatePath(String id, String path) {
 		if (updates.get(id) == null)
 			return;
-		updates.get(id).sparql11protocol.setUpdatePath(path);
+		updates.get(id).sparql11protocol.update.path = path;
 	}
 
 	public void setUpdatePort(String id, int port) {
 		if (updates.get(id) == null)
 			return;
-		updates.get(id).sparql11protocol.setPort(port);
+		updates.get(id).sparql11protocol.port = port;
 	}
 
 	public void setUsingNamedGraphUri(String id, Set<String> graph) {
 		if (updates.get(id) == null)
 			return;
-		updates.get(id).sparql11protocol.setUsingNamedGraphURI(graph);
+		updates.get(id).graphs.using_named_graph_uri = graph;
 	}
 
 	public void setUsingGraphURI(String id, Set<String> graph) {
 		if (updates.get(id) == null)
 			return;
-		updates.get(id).sparql11protocol.setUsingGraphURI(graph);
+		updates.get(id).graphs.using_graph_uri = graph;
 	}
 
 	/*
@@ -605,7 +553,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getQueryHost(String id) {
 		try {
-			return queries.get(id).sparql11protocol.getHost();
+			return queries.get(id).sparql11protocol.host;
 		} catch (Exception e) {
 			return host;
 		}
@@ -613,7 +561,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getQueryProtocolScheme(String id) {
 		try {
-			return queries.get(id).sparql11protocol.getProtocolScheme();
+			return queries.get(id).sparql11protocol.protocol.getProtocolScheme();
 		} catch (Exception e) {
 			return sparql11protocol.protocol.getProtocolScheme();
 		}
@@ -621,7 +569,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public int getQueryPort(String id) {
 		try {
-			return queries.get(id).sparql11protocol.getPort();
+			return queries.get(id).sparql11protocol.port;
 		} catch (Exception e) {
 			return sparql11protocol.port;
 		}
@@ -629,7 +577,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getQueryPath(String id) {
 		try {
-			return queries.get(id).sparql11protocol.getQueryPath();
+			return queries.get(id).sparql11protocol.query.path;
 		} catch (Exception e) {
 			return sparql11protocol.query.path;
 		}
@@ -637,7 +585,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public QueryHTTPMethod getQueryMethod(String id) {
 		try {
-			return queries.get(id).sparql11protocol.getQueryMethod();
+			return queries.get(id).sparql11protocol.query.method;
 		} catch (Exception e) {
 			return sparql11protocol.query.method;
 		}
@@ -645,7 +593,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getQueryAcceptHeader(String id) {
 		try {
-			return queries.get(id).sparql11protocol.getQueryAcceptHeader();
+			return queries.get(id).sparql11protocol.query.format.getQueryAcceptHeader();
 		} catch (Exception e) {
 			return sparql11protocol.query.format.getQueryAcceptHeader();
 		}
@@ -653,7 +601,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public Set<String> getNamedGraphURI(String id) {
 		try {
-			return queries.get(id).sparql11protocol.getNamedGraphURI();
+			return queries.get(id).graphs.named_graph_uri;
 		} catch (Exception e) {
 			if (graphs == null) return null;
 			return graphs.named_graph_uri;
@@ -662,7 +610,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public Set<String> getDefaultGraphURI(String id) {
 		try {
-			return queries.get(id).sparql11protocol.getDefaultGraphURI();
+			return queries.get(id).graphs.default_graph_uri;
 		} catch (Exception e) {
 			if (graphs == null) return null;
 			return graphs.default_graph_uri;
@@ -677,49 +625,49 @@ public class JSAP extends SPARQL11SEProperties {
 	public void setQueryHost(String id, String host) {
 		if (queries.get(id) == null)
 			return;
-		queries.get(id).sparql11protocol.setHost(host);
+		queries.get(id).sparql11protocol.host= host;
 	}
 
 	public void setQueryAcceptHeader(String id, QueryResultsFormat format) {
 		if (queries.get(id) == null)
 			return;
-		queries.get(id).sparql11protocol.setQueryAcceptHeader(format);
+		queries.get(id).sparql11protocol.query.format=format;
 	}
 
 	public void setQueryMethod(String id, QueryHTTPMethod method) {
 		if (queries.get(id) == null)
 			return;
-		queries.get(id).sparql11protocol.setQueryMethod(method);
+		queries.get(id).sparql11protocol.query.method= method;
 	}
 
 	public void setQueryProtocolScheme(String id, ProtocolScheme scheme) {
 		if (queries.get(id) == null)
 			return;
-		queries.get(id).sparql11protocol.setProtocolScheme(scheme);
+		queries.get(id).sparql11protocol.protocol= scheme;
 	}
 
 	public void setQueryPath(String id, String path) {
 		if (queries.get(id) == null)
 			return;
-		queries.get(id).sparql11protocol.setQueryPath(path);
+		queries.get(id).sparql11protocol.query.path = path;
 	}
 
 	public void setQueryPort(String id, int port) {
 		if (queries.get(id) == null)
 			return;
-		queries.get(id).sparql11protocol.setPort(port);
+		queries.get(id).sparql11protocol.port = port;
 	}
 
 	public void setNamedGraphUri(String id, Set<String> graph) {
 		if (queries.get(id) == null)
 			return;
-		queries.get(id).sparql11protocol.setNamedGraphURI(graph);
+		queries.get(id).graphs.named_graph_uri = graph;
 	}
 
 	public void setDefaultGraphURI(String id, Set<String> graph) {
 		if (queries.get(id) == null)
 			return;
-		queries.get(id).sparql11protocol.setDefaultGraphURI(graph);
+		queries.get(id).graphs.default_graph_uri = graph;
 	}
 
 	/*
@@ -728,7 +676,7 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getSubscribeHost(String id) {
 		try {
-			return queries.get(id).sparql11seprotocol.getHost();
+			return queries.get(id).sparql11seprotocol.host;
 		} catch (Exception e) {
 			return host;
 		}
@@ -739,12 +687,12 @@ public class JSAP extends SPARQL11SEProperties {
 			return;
 //		if (queries.get(id).sparql11seprotocol == null)
 //			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.setHost(host);
+		queries.get(id).sparql11seprotocol.host = host;
 	}
 
 	public int getSubscribePort(String id) {
 		try {
-			return queries.get(id).sparql11seprotocol.getPort();
+			return queries.get(id).sparql11seprotocol.availableProtocols.get(queries.get(id).sparql11seprotocol.protocol).port;
 		} catch (Exception e) {
 			return sparql11seprotocol.getPort();
 		}
@@ -755,12 +703,12 @@ public class JSAP extends SPARQL11SEProperties {
 			return;
 //		if (queries.get(id).sparql11seprotocol == null)
 //			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.setPort(port);
+		queries.get(id).sparql11seprotocol.availableProtocols.get(queries.get(id).sparql11seprotocol.protocol).port = port;
 	}
 
 	public String getSubscribePath(String id) {
 		try {
-			return queries.get(id).sparql11seprotocol.getQueryPath();
+			return queries.get(id).sparql11seprotocol.availableProtocols.get(queries.get(id).sparql11seprotocol.protocol).path;
 		} catch (Exception e) {
 			return sparql11seprotocol.getPath();
 		}
@@ -771,10 +719,10 @@ public class JSAP extends SPARQL11SEProperties {
 			return;
 //		if (queries.get(id).sparql11seprotocol == null)
 //			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.setSubscribePath(path);
+		queries.get(id).sparql11seprotocol.availableProtocols.get(queries.get(id).sparql11seprotocol.protocol).path = path;
 	}
 
-	public SubscriptionProtocol getSubscribeProtocol(String id) {
+	public SubscriptionProtocolProperties getSubscribeProtocol(String id) {
 		try {
 			return queries.get(id).sparql11seprotocol.getSubscriptionProtocol();
 		} catch (Exception e) {
@@ -782,12 +730,12 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 	}
 
-	public void setSubscribeProtocol(String id, SubscriptionProtocol sp) {
+	public void setSubscribeProtocol(String id, SubscriptionProtocolProperties sp) {
 		if (queries.get(id) == null)
 			return;
 //		if (queries.get(id).sparql11seprotocol == null)
 //			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.setSubscriptionProtocol(sp.scheme);
+		queries.get(id).sparql11seprotocol.protocol = sp.scheme;
 	}
 
 	public Set<String> getUpdateIds() {
@@ -942,7 +890,7 @@ public class JSAP extends SPARQL11SEProperties {
 		if (queries.get(id) == null)
 			throw new IllegalArgumentException("Subscribe ID not found: " + id);
 
-		String scheme = queries.get(id).sparql11seprotocol.getSubscriptionProtocol().scheme;
+		String scheme = queries.get(id).sparql11seprotocol.availableProtocols.get(queries.get(id).sparql11seprotocol.protocol).scheme;
 		String port = "";
 
 		if (getSubscribePort(id) != -1)

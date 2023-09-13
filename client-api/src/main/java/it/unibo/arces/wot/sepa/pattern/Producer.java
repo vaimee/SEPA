@@ -22,11 +22,11 @@ import java.io.IOException;
 
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.logging.Logging;
+import it.unibo.arces.wot.sepa.api.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 

@@ -23,6 +23,7 @@ import java.net.URISyntaxException;
 import java.util.Hashtable;
 
 import it.unibo.arces.wot.sepa.api.ISubscriptionHandler;
+import it.unibo.arces.wot.sepa.api.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
 import it.unibo.arces.wot.sepa.api.SPARQL11SEProtocol;
@@ -31,9 +32,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Protocol;
-
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;

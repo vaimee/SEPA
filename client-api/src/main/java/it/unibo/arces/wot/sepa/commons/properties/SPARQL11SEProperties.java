@@ -16,18 +16,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.api;
+package it.unibo.arces.wot.sepa.commons.properties;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.HashMap;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
@@ -81,42 +79,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	}
 
 	// Members
-	protected SPARQL11SEProtocol sparql11seprotocol;
-
-	public static class SubscriptionProtocol {
-		public String path = null;
-		public int port = -1;
-		public String scheme = null;
-	}
-
-	protected static class SPARQL11SEProtocol {
-		public String protocol = null;
-		public HashMap<String,SubscriptionProtocol> availableProtocols = null;
-		public String host = null;
-		public boolean reconnect = true;
-
-		public SPARQL11SEProtocol merge(SPARQL11SEProtocol temp) {
-			if (temp != null) {
-				protocol = (temp.protocol != null ? temp.protocol : protocol);
-				host = (temp.host != null ? temp.host : host);
-				reconnect = temp.reconnect;
-				availableProtocols = (temp.availableProtocols != null ? temp.availableProtocols : availableProtocols);
-			}
-			return this;
-		}
-
-		public int getPort() {
-			return availableProtocols.get(protocol).port;
-		}
-
-		public String getPath() {
-			return availableProtocols.get(protocol).path;
-		}
-
-		public SubscriptionProtocol getSubscriptionProtocol() {
-			return availableProtocols.get(protocol);
-		}
-	}
+	protected SPARQL11SEProtocolProperties sparql11seprotocol;
 
 	/**
 	 * Instantiates a new SPARQL 11 SE properties.
@@ -188,7 +151,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		sparql11seprotocol.availableProtocols.get(sparql11seprotocol.protocol).port = port;
 	}
 
-	public SubscriptionProtocol getSubscriptionProtocol() {
+	public SubscriptionProtocolProperties getSubscriptionProtocol() {
 		return sparql11seprotocol.availableProtocols.get(sparql11seprotocol.protocol);
 	}
 

@@ -23,7 +23,7 @@ import java.io.IOException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+import it.unibo.arces.wot.sepa.commons.properties.SPARQL11Properties;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
