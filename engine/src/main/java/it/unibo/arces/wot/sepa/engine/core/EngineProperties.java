@@ -32,12 +32,12 @@ import com.nimbusds.jose.jwk.RSAKey;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.ProtocolScheme;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.QueryHTTPMethod;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.QueryResultsFormat;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.UpdateHTTPMethod;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.UpdateResultsFormat;
+import it.unibo.arces.wot.sepa.commons.properties.QueryProperties.QueryHTTPMethod;
+import it.unibo.arces.wot.sepa.commons.properties.QueryProperties.QueryResultsFormat;
+import it.unibo.arces.wot.sepa.commons.properties.SPARQL11Properties;
+import it.unibo.arces.wot.sepa.commons.properties.SPARQL11Properties.ProtocolScheme;
+import it.unibo.arces.wot.sepa.commons.properties.UpdateProperties.UpdateHTTPMethod;
+import it.unibo.arces.wot.sepa.commons.properties.UpdateProperties.UpdateResultsFormat;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IsqlProperties;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.JKSUtil;

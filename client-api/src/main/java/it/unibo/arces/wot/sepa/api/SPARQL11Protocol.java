@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.commons.protocol;
+package it.unibo.arces.wot.sepa.api;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -45,8 +45,8 @@ import org.apache.http.util.EntityUtils;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.QueryHTTPMethod;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.UpdateHTTPMethod;
+import it.unibo.arces.wot.sepa.commons.properties.QueryProperties;
+import it.unibo.arces.wot.sepa.commons.properties.UpdateProperties;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
@@ -423,7 +423,7 @@ public class SPARQL11Protocol implements Closeable {
 
 		// Create POST request
 		try {
-			if (req.getHttpMethod().equals(UpdateHTTPMethod.POST)) {
+			if (req.getHttpMethod().equals(UpdateProperties.UpdateHTTPMethod.POST)) {
 				// Graphs
 				for (String g : req.getDefaultGraphUri()) {
 					if (graphs == null)
@@ -540,7 +540,7 @@ public class SPARQL11Protocol implements Closeable {
 					graphs += "&named-graph-uri=" + g;
 			}
 
-			if (req.getHttpMethod().equals(QueryHTTPMethod.POST)) {
+			if (req.getHttpMethod().equals(QueryProperties.QueryHTTPMethod.POST)) {
 				post = new HttpPost(new URI(scheme, null, host, port, queryPath, graphs, null));
 				post.setHeader("Content-Type", "application/sparql-query");
 

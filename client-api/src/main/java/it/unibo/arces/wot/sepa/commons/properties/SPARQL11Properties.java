@@ -16,10 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.commons.protocol;
+package it.unibo.arces.wot.sepa.commons.properties;
 
 import java.io.*;
-import java.util.HashSet;
 import java.util.Set;
 
 import com.google.gson.Gson;
@@ -27,6 +26,10 @@ import com.google.gson.JsonIOException;
 import com.google.gson.JsonSyntaxException;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.commons.properties.QueryProperties.QueryHTTPMethod;
+import it.unibo.arces.wot.sepa.commons.properties.QueryProperties.QueryResultsFormat;
+import it.unibo.arces.wot.sepa.commons.properties.UpdateProperties.UpdateHTTPMethod;
+import it.unibo.arces.wot.sepa.commons.properties.UpdateProperties.UpdateResultsFormat;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
@@ -54,12 +57,6 @@ import it.unibo.arces.wot.sepa.logging.Logging;
 			"path": "/update",
 			"method": "POST | URL_ENCODED_POST",
 			"format": "JSON | HTML"
-		},
-		"authentication": {
-			"basic": {
-				"user": "admin",
-				"pass": "admin"
-			}
 		}
 	},
 	"authentication": {
@@ -82,17 +79,18 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  */
 
 public class SPARQL11Properties {
+	// Members.
+	protected String host;
+	protected SPARQL11ProtocolProperties sparql11protocol;	
+	protected GraphsProperties graphs = null;
+	
 	/** The defaults file name. */
 	protected String defaultsFileName = "endpoint.jpar";
 
 	/** The properties file. */
 	protected String propertiesFile = defaultsFileName;
 	
-	// Members.
-	protected String host;
-	protected SPARQL11Protocol sparql11protocol;
-	protected Graphs graphs = null;
-	
+		
 	/**
 	 * The Enum SPARQLPrimitive (QUERY, UPDATE).
 	 */
@@ -101,90 +99,6 @@ public class SPARQL11Properties {
 		QUERY,
 		/** The update. */
 		UPDATE
-	};
-
-	/**
-	 * The Enum HTTPMethod (GET,POST,URL_ENCODED_POST).
-	 */
-	public enum QueryHTTPMethod {
-		/** The get. */
-		GET("application/sparql-query"),
-		/** The post. */
-		POST("application/sparql-query"),
-		/** The url encoded post. */
-		URL_ENCODED_POST("application/x-www-form-urlencoded");
-		
-		private final String label;
-		
-		private QueryHTTPMethod(String value) {
-			label = value;
-		}
-
-		public String getQueryContentTypeHeader() {
-			return label;
-    	}
-	};
-
-	/**
-	 * The Enum HTTPMethod (GET,POST,URL_ENCODED_POST).
-	 */
-	public enum UpdateHTTPMethod {
-		/** The post. */
-		POST("application/sparql-update"),
-		/** The url encoded post. */
-		URL_ENCODED_POST("application/x-www-form-urlencoded");
-		
-		private final String label;
-		
-		private UpdateHTTPMethod(String value) {
-			label = value;
-		}
-
-		public String getUpdateContentTypeHeader() {
-			return label;
-    	}
-	};
-
-	/**
-	 * The Enum QueryResultsFormat (JSON,XML,CSV).
-	 */
-	public enum QueryResultsFormat {
-		/** The json. */
-		JSON("application/sparql-results+json"),
-		/** The xml. */
-		XML("application/sparql-results+xml"),
-		/** The csv. */
-		CSV("text/csv");
-
-		private final String label;
-		
-		private QueryResultsFormat(String value) {
-			label = value;
-		}
-		
-		public String getQueryAcceptHeader() {
-			return label;
-		}
-	};
-
-	/**
-	 * The Enum UpdateResultsFormat (JSON,HTML).
-	 */
-	public enum UpdateResultsFormat {
-		/** The html. */
-		HTML("application/html"),
-		/** The json. */
-		JSON("application/json");
-		
-		private final String label;
-		
-		private UpdateResultsFormat(String value) {
-			label = value;
-		}
-
-		public String getUpdateAcceptHeader() {
-			return label;
-    	}
 	};
 
 	/**
@@ -208,66 +122,11 @@ public class SPARQL11Properties {
 			return label;
 		}
 	};
-	
-	protected static class SPARQL11Protocol {
-		public String host = null;
-		public ProtocolScheme protocol = null;
-		public int port = -1;
-		public Query query = new Query();
-		public Update update = new Update();
 
-		public SPARQL11Protocol merge(SPARQL11Protocol temp) {
-			if (temp != null) {
-				this.host = (temp.host != null ? temp.host : this.host);
-				this.protocol = (temp.protocol != null ? temp.protocol : this.protocol);
-				this.port = (temp.port != -1 ? temp.port : this.port);
-				this.query = temp.query;
-				this.update = temp.update;
-			} 
-			
-			return this;
-		}
-
-		public String getUpdateAcceptHeader() {
-			return update.format.getUpdateAcceptHeader();
-		}
-
-		public UpdateHTTPMethod getUpdateMethod() {
-			return update.method;
-		}
-
-		public String getProtocolScheme() {
-			return protocol.getProtocolScheme();
-		}
-
-		public String getUpdatePath() {
-			return update.path;
-		}
-		
-	}
-	
-	protected static class Query {
-		public String path = "/sparql";
-		public QueryHTTPMethod method = QueryHTTPMethod.URL_ENCODED_POST;
-		public QueryResultsFormat format = QueryResultsFormat.JSON;
-	}
-	
-	protected static class Update {
-		public String path = "/sparql";
-		public UpdateHTTPMethod method = UpdateHTTPMethod.URL_ENCODED_POST;
-		public UpdateResultsFormat format = UpdateResultsFormat.JSON;
-	}
-	
-	protected static class Graphs {
-		public Set<String> default_graph_uri = new HashSet<String>();
-		public Set<String> named_graph_uri = new HashSet<String>();
-		public Set<String> using_graph_uri = new HashSet<String>();
-		public Set<String> using_named_graph_uri = new HashSet<String>();
-	}
 	
 	public SPARQL11Properties(String host,ProtocolScheme scheme) {
 		this.host = host;
-		this.sparql11protocol = new SPARQL11Protocol();
+		this.sparql11protocol = new SPARQL11ProtocolProperties();
 		this.sparql11protocol.protocol = scheme;
 	}
 
@@ -323,7 +182,9 @@ public class SPARQL11Properties {
 	 * @return the host (default is localhost)
 	 */
 	public String getHost() {
-		return (sparql11protocol.host != null ? sparql11protocol.host : host);
+		if (sparql11protocol == null) return host;
+		if (sparql11protocol.host == null) return host;
+		return sparql11protocol.host;
 	}
 
 	/**
@@ -373,7 +234,7 @@ public class SPARQL11Properties {
 	}
 
 	public void setDefaultGraphURI(Set<String> graph) {
-		if (graphs == null) graphs = new Graphs();
+		if (graphs == null) graphs = new GraphsProperties();
 		graphs.default_graph_uri.clear();
 		graphs.default_graph_uri.addAll(graph);
 	}
@@ -398,7 +259,7 @@ public class SPARQL11Properties {
 	}
 
 	public void setNamedGraphURI(Set<String> graph) {
-		if (graphs == null) graphs = new Graphs();
+		if (graphs == null) graphs = new GraphsProperties();
 		graphs.named_graph_uri.clear();
 		graphs.named_graph_uri.addAll(graph);
 	}
@@ -423,7 +284,7 @@ public class SPARQL11Properties {
 	}
 
 	public void setUsingGraphURI(Set<String> graph) {
-		if (graphs == null) graphs = new Graphs();
+		if (graphs == null) graphs = new GraphsProperties();
 		graphs.using_graph_uri.clear();
 		graphs.using_named_graph_uri.addAll(graph);
 	}
@@ -448,7 +309,7 @@ public class SPARQL11Properties {
 	}
 
 	public void setUsingNamedGraphURI(Set<String> graph) {
-		if (graphs == null) graphs = new Graphs();
+		if (graphs == null) graphs = new GraphsProperties();
 		graphs.using_named_graph_uri.clear();
 		graphs.using_named_graph_uri.addAll(graph);
 	}

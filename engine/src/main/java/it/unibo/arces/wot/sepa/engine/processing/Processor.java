@@ -24,7 +24,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProcessingException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASparqlParsingException;
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.ProtocolScheme;
+import it.unibo.arces.wot.sepa.commons.properties.SPARQL11Properties.ProtocolScheme;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.engine.bean.ProcessorBeans;

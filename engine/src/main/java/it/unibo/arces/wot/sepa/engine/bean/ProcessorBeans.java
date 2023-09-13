@@ -18,7 +18,7 @@
 
 package it.unibo.arces.wot.sepa.engine.bean;
 
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties;
+import it.unibo.arces.wot.sepa.commons.properties.SPARQL11Properties;
 
 public class ProcessorBeans {
 	

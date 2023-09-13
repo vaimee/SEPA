@@ -20,8 +20,7 @@ package it.unibo.arces.wot.sepa.commons.request;
 
 import java.util.Set;
 
-import it.unibo.arces.wot.sepa.commons.protocol.SPARQL11Properties.UpdateHTTPMethod;
-
+import it.unibo.arces.wot.sepa.commons.properties.UpdateProperties;
 /**
  * This class represents the request to perform a SPARQL 1.1 Update
 * */
@@ -34,9 +33,9 @@ public class UpdateRequest extends SPARQL11Request {
 	
 	private boolean urlEncodedGraphsPatch = false;
 	
-	private UpdateHTTPMethod method;
+	private UpdateProperties.UpdateHTTPMethod method;
 	
-	public UpdateRequest(UpdateHTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization,long timeout,long nRetry) {
+	public UpdateRequest(UpdateProperties.UpdateHTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization,long timeout,long nRetry) {
 		super(sparql,authorization,default_graph_uri,named_graph_uri,timeout,nRetry);
 		
 		this.method = method;
@@ -46,7 +45,7 @@ public class UpdateRequest extends SPARQL11Request {
 		this.scheme = scheme;
 	}
 	
-	public UpdateRequest(UpdateHTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization) {
+	public UpdateRequest(UpdateProperties.UpdateHTTPMethod method,String scheme,String host, int port, String path,String sparql,Set<String> default_graph_uri,Set<String> named_graph_uri,String authorization) {
 		super(sparql,authorization,default_graph_uri,named_graph_uri);
 		
 		this.method = method;
@@ -79,7 +78,7 @@ public class UpdateRequest extends SPARQL11Request {
 		return sparql.equals(((UpdateRequest)obj).sparql);
 	}
 	
-	public UpdateHTTPMethod getHttpMethod() {
+	public UpdateProperties.UpdateHTTPMethod getHttpMethod() {
 		return method;
 	}
 
