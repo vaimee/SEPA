@@ -1,1 +1,25 @@
-{"defaultsFileName":"endpoint.jpar","propertiesFile":"endpoint.jpar","host":"in-memory","sparql11protocol":{"protocol":"jena_api","port":8000,"query":{"path":"/sparql","method":"URL_ENCODED_POST","format":"JSON"},"update":{"path":"/sparql","method":"URL_ENCODED_POST","format":"JSON"}},"graphs":{"default_graph_uri":[],"named_graph_uri":[],"using_graph_uri":[],"using_named_graph_uri":[]}}
+{
+	"defaultsFileName": "endpoint.jpar",
+	"propertiesFile": "endpoint.jpar",
+	"host": "in-memory",
+	"sparql11protocol": {
+		"protocol": "jena_api",
+		"port": 8000,
+		"query": {
+			"path": "/sparql",
+			"method": "URL_ENCODED_POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/sparql",
+			"method": "URL_ENCODED_POST",
+			"format": "JSON"
+		}
+	},
+	"graphs": {
+		"default_graph_uri": [],
+		"named_graph_uri": [],
+		"using_graph_uri": [],
+		"using_named_graph_uri": []
+	}
+}

@@ -567,8 +567,10 @@ public class EngineProperties {
 				return;
 			}
 			Logging.logger.debug("Program arguments "+args[i]+" : "+ args[i+1]);
-			setParameter(args[i], args[i+1]);			
+			setParameter(args[i], args[i+1]);
 		}
+		
+		
 
 		// Environmental variables (overrides)
 		Map<String, String> envs = System.getenv();
@@ -576,6 +578,17 @@ public class EngineProperties {
 			Logging.logger.debug("Environmental variable "+var+" : "+envs.get(var));
 			setParameter("-"+var, envs.get(var));
 		}
+		
+		if (engineJpar == null) {
+			Logging.logger.debug("Loading engine configuration from default file engine.jpar");
+			engineJpar = "engine.jpar";
+		}
+		
+		if (endpointJpar == null) {
+			Logging.logger.debug("Loading endpoint configuration from default file endpoint.jpar");
+			endpointJpar = "endpoint.jpar";
+		}
+		
 
 		Logging.logger.debug("--- SSL ---");
 		Logging.logger.debug("-cacertificate: " + caCertificate);
