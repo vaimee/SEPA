@@ -1,0 +1,14 @@
+.github/
+.idea/
+
+doc/
+engine/target/
+engine/logs/
+
+client-api/target/
+client-api/logs/
+
+*.iml
+*.csv
+*.md
+*.log
