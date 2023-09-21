@@ -13,7 +13,7 @@ COPY --from=BUILD ./engine/target/engine-1.0.0-SNAPSHOT.jar /engine.jar
 COPY --from=BUILD ./engine/src/main/resources/jmxremote.password /jmxremote.password
 COPY --from=BUILD ./engine/src/main/resources/jmxremote.access /jmxremote.access
 COPY --from=BUILD ./engine/src/main/resources/jmx.properties /jmx.properties
-COPY --from=BUILD ./engine/endpoint.jpar /endpoint.jpar
+COPY --from=BUILD ./engine/src/main/resources/endpoint.jpar /endpoint.jpar
 
 
 RUN chmod 600 /jmxremote.password
