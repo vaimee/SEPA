@@ -18,6 +18,7 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -311,7 +312,7 @@ public class EngineProperties {
 		
 		try {
 			endpointProperties = new SPARQL11Properties(endpointJpar);
-		} catch (SEPAPropertiesException e) {
+		} catch (SEPAPropertiesException  e) {
 			//e.printStackTrace();
 			Logging.logger.error("Endpoint configuration file not found: "+endpointJpar+"USING DEFAULTS: Jena in memory");
 			endpointProperties = new SPARQL11Properties("in-memory",ProtocolScheme.jena_api);
@@ -520,10 +521,10 @@ public class EngineProperties {
 			parameters.gates.paths.unsubscribe = value;
 			break;
 		
-		case "host":
+		case "-host":
 			endpointProperties.setHost(value);
 			break;
-		case "sparql11protocol.protocol":
+		case "-sparql11protocol.protocol":
 			if (value.toLowerCase().equals("http")) endpointProperties.setProtocolScheme(ProtocolScheme.http);
 			else if (value.toLowerCase().equals("https")) endpointProperties.setProtocolScheme(ProtocolScheme.https);
 			else endpointProperties.setProtocolScheme(ProtocolScheme.jena_api);
@@ -534,12 +535,12 @@ public class EngineProperties {
 		case "-sparql11protocol.query.path":
 			endpointProperties.setQueryPath(value);
 			break;
-		case "sparql11protocol.query.method":
+		case "-sparql11protocol.query.method":
 			if (value.toLowerCase().equals("get")) endpointProperties.setQueryMethod(QueryHTTPMethod.GET);
 			else if (value.toLowerCase().equals("post")) endpointProperties.setQueryMethod(QueryHTTPMethod.POST);
 			else endpointProperties.setQueryMethod(QueryHTTPMethod.URL_ENCODED_POST);
 			break;
-		case "sparql11protocol.query.format":
+		case "-sparql11protocol.query.format":
 			if (value.toLowerCase().equals("json")) endpointProperties.setQueryAcceptHeader(QueryResultsFormat.JSON);
 			else if (value.toLowerCase().equals("csv")) endpointProperties.setQueryAcceptHeader(QueryResultsFormat.CSV);
 			else endpointProperties.setQueryAcceptHeader(QueryResultsFormat.XML);
@@ -547,11 +548,11 @@ public class EngineProperties {
 		case "-sparql11protocol.update.path":
 			endpointProperties.setUpdatePath(value);
 			break;
-		case "sparql11protocol.update.method":
+		case "-sparql11protocol.update.method":
 			if (value.toLowerCase().equals("post")) endpointProperties.setUpdateMethod(UpdateHTTPMethod.POST);
 			else endpointProperties.setUpdateMethod(UpdateHTTPMethod.URL_ENCODED_POST);
 			break;
-		case "sparql11protocol.update.format":
+		case "-sparql11protocol.update.format":
 			if (value.toLowerCase().equals("json")) endpointProperties.setUpdateAcceptHeader(UpdateResultsFormat.JSON);
 			else endpointProperties.setUpdateAcceptHeader(UpdateResultsFormat.HTML);
 			break;

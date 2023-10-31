@@ -18,19 +18,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.pattern;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.apache.commons.lang.StringEscapeUtils;
 
@@ -181,9 +173,6 @@ public class JSAP extends SPARQL11SEProperties {
 	private String prefixes = "";
 
 	// Members
-//	private String host = null;
-//	protected SPARQL11Properties sparql11protocol;
-//	protected SPARQL11SEProperties sparql11seprotocol;
 	protected HashMap<String, QueryPrimitive> queries = null;// new HashMap<String, Query>();
 	protected HashMap<String, UpdatePrimitive> updates = null;// new HashMap<String, Update>();
 	protected HashMap<String, String> namespaces = new HashMap<String, String>();
@@ -210,14 +199,136 @@ public class JSAP extends SPARQL11SEProperties {
 		namespaces.put("xsd", "http://www.w3.org/2001/XMLSchema#");
 	}
 
-	public JSAP(String propertiesFile) throws SEPAPropertiesException, SEPASecurityException {
-		super(propertiesFile);
+	public JSAP(Reader in) throws SEPAPropertiesException, SEPASecurityException {
+		super(in);
 
-		loadFromFile(propertiesFile, true);
-		
+		load(in, true);
+
+		override(null);
+
 		defaultNamespaces();
 
 		buildSPARQLPrefixes();
+	}
+
+	public JSAP(String url) throws SEPAPropertiesException, SEPASecurityException {
+		super(url);
+
+		Reader in = getReaderFromUrl(url);
+		load(in, true);
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e);
+		}
+
+		override(null);
+
+		defaultNamespaces();
+
+		buildSPARQLPrefixes();
+	}
+
+	public JSAP(Reader in,String[] args) throws SEPAPropertiesException, SEPASecurityException {
+		super(in);
+
+		load(in, true);
+
+		override(args);
+
+		defaultNamespaces();
+
+		buildSPARQLPrefixes();
+	}
+
+	public JSAP(String url,String[] args) throws SEPAPropertiesException, SEPASecurityException {
+		super(url);
+
+		Reader in = getReaderFromUrl(url);
+		load(in, true);
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e);
+		}
+
+		override(args);
+
+		defaultNamespaces();
+
+		buildSPARQLPrefixes();
+	}
+
+	private void load(Reader in, boolean replace) throws SEPAPropertiesException {
+		read(in, replace);
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e);
+		}
+
+		ArrayList<String> files = new ArrayList<>();
+
+		if (include != null) {
+			for (JsonElement element : include)
+				files.add(element.getAsString());
+
+			include = new JsonArray();
+		}
+
+		for (String url : files) {
+			Reader rd = getReaderFromUrl(url);
+			load(rd,replace);
+			try {
+				rd.close();
+			} catch (IOException e) {
+				throw new SEPAPropertiesException(e);
+			}
+		}
+
+	}
+
+	public void read(Reader in, boolean replace) {
+		JSAP jsap = new Gson().fromJson(in, JSAP.class);
+
+		if (replace) {
+			this.include = jsap.include;
+			this.host = jsap.host;
+			this.sparql11protocol = jsap.sparql11protocol;
+			this.sparql11seprotocol = jsap.sparql11seprotocol;
+			this.extended = jsap.extended;
+			this.graphs = jsap.graphs;
+			this.namespaces = jsap.namespaces;
+			this.queries = jsap.queries;
+			this.updates = jsap.updates;
+		} else {
+			merge(jsap);
+		}
+
+		buildSPARQLPrefixes();
+	}
+
+	/**
+	 * Parse the file and merge the content with the actual JSAP object. Primitive
+	 * values are replaced if replace = true.
+	 *
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 * @throws SEPAPropertiesException
+	 * @throws SEPASecurityException
+	 */
+	public void read(String filename, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
+		Reader in = getReaderFromUrl(filename);
+		read(in,replace);
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e);
+		}
+	}
+
+	public void read(String filename) throws SEPAPropertiesException, SEPASecurityException {
+		read(filename,true);
 	}
 
 	private JSAP merge(JSAP temp) {
@@ -299,94 +410,6 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public JsonObject getExtendedData() {
 		return extended;
-	}
-
-	private void __read(Reader in, boolean replace) {
-		JSAP jsap = new Gson().fromJson(in, JSAP.class);
-
-		if (replace) {
-			this.include = jsap.include;
-			this.host = jsap.host;
-			this.sparql11protocol = jsap.sparql11protocol;
-			this.sparql11seprotocol = jsap.sparql11seprotocol;
-			this.extended = jsap.extended;
-			this.graphs = jsap.graphs;
-			this.namespaces = jsap.namespaces;
-			this.queries = jsap.queries;
-			this.updates = jsap.updates;
-		} else {
-			merge(jsap);
-		}
-
-		buildSPARQLPrefixes();
-	}
-
-	private void loadFromFile(String uri, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
-		read(uri, replace);
-
-		ArrayList<String> files = new ArrayList<>();
-
-		if (include != null) {
-			for (JsonElement element : include)
-				files.add(element.getAsString());
-
-			include = new JsonArray();
-		}
-
-		for (String file : files) {
-			String path = new File(uri).getParent();
-			if (path == null) loadFromFile(file, false);
-			else loadFromFile(path + File.separator + file, false);
-		}
-			
-	}
-
-	public void read(Reader input, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
-		//__read(new InputStreamReader(input), replace);
-		__read(input, replace);
-	}
-
-	/**
-	 * Parse the file and merge the content with the actual JSAP object. Primitive
-	 * values are replaced if replace = true.
-	 * 
-	 * @throws IOException
-	 * @throws FileNotFoundException
-	 * @throws SEPAPropertiesException
-	 * @throws SEPASecurityException
-	 */
-	public void read(String filename, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
-		FileReader in;
-		try {
-			in = new FileReader(filename);
-		} catch (FileNotFoundException e) {
-			throw new SEPAPropertiesException(e.getMessage());
-		}
-
-		__read(in, replace);
-
-		try {
-			in.close();
-		} catch (IOException e) {
-			Logging.logger.error(e.getMessage());
-		}
-	}
-
-	public void write() throws SEPAPropertiesException {
-		write(getFileName());
-	}
-
-	public void write(String fileName) throws SEPAPropertiesException {
-		FileWriter out;
-		try {
-			out = new FileWriter(fileName);
-			out.write(this.toString());
-			out.close();
-		} catch (IOException e) {
-			if (Logging.logger.isTraceEnabled())
-				e.printStackTrace();
-			throw new SEPAPropertiesException(e.getMessage());
-		}
 	}
 
 	// TODO: add the query as parameter and get just the namespaces required
@@ -854,10 +877,6 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 
 		return ret;
-	}
-
-	public String getFileName() {
-		return propertiesFile;
 	}
 
 	public String toString() {
