@@ -21,6 +21,8 @@ package it.unibo.arces.wot.sepa.pattern;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -199,40 +201,14 @@ public class JSAP extends SPARQL11SEProperties {
 		namespaces.put("xsd", "http://www.w3.org/2001/XMLSchema#");
 	}
 
-	public JSAP(Reader in) throws SEPAPropertiesException, SEPASecurityException {
-		super(in);
-
-		load(in, true);
-
-		override(null);
-
-		defaultNamespaces();
-
-		buildSPARQLPrefixes();
+	public JSAP(String uri) throws SEPAPropertiesException, SEPASecurityException {
+		this(uri,null);
 	}
 
-	public JSAP(String url) throws SEPAPropertiesException, SEPASecurityException {
-		super(url);
+	public JSAP(String uri,String[] args) throws SEPAPropertiesException, SEPASecurityException {
+		super(uri);
 
-		Reader in = getReaderFromUrl(url);
-		load(in, true);
-		try {
-			in.close();
-		} catch (IOException e) {
-			throw new SEPAPropertiesException(e);
-		}
-
-		override(null);
-
-		defaultNamespaces();
-
-		buildSPARQLPrefixes();
-	}
-
-	public JSAP(Reader in,String[] args) throws SEPAPropertiesException, SEPASecurityException {
-		super(in);
-
-		load(in, true);
+		load(uri, true);
 
 		override(args);
 
@@ -241,49 +217,31 @@ public class JSAP extends SPARQL11SEProperties {
 		buildSPARQLPrefixes();
 	}
 
-	public JSAP(String url,String[] args) throws SEPAPropertiesException, SEPASecurityException {
-		super(url);
+	private void load(String uri, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
+		read(uri, replace);
 
-		Reader in = getReaderFromUrl(url);
-		load(in, true);
-		try {
-			in.close();
-		} catch (IOException e) {
-			throw new SEPAPropertiesException(e);
-		}
-
-		override(args);
-
-		defaultNamespaces();
-
-		buildSPARQLPrefixes();
-	}
-
-	private void load(Reader in, boolean replace) throws SEPAPropertiesException {
-		read(in, replace);
-		try {
-			in.close();
-		} catch (IOException e) {
-			throw new SEPAPropertiesException(e);
-		}
-
-		ArrayList<String> files = new ArrayList<>();
+		//Include
+		ArrayList<String> uriList = new ArrayList<>();
 
 		if (include != null) {
 			for (JsonElement element : include)
-				files.add(element.getAsString());
+				uriList.add(element.getAsString());
 
 			include = new JsonArray();
 		}
 
-		for (String url : files) {
-			Reader rd = getReaderFromUrl(url);
-			load(rd,replace);
+		for (String child : uriList) {
+			Path path;
 			try {
-				rd.close();
-			} catch (IOException e) {
-				throw new SEPAPropertiesException(e);
+				path = Path.of(child);
 			}
+			catch (InvalidPathException e) {
+				load(child,false);
+				continue;
+			}
+
+			if(path.isAbsolute()) load(child,false);
+			else load (Path.of(uri).getParent().toString()+File.separator+child,false);
 		}
 
 	}
@@ -312,13 +270,10 @@ public class JSAP extends SPARQL11SEProperties {
 	 * Parse the file and merge the content with the actual JSAP object. Primitive
 	 * values are replaced if replace = true.
 	 *
-	 * @throws IOException
-	 * @throws FileNotFoundException
 	 * @throws SEPAPropertiesException
-	 * @throws SEPASecurityException
 	 */
-	public void read(String filename, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
-		Reader in = getReaderFromUrl(filename);
+	public void read(String uri, boolean replace) throws SEPAPropertiesException {
+		Reader in = getReaderFromUri(uri);
 		read(in,replace);
 		try {
 			in.close();
@@ -331,7 +286,7 @@ public class JSAP extends SPARQL11SEProperties {
 		read(filename,true);
 	}
 
-	private JSAP merge(JSAP temp) {
+	private void merge(JSAP temp) {
 		host = (temp.host != null ? temp.host : this.host);
 
 		if (sparql11protocol != null) sparql11protocol.merge(temp.sparql11protocol);
@@ -345,8 +300,6 @@ public class JSAP extends SPARQL11SEProperties {
 		namespaces = mergeNamespaces(namespaces, temp.namespaces);
 		queries = mergeQueries(queries, temp.queries);
 		updates = mergeUpdates(updates, temp.updates);
-
-		return this;
 	}
 
 	private JsonObject mergeExtended(JsonObject extended,JsonObject temp) {

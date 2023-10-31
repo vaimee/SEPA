@@ -20,7 +20,9 @@ package it.unibo.arces.wot.sepa.commons.properties;
 
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -136,10 +138,12 @@ public class SPARQL11Properties {
 		override(args);
 	}
 
-	public SPARQL11Properties(String jsapFile,String[] args) throws SEPAPropertiesException {
+	public SPARQL11Properties(String uri,String[] args) throws SEPAPropertiesException {
 		this();
 
-		Reader in = getReaderFromUrl(jsapFile);
+		Path path = Path.of(uri);
+
+		Reader in = getReaderFromUri(uri);
 		parseJSAP(in);
 		try {
 			in.close();
@@ -149,13 +153,13 @@ public class SPARQL11Properties {
 
 		override(args);
 
-		filename = jsapFile;
+		filename = uri;
 	}
 
 	public SPARQL11Properties(String jsapFile) throws SEPAPropertiesException {
 		this();
 
-		Reader in = getReaderFromUrl(jsapFile);
+		Reader in = getReaderFromUri(jsapFile);
 		parseJSAP(in);
 		try {
 			in.close();
@@ -191,13 +195,13 @@ public class SPARQL11Properties {
 	protected void override(String[] args) {
 		Map<String, String> envs = System.getenv();
 		for(String var : envs.keySet()) {
-			Logging.logger.debug("Environmental variable "+var+" : "+envs.get(var));
+			Logging.logger.trace("Environmental variable "+var+" : "+envs.get(var));
 			setParameter("-"+var, envs.get(var));
 		}
 
 		if (args != null)
 			for (int i = 0; i < args.length; i = i + 2) {
-				Logging.logger.debug("Argument  "+args[i]+" : "+args[i+1]);
+				Logging.logger.trace("Argument  "+args[i]+" : "+args[i+1]);
 				setParameter(args[i], args[i+1]);
 			}
 	}
@@ -208,7 +212,6 @@ public class SPARQL11Properties {
 			jsap = new Gson().fromJson(in, SPARQL11Properties.class);
 		} catch (JsonSyntaxException | JsonIOException  e) {
 			Logging.logger.error(e.getMessage());
-			e.printStackTrace();
 			throw new SEPAPropertiesException(e);
 		}
 
@@ -227,28 +230,23 @@ public class SPARQL11Properties {
 	* try to construct or parse a URL from the direct string representation
 	* of a File or Path instance
 	* */
-	protected Reader getReaderFromUrl(String url) throws SEPAPropertiesException {
-		Reader in = null;
-		URL jsap = null;
+	protected Reader getReaderFromUri(String uri) throws SEPAPropertiesException {
+		Reader in;
 
-		Logging.logger.info("Get reader from URL: "+url);
+		Logging.logger.info("Get stream reader from URI: "+uri);
 		try {
-			jsap = new URL(url);
+			in = new BufferedReader(
+					new InputStreamReader(URI.create(uri).toURL().openStream()));
+		} catch (IOException | IllegalArgumentException e) {
+			Logging.logger.warn("Failed to get input stream: "+e.getMessage());
 			try {
-				in = new BufferedReader(
-						new InputStreamReader(jsap.openStream()));
-			} catch (IOException e) {
-				Logging.logger.warn("Failed to read input stream: "+e.getMessage());
-				try {
-					in = new FileReader(jsap.getFile());
-				} catch (FileNotFoundException ex) {
-					Logging.logger.warn("Failed to read file: "+e.getMessage());
-					in = new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(jsap.getFile())));
-				}
+				Logging.logger.info("Get file reader from URI: "+uri);
+				in = new FileReader(Path.of(uri).toFile());
+			} catch (FileNotFoundException ex) {
+				Logging.logger.warn("Failed to get file reader: "+ex.getMessage());
+				Logging.logger.info("Get resource from URI: "+uri);
+				in = new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(uri)));
 			}
-		} catch (MalformedURLException e) {
-			Logging.logger.error(e.getMessage());
-			throw new SEPAPropertiesException(e);
 		}
 
 		return in;

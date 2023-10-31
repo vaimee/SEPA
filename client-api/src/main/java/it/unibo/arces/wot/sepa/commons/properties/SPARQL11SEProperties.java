@@ -112,7 +112,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	public SPARQL11SEProperties(String propertiesFile,String[] args) throws SEPAPropertiesException {
 		super(propertiesFile);
 
-		Reader in = getReaderFromUrl(propertiesFile);
+		Reader in = getReaderFromUri(propertiesFile);
 		parseJSAP(in);
 		try {
 			in.close();
@@ -126,7 +126,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	public SPARQL11SEProperties(String propertiesFile) throws SEPAPropertiesException {
 		super(propertiesFile);
 
-		Reader in = getReaderFromUrl(propertiesFile);
+		Reader in = getReaderFromUri(propertiesFile);
 		parseJSAP(in);
 		try {
 			in.close();
