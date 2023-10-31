@@ -199,7 +199,7 @@ public class SSLManager implements HostnameVerifier {
 			sslContext = SSLContexts
 					.custom()
 					.loadKeyMaterial(new File(jksName), jksPassword.toCharArray(), jksPassword.toCharArray())
-					.setProtocol("TLS")
+					.useProtocol("TLS")
 					.build();
 		} catch (NoSuchAlgorithmException e) {
 			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
