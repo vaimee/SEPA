@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package it.unibo.arces.wot.sepa.commons.properties;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
@@ -81,47 +81,124 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	// Members
 	protected SPARQL11SEProtocolProperties sparql11seprotocol;
 
+	public SPARQL11SEProperties() {
+		sparql11seprotocol = new SPARQL11SEProtocolProperties();
+
+		override(null);
+	}
+
 	/**
 	 * Instantiates a new SPARQL 11 SE properties.
 	 *
-	 * @param propertiesFile the properties file
+	 * @param in where to read the JSAP from
 	 * @throws SEPAPropertiesException
 	 */
+	public SPARQL11SEProperties(Reader in) throws SEPAPropertiesException {
+		super(in);
+
+		parseJSAP(in);
+
+		override(null);
+	}
+
+	public SPARQL11SEProperties(Reader in,String[] args) throws SEPAPropertiesException {
+		super(in,args);
+
+		parseJSAP(in);
+
+		override(args);
+	}
+
+	public SPARQL11SEProperties(String propertiesFile,String[] args) throws SEPAPropertiesException {
+		super(propertiesFile);
+
+		Reader in = getReaderFromUrl(propertiesFile);
+		parseJSAP(in);
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e);
+		}
+
+		override(args);
+	}
+
 	public SPARQL11SEProperties(String propertiesFile) throws SEPAPropertiesException {
 		super(propertiesFile);
 
+		Reader in = getReaderFromUrl(propertiesFile);
+		parseJSAP(in);
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e);
+		}
+
+		override(null);
+	}
+
+	private void parseJSAP(Reader in) throws SEPAPropertiesException {
 		SPARQL11SEProperties jsap;
 		try {
-			jsap = new Gson().fromJson(new FileReader(propertiesFile), SPARQL11SEProperties.class);
+			jsap = new Gson().fromJson(in, SPARQL11SEProperties.class);
 			sparql11seprotocol = jsap.sparql11seprotocol;
-		} catch (JsonSyntaxException | JsonIOException | FileNotFoundException e2) {
+		} catch (JsonSyntaxException | JsonIOException e2) {
 			Logging.logger.error(e2.getMessage());
 			e2.printStackTrace();
 			throw new SEPAPropertiesException(e2);
 		}
-
-//		try {
-//			jsap = new Gson().fromJson(new FileReader(propertiesFile), SPARQL11SEProperties.class);
-//		} catch (Exception e) {
-//			Logging.logger.warn("Create from file: " + propertiesFile);
-//			Logging.logger.warn(e.getMessage());
-//			jsap = new SPARQL11SEProperties();
-//			Logging.logger.warn("USING DEFAULTS. Edit \"" + defaultsFileName + "\" (if needed) and run again the broker");
-//			try {
-//				jsap.storeProperties(defaultsFileName);
-//			} catch (SEPAPropertiesException e1) {
-//				Logging.logger.error(e1.getMessage());
-//			}
-//			
-//		}
-
-		
 	}
 
-//	public SPARQL11SEProperties() {
-//		super();
-//		sparql11seprotocol = new SPARQL11SEProtocol();
-//	}
+	protected final void setParameter(String key,String value) {
+		switch (key) {
+			case "-host" :
+				this.host = value;
+				break;
+			case "-sparql11protocol.port":
+				this.sparql11protocol.port = Integer.valueOf(value);
+				break;
+			case "-sparql11protocol.host":
+				this.sparql11protocol.host = host;
+				break;
+			case "-sparql11protocol.protocol":
+				this.sparql11protocol.protocol = (value == "http" ? ProtocolScheme.http : ProtocolScheme.https);
+				break;
+			case "-sparql11protocol.update.method":
+				this.sparql11protocol.update.method = (value == "post" ? UpdateProperties.UpdateHTTPMethod.POST : UpdateProperties.UpdateHTTPMethod.URL_ENCODED_POST);
+				break;
+			case "-sparql11protocol.update.format":
+				this.sparql11protocol.update.format = (value == "json" ? UpdateProperties.UpdateResultsFormat.JSON : UpdateProperties.UpdateResultsFormat.HTML);
+				break;
+			case "-sparql11protocol.update.path":
+				this.sparql11protocol.update.path = value;
+				break;
+			case "-sparql11protocol.query.method":
+				this.sparql11protocol.query.method = (value == "get" ? QueryProperties.QueryHTTPMethod.GET : (value == "post" ? QueryProperties.QueryHTTPMethod.POST : QueryProperties.QueryHTTPMethod.URL_ENCODED_POST));
+				break;
+			case "-sparql11protocol.query.format":
+				this.sparql11protocol.query.format = (value == "json" ? QueryProperties.QueryResultsFormat.JSON : (value == "xml" ? QueryProperties.QueryResultsFormat.XML : QueryProperties.QueryResultsFormat.CSV));
+				break;
+			case "-sparql11protocol.query.path":
+				this.sparql11protocol.query.path = value;
+				break;
+			case "-sparql11seprotocol.host":
+				this.sparql11seprotocol.host = value;
+				break;
+			case "-sparql11seprotocol.protocol":
+				this.sparql11seprotocol.protocol = value;
+				break;
+			case "-sparql11seprotocol.reconnect":
+				this.sparql11seprotocol.reconnect = Boolean.valueOf(value);
+				break;
+			default:
+				if (key.startsWith("-sparql11seprotocol.availableProtocols")) {
+					String[] token = key.split(".");
+					if (token[3] == "path") this.sparql11seprotocol.availableProtocols.get(token[2]).path = value;
+					else if (token[3] == "port") this.sparql11seprotocol.availableProtocols.get(token[2]).port = Integer.valueOf(value);
+					else if (token[3] == "scheme") this.sparql11seprotocol.availableProtocols.get(token[2]).scheme = value;
+				}
+		}
+	}
 
 	public String toString() {
 		return new Gson().toJson(this);

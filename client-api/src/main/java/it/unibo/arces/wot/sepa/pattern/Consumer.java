@@ -55,9 +55,9 @@ public abstract class Consumer extends Client implements IConsumer {
 		}
 		
 		if (appProfile.getSPARQLQuery(subscribeID) == null) {
-			Logging.logger.fatal("SUBSCRIBE ID [" + subscribeID + "] not found in " + appProfile.getFileName());
+			Logging.logger.fatal("SUBSCRIBE ID [" + subscribeID + "] not found");
 			throw new IllegalArgumentException(
-					"SUBSCRIBE ID [" + subscribeID + "] not found in " + appProfile.getFileName());
+					"SUBSCRIBE ID [" + subscribeID + "] not found");
 		}
 
 		subID = subscribeID;

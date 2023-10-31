@@ -44,8 +44,8 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		}
 
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
-			Logging.logger.fatal("UPDATE ID " + updateID + " not found in " + appProfile.getFileName());
-			throw new IllegalArgumentException("UPDATE ID " + updateID + " not found in " + appProfile.getFileName());
+			Logging.logger.fatal("UPDATE ID " + updateID + " not found");
+			throw new IllegalArgumentException("UPDATE ID " + updateID + " not found");
 		}
 
 		updateId = updateID;

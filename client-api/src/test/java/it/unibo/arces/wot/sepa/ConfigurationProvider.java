@@ -15,6 +15,7 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -50,7 +51,12 @@ public class ConfigurationProvider implements Closeable {
 
 		Logging.logger.debug("Loading JSAP from: " + jsapPath);
 
-		appProfile = new JSAP(jsapPath);
+		try {
+			appProfile = new JSAP(jsapPath);
+		} catch (SEPAPropertiesException e) {
+			Logging.logger.error(e.getMessage());
+			throw new RuntimeException(e);
+		}
 
 		prefixes = appProfile.getPrefixes();
 
@@ -146,7 +152,7 @@ public class ConfigurationProvider implements Closeable {
 
 	public String getClientId() throws SEPAPropertiesException, SEPASecurityException {
 		if (appProfile.isSecure()) {
-			OAuthProperties oauth = new OAuthProperties(appProfile.getFileName());
+			OAuthProperties oauth = new OAuthProperties(appProfile);
 			if (oauth.getProvider().equals(OAUTH_PROVIDER.SEPA))
 				return "SEPATest";
 			else if (oauth.getProvider().equals(OAUTH_PROVIDER.KEYCLOAK))

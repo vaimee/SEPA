@@ -19,6 +19,10 @@
 package it.unibo.arces.wot.sepa.commons.properties;
 
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import com.google.gson.Gson;
@@ -83,13 +87,8 @@ public class SPARQL11Properties {
 	protected String host;
 	protected SPARQL11ProtocolProperties sparql11protocol;	
 	protected GraphsProperties graphs = null;
-	
-	/** The defaults file name. */
-	protected String defaultsFileName = "endpoint.jpar";
 
-	/** The properties file. */
-	protected String propertiesFile = defaultsFileName;
-	
+	protected String filename = null;
 		
 	/**
 	 * The Enum SPARQLPrimitive (QUERY, UPDATE).
@@ -123,57 +122,188 @@ public class SPARQL11Properties {
 		}
 	};
 
-	
+	public SPARQL11Properties() {
+		this.host = "localhost";
+		this.sparql11protocol = new SPARQL11ProtocolProperties();
+		this.sparql11protocol.protocol = ProtocolScheme.http;
+
+		override(null);
+	}
+
+	public SPARQL11Properties(String args[]) {
+		this();
+
+		override(args);
+	}
+
+	public SPARQL11Properties(String jsapFile,String[] args) throws SEPAPropertiesException {
+		this();
+
+		Reader in = getReaderFromUrl(jsapFile);
+		parseJSAP(in);
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e);
+		}
+
+		override(args);
+
+		filename = jsapFile;
+	}
+
+	public SPARQL11Properties(String jsapFile) throws SEPAPropertiesException {
+		this();
+
+		Reader in = getReaderFromUrl(jsapFile);
+		parseJSAP(in);
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e);
+		}
+
+		override(null);
+
+		filename = jsapFile;
+	}
+
 	public SPARQL11Properties(String host,ProtocolScheme scheme) {
 		this.host = host;
 		this.sparql11protocol = new SPARQL11ProtocolProperties();
 		this.sparql11protocol.protocol = scheme;
+
+		override(null);
 	}
 
-	public SPARQL11Properties(String jsapFile) throws SEPAPropertiesException  {
+	public SPARQL11Properties(Reader in,String[] args) throws SEPAPropertiesException  {
+		this();
+
+		parseJSAP(in);
+
+		override(args);
+	}
+
+	public SPARQL11Properties(Reader in) throws SEPAPropertiesException  {
+		this(in,null);
+	}
+
+	protected void override(String[] args) {
+		Map<String, String> envs = System.getenv();
+		for(String var : envs.keySet()) {
+			Logging.logger.debug("Environmental variable "+var+" : "+envs.get(var));
+			setParameter("-"+var, envs.get(var));
+		}
+
+		if (args != null)
+			for (int i = 0; i < args.length; i = i + 2) {
+				Logging.logger.debug("Argument  "+args[i]+" : "+args[i+1]);
+				setParameter(args[i], args[i+1]);
+			}
+	}
+
+	private void parseJSAP(Reader in) throws SEPAPropertiesException {
 		SPARQL11Properties jsap = null;
-		if (jsapFile == null) throw new SEPAPropertiesException("File is null");
 		try {
-			FileReader reader = new FileReader(jsapFile);
-			jsap = new Gson().fromJson(reader, SPARQL11Properties.class);
-		} catch (JsonSyntaxException | JsonIOException | FileNotFoundException  e) {
+			jsap = new Gson().fromJson(in, SPARQL11Properties.class);
+		} catch (JsonSyntaxException | JsonIOException  e) {
 			Logging.logger.error(e.getMessage());
 			e.printStackTrace();
 			throw new SEPAPropertiesException(e);
 		}
-		
+
 		this.host = jsap.host;
 		this.sparql11protocol = jsap.sparql11protocol;
 		this.graphs = jsap.graphs;
-		
-		propertiesFile = jsapFile;
 	}
 
-	public String getJSAPFilename() {
-		return propertiesFile;
+	/*
+	* Applications working with file paths and file URIs should take great care
+	* to use the appropriate methods to convert between the two.
+	* The Path.of(URI) factory method and the File.File(URI) constructor
+	* can be used to create Path or File objects from a file URI.
+	* Path.toUri() and File.toURI() can be used to create a URI from a file path,
+	* which can be converted to URL using URI.toURL(). Applications should never
+	* try to construct or parse a URL from the direct string representation
+	* of a File or Path instance
+	* */
+	protected Reader getReaderFromUrl(String url) throws SEPAPropertiesException {
+		Reader in = null;
+		URL jsap = null;
+
+		Logging.logger.info("Get reader from URL: "+url);
+		try {
+			jsap = new URL(url);
+			try {
+				in = new BufferedReader(
+						new InputStreamReader(jsap.openStream()));
+			} catch (IOException e) {
+				Logging.logger.warn("Failed to read input stream: "+e.getMessage());
+				try {
+					in = new FileReader(jsap.getFile());
+				} catch (FileNotFoundException ex) {
+					Logging.logger.warn("Failed to read file: "+e.getMessage());
+					in = new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(jsap.getFile())));
+				}
+			}
+		} catch (MalformedURLException e) {
+			Logging.logger.error(e.getMessage());
+			throw new SEPAPropertiesException(e);
+		}
+
+		return in;
+	}
+
+	protected void setParameter(String key,String value) {
+		switch (key) {
+			case "-host" :
+				this.host = value;
+				break;
+			case "-sparql11protocol.port":
+				this.sparql11protocol.port = Integer.valueOf(value);
+				break;
+			case "-sparql11protocol.host":
+				this.sparql11protocol.host = host;
+				break;
+			case "-sparql11protocol.protocol":
+				this.sparql11protocol.protocol = (value == "http" ? ProtocolScheme.http : ProtocolScheme.https);
+				break;
+			case "-sparql11protocol.update.method":
+				this.sparql11protocol.update.method = (value == "post" ? UpdateHTTPMethod.POST : UpdateHTTPMethod.URL_ENCODED_POST);
+				break;
+			case "-sparql11protocol.update.format":
+				this.sparql11protocol.update.format = (value == "json" ? UpdateResultsFormat.JSON : UpdateResultsFormat.HTML);
+				break;
+			case "-sparql11protocol.update.path":
+				this.sparql11protocol.update.path = value;
+				break;
+			case "-sparql11protocol.query.method":
+				this.sparql11protocol.query.method = (value == "get" ? QueryHTTPMethod.GET : (value == "post" ? QueryHTTPMethod.POST : QueryHTTPMethod.URL_ENCODED_POST));
+				break;
+			case "-sparql11protocol.query.format":
+				this.sparql11protocol.query.format = (value == "json" ? QueryResultsFormat.JSON : (value == "xml" ? QueryResultsFormat.XML : QueryResultsFormat.CSV));
+				break;
+			case "-sparql11protocol.query.path":
+				this.sparql11protocol.query.path = value;
+				break;
+		}
 	}
 
 	public String toString() {
 		return new Gson().toJson(this);
 	}
 
-	/**
-	 * Store properties.
-	 *
-	 * @param propertiesFile the properties file
-	 * @throws SEPAPropertiesException
-	 * @throws IOException             Signals that an I/O exception has occurred.
-	 */
-	protected void storeProperties(String propertiesFile) throws SEPAPropertiesException {
+	public void write() throws SEPAPropertiesException {
 		FileWriter out;
 		try {
-			out = new FileWriter(propertiesFile);
+			out = new FileWriter(filename);
 			out.write(this.toString());
 			out.close();
-		} catch (Exception e) {
-			throw new SEPAPropertiesException(e);
+		} catch (IOException e) {
+			if (Logging.logger.isTraceEnabled())
+				e.printStackTrace();
+			throw new SEPAPropertiesException(e.getMessage());
 		}
-
 	}
 
 	/**
