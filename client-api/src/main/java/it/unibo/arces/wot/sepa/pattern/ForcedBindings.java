@@ -1,5 +1,6 @@
 package it.unibo.arces.wot.sepa.pattern;
 
+import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
@@ -10,6 +11,13 @@ import it.unibo.arces.wot.sepa.commons.sparql.RDFTermLiteral;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTermURI;
 
 public class ForcedBindings extends Bindings {
+	public ForcedBindings(JsonObject solution) {
+		super(solution);
+	}
+
+	public ForcedBindings() {
+		super();
+	}
 	/**
 	 * Sets the binding value.
 	 *

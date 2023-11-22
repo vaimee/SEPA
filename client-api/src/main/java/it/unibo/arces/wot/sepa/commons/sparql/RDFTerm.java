@@ -49,6 +49,7 @@ public abstract class RDFTerm {
 	 */
 	public String getValue() {
 		if (!json.has("value")) return null;
+		if (json.get("value") == null) return null;
 		return json.get("value").getAsString();
 	}
 
