@@ -19,7 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
+import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.logging.Logging;
 import it.unibo.arces.wot.sepa.api.SPARQL11Protocol;
@@ -29,12 +32,13 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
+import org.apache.commons.rdf.api.RDF;
 
 public class Producer extends Client implements IProducer {
 	protected String sparqlUpdate = null;
 	protected String SPARQL_ID = "";
 	private ForcedBindings forcedBindings;
-
+	private MultipleForcedBindings multipleForcedBindings;
 	private SPARQL11Protocol client;
 
 	public Producer(JSAP appProfile, String updateID)
@@ -51,6 +55,7 @@ public class Producer extends Client implements IProducer {
 		sparqlUpdate = appProfile.getSPARQLUpdate(updateID);
 
 		forcedBindings = appProfile.getUpdateBindings(updateID);
+		multipleForcedBindings = appProfile.getUpdateMultipleBindings(updateID);
 
 		client = new SPARQL11Protocol(sm);
 	}
@@ -75,47 +80,32 @@ public class Producer extends Client implements IProducer {
 		Response retResponse = client.update(req);
 
 		Logging.logger.trace(retResponse);
-		
-//		if (appProfile.isSecure() && retResponse.isError()) {
-//			ErrorResponse errorResponse = (ErrorResponse) retResponse;
-//			if (errorResponse.isTokenExpiredError()) {
-//				sm.refreshToken();
-//				req.setAuthorizationHeader(appProfile.getAuthenticationProperties().getBearerAuthorizationHeader());
-//				retResponse = client.update(req);
-//			} 
-//		}
-		
-//		while (isSecure() && retResponse.isError()) {
-//
-//			ErrorResponse errorResponse = (ErrorResponse) retResponse;
-//
-//			if (errorResponse.isTokenExpiredError()) {
-//				try {
-//					sm.refreshToken();
-//				} catch (SEPAPropertiesException | SEPASecurityException e) {
-//					Logging.logger.error("Failed to refresh token: " + e.getMessage());
-//				}
-//			} else {
-//				Logging.logger.error(errorResponse);
-//				return errorResponse;
-//			}
-//
-//			authorizationHeader = sm.getAuthorizationHeader();
-//			
-//			Logging.logger.debug("Authorization header: "+authorizationHeader);
-//
-//			req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
-//					appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
-//					appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
-//					appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
-//							addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
-//					appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
-//					authorizationHeader, timeout,nRetry);
-//
-//			retResponse = client.update(req);
-//		}
 
 		return retResponse;
+	}
+
+	public final Response multipleUpdate(long timeout,long nRetry)
+			throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
+		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(SPARQL_ID),
+				appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
+				appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
+				appProfile.addPrefixesAndReplaceMultipleBindings(sparqlUpdate,
+						addDefaultDatatype(multipleForcedBindings.getBindings(), SPARQL_ID, false)),
+				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
+				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
+
+		Logging.logger.trace(req);
+
+		Response retResponse = client.update(req);
+
+		Logging.logger.trace(retResponse);
+
+		return retResponse;
+	}
+
+	public final Response multipleUpdate()
+			throws SEPASecurityException, SEPAProtocolException, SEPAPropertiesException, SEPABindingsException {
+		return multipleUpdate(TIMEOUT,NRETRY);
 	}
 
 	@Override
@@ -126,5 +116,9 @@ public class Producer extends Client implements IProducer {
 
 	public final void setUpdateBindingValue(String variable, RDFTerm value) throws SEPABindingsException {
 		forcedBindings.setBindingValue(variable, value);
+	}
+
+	public final void setUpdateMultipleBindings(ArrayList<String> variables, ArrayList<ArrayList<RDFTerm>> values) throws SEPABindingsException {
+		multipleForcedBindings.setUpdateBindings(variables,values);
 	}
 }

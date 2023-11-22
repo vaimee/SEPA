@@ -26,6 +26,7 @@ import java.util.Set;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
+import com.google.gson.JsonPrimitive;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 
 /**
@@ -92,7 +93,9 @@ public class Bindings {
 		try {
 			String type = getType(variable);
 			String value = getValue(variable);
-			
+
+			if (type == null || value == null) return null;
+
 			switch(type) {
 			case "uri":
 				return new RDFTermURI(value);
@@ -105,7 +108,7 @@ public class Bindings {
 			}
 		}
 		catch(Exception e) {
-			throw new SEPABindingsException(e);
+			return null;
 		}
 		
 		return null;
@@ -221,7 +224,12 @@ public class Bindings {
 	 *            the value
 	 */
 	public void addBinding(String variable, RDFTerm value) {
-		solution.add(variable, value.toJson());
+		if (value == null) {
+			JsonObject undefObject = new JsonObject();
+			undefObject.add("value",null);
+			solution.add(variable,undefObject);
+		}
+		else solution.add(variable, value.toJson());
 	}
 
 	/**
