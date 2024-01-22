@@ -96,11 +96,13 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("#                                                                                        #");
 		System.out
-				.println("# git:arces-wot/sepa dc:title 'SEPA' ;                                                   #");
+				.println("# git:vaimee/sepa dc:title 'SEPA' ;                                                      #");
 		System.out
 				.println("# dc:creator git:lroffia ;                                                               #");
 		System.out
 				.println("# dc:contributor git:relu91 ;                                                            #");
+		System.out
+				.println("# dc:contributor git:GregorioMonari ;                                                    #");
 		System.out
 				.println("# dc:format <https://java.com> ;                                                         #");
 		System.out
