@@ -74,7 +74,7 @@ jobs:
           timeout: 20000
           interval: 500
       - name: verify
-        run: mvn verify -e
+        run: mvn verify -e -Dlog4j2.level=trace
       - name: Archive code coverage results
         uses: actions/upload-artifact@v2
         with:
