@@ -2,7 +2,7 @@
 	"host": "localhost",
 	"sparql11protocol": {
 		"protocol": "http",
-		"port": 8080,
+		"port": 9999,
 		"query": {
 			"path": "/bigdata/namespace/kb/sparql",
 			"method": "POST",
