@@ -49,10 +49,10 @@ public class ConfigurationProvider implements Closeable {
 			throw new SEPAPropertiesException("File not found: " + jsapPath);
 		}
 
-		Logging.logger.debug("Loading JSAP from: " + jsapPath);
+		Logging.logger.debug("Loading JSAP from: " + f.getPath());
 
 		try {
-			appProfile = new JSAP(jsapPath);
+			appProfile = new JSAP(f.getPath());
 		} catch (SEPAPropertiesException e) {
 			Logging.logger.error(e.getMessage());
 			throw new RuntimeException(e);
