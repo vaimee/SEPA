@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
+	<Properties>
+		<Property name="logFilename">output</Property>
+	</Properties>
 	<CustomLevels>
 		<!-- Standard Level intLevel OFF 0 FATAL 100 ERROR 200 WARN 300 INFO 400 
 			DEBUG 500 TRACE 600 ALL Integer.MAX_VALUE 
