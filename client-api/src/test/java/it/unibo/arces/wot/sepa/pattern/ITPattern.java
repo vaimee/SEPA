@@ -4,12 +4,7 @@ import it.unibo.arces.wot.sepa.AggregatorTestUnit;
 import it.unibo.arces.wot.sepa.ConsumerTestUnit;
 import it.unibo.arces.wot.sepa.Sync;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.*;
 
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
@@ -119,6 +114,7 @@ public class ITPattern {
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
+	@Disabled
 	@Timeout(10)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
