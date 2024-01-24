@@ -57,9 +57,7 @@ public class Sync implements ISubscriptionHandler {
 					subscribesMutex.wait();
 					Logging.logger.trace("Thread id "+Thread.currentThread().getId()+ " awaken from waitSubscribes");
 				} catch (InterruptedException e) {
-					Logging.logger.trace("Thread id "+Thread.currentThread().getId()+ " interrupted in waitSubscribes");
-					e.printStackTrace();
-					break;
+					throw new RuntimeException(e.getCause());
 				}
 			}
 		}
@@ -94,8 +92,7 @@ public class Sync implements ISubscriptionHandler {
 					eventsMutex.wait();
 					Logging.logger.trace("Thread id "+Thread.currentThread().getId()+ " awaken from waitEvents");
 				} catch (InterruptedException e) {
-					Logging.logger.trace("Thread id "+Thread.currentThread().getId()+ " interrupted in waitEvents");
-					break;
+					throw new RuntimeException(e.getCause());
 				}
 			}
 		}
@@ -108,7 +105,7 @@ public class Sync implements ISubscriptionHandler {
 					Logging.logger.trace("waitUnsubscribes");
 					unsubscribesMutex.wait();
 				} catch (InterruptedException e) {
-					break;
+					throw new RuntimeException(e.getCause());
 				}
 			}
 		}
