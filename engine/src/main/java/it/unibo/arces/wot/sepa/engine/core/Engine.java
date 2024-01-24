@@ -41,7 +41,7 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.12.2023.09.14";
+	private final static String version = "0.13.2024.01.22";
 
 	private EngineProperties properties = null;
 
@@ -96,11 +96,13 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("#                                                                                        #");
 		System.out
-				.println("# git:arces-wot/sepa dc:title 'SEPA' ;                                                   #");
+				.println("# git:vaimee/sepa dc:title 'SEPA' ;                                                      #");
 		System.out
 				.println("# dc:creator git:lroffia ;                                                               #");
 		System.out
 				.println("# dc:contributor git:relu91 ;                                                            #");
+		System.out
+				.println("# dc:contributor git:GregorioMonari ;                                                    #");
 		System.out
 				.println("# dc:format <https://java.com> ;                                                         #");
 		System.out

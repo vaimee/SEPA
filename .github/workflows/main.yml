@@ -63,8 +63,8 @@ jobs:
           echo ENGINE PROPERTIES
           cat engine.jpar
           echo LOG4J
-          cat log4j2.xml
-          java -Dlog4j.configurationFile=./log4j2.xml -jar engine-1.0.0-SNAPSHOT.jar -engine engine.jpar -endpoint endpoint.jpar > log.txt &
+          cat log4j2-debug.xml
+          java -Dlog4j.configurationFile=./log4j2-debug.xml -jar engine-1.0.0-SNAPSHOT.jar -engine engine.jpar -endpoint endpoint.jpar > log.txt &
         shell: bash
       - name: wait for SEPA engine
         uses: nev7n/wait_for_response@v1
@@ -74,9 +74,10 @@ jobs:
           timeout: 20000
           interval: 500
       - name: verify
-        run: mvn verify -e
-      - name: Archive code coverage results
+        run: mvn verify -e -Dlog4j2.level=trace
+      - name: publish Engine log
         uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: engine-log
           path: engine/target/log.txt
