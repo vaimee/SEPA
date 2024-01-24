@@ -21,33 +21,27 @@
 	<developers>
 		<developer>
 			<name>Luca Roffia</name>
-			<email>luca.roffia@unibo.it</email>
-			<organization>Web of Things research group of ARCES</organization>
-			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
-		</developer>
-		<developer>
-			<name>Fabio Viola</name>
-			<email>fabio.viola@unibo.it</email>
-			<organization>Web of Things research group of ARCES</organization>
-			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
-		</developer>
-		<developer>
-			<name>Francesco Antoniazzi</name>
-			<email>francesco.antoniazzi@unibo.it</email>
-			<organization>Web of Things research group of ARCES</organization>
-			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+			<email>luca.roffia@vaimee.com</email>
+			<organization>VAIMEE</organization>
+			<organizationUrl>http://vaimee.com/</organizationUrl>
 		</developer>
 		<developer>
 			<name>Cristiano Aguzzi</name>
-			<email>cristiano.aguzzi@studio.unibo.it</email>
-			<organization>Web of Things research group of ARCES</organization>
-			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+			<email>cristiano.aguzzi@vaimee.com</email>
+			<organization>VAIMEE</organization>
+			<organizationUrl>http://vaimee.com/</organizationUrl>
+		</developer>
+		<developer>
+			<name>Gregorio Monari</name>
+			<email>gregorio.monari@vaimee.com</email>
+			<organization>VAIMEE</organization>
+			<organizationUrl>http://vaimee.com/</organizationUrl>
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git://github.com/arces-wot/sepa.git</connection>
-		<developerConnection>scm:git:ssh://github.com/arces-wot/sepa.git</developerConnection>
-		<url>https://github.com/arces-wot/SEPA</url>
+		<connection>scm:git:git://github.com/vaimee/sepa.git</connection>
+		<developerConnection>scm:git:ssh://github.com/vaimee/sepa.git</developerConnection>
+		<url>https://github.com/vaimee/SEPA</url>
 	</scm>
 	<properties>
 		<maven.compiler.source>11</maven.compiler.source>
@@ -60,7 +54,7 @@
 		<repository>
 			<id>github</id>
 			<name>GitHub Packages</name>
-			<url>https://maven.pkg.github.com/arces-wot/SEPA</url>
+			<url>https://maven.pkg.github.com/vaimee/SEPA</url>
 		</repository>
 	</distributionManagement>
 	<build>
