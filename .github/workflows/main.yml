@@ -63,8 +63,8 @@ jobs:
           echo ENGINE PROPERTIES
           cat engine.jpar
           echo LOG4J
-          cat log4j2.xml
-          java -Dlog4j.configurationFile=./log4j2.xml -jar engine-1.0.0-SNAPSHOT.jar -engine engine.jpar -endpoint endpoint.jpar > log.txt &
+          cat log4j2-debug.xml
+          java -Dlog4j.configurationFile=./log4j2-debug.xml -jar engine-1.0.0-SNAPSHOT.jar -engine engine.jpar -endpoint endpoint.jpar > log.txt &
         shell: bash
       - name: wait for SEPA engine
         uses: nev7n/wait_for_response@v1
