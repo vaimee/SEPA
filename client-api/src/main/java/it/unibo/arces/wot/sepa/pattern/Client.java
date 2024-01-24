@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -140,11 +141,16 @@ public abstract class Client implements java.io.Closeable {
 	 * </pre>
 	 **/
 
+	protected ArrayList<Bindings> addDefaultDatatype(ArrayList<Bindings> bindings, String id, boolean query) throws SEPABindingsException {
+		ArrayList<Bindings> temp = new ArrayList<>();
+		for (Bindings b : bindings) temp.add(addDefaultDatatype(b,id,query));
+		return temp;
+	}
 	protected Bindings addDefaultDatatype(Bindings bindings, String id, boolean query) throws SEPABindingsException {
 		if (id == null)
 			return bindings;
 		if (bindings == null)
-			return bindings;
+			return null;
 
 		// Forced bindings by JSAP
 		Bindings jsap_template;
@@ -154,9 +160,13 @@ public abstract class Client implements java.io.Closeable {
 			jsap_template = appProfile.getUpdateBindings(id);
 
 		// Add missing datatype, if any
-		Bindings retBindings = new Bindings();
+		Bindings retBindings = new ForcedBindings();
 		for (String varString : bindings.getVariables()) {
 			RDFTerm term = bindings.getRDFTerm(varString);
+			if (term == null) {
+				retBindings.addBinding(varString,null);
+				continue;
+			}
 			if (term.isLiteral()) {
 				RDFTermLiteral literal = (RDFTermLiteral) term;
 				if (literal.getDatatype() == null && jsap_template.getDatatype(varString) != null)

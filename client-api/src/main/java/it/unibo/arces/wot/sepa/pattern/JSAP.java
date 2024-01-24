@@ -241,7 +241,11 @@ public class JSAP extends SPARQL11SEProperties {
 			}
 
 			if(path.isAbsolute()) load(child,false);
-			else load (Path.of(uri).getParent().toString()+File.separator+child,false);
+			else {
+				Path childPath = Path.of(uri);
+				if (childPath.getParent()!= null) load (childPath.getParent().toString()+File.separator+child,false);
+				else load(child,false);
+			}
 		}
 
 	}
@@ -358,8 +362,6 @@ public class JSAP extends SPARQL11SEProperties {
 		jsap.putAll(temp);
 		return jsap;
 	}
-
-	
 
 	public JsonObject getExtendedData() {
 		return extended;
@@ -775,7 +777,7 @@ public class JSAP extends SPARQL11SEProperties {
 					bindingValue = new RDFTermBNode(value);
 					break;
 				default:
-					Logging.logger.error("JSAP unknown type: " + binding);
+					Logging.logger.error("JSAP unknown type: " + binding.getValue().type);
 					continue;
 				}
 
@@ -788,6 +790,49 @@ public class JSAP extends SPARQL11SEProperties {
 		return ret;
 	}
 
+	public MultipleForcedBindings getUpdateMultipleBindings(String id) throws IllegalArgumentException {
+		if (updates.get(id) == null)
+			throw new IllegalArgumentException("Update ID not found: " + id);
+
+		MultipleForcedBindings ret = new MultipleForcedBindings();
+
+		if (updates.get(id).forcedBindings == null)
+			return ret;
+
+		try {
+			for (Entry<String, ForcedBinding> binding : updates.get(id).forcedBindings.entrySet()) {
+				if (binding.getValue().type == null)
+					continue;
+
+				RDFTerm bindingValue = null;
+				String value = binding.getValue().value;
+
+				switch (binding.getValue().type) {
+					case "literal":
+						String datatype = (binding.getValue().datatype == null ? null : binding.getValue().datatype);
+						String language = (binding.getValue().language == null ? null : binding.getValue().language);
+
+						bindingValue = new RDFTermLiteral(value, datatype, language);
+						break;
+					case "uri":
+						bindingValue = new RDFTermURI(value);
+						break;
+					case "bnode":
+						bindingValue = new RDFTermBNode(value);
+						break;
+					default:
+						Logging.logger.error("JSAP unknown type: " + binding);
+						continue;
+				}
+
+				ret.addBinding(binding.getKey(), bindingValue);
+			}
+		} catch (Exception e) {
+			Logging.logger.error("getUpdateBindings " + id + " exception: " + e.getMessage());
+		}
+
+		return ret;
+	}
 	public ForcedBindings getQueryBindings(String id) throws IllegalArgumentException {
 		if (queries.get(id) == null)
 			throw new IllegalArgumentException("Query ID not found: " + id);
@@ -836,10 +881,6 @@ public class JSAP extends SPARQL11SEProperties {
 		return new Gson().toJson(this);
 	}
 
-//	public String printParameters() {
-//		return this.toString();
-//	}
-
 	public String getUpdateUrl(String id) throws IllegalArgumentException {
 		if (updates.get(id) == null)
 			throw new IllegalArgumentException("Update ID not found: " + id);
@@ -883,6 +924,10 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String addPrefixesAndReplaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 		return prefixes + replaceBindings(sparql, bindings);
+	}
+
+	public String addPrefixesAndReplaceMultipleBindings(String sparql, ArrayList<Bindings> bindings) throws SEPABindingsException {
+		return prefixes + replaceMultipleBindings(sparql, bindings);
 	}
 
 	// TODO: use Jena?
@@ -1055,6 +1100,163 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 
 		return replacedSparql;
+	}
+
+	public static final String replaceMultipleBindings(String sparql, ArrayList<Bindings> multipleBindings) throws SEPABindingsException {
+		if (multipleBindings == null || sparql == null)
+			return sparql;
+
+		if (multipleBindings.isEmpty()) return sparql;
+
+		ArrayList<String> vars = new ArrayList<>();
+		vars.addAll(multipleBindings.get(0).getVariables());
+
+		ArrayList<ArrayList<String>> allValues = new ArrayList<>();
+
+		for(Bindings bindings : multipleBindings) {
+			ArrayList<String> values = new ArrayList<String>();
+			for (String var : vars) {
+				String value = bindings.getValue(var);
+				if (value == null) {
+					// https://www.w3.org/TR/sparql11-query/#inline-data
+					// If a variable has no value for a particular solution in the VALUES clause, the keyword UNDEF is used instead of an RDF term.
+					values.add("UNDEF");
+					continue;
+				}
+
+				/*
+				 * 4.1.2 Syntax for Literals
+				 *
+				 * The general syntax for literals is a string (enclosed in either double
+				 * quotes, "...", or single quotes, '...'), with either an optional language tag
+				 * (introduced by @) or an optional datatype IRI or prefixed name (introduced by
+				 * ^^).
+				 *
+				 * As a convenience, integers can be written directly (without quotation marks
+				 * and an explicit datatype IRI) and are interpreted as typed literals of
+				 * datatype xsd:integer; decimal numbers for which there is '.' in the number
+				 * but no exponent are interpreted as xsd:decimal; and numbers with exponents
+				 * are interpreted as xsd:double. Values of type xsd:boolean can also be written
+				 * as true or false.
+				 *
+				 * To facilitate writing literal values which themselves contain quotation marks
+				 * or which are long and contain newline characters, SPARQL provides an
+				 * additional quoting construct in which literals are enclosed in three single-
+				 * or double-quotation marks.
+				 *
+				 * Examples of literal syntax in SPARQL include:
+				 *
+				 * - "chat" - 'chat'@fr with language tag "fr" -
+				 * "xyz"^^<http://example.org/ns/userDatatype> - "abc"^^appNS:appDataType -
+				 * '''The librarian said, "Perhaps you would enjoy 'War and Peace'."''' - 1,
+				 * which is the same as "1"^^xsd:integer - 1.3, which is the same as
+				 * "1.3"^^xsd:decimal - 1.300, which is the same as "1.300"^^xsd:decimal -
+				 * 1.0e6, which is the same as "1.0e6"^^xsd:double - true, which is the same as
+				 * "true"^^xsd:boolean - false, which is the same as "false"^^xsd:boolean
+				 *
+				 * Tokens matching the productions INTEGER, DECIMAL, DOUBLE and BooleanLiteral
+				 * are equivalent to a typed literal with the lexical value of the token and the
+				 * corresponding datatype (xsd:integer, xsd:decimal, xsd:double, xsd:boolean).
+				 */
+
+				if (bindings.isLiteral(var)) {
+					String datatype = bindings.getDatatype(var);
+					String lang = bindings.getLanguage(var);
+
+					if (datatype == null) {
+						if (lang != null)
+							value += "@" + bindings.getLanguage(var);
+						else {
+							value = "'''" + StringEscapeUtils.escapeJava(value) + "'''";
+						}
+					} else if (!numbersOrBoolean.contains(datatype)) {
+						// Check if datatype is a qname or not
+						URI uri = null;
+						try {
+							uri = new URI(datatype);
+						} catch (URISyntaxException e) {
+							Logging.logger.error(e.getMessage());
+						}
+
+						if (uri != null) {
+							if (uri.getSchemeSpecificPart().startsWith("/"))
+								datatype = "<" + datatype + ">";
+						}
+
+						value = "'''" + StringEscapeUtils.escapeJava(value) + "'''";
+						value += "^^" + datatype;
+					}
+				} else if (bindings.isURI(var)) {
+					// See https://www.w3.org/TR/rdf-sparql-query/#QSynIRI
+					// https://docs.oracle.com/javase/7/docs/api/java/net/URI.html
+
+					// [scheme:]scheme-specific-part[#fragment]
+					// An absolute URI specifies a scheme; a URI that is not absolute is said to be
+					// relative.
+					// URIs are also classified according to whether they are opaque or
+					// hierarchical.
+
+					// An opaque URI is an absolute URI whose scheme-specific part does not begin
+					// with a slash character ('/').
+					// Opaque URIs are not subject to further parsing.
+
+					// A hierarchical URI is either an absolute URI whose scheme-specific part
+					// begins with a slash character,
+					// or a relative URI, that is, a URI that does not specify a scheme.
+					// A hierarchical URI is subject to further parsing according to the syntax
+					// [scheme:][//authority][path][?query][#fragment]
+
+					URI uri = null;
+					try {
+						uri = new URI(value);
+					} catch (URISyntaxException e) {
+						Logging.logger.error(e.getMessage());
+					}
+
+					if (uri != null) {
+						if (uri.getSchemeSpecificPart().startsWith("/") || uri.getScheme().equals("urn"))
+							value = "<" + value + ">";
+					}
+				} else {
+					// A blank node
+					Logging.logger.trace("Blank node: " + value);
+
+					// Not a BLANK_NODE_LABEL
+					// [142] BLANK_NODE_LABEL ::= '_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')*
+					// PN_CHARS)?
+					if (!value.startsWith("_:"))
+						value = "<" + value + ">";
+				}
+
+				values.add(value);
+			}
+
+			allValues.add(values);
+		}
+
+		String replacedSparql = String.format("%s", sparql);
+
+		// VALUES (?book ?title)
+		//   { (UNDEF "SPARQL Tutorial")
+		//     (:book2 UNDEF)
+		//   }
+		String VARS = "(";
+		for (String var: vars) {
+			VARS += "?"+var+" ";
+		}
+		VARS += ")";
+		String VALUES = "{";
+		for(ArrayList<String> values: allValues) {
+			VALUES += "(";
+			for (String value : values) {
+				VALUES += value+" ";
+			}
+			VALUES += ")";
+		}
+		VALUES += "}";
+
+		int end = replacedSparql.lastIndexOf("}");
+		return replacedSparql.substring(0,end) + " VALUES "+VARS+VALUES+"}";
 	}
 
 	private static boolean isValidVarChar(int c) {

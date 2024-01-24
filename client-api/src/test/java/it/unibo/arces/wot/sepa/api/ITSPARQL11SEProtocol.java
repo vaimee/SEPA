@@ -31,6 +31,7 @@ public class ITSPARQL11SEProtocol {
 	private static SubscriptionProtocol protocol;
 
 	@BeforeEach
+	@Timeout(5)
 	public void beginTest() throws IOException, SEPAProtocolException, SEPAPropertiesException, SEPASecurityException,
 			URISyntaxException, InterruptedException {
 		provider = new ConfigurationProvider();
