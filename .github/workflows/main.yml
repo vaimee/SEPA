@@ -75,8 +75,9 @@ jobs:
           interval: 500
       - name: verify
         run: mvn verify -e -Dlog4j2.level=trace
-      - name: Archive code coverage results
+      - name: publish Engine log
         uses: actions/upload-artifact@v2
+        if: always()
         with:
           name: engine-log
           path: engine/target/log.txt
