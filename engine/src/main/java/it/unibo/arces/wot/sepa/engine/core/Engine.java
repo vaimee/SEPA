@@ -37,11 +37,11 @@ import it.unibo.arces.wot.sepa.logging.Logging;
  * Event Processing Architecture (SEPA)
  *
  * @author Luca Roffia (luca.roffia@unibo.it)
- * @version 0.10.0
+ * @version 0.13.0
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.13.2024.01.22";
+	private final static String version = "0.13.0";
 
 	private EngineProperties properties = null;
 
