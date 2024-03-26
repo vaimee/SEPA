@@ -49,14 +49,15 @@ public class Sync implements ISubscriptionHandler {
 		return unsubscribes;
 	}
 
-	public void waitSubscribes(int total) {
+	public synchronized void waitSubscribes(int total) {
 		synchronized (subscribesMutex) {
 			while (subscribes < total) {
 				try {
-					Logging.logger.trace("waitSubscribes");
+					Logging.logger.trace("Thread id "+Thread.currentThread().getId()+ " waitSubscribes");
 					subscribesMutex.wait();
+					Logging.logger.trace("Thread id "+Thread.currentThread().getId()+ " awaken from waitSubscribes");
 				} catch (InterruptedException e) {
-					break;
+					throw new RuntimeException(e.getCause());
 				}
 			}
 		}
@@ -83,27 +84,28 @@ public class Sync implements ISubscriptionHandler {
 		}
 	}
 
-	public void waitEvents(int total) {
+	public synchronized void waitEvents(int total) {
 		synchronized (eventsMutex) {
 			while (events < total) {
 				try {
-					Logging.logger.trace("waitEvents");
+					Logging.logger.trace("Thread id "+Thread.currentThread().getId()+ " waitEvents");
 					eventsMutex.wait();
+					Logging.logger.trace("Thread id "+Thread.currentThread().getId()+ " awaken from waitEvents");
 				} catch (InterruptedException e) {
-					break;
+					throw new RuntimeException(e.getCause());
 				}
 			}
 		}
 	}
 
-	public void waitUnsubscribes(int total) {
+	public synchronized  void waitUnsubscribes(int total) {
 		synchronized (unsubscribesMutex) {
 			while (unsubscribes < total) {
 				try {
 					Logging.logger.trace("waitUnsubscribes");
 					unsubscribesMutex.wait();
 				} catch (InterruptedException e) {
-					break;
+					throw new RuntimeException(e.getCause());
 				}
 			}
 		}
