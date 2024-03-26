@@ -290,8 +290,18 @@ public class EngineProperties {
 	SPARQL11Properties endpointProperties;
 
 	public EngineProperties(String[] args) throws SEPASecurityException {
-		parsingArgument(args);
-		
+		parsingArgument(args,true);
+
+		try {
+			endpointProperties = new SPARQL11Properties(endpointJpar);
+		} catch (SEPAPropertiesException  e) {
+			//e.printStackTrace();
+			Logging.logger.error("Endpoint configuration file not found: "+endpointJpar+"USING DEFAULTS: Jena in memory");
+			endpointProperties = new SPARQL11Properties("in-memory",ProtocolScheme.jena_api);
+		}
+
+		parsingArgument(args,false);
+
 		Parameters result;
 		Gson gson = new Gson();
 
@@ -309,15 +319,7 @@ public class EngineProperties {
 			}
 		}
 		parameters.gates.security.enabled = (secure.isEmpty() ? false : secure.get());
-		
-		try {
-			endpointProperties = new SPARQL11Properties(endpointJpar);
-		} catch (SEPAPropertiesException  e) {
-			//e.printStackTrace();
-			Logging.logger.error("Endpoint configuration file not found: "+endpointJpar+"USING DEFAULTS: Jena in memory");
-			endpointProperties = new SPARQL11Properties("in-memory",ProtocolScheme.jena_api);
-		}
-		
+
 		setSecurity();
 	}
 	
@@ -561,33 +563,36 @@ public class EngineProperties {
 		}	
 	}
 
-	private void parsingArgument(String[] args) throws PatternSyntaxException {
+	private void parsingArgument(String[] args,boolean endpointSetting) throws PatternSyntaxException {
 		for (int i = 0; i < args.length; i = i + 2) {
 			if (args[i].equals("-help")) {
 				printUsage();
 				return;
 			}
-			Logging.logger.debug("Program arguments "+args[i]+" : "+ args[i+1]);
-			setParameter(args[i], args[i+1]);
+			Logging.logger.debug("Program arguments " + args[i] + " : " + args[i + 1]);
+			if (endpointSetting && !args[i].equals("-endpoint")) continue;
+			setParameter(args[i], args[i + 1]);
 		}
-		
-		
 
 		// Environmental variables (overrides)
 		Map<String, String> envs = System.getenv();
 		for(String var : envs.keySet()) {			
 			Logging.logger.debug("Environmental variable "+var+" : "+envs.get(var));
+			if (endpointSetting && !envs.get(var).equals("endpoint")) continue;
 			setParameter("-"+var, envs.get(var));
 		}
-		
+
+		if (endpointSetting) {
+			if (endpointJpar == null) {
+				Logging.logger.debug("Loading endpoint configuration from default file endpoint.jpar");
+				endpointJpar = "endpoint.jpar";
+			}
+			return;
+		}
+
 		if (engineJpar == null) {
 			Logging.logger.debug("Loading engine configuration from default file engine.jpar");
 			engineJpar = "engine.jpar";
-		}
-		
-		if (endpointJpar == null) {
-			Logging.logger.debug("Loading endpoint configuration from default file endpoint.jpar");
-			endpointJpar = "endpoint.jpar";
 		}
 		
 
