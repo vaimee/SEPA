@@ -22,11 +22,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.DatasetFactory;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetFormatter;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import org.apache.jena.query.*;
 import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.system.Txn;
 
@@ -66,18 +64,33 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint {
 
 	@Override
 	public Response query(QueryRequest req) {
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		final Response[] ret = new Response[1];
 		RDFConnection conn = RDFConnection.connect(dataset);
+		Query query = QueryFactory.create(req.getSPARQL());
 		Txn.executeRead(conn, () -> {
-			ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
-			ResultSetFormatter.outputAsJSON(out, rs);
+			if (query.isSelectType()) {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				ResultSet rs  = conn.query(query).execSelect();
+				ResultSetFormatter.outputAsJSON(out, rs);
+				try {
+					ret[0] = new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
+				} catch (UnsupportedEncodingException e) {
+					ret[0] = new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
+				}
+
+			}
+			else if (query.isAskType()) {
+				// https://www.w3.org/TR/2013/REC-sparql11-results-json-20130321/#ask-result-form
+				boolean result = conn.queryAsk(query);
+				JsonObject res = new JsonObject();
+				res.add("head", new JsonObject());
+				res.add("boolean",new JsonPrimitive(result));
+				ret[0] = new QueryResponse(res.toString());
+			}
+
 		});
 
-		try {
-			return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
-		} catch (UnsupportedEncodingException e) {
-			return new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
-		}
+		return ret[0];
 	}
 
 	@Override
