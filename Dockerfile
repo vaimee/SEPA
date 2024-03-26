@@ -14,6 +14,8 @@ COPY --from=BUILD ./engine/src/main/resources/jmxremote.password /jmxremote.pass
 COPY --from=BUILD ./engine/src/main/resources/jmxremote.access /jmxremote.access
 COPY --from=BUILD ./engine/src/main/resources/jmx.properties /jmx.properties
 COPY --from=BUILD ./engine/src/main/resources/endpoint.jpar /endpoint.jpar
+# COPY ALL ENDPOINTS TO ALLOW CMD LINE CUSTOMIZATION
+COPY --from=BUILD ./engine/src/main/resources/endpoints /endpoints
 
 RUN chmod 600 /jmxremote.password
 

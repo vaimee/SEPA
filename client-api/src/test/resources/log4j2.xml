@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
+	<Properties>
+		<Property name="logFilename">output</Property>
+		<Property name="log4j2.level">error</Property>
+	</Properties>
 	<CustomLevels>
 		<!-- Standard Level intLevel OFF 0 FATAL 100 ERROR 200 WARN 300 INFO 400 
 			DEBUG 500 TRACE 600 ALL Integer.MAX_VALUE 
@@ -26,8 +30,8 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="error">
-			<AppenderRef ref="Console" level="trace" />
+		<Root level="${sys:log4j2.level}">
+			<AppenderRef ref="Console" level="${sys:log4j2.level}" />
 			<AppenderRef ref="Log" level="off" />
 		</Root>
 	</Loggers>

@@ -192,7 +192,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 				break;
 			default:
 				if (key.startsWith("-sparql11seprotocol.availableProtocols")) {
-					String[] token = key.split(".");
+					String[] token = key.split("\\.");
 					if (token[3] == "path") this.sparql11seprotocol.availableProtocols.get(token[2]).path = value;
 					else if (token[3] == "port") this.sparql11seprotocol.availableProtocols.get(token[2]).port = Integer.valueOf(value);
 					else if (token[3] == "scheme") this.sparql11seprotocol.availableProtocols.get(token[2]).scheme = value;
