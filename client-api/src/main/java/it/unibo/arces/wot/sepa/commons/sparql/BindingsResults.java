@@ -110,6 +110,15 @@ public class BindingsResults {
 		results.add("results", bindings);
 	}
 
+	public boolean isAskResult() {
+		return (results.has("boolean") && results.has("head"));
+	}
+	
+	public boolean getAskBoolean() {
+		return results.get("boolean").getAsBoolean();
+	}
+	
+	
 	/**
 	 * Gets the variables.
 	 *
