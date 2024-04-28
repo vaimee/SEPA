@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.pattern;
 
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
 import it.unibo.arces.wot.sepa.logging.Logging;
+import it.unibo.arces.wot.sepa.logging.Timings;
 import it.unibo.arces.wot.sepa.api.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -81,6 +82,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 
 	public final Response multipleUpdate(long timeout,long nRetry)
 			throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
+		long start = Timings.getTime();
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(updateId),
 				appProfile.getUpdateProtocolScheme(updateId), appProfile.getUpdateHost(updateId),
 				appProfile.getUpdatePort(updateId), appProfile.getUpdatePath(updateId),
@@ -88,7 +90,9 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 						addDefaultDatatype(multipleForcedBindings.getBindings(), updateId, false)),
 				appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
-
+		long stop = Timings.getTime();
+		Timings.log("multipleUpdate create UpdateRequest", start, stop);
+		
 		Logging.logger.trace(req);
 
 		Response retResponse = sparql11.update(req);
@@ -108,6 +112,6 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 	}
 
 	public final void setUpdateMultipleBindings(ArrayList<String> variables, ArrayList<ArrayList<RDFTerm>> values) throws SEPABindingsException {
-		multipleForcedBindings.setUpdateBindings(variables,values);
+		multipleForcedBindings.add(variables,values);
 	}
 }

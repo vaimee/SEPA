@@ -19,8 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package it.unibo.arces.wot.sepa.pattern;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
 import it.unibo.arces.wot.sepa.commons.sparql.RDFTerm;
@@ -32,7 +32,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import org.apache.commons.rdf.api.RDF;
 
 public class Producer extends Client implements IProducer {
 	protected String sparqlUpdate = null;
@@ -118,7 +117,14 @@ public class Producer extends Client implements IProducer {
 		forcedBindings.setBindingValue(variable, value);
 	}
 
-	public final void setUpdateMultipleBindings(ArrayList<String> variables, ArrayList<ArrayList<RDFTerm>> values) throws SEPABindingsException {
-		multipleForcedBindings.setUpdateBindings(variables,values);
+	public final void setUpdateMultipleBindings(MultipleForcedBindings b) throws SEPABindingsException {
+		multipleForcedBindings = b;
+	}
+	public final void addUpdateMultipleBindings(ArrayList<String> variables, ArrayList<ArrayList<RDFTerm>> values) throws SEPABindingsException {
+		multipleForcedBindings.add(variables,values);
+	}
+	
+	public final void addUpdateMultipleBindings(List<Bindings> b) throws SEPABindingsException {
+		multipleForcedBindings.add(b);
 	}
 }

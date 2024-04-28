@@ -19,9 +19,7 @@
 package it.unibo.arces.wot.sepa.commons.properties;
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Objects;
@@ -140,8 +138,6 @@ public class SPARQL11Properties {
 
 	public SPARQL11Properties(String uri,String[] args) throws SEPAPropertiesException {
 		this();
-
-		Path path = Path.of(uri);
 
 		Reader in = getReaderFromUri(uri);
 		parseJSAP(in);

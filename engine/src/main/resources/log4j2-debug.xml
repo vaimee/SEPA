@@ -9,10 +9,10 @@
 		
 		Change the following to enable different loggging levels	
 		-->
-		<CustomLevel name="SPUManager" intLevel="600" />
-		<CustomLevel name="spu" intLevel="600" />
+		<CustomLevel name="SPUManager" intLevel="700" />
+		<CustomLevel name="spu" intLevel="700" />
 		<CustomLevel name="timing" intLevel="700" />
-		<CustomLevel name="subscriptions" intLevel="600" />
+		<CustomLevel name="subscriptions" intLevel="700" />
 		<CustomLevel name="http" intLevel="700" />
 		<CustomLevel name="oauth" intLevel="700" />
 		<CustomLevel name="ldap" intLevel="700" />
@@ -29,7 +29,7 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="trace">
+		<Root level="debug">
 			<AppenderRef ref="Console" level="trace" />
 			<AppenderRef ref="Log" level="off" />
 		</Root>

@@ -109,36 +109,6 @@
 		</plugins>
 	</build>
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
-		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>apache-jena-libs</artifactId>
-			<version>4.9.0</version>
-			<type>pom</type>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>jcl-over-slf4j</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.glassfish</groupId>
-					<artifactId>jakarta.json</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>

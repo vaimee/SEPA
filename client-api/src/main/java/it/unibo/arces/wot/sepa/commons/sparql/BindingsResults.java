@@ -20,6 +20,8 @@ package it.unibo.arces.wot.sepa.commons.sparql;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.core.appender.rolling.action.IfAccumulatedFileCount;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -47,8 +49,7 @@ public class BindingsResults {
 	/**
 	 * Instantiates a new bindings results.
 	 *
-	 * @param results
-	 *            the results
+	 * @param results the results
 	 */
 	public BindingsResults(JsonObject results) {
 		this.results = results;
@@ -57,10 +58,8 @@ public class BindingsResults {
 	/**
 	 * Instantiates a new bindings results.
 	 *
-	 * @param varSet
-	 *            the var set
-	 * @param solutions
-	 *            the solutions
+	 * @param varSet    the var set
+	 * @param solutions the solutions
 	 */
 	public BindingsResults(ArrayList<String> varSet, List<Bindings> solutions) {
 		results = new JsonObject();
@@ -86,8 +85,7 @@ public class BindingsResults {
 	/**
 	 * Instantiates a new bindings results.
 	 *
-	 * @param newBindings
-	 *            the new bindings
+	 * @param newBindings the new bindings
 	 */
 	public BindingsResults(BindingsResults newBindings) {
 		results = new JsonObject();
@@ -113,12 +111,11 @@ public class BindingsResults {
 	public boolean isAskResult() {
 		return (results.has("boolean") && results.has("head"));
 	}
-	
+
 	public boolean getAskBoolean() {
 		return results.get("boolean").getAsBoolean();
 	}
-	
-	
+
 	/**
 	 * Gets the variables.
 	 *
@@ -180,7 +177,8 @@ public class BindingsResults {
 		if (bindings == null)
 			return true;
 		if (bindings.size() == 1) {
-			if (bindings.get(0).getAsJsonObject().entrySet().isEmpty()) return true;
+			if (bindings.get(0).getAsJsonObject().entrySet().isEmpty())
+				return true;
 		}
 		return (bindings.size() == 0);
 	}
@@ -188,8 +186,7 @@ public class BindingsResults {
 	/**
 	 * Adds the.
 	 *
-	 * @param binding
-	 *            the binding
+	 * @param binding the binding
 	 */
 	public void add(Bindings binding) {
 		if (binding == null)
@@ -204,46 +201,66 @@ public class BindingsResults {
 	/**
 	 * Contains.
 	 *
-	 * @param solution
-	 *            the solution
+	 * @param solution the solution
 	 * @return true, if successful
 	 */
 	public boolean contains(Bindings solution) {
+//		JsonArray solutionSet = getBindingsArray();
+//		JsonObject bindings = solution.toJson();
+//
+//		for (int i = 0; i < solutionSet.size(); i++) {
+//			JsonObject solutionX = solutionSet.get(i).getAsJsonObject();
+//			boolean match = true;
+//
+//			for (String key : bindings.keySet()) {
+//				if (!solutionX.has(key) || !solutionX.get(key).getAsString().equals(bindings.get(key).getAsString())) {
+//					match = false;
+//					break;
+//				}
+//			}
+//
+//			if (match) {
+//				return true;
+//			}
+//		}
+//		return false;
+
 		if (solution == null) return false;
 		
 		JsonArray bindings = getBindingsArray();
-		if (bindings == null) return false;
+		if (bindings == null) return false;		
+		if (bindings.size() == 0) return false;
 		
+		if(getVariables().size() != solution.getVariables().size()) return false;
+		if(!getVariables().containsAll(solution.getVariables())) return false;
+		
+				
 		for (JsonElement b : bindings) {
 			Bindings temp = new Bindings(b.getAsJsonObject());
-			if (solution.getVariables().size() == temp.getVariables().size()) {
-				if(solution.getVariables().containsAll(temp.getVariables())) {
-					boolean found = true;
-					for(String var : solution.getVariables()) {
-						try {
-							// Comparing BNODE between two different queries is not possible
-							if (solution.isBNode(var) && temp.isBNode(var)) continue;
-							if(!solution.getRDFTerm(var).equals(temp.getRDFTerm(var))) {
-								found = false;
-								break;
-							}
-						} catch (SEPABindingsException e) {
-							Logging.logger.error(e.getMessage());
-							return false;
-						}						
+			boolean found = true;
+			for(String var : solution.getVariables()) {
+				try {
+					// Comparing BNODE between two different queries is not possible
+					if (solution.isBNode(var) && temp.isBNode(var)) continue;
+					if(!solution.getRDFTerm(var).equals(temp.getRDFTerm(var))) {
+						found = false;
+						break;
 					}
-					if (found) return true;
-				}
+				} catch (SEPABindingsException e) {
+					Logging.logger.error(e.getMessage());
+					return false;
+				}						
 			}
+			if (found) return true;
 		}
+		
 		return false;
 	}
 
 	/**
 	 * Removes the.
 	 *
-	 * @param solution
-	 *            the solution
+	 * @param solution the solution
 	 */
 	public void remove(Bindings solution) {
 		if (solution == null)
