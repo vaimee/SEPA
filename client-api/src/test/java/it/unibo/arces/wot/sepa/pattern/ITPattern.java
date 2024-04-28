@@ -1,12 +1,11 @@
 package it.unibo.arces.wot.sepa.pattern;
 
-import it.unibo.arces.wot.sepa.AggregatorTestUnit;
-import it.unibo.arces.wot.sepa.ConsumerTestUnit;
-import it.unibo.arces.wot.sepa.Sync;
-
 import org.junit.jupiter.api.*;
 
+import it.unibo.arces.wot.sepa.AggregatorTestUnit;
 import it.unibo.arces.wot.sepa.ConfigurationProvider;
+import it.unibo.arces.wot.sepa.ConsumerTestUnit;
+import it.unibo.arces.wot.sepa.Sync;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;

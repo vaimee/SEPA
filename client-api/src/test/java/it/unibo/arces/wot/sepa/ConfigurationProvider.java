@@ -15,7 +15,6 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.UUID;
 
@@ -58,7 +57,11 @@ public class ConfigurationProvider implements Closeable {
 			throw new RuntimeException(e);
 		}
 
-		prefixes = appProfile.getPrefixes();
+		prefixes = "";
+		for(String pre : appProfile.getPrefixes().getNsPrefixMap().keySet()) {
+			prefixes += "PREFIX "+pre+":<"+appProfile.getPrefixes().getNsPrefixURI(pre)+"> ";
+		}
+		
 
 		try {
 			TIMEOUT = appProfile.getExtendedData().get("timeout").getAsLong();

@@ -37,7 +37,7 @@ public class ScheduledRequest {
 	
 	@Override
 	public String toString() {
-		return "REQUEST #"+token;
+		return "REQUEST #"+token+ (request.isQueryRequest() ? " QUERY" : request.isUpdateRequest() ? " UPDATE" : request.isSubscribeRequest() ? " SUBSCRIBE" : " UNSUBSCRIBE");
 	}
 	
 	public int getToken() {

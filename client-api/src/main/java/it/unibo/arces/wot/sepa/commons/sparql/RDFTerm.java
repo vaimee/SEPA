@@ -31,7 +31,7 @@ public abstract class RDFTerm {
 	protected JsonObject json = null;
 
 	public boolean isURI() {
-		return this.getClass().equals(RDFTermURI.class);
+		return this.getClass().equals(RDFTermURI.class) || this.getClass().equals(UUID.class);
 	}
 	
 	public boolean isLiteral() {

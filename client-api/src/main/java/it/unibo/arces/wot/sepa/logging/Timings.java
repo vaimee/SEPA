@@ -27,7 +27,7 @@ public class Timings {
 	}
 	
 	public synchronized static void log(String tag,long start,long stop) {
-		String message = String.format("%d,%d,%s",System.currentTimeMillis(),stop-start,tag);
+		String message = String.format("%d,%d,%d,%d,%s",System.currentTimeMillis(),(stop-start)/1000000,(stop-start)/1000,stop-start,tag);
 		org.apache.logging.log4j.Level level =Logging.getLevel("timing");
 		if(level==null) {
 			//default
