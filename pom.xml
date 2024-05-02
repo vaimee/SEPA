@@ -11,7 +11,7 @@
 		<module>engine</module>
 	</modules>
 	<name>SEPA Project</name>
-	<url>https://github.com/arces-wot/sepa.git</url>
+	<url>https://github.com/vaimee/SEPA.git</url>
 	<licenses>
 		<license>
 			<name>GNU Lesser General Public License v3.0</name>
@@ -45,22 +45,22 @@
 		</developer>
 	</developers>
 	<scm>
-		<connection>scm:git:git://github.com/arces-wot/sepa.git</connection>
-		<developerConnection>scm:git:ssh://github.com/arces-wot/sepa.git</developerConnection>
+		<connection>scm:git:git://github.com/vaimee/SEPA.git</connection>
+		<developerConnection>scm:git:ssh://github.com/vaimee/SEPA.git</developerConnection>
 		<url>https://github.com/arces-wot/SEPA</url>
 	</scm>
 	<properties>
 		<maven.compiler.source>13</maven.compiler.source>
 		<maven.compiler.target>13</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>1.0.0-SNAPSHOT</revision>
+		<revision>v0.14.0</revision>
 		<update>0</update>
 	</properties>
 	<distributionManagement>
 		<repository>
 			<id>github</id>
 			<name>GitHub Packages</name>
-			<url>https://maven.pkg.github.com/arces-wot/SEPA</url>
+			<url>https://maven.pkg.github.com/vaimee/SEPA</url>
 		</repository>
 	</distributionManagement>
 	<build>
@@ -141,8 +141,8 @@
 		</pluginManagement>
 	</build>
 	<organization>
-		<name>Web of Things Research Group @ ARCES</name>
-		<url>https://http://wot.arces.unibo.it/</url>
+		<name>VAIMEE</name>
+		<url>https://vaimee.com/</url>
 	</organization>
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
