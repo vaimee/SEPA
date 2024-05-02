@@ -47,7 +47,7 @@
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>v0.14.1</revision>
+		<revision>v0.14.3</revision>
 		<update>0</update>
 	</properties>
 	<distributionManagement>
