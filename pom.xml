@@ -12,13 +12,6 @@
 	</modules>
 	<name>SEPA Project</name>
 	<url>https://github.com/vaimee/SEPA.git</url>
-	<properties>
-		<maven.compiler.source>11</maven.compiler.source>
-		<maven.compiler.target>11</maven.compiler.target>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>1.0.0-SNAPSHOT</revision>
-		<update>0</update>
-	</properties>
 	<licenses>
 		<license>
 			<name>GNU Lesser General Public License v3.0</name>
@@ -51,6 +44,13 @@
 		<url>https://github.com/vaimee/SEPA</url>
 	</scm>
 	
+	<properties>
+		<maven.compiler.source>11</maven.compiler.source>
+		<maven.compiler.target>11</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<revision>v0.15.0</revision>
+		<update>0</update>
+	</properties>
 	<distributionManagement>
 		<repository>
 			<id>github</id>
