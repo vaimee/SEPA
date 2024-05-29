@@ -102,9 +102,4 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint {
 		});
 		return new UpdateResponse("Jena-in-memory-update");
 	}
-
-	@Override
-	public void close() {
-		
-	}
 }

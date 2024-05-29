@@ -81,7 +81,7 @@ class SPUNaive extends SPU {
 			ret = manager.processQuery(subscribe);
 		} catch (SEPASecurityException | IOException e) {
 			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
-			Logging.logger.log(Logging.getLevel("spu"),"SEPASecurityException "+e.getMessage());
+			Logging.logger.log(Logging.getLevel("spu"),"Exception on query procesing "+e.getMessage());
 			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+e.getMessage());
 		}
 
