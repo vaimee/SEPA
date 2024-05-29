@@ -45,6 +45,7 @@ class QueryProcessor implements QueryProcessorMBean {
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
 		
 		if (properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory")) endpoint = new JenaInMemoryEndpoint();
+		else endpoint = new RemoteEndpoint();
 	}
 
 	public Response process(InternalQueryRequest req) throws SEPASecurityException, IOException {
@@ -59,9 +60,7 @@ class QueryProcessor implements QueryProcessorMBean {
 		Response ret;
 		do {
 			long start = Timings.getTime();
-			if (!(properties.getProtocolScheme().equals("jena-api") && properties.getHost().equals("in-memory"))) endpoint = new RemoteEndpoint();
 			ret = endpoint.query(request);
-			endpoint.close();
 			long stop = Timings.getTime();
 			
 			UpdateProcessorBeans.timings(start, stop);

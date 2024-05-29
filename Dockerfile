@@ -2,12 +2,15 @@
 # 1) docker build -t vaimeedock/sepa:latest -f Dockerfile .
 # 2) docker login -u YOUR-USER-NAME.
 # Build command on Apple M1: docker buildx build --platform linux/amd64 --push -t vaimeedock/engine .
-FROM maven:3.6-jdk-13 as BUILD
+FROM maven:3.6-jdk-11 as BUILD
 COPY . .
+
+ENV  JMX_HOSTNAME=0.0.0.0
+ENV  JMX_PORT=7090
 
 RUN mvn clean package
 
-FROM openjdk:13-jdk-alpine
+FROM openjdk:11.0-jre
 
 COPY --from=BUILD ./engine/target/engine-1.0.0-SNAPSHOT.jar /engine.jar
 COPY --from=BUILD ./engine/src/main/resources/jmxremote.password /jmxremote.password
@@ -18,9 +21,6 @@ COPY --from=BUILD ./engine/src/main/resources/endpoint.jpar /endpoint.jpar
 COPY --from=BUILD ./engine/src/main/resources/endpoints /endpoints
 
 RUN chmod 600 /jmxremote.password
-
-ENV  JMX_HOSTNAME=0.0.0.0
-ENV  JMX_PORT=7090
 
 EXPOSE 8000
 EXPOSE 9000

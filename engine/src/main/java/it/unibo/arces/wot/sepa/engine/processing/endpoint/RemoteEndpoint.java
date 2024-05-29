@@ -1,13 +1,10 @@
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
-import java.io.IOException;
-
 import it.unibo.arces.wot.sepa.api.SPARQL11Protocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
 import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class RemoteEndpoint implements SPARQLEndpoint {
 	SPARQL11Protocol endpoint;
@@ -24,15 +21,6 @@ public class RemoteEndpoint implements SPARQLEndpoint {
 	@Override
 	public Response update(UpdateRequest req) {
 		return endpoint.update(req);
-	}
-
-	@Override
-	public void close() {
-		try {
-			endpoint.close();
-		} catch (IOException e) {
-			Logging.logger.error(e.getMessage());
-		}
 	}
 
 }
