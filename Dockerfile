@@ -2,6 +2,10 @@
 # 1) docker build -t vaimeedock/sepa:latest -f Dockerfile .
 # 2) docker login -u YOUR-USER-NAME.
 # Build command on Apple M1: docker buildx build --platform linux/amd64 --push -t vaimeedock/engine .
+# MULTIPLE PUSH
+# docker build -t vaimeedock/sepa:v0.15.0 -t vaimeedock/sepa:latest . 
+# docker push vaimeedock/sepa --all-tag
+
 FROM maven:3.6-jdk-11 as BUILD
 COPY . .
 

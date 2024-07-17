@@ -1,0 +1,34 @@
+{
+	"host": "dld.arces.unibo.it",
+	"oauth": {
+		"enable": false
+	},
+	"sparql11protocol": {
+		"protocol": "http",
+		"port": 8150,
+		"query": {
+			"path": "/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/update",
+			"method": "POST",
+			"format": "JSON"
+		}
+	},
+	"sparql11seprotocol": {
+		"reconnect": true,
+		"protocol": "ws",
+		"availableProtocols": {
+			"ws": {
+				"port": 9150,
+				"path": "/subscribe"
+			},
+			"wss": {
+				"port": 9090,
+				"path": "/secure/subscribe"
+			}
+		}
+	}
+}

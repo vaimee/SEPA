@@ -9,14 +9,14 @@
 		
 		Change the following to enable different loggging levels	
 		-->
-		<CustomLevel name="SPUManager" intLevel="700" />
-		<CustomLevel name="spu" intLevel="700" />
-		<CustomLevel name="timing" intLevel="700" />
-		<CustomLevel name="subscriptions" intLevel="700" />
-		<CustomLevel name="http" intLevel="700" />
-		<CustomLevel name="oauth" intLevel="700" />
-		<CustomLevel name="ldap" intLevel="700" />
-		<CustomLevel name="ping" intLevel="700" />
+		<CustomLevel name="SPUManager" intLevel="${env:LOG_LEVEL_CUSTOM_SPUMANAGER:-700}" />
+		<CustomLevel name="spu" intLevel="${env:LOG_LEVEL_CUSTOM_SPU:-700}" />
+		<CustomLevel name="timing" intLevel="${env:LOG_LEVEL_CUSTOM_TIMING:-700}" />
+		<CustomLevel name="subscriptions" intLevel="${env:LOG_LEVEL_CUSTOM_SUBSCRIPTIONS:-700}" />
+		<CustomLevel name="http" intLevel="${env:LOG_LEVEL_CUSTOM_HTTP:-700}" />
+		<CustomLevel name="oauth" intLevel="${env:LOG_LEVEL_CUSTOM_OAUTH:-700}" />
+		<CustomLevel name="ldap" intLevel="${env:LOG_LEVEL_CUSTOM_LDAP:-700}" />
+		<CustomLevel name="ping" intLevel="${env:LOG_LEVEL_CUSTOM_PING:-700}" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
@@ -29,9 +29,9 @@
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="fatal">
-			<AppenderRef ref="Console" level="debug" />
-			<AppenderRef ref="Log" level="off" />
+		<Root level="${env:LOG_LEVEL:-fatal}">
+			<AppenderRef ref="Console" level="${env:LOG_LEVEL:-fatal}" />
+			<AppenderRef ref="Log" level="${env:LOG_LEVEL_FILE:-off}" />
 		</Root>
 	</Loggers>
 </Configuration>
