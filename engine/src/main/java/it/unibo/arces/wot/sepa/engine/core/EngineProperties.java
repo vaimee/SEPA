@@ -18,7 +18,6 @@
 */
 package it.unibo.arces.wot.sepa.engine.core;
 
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -290,7 +289,7 @@ public class EngineProperties {
 	SPARQL11Properties endpointProperties;
 
 	public EngineProperties(String[] args) throws SEPASecurityException {
-		parsingArgument(args);
+		setJparFiles(args);
 		
 		Parameters result;
 		Gson gson = new Gson();
@@ -308,17 +307,19 @@ public class EngineProperties {
 				Logging.logger.error("Failed to store properties file: "+defaultsFileName);
 			}
 		}
-		parameters.gates.security.enabled = (secure.isEmpty() ? false : secure.get());
 		
 		try {
 			endpointProperties = new SPARQL11Properties(endpointJpar);
 		} catch (SEPAPropertiesException  e) {
-			//e.printStackTrace();
 			Logging.logger.error("Endpoint configuration file not found: "+endpointJpar+"USING DEFAULTS: Jena in memory");
 			endpointProperties = new SPARQL11Properties("in-memory",ProtocolScheme.jena_api);
 		}
 		
+		parsingArgument(args);
+		
 		setSecurity();
+		
+		printParameters();
 	}
 	
 	public SPARQL11Properties getEndpointProperties() {
@@ -443,14 +444,7 @@ public class EngineProperties {
 		case "-jwtaliaspass":
 			jwtKeyAliasPass = value;
 			break;
-
-		case "-engine":
-			engineJpar = value;
-			break;
-		case "-endpoint":
-			endpointJpar =value;
-			break;
-
+			
 		case "-secure":
 			secure = Optional.of(Boolean.parseBoolean(value));
 			break;
@@ -560,24 +554,22 @@ public class EngineProperties {
 			break;
 		}	
 	}
-
-	private void parsingArgument(String[] args) throws PatternSyntaxException {
+	
+	private void setJparFiles(String args[]) {
 		for (int i = 0; i < args.length; i = i + 2) {
-			if (args[i].equals("-help")) {
-				printUsage();
-				return;
+			if (args[i].equals("-engine")) {
+				setParameter(args[i], args[i+1]);
+				continue;
 			}
-			Logging.logger.debug("Program arguments "+args[i]+" : "+ args[i+1]);
-			setParameter(args[i], args[i+1]);
+			if (args[i].equals("-endpoint")) {
+				setParameter(args[i], args[i+1]);
+			}
 		}
-		
-		
-
-		// Environmental variables (overrides)
 		Map<String, String> envs = System.getenv();
 		for(String var : envs.keySet()) {			
-			Logging.logger.debug("Environmental variable "+var+" : "+envs.get(var));
-			setParameter("-"+var, envs.get(var));
+			
+			if (var.equals("engine")) setParameter("-"+var, envs.get(var));
+			else if (var.equals("endpoint")) setParameter("-"+var, envs.get(var));
 		}
 		
 		if (engineJpar == null) {
@@ -589,43 +581,88 @@ public class EngineProperties {
 			Logging.logger.debug("Loading endpoint configuration from default file endpoint.jpar");
 			endpointJpar = "endpoint.jpar";
 		}
+
+	}
+
+	private void parsingArgument(String[] args) throws PatternSyntaxException {
+		for (int i = 0; i < args.length; i = i + 2) {
+			if (args[i].equals("-help")) {
+				printUsage();
+				return;
+			}
+			Logging.logger.trace("Program arguments "+args[i]+" : "+ args[i+1]);
+			setParameter(args[i], args[i+1]);
+		}
 		
+		// Environmental variables (overrides)
+		Map<String, String> envs = System.getenv();
+		for(String var : envs.keySet()) {			
+			Logging.logger.trace("Environmental variable "+var+" : "+envs.get(var));
+			setParameter("-"+var, envs.get(var));
+		}
+	}
+	
+	private void printParameters() {
+		Logging.logger.trace("--- SSL ---");
+		Logging.logger.trace("-cacertificate: " + caCertificate);
+		Logging.logger.trace("-capwd: " + caPassword);
+		Logging.logger.trace("-capath: " + caPath);
+		Logging.logger.trace("-sslstore: " + sslStoreName);
+		Logging.logger.trace("-sslpass: " + sslStorePass);
 
-		Logging.logger.debug("--- SSL ---");
-		Logging.logger.debug("-cacertificate: " + caCertificate);
-		Logging.logger.debug("-capwd: " + caPassword);
-		Logging.logger.debug("-capath: " + caPath);
-		Logging.logger.debug("-sslstore: " + sslStoreName);
-		Logging.logger.debug("-sslpass: " + sslStorePass);
+		Logging.logger.trace("--- JWT ---");
+		Logging.logger.trace("-jwtstore: " + jwtKeyStore);
+		Logging.logger.trace("-jwtpass: " + jwtKeyStorePass);
+		Logging.logger.trace("-jwtalias: " + jwtKeyAlias);
+		Logging.logger.trace("-jwtaliaspass: " + jwtKeyAliasPass);
 
-		Logging.logger.debug("--- JWT ---");
-		Logging.logger.debug("-jwtstore: " + jwtKeyStore);
-		Logging.logger.debug("-jwtpass: " + jwtKeyStorePass);
-		Logging.logger.debug("-jwtalias: " + jwtKeyAlias);
-		Logging.logger.debug("-jwtaliaspass: " + jwtKeyAliasPass);
+		Logging.logger.trace("--- LDAP ---");
+		Logging.logger.trace("-ldaphost: " + ldapHost);
+		Logging.logger.trace("-ldapport: " + ldapPort);
+		Logging.logger.trace("-ldapdn: " + ldapDn);
+		Logging.logger.trace("-ldapusersdn: " + ldapUsersDn);
+		Logging.logger.trace("-ldapuser: " + ldapUser);
+		Logging.logger.trace("-ldappwd: " + ldapPwd);
 
+		Logging.logger.trace("--- ISQL ---");
+		Logging.logger.trace("-isqlpath: " + isqlPath);
+		Logging.logger.trace("-isqlhost: " + isqlHost);
+		Logging.logger.trace("-isqlport: " + isqlPort);
+		Logging.logger.trace("-isqluser: " + isqlUser);
+		Logging.logger.trace("-isqlpass: " + isqlPass);
+		
 		Logging.logger.debug("--- Engine/endpoint ---");
 		Logging.logger.debug("-engine: " + engineJpar);
 		Logging.logger.debug("-endpoint: " + endpointJpar);
 		Logging.logger.debug("-secure: " + secure);
-
-		Logging.logger.debug("--- LDAP ---");
-		Logging.logger.debug("-ldaphost: " + ldapHost);
-		Logging.logger.debug("-ldapport: " + ldapPort);
-		Logging.logger.debug("-ldapdn: " + ldapDn);
-		Logging.logger.debug("-ldapusersdn: " + ldapUsersDn);
-		Logging.logger.debug("-ldapuser: " + ldapUser);
-		Logging.logger.debug("-ldappwd: " + ldapPwd);
-
-		Logging.logger.debug("--- ISQL ---");
-		Logging.logger.debug("-isqlpath: " + isqlPath);
-		Logging.logger.debug("-isqlhost: " + isqlHost);
-		Logging.logger.debug("-isqlport: " + isqlPort);
-		Logging.logger.debug("-isqluser: " + isqlUser);
-		Logging.logger.debug("-isqlpass: " + isqlPass);
+		
+		Logging.logger.debug("--- ENGINE PARAMETERS ---");
+		Logging.logger.debug("-parameters.gates.ports.http: " + parameters.gates.ports.http);
+		Logging.logger.debug("-parameters.gates.ports.ws: " + parameters.gates.ports.ws);
+		Logging.logger.debug("-parameters.scheduler.queuesize: " + parameters.scheduler.queueSize);
+		Logging.logger.debug("-parameters.scheduler.timeout: " + parameters.scheduler.timeout);
+		Logging.logger.debug("-parameters.processor.updatetimeout: " + parameters.processor.updateTimeout);
+		Logging.logger.debug("-parameters.processor.querytimeout: " + parameters.processor.queryTimeout);
+		Logging.logger.debug("-parameters.gates.paths.update: " + parameters.gates.paths.update);
+		Logging.logger.debug("-parameters.gates.paths.query: " + parameters.gates.paths.query);
+		Logging.logger.debug("-parameters.gates.paths.subscribe: " + parameters.gates.paths.subscribe);
+		Logging.logger.debug("-parameters.gates.paths.unsubscribe: " + parameters.gates.paths.unsubscribe);
+		
+		Logging.logger.debug("--- ENDPOINT PARAMETERS---");
+		Logging.logger.debug("-host: " + endpointProperties.getHost());
+		Logging.logger.debug("-sparql11protocol.protocol: " + endpointProperties.getProtocolScheme());
+		Logging.logger.debug("-sparql11protocol.port: " + endpointProperties.getPort());
+		Logging.logger.debug("-sparql11protocol.query.path: " + endpointProperties.getQueryPath());
+		Logging.logger.debug("-sparql11protocol.query.method: " + endpointProperties.getQueryMethod());
+		Logging.logger.debug("-sparql11protocol.query.format: " + endpointProperties.getQueryAcceptHeader());
+		Logging.logger.debug("-sparql11protocol.update.path: " + endpointProperties.getUpdatePath());
+		Logging.logger.debug("-sparql11protocol.update.method: " + endpointProperties.getUpdateMethod());
+		Logging.logger.debug("-sparql11protocol.update.format: " + endpointProperties.getUpdateAcceptHeader());
 	}
 
 	public void setSecurity() throws SEPASecurityException {
+		parameters.gates.security.enabled = (secure.isEmpty() ? false : secure.get());
+		
 		// OAUTH 2.0 Authorization Manager
 		if (isSecure()) {
 			ssl = JKSUtil.getSSLContext(sslStoreName, sslStorePass);

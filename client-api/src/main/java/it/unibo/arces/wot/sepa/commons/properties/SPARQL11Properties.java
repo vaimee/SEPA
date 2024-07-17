@@ -229,14 +229,14 @@ public class SPARQL11Properties {
 	protected Reader getReaderFromUri(String uri) throws SEPAPropertiesException {
 		Reader in;
 
-		Logging.logger.info("Get stream reader from URI: "+uri);
+		Logging.logger.debug("Get stream reader from URI: "+uri);
 		try {
 			in = new BufferedReader(
 					new InputStreamReader(URI.create(uri).toURL().openStream()));
 		} catch (IOException | IllegalArgumentException e) {
-			Logging.logger.warn("Failed to get input stream: "+e.getMessage());
+			Logging.logger.debug("Failed to get input stream: "+e.getMessage());
 			try {
-				Logging.logger.info("Get file reader from URI: "+uri);
+				Logging.logger.debug("Get file reader from URI: "+uri);
 				in = new FileReader(Path.of(uri).toFile());
 			} catch (FileNotFoundException ex) {
 				Logging.logger.warn("Failed to get file reader: "+ex.getMessage());
