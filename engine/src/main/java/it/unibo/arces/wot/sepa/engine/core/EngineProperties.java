@@ -518,6 +518,13 @@ public class EngineProperties {
 		case "-host":
 			endpointProperties.setHost(value);
 			break;
+		case "-engine":
+			engineJpar = value;
+			break;
+		case "-endpoint":
+			endpointJpar = value;
+			break;
+		
 		case "-sparql11protocol.protocol":
 			if (value.toLowerCase().equals("http")) endpointProperties.setProtocolScheme(ProtocolScheme.http);
 			else if (value.toLowerCase().equals("https")) endpointProperties.setProtocolScheme(ProtocolScheme.https);
