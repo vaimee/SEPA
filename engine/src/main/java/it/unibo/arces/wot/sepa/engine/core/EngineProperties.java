@@ -311,8 +311,9 @@ public class EngineProperties {
 		try {
 			endpointProperties = new SPARQL11Properties(endpointJpar);
 		} catch (SEPAPropertiesException  e) {
-			Logging.logger.error("Endpoint configuration file not found: "+endpointJpar+"USING DEFAULTS: Jena in memory");
-			endpointProperties = new SPARQL11Properties("in-memory",ProtocolScheme.jena_api);
+			Logging.logger.fatal("Endpoint configuration file not found: "+endpointJpar);
+			System.exit(-1);
+			//endpointProperties = new SPARQL11Properties("in-memory",ProtocolScheme.jena_api);
 		}
 		
 		parsingArgument(args);
@@ -606,6 +607,7 @@ public class EngineProperties {
 		for(String var : envs.keySet()) {			
 			Logging.logger.trace("Environmental variable "+var+" : "+envs.get(var));
 			setParameter("-"+var, envs.get(var));
+			setParameter("-"+var.replace("_", "."), envs.get(var));
 		}
 	}
 	

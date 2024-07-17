@@ -241,6 +241,10 @@ public class SPARQL11Properties {
 			} catch (FileNotFoundException ex) {
 				Logging.logger.warn("Failed to get file reader: "+ex.getMessage());
 				Logging.logger.info("Get resource from URI: "+uri);
+				if (getClass().getClassLoader().getResourceAsStream(uri) == null) {
+					Logging.logger.fatal("Resource not found: "+uri);
+					throw new SEPAPropertiesException("Resource not found: "+uri);
+				}
 				in = new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(uri)));
 			}
 		}
