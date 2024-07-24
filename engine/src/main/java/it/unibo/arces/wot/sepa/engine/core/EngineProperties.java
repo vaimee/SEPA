@@ -214,8 +214,8 @@ public class EngineProperties {
 		public String tokenRequest;
 
 		public Paths(){
-			update       = "/sparql";
-			query        = "/sparql";
+			update       = "/update";
+			query        = "/query";
 			subscribe    = "/subscribe";
 			unsubscribe  = "/unsubscribe";
 			register     = "/oauth/register";
@@ -399,8 +399,8 @@ public class EngineProperties {
 		System.out.println("parameters.scheduler.timeout : the timeout of scheduling new request (ms)         (default: 5000)");
 		System.out.println("parameters.processor.updatetimeout : the timeout of updates (ms)                  (default: 5000)");  
 		System.out.println("parameters.processor.querytimeout : the timeout of queries (ms)                   (default: 30000)");
-		System.out.println("parameters.gates.paths.update : the path of update HTTP requests                  (default: /sparql)");
-		System.out.println("parameters.gates.paths.query : the path of query HTTP requests                    (default: /sparql)");
+		System.out.println("parameters.gates.paths.update : the path of update HTTP requests                  (default: /update)");
+		System.out.println("parameters.gates.paths.query : the path of query HTTP requests                    (default: /query)");
 		System.out.println("parameters.gates.paths.subscribe: the path of subscribe websocket requests        (default: /subscribe)");
 		System.out.println("parameters.gates.paths.unsubscribe: the path of unsubscribe websocket requests    (default: /unsubscribe)");
 		
