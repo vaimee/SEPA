@@ -1,16 +1,13 @@
 #How to publish on Docker HUB
 # 1) docker build -t vaimeedock/sepa:latest -f Dockerfile .
 # 2) docker login -u YOUR-USER-NAME.
-# Build command on Apple M1: docker buildx build --platform linux/amd64 --push -t vaimeedock/engine .
+# Build command on Apple M1: docker buildx build --platform linux/amd64 --push -t vaimeedock/sepa .
 # MULTIPLE PUSH
 # docker build -t vaimeedock/sepa:v0.15.0 -t vaimeedock/sepa:latest . 
 # docker push vaimeedock/sepa --all-tag
 
 FROM maven:3.6-jdk-11 AS build
 COPY . .
-
-ENV  JMX_HOSTNAME=0.0.0.0
-ENV  JMX_PORT=7090
 
 RUN mvn clean package
 
@@ -28,6 +25,8 @@ RUN chmod 600 /jmxremote.password
 
 EXPOSE 8000
 EXPOSE 9000
-EXPOSE ${JMX_PORT}
+EXPOSE 7090
 
-ENTRYPOINT java -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote.port=${JMX_PORT} -Dcom.sun.management.jmxremote.rmi.port=${JMX_PORT} -Dcom.sun.management.config.file=jmx.properties -jar engine.jar
+# MUST BE SET WITH THE HOST NAME (e.g. vaimee.com , vaimee.org, ...)
+ENV JMX_HOSTNAME=0.0.0.0
+ENTRYPOINT java -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote.rmi.port=7090 -Dcom.sun.management.jmxremote.port=7090 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote -jar engine.jar
