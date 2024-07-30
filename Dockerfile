@@ -25,11 +25,13 @@ COPY --from=build ./engine/src/main/resources/endpoints /endpoints
 RUN chmod 600 /jmxremote.password
 RUN chmod 777 /run.sh
 
-EXPOSE 8000
-EXPOSE 9000
-EXPOSE 7090
-
 # MUST BE SET WITH THE HOST NAME (e.g. vaimee.com , vaimee.org, ...)
 ENV JMX_HOSTNAME=0.0.0.0
-ENV JMX_PORT=7090
-ENTRYPOINT java -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote.rmi.port=${JMX_PORT} -Dcom.sun.management.jmxremote.port=${JMX_PORT} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote=true -jar engine.jar
+ENV JMX_PORT=7091
+
+EXPOSE 8000
+EXPOSE 9000
+EXPOSE 7091
+
+ENTRYPOINT ["/run.sh"]
+#ENTRYPOINT java -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote.rmi.port=${JMX_PORT} -Dcom.sun.management.jmxremote.port=${JMX_PORT} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote=true -jar engine.jar
