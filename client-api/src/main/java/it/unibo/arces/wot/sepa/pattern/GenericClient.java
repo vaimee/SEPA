@@ -412,13 +412,13 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 			if (req != null)
 				subLock.wait();
 
-			url = appProfile.getSubscribeProtocol(ID).scheme+ "_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
+			url = appProfile.getSubscribeProtocol(ID).getScheme()+ "_" + appProfile.getSubscribeHost(ID) + "_" + appProfile.getSubscribePort(ID) + "_"
 					+ appProfile.getSubscribePath(ID);
 
 			if (activeClients.containsKey(url)) {
 				subscription = activeClients.get(url);
 			} else {
-				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeProtocol(ID).scheme,appProfile.getSubscribeHost(ID),
+				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeProtocol(ID).getScheme(),appProfile.getSubscribeHost(ID),
 						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), this, sm);
 				subscription = new SPARQL11SEProtocol(protocol);
 			}

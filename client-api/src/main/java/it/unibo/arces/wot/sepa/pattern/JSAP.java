@@ -703,9 +703,9 @@ public class JSAP extends SPARQL11SEProperties {
 
 	public String getSubscribeHost(String id) {
 		try {
-			return queries.get(id).sparql11seprotocol.host;
+			return queries.get(id).sparql11seprotocol.getHost();
 		} catch (Exception e) {
-			return host;
+			return sparql11seprotocol.getHost();
 		}
 	}
 
@@ -714,13 +714,13 @@ public class JSAP extends SPARQL11SEProperties {
 			return;
 //		if (queries.get(id).sparql11seprotocol == null)
 //			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.host = host;
+		queries.get(id).sparql11seprotocol.setHost(host);
 	}
 
 	public int getSubscribePort(String id) {
 		try {
-			return queries.get(id).sparql11seprotocol.availableProtocols
-					.get(queries.get(id).sparql11seprotocol.protocol).port;
+			return queries.get(id).sparql11seprotocol.getAvailableProtocols()
+					.get(queries.get(id).sparql11seprotocol.getProtocol()).getPort();
 		} catch (Exception e) {
 			return sparql11seprotocol.getPort();
 		}
@@ -731,14 +731,14 @@ public class JSAP extends SPARQL11SEProperties {
 			return;
 //		if (queries.get(id).sparql11seprotocol == null)
 //			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.availableProtocols
-				.get(queries.get(id).sparql11seprotocol.protocol).port = port;
+		queries.get(id).sparql11seprotocol.getAvailableProtocols()
+				.get(queries.get(id).sparql11seprotocol.getProtocol()).setPort(port);
 	}
 
 	public String getSubscribePath(String id) {
 		try {
-			return queries.get(id).sparql11seprotocol.availableProtocols
-					.get(queries.get(id).sparql11seprotocol.protocol).path;
+			return queries.get(id).sparql11seprotocol.getAvailableProtocols()
+					.get(queries.get(id).sparql11seprotocol.getProtocol()).getPath();
 		} catch (Exception e) {
 			return sparql11seprotocol.getPath();
 		}
@@ -749,8 +749,8 @@ public class JSAP extends SPARQL11SEProperties {
 			return;
 //		if (queries.get(id).sparql11seprotocol == null)
 //			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.availableProtocols
-				.get(queries.get(id).sparql11seprotocol.protocol).path = path;
+		queries.get(id).sparql11seprotocol.getAvailableProtocols()
+				.get(queries.get(id).sparql11seprotocol.getProtocol()).setPath(path);
 	}
 
 	public SubscriptionProtocolProperties getSubscribeProtocol(String id) {
@@ -766,7 +766,7 @@ public class JSAP extends SPARQL11SEProperties {
 			return;
 //		if (queries.get(id).sparql11seprotocol == null)
 //			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.protocol = sp.scheme;
+		queries.get(id).sparql11seprotocol.setProtocol(sp.getScheme());
 	}
 
 	public Set<String> getUpdateIds() {
@@ -957,8 +957,8 @@ public class JSAP extends SPARQL11SEProperties {
 		if (queries.get(id) == null)
 			throw new IllegalArgumentException("Subscribe ID not found: " + id);
 
-		String scheme = queries.get(id).sparql11seprotocol.availableProtocols
-				.get(queries.get(id).sparql11seprotocol.protocol).scheme;
+		String scheme = queries.get(id).sparql11seprotocol.getAvailableProtocols()
+				.get(queries.get(id).sparql11seprotocol.getProtocol()).getScheme();
 		String port = "";
 
 		if (getSubscribePort(id) != -1)
@@ -1399,7 +1399,7 @@ public class JSAP extends SPARQL11SEProperties {
 	}
 
 	public void setAutoReconnect(boolean b) {
-		sparql11seprotocol.reconnect = b;
+		sparql11seprotocol.setReconnect(b);
 	}
 
 }
