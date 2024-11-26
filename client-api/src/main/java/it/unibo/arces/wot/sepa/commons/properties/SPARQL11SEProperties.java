@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.commons.properties;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.HashMap;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
@@ -82,7 +83,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	protected SPARQL11SEProtocolProperties sparql11seprotocol;
 
 	public SPARQL11SEProperties() {
-		sparql11seprotocol = new SPARQL11SEProtocolProperties();
+		super();
 
 		override(null);
 	}
@@ -150,52 +151,59 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	}
 
 	protected final void setParameter(String key,String value) {
+		super.setParameter(key, value);
+		
 		switch (key) {
-			case "-host" :
-				this.host = value;
-				break;
-			case "-sparql11protocol.port":
-				this.sparql11protocol.port = Integer.valueOf(value);
-				break;
-			case "-sparql11protocol.host":
-				this.sparql11protocol.host = host;
-				break;
-			case "-sparql11protocol.protocol":
-				this.sparql11protocol.protocol = (value == "http" ? ProtocolScheme.http : ProtocolScheme.https);
-				break;
-			case "-sparql11protocol.update.method":
-				this.sparql11protocol.update.method = (value == "post" ? UpdateProperties.UpdateHTTPMethod.POST : UpdateProperties.UpdateHTTPMethod.URL_ENCODED_POST);
-				break;
-			case "-sparql11protocol.update.format":
-				this.sparql11protocol.update.format = (value == "json" ? UpdateProperties.UpdateResultsFormat.JSON : UpdateProperties.UpdateResultsFormat.HTML);
-				break;
-			case "-sparql11protocol.update.path":
-				this.sparql11protocol.update.path = value;
-				break;
-			case "-sparql11protocol.query.method":
-				this.sparql11protocol.query.method = (value == "get" ? QueryProperties.QueryHTTPMethod.GET : (value == "post" ? QueryProperties.QueryHTTPMethod.POST : QueryProperties.QueryHTTPMethod.URL_ENCODED_POST));
-				break;
-			case "-sparql11protocol.query.format":
-				this.sparql11protocol.query.format = (value == "json" ? QueryProperties.QueryResultsFormat.JSON : (value == "xml" ? QueryProperties.QueryResultsFormat.XML : QueryProperties.QueryResultsFormat.CSV));
-				break;
-			case "-sparql11protocol.query.path":
-				this.sparql11protocol.query.path = value;
-				break;
+//			case "-host" :
+//				this.host = value;
+//				break;
+//			case "-sparql11protocol.port":
+//				this.sparql11protocol.port = Integer.valueOf(value);
+//				break;
+//			case "-sparql11protocol.host":
+//				this.sparql11protocol.host = host;
+//				break;
+//			case "-sparql11protocol.protocol":
+//				this.sparql11protocol.protocol = (value == "http" ? ProtocolScheme.http : ProtocolScheme.https);
+//				break;
+//			case "-sparql11protocol.update.method":
+//				this.sparql11protocol.update.method = (value == "post" ? UpdateProperties.UpdateHTTPMethod.POST : UpdateProperties.UpdateHTTPMethod.URL_ENCODED_POST);
+//				break;
+//			case "-sparql11protocol.update.format":
+//				this.sparql11protocol.update.format = (value == "json" ? UpdateProperties.UpdateResultsFormat.JSON : UpdateProperties.UpdateResultsFormat.HTML);
+//				break;
+//			case "-sparql11protocol.update.path":
+//				this.sparql11protocol.update.path = value;
+//				break;
+//			case "-sparql11protocol.query.method":
+//				this.sparql11protocol.query.method = (value == "get" ? QueryProperties.QueryHTTPMethod.GET : (value == "post" ? QueryProperties.QueryHTTPMethod.POST : QueryProperties.QueryHTTPMethod.URL_ENCODED_POST));
+//				break;
+//			case "-sparql11protocol.query.format":
+//				this.sparql11protocol.query.format = (value == "json" ? QueryProperties.QueryResultsFormat.JSON : (value == "xml" ? QueryProperties.QueryResultsFormat.XML : QueryProperties.QueryResultsFormat.CSV));
+//				break;
+//			case "-sparql11protocol.query.path":
+//				this.sparql11protocol.query.path = value;
+//				break;
 			case "-sparql11seprotocol.host":
-				this.sparql11seprotocol.host = value;
+				this.sparql11seprotocol.setHost(value);
 				break;
 			case "-sparql11seprotocol.protocol":
-				this.sparql11seprotocol.protocol = value;
+				this.sparql11seprotocol.setProtocol(value);
 				break;
 			case "-sparql11seprotocol.reconnect":
-				this.sparql11seprotocol.reconnect = Boolean.valueOf(value);
+				this.sparql11seprotocol.setReconnect(Boolean.valueOf(value));
 				break;
 			default:
 				if (key.startsWith("-sparql11seprotocol.availableProtocols")) {
 					String[] token = key.split("\\.");
-					if (token[3] == "path") this.sparql11seprotocol.availableProtocols.get(token[2]).path = value;
-					else if (token[3] == "port") this.sparql11seprotocol.availableProtocols.get(token[2]).port = Integer.valueOf(value);
-					else if (token[3] == "scheme") this.sparql11seprotocol.availableProtocols.get(token[2]).scheme = value;
+					if (this.sparql11seprotocol == null) sparql11seprotocol = new SPARQL11SEProtocolProperties();
+					if (this.sparql11seprotocol.getAvailableProtocols() == null) {
+						this.sparql11seprotocol.setAvailableProtocols(new HashMap<String,SubscriptionProtocolProperties>());
+						this.sparql11seprotocol.getAvailableProtocols().put(token[2], new SubscriptionProtocolProperties());
+					}
+					if (token[3] == "path") this.sparql11seprotocol.getAvailableProtocols().get(token[2]).setPath(value);
+					else if (token[3] == "port") this.sparql11seprotocol.getAvailableProtocols().get(token[2]).setPort(Integer.valueOf(value));
+					else if (token[3] == "scheme") this.sparql11seprotocol.getAvailableProtocols().get(token[2]).setScheme(value);
 				}
 		}
 	}
@@ -205,39 +213,39 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	}
 
 	public String getSubscribeHost() {
-		return (sparql11seprotocol.host != null ? sparql11seprotocol.host : super.host);
+		return (sparql11seprotocol.getHost() != null ? sparql11seprotocol.getHost() : super.host);
 	}
 
 	public void setHost(String host) {
-		sparql11seprotocol.host = host;
+		sparql11seprotocol.setHost(host);
 	}
 
 	public String getSubscribePath() {
-		return sparql11seprotocol.availableProtocols.get(sparql11seprotocol.protocol).path;
+		return sparql11seprotocol.getAvailableProtocols().get(sparql11seprotocol.getProtocol()).getPath();
 	}
 
 	public void setSubscribePath(String path) {
-		sparql11seprotocol.availableProtocols.get(sparql11seprotocol.protocol).path = path;
+		sparql11seprotocol.getAvailableProtocols().get(sparql11seprotocol.getProtocol()).setPath(path);
 	}
 
 	public int getSubscribePort() {
-		return sparql11seprotocol.availableProtocols.get(sparql11seprotocol.protocol).port;
+		return sparql11seprotocol.getAvailableProtocols().get(sparql11seprotocol.getProtocol()).getPort();
 	}
 
 	public void setSubscribePort(int port) {
-		sparql11seprotocol.availableProtocols.get(sparql11seprotocol.protocol).port = port;
+		sparql11seprotocol.getAvailableProtocols().get(sparql11seprotocol.getProtocol()).setPort(port);
 	}
 
 	public SubscriptionProtocolProperties getSubscriptionProtocol() {
-		return sparql11seprotocol.availableProtocols.get(sparql11seprotocol.protocol);
+		return sparql11seprotocol.getAvailableProtocols().get(sparql11seprotocol.getProtocol());
 	}
 
 	public boolean getReconnect() {
-		return sparql11seprotocol.reconnect;
+		return sparql11seprotocol.isReconnect();
 	}
 
 	public void setSubscriptionProtocol(String scheme) {
-		sparql11seprotocol.protocol = scheme;
+		sparql11seprotocol.setProtocol(scheme);
 
 	}
 }
