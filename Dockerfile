@@ -25,8 +25,11 @@ RUN chmod 600 /jmxremote.password
 
 EXPOSE 8000
 EXPOSE 9000
-EXPOSE 7090
 
 # MUST BE SET WITH THE HOST NAME (e.g. vaimee.com , vaimee.org, ...)
+#ENV JMX_ARGS="-Dcom.sun.management.jmxremote.rmi.port=7090 -Dcom.sun.management.jmxremote.port=7090 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote"
 ENV JMX_HOSTNAME=0.0.0.0
-ENTRYPOINT java -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote.rmi.port=7090 -Dcom.sun.management.jmxremote.port=7090 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote -jar engine.jar
+ENV JMX_PORT=7999
+EXPOSE ${JMX_PORT}
+ENTRYPOINT ["sh","-c","java -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote.rmi.port=${JMX_PORT}  -Dcom.sun.management.jmxremote.port=${JMX_PORT} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote -jar engine.jar"]
+#ENTRYPOINT ["sh","-c","\"java -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote.rmi.port=7090 -Dcom.sun.management.jmxremote.port=7090 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote -jar engine.jar\""]
