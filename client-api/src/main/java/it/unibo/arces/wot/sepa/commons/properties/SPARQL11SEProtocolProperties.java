@@ -3,30 +3,62 @@ package it.unibo.arces.wot.sepa.commons.properties;
 import java.util.HashMap;
 
 public class SPARQL11SEProtocolProperties {
-	public String protocol = null;
-	public HashMap<String,SubscriptionProtocolProperties> availableProtocols = null;
-	public String host = null;
-	public boolean reconnect = true;
+	private String protocol = null;
+	private HashMap<String,SubscriptionProtocolProperties> availableProtocols = new HashMap<String,SubscriptionProtocolProperties>();
+	private String host = null;
+	private boolean reconnect = true;
 
 	public SPARQL11SEProtocolProperties merge(SPARQL11SEProtocolProperties temp) {
 		if (temp != null) {
-			protocol = (temp.protocol != null ? temp.protocol : protocol);
-			host = (temp.host != null ? temp.host : host);
-			reconnect = temp.reconnect;
-			availableProtocols = (temp.availableProtocols != null ? temp.availableProtocols : availableProtocols);
+			setProtocol((temp.getProtocol() != null ? temp.getProtocol() : getProtocol()));
+			setHost((temp.getHost() != null ? temp.getHost() : getHost()));
+			setReconnect(temp.isReconnect());
+			setAvailableProtocols((temp.getAvailableProtocols() != null ? temp.getAvailableProtocols() : getAvailableProtocols()));
 		}
 		return this;
 	}
 
 	public int getPort() {
-		return availableProtocols.get(protocol).port;
+		return getAvailableProtocols().get(getProtocol()).getPort();
 	}
 
 	public String getPath() {
-		return availableProtocols.get(protocol).path;
+		return getAvailableProtocols().get(getProtocol()).getPath();
 	}
 
 	public SubscriptionProtocolProperties getSubscriptionProtocol() {
-		return availableProtocols.get(protocol);
+		return getAvailableProtocols().get(getProtocol());
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public String getProtocol() {
+		return protocol;
+	}
+
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
+	}
+
+	public boolean isReconnect() {
+		return reconnect;
+	}
+
+	public void setReconnect(boolean reconnect) {
+		this.reconnect = reconnect;
+	}
+
+	public HashMap<String,SubscriptionProtocolProperties> getAvailableProtocols() {
+		return availableProtocols;
+	}
+
+	public void setAvailableProtocols(HashMap<String,SubscriptionProtocolProperties> availableProtocols) {
+		this.availableProtocols = availableProtocols;
 	}
 }

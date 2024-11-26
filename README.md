@@ -56,7 +56,7 @@ SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscri
 
 - Download [Blazegraph](https://github.com/blazegraph/database/releases/latest) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
 
-- Use the [SEPA Playground](http://mml.arces.unibo.it/apps/dashboard?mode=local) to check basic functionalities of the engine.
+- Use the [SEPA Playground](https://studio.sepa.vaimee.com) to check basic functionalities of the engine.
 
 ### For Hackers 💻👩‍💻👨‍💻
 <a href="https://asciinema.org/a/251211">
