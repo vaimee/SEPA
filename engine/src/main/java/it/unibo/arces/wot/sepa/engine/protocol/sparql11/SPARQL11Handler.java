@@ -116,9 +116,11 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 			 * 
 			 * <pre>
 			 * 
-			 * 					HTTP Method 	Query String Parameters 	Request 	| Content Type 	Request Message Body
+			 * 					| HTTP Method 	| Query String Parameters 	| Request Content Type 	| Request Message Body
 			 * ---------------------------------------------------------------------------------------------------------------------------------------- 
-			 * query via GET 	| GET 			|	query (exactly 1) 		|  None 	| None 			| default-graph-uri (0 or more)  named-graph-uri (0 or more)
+			 * query via GET 	| GET 			|  query (exactly 1) 		|  None 	            | None
+			 *                                  | default-graph-uri (0 or more)
+			 *                                  | named-graph-uri (0 or more)
 			 * 
 			 * 2.1.4 Specifying an RDF Dataset
 			 * 
