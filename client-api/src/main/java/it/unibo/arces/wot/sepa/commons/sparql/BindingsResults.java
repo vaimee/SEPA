@@ -20,8 +20,6 @@ package it.unibo.arces.wot.sepa.commons.sparql;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.logging.log4j.core.appender.rolling.action.IfAccumulatedFileCount;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
