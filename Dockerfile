@@ -6,12 +6,12 @@
 # docker build -t vaimeedock/sepa:v0.15.0 -t vaimeedock/sepa:latest . 
 # docker push vaimeedock/sepa --all-tag
 
-FROM maven:3.6-jdk-11 AS build
+FROM maven:latest AS build
 COPY . .
 
 RUN mvn clean package
 
-FROM openjdk:11.0-jre
+FROM eclipse-temurin:latest
 
 COPY --from=build ./run.sh /run.sh
 COPY --from=build ./engine/target/engine-1.0.0-SNAPSHOT.jar /engine.jar
@@ -25,13 +25,11 @@ COPY --from=build ./engine/src/main/resources/endpoints /endpoints
 RUN chmod 600 /jmxremote.password
 RUN chmod 777 /run.sh
 
-# MUST BE SET WITH THE HOST NAME (e.g. vaimee.com , vaimee.org, ...)
-ENV JMX_HOSTNAME=0.0.0.0
-ENV JMX_PORT=7091
+ENV JMX_HOST=0.0.0.0
+ENV JMX_PORT=7099
 
 EXPOSE 8000
 EXPOSE 9000
-EXPOSE 7091
+EXPOSE ${JMX_PORT}
 
 ENTRYPOINT ["/run.sh"]
-#ENTRYPOINT java -Djava.rmi.server.hostname=${JMX_HOSTNAME} -Dcom.sun.management.jmxremote.rmi.port=${JMX_PORT} -Dcom.sun.management.jmxremote.port=${JMX_PORT} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote=true -jar engine.jar
