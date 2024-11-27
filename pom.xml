@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>it.unibo.arces.wot</groupId>
 	<artifactId>sepa</artifactId>
 	<version>${revision}</version>
 	<packaging>pom</packaging>
-	<description>The project aims at developing a SPARQL Event Processing Architecture using JAVA technologies, including APIs and tools</description>
+	<description>The project aims at developing a SPARQL Event Processing
+		Architecture using JAVA technologies, including APIs and tools</description>
 	<modules>
 		<module>client-api</module>
 		<module>engine</module>
@@ -43,8 +46,10 @@
 		<developerConnection>scm:git:ssh://github.com/vaimee/sepa.git</developerConnection>
 		<url>https://github.com/vaimee/SEPA</url>
 	</scm>
-	
+
 	<properties>
+		<java.version>11</java.version>
+		<maven.compiler.release>11</maven.compiler.release>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -61,6 +66,14 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.12.1</version>
+				<configuration>
+					<release>11</release>
+				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>com.hbakkum.maven.plugins</groupId>
 				<artifactId>resolve-parent-version-maven-plugin</artifactId>
 				<version>0.7</version>
@@ -76,12 +89,12 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.1.2</version>
-<!--				<configuration>-->
-<!--					<excludes>-->
-<!--						<exclude>**/IT*.java</exclude>-->
-<!--						<exclude>**/Stress*.java</exclude>-->
-<!--					</excludes>-->
-<!--				</configuration>-->
+				<!--				<configuration>-->
+				<!--					<excludes>-->
+				<!--						<exclude>**/IT*.java</exclude>-->
+				<!--						<exclude>**/Stress*.java</exclude>-->
+				<!--					</excludes>-->
+				<!--				</configuration>-->
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -110,19 +123,19 @@
 								<pluginExecution>
 									<pluginExecutionFilter>
 										<groupId>
-        									com.hbakkum.maven.plugins
-        								</groupId>
+											com.hbakkum.maven.plugins
+										</groupId>
 										<artifactId>
-        									resolve-parent-version-maven-plugin
-        								</artifactId>
+											resolve-parent-version-maven-plugin
+										</artifactId>
 										<versionRange>
-        									[0.7,)
-        								</versionRange>
+											[0.7,)
+										</versionRange>
 										<goals>
 											<goal>
-        										resolve-parent-version
-        									</goal>
-        								</goals>
+												resolve-parent-version
+											</goal>
+										</goals>
 									</pluginExecutionFilter>
 									<action>
 										<ignore></ignore>
