@@ -90,7 +90,54 @@ public class HttpUtilities {
 	}
 
 	public static Map<String, Set<String>> splitQuery(String query) throws UnsupportedEncodingException {
-	    Map<String, Set<String>> query_pairs = new LinkedHashMap<String, Set<String>>();
+	    /*
+	    * query (exactly 1)
+	    * default-graph-uri (0 or more)
+	    * named-graph-uri (0 or more)
+	    *
+	    * using-graph-uri (0 or more)
+	    * using-named-graph-uri (0 or more)
+	    * */
+		Map<String, Set<String>> query_pairs = new LinkedHashMap<String, Set<String>>();
+		int query_index = query.indexOf("query=");
+		int update_index = query.indexOf("update=");
+
+		int index = (query_index != -1 ? query_index : update_index);
+
+		int content_index = query.indexOf('=',index);
+		String keyString = URLDecoder.decode(query.substring(0, content_index), "UTF-8");
+		String valueString = URLDecoder.decode(query.substring(content_index + 1), "UTF-8");
+		if (!query_pairs.containsKey(keyString)) query_pairs.put(keyString, new HashSet<String>());
+		query_pairs.get(keyString).add(valueString);
+
+		/*int default_graph_uri_index = query.indexOf("default-graph-uri=");
+		int named_graph_uri_index = query.indexOf("named-graph-uri=");
+
+		int using_graph_uri_index = query.indexOf("using-graph-uri=");
+		int using_named_graph_uri_index = query.indexOf("using-named-graph-uri=");
+
+		if (query_index!=-1) {
+			int query_content_index = query.indexOf('=',query_index);
+
+			if (default_graph_uri_index==-1 && named_graph_uri_index==-1) {
+				String keyString = URLDecoder.decode(query.substring(0, query_content_index), "UTF-8");
+				String valueString = URLDecoder.decode(query.substring(query_content_index + 1), "UTF-8");
+				if (!query_pairs.containsKey(keyString))  query_pairs.put(keyString, new HashSet<String>());
+				query_pairs.get(keyString).add(valueString);
+			} else if (default_graph_uri_index!=-1 && named_graph_uri_index==-1){
+				if (default_graph_uri_index > query_index) {
+
+				}
+				else {
+
+				}
+			} else if (default_graph_uri_index==-1 && named_graph_uri_index!=-1) {
+
+			} else {
+
+			}
+		}
+
 	    String[] pairs = query.split("&");
 	    for (String pair : pairs) {
 	        int idx = pair.indexOf("=");
@@ -98,7 +145,7 @@ public class HttpUtilities {
 	        String valueString = URLDecoder.decode(pair.substring(idx + 1), "UTF-8");
 	        if (!query_pairs.containsKey(keyString))  query_pairs.put(keyString, new HashSet<String>());  	
 	        query_pairs.get(keyString).add(valueString);
-	    }
+	    }*/
 	    return query_pairs;
 	}
 }
