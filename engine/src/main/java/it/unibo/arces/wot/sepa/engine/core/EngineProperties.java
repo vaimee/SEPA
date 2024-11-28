@@ -21,6 +21,7 @@ package it.unibo.arces.wot.sepa.engine.core;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.PatternSyntaxException;
@@ -309,7 +310,7 @@ public class EngineProperties {
 		}
 		
 		try {
-			endpointProperties = new SPARQL11Properties(endpointJpar);
+			endpointProperties = new SPARQL11Properties(URI.create(endpointJpar));
 		} catch (SEPAPropertiesException  e) {
 			Logging.logger.fatal("Endpoint configuration file not found: "+endpointJpar);
 			System.exit(-1);

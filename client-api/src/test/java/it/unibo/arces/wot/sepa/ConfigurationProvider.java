@@ -16,6 +16,7 @@ import it.unibo.arces.wot.sepa.pattern.JSAP;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.util.UUID;
 
 public class ConfigurationProvider implements Closeable {
@@ -51,7 +52,7 @@ public class ConfigurationProvider implements Closeable {
 		Logging.logger.debug("Loading JSAP from: " + f.getPath());
 
 		try {
-			appProfile = new JSAP(f.getPath());
+			appProfile = new JSAP(URI.create(f.getPath()));
 		} catch (SEPAPropertiesException e) {
 			Logging.logger.error(e.getMessage());
 			throw new RuntimeException(e);

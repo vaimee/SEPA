@@ -11,6 +11,7 @@ import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProt
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.properties.SubscriptionProtocolProperties;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Notification;
 import it.unibo.arces.wot.sepa.logging.Logging;
@@ -31,8 +32,8 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 		this.id = id;
 		this.handler = sync;
 		
-		protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(), this, provider.getClientSecurityManager());
+		SubscriptionProtocolProperties properties = provider.getJsap().getSubscribeProtocol();
+		protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),properties,this,null);
 
 		client = new SPARQL11SEProtocol(protocol);
 	}

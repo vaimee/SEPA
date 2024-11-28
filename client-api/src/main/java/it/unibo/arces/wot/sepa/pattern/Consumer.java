@@ -31,6 +31,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.properties.SubscriptionProtocolProperties;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
@@ -72,9 +73,8 @@ public abstract class Consumer extends Client implements IConsumer {
 		}
 
 		// Subscription protocol
-		
-		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subID),
-				appProfile.getSubscribePort(subID), appProfile.getSubscribePath(subID),this,sm);
+		SubscriptionProtocolProperties properties = appProfile.getSubscribeProtocol(subID);
+		protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subID),properties,this,sm);
 
 		client = new SPARQL11SEProtocol(protocol,sm);
 	}
@@ -157,8 +157,8 @@ public abstract class Consumer extends Client implements IConsumer {
 		// Auto reconnection mechanism
 		if (appProfile.reconnect()) {
 			try {
-				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subID),
-						appProfile.getSubscribePort(subID), appProfile.getSubscribePath(subID),this,sm);
+				SubscriptionProtocolProperties properties = appProfile.getSubscribeProtocol(subID);
+				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subID),properties,this,sm);
 				client = new SPARQL11SEProtocol(protocol,sm);
 			} catch (SEPASecurityException | SEPAProtocolException e1) {
 				Logging.logger.error(e1.getMessage());
