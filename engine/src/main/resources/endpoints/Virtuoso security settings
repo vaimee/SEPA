@@ -26,6 +26,11 @@ grant execute on DB.DBA.SPARQL_DELETE_DICT_CONTENT to "SPARQL";
 grant execute on DB.DBA.SPARQL_INSERT_DICT_CONTENT to "SPARQL";
 grant execute on DB.DBA.L_O_LOOK to "SPARQL";
 
+grant execute on DB.DBA.SPARQL_INSERT_CTOR_ACC to "SPARQL";
+grant execute on DB.DBA.SPARQL_INS_OR_DEL_OR_MODIFY_CTOR_FIN to "SPARQL";
+grant execute on DB.DBA.SPARQL_INSERT_QUAD_DICT_CONTENT to "SPARQL"; 
+DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('SPARQL', 3);
+
 System admin->User Accounts-->SPARQL-->Edit
 -------------------------------------------
 Give "SPARQL_UPDATE" role
