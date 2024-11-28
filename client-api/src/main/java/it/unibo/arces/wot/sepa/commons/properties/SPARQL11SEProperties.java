@@ -20,6 +20,7 @@ package it.unibo.arces.wot.sepa.commons.properties;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
 import java.util.HashMap;
 
 import com.google.gson.Gson;
@@ -87,33 +88,29 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 		override(null);
 	}
+//
+//	/**
+//	 * Instantiates a new SPARQL 11 SE properties.
+//	 *
+//	 * @param in where to read the JSAP from
+//	 * @throws SEPAPropertiesException
+//	 */
+//	public SPARQL11SEProperties(Reader in) throws SEPAPropertiesException {
+//		this(in,null);
+//	}
+//
+//	public SPARQL11SEProperties(Reader in,String[] args) throws SEPAPropertiesException {
+//		super(in,args);
+//
+//		parseJSAP(in);
+//
+//		override(args);
+//	}
 
-	/**
-	 * Instantiates a new SPARQL 11 SE properties.
-	 *
-	 * @param in where to read the JSAP from
-	 * @throws SEPAPropertiesException
-	 */
-	public SPARQL11SEProperties(Reader in) throws SEPAPropertiesException {
-		super(in);
+	public SPARQL11SEProperties(URI uri,String[] args) throws SEPAPropertiesException {
+		super(uri);
 
-		parseJSAP(in);
-
-		override(null);
-	}
-
-	public SPARQL11SEProperties(Reader in,String[] args) throws SEPAPropertiesException {
-		super(in,args);
-
-		parseJSAP(in);
-
-		override(args);
-	}
-
-	public SPARQL11SEProperties(String propertiesFile,String[] args) throws SEPAPropertiesException {
-		super(propertiesFile);
-
-		Reader in = getReaderFromUri(propertiesFile);
+		Reader in = getReaderFromUri(uri);
 		parseJSAP(in);
 		try {
 			in.close();
@@ -124,18 +121,8 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		override(args);
 	}
 
-	public SPARQL11SEProperties(String propertiesFile) throws SEPAPropertiesException {
-		super(propertiesFile);
-
-		Reader in = getReaderFromUri(propertiesFile);
-		parseJSAP(in);
-		try {
-			in.close();
-		} catch (IOException e) {
-			throw new SEPAPropertiesException(e);
-		}
-
-		override(null);
+	public SPARQL11SEProperties(URI uri) throws SEPAPropertiesException {
+		super(uri,null);
 	}
 
 	private void parseJSAP(Reader in) throws SEPAPropertiesException {
@@ -150,40 +137,10 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 		}
 	}
 
-	protected final void setParameter(String key,String value) {
+	protected void setParameter(String key,String value) {
 		super.setParameter(key, value);
 		
 		switch (key) {
-//			case "-host" :
-//				this.host = value;
-//				break;
-//			case "-sparql11protocol.port":
-//				this.sparql11protocol.port = Integer.valueOf(value);
-//				break;
-//			case "-sparql11protocol.host":
-//				this.sparql11protocol.host = host;
-//				break;
-//			case "-sparql11protocol.protocol":
-//				this.sparql11protocol.protocol = (value == "http" ? ProtocolScheme.http : ProtocolScheme.https);
-//				break;
-//			case "-sparql11protocol.update.method":
-//				this.sparql11protocol.update.method = (value == "post" ? UpdateProperties.UpdateHTTPMethod.POST : UpdateProperties.UpdateHTTPMethod.URL_ENCODED_POST);
-//				break;
-//			case "-sparql11protocol.update.format":
-//				this.sparql11protocol.update.format = (value == "json" ? UpdateProperties.UpdateResultsFormat.JSON : UpdateProperties.UpdateResultsFormat.HTML);
-//				break;
-//			case "-sparql11protocol.update.path":
-//				this.sparql11protocol.update.path = value;
-//				break;
-//			case "-sparql11protocol.query.method":
-//				this.sparql11protocol.query.method = (value == "get" ? QueryProperties.QueryHTTPMethod.GET : (value == "post" ? QueryProperties.QueryHTTPMethod.POST : QueryProperties.QueryHTTPMethod.URL_ENCODED_POST));
-//				break;
-//			case "-sparql11protocol.query.format":
-//				this.sparql11protocol.query.format = (value == "json" ? QueryProperties.QueryResultsFormat.JSON : (value == "xml" ? QueryProperties.QueryResultsFormat.XML : QueryProperties.QueryResultsFormat.CSV));
-//				break;
-//			case "-sparql11protocol.query.path":
-//				this.sparql11protocol.query.path = value;
-//				break;
 			case "-sparql11seprotocol.host":
 				this.sparql11seprotocol.setHost(value);
 				break;
@@ -213,7 +170,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	}
 
 	public String getSubscribeHost() {
-		return (sparql11seprotocol.getHost() != null ? sparql11seprotocol.getHost() : super.host);
+		return sparql11seprotocol.getHost();
 	}
 
 	public void setHost(String host) {

@@ -27,6 +27,7 @@ import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.properties.SubscriptionProtocolProperties;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
 import it.unibo.arces.wot.sepa.commons.request.UnsubscribeRequest;
@@ -44,27 +45,31 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 
 	private final Object mutex;
 
-	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler)
-			throws SEPASecurityException, SEPAProtocolException {
-		this(host, port, path, handler, null);
-	}
+//	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler)
+//			throws SEPASecurityException, SEPAProtocolException {
+//		this(host, port, path, handler, null);
+//	}
 
-	public WebsocketSubscriptionProtocol(String scheme, String host, int port, String path,
-			ISubscriptionHandler handler) throws SEPASecurityException, SEPAProtocolException {
-		this(scheme, host, port, path, handler, null);
-	}
+//	public WebsocketSubscriptionProtocol(String scheme, String host, int port, String path,
+//			ISubscriptionHandler handler) throws SEPASecurityException, SEPAProtocolException {
+//		this(scheme, host, port, path, handler, null);
+//	}
 
-	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler,
-			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
-		this("ws", host, port, path, handler, sm);
-	}
+//	public WebsocketSubscriptionProtocol(String host, int port, String path, ISubscriptionHandler handler,
+//			ClientSecurityManager sm) throws SEPASecurityException, SEPAProtocolException {
+//		this("ws", host, port, path, handler, sm);
+//	}
 
-	public WebsocketSubscriptionProtocol(String scheme, String host, int port, String path,
-			ISubscriptionHandler handler, ClientSecurityManager sm)
+	public WebsocketSubscriptionProtocol(String host, SubscriptionProtocolProperties properties,
+			ISubscriptionHandler handler, ClientSecurityManager sm) 
 			throws SEPASecurityException, SEPAProtocolException {
 		super(handler, sm);
 
 		mutex = new Object();
+		
+		String scheme = properties.getScheme();
+		String path = properties.getPath();
+		int port = properties.getPort();
 
 		if (!scheme.equals("ws") && !scheme.equals("wss"))
 			throw new SEPAProtocolException("Scheme must be 'ws' or 'wss'");
@@ -85,6 +90,10 @@ public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implemen
 			}
 
 		client = new WebsocketClientEndpoint(sm, this);
+	}
+
+	{
+		// TODO Auto-generated constructor stub
 	}
 
 	private void connect() throws SEPASecurityException {

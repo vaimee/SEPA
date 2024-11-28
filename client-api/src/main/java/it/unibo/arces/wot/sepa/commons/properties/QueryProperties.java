@@ -47,13 +47,37 @@ public class QueryProperties {
 	};
 
 	
-	public String path = "/sparql";
-	public QueryHTTPMethod method = QueryHTTPMethod.URL_ENCODED_POST;
-	public QueryResultsFormat format = QueryResultsFormat.JSON;
+	private String path = "/sparql";
+	private QueryHTTPMethod method = QueryHTTPMethod.URL_ENCODED_POST;
+	private QueryResultsFormat format = QueryResultsFormat.JSON;
 	
 	public void merge(QueryProperties query) {
-		if (query.path != null) this.path = query.path;
-		if (query.method != null) this.method = query.method;
-		if (query.format != null) this.format = query.format;
+		if (query.getPath() != null) this.setPath(query.getPath());
+		if (query.getMethod() != null) this.setMethod(query.getMethod());
+		if (query.getFormat() != null) this.setFormat(query.getFormat());
+	}
+
+	public QueryHTTPMethod getMethod() {
+		return method;
+	}
+
+	public void setMethod(QueryHTTPMethod method) {
+		this.method = method;
+	}
+
+	public QueryResultsFormat getFormat() {
+		return format;
+	}
+
+	public void setFormat(QueryResultsFormat format) {
+		this.format = format;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
 	}
 }

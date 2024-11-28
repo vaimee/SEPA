@@ -6,7 +6,7 @@ import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProt
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-
+import it.unibo.arces.wot.sepa.commons.properties.SubscriptionProtocolProperties;
 import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.sparql.Bindings;
@@ -38,9 +38,8 @@ public class ITSPARQL11SEProtocol {
 		
 		handler = new Sync();
 		
-		protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),
-				provider.getJsap().getSubscribePort(), provider.getJsap().getSubscribePath(),handler,
-				provider.getClientSecurityManager());
+		SubscriptionProtocolProperties properties = provider.getJsap().getSubscribeProtocol();
+		protocol = new WebsocketSubscriptionProtocol(provider.getJsap().getSubscribeHost(),properties,handler,provider.getClientSecurityManager());
 		
 		client = new SPARQL11SEProtocol(protocol,provider.getClientSecurityManager());
 		

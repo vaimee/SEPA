@@ -42,15 +42,39 @@ public class UpdateProperties {
     	}
 	};
 	
-	public String path = "/sparql";
-	public UpdateHTTPMethod method = UpdateHTTPMethod.URL_ENCODED_POST;
-	public UpdateResultsFormat format = UpdateResultsFormat.JSON;
+	private String path = "/sparql";
+	private UpdateHTTPMethod method = UpdateHTTPMethod.URL_ENCODED_POST;
+	private UpdateResultsFormat format = UpdateResultsFormat.JSON;
 	
 	public void merge(UpdateProperties update) {
-		if (update.path != null) this.path = update.path;
-		if (update.method != null) this.method = update.method;
-		if (update.format != null) this.format = update.format;
+		if (update.getPath() != null) this.setPath(update.getPath());
+		if (update.getMethod() != null) this.setMethod(update.getMethod());
+		if (update.getFormat() != null) this.setFormat(update.getFormat());
 		
+	}
+
+	public UpdateHTTPMethod getMethod() {
+		return method;
+	}
+
+	public void setMethod(UpdateHTTPMethod method) {
+		this.method = method;
+	}
+
+	public UpdateResultsFormat getFormat() {
+		return format;
+	}
+
+	public void setFormat(UpdateResultsFormat format) {
+		this.format = format;
+	}
+
+	public String getPath() {
+		return path;
+	}
+
+	public void setPath(String path) {
+		this.path = path;
 	}
 
 }

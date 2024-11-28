@@ -32,6 +32,7 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
+import it.unibo.arces.wot.sepa.commons.properties.SubscriptionProtocolProperties;
 import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
 import it.unibo.arces.wot.sepa.commons.request.Request;
 import it.unibo.arces.wot.sepa.commons.request.SubscribeRequest;
@@ -418,8 +419,8 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 			if (activeClients.containsKey(url)) {
 				subscription = activeClients.get(url);
 			} else {
-				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeProtocol(ID).getScheme(),appProfile.getSubscribeHost(ID),
-						appProfile.getSubscribePort(ID), appProfile.getSubscribePath(ID), this, sm);
+				SubscriptionProtocolProperties properties = appProfile.getSubscribeProtocol(ID);
+				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(ID),properties,this,sm);
 				subscription = new SPARQL11SEProtocol(protocol);
 			}
 

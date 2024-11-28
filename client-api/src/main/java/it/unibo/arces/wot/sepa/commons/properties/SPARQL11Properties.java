@@ -84,11 +84,10 @@ import it.unibo.arces.wot.sepa.logging.Logging;
 
 public class SPARQL11Properties {
 	// Members.
-	protected String host;
 	protected SPARQL11ProtocolProperties sparql11protocol;	
 	protected GraphsProperties graphs = null;
 
-	protected String filename = null;
+	protected URI uri = null;
 		
 	/**
 	 * The Enum SPARQLPrimitive (QUERY, UPDATE).
@@ -123,9 +122,8 @@ public class SPARQL11Properties {
 	};
 
 	public SPARQL11Properties() {
-		this.host = "localhost";
 		this.sparql11protocol = new SPARQL11ProtocolProperties();
-		this.sparql11protocol.protocol = ProtocolScheme.http;
+		this.sparql11protocol.setProtocol(ProtocolScheme.http);
 
 		override(null);
 	}
@@ -136,7 +134,7 @@ public class SPARQL11Properties {
 		override(args);
 	}
 
-	public SPARQL11Properties(String uri,String[] args) throws SEPAPropertiesException {
+	public SPARQL11Properties(URI uri,String[] args) throws SEPAPropertiesException {
 		this();
 
 		Reader in = getReaderFromUri(uri);
@@ -149,44 +147,32 @@ public class SPARQL11Properties {
 
 		override(args);
 
-		filename = uri;
+		this.uri = uri;
 	}
 
-	public SPARQL11Properties(String jsapFile) throws SEPAPropertiesException {
-		this();
-
-		Reader in = getReaderFromUri(jsapFile);
-		parseJSAP(in);
-		try {
-			in.close();
-		} catch (IOException e) {
-			throw new SEPAPropertiesException(e);
-		}
-
-		override(null);
-
-		filename = jsapFile;
+	public SPARQL11Properties(URI uri) throws SEPAPropertiesException {
+		this(uri,null);
 	}
 
 	public SPARQL11Properties(String host,ProtocolScheme scheme) {
-		this.host = host;
 		this.sparql11protocol = new SPARQL11ProtocolProperties();
-		this.sparql11protocol.protocol = scheme;
+		this.sparql11protocol.setHost(host);
+		this.sparql11protocol.setProtocol(scheme);
 
 		override(null);
 	}
 
-	public SPARQL11Properties(Reader in,String[] args) throws SEPAPropertiesException  {
-		this();
-
-		parseJSAP(in);
-
-		override(args);
-	}
-
-	public SPARQL11Properties(Reader in) throws SEPAPropertiesException  {
-		this(in,null);
-	}
+//	public SPARQL11Properties(Reader in,String[] args) throws SEPAPropertiesException  {
+//		this();
+//
+//		parseJSAP(in);
+//
+//		override(args);
+//	}
+//
+//	public SPARQL11Properties(Reader in) throws SEPAPropertiesException  {
+//		this(in,null);
+//	}
 
 	protected void override(String[] args) {
 		Map<String, String> envs = System.getenv();
@@ -211,7 +197,6 @@ public class SPARQL11Properties {
 			throw new SEPAPropertiesException(e);
 		}
 
-		this.host = jsap.host;
 		this.sparql11protocol = jsap.sparql11protocol;
 		this.graphs = jsap.graphs;
 	}
@@ -226,26 +211,29 @@ public class SPARQL11Properties {
 	* try to construct or parse a URL from the direct string representation
 	* of a File or Path instance
 	* */
-	protected Reader getReaderFromUri(String uri) throws SEPAPropertiesException {
+	protected Reader getReaderFromUri(URI uri) throws SEPAPropertiesException {
 		Reader in;
 
-		Logging.logger.debug("Get stream reader from URI: "+uri);
+		Logging.logger.debug("Get reader from URI, trying STREAM: "+uri);
 		try {
 			in = new BufferedReader(
-					new InputStreamReader(URI.create(uri).toURL().openStream()));
+					new InputStreamReader(uri.toURL().openStream()));
+			Logging.logger.debug("Success");
 		} catch (IOException | IllegalArgumentException e) {
 			Logging.logger.debug("Failed to get input stream: "+e.getMessage());
 			try {
-				Logging.logger.debug("Get file reader from URI: "+uri);
-				in = new FileReader(Path.of(uri).toFile());
+				Logging.logger.debug("Get reader from URI, trying FILE: "+uri);
+				in = new FileReader(Path.of(uri.toASCIIString()).toFile());
+				Logging.logger.debug("Success");
 			} catch (FileNotFoundException ex) {
-				Logging.logger.warn("Failed to get file reader: "+ex.getMessage());
-				Logging.logger.info("Get resource from URI: "+uri);
-				if (getClass().getClassLoader().getResourceAsStream(uri) == null) {
+				Logging.logger.debug("Failed to get file reader: "+ex.getMessage());
+				Logging.logger.debug("Get reader from URI, trying RESOURCE: "+uri);
+				if (getClass().getClassLoader().getResourceAsStream(uri.toASCIIString()) == null) {
 					Logging.logger.fatal("Resource not found: "+uri);
 					throw new SEPAPropertiesException("Resource not found: "+uri);
 				}
-				in = new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(uri)));
+				in = new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(uri.toASCIIString())));
+				Logging.logger.debug("Success");
 			}
 		}
 
@@ -254,35 +242,32 @@ public class SPARQL11Properties {
 
 	protected void setParameter(String key,String value) {
 		switch (key) {
-			case "-host" :
-				this.host = value;
-				break;
 			case "-sparql11protocol.port":
-				this.sparql11protocol.port = Integer.valueOf(value);
+				this.sparql11protocol.setPort(Integer.valueOf(value));
 				break;
 			case "-sparql11protocol.host":
-				this.sparql11protocol.host = host;
+				this.sparql11protocol.setHost(value);
 				break;
 			case "-sparql11protocol.protocol":
-				this.sparql11protocol.protocol = (value == "http" ? ProtocolScheme.http : ProtocolScheme.https);
+				this.sparql11protocol.setProtocol((value == "http" ? ProtocolScheme.http : ProtocolScheme.https));
 				break;
 			case "-sparql11protocol.update.method":
-				this.sparql11protocol.update.method = (value == "post" ? UpdateHTTPMethod.POST : UpdateHTTPMethod.URL_ENCODED_POST);
+				this.sparql11protocol.getUpdate().setMethod((value == "post" ? UpdateHTTPMethod.POST : UpdateHTTPMethod.URL_ENCODED_POST));
 				break;
 			case "-sparql11protocol.update.format":
-				this.sparql11protocol.update.format = (value == "json" ? UpdateResultsFormat.JSON : UpdateResultsFormat.HTML);
+				this.sparql11protocol.getUpdate().setFormat((value == "json" ? UpdateResultsFormat.JSON : UpdateResultsFormat.HTML));
 				break;
 			case "-sparql11protocol.update.path":
-				this.sparql11protocol.update.path = value;
+				this.sparql11protocol.getUpdate().setPath(value);
 				break;
 			case "-sparql11protocol.query.method":
-				this.sparql11protocol.query.method = (value == "get" ? QueryHTTPMethod.GET : (value == "post" ? QueryHTTPMethod.POST : QueryHTTPMethod.URL_ENCODED_POST));
+				this.sparql11protocol.getQuery().setMethod((value == "get" ? QueryHTTPMethod.GET : (value == "post" ? QueryHTTPMethod.POST : QueryHTTPMethod.URL_ENCODED_POST)));
 				break;
 			case "-sparql11protocol.query.format":
-				this.sparql11protocol.query.format = (value == "json" ? QueryResultsFormat.JSON : (value == "xml" ? QueryResultsFormat.XML : QueryResultsFormat.CSV));
+				this.sparql11protocol.getQuery().setFormat((value == "json" ? QueryResultsFormat.JSON : (value == "xml" ? QueryResultsFormat.XML : QueryResultsFormat.CSV)));
 				break;
 			case "-sparql11protocol.query.path":
-				this.sparql11protocol.query.path = value;
+				this.sparql11protocol.getQuery().setPath(value);
 				break;
 		}
 	}
@@ -291,28 +276,13 @@ public class SPARQL11Properties {
 		return new Gson().toJson(this);
 	}
 
-	public void write() throws SEPAPropertiesException {
-		FileWriter out;
-		try {
-			out = new FileWriter(filename);
-			out.write(this.toString());
-			out.close();
-		} catch (IOException e) {
-			if (Logging.logger.isTraceEnabled())
-				e.printStackTrace();
-			throw new SEPAPropertiesException(e.getMessage());
-		}
-	}
-
 	/**
 	 * Gets the host.
 	 *
 	 * @return the host (default is localhost)
 	 */
 	public String getHost() {
-		if (sparql11protocol == null) return host;
-		if (sparql11protocol.host == null) return host;
-		return sparql11protocol.host;
+		return sparql11protocol.getHost();
 	}
 
 	/**
@@ -320,7 +290,7 @@ public class SPARQL11Properties {
 	 *
 	 */
 	public void setHost(String host) {
-		this.host = host;
+		sparql11protocol.setHost(host);
 	}
 
 	/**
@@ -329,7 +299,7 @@ public class SPARQL11Properties {
 	 * @return the update port
 	 */
 	public int getPort() {
-		return sparql11protocol.port;
+		return sparql11protocol.getPort();
 	}
 
 	/**
@@ -338,7 +308,7 @@ public class SPARQL11Properties {
 	 * @return the update port
 	 */
 	public void setPort(int port) {
-		sparql11protocol.port = port;
+		sparql11protocol.setPort(port);
 	}
 
 	/**
@@ -448,11 +418,11 @@ public class SPARQL11Properties {
 	 * @return the update path (default is /sparql)
 	 */
 	public String getUpdatePath() {
-		return sparql11protocol.update.path;
+		return sparql11protocol.getUpdate().getPath();
 	}
 
 	public void setUpdatePath(String path) {
-		sparql11protocol.update.path = path;
+		sparql11protocol.getUpdate().setPath(path);
 	}
 
 	/**
@@ -463,11 +433,11 @@ public class SPARQL11Properties {
 	 * @see QueryHTTPMethod
 	 */
 	public UpdateHTTPMethod getUpdateMethod() {
-		return sparql11protocol.update.method;
+		return sparql11protocol.getUpdate().getMethod();
 	}
 
 	public void setUpdateMethod(UpdateHTTPMethod method) {
-		sparql11protocol.update.method = method;
+		sparql11protocol.getUpdate().setMethod(method);
 	}
 
 	/**
@@ -476,11 +446,11 @@ public class SPARQL11Properties {
 	 * @return the update HTTP Accept header string
 	 */
 	public String getUpdateAcceptHeader() {
-		return sparql11protocol.update.format.getUpdateAcceptHeader();
+		return sparql11protocol.getUpdate().getFormat().getUpdateAcceptHeader();
 	}
 
 	public void setUpdateAcceptHeader(UpdateResultsFormat format) {
-		sparql11protocol.update.format = format;
+		sparql11protocol.getUpdate().setFormat(format);
 	}
 	
 	/**
@@ -489,11 +459,11 @@ public class SPARQL11Properties {
 	 * @return the query path (default is /sparql)
 	 */
 	public String getQueryPath() {
-		return sparql11protocol.query.path;
+		return sparql11protocol.getQuery().getPath();
 	}
 
 	public void setQueryPath(String path) {
-		sparql11protocol.query.path = path;
+		sparql11protocol.getQuery().setPath(path);
 	}
 
 	/**
@@ -504,11 +474,11 @@ public class SPARQL11Properties {
 	 * @see QueryHTTPMethod
 	 */
 	public QueryHTTPMethod getQueryMethod() {
-		return sparql11protocol.query.method;
+		return sparql11protocol.getQuery().getMethod();
 	}
 
 	public void setQueryMethod(QueryHTTPMethod method) {
-		sparql11protocol.query.method = method;
+		sparql11protocol.getQuery().setMethod(method);
 	}
 
 	/**
@@ -518,27 +488,27 @@ public class SPARQL11Properties {
 	 * 
 	 */
 	public String getQueryAcceptHeader() {
-		return sparql11protocol.query.format.getQueryAcceptHeader();
+		return sparql11protocol.getQuery().getFormat().getQueryAcceptHeader();
 	}
 
 	public void setQueryAcceptHeader(QueryResultsFormat format) {
-		sparql11protocol.query.format = format;
+		sparql11protocol.getQuery().setFormat(format);
 	}
 	
 	public String getUpdateContentTypeHeader() {
-		return sparql11protocol.update.method.getUpdateContentTypeHeader();
+		return sparql11protocol.getUpdate().getMethod().getUpdateContentTypeHeader();
 	}
 
 	public String getQueryContentTypeHeader() {
-		return sparql11protocol.query.method.getQueryContentTypeHeader();
+		return sparql11protocol.getQuery().getMethod().getQueryContentTypeHeader();
 	}
 
 	public String getProtocolScheme() {
-		return (sparql11protocol.protocol == null ? null : sparql11protocol.protocol.getProtocolScheme());
+		return (sparql11protocol.getProtocol() == null ? null : sparql11protocol.getProtocol().getProtocolScheme());
 	}
 
 	public void setProtocolScheme(ProtocolScheme scheme) {
-		sparql11protocol.protocol = scheme;
+		sparql11protocol.setProtocol(scheme);
 	}
 
 	
