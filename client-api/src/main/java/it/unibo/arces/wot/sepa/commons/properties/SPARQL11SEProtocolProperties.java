@@ -1,5 +1,8 @@
 package it.unibo.arces.wot.sepa.commons.properties;
 
+import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
+import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
+
 import java.util.HashMap;
 
 public class SPARQL11SEProtocolProperties {
@@ -8,6 +11,10 @@ public class SPARQL11SEProtocolProperties {
 	private String host = null;
 	private boolean reconnect = true;
 
+	public SPARQL11SEProtocolProperties() {
+		protocol = "ws";
+		availableProtocols.put("ws",new SubscriptionProtocolProperties());
+	}
 	public SPARQL11SEProtocolProperties merge(SPARQL11SEProtocolProperties temp) {
 		if (temp != null) {
 			setProtocol((temp.getProtocol() != null ? temp.getProtocol() : getProtocol()));

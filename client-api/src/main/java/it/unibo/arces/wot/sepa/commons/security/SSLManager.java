@@ -1,27 +1,19 @@
 package it.unibo.arces.wot.sepa.commons.security;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.security.KeyFactory;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-
-import javax.xml.bind.DatatypeConverter;
 
 import org.apache.http.conn.socket.LayeredConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
@@ -144,15 +136,13 @@ public class SSLManager implements HostnameVerifier {
 	public CloseableHttpClient getSSLHttpClientTrustAllCa(String protocol) throws SEPASecurityException  {
 		// Trust own CA and all self-signed certificates and allow the specified
 		// protocols
-		LayeredConnectionSocketFactory sslsf = null;
+		LayeredConnectionSocketFactory sslsf;
 		try {
 			SSLContext ctx = SSLContext.getInstance(protocol);
 			ctx.init(null, trustAllCerts, new java.security.SecureRandom());
 			sslsf = new SSLConnectionSocketFactory(ctx, protocols, null, this);
 		} catch (KeyManagementException | NoSuchAlgorithmException e) {
 			Logging.logger.error(e.getMessage());
-			if (Logging.logger.isTraceEnabled())
-				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
 		HttpClientBuilder clientFactory = HttpClients.custom().setSSLSocketFactory(sslsf);
@@ -163,7 +153,7 @@ public class SSLManager implements HostnameVerifier {
 	public CloseableHttpClient getSSLHttpClient(String jksName, String jksPassword) throws SEPASecurityException {
 		// Trust own CA and all self-signed certificates and allow the specified
 		// protocols
-		LayeredConnectionSocketFactory sslsf = null;
+		LayeredConnectionSocketFactory sslsf;
 		try {
 			SSLContext ctx = SSLContexts.custom()
 					.loadTrustMaterial(new File(jksName), jksPassword.toCharArray(), new TrustSelfSignedStrategy())
@@ -172,8 +162,6 @@ public class SSLManager implements HostnameVerifier {
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException
 				| IOException e) {
 			Logging.logger.error(e.getMessage());
-			if (Logging.logger.isTraceEnabled())
-				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
 		HttpClientBuilder clientFactory = HttpClients.custom().setSSLSocketFactory(sslsf);
@@ -182,7 +170,7 @@ public class SSLManager implements HostnameVerifier {
 	}
 
 	public SSLContext getSSLContextTrustAllCa(String protocol) throws SEPASecurityException {
-		SSLContext sc = null;
+		SSLContext sc;
 		try {
 			sc = SSLContext.getInstance(protocol);
 			sc.init(null, trustAllCerts, new java.security.SecureRandom());
@@ -193,54 +181,20 @@ public class SSLManager implements HostnameVerifier {
 		return sc;
 	}
 
-	public SSLContext getSSLContextFromJKS(String jksName, String jksPassword) throws SEPASecurityException {
+	public SSLContext getSSLContextFromJKS(String jksName, String jksPassword) {
 		SSLContext sslContext = null;
 		try {
 			sslContext = SSLContexts
 					.custom()
 					.loadKeyMaterial(new File(jksName), jksPassword.toCharArray(), jksPassword.toCharArray())
-					.useProtocol("TLS")
+					.setProtocol("TLS")
 					.build();
-		} catch (NoSuchAlgorithmException e) {
+		} catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | CertificateException |
+                 IOException | UnrecoverableKeyException e) {
 			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
-		} catch (KeyManagementException e) {
-			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
-		} catch (KeyStoreException e) {
-			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
-		} catch (CertificateException e) {
-			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
-		} catch (IOException e) {
-			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
-		} catch (UnrecoverableKeyException e) {
-			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
+
 		}
-		return sslContext;
-	}
-
-	protected static byte[] parseDERFromPEM(byte[] pem, String beginDelimiter, String endDelimiter) {
-		String data = new String(pem);
-		String[] tokens = data.split(beginDelimiter);
-		tokens = tokens[1].split(endDelimiter);
-		return DatatypeConverter.parseBase64Binary(tokens[0]);
-	}
-
-	protected static RSAPrivateKey generatePrivateKeyFromDER(byte[] keyBytes)
-			throws InvalidKeySpecException, NoSuchAlgorithmException {
-		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
-		KeyFactory factory = KeyFactory.getInstance("RSA");
-		return (RSAPrivateKey) factory.generatePrivate(spec);
-	}
-
-	protected static X509Certificate generateCertificateFromDER(byte[] certBytes) throws CertificateException {
-		CertificateFactory factory = CertificateFactory.getInstance("X.509");
-
-		return (X509Certificate) factory.generateCertificate(new ByteArrayInputStream(certBytes));
+        return sslContext;
 	}
 
 }
