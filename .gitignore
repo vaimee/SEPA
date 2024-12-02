@@ -175,3 +175,4 @@ buildNumber.properties
 /blazegraph.jnl
 /.idea/
 /engine.jpar
+/jconsole-logging.properties
