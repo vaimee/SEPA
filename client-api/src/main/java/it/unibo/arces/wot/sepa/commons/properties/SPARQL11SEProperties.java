@@ -85,22 +85,23 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	protected SPARQL11SEProtocolProperties sparql11seprotocol;
 
 	public SPARQL11SEProperties() throws SEPAPropertiesException {
-		this((URI) null,null);
+		this((URI) null, null);
 	}
-	public SPARQL11SEProperties(String uri,String[] args) throws SEPAPropertiesException {
-		this(URI.create(uri),args);
+
+	public SPARQL11SEProperties(String uri, String[] args) throws SEPAPropertiesException {
+		this(URI.create(uri), args);
 	}
 
 	public SPARQL11SEProperties(URI uri) throws SEPAPropertiesException {
-		this(uri,null);
+		this(uri, null);
 	}
 
 	public SPARQL11SEProperties(String uri) throws SEPAPropertiesException {
-		this(URI.create(uri),null);
+		this(URI.create(uri), null);
 	}
 
-	public SPARQL11SEProperties(URI uri,String[] args) throws SEPAPropertiesException {
-		super(uri,args);
+	public SPARQL11SEProperties(URI uri, String[] args) throws SEPAPropertiesException {
+		super(uri, args);
 
 		if (uri != null) {
 			Reader in = getReaderFromUri(uri);
@@ -118,44 +119,56 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 			} catch (IOException e) {
 				throw new SEPAPropertiesException(e);
 			}
-		} else sparql11seprotocol = new SPARQL11SEProtocolProperties();
+		} else
+			sparql11seprotocol = new SPARQL11SEProtocolProperties();
 
 		Map<String, String> envs = System.getenv();
-		for(String var : envs.keySet()) {
-			Logging.logger.trace("Environmental variable "+var+" : "+envs.get(var));
-			setSeParameter("-"+var, envs.get(var));
+		for (String var : envs.keySet()) {
+			Logging.logger.trace("Environmental variable " + var + " : " + envs.get(var));
+			setSeParameter("-" + var, envs.get(var));
 		}
 
 		if (args != null)
-			for (int i = 0; i < args.length; i = i + 2) {
-				Logging.logger.trace("Argument  "+args[i]+" : "+args[i+1]);
-				setSeParameter(args[i], args[i+1]);
+			for (int i = 0; i < args.length; i++) {
+				Logging.logger.trace("Argument  " + args[i]);
+				String[] params = args[i].split("=");
+				if (params.length == 2) {
+					setParameter(params[0], params[1]);
+				}
 			}
 	}
 
-	protected void setSeParameter(String key,String value) {
+	protected void setSeParameter(String key, String value) {
 		switch (key) {
-			case "-sparql11seprotocol.host":
-				sparql11seprotocol.setHost(value);
-				break;
-			case "-sparql11seprotocol.protocol":
-				sparql11seprotocol.setProtocol(value);
-				break;
-			case "-sparql11seprotocol.reconnect":
-				sparql11seprotocol.setReconnect(Boolean.parseBoolean(value));
-				break;
-			default:
-				if (key.startsWith("-sparql11seprotocol.availableProtocols")) {
-					String[] token = key.split("\\.");
-					if (sparql11seprotocol == null) sparql11seprotocol = new SPARQL11SEProtocolProperties();
-					if (sparql11seprotocol.getAvailableProtocols() == null) {
-						sparql11seprotocol.setAvailableProtocols(new HashMap<>());
+		case "-sparql11seprotocol.host":
+			sparql11seprotocol.setHost(value);
+			break;
+		case "-sparql11seprotocol.protocol":
+			sparql11seprotocol.setProtocol(value);
+			break;
+		case "-sparql11seprotocol.reconnect":
+			sparql11seprotocol.setReconnect(Boolean.parseBoolean(value));
+			break;
+		default:
+			if (key.startsWith("-sparql11seprotocol.availableProtocols")) {
+				String[] token = key.split("\\.");
+				if (sparql11seprotocol == null)
+					sparql11seprotocol = new SPARQL11SEProtocolProperties();
+				if (sparql11seprotocol.getAvailableProtocols() == null) {
+					sparql11seprotocol.setAvailableProtocols(new HashMap<>());
+					sparql11seprotocol.getAvailableProtocols().put(token[2], new SubscriptionProtocolProperties());
+				} else {
+					if (sparql11seprotocol.getAvailableProtocols().get(token[2]) == null) {
 						sparql11seprotocol.getAvailableProtocols().put(token[2], new SubscriptionProtocolProperties());
 					}
-					if (Objects.equals(token[3], "path")) sparql11seprotocol.getAvailableProtocols().get(token[2]).setPath(value);
-					else if (Objects.equals(token[3], "port")) sparql11seprotocol.getAvailableProtocols().get(token[2]).setPort(Integer.parseInt(value));
-					else if (Objects.equals(token[3], "scheme")) sparql11seprotocol.getAvailableProtocols().get(token[2]).setScheme(value);
 				}
+				if (Objects.equals(token[3], "path"))
+					sparql11seprotocol.getAvailableProtocols().get(token[2]).setPath(value);
+				else if (Objects.equals(token[3], "port"))
+					sparql11seprotocol.getAvailableProtocols().get(token[2]).setPort(Integer.parseInt(value));
+				else if (Objects.equals(token[3], "scheme"))
+					sparql11seprotocol.getAvailableProtocols().get(token[2]).setScheme(value);
+			}
 		}
 	}
 

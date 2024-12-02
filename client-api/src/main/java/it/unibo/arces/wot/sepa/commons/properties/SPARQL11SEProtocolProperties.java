@@ -1,8 +1,5 @@
 package it.unibo.arces.wot.sepa.commons.properties;
 
-import it.unibo.arces.wot.sepa.api.SubscriptionProtocol;
-import it.unibo.arces.wot.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
-
 import java.util.HashMap;
 
 public class SPARQL11SEProtocolProperties {
