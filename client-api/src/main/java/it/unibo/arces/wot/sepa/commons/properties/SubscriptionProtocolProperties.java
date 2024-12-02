@@ -4,7 +4,19 @@ public class SubscriptionProtocolProperties {
 	private String path = null;
 	private String scheme = null;
 	private int port = -1;
-	
+
+	public SubscriptionProtocolProperties(String scheme,int port,String path) {
+		this.scheme = scheme;
+		this.port = port;
+		this.path = path;
+	}
+
+	public SubscriptionProtocolProperties() {
+		scheme = "ws";
+		port = 9000;
+		path = "/subscribe";
+	}
+
 	public String getPath() {
 		return path;
 	}

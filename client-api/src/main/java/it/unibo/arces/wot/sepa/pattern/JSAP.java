@@ -53,7 +53,6 @@ import com.google.gson.JsonObject;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPABindingsException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.commons.properties.QueryProperties.QueryHTTPMethod;
 import it.unibo.arces.wot.sepa.commons.properties.QueryProperties.QueryResultsFormat;
 import it.unibo.arces.wot.sepa.commons.properties.SPARQL11SEProperties;
@@ -189,15 +188,16 @@ import it.unibo.arces.wot.sepa.pattern.JSAPPrimitive.ForcedBinding;
 		}}
  * </pre>
  */
+@SuppressWarnings("JavadocLinkAsPlainText")
 public class JSAP extends SPARQL11SEProperties {
-	private static Set<String> numbersOrBoolean = new HashSet<String>();
-	private PrefixMappingMem prefixes;
+	private static final Set<String> numbersOrBoolean = new HashSet<>();
+	private final PrefixMappingMem prefixes;
 
 	// Members
 	protected String host = "localhost";
 	protected HashMap<String, QueryPrimitive> queries = null;// new HashMap<String, Query>();
 	protected HashMap<String, UpdatePrimitive> updates = null;// new HashMap<String, Update>();
-	protected HashMap<String, String> namespaces = new HashMap<String, String>();
+	protected HashMap<String, String> namespaces = new HashMap<>();
 	protected JsonObject extended = null;// new JsonObject();
 	protected JsonArray include = null; // new JsonArray()
 	private String prologue;
@@ -216,60 +216,81 @@ public class JSAP extends SPARQL11SEProperties {
 
 		// Default namespaces
 		if (namespaces == null)
-			namespaces = new HashMap<String, String>();
+			namespaces = new HashMap<>();
 		namespaces.put("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
 		namespaces.put("rdfs", "http://www.w3.org/2000/01/rdf-schema#");
 		namespaces.put("owl", "http://www.w3.org/2002/07/owl#");
 		namespaces.put("xsd", "http://www.w3.org/2001/XMLSchema#");
 	}
 
-	public JSAP(URI uri) throws SEPAPropertiesException, SEPASecurityException {
-		this(uri, null);
+	public JSAP(URI uri) throws SEPAPropertiesException {
+		this(uri,null);
 	}
 	
-	public JSAP(String uri) throws SEPAPropertiesException, SEPASecurityException {
-		this(URI.create(uri), null);
+	public JSAP(String uri) throws SEPAPropertiesException {
+		this(URI.create(uri),null);
 	}
 
-	public JSAP(String uri, String[] args) throws SEPAPropertiesException, SEPASecurityException {
+	public JSAP(String uri, String[] args) throws SEPAPropertiesException {
 		this(URI.create(uri),args);
 	}
-	public JSAP(URI uri, String[] args) throws SEPAPropertiesException, SEPASecurityException {
-		super(uri);
+	public JSAP(URI uri, String[] args) throws SEPAPropertiesException {
+		super(uri,args);
 
 		prefixes = new PrefixMappingMem();
 
-		load(uri, true);
+		Reader in = getReaderFromUri(uri);
+		JSAP jsap = new Gson().fromJson(in, JSAP.class);
 
-		override(args);
+		include = jsap.include;
+		host = jsap.host;
+		extended = jsap.extended;
+		graphs = jsap.graphs;
+		namespaces = jsap.namespaces;
+		queries = jsap.queries;
+		updates = jsap.updates;
+
+		try {
+			in.close();
+		} catch (IOException e) {
+			throw new SEPAPropertiesException(e);
+		}
+
+		Map<String, String> envs = System.getenv();
+		for(String var : envs.keySet()) {
+			Logging.logger.trace("Environmental variable "+var+" : "+envs.get(var));
+			setJsapParameter("-"+var, envs.get(var));
+		}
+
+		if (args != null)
+			for (int i = 0; i < args.length; i = i + 2) {
+				Logging.logger.trace("Argument  "+args[i]+" : "+args[i+1]);
+				setJsapParameter(args[i], args[i+1]);
+			}
+
+		ArrayList<String> uriList = new ArrayList<>();
+
+		if (include != null) {
+			for (JsonElement element : include)
+				uriList.add(element.getAsString());
+
+			include = new JsonArray();
+		}
+
+		for (String child : uriList) {
+			JSAP temp = new JSAP(URI.create(child));
+			merge(temp);
+		}
 
 		defaultNamespaces();
 
 		buildSPARQLPrefixes();
 	}
 	
-	protected void override(String[] args) {
-		Map<String, String> envs = System.getenv();
-		for(String var : envs.keySet()) {
-			Logging.logger.trace("Environmental variable "+var+" : "+envs.get(var));
-			setParameter("-"+var, envs.get(var));
-		}
-
-		if (args != null)
-			for (int i = 0; i < args.length; i = i + 2) {
-				Logging.logger.trace("Argument  "+args[i]+" : "+args[i+1]);
-				setParameter(args[i], args[i+1]);
-			}
-	}
-	
-	protected void setParameter(String key,String value) {
-		super.setParameter(key, value);
-		
-		switch (key) {
-			case "-host" :
-				this.host = value;
-				break;
-		}
+	protected void setJsapParameter(String key,String value) {
+        if (key.equals("-host")) {
+            this.host = value;
+        }
 	}
 
 	public void read(Reader in, boolean replace) {
@@ -292,62 +313,19 @@ public class JSAP extends SPARQL11SEProperties {
 		buildSPARQLPrefixes();
 	}
 
-	/**
-	 * Parse the file and merge the content with the actual JSAP object. Primitive
-	 * values are replaced if replace = true.
-	 *
-	 * @throws SEPAPropertiesException
-	 */
-	public void read(String uri, boolean replace) throws SEPAPropertiesException {
-		read(URI.create(uri),  replace);
-	}
-	
-	public void read(URI uri, boolean replace) throws SEPAPropertiesException {
-		Reader in = getReaderFromUri(uri);
-		read(in, replace);
-		try {
-			in.close();
-		} catch (IOException e) {
-			throw new SEPAPropertiesException(e);
-		}
-	}
-
-	public void read(String uri) throws SEPAPropertiesException, SEPASecurityException {
-		read(URI.create(uri));
-	}
-	public void read(URI uri) throws SEPAPropertiesException, SEPASecurityException {
-		read(uri, true);
-	}
-	
-	private void load(URI uri, boolean replace) throws SEPAPropertiesException, SEPASecurityException {
-		read(uri, replace);
-
-		// Include
-		ArrayList<String> uriList = new ArrayList<>();
-
-		if (include != null) {
-			for (JsonElement element : include)
-				uriList.add(element.getAsString());
-
-			include = new JsonArray();
-		}
-
-		for (String child : uriList) load(URI.create(child), false);
-	}
-
-
-
-	private void merge(JSAP temp) {
+	public void merge(JSAP temp) {
 		host = (temp.host != null ? temp.host : this.host);
 
 		if (sparql11protocol != null)
 			sparql11protocol.merge(temp.sparql11protocol);
 		else
 			sparql11protocol = temp.sparql11protocol;
+
 		if (sparql11seprotocol != null)
 			sparql11seprotocol.merge(temp.sparql11seprotocol);
 		else
 			sparql11seprotocol = temp.sparql11seprotocol;
+
 		if (graphs != null)
 			graphs.merge(temp.graphs);
 		else
@@ -441,9 +419,11 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 		Logging.logger.trace("Prefixes map: " + prefixes.toString());
 		prologue = "";
+		StringBuilder sb = new StringBuilder();
 		for (String pre : getPrefixes().getNsPrefixMap().keySet()) {
-			prologue += "PREFIX " + pre + ":<" + getPrefixes().getNsPrefixURI(pre) + "> ";
-		}
+			sb.append("PREFIX ").append(pre).append(":<").append(getPrefixes().getNsPrefixURI(pre)).append("> ");
+        }
+		prologue = sb.toString();
 		Logging.logger.trace("Prefixes SPARQL: " + prologue);
 
 	}
@@ -471,7 +451,8 @@ public class JSAP extends SPARQL11SEProperties {
 		String ret = null;
 		try {
 			ret = updates.get(id).sparql11protocol.getHost();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
+
 		}
 		if (ret == null) {
 			ret = sparql11protocol.getHost();
@@ -485,7 +466,7 @@ public class JSAP extends SPARQL11SEProperties {
 		String ret = null;
 		try {
 			ret = updates.get(id).sparql11protocol.getUpdate().getFormat().getUpdateAcceptHeader();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			
 		}
 		return (ret == null ? sparql11protocol.getUpdate().getFormat().getUpdateAcceptHeader() : ret);
@@ -495,7 +476,7 @@ public class JSAP extends SPARQL11SEProperties {
 		UpdateProperties.UpdateHTTPMethod ret = null;
 		try {
 			ret =  updates.get(id).sparql11protocol.getUpdate().getMethod();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			
 		}
 		return (ret == null ? sparql11protocol.getUpdate().getMethod() : ret);
@@ -505,7 +486,7 @@ public class JSAP extends SPARQL11SEProperties {
 		String ret = null;
 		try {
 			ret = updates.get(id).sparql11protocol.getProtocol().getProtocolScheme();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			
 		}
 		return (ret == null ? sparql11protocol.getProtocol().getProtocolScheme() : ret);
@@ -514,8 +495,8 @@ public class JSAP extends SPARQL11SEProperties {
 	public String getUpdatePath(String id) {
 		String ret = null;
 		try {
-			return updates.get(id).sparql11protocol.getUpdate().getPath();
-		} catch (Exception e) {
+			ret = updates.get(id).sparql11protocol.getUpdate().getPath();
+		} catch (Exception ignored) {
 			
 		}
 		return (ret == null ? sparql11protocol.getUpdate().getPath() : ret);
@@ -525,7 +506,7 @@ public class JSAP extends SPARQL11SEProperties {
 		int ret = -1;
 		try {
 			ret =  updates.get(id).sparql11protocol.getPort();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			
 		}
 		return (ret == -1 ? sparql11protocol.getPort() : ret);
@@ -615,7 +596,7 @@ public class JSAP extends SPARQL11SEProperties {
 		String ret = null;
 		try {
 			ret = queries.get(id).sparql11protocol.getHost();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			
 		}
 		if (ret == null) {
@@ -638,7 +619,7 @@ public class JSAP extends SPARQL11SEProperties {
 		int ret = -1;
 		try {
 			ret =  queries.get(id).sparql11protocol.getPort();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			
 		}
 		return (ret == -1 ? sparql11protocol.getPort() : ret);
@@ -648,7 +629,7 @@ public class JSAP extends SPARQL11SEProperties {
 		String ret = null;
 		try {
 			ret = queries.get(id).sparql11protocol.getQuery().getPath();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			
 		}
 		return (ret == null ?sparql11protocol.getQuery().getPath() : ret);
@@ -658,7 +639,7 @@ public class JSAP extends SPARQL11SEProperties {
 		QueryHTTPMethod ret = null;
 		try {
 			ret = queries.get(id).sparql11protocol.getQuery().getMethod();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			
 		}
 		return (ret == null ? sparql11protocol.getQuery().getMethod() : ret);
@@ -668,7 +649,7 @@ public class JSAP extends SPARQL11SEProperties {
 		String ret= null;
 		try {
 			ret =  queries.get(id).sparql11protocol.getQuery().getFormat().getQueryAcceptHeader();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 		}
 		return (ret == null ? sparql11protocol.getQuery().getFormat().getQueryAcceptHeader(): ret);
 	}
@@ -754,7 +735,7 @@ public class JSAP extends SPARQL11SEProperties {
 		String ret=null;
 		try {
 			ret = queries.get(id).sparql11seprotocol.getHost();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 			
 		}
 		if(ret == null) {
@@ -767,9 +748,7 @@ public class JSAP extends SPARQL11SEProperties {
 	public void setSubscribeHost(String id, String host) {
 		if (queries.get(id) == null)
 			return;
-//		if (queries.get(id).sparql11seprotocol == null)
-//			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.setHost(host);
+        queries.get(id).sparql11seprotocol.setHost(host);
 	}
 
 	public int getSubscribePort(String id) {
@@ -777,7 +756,7 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			ret = queries.get(id).sparql11seprotocol.getAvailableProtocols()
 					.get(queries.get(id).sparql11seprotocol.getProtocol()).getPort();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 		}
 		return (ret == -1 ? sparql11seprotocol.getPort() : ret);
 	}
@@ -785,9 +764,7 @@ public class JSAP extends SPARQL11SEProperties {
 	public void setSubscribePort(String id, int port) {
 		if (queries.get(id) == null)
 			return;
-//		if (queries.get(id).sparql11seprotocol == null)
-//			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.getAvailableProtocols()
+        queries.get(id).sparql11seprotocol.getAvailableProtocols()
 				.get(queries.get(id).sparql11seprotocol.getProtocol()).setPort(port);
 	}
 
@@ -796,7 +773,7 @@ public class JSAP extends SPARQL11SEProperties {
 		try {
 			ret=  queries.get(id).sparql11seprotocol.getAvailableProtocols()
 					.get(queries.get(id).sparql11seprotocol.getProtocol()).getPath();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 		}
 		return (ret == null ? sparql11seprotocol.getPath() : ret);
 	}
@@ -804,9 +781,7 @@ public class JSAP extends SPARQL11SEProperties {
 	public void setSubscribePath(String id, String path) {
 		if (queries.get(id) == null)
 			return;
-//		if (queries.get(id).sparql11seprotocol == null)
-//			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.getAvailableProtocols()
+        queries.get(id).sparql11seprotocol.getAvailableProtocols()
 				.get(queries.get(id).sparql11seprotocol.getProtocol()).setPath(path);
 	}
 
@@ -814,7 +789,7 @@ public class JSAP extends SPARQL11SEProperties {
 		SubscriptionProtocolProperties ret = null;
 		try {
 			ret=  queries.get(id).sparql11seprotocol.getSubscriptionProtocol();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 		}
 		return (ret == null ? sparql11seprotocol.getSubscriptionProtocol() : ret);
 	}
@@ -826,9 +801,7 @@ public class JSAP extends SPARQL11SEProperties {
 	public void setSubscribeProtocol(String id, SubscriptionProtocolProperties sp) {
 		if (queries.get(id) == null)
 			return;
-//		if (queries.get(id).sparql11seprotocol == null)
-//			queries.get(id).sparql11seprotocol = new SPARQL11SEProperties();
-		queries.get(id).sparql11seprotocol.setProtocol(sp.getScheme());
+        queries.get(id).sparql11seprotocol.setProtocol(sp.getScheme());
 	}
 
 	public Set<String> getUpdateIds() {
@@ -875,7 +848,7 @@ public class JSAP extends SPARQL11SEProperties {
 				if (binding.getValue().type == null)
 					continue;
 
-				RDFTerm bindingValue = null;
+				RDFTerm bindingValue;
 				String value = binding.getValue().value;
 
 				switch (binding.getValue().type) {
@@ -919,7 +892,7 @@ public class JSAP extends SPARQL11SEProperties {
 				if (binding.getValue().type == null)
 					continue;
 
-				RDFTerm bindingValue = null;
+				RDFTerm bindingValue;
 				String value = binding.getValue().value;
 
 				switch (binding.getValue().type) {
@@ -963,7 +936,7 @@ public class JSAP extends SPARQL11SEProperties {
 				if (binding.getValue().type == null)
 					continue;
 
-				RDFTerm bindingValue = null;
+				RDFTerm bindingValue;
 				String value = binding.getValue().value;
 
 				switch (binding.getValue().type) {
@@ -993,11 +966,7 @@ public class JSAP extends SPARQL11SEProperties {
 		return ret;
 	}
 
-	public String toString() {
-		return new Gson().toJson(this);
-	}
-
-	public String getUpdateUrl(String id) throws IllegalArgumentException {
+    public String getUpdateUrl(String id) throws IllegalArgumentException {
 		if (updates.get(id) == null)
 			throw new IllegalArgumentException("Update ID not found: " + id);
 		String port = "";
@@ -1047,7 +1016,7 @@ public class JSAP extends SPARQL11SEProperties {
 		 * UpdateLoad, UpdateWithUsing
 		 * 
 		 */
-		String ret = "";
+		StringBuilder sb = new StringBuilder();
 
 		try {
 			UpdateRequest request = UpdateFactory.create();
@@ -1057,8 +1026,6 @@ public class JSAP extends SPARQL11SEProperties {
 			UpdateWriterVisitor visitor = new UpdateWriterVisitor(writer, new SerializationContext());
 
 			for (Update upd : request.getOperations()) {
-				String prologue = "";
-
 				if (upd instanceof UpdateDataDelete)
 					visitor.visit((UpdateDataDelete) upd);
 				else if (upd instanceof UpdateDataInsert)
@@ -1086,32 +1053,24 @@ public class JSAP extends SPARQL11SEProperties {
 
 				if (upd instanceof UpdateModify || upd instanceof UpdateAdd || upd instanceof UpdateDataDelete || upd instanceof UpdateDataInsert
 						|| upd instanceof UpdateDeleteWhere) {
-					prologue = extractPrologue(null);
+					if (!sb.toString().isEmpty()) sb.append(";");
+					sb.append(prologue).append(writer);
 				}
 
-				if (ret.equals("")) {
-					ret = prologue + writer.toString();
-				} else {
-					ret += ";" + prologue + writer.toString();
-				}
+				if (!sb.toString().isEmpty()) sb.append(";");
+				sb.append(writer);
 			}
 			
 		} catch (QueryParseException ex) {
-			ret = extractPrologue(null) + replaceBindings(sparql, bindings);
+			sb.append(prologue).append(replaceBindings(sparql, bindings));
 		}
 
-		return ret;
-	}
-
-	private String extractPrologue(Update upd) {
-		if (upd == null)
-			return prologue;
-		return null;
+		return sb.toString();
 	}
 
 	public String addPrefixesAndReplaceMultipleBindings(String sparql, ArrayList<Bindings> bindings)
 			throws SEPABindingsException {
-		return extractPrologue(null) + replaceMultipleBindings(sparql, bindings);
+		return prologue + replaceMultipleBindings(sparql, bindings);
 	}
 
 	// TODO: use Jena?
@@ -1135,7 +1094,7 @@ public class JSAP extends SPARQL11SEProperties {
 //		
 //	}
 
-	public static final String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
+	public static String replaceBindings(String sparql, Bindings bindings) throws SEPABindingsException {
 		if (bindings == null || sparql == null)
 			return sparql;
 
@@ -1286,7 +1245,7 @@ public class JSAP extends SPARQL11SEProperties {
 		return replacedSparql;
 	}
 
-	public static final String replaceMultipleBindings(String sparql, ArrayList<Bindings> multipleBindings)
+	public static String replaceMultipleBindings(String sparql, ArrayList<Bindings> multipleBindings)
 			throws SEPABindingsException {
 		long start = Timings.getTime();
 		if (multipleBindings == null || sparql == null)
@@ -1295,13 +1254,12 @@ public class JSAP extends SPARQL11SEProperties {
 		if (multipleBindings.isEmpty())
 			return sparql;
 
-		ArrayList<String> vars = new ArrayList<>();
-		vars.addAll(multipleBindings.get(0).getVariables());
+        ArrayList<String> vars = new ArrayList<>(multipleBindings.get(0).getVariables());
 
 		ArrayList<ArrayList<String>> allValues = new ArrayList<>();
 
 		for (Bindings bindings : multipleBindings) {
-			ArrayList<String> values = new ArrayList<String>();
+			ArrayList<String> values = new ArrayList<>();
 			for (String var : vars) {
 				String value = bindings.getValue(var);
 				if (value == null) {
@@ -1428,23 +1386,25 @@ public class JSAP extends SPARQL11SEProperties {
 		// { (UNDEF "SPARQL Tutorial")
 		// (:book2 UNDEF)
 		// }
-		String VARS = "(";
+		StringBuilder VARS = new StringBuilder();
+		VARS.append("(");
 		for (String var : vars) {
-			VARS += "?" + var + " ";
+			VARS.append("?").append(var).append(" ");
 		}
-		VARS += ")";
-		String VALUES = "{";
+		VARS.append(")");
+		StringBuilder VALUES = new StringBuilder();
+		VALUES.append("{");
 		for (ArrayList<String> values : allValues) {
-			VALUES += "(";
+			VALUES.append("(");
 			for (String value : values) {
-				VALUES += value + " ";
+				VALUES.append(value).append(" ");
 			}
-			VALUES += ")";
+			VALUES.append(")");
 		}
-		VALUES += "}";
+		VALUES.append("}");
 
 		int end = replacedSparql.lastIndexOf("}");
-		
+
 		String ret = replacedSparql.substring(0, end) + " VALUES " + VARS + VALUES + "}";
 		long stop = Timings.getTime();
 		Timings.log("replaceMultipleBindings", start, stop);

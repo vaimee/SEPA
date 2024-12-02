@@ -4,18 +4,18 @@ import it.unibo.arces.wot.sepa.commons.properties.SPARQL11Properties.ProtocolSch
 
 public class SPARQL11ProtocolProperties {
 	private String host = null;
-	private ProtocolScheme protocol = null;
-	private int port = -1;
+	private ProtocolScheme protocol = ProtocolScheme.http;
+	private int port = 8000;
 	private QueryProperties query = new QueryProperties();
 	private UpdateProperties update = new UpdateProperties();
-	
+
 	public SPARQL11ProtocolProperties merge(SPARQL11ProtocolProperties temp) {
 		if (temp != null) {
-			this.setHost((temp.getHost() != null ? temp.getHost() : this.getHost()));
-			this.setProtocol((temp.getProtocol() != null ? temp.getProtocol() : this.getProtocol()));
-			this.setPort((temp.getPort() != -1 ? temp.getPort() : this.getPort()));
-			this.getQuery().merge(temp.getQuery());
-			this.getUpdate().merge(temp.getUpdate());
+			setHost((temp.getHost() != null ? temp.getHost() : getHost()));
+			setProtocol((temp.getProtocol() != null ? temp.getProtocol() : getProtocol()));
+			setPort((temp.getPort() != -1 ? temp.getPort() : getPort()));
+			getQuery().merge(temp.getQuery());
+			getUpdate().merge(temp.getUpdate());
 		} 
 		
 		return this;

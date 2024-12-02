@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonIOException;
@@ -54,7 +56,6 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	/**
 	 * 
 	 * The primitives introduced by the SPARQL 1.1 SE Protocol are:
-	 *
 	 * SECUREUPDATE,SECUREQUERY,SUBSCRIBE,SECURESUBSCRIBE,UNSUBSCRIBE,SECUREUNSUBSCRIBE,REGISTER,REQUESTTOKEN
 	 *
 	 *
@@ -83,90 +84,79 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 	// Members
 	protected SPARQL11SEProtocolProperties sparql11seprotocol;
 
-	public SPARQL11SEProperties() {
-		super();
-
-		override(null);
+	public SPARQL11SEProperties() throws SEPAPropertiesException {
+		this((URI) null,null);
 	}
-//
-//	/**
-//	 * Instantiates a new SPARQL 11 SE properties.
-//	 *
-//	 * @param in where to read the JSAP from
-//	 * @throws SEPAPropertiesException
-//	 */
-//	public SPARQL11SEProperties(Reader in) throws SEPAPropertiesException {
-//		this(in,null);
-//	}
-//
-//	public SPARQL11SEProperties(Reader in,String[] args) throws SEPAPropertiesException {
-//		super(in,args);
-//
-//		parseJSAP(in);
-//
-//		override(args);
-//	}
-
-	public SPARQL11SEProperties(URI uri,String[] args) throws SEPAPropertiesException {
-		super(uri);
-
-		Reader in = getReaderFromUri(uri);
-		parseJSAP(in);
-		try {
-			in.close();
-		} catch (IOException e) {
-			throw new SEPAPropertiesException(e);
-		}
-
-		override(args);
+	public SPARQL11SEProperties(String uri,String[] args) throws SEPAPropertiesException {
+		this(URI.create(uri),args);
 	}
 
 	public SPARQL11SEProperties(URI uri) throws SEPAPropertiesException {
-		super(uri,null);
+		this(uri,null);
 	}
 
-	private void parseJSAP(Reader in) throws SEPAPropertiesException {
-		SPARQL11SEProperties jsap;
-		try {
-			jsap = new Gson().fromJson(in, SPARQL11SEProperties.class);
-			sparql11seprotocol = jsap.sparql11seprotocol;
-		} catch (JsonSyntaxException | JsonIOException e2) {
-			Logging.logger.error(e2.getMessage());
-			e2.printStackTrace();
-			throw new SEPAPropertiesException(e2);
+	public SPARQL11SEProperties(String uri) throws SEPAPropertiesException {
+		this(URI.create(uri),null);
+	}
+
+	public SPARQL11SEProperties(URI uri,String[] args) throws SEPAPropertiesException {
+		super(uri,args);
+
+		if (uri != null) {
+			Reader in = getReaderFromUri(uri);
+			SPARQL11SEProperties jsap;
+			try {
+				jsap = new Gson().fromJson(in, SPARQL11SEProperties.class);
+				sparql11seprotocol = jsap.sparql11seprotocol;
+			} catch (JsonSyntaxException | JsonIOException e2) {
+				Logging.logger.error(e2.getMessage());
+				throw new SEPAPropertiesException(e2);
+			}
+
+			try {
+				in.close();
+			} catch (IOException e) {
+				throw new SEPAPropertiesException(e);
+			}
+		} else sparql11seprotocol = new SPARQL11SEProtocolProperties();
+
+		Map<String, String> envs = System.getenv();
+		for(String var : envs.keySet()) {
+			Logging.logger.trace("Environmental variable "+var+" : "+envs.get(var));
+			setSeParameter("-"+var, envs.get(var));
 		}
+
+		if (args != null)
+			for (int i = 0; i < args.length; i = i + 2) {
+				Logging.logger.trace("Argument  "+args[i]+" : "+args[i+1]);
+				setSeParameter(args[i], args[i+1]);
+			}
 	}
 
-	protected void setParameter(String key,String value) {
-		super.setParameter(key, value);
-		
+	protected void setSeParameter(String key,String value) {
 		switch (key) {
 			case "-sparql11seprotocol.host":
-				this.sparql11seprotocol.setHost(value);
+				sparql11seprotocol.setHost(value);
 				break;
 			case "-sparql11seprotocol.protocol":
-				this.sparql11seprotocol.setProtocol(value);
+				sparql11seprotocol.setProtocol(value);
 				break;
 			case "-sparql11seprotocol.reconnect":
-				this.sparql11seprotocol.setReconnect(Boolean.valueOf(value));
+				sparql11seprotocol.setReconnect(Boolean.parseBoolean(value));
 				break;
 			default:
 				if (key.startsWith("-sparql11seprotocol.availableProtocols")) {
 					String[] token = key.split("\\.");
-					if (this.sparql11seprotocol == null) sparql11seprotocol = new SPARQL11SEProtocolProperties();
-					if (this.sparql11seprotocol.getAvailableProtocols() == null) {
-						this.sparql11seprotocol.setAvailableProtocols(new HashMap<String,SubscriptionProtocolProperties>());
-						this.sparql11seprotocol.getAvailableProtocols().put(token[2], new SubscriptionProtocolProperties());
+					if (sparql11seprotocol == null) sparql11seprotocol = new SPARQL11SEProtocolProperties();
+					if (sparql11seprotocol.getAvailableProtocols() == null) {
+						sparql11seprotocol.setAvailableProtocols(new HashMap<>());
+						sparql11seprotocol.getAvailableProtocols().put(token[2], new SubscriptionProtocolProperties());
 					}
-					if (token[3] == "path") this.sparql11seprotocol.getAvailableProtocols().get(token[2]).setPath(value);
-					else if (token[3] == "port") this.sparql11seprotocol.getAvailableProtocols().get(token[2]).setPort(Integer.valueOf(value));
-					else if (token[3] == "scheme") this.sparql11seprotocol.getAvailableProtocols().get(token[2]).setScheme(value);
+					if (Objects.equals(token[3], "path")) sparql11seprotocol.getAvailableProtocols().get(token[2]).setPath(value);
+					else if (Objects.equals(token[3], "port")) sparql11seprotocol.getAvailableProtocols().get(token[2]).setPort(Integer.parseInt(value));
+					else if (Objects.equals(token[3], "scheme")) sparql11seprotocol.getAvailableProtocols().get(token[2]).setScheme(value);
 				}
 		}
-	}
-
-	public String toString() {
-		return new Gson().toJson(this);
 	}
 
 	public String getSubscribeHost() {
