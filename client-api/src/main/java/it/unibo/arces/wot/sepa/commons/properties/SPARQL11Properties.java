@@ -87,8 +87,6 @@ public class SPARQL11Properties {
 	protected SPARQL11ProtocolProperties sparql11protocol;
 	protected GraphsProperties graphs = null;
 
-	private URI uri = null;
-		
 	/**
 	 * The Enum SPARQLPrimitive (QUERY, UPDATE).
 	 */
@@ -170,12 +168,14 @@ public class SPARQL11Properties {
 		}
 
 		if (args != null)
-			for (int i = 0; i < args.length; i = i + 2) {
-				Logging.logger.trace("Argument  "+args[i]+" : "+args[i+1]);
-				setParameter(args[i], args[i+1]);
+			// Setting values: -key=value
+			for (int i = 0; i < args.length; i++) {
+				Logging.logger.trace("Argument  "+args[i]);
+				String[] params = args[i].split("=");
+				if (params.length == 2) {
+					setParameter(params[0], params[1]);
+				}
 			}
-
-		this.uri = uri;
 	}
 
 	protected void setParameter(String key,String value) {
@@ -208,19 +208,6 @@ public class SPARQL11Properties {
 				sparql11protocol.getQuery().setPath(value);
 				break;
 		}
-	}
-
-	private void parseJSAP(Reader in) throws SEPAPropertiesException {
-		SPARQL11Properties jsap;
-		try {
-			jsap = new Gson().fromJson(in, SPARQL11Properties.class);
-		} catch (JsonSyntaxException | JsonIOException  e) {
-			Logging.logger.error(e.getMessage());
-			throw new SEPAPropertiesException(e);
-		}
-
-		this.sparql11protocol = jsap.sparql11protocol;
-		this.graphs = jsap.graphs;
 	}
 
 	/*
