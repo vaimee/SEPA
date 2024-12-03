@@ -202,6 +202,11 @@ public class JSAP extends SPARQL11SEProperties {
 	protected JsonArray include = null; // new JsonArray()
 	private String prologue;
 
+	public static void writeToFile(JSAP jsap,String fileName) throws IOException {
+		FileWriter fw = new FileWriter(fileName);
+		fw.write(jsap.toString());
+		fw.close();
+	}
 	private void defaultNamespaces() {
 		// Numbers or boolean
 		numbersOrBoolean.add("xsd:integer");
@@ -263,9 +268,12 @@ public class JSAP extends SPARQL11SEProperties {
 		}
 
 		if (args != null)
-			for (int i = 0; i < args.length; i = i + 2) {
-				Logging.logger.trace("Argument  "+args[i]+" : "+args[i+1]);
-				setJsapParameter(args[i], args[i+1]);
+			for (int i = 0; i < args.length; i++) {
+				Logging.logger.trace("Argument  "+args[i]);
+				String[] params = args[i].split("=");
+				if (params.length == 2) {
+					setJsapParameter(params[0], params[1]);
+				}
 			}
 
 		ArrayList<String> uriList = new ArrayList<>();
@@ -1026,6 +1034,8 @@ public class JSAP extends SPARQL11SEProperties {
 			UpdateWriterVisitor visitor = new UpdateWriterVisitor(writer, new SerializationContext());
 
 			for (Update upd : request.getOperations()) {
+				if (!sb.toString().isEmpty()) sb.append(";");
+
 				if (upd instanceof UpdateDataDelete)
 					visitor.visit((UpdateDataDelete) upd);
 				else if (upd instanceof UpdateDataInsert)
@@ -1052,12 +1062,9 @@ public class JSAP extends SPARQL11SEProperties {
 					visitor.visit((UpdateModify) upd);
 
 				if (upd instanceof UpdateModify || upd instanceof UpdateAdd || upd instanceof UpdateDataDelete || upd instanceof UpdateDataInsert
-						|| upd instanceof UpdateDeleteWhere) {
-					if (!sb.toString().isEmpty()) sb.append(";");
-					sb.append(prologue).append(writer);
-				}
+						|| upd instanceof UpdateDeleteWhere)
+					sb.append(prologue);
 
-				if (!sb.toString().isEmpty()) sb.append(";");
 				sb.append(writer);
 			}
 			
