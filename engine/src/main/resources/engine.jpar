@@ -1,1 +1,34 @@
-{"scheduler":{"queueSize":1000,"timeout":5000},"processor":{"updateTimeout":5000,"queryTimeout":30000,"maxConcurrentRequests":5,"reliableUpdate":true},"spu":{"timeout":5000},"gates":{"security":{"tls":false,"enabled":false,"type":"local"},"paths":{"update":"/sparql","query":"/sparql","subscribe":"/subscribe","unsubscribe":"/unsubscribe","register":"/oauth/register","tokenRequest":"/oauth/token"},"ports":{"http":8000,"ws":9000}}}
+{
+	"scheduler": {
+		"queueSize": 1000,
+		"timeout": 5000
+	},
+	"processor": {
+		"updateTimeout": 5000,
+		"queryTimeout": 30000,
+		"maxConcurrentRequests": 5,
+		"reliableUpdate": true
+	},
+	"spu": {
+		"timeout": 5000
+	},
+	"gates": {
+		"security": {
+			"tls": false,
+			"enabled": false,
+			"type": "local"
+		},
+		"paths": {
+			"update": "/update",
+			"query": "/query",
+			"subscribe": "/subscribe",
+			"unsubscribe": "/unsubscribe",
+			"register": "/oauth/register",
+			"tokenRequest": "/oauth/token"
+		},
+		"ports": {
+			"http": 8000,
+			"ws": 9000
+		}
+	}
+}
