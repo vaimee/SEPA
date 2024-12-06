@@ -7,12 +7,12 @@
 		"protocol": "http",
 		"port": 8000,
 		"query": {
-			"path": "/sparql",
+			"path": "/query",
 			"method": "POST",
 			"format": "JSON"
 		},
 		"update": {
-			"path": "/sparql",
+			"path": "/update",
 			"method": "POST",
 			"format": "JSON"
 		}

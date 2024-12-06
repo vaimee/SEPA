@@ -41,9 +41,9 @@ public class StressPAC {
 	public void beginTest() throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException, InterruptedException, IOException {
 		Thread.sleep(ConfigurationProvider.SLEEP);
 		
-		assertFalse(sync.getSubscribes() != sync.getUnsubscribes(), "Subscribes: "+sync.getSubscribes()+"Unsubscribes: "+sync.getUnsubscribes());
-		
 		sync.reset();
+		
+		assertFalse(sync.getSubscribes() != sync.getUnsubscribes(), "Subscribes: "+sync.getSubscribes()+"  == Unsubscribes: "+sync.getUnsubscribes());
 		
 		Producer deleteAll = new Producer(provider.getJsap(), "DELETE_ALL");
 		deleteAll.update();
@@ -53,7 +53,7 @@ public class StressPAC {
 
 	@AfterEach
 	public void afterTest() throws IOException, InterruptedException, SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
-		assertFalse(sync.getSubscribes() != sync.getUnsubscribes(), "Subscribes: "+sync.getSubscribes()+"Unsubscribes: "+sync.getUnsubscribes());
+		assertFalse(sync.getSubscribes() != sync.getUnsubscribes(), "Subscribes: "+sync.getSubscribes()+" == Unsubscribes: "+sync.getUnsubscribes());
 	}
 
 	@RepeatedTest(ConfigurationProvider.REPEATED_TEST)
@@ -84,7 +84,7 @@ public class StressPAC {
 		randomAggregator.syncUnsubscribe(provider.TIMEOUT, provider.NRETRY);
 		consumerRandom1.syncUnsubscribe(provider.TIMEOUT, provider.NRETRY);
 		
-		assertFalse(sync.getSubscribes() != sync.getUnsubscribes(), "Subscribes: "+sync.getSubscribes()+"Unsubscribes: "+sync.getUnsubscribes());
+		assertFalse(sync.getSubscribes() != sync.getUnsubscribes(), "Subscribes: "+sync.getSubscribes()+" == Unsubscribes: "+sync.getUnsubscribes());
 		
 		randomAggregator.close();
 		consumerRandom1.close();
@@ -120,7 +120,7 @@ public class StressPAC {
 		randomAggregator.syncUnsubscribe(provider.TIMEOUT, provider.NRETRY);
 		consumerRandom1.syncUnsubscribe(provider.TIMEOUT, provider.NRETRY);
 		
-		assertFalse(sync.getSubscribes() != sync.getUnsubscribes(), "Subscribes: "+sync.getSubscribes()+"Unsubscribes: "+sync.getUnsubscribes());
+		assertFalse(sync.getSubscribes() != sync.getUnsubscribes(), "Subscribes: "+sync.getSubscribes()+" == Unsubscribes: "+sync.getUnsubscribes());
 		
 		randomAggregator.close();
 		consumerRandom1.close();

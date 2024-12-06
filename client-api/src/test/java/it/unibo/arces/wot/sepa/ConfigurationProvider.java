@@ -14,15 +14,15 @@ import it.unibo.arces.wot.sepa.commons.security.ClientSecurityManager;
 import it.unibo.arces.wot.sepa.pattern.JSAP;
 
 import java.io.Closeable;
-import java.io.File;
+//import java.io.File;
 import java.io.IOException;
-import java.net.URI;
+//import java.net.URI;
 import java.util.UUID;
 
 public class ConfigurationProvider implements Closeable {
 	private final JSAP appProfile;
 	private String prefixes = "";
-	private final String jsapPath;
+	//private final String jsapPath;
 
 	public long TIMEOUT;
 	public long NRETRY;
@@ -34,25 +34,26 @@ public class ConfigurationProvider implements Closeable {
 	public ConfigurationProvider() throws SEPAPropertiesException, SEPASecurityException {
 		String jsapFileName = "sepatest.jsap";
 
-		if (System.getProperty("testConfiguration") != null) {
-			jsapFileName = System.getProperty("testConfiguration");
-			Logging.logger.debug("JSAP from property testConfiguration: " + jsapFileName);
-		} else if (System.getProperty("secure") != null) {
-			jsapFileName = "sepatest-secure.jsap";
-			Logging.logger.debug("JSAP secure default: " + jsapFileName);
-		}
-
-		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
-		File f = new File(jsapPath);
-		if (!f.exists()) {
-			Logging.logger.error("File not found: " + jsapPath);
-			throw new SEPAPropertiesException("File not found: " + jsapPath);
-		}
-
-		Logging.logger.debug("Loading JSAP from: " + f.getPath());
+//		if (System.getProperty("testConfiguration") != null) {
+//			jsapFileName = System.getProperty("testConfiguration");
+//			Logging.logger.debug("JSAP from property testConfiguration: " + jsapFileName);
+//		} else if (System.getProperty("secure") != null) {
+//			jsapFileName = "sepatest-secure.jsap";
+//			Logging.logger.debug("JSAP secure default: " + jsapFileName);
+//		}
+//
+//		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
+//		File f = new File(jsapPath);
+//		if (!f.exists()) {
+//			Logging.logger.error("File not found: " + jsapPath);
+//			throw new SEPAPropertiesException("File not found: " + jsapPath);
+//		}
+//
+//		Logging.logger.debug("Loading JSAP from: " + f.getPath());
 
 		try {
-			appProfile = new JSAP(URI.create(f.getPath()));
+//			appProfile = new JSAP(URI.create(f.getPath()));
+			appProfile = new JSAP(jsapFileName);
 		} catch (SEPAPropertiesException e) {
 			Logging.logger.error(e.getMessage());
 			throw new RuntimeException(e);
