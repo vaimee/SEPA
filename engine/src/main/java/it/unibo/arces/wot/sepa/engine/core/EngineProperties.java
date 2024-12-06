@@ -335,7 +335,7 @@ public class EngineProperties {
 	public String getSSLCertificate() {
 		if (!isSecure())
 			return "Security off";
-		return jwt.getParsedX509CertChain().get(0).getIssuerDN().getName() + " "
+		return jwt.getParsedX509CertChain().get(0).getSubjectX500Principal().getName() + " "
 				+ jwt.getParsedX509CertChain().get(0).getNotAfter().toString();
 	}
 

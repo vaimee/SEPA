@@ -25,7 +25,7 @@ public class Publisher extends Thread implements Closeable {
 
 		running = new AtomicLong(n);
 
-		this.setName("Publisher-" + id + "-" + this.getId());
+		this.setName("Publisher-" + id + "-" + this.threadId());
 		this.provider = provider;
 
 		client = new SPARQL11Protocol(provider.getClientSecurityManager());

@@ -188,7 +188,6 @@ import it.unibo.arces.wot.sepa.pattern.JSAPPrimitive.ForcedBinding;
 		}}
  * </pre>
  */
-@SuppressWarnings("JavadocLinkAsPlainText")
 public class JSAP extends SPARQL11SEProperties {
 	private static final Set<String> numbersOrBoolean = new HashSet<>();
 	private final PrefixMappingMem prefixes;
@@ -451,6 +450,12 @@ public class JSAP extends SPARQL11SEProperties {
 	/*
 	 * UPDATE
 	 */
+	public String getUpdateHost() {
+		String ret = sparql11protocol.getHost();
+		if (ret == null) ret = host;
+		return ret;
+	}	
+	
 	public String getSPARQLUpdate(String id) {
 		return (updates.get(id) == null ? null : updates.get(id).sparql);
 	}
@@ -596,6 +601,12 @@ public class JSAP extends SPARQL11SEProperties {
 	/*
 	 * QUERY
 	 */
+	public String getQueryHost() {
+		String ret = sparql11protocol.getHost();
+		if (ret == null) ret = host;
+		return ret;
+	}	
+
 	public String getSPARQLQuery(String id) {
 		return (queries.get(id) == null ? null : queries.get(id).sparql);
 	}
@@ -738,7 +749,12 @@ public class JSAP extends SPARQL11SEProperties {
 	/*
 	 * SUBSCRIBE
 	 */
-
+	public String getSubscribeHost() {
+		String ret = sparql11seprotocol.getHost();
+		if 	(ret == null) ret = host;
+		return ret;
+	}
+	
 	public String getSubscribeHost(String id) {
 		String ret=null;
 		try {
@@ -1030,12 +1046,13 @@ public class JSAP extends SPARQL11SEProperties {
 			UpdateRequest request = UpdateFactory.create();
 			request.setPrefixMapping(prefixes);
 			UpdateFactory.parse(request, replaceBindings(sparql, bindings));
-			IndentedWriter writer = new IndentedLineBuffer();
-			UpdateWriterVisitor visitor = new UpdateWriterVisitor(writer, new SerializationContext());
-
+			
 			for (Update upd : request.getOperations()) {
+				IndentedWriter writer = new IndentedLineBuffer();
+				UpdateWriterVisitor visitor = new UpdateWriterVisitor(writer, new SerializationContext());
 				if (!sb.toString().isEmpty()) sb.append(";");
-
+				else sb.append(prologue);
+				
 				if (upd instanceof UpdateDataDelete)
 					visitor.visit((UpdateDataDelete) upd);
 				else if (upd instanceof UpdateDataInsert)
@@ -1061,12 +1078,10 @@ public class JSAP extends SPARQL11SEProperties {
 				else if (upd instanceof UpdateModify)
 					visitor.visit((UpdateModify) upd);
 
-				if (upd instanceof UpdateModify || upd instanceof UpdateAdd || upd instanceof UpdateDataDelete || upd instanceof UpdateDataInsert
-						|| upd instanceof UpdateDeleteWhere)
-					sb.append(prologue);
-
 				sb.append(writer);
 			}
+			
+			
 			
 		} catch (QueryParseException ex) {
 			sb.append(prologue).append(replaceBindings(sparql, bindings));

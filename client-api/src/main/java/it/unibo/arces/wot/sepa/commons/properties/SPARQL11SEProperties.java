@@ -133,7 +133,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 				Logging.logger.trace("Argument  " + args[i]);
 				String[] params = args[i].split("=");
 				if (params.length == 2) {
-					setParameter(params[0], params[1]);
+					setSeParameter(params[0], params[1]);
 				}
 			}
 	}
