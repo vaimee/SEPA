@@ -29,14 +29,7 @@ jobs:
   
   test:
     runs-on: ubuntu-latest
-    needs: build
-    
-    services:
-      blazegraph: 
-        image: nawer/blazegraph:2.1.5
-        ports: 
-          - 9999:9999
-    
+    needs: build    
     steps: 
       - uses: actions/checkout@v4
       - name: Set up JDK 23
@@ -45,27 +38,11 @@ jobs:
           java-version: '23'
           distribution: 'adopt'
           cache: maven
-      - name: wait for blazegraph
-        uses: nev7n/wait_for_response@v1
-        with:
-          url: 'http://localhost:9999/blazegraph/namespace/kb/sparql'
-          responseCode: 200
-          timeout: 20000
-          interval: 500
       - name: package engine and launch
         run: |
           mvn package 
           cd engine/target
           java -Dlog4j.configurationFile=./log4j2-debug.xml -jar engine-1.0.0-SNAPSHOT.jar > log.txt &
-        # mv endpoints/endpoint-blazegraph.jpar endpoint.jpar
-        #echo launching engine with this configuration
-        # echo SPARQL ENDPOINT
-        # cat endpoint.jpar
-        # echo ENGINE PROPERTIES
-        # cat engine.jpar
-        # cat log4j2-debug.xml
-        # echo LOG4J
-        # java -Dlog4j.configurationFile=./log4j2-debug.xml -jar engine-1.0.0-SNAPSHOT.jar -engine engine.jpar -endpoint endpoint.jpar > log.txt &
         shell: bash
       - name: wait for SEPA engine
         uses: nev7n/wait_for_response@v1
