@@ -1,6 +1,6 @@
 {
-	"host": "localhost",
 	"sparql11protocol": {
+		"host": "localhost",
 		"protocol": "http",
 		"port": 9999,
 		"query": {

@@ -3,7 +3,7 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>it.unibo.arces.wot</groupId>
+		<groupId>com.vaimee</groupId>
 		<artifactId>sepa</artifactId>
 		<version>${revision}</version>
 	</parent>
@@ -86,7 +86,7 @@
 								<!-- add Main-Class to manifest file -->
 								<transformer
 										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>it.unibo.arces.wot.sepa.engine.core.Engine</mainClass>
+									<mainClass>com.vaimee.sepa.engine.core.Engine</mainClass>
 									<manifestEntries>
 										<Multi-Release>true</Multi-Release>
 									</manifestEntries>
@@ -117,7 +117,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>it.unibo.arces.wot</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>client-api</artifactId>
 			<version>${revision}</version>
 		</dependency>
@@ -134,8 +134,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-
 	</dependencies>
 
 </project>

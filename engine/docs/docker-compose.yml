@@ -1,0 +1,15 @@
+version: '3'
+ 
+services:
+  engine:
+    image: vaimee/sepa:latest
+    environment:
+      - JMX_HOST="engine"
+    ports:
+      - 7099:7099
+    expose:
+      - 7099
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == dld
