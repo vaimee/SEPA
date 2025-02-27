@@ -1,0 +1,17 @@
+{
+	"sparql11protocol": {
+		"host": "virtuoso.wda.vaimee.com",
+		"protocol": "https",
+		"port": 443,
+		"query": {
+			"path": "/sparql",
+			"method": "URL_ENCODED_POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/sparql",
+			"method": "URL_ENCODED_POST",
+			"format": "JSON"
+		}
+	}
+}

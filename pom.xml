@@ -3,16 +3,23 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>it.unibo.arces.wot</groupId>
+	
+	<groupId>com.vaimee</groupId>
 	<artifactId>sepa</artifactId>
 	<version>${revision}</version>
+	
 	<packaging>pom</packaging>
+	
 	<description>The project aims at developing a SPARQL Event Processing
 		Architecture using JAVA technologies, including APIs and tools</description>
+	
 	<modules>
 		<module>client-api</module>
 		<module>engine</module>
+		<module>chat</module>
+		<module>dashboard</module>
 	</modules>
+	
 	<name>SEPA Project</name>
 	<url>https://github.com/vaimee/SEPA.git</url>
 	<licenses>
@@ -48,10 +55,10 @@
 	</scm>
 
 	<properties>
-		<java.version>23</java.version>
-		<maven.compiler.release>23</maven.compiler.release>
-		<maven.compiler.source>23</maven.compiler.source>
-		<maven.compiler.target>23</maven.compiler.target>
+		<java.version>21</java.version>
+		<maven.compiler.release>21</maven.compiler.release>
+		<maven.compiler.source>21</maven.compiler.source>
+		<maven.compiler.target>21</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>1.0.0-SNAPSHOT</revision>
 		<update>0</update>
@@ -70,7 +77,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.9.0</version>
 				<configuration>
-					<release>23</release>
+					<release>21</release>
 				</configuration>
 			</plugin>
 			<plugin>
