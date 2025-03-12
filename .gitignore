@@ -176,3 +176,12 @@ buildNumber.properties
 /.idea/
 /engine.jpar
 /jconsole-logging.properties
+engine/run/*
+
+/engine/nbproject/
+/engine.jpar
+/nb-configuration.xml
+/o.txt
+/rebuild.bat
+/runSepaAR.sh
+/start-sepa.bat
