@@ -22,12 +22,30 @@ import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import org.apache.jena.query.*;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdfconnection.RDFConnection;
+import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.system.Txn;
 
+import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
+import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
+import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
+import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
+import it.unibo.arces.wot.sepa.commons.response.Response;
+import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
+import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.modify.UpdateResult;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import com.vaimee.sepa.commons.request.QueryRequest;
 import com.vaimee.sepa.commons.request.UpdateRequest;
 import com.vaimee.sepa.commons.response.ErrorResponse;
@@ -36,70 +54,105 @@ import com.vaimee.sepa.commons.response.Response;
 import com.vaimee.sepa.commons.response.UpdateResponse;
 
 /**
- * 
+ *
 Special Graph Names
 URI	Meaning
 urn:x-arq:UnionGraph	The RDF merge of all the named graphs in the datasets of the query.
 urn:x-arq:DefaultGraph	The default graph of the dataset, used when the default graph of the query is the union graph.
 
-Note that setting tdb:unionDefaultGraph does not affect the default graph or default model obtained with dataset.getDefaultModel().
 
-The RDF merge of all named graph can be accessed as the named graph urn:x-arq:UnionGraph using Dataset.getNamedModel("urn:x-arq:UnionGraph") .
- 
-An RDF Dataset is a collection of one, unnamed, default graph and zero, or more named graphs. 
-In a SPARQL query, a query pattern is matched against the default graph unless the GRAPH keyword is applied to a pattern.
+public class JenaInMemoryEndpoint implements SPARQLEndpoint{
+	protected static final Logger logger = LogManager.getLogger();
 
-Transactions are part of the interface to RDF Datasets. There is a default implementation, based on MRSW locking (multiple-reader or single-writer) that can be used with any mixed set of components. Certain storage sub-systems provide better concurrency with MR+SW (multiple-read and single writer).
+	private static Dataset       dataset;
+        private static boolean       hasInit;
 
-Dataset		Facilities			Creation
-TxnMem		MR+SW				DatasetFactory.createTxnMem
-TDB			MR+SW, persistent	TDBFactory.create
-TDB2		MR+SW, persistent	TDB2Factory.create
-General		MRSW				DatasetFactory.create
+        public  synchronized static void init() {
+            if (hasInit == false) {
 
-The general dataset can have any graphs added to it (e.g. inference graphs).
- * */
-public class JenaInMemoryEndpoint implements SPARQLEndpoint {
-	static final Dataset dataset = DatasetFactory.create(); // DatasetFactory.createTxnMem();
+                dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(),true);
+                hasInit = true;
+            }
+        }
+
 
 	@Override
-	public Response query(QueryRequest req) {
-		final Response[] ret = new Response[1];
-		RDFConnection conn = RDFConnection.connect(dataset);
-		Query query = QueryFactory.create(req.getSPARQL());
-		Txn.executeRead(conn, () -> {
-			if (query.isSelectType()) {
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				ResultSet rs  = conn.query(query).execSelect();
-				ResultSetFormatter.outputAsJSON(out, rs);
-				try {
-					ret[0] = new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
-				} catch (UnsupportedEncodingException e) {
-					ret[0] = new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
-				}
+	public Response query(QueryRequest req,SEPAUserInfo usr) {
+                init();
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-			}
-			else if (query.isAskType()) {
-				// https://www.w3.org/TR/2013/REC-sparql11-results-json-20130321/#ask-result-form
-				boolean result = conn.queryAsk(query);
-				JsonObject res = new JsonObject();
-				res.add("head", new JsonObject());
-				res.add("boolean",new JsonPrimitive(result));
-				ret[0] = new QueryResponse(res.toString());
-			}
+                try (final RDFConnection conn =
+                        (usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
+                        RDFConnectionFactory.connect(dataset,usr.userName)                              :
+                        RDFConnectionFactory.connect(dataset);
+                ) {
 
-		});
 
-		return ret[0];
+                    Txn.executeRead(conn, ()-> {
+                            ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
+                            ResultSetFormatter.outputAsJSON(out, rs);
+                    });
+
+                    try {
+                            return new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
+                    } catch (UnsupportedEncodingException e) {
+                            return new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
+                    }
+                }
 	}
 
 	@Override
-	public Response update(UpdateRequest req) {
-		RDFConnection conn = RDFConnection.connect(dataset);
+	public Response update(UpdateRequest req,SEPAUserInfo usr) {
+                init();
 
-		Txn.executeWrite(conn, () -> {
-			conn.update(req.getSPARQL());
-		});
-		return new UpdateResponse("Jena-in-memory-update");
+                try (final RDFConnection conn =
+                        (usr != null && usr.userName != null && usr.userName.trim().length() > 0 )      ?
+                        RDFConnectionFactory.connect(dataset,usr.userName)                              :
+                        RDFConnectionFactory.connect(dataset);
+                ) {
+
+
+                    final Set<Quad> updated = new TreeSet<>(new QuadComparator());
+                    final Set<Quad> removed = new TreeSet<>(new QuadComparator());
+                    Txn.executeWrite(conn, ()-> {
+                            final List<UpdateResult> lur = conn.update(req.getSPARQL());
+                            if (lur != null) {
+                                    for(final UpdateResult ur : lur) {
+                                            if (ur.deletedTuples != null) {
+                                                    for(final Quad q : ur.deletedTuples) {
+                                                            removed.add(q);
+                                                    }
+                                            }
+
+                                            if (ur.updatedTuples != null) {
+                                                    for(final Quad q : ur.updatedTuples) {
+                                                            updated.add(q);
+                                                    }
+                                            }
+
+                                    }
+
+                            }
+
+                    });
+
+
+                    return new UpdateResponse(removed,updated);
+                }
 	}
+
+	@Override
+	public void close() {
+	}
+
+
+	private class QuadComparator implements Comparator<Quad> {
+
+		@Override
+		public int compare(Quad o1, Quad o2) {
+			return o1.toString().compareTo(o2.toString());
+		}
+
+	}
+
 }

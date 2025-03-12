@@ -1,3 +1,7 @@
 /logs/
 /sepa.engine.csv
 /docs/
+/nb-configuration.xml
+/nbactions.xml
+/pom.xml.eclipse
+/pom.xml.netbeans

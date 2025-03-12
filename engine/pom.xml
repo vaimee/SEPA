@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.vaimee</groupId>
@@ -19,7 +19,7 @@
 			<url>http://dl.bintray.com/cy6ergn0m/maven</url>
 		</pluginRepository>
 	</pluginRepositories>
-
+	
 	<build>
 		<plugins>
 			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-deploy-plugin -->
@@ -109,6 +109,89 @@
 		</plugins>
 	</build>
 	<dependencies>
+		<!-- <dependency> -->
+		<!-- <groupId>org.slf4j</groupId> -->
+		<!-- <artifactId>slf4j-log4j12</artifactId> -->
+		<!-- <version>1.7.25</version> -->
+		<!-- </dependency> -->
+		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
+		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
+
+		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>vaimee-sjenar-libs</artifactId>
+			<version>4.3.2</version>
+			<type>pom</type>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-simple</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.glassfish</groupId>
+					<artifactId>jakarta.json</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-arq</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-dboe-base</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-dboe-index</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-dboe-storage</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-rdfconnection</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-shacl</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-shex</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-tdb</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.jena</groupId>
+					<artifactId>jena-tdb2</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
 		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -130,9 +213,130 @@
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-simple</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-arq</artifactId>
+			<version>4.3.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.fasterxml.jackson</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson</groupId>
+					<artifactId>jackson-annotations</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>jcl-over-slf4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-dboe-base</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-dboe-index</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-dboe-storage</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-dboe-trans-data</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-rdfconnection</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-shacl</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-shex</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-tdb</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-tdb2</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-core</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-base</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-iri</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-shaded-guava</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.vaimee.sjenar</groupId>
+			<artifactId>sjenar-dboe-transaction</artifactId>
+			<version>4.3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>it.unibo.arces.wot</groupId>
+			<artifactId>client-api</artifactId>
+			<version>${revision}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.36</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.36</version>
 		</dependency>
 	</dependencies>
 
