@@ -25,6 +25,7 @@ import javax.net.ssl.SSLContext;
 
 import com.nimbusds.jose.jwk.RSAKey;
 
+import com.vaimee.sepa.engine.core.EngineMBean;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;

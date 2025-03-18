@@ -5,7 +5,6 @@
  */
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

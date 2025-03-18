@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.processing.endpoint;
+package com.vaimee.sepa.engine.processing.endpoint;
 
 import org.apache.http.HttpStatus;
 
@@ -9,7 +9,7 @@ import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
 import it.unibo.arces.wot.sepa.commons.response.Response;
 import it.unibo.arces.wot.sepa.commons.response.UpdateResponseWithAR;
 import it.unibo.arces.wot.sepa.commons.security.ClientAuthorization;
-import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
+import com.vaimee.sepa.engine.dependability.acl.SEPAUserInfo;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 
 public class SjenarEndpoint implements SPARQLEndpoint {
@@ -42,11 +42,4 @@ public class SjenarEndpoint implements SPARQLEndpoint {
 		ret = new ErrorResponse(0, null, null); // tutto male
 		return ret;
 	}
-
-	@Override
-	public void close() {
-		// TODO Auto-generated method stub
-
-	}
-
 }

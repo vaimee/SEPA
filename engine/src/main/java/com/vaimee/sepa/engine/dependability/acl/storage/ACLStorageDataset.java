@@ -3,16 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.unibo.arces.wot.sepa.engine.acl.storage;
+package com.vaimee.sepa.engine.dependability.acl.storage;
 
-import it.unibo.arces.wot.sepa.engine.acl.EngineACLException;
-import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
-import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl.UserData;
+import com.vaimee.sepa.engine.dependability.acl.EngineACLException;
+import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
+import com.vaimee.sepa.engine.dependability.acl.SEPAAcl.UserData;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.swing.GroupLayout;
+
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;

@@ -18,40 +18,33 @@
 
 package com.vaimee.sepa.engine.processing.endpoint;
 
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-
-import org.apache.jena.query.Dataset;
-import org.apache.jena.query.QueryFactory;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.query.ResultSetFormatter;
-import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
-import org.apache.jena.system.Txn;
-
-import it.unibo.arces.wot.sepa.commons.request.QueryRequest;
-import it.unibo.arces.wot.sepa.commons.request.UpdateRequest;
-import it.unibo.arces.wot.sepa.commons.response.ErrorResponse;
-import it.unibo.arces.wot.sepa.commons.response.QueryResponse;
-import it.unibo.arces.wot.sepa.commons.response.Response;
-import it.unibo.arces.wot.sepa.commons.response.UpdateResponse;
-import it.unibo.arces.wot.sepa.engine.acl.SEPAUserInfo;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import org.apache.jena.sparql.core.Quad;
-import org.apache.jena.sparql.modify.UpdateResult;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import com.vaimee.sepa.commons.request.QueryRequest;
 import com.vaimee.sepa.commons.request.UpdateRequest;
 import com.vaimee.sepa.commons.response.ErrorResponse;
 import com.vaimee.sepa.commons.response.QueryResponse;
 import com.vaimee.sepa.commons.response.Response;
 import com.vaimee.sepa.commons.response.UpdateResponse;
+import com.vaimee.sepa.engine.bean.EngineBeans;
+import com.vaimee.sepa.engine.dependability.acl.SEPAUserInfo;
+import org.apache.jena.query.Dataset;
+import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.ResultSet;
+import org.apache.jena.query.ResultSetFormatter;
+import org.apache.jena.rdfconnection.RDFConnection;
+import org.apache.jena.rdfconnection.RDFConnectionFactory;
+import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.modify.UpdateResult;
+import org.apache.jena.system.Txn;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *
@@ -59,12 +52,12 @@ Special Graph Names
 URI	Meaning
 urn:x-arq:UnionGraph	The RDF merge of all the named graphs in the datasets of the query.
 urn:x-arq:DefaultGraph	The default graph of the dataset, used when the default graph of the query is the union graph.
-
+*/
 
 public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	protected static final Logger logger = LogManager.getLogger();
 
-	private static Dataset       dataset;
+	private static Dataset dataset;
         private static boolean       hasInit;
 
         public  synchronized static void init() {
@@ -77,7 +70,7 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 
 
 	@Override
-	public Response query(QueryRequest req,SEPAUserInfo usr) {
+	public Response query(QueryRequest req, SEPAUserInfo usr) {
                 init();
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -102,7 +95,7 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 	}
 
 	@Override
-	public Response update(UpdateRequest req,SEPAUserInfo usr) {
+	public Response update(UpdateRequest req, SEPAUserInfo usr) {
                 init();
 
                 try (final RDFConnection conn =
@@ -140,11 +133,6 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
                     return new UpdateResponse(removed,updated);
                 }
 	}
-
-	@Override
-	public void close() {
-	}
-
 
 	private class QuadComparator implements Comparator<Quad> {
 

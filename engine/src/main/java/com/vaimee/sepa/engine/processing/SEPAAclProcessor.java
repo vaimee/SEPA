@@ -5,7 +5,7 @@
  */
 package it.unibo.arces.wot.sepa.engine.processing;
 
-import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
+import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
 import java.util.Map;
 import java.util.Set;

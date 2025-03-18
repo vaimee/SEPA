@@ -7,6 +7,8 @@ package it.unibo.arces.wot.sepa.engine.acl.storage;
 
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initGroupsQuery;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initQuery;
+
+import com.vaimee.sepa.engine.dependability.acl.storage.LocalDatasetActions;
 import org.apache.jena.query.Dataset;
 
 /**

@@ -3,12 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.unibo.arces.wot.sepa.engine.acl;
+package com.vaimee.sepa.engine.dependability.acl;
 
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageException;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorage;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageListable;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageException;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageListable;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageOperations;
 import it.unibo.arces.wot.sepa.engine.processing.SEPAAclProcessor;
 import java.io.Serializable;
 
