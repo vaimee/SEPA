@@ -119,9 +119,9 @@
 
 		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
-			<artifactId>vaimee-sjenar-libs</artifactId>
-			<version>4.3.2</version>
+			<groupId>com.vaimee</groupId>
+			<artifactId>sjenar-libs</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
 			<type>pom</type>
 			<exclusions>
 				<exclusion>
@@ -230,9 +230,9 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-arq</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson</groupId>
@@ -253,74 +253,74 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-dboe-base</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-dboe-index</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-dboe-storage</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-dboe-trans-data</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-rdfconnection</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-shacl</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-shex</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-tdb</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-tdb2</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-core</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-base</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-iri</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-shaded-guava</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-dboe-transaction</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>it.unibo.arces.wot</groupId>

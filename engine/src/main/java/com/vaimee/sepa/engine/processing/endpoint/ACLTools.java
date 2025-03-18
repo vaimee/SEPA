@@ -5,11 +5,11 @@
  */
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorage;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorage.ACLStorageId;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageDataset;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageFactory;
-import it.unibo.arces.wot.sepa.engine.acl.storage.ACLStorageOperations;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage.ACLStorageId;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageDataset;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageFactory;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageOperations;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import java.util.Map;

@@ -5,7 +5,7 @@
  */
 package it.unibo.arces.wot.sepa.engine.acl.storage;
 
-import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
+import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.CommonFuncs.initACLDataset;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH1;
 import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH3;
@@ -17,6 +17,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.TreeMap;
+
+import com.vaimee.sepa.engine.dependability.acl.storage.*;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
 import org.junit.Assert;

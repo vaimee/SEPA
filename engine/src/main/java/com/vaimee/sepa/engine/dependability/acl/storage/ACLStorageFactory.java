@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.unibo.arces.wot.sepa.engine.acl.storage;
+package com.vaimee.sepa.engine.dependability.acl.storage;
 
 import java.util.Map;
 import org.apache.jena.acl.DatasetACL;

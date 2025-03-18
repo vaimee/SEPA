@@ -5,7 +5,7 @@
  */
 package it.unibo.arces.wot.sepa.engine.processing.endpoint;
 
-import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
+import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import org.apache.jena.acl.DatasetACL;

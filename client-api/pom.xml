@@ -64,9 +64,9 @@
 			<version>2.4.0-b180830.0359</version>
 		</dependency>
 		<dependency>
-			<groupId>it.vaimee.sjenar</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-arq</artifactId>
-			<version>4.3.2</version>
+			<version>1.0.0-SNAPSHOT</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson</groupId>
