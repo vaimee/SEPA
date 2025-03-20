@@ -3,10 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.unibo.arces.wot.sepa.engine.processing;
+package com.vaimee.sepa.engine.processing;
 
 import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
-import it.unibo.arces.wot.sepa.engine.bean.SEPABeans;
+import com.vaimee.sepa.engine.bean.SEPABeans;
+
 import java.util.Map;
 import java.util.Set;
 import org.apache.jena.acl.DatasetACL;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
 import static org.apache.jena.acl.DatasetACL.aclId.aiClear;
 import static org.apache.jena.acl.DatasetACL.aclId.aiCreate;
 import static org.apache.jena.acl.DatasetACL.aclId.aiDeleteData;
@@ -27,7 +29,7 @@ import static org.apache.jena.acl.DatasetACL.aclId.aiUpdate;
  *
  * @author Lorenzo
  */
-public class SEPAAclProcessor implements SEPAAclProcessorMBean{
+public class SEPAAclProcessor implements SEPAAclProcessorMBean {
     private static final Map<DatasetACL.aclId, String>      encodeMap = new TreeMap<>();
     private static final Map<String,DatasetACL.aclId>       decodeMap = new TreeMap<>();
     

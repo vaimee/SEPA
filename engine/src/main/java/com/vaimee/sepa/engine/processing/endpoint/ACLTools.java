@@ -3,15 +3,15 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.unibo.arces.wot.sepa.engine.processing.endpoint;
+package com.vaimee.sepa.engine.processing.endpoint;
 
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage.ACLStorageId;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageDataset;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageFactory;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageOperations;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import com.vaimee.sepa.engine.bean.EngineBeans;
+import com.vaimee.sepa.engine.core.EngineProperties;
 import java.util.Map;
 import java.util.TreeMap;
 

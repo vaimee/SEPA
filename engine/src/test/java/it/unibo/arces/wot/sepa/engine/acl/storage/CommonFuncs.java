@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.unibo.arces.wot.sepa.engine.acl.storage;
+package com.vaimee.sepa.engine.acl.storage;
 
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initGroupsQuery;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initQuery;
+import static com.vaimee.sepa.engine.acl.storage.Constants.initGroupsQuery;
+import static com.vaimee.sepa.engine.acl.storage.Constants.initQuery;
 
 import com.vaimee.sepa.engine.dependability.acl.storage.LocalDatasetActions;
 import org.apache.jena.query.Dataset;

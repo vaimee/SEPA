@@ -16,12 +16,12 @@ public class RemoteEndpoint implements SPARQLEndpoint {
 
 	@Override
 	public Response query(QueryRequest req, SEPAUserInfo usr) {
-		return endpoint.query(req,user);
+		return query(req);
 	}
 
 	@Override
 	public Response update(UpdateRequest req, SEPAUserInfo usr) {
-		return null;
+		return update(req);
 	}
 
 	@Override
