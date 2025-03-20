@@ -1,4 +1,6 @@
-package it.unibo.arces.wot.sepa.commons.response;
+package com.vaimee.sepa.commons.response;
+
+import com.vaimee.sepa.commons.response.UpdateResponse;
 
 public class UpdateResponseWithAR extends UpdateResponse {
 

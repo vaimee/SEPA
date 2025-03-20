@@ -9,13 +9,15 @@ import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageException;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageListable;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageOperations;
-import it.unibo.arces.wot.sepa.engine.processing.SEPAAclProcessor;
+
 import java.io.Serializable;
 
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import com.vaimee.sepa.engine.processing.SEPAAclProcessor;
 import org.apache.jena.acl.DatasetACL;
 
 /**
@@ -27,7 +29,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
     
     //where persistence is archieved
     private final ACLStorageOperations                                aclStorage;
-    private final SEPAAclProcessor                                    jmx;
+    private final SEPAAclProcessor jmx;
 
     @Override
     public void addUserToGroup(String user, String group) throws EngineACLException,ACLStorageException {

@@ -3,27 +3,27 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.unibo.arces.wot.sepa.engine.acl.storage;
+package com.vaimee.sepa.engine.acl.storage;
 
 import com.vaimee.sepa.engine.dependability.acl.EngineACLException;
 import com.vaimee.sepa.engine.dependability.acl.SEPAAcl.UserData;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.CommonFuncs.initACLDataset;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH1;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH2;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH3;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GRAPH4;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GROUP1;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GROUP2;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.GROUP3;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.NEWGRAPH;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.NEWGRAPH2;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.NEWGROUP;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.NEWUSER;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.USER1;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.USER2;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.USER3;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initGroupsQuery;
-import static it.unibo.arces.wot.sepa.engine.acl.storage.Constants.initQuery;
+import static com.vaimee.sepa.engine.acl.storage.CommonFuncs.initACLDataset;
+import static com.vaimee.sepa.engine.acl.storage.Constants.GRAPH1;
+import static com.vaimee.sepa.engine.acl.storage.Constants.GRAPH2;
+import static com.vaimee.sepa.engine.acl.storage.Constants.GRAPH3;
+import static com.vaimee.sepa.engine.acl.storage.Constants.GRAPH4;
+import static com.vaimee.sepa.engine.acl.storage.Constants.GROUP1;
+import static com.vaimee.sepa.engine.acl.storage.Constants.GROUP2;
+import static com.vaimee.sepa.engine.acl.storage.Constants.GROUP3;
+import static com.vaimee.sepa.engine.acl.storage.Constants.NEWGRAPH;
+import static com.vaimee.sepa.engine.acl.storage.Constants.NEWGRAPH2;
+import static com.vaimee.sepa.engine.acl.storage.Constants.NEWGROUP;
+import static com.vaimee.sepa.engine.acl.storage.Constants.NEWUSER;
+import static com.vaimee.sepa.engine.acl.storage.Constants.USER1;
+import static com.vaimee.sepa.engine.acl.storage.Constants.USER2;
+import static com.vaimee.sepa.engine.acl.storage.Constants.USER3;
+import static com.vaimee.sepa.engine.acl.storage.Constants.initGroupsQuery;
+import static com.vaimee.sepa.engine.acl.storage.Constants.initQuery;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;

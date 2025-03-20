@@ -168,26 +168,7 @@ public class EngineBeans {
                     port = ":"+getHttpPort();
 		return "http://"+getHost()+port+getAclUpdatePath();
 	}
-        
-	public static String getSecureAclQueryURL() {
-		String port = "";
-		if (getHttpsPort() != -1) 
-                    port = ":"+getHttpsPort();
-		return "https://"+getHost()+port+getSecurePath()+getAclQueryPath();
-	}
 
-	public static String getSecureAclUpdateURL() {
-		String port = "";
-		if (getHttpsPort() != -1) 
-                    port = ":"+getHttpsPort();
-		return "https://"+getHost()+port+getSecurePath()+getAclUpdatePath();
-	}
-        
-        
-        
-        public static boolean is2PEnabled() {
-            return properties.is2PEnabled();
-        }
         
         public static String   getFirstDatasetMode() {
             return properties.getFirstDatasetMode();
