@@ -8,6 +8,15 @@ package com.vaimee.sepa.engine.acl.storage;
 /**
  *
  * @author Lorenzo
+ *
+ *  *
+ *  * USER     |  GRAPHS |
+ *  *          |    G1   |    G2     |   G3    |     G4    |     G5     |     G6
+ *  * monger   |     R   |           |         |           |      R     |
+ *  * GROUP1   |    RW   |           |    R    |           |            |
+ *  *
+ *  * gonger   |         |    RW ID  |         |    R      |            |     R
+ *  * GROUP2   |         |    RW     |         |           |            |
  */
 class Constants {
      public static final String initQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"    + System.lineSeparator() +   

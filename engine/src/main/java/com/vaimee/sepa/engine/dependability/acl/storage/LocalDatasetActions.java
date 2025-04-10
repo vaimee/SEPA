@@ -6,17 +6,14 @@
 package com.vaimee.sepa.engine.dependability.acl.storage;
 
 import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.jena.query.Dataset;
-import static org.apache.jena.query.QueryExecution.dataset;
 import org.apache.jena.query.QueryFactory;
 import org.apache.jena.query.ReadWrite;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.query.ResultSetFormatter;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.sparql.modify.UpdateResult;
@@ -31,10 +28,8 @@ public class LocalDatasetActions {
     private static class RSHolder {
         public  ResultSet       rs;
     }
-    public static ResultSet query(Dataset dataset, String query,RDFConnection conn) {
-        return query(dataset, query,null,conn);
-    }
-    public static ResultSet query(Dataset dataset, String query,String userName,RDFConnection conn) {
+
+    public static ResultSet query(String query,RDFConnection conn) {
             System.out.println("[QUERY] : "+ System.lineSeparator() + query + System.lineSeparator());
             
             ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -45,18 +40,12 @@ public class LocalDatasetActions {
                     ResultSetFormatter.outputAsJSON(out, rs);
             });
 
-            try {
-                    System.out.println("Query output : " + out.toString(StandardCharsets.UTF_8.name()));
-            } catch (UnsupportedEncodingException e) {
-                    System.err.println(e);
-            }
-            
-            return rsh.rs;
+        System.out.println("Query output : " + out.toString(StandardCharsets.UTF_8));
+
+        return rsh.rs;
     }
-    public static void update(Dataset dataset, String query,RDFConnection conn) {
-        update(dataset,query,null,conn);
-    }
-    public static void update(Dataset dataset, String query,String userName,RDFConnection conn) {
+
+    public static void update(String query,RDFConnection conn) {
             System.out.println("[UPDATE] : " + System.lineSeparator() + query + System.lineSeparator() );
             Txn.executeWrite(conn, ()-> {
                     final List<UpdateResult> ur = conn.update(query);

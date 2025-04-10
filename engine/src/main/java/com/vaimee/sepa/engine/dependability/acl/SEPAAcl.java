@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import com.vaimee.sepa.engine.processing.SEPAAclProcessor;
 import org.apache.jena.acl.DatasetACL;
 
 /**
@@ -29,11 +28,11 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
     
     //where persistence is archieved
     private final ACLStorageOperations                                aclStorage;
-    private final SEPAAclProcessor jmx;
+    //private final SEPAAclProcessor jmx;
 
     @Override
     public void addUserToGroup(String user, String group) throws EngineACLException,ACLStorageException {
-        if (cachedGroupsACL.containsKey(group) == false) {
+        if (!cachedGroupsACL.containsKey(group)) {
             throw new EngineACLException("Group not found " + group);
         }
         
@@ -131,10 +130,9 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         aclStorage = storage;
         cachedACL = aclStorage.loadUsers();
         cachedGroupsACL = aclStorage.loadGroups();
-        jmx = new SEPAAclProcessor();
+        //jmx = new SEPAAclProcessor();
     }
-    @Override
-    public boolean checkGrapBase(aclId id, String graphName, String user) {
+    public boolean checkGraphBase(aclId id, String graphName, String user) {
         if (user.equals(ADMIN_USER))
             return true;
         
@@ -146,27 +144,15 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         
         //check if has any group membership
         boolean ret = false;
-        
-        if (ud.memberOf != null) {
-            for(final String groupName : ud.memberOf) {
-                final Map<String,Set<DatasetACL.aclId>> grpACLs = cachedGroupsACL.get(groupName);
-                ret = checkAccessMap(grpACLs, id, graphName);
-                if (ret)
-                    break;
-            }
+
+        for (final String groupName : ud.memberOf) {
+            final Map<String, Set<aclId>> grpACLs = cachedGroupsACL.get(groupName);
+            ret = checkAccessMap(grpACLs, id, graphName);
+            if (ret) return ret;
         }
         
-        
-        if (ret == true) {
-            //passed group check, 
-            return ret;
-        }
-        
-        //group policy does not allow access. let's try with user 
-        
-        ret = checkAccessMap(ud.graphACLs, id, graphName);
-        
-        return ret;
+        //group policy does not allow access. let's try with user
+        return checkAccessMap(ud.graphACLs, id, graphName);
     }
 
     private boolean checkAccessMap(Map<String,Set<DatasetACL.aclId>> aclMap, aclId id, String graphName) {
@@ -177,13 +163,13 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         }        
         
         //look for ALL Name
-        if (ret == false && graphName.equals(DatasetACL.ACL_GRAPH_NAME_ALL) == false) {
+        if (!ret && !graphName.equals(DatasetACL.ACL_GRAPH_NAME_ALL)) {
             ret = checkAccessMap(aclMap, id,DatasetACL.ACL_GRAPH_NAME_ALL);
         }
         return ret;
     }
     @Override
-    public Map<String, UserData> loadUsers() throws EngineACLException,ACLStorageException {
+    public Map<String, UserData> loadUsers() throws EngineACLException {
         //reload users
         final Map<String, UserData> tmp = aclStorage.loadUsers();
         cachedACL.clear();
@@ -192,19 +178,17 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
     }
 
     @Override
-    public void removeUser(String user) throws EngineACLException,ACLStorageException {
-        if (cachedACL.containsKey(user) == true) {
+    public void removeUser(String user) throws EngineACLException {
+        if (cachedACL.containsKey(user)) {
             cachedACL.remove(user);
             aclStorage.removeUser(user);
-        } else {
-           // throw new ACL
         }
     }
 
     @Override
     public void removeUserPermissions(String user,String graph) throws EngineACLException,ACLStorageException {
         final UserData acls = cachedACL.get(user);
-        if (acls != null && acls.graphACLs != null) {
+        if (acls != null) {
             acls.graphACLs.remove(graph);
         }
         
@@ -213,7 +197,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
 
     @Override
     public void addUser(String user) throws EngineACLException,ACLStorageException {
-        if (cachedACL.containsKey(user) == true) {
+        if (cachedACL.containsKey(user)) {
             throw new EngineACLException("User already exists : " + user);
         }
         cachedACL.put(user , new UserData());
@@ -234,7 +218,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         Set<aclId> specAcl;
         if (acls.containsKey(graph)) {
             specAcl = acls.get(graph);
-            if (specAcl.contains(id) == false) {
+            if (!specAcl.contains(id)) {
                 specAcl.add(id);
                 aclStorage.addUserPermission(user, graph, id);
             }
@@ -268,11 +252,9 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         if (ud != null){ 
             final Map<String, Set<aclId>> acls = ud.graphACLs;
 
-            if (acls != null) {
-                final Set<aclId> specAcl = acls.get(graph);
-                if (specAcl != null) {
-                    specAcl.remove(id);
-                }
+            final Set<aclId> specAcl = acls.get(graph);
+            if (specAcl != null) {
+                specAcl.remove(id);
             }
         }
 
@@ -297,7 +279,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         //next, remove all reference of this group from all users
         for(final Map.Entry<String, UserData> e : cachedACL.entrySet()) {
             final UserData ud = e.getValue();
-            if (ud.memberOf != null && ud.memberOf.contains(group)) {
+            if (ud.memberOf.contains(group)) {
                     ud.memberOf.remove(group);
                     aclStorage.removeUserFromGroup(e.getKey(), group);
             }
@@ -336,7 +318,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         Set<aclId> specAcl;
         if (acls.containsKey(graph)) {
             specAcl = acls.get(graph);
-            if (specAcl.contains(id) == false ) {
+            if (!specAcl.contains(id)) {
                 specAcl.add(id);
                 aclStorage.addGroupPermission(group, graph, id);
             }

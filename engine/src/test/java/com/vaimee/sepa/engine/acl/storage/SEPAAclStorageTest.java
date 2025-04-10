@@ -6,7 +6,7 @@
 package com.vaimee.sepa.engine.acl.storage;
 
 import com.vaimee.sepa.engine.dependability.acl.EngineACLException;
-import com.vaimee.sepa.engine.dependability.acl.SEPAAcl.UserData;
+import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
 import static com.vaimee.sepa.engine.acl.storage.CommonFuncs.initACLDataset;
 import static com.vaimee.sepa.engine.acl.storage.Constants.GRAPH1;
 import static com.vaimee.sepa.engine.acl.storage.Constants.GRAPH2;
@@ -24,6 +24,8 @@ import static com.vaimee.sepa.engine.acl.storage.Constants.USER2;
 import static com.vaimee.sepa.engine.acl.storage.Constants.USER3;
 import static com.vaimee.sepa.engine.acl.storage.Constants.initGroupsQuery;
 import static com.vaimee.sepa.engine.acl.storage.Constants.initQuery;
+import static org.junit.jupiter.api.Assertions.*;
+
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,26 +36,25 @@ import java.util.TreeMap;
 import com.vaimee.sepa.engine.dependability.acl.storage.*;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
 
 /**
  *
  * @author Lorenzo
+ * Tests a SEPA Acl as an ACL Storage object
  */
-public class ACLStorageFactoryTest {
-    
-    
-    public ACLStorageFactoryTest() {
+public class SEPAAclStorageTest {
+
+    public SEPAAclStorageTest() {
     }
 
     /**
      * Test of newInstance method, of class ACLStorageFactory.
      */
-    @Test 
+    @Test
     public void testNewInstanceDatasetTDB2() throws Exception {
         final Map<String,Object> paramMap = new TreeMap<>();
-        final String dsName = "./run/aclStorageTdb2";
+        final String dsName = "./run/SEPAaclStorageTdb2";
         
         try {
             Files.createDirectory(Path.of("./run"));
@@ -72,7 +73,7 @@ public class ACLStorageFactoryTest {
     @Test 
     public void testNewInstanceDatasetTDB1() throws Exception {
         final Map<String,Object> paramMap = new TreeMap<>();
-        final String dsName = "./run/aclStorageTdb1";
+        final String dsName = "./run/SEPAaclStorageTdb1";
         paramMap.put(ACLStorageDataset.PARAM_DATASETPERSISTENCY, ACLStorageDataset.PARAM_DATASETPERSISTENCY_VALUE_TDB1);
         paramMap.put(ACLStorageDataset.PARAM_DATASETPATH,dsName);
         try {
@@ -114,17 +115,16 @@ public class ACLStorageFactoryTest {
             }
             
         }
-        testNewInstance(obj);
+        
+        final ACLStorage as = SEPAAcl.newInstance(obj);
+        
+        testNewInstance(as);
 
     }
     
-    @Test
-    public void testNewInstanceJSon() throws Exception {
-        System.out.println(this.getClass().getName() + "testNewInstanceJSon()");
-    }
-    
+  
     private void testLoadUsers(ACLStorage as ) throws Exception  {
-        final Map<String,UserData> aclData = as.loadUsers();
+        final Map<String,SEPAAcl.UserData> aclData = as.loadUsers();
         final String graph1 = GRAPH1.replace("mp:", "http://mysparql.com/");
         final String graph2 = GRAPH2.replace("mp:", "http://mysparql.com/");
         assertEquals(2, aclData.size());
@@ -169,9 +169,9 @@ public class ACLStorageFactoryTest {
         final String graph4 = GRAPH4.replace("mp:", "http://mysparql.com/");
         
         assertEquals(2, aclData.size());
-        assertTrue(aclData.keySet().contains(GROUP1));
-        assertTrue(aclData.keySet().contains(GROUP2));
-        assertFalse(aclData.keySet().contains(GROUP3));
+        assertTrue(aclData.containsKey(GROUP1));
+        assertTrue(aclData.containsKey(GROUP2));
+        assertFalse(aclData.containsKey(GROUP3));
         
         assertEquals(2,aclData.get(GROUP1).size());
         assertEquals(2,aclData.get(GROUP2).size());
@@ -222,7 +222,7 @@ public class ACLStorageFactoryTest {
         
     }
      
-    private void testNewInstance(ACLStorageOperations as) throws Exception {
+    private void testNewInstance(ACLStorage as) throws Exception {
         
         //check load
         testLoadUsers(as);
@@ -238,24 +238,24 @@ public class ACLStorageFactoryTest {
         
     }
     
-    private boolean checkUserMemberOfReload(ACLStorageOperations as,String user,String group) {
+    private boolean checkUserMemberOfReload(ACLStorage as,String user,String group) {
         try {
-            final Map<String,UserData> m = as.loadUsers();
+            final Map<String,SEPAAcl.UserData> m = as.loadUsers();
             return m.containsKey(user) && m.get(user).memberOf.contains(group);
         } catch(EngineACLException e ) {
             return false;
         }
     }
     
-    private boolean checkUserExistsReload(ACLStorageOperations as,String user) {
+    private boolean checkUserExistsReload(ACLStorage as,String user) {
         try {
-            final Map<String,UserData> m = as.loadUsers();
+            final Map<String,SEPAAcl.UserData> m = as.loadUsers();
             return m.containsKey(user);
         } catch(EngineACLException e ) {
             return false;
         }
     }
-    private boolean checkGroupExistsReload(ACLStorageOperations as,String group) {
+    private boolean checkGroupExistsReload(ACLStorage as,String group) {
         try {
             final Map<String,Map<String,Set<DatasetACL.aclId>>> m = as.loadGroups();
             return m.containsKey(group);
@@ -263,7 +263,7 @@ public class ACLStorageFactoryTest {
             return false;
         }
     }
-    private boolean checkGroupRightExistsReload(ACLStorageOperations as,String group,String graph, DatasetACL.aclId id) {
+    private boolean checkGroupRightExistsReload(ACLStorage as,String group,String graph, DatasetACL.aclId id) {
         boolean ret = false;
         try {
             final Map<String,Map<String,Set<DatasetACL.aclId>>> m = as.loadGroups();
@@ -281,12 +281,12 @@ public class ACLStorageFactoryTest {
         return ret;
     }
 
-        private boolean checkUserRightExistsReload(ACLStorageOperations as,String user ,String graph, DatasetACL.aclId id) {
+        private boolean checkUserRightExistsReload(ACLStorage as,String user ,String graph, DatasetACL.aclId id) {
         boolean ret = false;
         try {
-            final Map<String,UserData> m = as.loadUsers();
+            final Map<String,SEPAAcl.UserData> m = as.loadUsers();
             
-            final UserData  udm  = m.get(user);
+            final SEPAAcl.UserData  udm  = m.get(user);
             if (udm!= null) {
                 final Set<DatasetACL.aclId> s = udm.graphACLs.get(graph);
                 if (s != null) {
@@ -300,12 +300,12 @@ public class ACLStorageFactoryTest {
         return ret;
     }
 
-    private void checkUserActions(ACLStorageOperations as) {
+    private void checkUserActions(ACLStorage as) {
         try {
             as.addUser(NEWUSER);
             assertTrue(checkUserExistsReload(as, NEWUSER));
             
-            as.addGraphToUser(NEWUSER, NEWGRAPH, DatasetACL.aclId.aiQuery);
+            as.addUserPermission(NEWUSER, NEWGRAPH, DatasetACL.aclId.aiQuery);
             assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiQuery));
             assertFalse(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiUpdate));
 
@@ -313,7 +313,7 @@ public class ACLStorageFactoryTest {
             assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiQuery));
             assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiUpdate));
             
-            as.addGraphToUser(NEWUSER, NEWGRAPH2, DatasetACL.aclId.aiQuery);
+            as.addUserPermission(NEWUSER, NEWGRAPH2, DatasetACL.aclId.aiQuery);
             assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiQuery));
             assertFalse(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH2,DatasetACL.aclId.aiUpdate));
             assertTrue(checkUserRightExistsReload(as, NEWUSER, NEWGRAPH,DatasetACL.aclId.aiQuery));
@@ -377,14 +377,14 @@ public class ACLStorageFactoryTest {
         
     }
     
-    private void checkGroupActions(ACLStorageOperations as) {
+    private void checkGroupActions(ACLStorage as) {
         try {
             //adds group
             as.addGroup(NEWGROUP);
             assertTrue(checkGroupExistsReload(as, NEWGROUP));
             //plays on permissions
             //adds a graph
-            as.addGraphToGroup(NEWGROUP, NEWGRAPH, DatasetACL.aclId.aiQuery);
+            as.addGroupPermission(NEWGROUP, NEWGRAPH, DatasetACL.aclId.aiQuery);
                 //check rightsz
             assertTrue(checkGroupRightExistsReload(as, NEWGROUP, NEWGRAPH, DatasetACL.aclId.aiQuery));
             assertFalse(checkGroupRightExistsReload(as,NEWGROUP, NEWGRAPH,DatasetACL.aclId.aiUpdate));
@@ -394,7 +394,7 @@ public class ACLStorageFactoryTest {
             assertTrue(checkGroupRightExistsReload(as, NEWGROUP, NEWGRAPH, DatasetACL.aclId.aiQuery));
             assertTrue(checkGroupRightExistsReload(as, NEWGROUP, NEWGRAPH, DatasetACL.aclId.aiUpdate));
             //adds another graph, while re-checking on old graph
-            as.addGraphToGroup(NEWGROUP, NEWGRAPH2, DatasetACL.aclId.aiQuery);
+            as.addGroupPermission(NEWGROUP, NEWGRAPH2, DatasetACL.aclId.aiQuery);
                 //check new graph
             assertTrue(checkGroupRightExistsReload(as, NEWGROUP, NEWGRAPH2, DatasetACL.aclId.aiQuery));
             assertFalse(checkGroupRightExistsReload(as,NEWGROUP, NEWGRAPH2,DatasetACL.aclId.aiUpdate));
