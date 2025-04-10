@@ -19,7 +19,6 @@ import org.apache.jena.query.DatasetFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdfconnection.RDFConnection;
-import org.apache.jena.rdfconnection.RDFConnectionFactory;
 
 /**
  *
@@ -30,21 +29,19 @@ public class ACLStorageDataset implements ACLStorageOperations {
     @Override
     public UserData loadUser(String userName) throws EngineACLException, ACLStorageException {
         final String userURI = "sepaACL:" + userName;
-        final UserData ret = loadUserData(userURI);
-        return ret;
+        return loadUserData(userURI);
     }
 
     @Override
     public Map<String, Set<DatasetACL.aclId>> loadGroup(String groupName) throws EngineACLException, ACLStorageException {
         final String groupURI = "sepaACLGroups:" + groupName;
-        final Map<String, Set<DatasetACL.aclId>> ret = loadGroupData(groupURI);
-        return ret;
+        return loadGroupData(groupURI);
     }
     //bare implementation of ACL of ACL
     private static class ACLStorageDatasetACL extends DatasetACL {
 
         @Override
-        public boolean checkGrapBase(aclId id, String graphName, String user) {
+        public boolean checkGraphBase(aclId id, String graphName, String user) {
            return (user.equals(DatasetACL.ADMIN_USER));
         }
         
@@ -69,13 +66,11 @@ public class ACLStorageDataset implements ACLStorageOperations {
     private static final  String    SEPACL_GRAPH_GROUP_NAME     =          "sepaACL:aclGroups";
     
     private static String encodeUriRight(DatasetACL.aclId id) {
-        final String ret = aclRevLookupMap.get(id);
-        return ret;
+        return aclRevLookupMap.get(id);
     }
     private static DatasetACL.aclId decodeUriRight(String uri) {
 
-        final DatasetACL.aclId ret = aclLookupMap.get(uri);
-        return ret;
+        return aclLookupMap.get(uri);
     }
     static {
         paramsInfo.put(PARAM_DATASETPATH, "Parh of persistent dataset, if persitency has been enabled");
@@ -129,12 +124,12 @@ public class ACLStorageDataset implements ACLStorageOperations {
 
             final String persName = (String) params.get(PARAM_DATASETPERSISTENCY );
 
-            if (persName == null || persName.trim().length() == 0 ) {
+            if (persName == null || persName.trim().isEmpty()) {
                 //goes to mem dataset
                 storageDataset = DatasetFactory.createTxnMem(new ACLStorageDatasetACL());
             } else {
                 final String dsPath = (String) params.get(PARAM_DATASETPATH );
-                if (dsPath == null || dsPath.trim().length() == 0 ) 
+                if (dsPath == null || dsPath.trim().isEmpty())
                     throw new ACLStorageException("Invalid or missing " + PARAM_DATASETPATH,ACLStorageId.asiDataset, params);
 
                 switch(persName.trim().toLowerCase()) {
@@ -159,7 +154,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
             }
         }
         
-        dsConnection = RDFConnectionFactory.connect(storageDataset);
+        dsConnection = RDFConnection.connect(storageDataset);
     }
 
     @Override
@@ -173,7 +168,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                 "}}";
         final String finalQuery = baseQuery.replaceAll("\\$\\$USERNAME", user);
         
-        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        LocalDatasetActions.update(finalQuery, dsConnection);
 
     }
 
@@ -194,7 +189,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                                             .replaceAll("\\$\\$GRAPHNAME", graph);
         
         
-        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        LocalDatasetActions.update(finalQuery, dsConnection);
 
     }
 
@@ -234,7 +229,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                                             .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
         
         
-        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        LocalDatasetActions.update(finalQuery, dsConnection);
     }
     private Map<String,String> loadUserList() {
         final String selectQuery = 
@@ -243,7 +238,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
         
         final Map<String,String> ret = new TreeMap<>();
         
-        final  ResultSet rs = LocalDatasetActions.query(storageDataset, selectQuery, dsConnection);
+        final  ResultSet rs = LocalDatasetActions.query(selectQuery, dsConnection);
         
         while(rs.hasNext()) {
             final QuerySolution qs = rs.next();
@@ -264,7 +259,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
         
         final Map<String,String> ret = new TreeMap<>();
         
-        final  ResultSet rs = LocalDatasetActions.query(storageDataset, selectQuery, dsConnection);
+        final  ResultSet rs = LocalDatasetActions.query(selectQuery, dsConnection);
         
         while(rs.hasNext()) {
             final QuerySolution qs = rs.next();
@@ -292,7 +287,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
             "  }"                                                           + System.lineSeparator()   +                
             "}}";                
         final String finalSelectRightsQuery = selectRightsQuery.replaceAll("\\$\\$USERNAME", userUri);
-        final  ResultSet rsRights = LocalDatasetActions.query(storageDataset, finalSelectRightsQuery, dsConnection);
+        final  ResultSet rsRights = LocalDatasetActions.query(finalSelectRightsQuery, dsConnection);
         
         
         while(rsRights.hasNext()) {
@@ -322,7 +317,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
             "  }"                                                           + System.lineSeparator()   +                
             "}}";                
         final String finalSelectMembershipQuery = selectRightsQuery.replaceAll("\\$\\$USERNAME", userUri);
-        final  ResultSet rsMembership = LocalDatasetActions.query(storageDataset, finalSelectMembershipQuery, dsConnection);
+        final  ResultSet rsMembership = LocalDatasetActions.query(finalSelectMembershipQuery, dsConnection);
         
         
         while(rsMembership.hasNext()) {
@@ -348,7 +343,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                  
         
         final String finalSelectQuery = selectQuery.replaceAll("\\$\\$GROUPNAME", groupUri);
-        final  ResultSet rs = LocalDatasetActions.query(storageDataset, finalSelectQuery, dsConnection);
+        final  ResultSet rs = LocalDatasetActions.query(finalSelectQuery, dsConnection);
         
         
         while(rs.hasNext()) {
@@ -445,7 +440,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                                             .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
         
         
-        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        LocalDatasetActions.update(finalQuery, dsConnection);
         
     }
 
@@ -462,7 +457,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                 "}}";
         final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", group);
         
-        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        LocalDatasetActions.update(finalQuery, dsConnection);
     }
 
     @Override
@@ -484,7 +479,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                                             .replaceAll("\\$\\$GRAPHNAME", graph);
         
         
-        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        LocalDatasetActions.update(finalQuery, dsConnection);
         
     }
 
@@ -512,7 +507,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                                             .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
         
         
-        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        LocalDatasetActions.update(finalQuery, dsConnection);
         
     }
 
@@ -556,7 +551,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                                             .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
         
         
-        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        LocalDatasetActions.update(finalQuery, dsConnection);
     }
 
     @Override
@@ -585,7 +580,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
         final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", group)
                                             .replaceAll("\\$\\$USERNAME", user);
         
-        LocalDatasetActions.update(storageDataset, finalQuery, dsConnection);
+        LocalDatasetActions.update(finalQuery, dsConnection);
 
         
     }

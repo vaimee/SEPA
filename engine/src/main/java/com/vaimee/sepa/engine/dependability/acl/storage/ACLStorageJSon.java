@@ -41,7 +41,7 @@ public class ACLStorageJSon implements ACLStorageOperations {
         this.params = params;
         final String jsonFile = (String) params.get(PARAM_JSONFILE );
         
-        if (jsonFile == null || jsonFile.trim().length() == 0)
+        if (jsonFile == null || jsonFile.trim().isEmpty())
             throw new ACLStorageException("Missing or invalid param " + PARAM_JSONFILE , ACLStorageId.aiJSon, params);
         
         this.jsonFile = jsonFile.trim();

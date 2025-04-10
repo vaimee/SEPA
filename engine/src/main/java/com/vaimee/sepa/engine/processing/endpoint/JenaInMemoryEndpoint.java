@@ -82,6 +82,7 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint{
 
 
                     Txn.executeRead(conn, ()-> {
+                        //TODO: Consider all query types (ASK, CONSTRUCT, ...)
                             ResultSet rs = conn.query(QueryFactory.create(req.getSPARQL())).execSelect();
                             ResultSetFormatter.outputAsJSON(out, rs);
                     });
