@@ -20,6 +20,7 @@ COPY --from=build ./engine/src/main/resources/jmxremote.password /jmxremote.pass
 COPY --from=build ./engine/src/main/resources/jmxremote.access /jmxremote.access
 COPY --from=build ./engine/src/main/resources/jmx.properties /jmx.properties
 COPY --from=build ./engine/src/main/resources/endpoint.jpar /endpoint.jpar
+COPY --from=build ./engine/src/main/resources/engine.jpar /engine.jpar
 # COPY ALL ENDPOINTS TO ALLOW CMD LINE CUSTOMIZATION
 COPY --from=build ./engine/src/main/resources/endpoints /endpoints
 
