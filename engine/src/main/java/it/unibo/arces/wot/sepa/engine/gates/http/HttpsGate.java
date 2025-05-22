@@ -21,6 +21,8 @@ package it.unibo.arces.wot.sepa.engine.gates.http;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.engine.extensions.Extension;
 import org.apache.http.ExceptionLogger;
 import org.apache.http.impl.nio.bootstrap.HttpServer;
 import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
@@ -31,8 +33,6 @@ import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
 import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
 import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
 import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
-import it.unibo.arces.wot.sepa.engine.protocol.oauth.JWTRequestHandler;
-import it.unibo.arces.wot.sepa.engine.protocol.oauth.RegisterHandler;
 import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SecureSPARQL11Handler;
 import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
 import it.unibo.arces.wot.sepa.logging.Logging;
@@ -49,18 +49,23 @@ public class HttpsGate {
 	public HttpsGate(EngineProperties properties, Scheduler scheduler) throws SEPASecurityException, SEPAProtocolException {
 
 		try {
-//			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
 			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
-			
-			server = ServerBootstrap.bootstrap().setListenerPort(443).setServerInfo(serverInfo)
+
+			ServerBootstrap boot =  ServerBootstrap.bootstrap().setListenerPort(443).setServerInfo(serverInfo)
 					.setIOReactorConfig(config).setSslContext(Dependability.getSSLContext())
 					.setExceptionLogger(ExceptionLogger.STD_ERR)
-					.registerHandler(properties.getRegisterPath(), new RegisterHandler())
 					.registerHandler(properties.getQueryPath(),handler)
-					.registerHandler(properties.getUpdatePath(),handler)
-					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
-					.registerHandler("/echo", new EchoHandler())
-					.registerHandler("", new EchoHandler()).create();
+					.registerHandler(properties.getUpdatePath(),handler);
+
+			for (String path : properties.getExtensions().keySet()) {
+				try {
+					boot.registerHandler(path, Extension.build(properties.getExtensions().get(path)));
+				} catch (SEPAPropertiesException e) {
+					throw new SEPAProtocolException(e);
+				}
+			}
+
+			server = boot.create();
 		} catch (IllegalArgumentException e) {
 			throw new SEPASecurityException(e);
 		}

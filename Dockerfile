@@ -6,12 +6,13 @@
 # docker build -t vaimeedock/sepa:v0.15.0 -t vaimeedock/sepa:latest . 
 # docker push vaimeedock/sepa --all-tag
 
-FROM maven:3.6-jdk-11 AS build
+FROM maven:3.9.9-sapmachine-21 AS build
+
 COPY . .
 
 RUN mvn clean package
 
-FROM openjdk:11.0-jre
+FROM openjdk:21-jdk
 
 COPY --from=build ./run.sh /run.sh
 COPY --from=build ./engine/target/engine-1.0.0-SNAPSHOT.jar /engine.jar
@@ -19,6 +20,7 @@ COPY --from=build ./engine/src/main/resources/jmxremote.password /jmxremote.pass
 COPY --from=build ./engine/src/main/resources/jmxremote.access /jmxremote.access
 COPY --from=build ./engine/src/main/resources/jmx.properties /jmx.properties
 COPY --from=build ./engine/src/main/resources/endpoint.jpar /endpoint.jpar
+COPY --from=build ./engine/src/main/resources/engine.jpar /engine.jpar
 # COPY ALL ENDPOINTS TO ALLOW CMD LINE CUSTOMIZATION
 COPY --from=build ./engine/src/main/resources/endpoints /endpoints
 

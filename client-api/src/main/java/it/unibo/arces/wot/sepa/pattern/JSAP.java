@@ -447,6 +447,10 @@ public class JSAP extends SPARQL11SEProperties {
 		return super.getReconnect();
 	}
 
+	public String getHost() {
+		if (super.getHost() != null) return super.getHost();
+		return host;
+	}
 	/*
 	 * UPDATE
 	 */
