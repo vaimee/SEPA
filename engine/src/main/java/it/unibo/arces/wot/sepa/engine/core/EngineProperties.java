@@ -22,6 +22,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.PatternSyntaxException;
@@ -29,6 +31,7 @@ import java.util.regex.PatternSyntaxException;
 import javax.net.ssl.SSLContext;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.RSAKey;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
@@ -43,6 +46,7 @@ import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.IsqlProperties;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.JKSUtil;
 import it.unibo.arces.wot.sepa.engine.dependability.authorization.LdapProperties;
+import it.unibo.arces.wot.sepa.engine.extensions.Extension;
 import it.unibo.arces.wot.sepa.logging.Logging;
 
 /**
@@ -213,7 +217,7 @@ public class EngineProperties {
 		public String unsubscribe;
 		public String register;
 		public String tokenRequest;
-
+		public JsonObject extensions;
 		public Paths(){
 			update       = "/update";
 			query        = "/query";
@@ -221,8 +225,8 @@ public class EngineProperties {
 			unsubscribe  = "/unsubscribe";
 			register     = "/oauth/register";
 			tokenRequest = "/oauth/token";
+			extensions = new JsonObject();
 		}
-		
 		public String toString() {
 			return new Gson().toJson(this);
 		}
@@ -241,7 +245,7 @@ public class EngineProperties {
 			return new Gson().toJson(this);
 		}
 	}
-	
+
 	private int wsShutdownTimeout = 5000;
 
 	// Properties files
@@ -286,9 +290,7 @@ public class EngineProperties {
 	RSAKey jwt = null;
 	LdapProperties ldap = null;
 	IsqlProperties isql = null;
-	
 	SPARQL11Properties endpointProperties;
-
 	public EngineProperties(String[] args) throws SEPASecurityException {
 		setJparFiles(args);
 		
@@ -308,6 +310,8 @@ public class EngineProperties {
 				Logging.logger.error("Failed to store properties file: "+defaultsFileName);
 			}
 		}
+
+		parameters = result;
 		
 		try {
 			endpointProperties = new SPARQL11Properties(URI.create(endpointJpar));
@@ -323,15 +327,12 @@ public class EngineProperties {
 		
 		printParameters();
 	}
-	
 	public SPARQL11Properties getEndpointProperties() {
 		return endpointProperties;
 	}
 	public int getWsShutdownTimeout(){
 		return wsShutdownTimeout;
 	}
-	
-	
 	public String getSSLCertificate() {
 		if (!isSecure())
 			return "Security off";
@@ -346,7 +347,6 @@ public class EngineProperties {
 			Logging.logger.error(e.getMessage());
 		}
 	}
-	
 	private void printUsage() {
 		System.out.println("Usage:");
 		System.out.println("java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-secure=true] [-engine=engine.jpar] [-endpoint=endpoint.jpar] [JKS OPTIONS] [LDAP OPTIONS] [ISQL OPTIONS]");
@@ -658,7 +658,7 @@ public class EngineProperties {
 		Logging.logger.debug("-parameters.gates.paths.subscribe: " + parameters.gates.paths.subscribe);
 		Logging.logger.debug("-parameters.gates.paths.unsubscribe: " + parameters.gates.paths.unsubscribe);
 		
-		Logging.logger.debug("--- ENDPOINT PARAMETERS---");
+		Logging.logger.debug("--- ENDPOINT PARAMETERS ---");
 		Logging.logger.debug("-host: " + endpointProperties.getHost());
 		Logging.logger.debug("-sparql11protocol.protocol: " + endpointProperties.getProtocolScheme());
 		Logging.logger.debug("-sparql11protocol.port: " + endpointProperties.getPort());
@@ -668,6 +668,12 @@ public class EngineProperties {
 		Logging.logger.debug("-sparql11protocol.update.path: " + endpointProperties.getUpdatePath());
 		Logging.logger.debug("-sparql11protocol.update.method: " + endpointProperties.getUpdateMethod());
 		Logging.logger.debug("-sparql11protocol.update.format: " + endpointProperties.getUpdateAcceptHeader());
+
+		Logging.logger.debug("--- EXTENSIONS ---");
+		for (String ext : getExtensions().keySet()) {
+			Logging.logger.debug(ext+" : " + getExtensions().get(ext));
+		}
+
 	}
 
 	public void setSecurity() throws SEPASecurityException {
@@ -697,7 +703,7 @@ public class EngineProperties {
 	}
 
 	public String toString() {
-		return new Gson().toJson(this);
+		return parameters.toString();
 	}
 	
 
@@ -780,5 +786,12 @@ public class EngineProperties {
 	public int getSchedulerTimeout() {
 		return this.parameters.scheduler.timeout;
 	}
-	
+
+	public HashMap<String,String> getExtensions() {
+		HashMap<String,String> ret = new HashMap<String,String>();
+		for (String key :  this.parameters.gates.paths.extensions.keySet()) {
+			ret.put(key,this.parameters.gates.paths.extensions.get(key).getAsString());
+		}
+		return ret;
+	}
 }

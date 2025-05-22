@@ -21,6 +21,8 @@ package it.unibo.arces.wot.sepa.engine.gates.http;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
+import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.engine.extensions.Extension;
 import org.apache.http.ExceptionLogger;
 
 import org.apache.http.impl.nio.bootstrap.HttpServer;
@@ -50,12 +52,20 @@ public class HttpGate {
 		
 		SPARQL11Handler handler = new SPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
 	
-		server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort())
+		ServerBootstrap boot = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort())
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
 				.registerHandler(properties.getQueryPath(), handler)
-				.registerHandler(properties.getUpdatePath(), handler)
-				.registerHandler("/echo", new EchoHandler()).create();
-		
+				.registerHandler(properties.getUpdatePath(), handler);
+
+		for (String path : properties.getExtensions().keySet()) {
+			try {
+				boot.registerHandler(path, Extension.build(properties.getExtensions().get(path)));
+			} catch (SEPAPropertiesException e) {
+				throw new SEPAProtocolException(e);
+			}
+		}
+
+		server = boot.create();
 		try {
 			server.start();
 		} catch (IOException e) {
