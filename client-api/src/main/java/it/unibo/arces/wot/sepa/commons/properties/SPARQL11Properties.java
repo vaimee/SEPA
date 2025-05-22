@@ -86,7 +86,7 @@ public class SPARQL11Properties {
 	// Members.
 	protected SPARQL11ProtocolProperties sparql11protocol;
 	protected GraphsProperties graphs = null;
-
+	protected final URI baseUri;
 	/**
 	 * The Enum SPARQLPrimitive (QUERY, UPDATE).
 	 */
@@ -139,6 +139,7 @@ public class SPARQL11Properties {
 		this(uri,null);
 	}
 	public SPARQL11Properties(URI uri,String[] args) throws SEPAPropertiesException {
+		baseUri = uri;
 		if (uri != null) {
 			Reader in = getReaderFromUri(uri);
 
@@ -178,6 +179,9 @@ public class SPARQL11Properties {
 			}
 	}
 
+	public URI getBaseUri(){
+		return baseUri;
+	}
 	protected void setParameter(String key,String value) {
 		switch (key) {
 			case "-sparql11protocol.port":
