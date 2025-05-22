@@ -29,7 +29,6 @@
         "/oauth/token" : "it.unibo.arces.wot.sepa.engine.protocol.oauth.JWTRequestHandler"
       },
       "extensions" : {
-        "/echo" : "it.unibo.arces.wot.sepa.engine.extensions.EchoHandler"
       }
     },
     "ports": {
