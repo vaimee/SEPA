@@ -64,33 +64,39 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint {
 
 	@Override
 	public Response query(QueryRequest req) {
-		final Response[] ret = new Response[1];
-		RDFConnection conn = RDFConnection.connect(dataset);
-		Query query = QueryFactory.create(req.getSPARQL());
-		Txn.executeRead(conn, () -> {
-			if (query.isSelectType()) {
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				ResultSet rs  = conn.query(query).execSelect();
-				ResultSetFormatter.outputAsJSON(out, rs);
-				try {
-					ret[0] = new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
-				} catch (UnsupportedEncodingException e) {
-					ret[0] = new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
+		try{
+			final Response[] ret = new Response[1];
+			RDFConnection conn = RDFConnection.connect(dataset);
+			Query query = QueryFactory.create(req.getSPARQL());
+			Txn.executeRead(conn, () -> {
+				if (query.isSelectType()) {
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					ResultSet rs  = conn.query(query).execSelect();
+					ResultSetFormatter.outputAsJSON(out, rs);
+					try {
+						ret[0] = new QueryResponse(out.toString(StandardCharsets.UTF_8.name()));
+					} catch (UnsupportedEncodingException e) {
+						ret[0] = new ErrorResponse(500, "UnsupportedEncodingException", e.getMessage());
+					}
+
+				}
+				else if (query.isAskType()) {
+					// https://www.w3.org/TR/2013/REC-sparql11-results-json-20130321/#ask-result-form
+					boolean result = conn.queryAsk(query);
+					JsonObject res = new JsonObject();
+					res.add("head", new JsonObject());
+					res.add("boolean",new JsonPrimitive(result));
+					ret[0] = new QueryResponse(res.toString());
 				}
 
-			}
-			else if (query.isAskType()) {
-				// https://www.w3.org/TR/2013/REC-sparql11-results-json-20130321/#ask-result-form
-				boolean result = conn.queryAsk(query);
-				JsonObject res = new JsonObject();
-				res.add("head", new JsonObject());
-				res.add("boolean",new JsonPrimitive(result));
-				ret[0] = new QueryResponse(res.toString());
-			}
+			});
 
-		});
+			return ret[0];
+		}
+		catch (Exception e) {
+			return new ErrorResponse(500, e.getClass().descriptorString(), e.getMessage());
+		}
 
-		return ret[0];
 	}
 
 	@Override
