@@ -62,7 +62,8 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    #if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    if: startsWith(github.event.ref, 'refs/tags/v')
     needs: 
       - build
       - test
