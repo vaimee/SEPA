@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
+import it.unibo.arces.wot.sepa.engine.extensions.EchoHandler;
 import it.unibo.arces.wot.sepa.engine.extensions.Extension;
 import org.apache.http.ExceptionLogger;
 
@@ -55,7 +56,8 @@ public class HttpGate {
 		ServerBootstrap boot = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort())
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)
 				.registerHandler(properties.getQueryPath(), handler)
-				.registerHandler(properties.getUpdatePath(), handler);
+				.registerHandler(properties.getUpdatePath(), handler)
+				.registerHandler("/echo", new EchoHandler());
 
 		for (String path : properties.getExtensions().keySet()) {
 			try {
