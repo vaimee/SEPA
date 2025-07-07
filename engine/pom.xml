@@ -1,9 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>com.vaimee</groupId>
+		<groupId>it.unibo.arces.wot</groupId>
 		<artifactId>sepa</artifactId>
 		<version>${revision}</version>
 	</parent>
@@ -26,14 +26,14 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.8.2</version>
+				<version>3.0.0-M2</version>
 				<configuration>
 					<skip>true</skip>
 				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.1</version>
+				<version>3.2.0</version>
 				<executions>
 					<execution>
 						<id>copy-defaults</id>
@@ -73,7 +73,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
+				<version>3.3.0</version>
 				<executions>
 					<!-- Run shade goal on package phase -->
 					<execution>
@@ -85,8 +85,8 @@
 							<transformers>
 								<!-- add Main-Class to manifest file -->
 								<transformer
-										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.vaimee.sepa.engine.core.Engine</mainClass>
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<mainClass>it.unibo.arces.wot.sepa.engine.core.Engine</mainClass>
 									<manifestEntries>
 										<Multi-Release>true</Multi-Release>
 									</manifestEntries>
@@ -108,31 +108,180 @@
 			</plugin>
 		</plugins>
 	</build>
-	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpcore-nio</artifactId>
-			<version>4.4.16</version>
-		</dependency>
 
+	<dependencies>
 		<dependency>
-			<groupId>com.vaimee</groupId>
+			<groupId>it.unibo.arces.wot</groupId>
 			<artifactId>client-api</artifactId>
 			<version>${revision}</version>
+		</dependency>
+
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-shaded-guava</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-iri</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+
+	<dependency>
+		<groupId>org.apache.jena</groupId>
+		<artifactId>jena-base</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</dependency>
+
+	<dependency>
+		<groupId>org.apache.jena</groupId>
+		<artifactId>jena-core</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</dependency>
+
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-arq</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-shacl</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-shex</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-tdb</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+
+	<dependency>
+		<groupId>org.apache.jena</groupId>
+		<artifactId>jena-dboe-base</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</dependency>
+
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-dboe-transaction</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-dboe-index</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-dboe-trans-data</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-dboe-storage</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+		<dependency>
+			<groupId>org.apache.jena</groupId>
+			<artifactId>jena-tdb2</artifactId>
+			<version>1.0.0-SNAPSHOT</version>
+		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-cmds</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+<!-- 		<dependency> -->
+<!-- 			<groupId>org.apache.jena</groupId> -->
+<!-- 			<artifactId>jena-fuseki-webapp</artifactId> -->
+<!-- 			<version>1.0.0-SNAPSHOT</version> -->
+<!-- 		</dependency> -->
+
+	<dependency>
+		<groupId>org.apache.jena</groupId>
+		<artifactId>jena-rdfconnection</artifactId>
+		<version>1.0.0-SNAPSHOT</version>
+	</dependency>
+
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.1</version>
+			<scope>test</scope>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/org.apache.directory.api/api-all -->
 		<dependency>
 			<groupId>org.apache.directory.api</groupId>
 			<artifactId>api-all</artifactId>
-			<version>2.1.6</version>
+			<version>2.0.0.AM4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpcore-nio</artifactId>
+			<version>4.4.6</version>
+		</dependency>
+
+
+		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.0</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.nimbusds/nimbus-jose-jwt -->
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
+			<version>7.9</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket -->
+		<dependency>
+			<groupId>org.java-websocket</groupId>
+			<artifactId>Java-WebSocket</artifactId>
+			<version>1.5.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-api</artifactId>
+			<version>2.17.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-core</artifactId>
+			<version>2.17.2</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>2.6.2</version>
 		</dependency>
 	</dependencies>
 
