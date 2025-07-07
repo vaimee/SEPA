@@ -3,83 +3,71 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	
-	<groupId>com.vaimee</groupId>
+	<groupId>it.unibo.arces.wot</groupId>
 	<artifactId>sepa</artifactId>
 	<version>${revision}</version>
-	
 	<packaging>pom</packaging>
-	
-	<description>The project aims at developing a SPARQL Event Processing
-		Architecture using JAVA technologies, including APIs and tools</description>
-	
+	<description>The project aims at developing a SPARQL Event Processing Architecture using JAVA technologies, including APIs and tools</description>
 	<modules>
 		<module>client-api</module>
 		<module>engine</module>
-		<module>chat</module>
-		<module>dashboard</module>
 	</modules>
-	
 	<name>SEPA Project</name>
-	<url>https://github.com/vaimee/SEPA.git</url>
+	<url>https://github.com/arces-wot/sepa.git</url>
 	<licenses>
 		<license>
 			<name>GNU Lesser General Public License v3.0</name>
 			<url>https://www.gnu.org/licenses/lgpl-3.0.en.html</url>
 		</license>
 	</licenses>
-	<developers>
-		<developer>
-			<name>Luca Roffia</name>
-			<email>luca.roffia@vaimee.com</email>
-			<organization>VAIMEE</organization>
-			<organizationUrl>http://vaimee.com/</organizationUrl>
-		</developer>
-		<developer>
-			<name>Cristiano Aguzzi</name>
-			<email>cristiano.aguzzi@vaimee.com</email>
-			<organization>VAIMEE</organization>
-			<organizationUrl>http://vaimee.com/</organizationUrl>
-		</developer>
-		<developer>
-			<name>Gregorio Monari</name>
-			<email>gregorio.monari@vaimee.com</email>
-			<organization>VAIMEE</organization>
-			<organizationUrl>http://vaimee.com/</organizationUrl>
-		</developer>
-	</developers>
-	<scm>
-		<connection>scm:git:git://github.com/vaimee/sepa.git</connection>
-		<developerConnection>scm:git:ssh://github.com/vaimee/sepa.git</developerConnection>
-		<url>https://github.com/vaimee/SEPA</url>
-	</scm>
-
 	<properties>
-		<java.version>21</java.version>
-		<maven.compiler.release>21</maven.compiler.release>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<maven.compiler.source>13</maven.compiler.source>
+		<maven.compiler.target>13</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>1.0.0-SNAPSHOT</revision>
 		<update>0</update>
 	</properties>
+	<developers>
+		<developer>
+			<name>Luca Roffia</name>
+			<email>luca.roffia@unibo.it</email>
+			<organization>Web of Things research group of ARCES</organization>
+			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+		</developer>
+		<developer>
+			<name>Cristiano Aguzzi</name>
+			<email>cristiano.aguzzi@studio.unibo.it</email>
+			<organization>Web of Things research group of ARCES</organization>
+			<organizationUrl>http://wot.arces.unibo.it/</organizationUrl>
+		</developer>
+		<developer>
+			<name>Lorenzo Trivelli</name>
+			<email>lorenzo.trivelli@vaimee.it</email>
+			<organization>VAIMEE</organization>
+			<organizationUrl>https://vaimee.it</organizationUrl>
+		</developer>
+		<developer>
+			<name>Andrea Ferrari</name>
+			<email>andrea.ferrari@vaimee.it</email>
+			<organization>VAIMEE</organization>
+			<organizationUrl>https://vaimee.it</organizationUrl>
+		</developer>
+	</developers>
+	<scm>
+		<connection>scm:git:git://github.com/arces-wot/sepa.git</connection>
+		<developerConnection>scm:git:ssh://github.com/arces-wot/sepa.git</developerConnection>
+		<url>https://github.com/arces-wot/SEPA</url>
+	</scm>
+	
 	<distributionManagement>
 		<repository>
 			<id>github</id>
 			<name>GitHub Packages</name>
-			<url>https://maven.pkg.github.com/vaimee/SEPA</url>
+			<url>https://maven.pkg.github.com/arces-wot/SEPA</url>
 		</repository>
 	</distributionManagement>
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.9.0</version>
-				<configuration>
-					<release>21</release>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>com.hbakkum.maven.plugins</groupId>
 				<artifactId>resolve-parent-version-maven-plugin</artifactId>
@@ -95,18 +83,18 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.1.2</version>
-				<!--				<configuration>-->
-				<!--					<excludes>-->
-				<!--						<exclude>**/IT*.java</exclude>-->
-				<!--						<exclude>**/Stress*.java</exclude>-->
-				<!--					</excludes>-->
-				<!--				</configuration>-->
+				<version>3.0.0-M4</version>
+				<configuration>
+					<excludes>
+						<exclude>**/IT*.java</exclude>
+						<exclude>**/Stress*.java</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>3.1.2</version>
+				<version>3.0.0-M1</version>
 				<executions>
 					<execution>
 						<goals>
@@ -119,7 +107,8 @@
 		</plugins>
 		<pluginManagement>
 			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -145,7 +134,7 @@
 										</goals>
 									</pluginExecutionFilter>
 									<action>
-										<ignore />
+										<ignore></ignore>
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
@@ -156,72 +145,7 @@
 		</pluginManagement>
 	</build>
 	<organization>
-		<name>VAIMEE</name>
-		<url>https://vaimee.com/</url>
+		<name>Web of Things Research Group @ ARCES</name>
+		<url>https://http://wot.arces.unibo.it/</url>
 	</organization>
-	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
-		<dependency>
-			<groupId>org.apache.jena</groupId>
-			<artifactId>apache-jena-libs</artifactId>
-			<version>5.0.0</version>
-			<type>pom</type>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>jcl-over-slf4j</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.glassfish</groupId>
-					<artifactId>jakarta.json</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>2.23.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-core</artifactId>
-			<version>2.23.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.10.1</version>
-		</dependency>
-		<dependency>
-			<groupId>com.nimbusds</groupId>
-			<artifactId>nimbus-jose-jwt</artifactId>
-			<version>9.40</version>
-		</dependency>
-		<!--
-		https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.11.3</version>
-			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.java-websocket</groupId>
-			<artifactId>Java-WebSocket</artifactId>
-			<version>1.5.7</version>
-		</dependency>
-	</dependencies>
 </project>

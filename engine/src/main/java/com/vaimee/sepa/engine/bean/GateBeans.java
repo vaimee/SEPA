@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package com.vaimee.sepa.engine.bean;
+package it.unibo.arces.wot.sepa.engine.bean;
 
-import com.vaimee.sepa.logging.Timings;
+import it.unibo.arces.wot.sepa.engine.timing.Timings;
 
 public class GateBeans {
 	private static long messages = 0;
