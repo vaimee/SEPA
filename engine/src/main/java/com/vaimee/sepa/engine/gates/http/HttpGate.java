@@ -21,9 +21,9 @@ package com.vaimee.sepa.engine.gates.http;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAPropertiesException;
-import it.unibo.arces.wot.sepa.engine.extensions.EchoHandler;
-import it.unibo.arces.wot.sepa.engine.extensions.Extension;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.engine.extensions.EchoHandler;
+import com.vaimee.sepa.engine.extensions.Extension;
 import org.apache.http.ExceptionLogger;
 
 import org.apache.http.impl.nio.bootstrap.HttpServer;
