@@ -141,12 +141,12 @@ public abstract class Client implements java.io.Closeable {
 	 * </pre>
 	 **/
 
-	protected ArrayList<Bindings> addDefaultDatatype(ArrayList<Bindings> bindings, String id, boolean query) throws SEPABindingsException {
+	protected ArrayList<Bindings> addUpdateDefaultDatatype(ArrayList<Bindings> bindings, String id,boolean query) throws SEPABindingsException {
 		ArrayList<Bindings> temp = new ArrayList<>();
-		for (Bindings b : bindings) temp.add(addDefaultDatatype(b,id,query));
+		for (Bindings b : bindings) temp.add(addUpdateDefaultDatatype(b,id,query));
 		return temp;
 	}
-	protected Bindings addDefaultDatatype(Bindings bindings, String id, boolean query) throws SEPABindingsException {
+	protected Bindings addUpdateDefaultDatatype(Bindings bindings, String id,boolean query) throws SEPABindingsException {
 		if (id == null)
 			return bindings;
 		if (bindings == null)

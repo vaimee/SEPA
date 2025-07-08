@@ -95,7 +95,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		
 		if (isSecure()) authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		
-		client.subscribe(new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparqlSubscribe, addDefaultDatatype(forcedBindings,subID,true)), null, appProfile.getDefaultGraphURI(subID),
+		client.subscribe(new SubscribeRequest(appProfile.addPrefixesAndReplaceBindings(sparqlSubscribe, addUpdateDefaultDatatype(forcedBindings,subID,true)), null, appProfile.getDefaultGraphURI(subID),
 				appProfile.getNamedGraphURI(subID),
 				authorizationHeader,timeout,nRetry));
 	}
