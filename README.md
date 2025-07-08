@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://github.com/vaimee/SEPA">
-    <img width="300px" src="./doc/logo.png">
+    <img width="300px" src="img/logo.png">
   </a>
   <br>
   <br>
@@ -48,7 +48,7 @@ SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscri
 
 ## Demo
 
-![Demo showing subscription and notifications](./doc/SEPADemo.gif)
+![Demo showing subscription and notifications](img/SEPADemo.gif)
 
 ## Quick start
 

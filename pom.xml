@@ -16,8 +16,8 @@
 	<modules>
 		<module>client-api</module>
 		<module>engine</module>
-		<module>chat2</module>
-		<module>dash2</module>
+		<module>example-chat</module>
+		<module>tool-dashboard</module>
 	</modules>
 
 	<name>SEPA Project</name>
