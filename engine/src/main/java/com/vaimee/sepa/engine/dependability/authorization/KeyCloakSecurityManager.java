@@ -146,55 +146,55 @@ public class KeyCloakSecurityManager extends SecurityManager {
 	}
 
 	@Override
-	public void addAuthorizedIdentity(DigitalIdentity identity) throws SEPASecurityException {
+	public void addAuthorizedIdentity(DigitalIdentity identity) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void removeAuthorizedIdentity(String uid) throws SEPASecurityException {
+	public void removeAuthorizedIdentity(String uid) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public DigitalIdentity getIdentity(String uid) throws SEPASecurityException {
+	public DigitalIdentity getIdentity(String uid) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public boolean isAuthorized(String identity) throws SEPASecurityException {
+	public boolean isAuthorized(String identity) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean isForTesting(String identity) throws SEPASecurityException {
+	public boolean isForTesting(String identity) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean storeCredentials(DigitalIdentity identity, String secret) throws SEPASecurityException {
+	public boolean storeCredentials(DigitalIdentity identity, String secret) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public void removeCredentials(DigitalIdentity identity) throws SEPASecurityException {
+	public void removeCredentials(DigitalIdentity identity) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public boolean containsCredentials(String uid) throws SEPASecurityException {
+	public boolean containsCredentials(String uid) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public boolean checkCredentials(String uid, String secret) throws SEPASecurityException {
+	public boolean checkCredentials(String uid, String secret) {
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -205,103 +205,103 @@ public class KeyCloakSecurityManager extends SecurityManager {
 	}
 
 	@Override
-	public void addJwt(String id, SignedJWT claims) throws SEPASecurityException {
+	public void addJwt(String id, SignedJWT claims) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public boolean containsJwt(String id) throws SEPASecurityException {
+	public boolean containsJwt(String id) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
-	public SignedJWT getJwt(String uid) throws SEPASecurityException {
+	public SignedJWT getJwt(String uid) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void removeJwt(String id) throws SEPASecurityException {
+	public void removeJwt(String id) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public Date getTokenExpiringDate(String id) throws SEPASecurityException {
+	public Date getTokenExpiringDate(String id) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public long getTokenExpiringPeriod(String id) throws SEPASecurityException {
+	public long getTokenExpiringPeriod(String id) {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public void setTokenExpiringPeriod(String id, long period) throws SEPASecurityException {
+	public void setTokenExpiringPeriod(String id, long period) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void setDeviceExpiringPeriod(long period) throws SEPASecurityException {
+	public void setDeviceExpiringPeriod(long period) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public long getDeviceExpiringPeriod() throws SEPASecurityException {
+	public long getDeviceExpiringPeriod() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public void setApplicationExpiringPeriod(long period) throws SEPASecurityException {
+	public void setApplicationExpiringPeriod(long period) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public long getApplicationExpiringPeriod() throws SEPASecurityException {
+	public long getApplicationExpiringPeriod() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public void setUserExpiringPeriod(long period) throws SEPASecurityException {
+	public void setUserExpiringPeriod(long period) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public long getUserExpiringPeriod() throws SEPASecurityException {
+	public long getUserExpiringPeriod() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public void setDefaultExpiringPeriod(long period) throws SEPASecurityException {
+	public void setDefaultExpiringPeriod(long period) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public long getDefaultExpiringPeriod() throws SEPASecurityException {
+	public long getDefaultExpiringPeriod() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public String getIssuer() throws SEPASecurityException {
+	public String getIssuer() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void setIssuer(String is) throws SEPASecurityException {
+	public void setIssuer(String is) {
 		// TODO Auto-generated method stub
 		
 	}

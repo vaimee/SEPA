@@ -5,6 +5,9 @@ import java.util.Scanner;
 
 import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
 import com.vaimee.sepa.api.commons.security.Credentials;
+import com.vaimee.sepa.engine.dependability.authorization.JKSUtil;
+import com.vaimee.sepa.engine.dependability.authorization.LdapProperties;
+import com.vaimee.sepa.engine.dependability.authorization.LdapSecurityManager;
 import com.vaimee.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
 import com.vaimee.sepa.engine.dependability.authorization.identities.DeviceIdentity;
 import com.vaimee.sepa.engine.dependability.authorization.identities.DigitalIdentity;
@@ -58,7 +61,7 @@ public class ACLManager {
 			}
 
 			try {
-				ldap = new LdapSecurityManager(JKSUtil.getSSLContext("sepa.jks", "sepa2020"),JKSUtil.getRSAKey("sepa.jks", "sepa2020","jwt","sepa2020"),new LdapProperties(host, port, base, null,user, pwd, false));
+				ldap = new LdapSecurityManager(JKSUtil.getSSLContext("sepa.jks", "sepa2020"), JKSUtil.getRSAKey("sepa.jks", "sepa2020","jwt","sepa2020"),new LdapProperties(host, port, base, null,user, pwd, false));
 			} catch (SEPASecurityException e2) {
 				System.out.println(e2.getMessage());
 				continue;
