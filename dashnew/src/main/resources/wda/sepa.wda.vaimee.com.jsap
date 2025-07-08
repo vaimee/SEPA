@@ -1,0 +1,1545 @@
+{
+  "host": "sepa.wda.vaimee.com",
+  "sparql11protocol": {
+    "protocol": "https",
+    "port": 443,
+    "query": {
+      "path": "/query",
+      "method": "POST",
+      "format": "JSON"
+    },
+    "update": {
+      "path": "/update",
+      "method": "POST",
+      "format": "JSON"
+    }
+  },
+  "sparql11seprotocol": {
+    "reconnect": true,
+    "protocol": "wss",
+    "availableProtocols": {
+      "ws": {
+        "port": 9555,
+        "path": "/subscribe",
+        "scheme": "ws"
+      },
+      "wss": {
+        "path": "/subscribe",
+        "port": 443,
+        "scheme": "wss"
+      }
+    }
+  },
+  "namespaces": {
+    "schema": "http://schema.org/",
+    "qudt": "http://qudt.org/schema/qudt#",
+    "arces-monitor": "http://wot.arces.unibo.it/monitor#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "gn": "http://www.geonames.org/ontology#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "swamp": "http://swamp-project.org/ns#",
+    "unit": "http://qudt.org/vocab/unit#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "mqtt": "http://wot.arces.unibo.it/mqtt#",
+    "wgs84_pos": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    "time": "http://www.w3.org/2006/time#",
+    "sosa": "http://www.w3.org/ns/sosa/",
+    "weather": "https://vaimee.com/weather/",
+    "criteria": "https://vaimee.com/criteria/",
+    "criteriaProperty": "https://vaimee.com/criteria/property#",
+    "vaimee": "https://vaimee.com#",
+    "vaimeeSensor": "https://vaimee.com/sensors#"
+  },
+  "extended": {
+    "app": "https://tools.vaimee.com/mqtt_agent",
+    "https://tools.vaimee.com/weather": {
+      "observedWeatherType": "OPENWEATHER",
+      "weatherForecastType": "OPENWEATHER",
+      "sensorType": "AGRIFIRM",
+      "NODE_ENV": "production",
+      "PORT": 3001,
+      "FORECAST_API": "https://api.openweathermap.org/data/2.5/",
+      "FORECAST_API_TOKEN": "2816dcff80ba0ec69714c2f5dfdbbb6d",
+      "LAT": 42.608751,
+      "LONG": -111.745561,
+      "TIME": "00:30",
+      "TIME_SPACE": 2,
+      "MODE": "d",
+      "DELAY": 30000,
+      "MINUTE": 45,
+      "FEATURE": "vaimee:TestPlace",
+      "OPENWEATHER": {
+        "url": "https://api.openweathermap.org/data/2.5/",
+        "apiToken": "2816dcff80ba0ec69714c2f5dfdbbb6d"
+      },
+      "AGRIFIRM": {
+        "url": "https://smartfarm.appsforagri.com/api/",
+        "user": "f.deoliveirasalles@agrifirm.com",
+        "password": "Agrifirm+2023"
+      },
+      "AGENT_VOCABULARY": {
+        "feature": "vaimee:place",
+        "minTemp": "weather:minTemperature",
+        "maxTemp": "weather:maxTemperature",
+        "temp": "weather:temperature",
+        "rainFall": "weather:rainFall",
+        "snow": "weather:snow"
+      }
+    },
+    "https://tools.vaimee.com/models/criteria": {
+      "cmd": "/Users/luca/criteria1DBin/CRITERIA1D",
+      "days": 3,
+      "dataPathBase": "/Users/luca/criteria1DBin/data",
+      "meteoDBName": "weather.db",
+      "outputDBName": "output.db",
+      "forecastDBName": "forecast.db",
+      "unitsDBName": "units.db",
+      "soilDBName": "soil.db",
+      "cropDBName": "crop.db",
+      "sqlMapping": {
+        "UNITS": {
+          "baseDBPath": "/Users/luca/criteria1DBin/data",
+          "dbName": "units.db",
+          "tableName": "computational_units",
+          "fields": "ID_CASE,ID_CROP,ID_METEO,ID_SOIL,numerical_solution,water_retention_fitting",
+          "vars": "id,crop,meteo,soil,numerical,fitting"
+        },
+        "UNITS_NT": {
+          "baseDBPath": "/Users/luca/criteria1DBin/data",
+          "dbName": "units.db",
+          "tableName": "computational_units",
+          "fields": "ID_CASE,ID_CROP,ID_METEO,ID_SOIL,numerical_solution,water_retention_fitting",
+          "vars": "id,crop,meteo,soil,numerical,fitting"
+        },
+        "METEO_LOCATION": {
+          "baseDBPath": "/Users/luca/criteria1DBin/data",
+          "dbName": "weather.db",
+          "tableName": "meteo_locations",
+          "fields": "id_meteo,table_name,meteo_name,longitude,latitude,height",
+          "vars": "id,table,label,long,lat,height"
+        },
+        "FORECAST_METEO_LOCATION": {
+          "baseDBPath": "/Users/luca/criteria1DBin/data",
+          "dbName": "forecast.db",
+          "tableName": "meteo_locations",
+          "fields": "id_meteo,table_name,meteo_name,longitude,latitude,height",
+          "vars": "id,table,label,long,lat,height"
+        },
+        "METEO_LOCATION_NT": {
+          "baseDBPath": "/Users/luca/criteria1DBin/data",
+          "dbName": "weather.db",
+          "tableName": "meteo_locations",
+          "fields": "id_meteo,table_name,meteo_name,longitude,latitude,height",
+          "vars": "id,table,label,long,lat,height"
+        },
+        "FORECAST_METEO_LOCATION_NT": {
+          "baseDBPath": "/Users/luca/criteria1DBin/data",
+          "dbName": "forecast.db",
+          "tableName": "meteo_locations",
+          "fields": "id_meteo,table_name,meteo_name,longitude,latitude,height",
+          "vars": "id,table,label,long,lat,height"
+        }
+      },
+      "OPENWEATHER": {
+        "url": "https://api.openweathermap.org/data/2.5/",
+        "apiToken": "2816dcff80ba0ec69714c2f5dfdbbb6d"
+      },
+      "AGRIFIRM": {
+        "url": "https://smartfarm.appsforagri.com/api/",
+        "user": "f.deoliveirasalles@agrifirm.com",
+        "password": "Agrifirm+2023"
+      },
+      "sensors": {
+        "AGRIFIRM": {
+          "x-api-key": "eyJhbGciOiJIUzUxMiIsInNpZCI6IjIiLCJ0eXAiOiJKV1QifQ.eyJjbGllbnQiOiJBZ3JpZmlybSIsImlzcyI6ImFndXJvdGVjaCIsInN1YiI6ImEuYm9zQGFncmlmaXJtLmNvbSIsImF1ZCI6WyJhcGkuYWd1cm90ZWNoLmNvbSJdLCJleHAiOjIwMDQ4MjU2MDAsIm5iZiI6MTY4OTI0OTAwNSwiaWF0IjoxNjg5MjQ5MDA1LCJqdGkiOiI0Mkl2NzR4dGJQdE5la2VlbVpKUCJ9.NeKk957b5JXH0F2kqeCbPiTFdOTeFD_OX-_X0w4EtDsQeS49ZcORciTWNUuEq0feEpVdaZtU54OzTBAptzwoYw",
+          "url": "https://api.agurotech.com/v1/farms"
+        }
+      },
+      "web": {
+        "PORT": 3002,
+        "TIME": "14:15",
+        "SECRET": "criteria4zentra@_2022",
+        "CROP_DB_PATH": "/Users/luca/criteria1DBin/data/crop.db",
+        "SOIL_DB_PATH": "/Users/luca/criteria1DBin/data/soil.db",
+        "AGENT_VOCABULARY": {
+          "minTemp": "https://vaimee.com/weather/minTemperature",
+          "maxTemp": "https://vaimee.com/weather/maxTemperature",
+          "temp": "https://vaimee.com/weather/temperature",
+          "preciptation": "https://vaimee.com/weather/precipitation",
+          "snow": "https://vaimee.com/weather/snow"
+        },
+        "DESCRIPTIONS": {
+          "IrrigationNeeds": "Irrigation water determined by CRITERIA",
+          "LeafAreaIndex": "Leaf area index determined for the chosen crop",
+          "Precipitation": "Precipitation events",
+          "WaterContent": "Water content in the first layer of soil",
+          "SurfaceWaterContent": "Surface water content",
+          "AvailableWater": "Available water storage in the soil",
+          "ReadilyAvailableWater": "Readily available storage in the soil",
+          "FractionAvailableWater": "Fraction of the available water",
+          "Deficit": "Water deficit",
+          "Deficit25": "Water deficit at 25",
+          "Drainage": "Drained amount of water",
+          "Runoff": "Runoff amount of water",
+          "Et0": "Reference evapotranspiration",
+          "TranspirationMax": "Maximum transpiration",
+          "Transpiration": "Transpiration",
+          "EvaporationMax": "Maximum evaporation",
+          "Evaporation": "Evaporation",
+          "RootDepth": "Root Depth",
+          "SoilWaterContent15": "Soil water content at 15  centimeters horizon",
+          "SoilWaterContent30": "Soil water content at 30 centimeters horizon",
+          "SoilWaterContent50": "Soil water content at 50 centimeters horizon",
+          "WaterPotential15": "Water potential at 15 centimeters horizon",
+          "WaterPotential30": "Water potential at 30 centimeters horizon",
+          "WaterPotential50": "Water potential at 50 centimeters horizon"
+        },
+        "BASE_URL": "/v1"
+      },
+      "outputs": {
+        "IRRIGATION": {
+          "property": "criteriaProperty:IrrigationNeeds",
+          "unit": "unit:Millimeter"
+        },
+        "LAI": {
+          "property": "criteriaProperty:LeafAreaIndex",
+          "unit": "unit:Number"
+        },
+        "PREC": {
+          "property": "criteriaProperty:Precipitation",
+          "unit": "unit:Millimeter"
+        },
+        "WATER_CONTENT": {
+          "property": "criteriaProperty:WaterContent",
+          "unit": "unit:Millimeter"
+        },
+        "SURFACE_WC": {
+          "property": "criteriaProperty:SurfaceWaterContent",
+          "unit": "unit:Millimeter"
+        },
+        "AVAILABLE_WATER": {
+          "property": "criteriaProperty:AvailableWater",
+          "unit": "unit:Millimeter"
+        },
+        "READILY_AW": {
+          "property": "criteriaProperty:ReadilyAvailableWater",
+          "unit": "unit:Millimeter"
+        },
+        "FRACTION_AW": {
+          "property": "criteriaProperty:FractionAvailableWater",
+          "unit": "unit:Millimeter"
+        },
+        "DRAINAGE": {
+          "property": "criteriaProperty:Drainage",
+          "unit": "unit:Millimeter"
+        },
+        "RUNOFF": {
+          "property": "criteriaProperty:Runoff",
+          "unit": "unit:Millimeter"
+        },
+        "ET0": {
+          "property": "criteriaProperty:Et0",
+          "unit": "unit:Millimeter"
+        },
+        "TRANSP_MAX": {
+          "property": "criteriaProperty:TranspirationMax",
+          "unit": "unit:Millimeter"
+        },
+        "TRANSP": {
+          "property": "criteriaProperty:Transpiration",
+          "unit": "unit:Millimeter"
+        },
+        "EVAP_MAX": {
+          "property": "criteriaProperty:EvaporationMax",
+          "unit": "unit:Millimeter"
+        },
+        "EVAP": {
+          "property": "criteriaProperty:Evaporation",
+          "unit": "unit:Millimeter"
+        },
+        "ROOT_DEPTH": {
+          "property": "criteriaProperty:RootDepth",
+          "unit": "unit:Meter"
+        },
+        "SWC_15": {
+          "property": "criteriaProperty:SoilWaterContent15",
+          "unit": "unit:Meter"
+        },
+        "SWC_20": {
+          "property": "criteriaProperty:SoilWaterContent20",
+          "unit": "unit:Meter"
+        },
+        "SWC_23": {
+          "property": "criteriaProperty:SoilWaterContent23",
+          "unit": "unit:Meter"
+        },
+        "SWC_25": {
+          "property": "criteriaProperty:SoilWaterContent25",
+          "unit": "unit:Meter"
+        },
+        "SWC_30": {
+          "property": "criteriaProperty:SoilWaterContent30",
+          "unit": "unit:Meter"
+        },
+        "SWC_45": {
+          "property": "criteriaProperty:SoilWaterContent45",
+          "unit": "unit:Meter"
+        },
+        "SWC_50": {
+          "property": "criteriaProperty:SoilWaterContent50",
+          "unit": "unit:Meter"
+        },
+        "SWC_75": {
+          "property": "criteriaProperty:SoilWaterContent75",
+          "unit": "unit:Meter"
+        },
+        "WP_15": {
+          "property": "criteriaProperty:WaterPotential15",
+          "unit": "unit:Meter"
+        },
+        "WP_20": {
+          "property": "criteriaProperty:WaterPotential20",
+          "unit": "unit:Meter"
+        },
+        "WP_23": {
+          "property": "criteriaProperty:WaterPotential23",
+          "unit": "unit:Meter"
+        },
+        "WP_25": {
+          "property": "criteriaProperty:WaterPotential25",
+          "unit": "unit:Meter"
+        },
+        "WP_30": {
+          "property": "criteriaProperty:WaterPotential30",
+          "unit": "unit:Meter"
+        },
+        "WP_45": {
+          "property": "criteriaProperty:WaterPotential45",
+          "unit": "unit:Meter"
+        },
+        "WP_50": {
+          "property": "criteriaProperty:WaterPotential50",
+          "unit": "unit:Meter"
+        },
+        "WP_75": {
+          "property": "criteriaProperty:WaterPotential75",
+          "unit": "unit:Meter"
+        }
+      },
+      "weather": {
+        "observedWeatherType": "OPENWEATHER",
+        "weatherForecastType": "OPENWEATHER",
+        "sensorType": "AGRIFIRM",
+        "NODE_ENV": "production",
+        "PORT": 3001,
+        "FORECAST_API": "https://api.openweathermap.org/data/2.5/",
+        "FORECAST_API_TOKEN": "2816dcff80ba0ec69714c2f5dfdbbb6d",
+        "LAT": 42.608751,
+        "LONG": -111.745561,
+        "TIME": "00:30",
+        "TIME_SPACE": 2,
+        "MODE": "d",
+        "DELAY": 30000,
+        "MINUTE": 45,
+        "FEATURE": "https://vaimee.com#Place",
+        "OPENWEATHER": {
+          "url": "https://api.openweathermap.org/data/2.5/",
+          "apiToken": "2816dcff80ba0ec69714c2f5dfdbbb6d"
+        },
+        "AGRIFIRM": {
+          "url": "https://smartfarm.appsforagri.com/api/",
+          "user": "f.deoliveirasalles@agrifirm.com",
+          "password": "Agrifirm+2023"
+        },
+        "AGENT_VOCABULARY": {
+          "feature": "vaimee:place",
+          "minTemp": "weather:minTemperature",
+          "maxTemp": "weather:maxTemperature",
+          "temp": "weather:temperature",
+          "rainFall": "weather:rainFall",
+          "snow": "weather:snow"
+        }
+      }
+    },
+    "https://tools.vaimee.com/log_observations": {
+      "target": "multiplegraphs",
+      "livegraph": "http://wot.arces.unibo.it/observation"
+    },
+    "https://tools.vaimee.com/mqtt_agent": {
+      
+    },
+    "https://tools.vaimee.com/bulk_load": {
+      "id": "https://tools.vaimee.com/mqtt/updates/add_mqtt_mapping",
+      "pattern": "VALUES (%variables%) {%values%}",
+      "variables": "?observation ?topic",
+      "values": [
+        "<http://wot.arces.unibo.it/monitor#application/10/device/70b3d57ed005fe1a/event/up/Temperature> 'application/10/device/70b3d57ed005fe1a/event/up/Temperature'",
+        "<http://wot.arces.unibo.it/monitor#application/10/device/70b3d57ed005fe1a/event/up/CH1> 'application/10/device/70b3d57ed005fe1a/event/up/CH1'",
+        "<http://wot.arces.unibo.it/monitor#application/10/device/70b3d57ed005fe1a/event/up/CH2> 'application/10/device/70b3d57ed005fe1a/event/up/CH2'",
+        "<http://wot.arces.unibo.it/monitor#application/10/device/70b3d57ed005fe1a/event/up/CH3> 'application/10/device/70b3d57ed005fe1a/event/up/CH3'",
+        "<http://wot.arces.unibo.it/monitor#application/10/device/70b3d57ed005fe1a/event/up/CH4> 'application/10/device/70b3d57ed005fe1a/event/up/CH4'",
+        "<http://wot.arces.unibo.it/monitor#application/10/device/70b3d57ed005fe1a/event/up/CH5> 'application/10/device/70b3d57ed005fe1a/event/up/CH5'",
+        "<http://wot.arces.unibo.it/monitor#application/10/device/70b3d57ed005fe1a/event/up/CH6> 'application/10/device/70b3d57ed005fe1a/event/up/CH6'",
+        "<http://wot.arces.unibo.it/monitor#application/10/device/70b3d57ed005fe1a/event/up/Battery> 'application/10/device/70b3d57ed005fe1a/event/up/Battery'"
+      ]
+    },
+    "https://tools.vaimee.com/drop_graphs": {
+      "startWith": "http://swamp-project.org/observation/cbec/"
+    },
+    "https://tools.vaimee.com/email": {
+      "mail.smtp.auth": "true",
+      "mail.smtp.starttls.enable": "false",
+      "mail.smtp.host": "mail.vaimee.com",
+      "mail.smtp.port": "587",
+      "username": "BikU/LKq8tCKTluZFKPeuQ==",
+      "password": "kkn7/GuGJzZbBgGr7V4kew==",
+      "encrypt": false,
+      "graph": "http://tools.vaimee.com/email/observation"
+    },
+    "https://tools.vaimee.com/monitoring/events": {
+      "window_size": 60,
+      "sampling": 60,
+      "alert": 0,
+      "subscribe": {
+        "uri": "https://tools.vaimee.com/log_observations/queries/observations",
+        "var": "observation",
+        "graph": "http://wot.arces.unibo.it/observation"
+      },
+      "update": {
+        "uri": "https://tools.vaimee.com/updates/email",
+        "graph": "http://tools.vaimee.com/email/observation",
+        "to": "luca.roffia@vaimee.it,lroffia@gmail.com"
+      }
+    }
+  },
+  "updates": {
+    "ADD_BULK_OUTPUT": {
+      "sparql": "INSERT { GRAPH criteria:bulkOutput { _:observation rdf:type sosa:Observation ;  sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property;sosa:phenomenonTime ?ptime; sosa:hasResult _:result . _:result rdf:type qudt:QuantityValue ; rdf:type sosa:Result; sosa:isResultOf _:observation; qudt:unit ?unit ; qudt:numericValue ?value}} WHERE{}",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri",
+          "value": "criteria:Place"
+        },
+        "property": {
+          "type": "uri",
+          "value": "criteria:Property"
+        },
+        "ptime": {
+          "type": "literal",
+          "datatype": "xsd:date",
+          "value": "2021-10-15"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "unit:DegreeCelsius"
+        },
+        "value": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 123.45
+        }
+      }
+    },
+    "ADD_METEO_LOCATION": {
+      "sparql": "INSERT DATA { GRAPH criteria:meteo_location { ?id rdf:type criteria:Meteo_location ; rdfs:label ?label ; schema:startTime ?time ; schema:latitude ?lat ; schema:longitude ?long ; schema:elevation ?height ; criteria:waterTableAlpha ?alpha ; criteria:waterTbaleH0 ?h0 ; criteria:waterTableDays ?days ; criteria:table ?id; criteria:forecastType ?forecastType; criteria:weatherType ?weatherType; criteria:sensorId ?sensorId }} ",
+      "forcedBindings": {
+        "id": {
+          "type": "uri",
+          "value": "https://vaimee.com#Place"
+        },
+        "label": {
+          "type": "literal",
+          "value": "Test place"
+        },
+        "forecastType": {
+          "type": "literal",
+          "value": "OPENWEATHER"
+        },
+        "weatherType": {
+          "type": "literal",
+          "value": "OPENWEATHER"
+        },
+        "long": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 11.33875
+        },
+        "lat": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 44.49381
+        },
+        "height": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 0
+        },
+        "alpha": {
+          "type": "literal"
+        },
+        "h0": {
+          "type": "literal"
+        },
+        "days": {
+          "type": "literal",
+          "datatype": "xsd:integer",
+          "value": 0
+        },
+        "time": {
+          "type": "literal",
+          "datatype": "xsd:dateTime",
+          "value": "00:00"
+        }
+      }
+    },
+    "ADD_MQTT_MAPPER": {
+      "sparql": "INSERT DATA {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapper rdf:type mqtt:Mapper ; mqtt:topic ?topic}}",
+      "forcedBindings": {
+        "topic": {
+          "type": "literal",
+          "value": "application/1/device/754366e02ff23515/rx"
+        },
+        "mapper": {
+          "type": "uri",
+          "value": "mqtt:GuaspariMapper"
+        }
+      }
+    },
+    "ADD_OBSERVATION": {
+      "sparql": "INSERT {GRAPH <http://wot.arces.unibo.it/observation> {?observation rdf:type sosa:Observation ; rdfs:label ?label ; rdfs:comment ?comment ; sosa:hasFeatureOfInterest ?location ; sosa:hasResult _:quantity . _:quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit ; qudt:numericValue 'NaN'}} WHERE {}",
+      "forcedBindings": {
+        "observation": {
+          "type": "uri",
+          "value": "http://a.uri/ObservationXYZ"
+        },
+        "comment": {
+          "type": "literal",
+          "value": "This is an observation"
+        },
+        "label": {
+          "type": "literal",
+          "value": "The observation XYZ"
+        },
+        "location": {
+          "type": "uri",
+          "value": "http://a.uri/Mars"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "unit:DegreeCelsius"
+        }
+      }
+    },
+    "ADD_OBSERVATION_FORECAST": {
+      "sparql": "INSERT { GRAPH criteria:forecast { _:observation rdf:type sosa:Observation ;  sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property; sosa:resultTime ?time; sosa:phenomenonTime ?ptime; sosa:hasResult _:result . _:result rdf:type qudt:QuantityValue ; rdf:type sosa:Result; sosa:isResultOf _:observation; qudt:unit ?unit ; qudt:numericValue ?value}} WHERE {}",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri",
+          "value": "criteria:Place"
+        },
+        "property": {
+          "type": "uri",
+          "value": "criteria:Property"
+        },
+        "time": {
+          "type": "literal",
+          "datatype": "xsd:date",
+          "value": "2021-10-13"
+        },
+        "ptime": {
+          "type": "literal",
+          "datatype": "xsd:date",
+          "value": "2021-10-15"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "unit:DegreeCelsius"
+        },
+        "value": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 123.45
+        }
+      }
+    },
+    "ADD_PLACE": {
+      "sparql": "INSERT {GRAPH <http://wot.arces.unibo.it/context> {?place rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates _:coordinate . _:coordinate schema:latitude ?lat ; schema:longitude ?lon}} WHERE {}",
+      "forcedBindings": {
+        "place": {
+          "type": "uri",
+          "value": "http://a.uri/Mars"
+        },
+        "name": {
+          "type": "literal",
+          "value": "Mars"
+        },
+        "lat": {
+          "type": "literal",
+          "value": "44.489664",
+          "datatype": "xsd:decimal"
+        },
+        "lon": {
+          "type": "literal",
+          "value": "11.357023",
+          "datatype": "xsd:decimal"
+        }
+      }
+    },
+    "ADD_REGEX_TO_MQTT_MAPPER": {
+      "sparql": "WITH <http://wot.arces.unibo.it/mqtt> INSERT {?mapper mqtt:regex ?regex} WHERE {?mapper rdf:type mqtt:Mapper}",
+      "forcedBindings": {
+        "regex": {
+          "type": "literal",
+          "value": "S[|]\\w+[|]I[|]\\w+[|](?<id1>\\w+)[|](?<value1>\\w+)[|](?<id2>\\w+)[|](?<value2>\\w+)"
+        },
+        "mapper": {
+          "type": "uri",
+          "value": "mqtt:GuaspariMapper"
+        }
+      }
+    },
+    "ADD_TOPIC_TO_MQTT_MAPPER": {
+      "sparql": "WITH <http://wot.arces.unibo.it/mqtt> INSERT {?mapper mqtt:topic ?topic} WHERE {?mapper rdf:type mqtt:Mapper}",
+      "forcedBindings": {
+        "topic": {
+          "type": "literal",
+          "value": "application/1/device/1bc0f73caf72d467/rx"
+        },
+        "mapper": {
+          "type": "uri",
+          "value": "mqtt:GuaspariMapper"
+        }
+      }
+    },
+    "ADD_UNIT": {
+      "sparql": "INSERT {  GRAPH criteria:units { ?id rdf:type criteria:Unit ;    criteria:hasIdCrop ?crop ;     criteria:hasIdSoil ?soil ;     criteria:hasIdMeteo ?meteo ;    criteria:useNumericalSolution ?numerical;   criteria:useWaterRetentionFitting ?fitting;   criteria:isSensorActive ?isSensorActive;   criteria:sensorId ?sensorId; criteria:sensorType ?sensorType; schema:startTime ?time }}  WHERE  {  {  }} ",
+      "forcedBindings": {
+        "crop": {
+          "type": "literal"
+        },
+        "meteo": {
+          "type": "uri"
+        },
+        "soil": {
+          "type": "literal",
+          "datatype": "xsd:integer"
+        },
+        "id": {
+          "type": "uri"
+        },
+        "numerical": {
+          "type": "literal",
+          "datatype": "xsd:integer"
+        },
+        "fitting": {
+          "type": "literal",
+          "datatype": "xsd:integer"
+        },
+        "isSensorActive": {
+          "type": "literal",
+          "datatype": "xsd:boolean",
+          "value": false
+        }
+      }
+    },
+    "DELETE_METEO_LOCATION": {
+      "sparql": "DELETE { GRAPH criteria:meteo_location { ?id rdf:type criteria:Meteo_location ; ?p ?o . }} WHERE { GRAPH criteria:meteo_location { ?id rdf:type criteria:Meteo_location ; ?p ?o .}}",
+      "forcedBindings": {
+        "id": {
+          "type": "uri",
+          "value": "unit-uri"
+        }
+      }
+    },
+    "DELETE_UNIT": {
+      "sparql": "DELETE { GRAPH criteria:units { ?id rdf:type criteria:Unit ; ?p ?o . }} WHERE {GRAPH criteria:units {?id rdf:type criteria:Unit ; ?p ?o . }}",
+      "forcedBindings": {
+        "id": {
+          "type": "uri",
+          "value": "unit-uri"
+        }
+      }
+    },
+    "LINK_PLACES": {
+      "sparql": "INSERT DATA { GRAPH <http://wot.arces.unibo.it/context> {?root schema:containsPlace ?child . ?child schema:containedInPlace ?root }}",
+      "forcedBindings": {
+        "root": {
+          "type": "uri",
+          "value": "http://a.uri/rootPlace"
+        },
+        "child": {
+          "type": "uri",
+          "value": "http://a.uri/childPlace"
+        }
+      }
+    },
+    "SET_BULK_FLAG": {
+      "sparql": "INSERT {graph criteria:bulkFlag {_:flag rdf:type criteria:flag ; criteria:table ?unit ; schema:dateReceived ?timestamp }} WHERE {BIND(now() AS ?timestamp)}",
+      "forcedBindings": {
+        "meteo": {
+          "type": "literal",
+          "value": "vaimee:Place"
+        }
+      }
+    },
+    "SET_BULK_RECORD_COUNT": {
+      "sparql": "INSERT DATA {   GRAPH weather:bulkHistory {  ?id   weather:observationCount  ?count  } }",
+      "forcedBindings": {
+        "id": {
+          "type": "uri"
+        }
+      }
+    },
+    "SET_FLAG": {
+      "sparql": "INSERT {graph criteria:flag {_:flag rdf:type criteria:flag ; criteria:table ?unit ; schema:startTime ?timestamp ; schema:scheduledTime ?date }} WHERE {BIND(now() AS ?timestamp)}",
+      "forcedBindings": {
+        "unit": {
+          "type": "literal",
+          "value": "vaimee:Place"
+        },
+        "date": {
+          "type": "literal",
+          "value": "vaimee:Place",
+          "datatype": "xsd:date"
+        }
+      }
+    },
+    "UPDATE_METEO_LOCATION_TIME": {
+      "sparql": "DELETE { GRAPH criteria:meteo_location  {  ?id schema:startTime ?o }}   INSERT { GRAPH criteria:meteo_location {  ?id schema:startTime ?startTime }}    WHERE {GRAPH criteria:meteo_location { ?id schema:startTime ?o} }",
+      "forcedBindings": {
+        "id": {
+          "type": "uri"
+        }
+      }
+    },
+    "UPDATE_UNIT": {
+      "sparql": "DELETE {  GRAPH criteria:units { ?id   criteria:isSensorActive ?p1 ; criteria:sensorId  ?p2  }} INSERT {  GRAPH criteria:units { ?id  criteria:isSensorActive ?isSensorActive; criteria:sensorId ?sensorId ; }} WHERE {  GRAPH criteria:units {  ?id  criteria:isSensorActive ?p1 ; OPTIONAL {?id criteria:sensorId  ?p2 } }}",
+      "forcedBindings": {
+        "id": {
+          "type": "uri"
+        },
+        "isSensorActive": {
+          "type": "literal",
+          "datatype": "xsd:boolean",
+          "value": false
+        }
+      }
+    },
+    "UPDATE_UNIT_SENSOR_TIME": {
+      "sparql": "DELETE {  GRAPH criteria:units { ?id   schema:startTime ?p1  }} INSERT {  GRAPH criteria:units { ?id  schema:startTime ?time; }} WHERE {  GRAPH criteria:units {  ?id  schema:startTime ?p1  }}",
+      "forcedBindings": {
+        "id": {
+          "type": "uri"
+        },
+        "time": {
+          "type": "literal",
+          "datatype": "xsd:DateTime"
+        }
+      }
+    },
+    "UPDATE_UNIT_SENSOR_TYPE": {
+      "sparql": "DELETE {  GRAPH criteria:units { ?id   criteria:sensorType ?p1  }} INSERT {  GRAPH criteria:units { ?id  criteria:sensorType ?sensorType; }} WHERE {  GRAPH criteria:units {  ?id  criteria:sensorType ?p1  }}",
+      "forcedBindings": {
+        "id": {
+          "type": "uri"
+        },
+        "sensorType": {
+          "type": "literal",
+          "datatype": "xsd:DateTime"
+        }
+      }
+    },
+    "https://tools.vaimee.com/log_observations/updates/log_quantity": {
+      "sparql": "INSERT {GRAPH ?observation {_:result rdf:type sosa:Result ; qudt:numericValue ?value ; time:inXSDDateTimeStamp ?timestamp}} WHERE {}",
+      "forcedBindings": {
+        "observation": {
+          "type": "uri",
+          "value": "http://an/observation/uri/ObservationXYZ"
+        },
+        "value": {
+          "type": "literal",
+          "value": "1234",
+          "datatype": "xsd:decimal"
+        },
+        "timestamp": {
+          "type": "literal",
+          "value": "1974-10-13T00:00:00Z",
+          "datatype": "xsd:dateTimeStamp"
+        }
+      }
+    },
+    "https://tools.vaimee.com/mqtt/updates/add_mqtt_mapping": {
+      "sparql": "WITH <http://wot.arces.unibo.it/mqtt> DELETE {?mapping ?p ?o} INSERT {_:mapping rdf:type mqtt:Mapping ; mqtt:observation ?observation ; mqtt:topic ?topic} WHERE {OPTIONAL{?mapping rdf:type mqtt:Mapping ; mqtt:observation ?observation ; ?p ?o}}",
+      "forcedBindings": {
+        "topic": {
+          "type": "literal",
+          "value": "5CCF7F1B599E/temperature"
+        },
+        "observation": {
+          "type": "uri",
+          "value": "http://a.uri/5CCF7F1B599E-temperature"
+        }
+      }
+    },
+    "https://tools.vaimee.com/mqtt_adapter/updates/mqtt_message": {
+      "sparql": "WITH <http://wot.arces.unibo.it/mqtt/message> DELETE {?oldMessage rdf:type mqtt:Message ; mqtt:value ?oldValue ; mqtt:topic ?topic ; mqtt:hasBroker ?broker ; time:inXSDDateTimeStamp ?oldTimestamp} INSERT {_:message rdf:type mqtt:Message ; mqtt:value ?value ; mqtt:topic ?topic ; mqtt:hasBroker ?broker ; time:inXSDDateTimeStamp ?timestamp} WHERE {BIND(now() AS ?timestamp) . OPTIONAL{?oldMessage rdf:type mqtt:Message ; mqtt:value ?oldValue ; mqtt:topic ?topic ; mqtt:hasBroker ?broker ; time:inXSDDateTimeStamp ?oldTimestamp}}",
+      "forcedBindings": {
+        "value": {
+          "type": "literal",
+          "value": "mqttValueXYZ"
+        },
+        "topic": {
+          "type": "literal",
+          "value": "mqttTopicXYZ"
+        },
+        "broker": {
+          "type": "literal",
+          "value": "tcp://giove.arces.unibo.it:52887"
+        }
+      }
+    },
+    "https://tools.vaimee.com/mqtt_mapper/updates/update_observation_value": {
+      "sparql": "WITH <http://wot.arces.unibo.it/observation> DELETE { ?quantity qudt:numericValue ?oldValue . ?observation sosa:resultTime ?oldTime } INSERT { ?quantity qudt:numericValue ?value . ?observation sosa:resultTime ?timestamp } WHERE {BIND(now() AS ?timestamp) . ?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . OPTIONAL { ?observation sosa:resultTime ?oldTime . ?quantity qudt:numericValue ?oldValue}}",
+      "forcedBindings": {
+        "observation": {
+          "type": "uri",
+          "value": "http://an/observation/uri/ObservationXYZ"
+        },
+        "value": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": "12345.67890"
+        }
+      }
+    },
+    "https://tools.vaimee.com/updates/email": {
+      "sparql": "INSERT {GRAPH ?graph {?email rdf:type schema:EmailMessage ; schema:toRecipient _:rec ; schema:about _:about ; schema:text ?text . _:rec schema:email ?to . _:about schema:name ?subject} } WHERE {BIND(UUID() AS ?email)}",
+      "forcedBindings": {
+        "graph": {
+          "type": "uri",
+          "value": "http://graph/email/test"
+        },
+        "text": {
+          "type": "literal",
+          "value": "Mail body"
+        },
+        "to": {
+          "type": "literal",
+          "value": "luca.roffia@vaimee.it"
+        },
+        "subject": {
+          "type": "literal",
+          "value": "Mail subject"
+        }
+      }
+    },
+    "removeCriteriaBulkOutput": {
+      "sparql": "DELETE {   GRAPH criteria:forecast {     ?observation rdf:type sosa:Observation ;       sosa:phenomenonTime ?ptime;       sosa:hasResult ?result;       ?p ?o .     ?result rdf:type qudt:QuantityValue ;       rdf:type sosa:Result;       ?p1 ?o1   } }WHERE{   GRAPH criteria:forecast {     ?observation rdf:type sosa:Observation ;                  sosa:resultTime ?time;                  sosa:hasResult ?result;                  ?p ?o .     ?result rdf:type qudt:QuantityValue ;             rdf:type sosa:Result;             ?p1 ?o1   }filter(?ptime >= ?startDate)  } "
+    },
+    "removeCriteriaBulkOutputByUnit": {
+      "sparql": "DELETE {   GRAPH criteria:forecast {     ?observation rdf:type sosa:Observation ;  sosa:hasFeatureOfInterest ?id;     sosa:resultTime ?time;       sosa:hasResult ?result;       ?p ?o .     ?result rdf:type qudt:QuantityValue ;       rdf:type sosa:Result;       ?p1 ?o1   } }WHERE{   GRAPH criteria:forecast {     ?observation rdf:type sosa:Observation ;                  sosa:phenomenonTime ?time;                  sosa:hasResult ?result;                  ?p ?o .     ?result rdf:type qudt:QuantityValue ;             rdf:type sosa:Result;             ?p1 ?o1   }filter(?ptime >= ?startDate)  } "
+    },
+    "removeCriteriaOutput": {
+      "sparql": "DELETE {   GRAPH criteria:forecast {     ?observation rdf:type sosa:Observation ;       sosa:resultTime ?time;       sosa:hasResult ?result;       ?p ?o .     ?result rdf:type qudt:QuantityValue ;       rdf:type sosa:Result;       ?p1 ?o1   } }WHERE{   GRAPH criteria:forecast {     ?observation rdf:type sosa:Observation ;                  sosa:resultTime ?time;                  sosa:hasResult ?result;                  ?p ?o .     ?result rdf:type qudt:QuantityValue ;             rdf:type sosa:Result;             ?p1 ?o1   }filter(?time >= ?startDate)  } "
+    },
+    "removeCriteriaOutputByUnit": {
+      "sparql": "DELETE {   GRAPH criteria:forecast {     ?observation rdf:type sosa:Observation ;  sosa:hasFeatureOfInterest ?id;     sosa:resultTime ?time;       sosa:hasResult ?result;       ?p ?o .     ?result rdf:type qudt:QuantityValue ;       rdf:type sosa:Result;       ?p1 ?o1   } }WHERE{   GRAPH criteria:forecast {     ?observation rdf:type sosa:Observation ;                  sosa:resultTime ?time;                  sosa:hasResult ?result;                  ?p ?o .     ?result rdf:type qudt:QuantityValue ;             rdf:type sosa:Result;             ?p1 ?o1   }filter(?time >= ?startDate)  } "
+    },
+    "uploadBulkHistory": {
+      "sparql": "INSERT DATA {GRAPH weather:bulkHistory { _:observation rdf:type sosa:Observation ; weather:recordCount ?recordCount; sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property ; sosa:resultTime ?time ;  sosa:hasResult _:result . _:result rdf:type qudt:QuantityValue ; rdf:type sosa:Result; sosa:isResultOf _:observation ; qudt:unit ?unit ; qudt:numericValue ?value}}",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri",
+          "value": "vaimee:Place"
+        },
+        "property": {
+          "type": "uri",
+          "value": "weather:temperature"
+        },
+        "time": {
+          "type": "literal",
+          "datatype": "xsd:DateTime",
+          "value": "2021-10-15T03:03:00Z"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "unit:DegreeCelsius"
+        },
+        "value": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 38.5
+        },
+        "recordCount": {
+          "type": "literal",
+          "datatype": "xsd:integer",
+          "value": 365
+        }
+      }
+    },
+    "uploadCriteriaSensorData": {
+      "sparql": "INSERT DATA { GRAPH criteria:sensors { _:observation rdf:type sosa:Observation ; criteria:sensorId ?sensorId;  criteria:portNumber ?portNumber; sosa:observedProperty \"waterContent\" ; sosa:resultTime ?date; criteria:layerNumber  ?layerNumber; sosa:hasResult _:result . _:result rdf:type qudt:QuantityValue ; rdf:type sosa:Result; sosa:isResultOf _:observation; qudt:unit \"m3/m3*mm\" ; qudt:numericValue ?value}}",
+      "forcedBindings": {
+        "time": {
+          "type": "literal",
+          "datatype": "xsd:DateTime",
+          "value": "2021-10-15T03:03:00Z"
+        },
+        "value": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 38.5
+        },
+        "portNumber": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 1
+        },
+        "layerNumber": {
+          "type": "literal",
+          "value": 15
+        }
+      }
+    },
+    "uploadForecast": {
+      "sparql": "DROP SILENT GRAPH weather:forecast ; INSERT {GRAPH weather:forecast { _:observation rdf:type sosa:Observation ; sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property ; sosa:resultTime ?time ; weather:recordCount ?recordCount; sosa:phenomenonTime ?ptime ; sosa:hasResult _:result . _:result rdf:type qudt:QuantityValue ; rdf:type sosa:Result; sosa:isResultOf _:observation ; qudt:unit ?unit ; qudt:numericValue ?value}} WHERE {}",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri",
+          "value": "vaimee:Place"
+        },
+        "property": {
+          "type": "uri",
+          "value": "weather:temperature"
+        },
+        "time": {
+          "type": "literal",
+          "datatype": "xsd:DateTime",
+          "value": "2021-10-15T03:03:00Z"
+        },
+        "ptime": {
+          "type": "literal",
+          "datatype": "xsd:DateTime",
+          "value": "2021-10-13T03:03:00Z"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "unit:DegreeCelsius"
+        },
+        "value": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 38.5
+        },
+        "recordCount": {
+          "type": "literal",
+          "datatype": "xsd:integer",
+          "value": 4
+        }
+      }
+    },
+    "uploadHistory": {
+      "sparql": "DROP SILENT GRAPH weather:history ; INSERT {GRAPH weather:history { _:observation rdf:type sosa:Observation ; sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property ; sosa:resultTime ?time ; weather:recordCount ?recordCount; sosa:hasResult _:result . _:result rdf:type qudt:QuantityValue ; rdf:type sosa:Result; sosa:isResultOf _:observation ; qudt:unit ?unit ; qudt:numericValue ?value}} WHERE {}",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri",
+          "value": "vaimee:Place"
+        },
+        "property": {
+          "type": "uri",
+          "value": "weather:temperature"
+        },
+        "time": {
+          "type": "literal",
+          "datatype": "xsd:DateTime",
+          "value": "2021-10-15T03:03:00Z"
+        },
+        "unit": {
+          "type": "uri",
+          "value": "unit:DegreeCelsius"
+        },
+        "value": {
+          "type": "literal",
+          "datatype": "xsd:decimal",
+          "value": 38.5
+        },
+        "recordCount": {
+          "type": "literal",
+          "datatype": "xsd:integer",
+          "value": 4
+        }
+      }
+    },
+    "uploadRecomputeAll": {
+      "sparql": "INSERT  {   GRAPH criteria:outputs {  criteria:recomputeAll  weather:recomputeData _:blankNode . _:blankNode weather:startDate  ?startDate  ; weather:insertTime ?time  } } WHERE {BIND(now() AS ?time)} "
+    },
+    "uploadRecomputeAllByUnit": {
+      "sparql": "INSERT  {   GRAPH criteria:outputs {  criteria:recomputeAll  weather:recomputeData _:blankNode . _:blankNode weather:startDate  ?startDate ; criteria:Meteo_location ?id ; weather:insertTime ?time  } } WHERE {BIND(now() AS ?time)} ",
+      "forcedBindings": {
+        "id": {
+          "type": "uri"
+        }
+      }
+    },
+    "uploadReloadAll": {
+      "sparql": "INSERT {   GRAPH weather:history {  weather:reloadAll  weather:allStations ?time   } }  WHERE {{GRAPH weather:history  {}} BIND(now() AS ?time)} "
+    },
+    "ADD_SENSOR_DATA": {
+      "sparql": "INSERT {GRAPH criteria:sensors {_:observation rdf:type sosa:Observation ; criteria:layerNumber ?layer; criteria:sensorId ?sensorId ; sosa:observedProperty \"waterContent\" ; sosa:resultTime ?date ; sosa:hasResult _:result . _:result rdf:type qudt:QuantityValue ; rdf:type sosa:Result; sosa:isResultOf _:observation; qudt:unit ?unit ; qudt:numericValue ?value}} WHERE {}",
+      "forcedBindings": {
+        "sensorId": {
+          "type": "literal"
+        },
+        "date": {
+          "type": "literal",
+          "datatype": "xsd:date"
+        },
+        "layer": {
+          "type": "literal"
+        },
+        "unit": {
+          "type": "uri"
+        },
+        "value": {
+          "type": "literal",
+          "datatype": "xsd:decimal"
+        }
+      }
+    },
+    "https://tools.vaimee.com/updates#bridge": {
+      "sparql": "INSERT DATA {GRAPH ?g {?s ?p ?o}}"
+    }
+  },
+  "queries": {
+    "CROP": {
+      "sparql": "SELECT * FROM <http://swamp-project.org/cbec/crop/2021> WHERE {?crop rdf:type swamp2:Crop ; rdf:type agrovoc:c_8171 ; swamp2:hasCropCode ?code ; rdfs:label ?label} ORDER BY ?label"
+    },
+    "FIELD": {
+      "sparql": "SELECT * FROM <http://swamp-project.org/cbec/field/2021> FROM <http://swamp-project.org/cbec/crop> WHERE {?fieldUri rdf:type <http://swamp-project.org/ontology/swamp#Field> ; <http://swamp-project.org/ontology/swamp#hasGeometry> ?geometry ; <http://swamp-project.org/ontology/swamp#hasCanal> ?canalUri ; <http://swamp-project.org/ontology/swamp#hasCrop> ?cropUri ; <http://swamp-project.org/ontology/swamp#managedBy> ?farmerUri . ?cropUri rdfs:label ?cropLabel}"
+    },
+    "FORECAST_N_DAYS": {
+      "sparql": "SELECT * WHERE {OPTIONAL {?unit qudt:symbol ?symbol} graph <http://wot.arces.unibo.it/forecast/criteria> {?obs sosa:hasFeatureOfInterest ?place ; rdf:type swamp:Forecast ; sosa:resultTime ?resultTime ; sosa:phenomenonTime ?timestamp ; sosa:observedProperty ?property ; sosa:hasResult ?res . ?res qudt:numericValue ?value ; qudt:unit ?unit BIND((xsd:dateTime(substr(xsd:string(?timestamp),1,10)) - xsd:dateTime(substr(xsd:string(?resultTime),1,10)))/86400 AS ?diff) FILTER (xsd:dateTime(?resultTime) >= xsd:dateTime(concat(?from,'T00:00:00Z')) && xsd:dateTime(?resultTime) <= xsd:dateTime(concat(?to,'T23:59:59Z')) && (?diff = xsd:integer(?n)) )}} ORDER BY xsd:dateTime(?timestamp)",
+      "forcedBindings": {
+        "from": {
+          "type": "literal",
+          "value": "2019-07-30"
+        },
+        "to": {
+          "type": "literal",
+          "value": "2019-08-03"
+        },
+        "n": {
+          "type": "literal",
+          "value": "0"
+        },
+        "place": {
+          "type": "uri",
+          "value": "swamp:Bertacchini"
+        },
+        "property": {
+          "type": "uri",
+          "value": "swamp:LeafAreaIndex"
+        }
+      }
+    },
+    "FORECAST_IRRIGATION": {
+      "sparql": "SELECT DISTINCT ?value ?symbol WHERE {graph <http://wot.arces.unibo.it/forecast/criteria> {?obs sosa:hasFeatureOfInterest ?place ; rdf:type swamp:Forecast; sosa:resultTime ?resultTime ; sosa:phenomenonTime ?prediction ; sosa:observedProperty swamp:IrrigationNeeds ; sosa:hasResult ?res . ?res qudt:numericValue ?value ; qudt:unit ?unit} . OPTIONAL {?unit qudt:symbol ?symbol} FILTER (xsd:dateTime(?resultTime) = xsd:dateTime(concat(?from ,'T00:00:00Z')) && xsd:dateTime(?prediction) = xsd:dateTime(concat(?to ,'T00:00:00Z')))}",
+      "forcedBindings": {
+        "from": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "to": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "place": {
+          "type": "uri",
+          "value": "swamp:Bertacchini"
+        }
+      }
+    },
+    "FORECAST_WATER_CONTENT": {
+      "sparql": "SELECT DISTINCT ?value ?symbol WHERE {graph <http://wot.arces.unibo.it/forecast/criteria> {?obs sosa:hasFeatureOfInterest ?place ; rdf:type swamp:Forecast; sosa:resultTime ?resultTime ; sosa:phenomenonTime ?prediction ; sosa:observedProperty swamp:WaterContentProfile ; sosa:hasResult ?res . ?res qudt:numericValue ?value ; qudt:unit ?unit} . OPTIONAL {?unit qudt:symbol ?symbol} FILTER (xsd:dateTime(?resultTime) = xsd:dateTime(concat(?from ,'T00:00:00Z')) && xsd:dateTime(?prediction) = xsd:dateTime(concat(?to ,'T00:00:00Z')))}",
+      "forcedBindings": {
+        "from": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "to": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "place": {
+          "type": "uri",
+          "value": "swamp:Bertacchini"
+        }
+      }
+    },
+    "FORECAST_DEFICIT": {
+      "sparql": "SELECT DISTINCT ?value ?symbol WHERE {graph <http://wot.arces.unibo.it/forecast/criteria> {?obs sosa:hasFeatureOfInterest ?place ; rdf:type swamp:Forecast; sosa:resultTime ?resultTime ; sosa:phenomenonTime ?prediction ; sosa:observedProperty swamp:DeficitProfile ; sosa:hasResult ?res . ?res qudt:numericValue ?value ; qudt:unit ?unit} . OPTIONAL {?unit qudt:symbol ?symbol} FILTER (xsd:dateTime(?resultTime) = xsd:dateTime(concat(?from ,'T00:00:00Z')) && xsd:dateTime(?prediction) = xsd:dateTime(concat(?to ,'T00:00:00Z')))}",
+      "forcedBindings": {
+        "from": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "to": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "place": {
+          "type": "uri",
+          "value": "swamp:Bertacchini"
+        }
+      }
+    },
+    "FORECAST_THRESHOLD": {
+      "sparql": "SELECT DISTINCT ?value ?symbol WHERE {graph <http://wot.arces.unibo.it/forecast/criteria> {?obs sosa:hasFeatureOfInterest ?place ; rdf:type swamp:Forecast; sosa:resultTime ?resultTime ; sosa:phenomenonTime ?prediction ; sosa:observedProperty swamp:Threshold ; sosa:hasResult ?res . ?res qudt:numericValue ?value ; qudt:unit ?unit} . OPTIONAL {?unit qudt:symbol ?symbol} FILTER (xsd:dateTime(?resultTime) = xsd:dateTime(concat(?from ,'T00:00:00Z')) && xsd:dateTime(?prediction) = xsd:dateTime(concat(?to ,'T00:00:00Z')))}",
+      "forcedBindings": {
+        "from": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "to": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "place": {
+          "type": "uri",
+          "value": "swamp:Bertacchini"
+        }
+      }
+    },
+    "FORECAST_LAI": {
+      "sparql": "SELECT DISTINCT ?value ?symbol WHERE {graph <http://wot.arces.unibo.it/forecast/criteria> {?obs sosa:hasFeatureOfInterest ?place ; rdf:type swamp:Forecast; sosa:resultTime ?resultTime ; sosa:phenomenonTime ?prediction ; sosa:observedProperty swamp:LeafAreaIndex ; sosa:hasResult ?res . ?res qudt:numericValue ?value ; qudt:unit ?unit} . OPTIONAL{?unit qudt:symbol ?symbol} FILTER (xsd:dateTime(?resultTime) = xsd:dateTime(concat(?from ,'T00:00:00Z')) && xsd:dateTime(?prediction) = xsd:dateTime(concat(?to ,'T00:00:00Z')))}",
+      "forcedBindings": {
+        "from": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "to": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "place": {
+          "type": "uri",
+          "value": "swamp:Bertacchini"
+        }
+      }
+    },
+    "FORECAST_WEATHER_TEMPERATURE": {
+      "sparql": "SELECT DISTINCT ?symbol (MAX(?value) AS ?max) (MIN(?value) AS ?min) (AVG(?value) AS ?avg) WHERE {graph <http://wot.arces.unibo.it/forecast> {?obs sosa:hasFeatureOfInterest ?place ; rdf:type swamp:Forecast ; sosa:resultTime ?resultTime ; sosa:phenomenonTime ?prediction ; sosa:observedProperty arces-monitor:AirTemperature ; sosa:hasResult ?res . ?res qudt:numericValue ?value ; qudt:unit ?unit } . OPTIONAL {?unit qudt:symbol ?symbol } FILTER (xsd:dateTime(?resultTime) > xsd:dateTime(concat(?from ,'T00:00:00Z')) && xsd:dateTime(?resultTime) < xsd:dateTime(concat(?from ,'T23:59:59Z')) && xsd:dateTime(?prediction) > xsd:dateTime(concat(?to ,'T00:00:00Z')) && xsd:dateTime(?prediction) < xsd:dateTime(concat(?to ,'T23:59:59Z')))} GROUP BY ?symbol",
+      "forcedBindings": {
+        "from": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "to": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "place": {
+          "type": "uri",
+          "value": "swamp:Bertacchini"
+        }
+      }
+    },
+    "FORECAST_WEATHER_PRECIPITATION": {
+      "sparql": "SELECT DISTINCT ?symbol (SUM(?value) AS ?sum) WHERE {graph <http://wot.arces.unibo.it/forecast> {?obs sosa:hasFeatureOfInterest ?place ; rdf:type swamp:Forecast ; sosa:resultTime ?resultTime ; sosa:phenomenonTime ?prediction ; sosa:observedProperty arces-monitor:Precipitation ; sosa:hasResult ?res . ?res qudt:numericValue ?value ; qudt:unit ?unit } . OPTIONAL {?unit qudt:symbol ?symbol}  FILTER (xsd:dateTime(?resultTime) > xsd:dateTime(concat(?from ,'T00:00:00Z')) && xsd:dateTime(?resultTime) < xsd:dateTime(concat(?from ,'T23:59:59Z')) && xsd:dateTime(?prediction) > xsd:dateTime(concat(?to ,'T00:00:00Z')) && xsd:dateTime(?prediction) < xsd:dateTime(concat(?to ,'T23:59:59Z')))} GROUP BY ?symbol",
+      "forcedBindings": {
+        "from": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "to": {
+          "type": "literal",
+          "value": "2019-09-01"
+        },
+        "place": {
+          "type": "uri",
+          "value": "swamp:Bertacchini"
+        }
+      }
+    },
+    "MQTT_MAPPINGS": {
+      "sparql": "SELECT * {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapping rdf:type mqtt:Mapping ; mqtt:observation ?observation ; mqtt:topic ?topic}}"
+    },
+    "MQTT_MAPPER": {
+      "sparql": "SELECT DISTINCT ?regex ?topic {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapper rdf:type mqtt:Mapper ; mqtt:regex ?regex ; mqtt:topic ?topic}}",
+      "forcedBindings": {
+        "mapper": {
+          "type": "uri",
+          "value": "mqtt:JsonMapper"
+        }
+      }
+    },
+    "MQTT_MAPPERS_TOPICS": {
+      "sparql": "SELECT DISTINCT ?topic {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapper rdf:type mqtt:Mapper ; mqtt:regex ?regex ; mqtt:topic ?topic}}"
+    },
+    "MQTT_BROKERS": {
+      "sparql": "SELECT * WHERE { GRAPH <http://wot.arces.unibo.it/mqtt> {?broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:ssl ?ssl . OPTIONAL {?broker mqtt:user ?user ; mqtt:password ?password}}}"
+    },
+    "MQTT_BROKER_TOPICS": {
+      "sparql": "SELECT ?topic WHERE { GRAPH <http://wot.arces.unibo.it/mqtt> {?broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:topic ?topic}}",
+      "forcedBindings": {
+        "url": {
+          "type": "literal",
+          "value": "giove.arces.unibo.it"
+        },
+        "port": {
+          "type": "literal",
+          "value": 52877,
+          "datatype": "xsd:integer"
+        }
+      }
+    },
+    "LOG_QUANTITY": {
+      "sparql": "SELECT * WHERE {GRAPH ?observation {?result qudt:numericValue ?value; time:inXSDDateTimeStamp ?timestamp} FILTER (xsd:dateTime(?timestamp) > xsd:dateTime(?from) && xsd:dateTime(?timestamp) < xsd:dateTime(?to))} ORDER BY xsd:dateTime(?timestamp)",
+      "forcedBindings": {
+        "from": {
+          "datatype": "xsd:dateTime",
+          "type": "literal",
+          "value": "2019-07-15T00:00:00Z"
+        },
+        "to": {
+          "datatype": "xsd:dateTime",
+          "type": "literal",
+          "value": "2019-07-15T23:59:59Z"
+        },
+        "observation": {
+          "type": "uri",
+          "value": "arces-monitor:SanMicheleLevelsL1"
+        }
+      }
+    },
+    "LOG_QUANTITY_SLOW": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/observation/history> {?result sosa:isResultOf ?observation ; qudt:numericValue ?value; time:inXSDDateTimeStamp ?timestamp} FILTER (xsd:dateTime(?timestamp) > xsd:dateTime(?from) && xsd:dateTime(?timestamp) < xsd:dateTime(?to))} ORDER BY xsd:dateTime(?timestamp)",
+      "forcedBindings": {
+        "from": {
+          "datatype": "xsd:dateTime",
+          "type": "literal",
+          "value": "2019-07-15T00:00:00Z"
+        },
+        "to": {
+          "datatype": "xsd:dateTime",
+          "type": "literal",
+          "value": "2019-07-15T23:59:59Z"
+        },
+        "observation": {
+          "type": "uri",
+          "value": "arces-monitor:SanMicheleLevelsL1"
+        }
+      }
+    },
+    "PLACES": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/context> {?place rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?long}} ORDER BY DESC(?name)"
+    },
+    "NO_CHILD": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/context> {?root rdf:type schema:Place ; schema:name ?name . FILTER NOT EXISTS{?child schema:containedInPlace ?root}}}"
+    },
+    "MAP_PLACES": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/context> {?root rdf:type schema:Place; schema:name ?name ;  schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?long.  FILTER NOT EXISTS{?root schema:containedInPlace ?place}}} ORDER BY DESC(?name)"
+    },
+    "MAP_GROUPS": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/context> {?root rdf:type schema:Place; rdf:type ?group ; schema:name ?name ;  schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?long . ?group rdfs:label ?label   FILTER NOT EXISTS{?root schema:containedInPlace ?place}}}"
+    },
+    "CONTAINED_PLACES": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/context> {?root schema:containsPlace ?child . ?child schema:name ?name}} ORDER BY DESC(?name)",
+      "forcedBindings": {
+        "root": {
+          "type": "uri",
+          "value": "arces-monitor:Mars"
+        }
+      }
+    },
+    "ROOT_PLACES": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/context> {?root rdf:type schema:Place . ?root schema:name ?name .  FILTER NOT EXISTS{?root schema:containedInPlace ?place} }} ORDER BY DESC(?name)"
+    },
+    "OBSERVATIONS": {
+      "sparql": "SELECT * FROM <http://wot.arces.unibo.it/observation/2021> FROM <http://qudt.org> FROM <http://swamp-project.org/observation/cbec> FROM <http://wot.arces.unibo.it/observation> FROM <http://wot.arces.unibo.it/context> WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity ; sosa:hasFeatureOfInterest ?location . ?location rdf:type schema:Place ; schema:name ?name ; schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?long . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit . OPTIONAL {?quantity qudt:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp} . ?location schema:name ?name . OPTIONAL{?unit <http://qudt.org/schema/qudt/symbol> ?symbol}} ORDER BY ?label"
+    },
+    "OBSERVATIONS_OLD": {
+      "sparql": "SELECT * WHERE {?unit qudt:symbol ?symbol . GRAPH <http://wot.arces.unibo.it/context> {?location rdf:type schema:Place ; schema:name ?name ; schema:GeoCoordinates ?coordinate . ?coordinate schema:latitude ?lat ; schema:longitude ?long}.GRAPH <http://wot.arces.unibo.it/observation> {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity ; sosa:hasFeatureOfInterest ?location . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit . OPTIONAL {?quantity qudt:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}}}"
+    },
+    "OBSERVATIONS_BY_LOCATION": {
+      "sparql": "SELECT * FROM <http://wot.arces.unibo.it/observation/2021> FROM <http://swamp-project.org/observation/cbec> FROM <http://wot.arces.unibo.it/observation> WHERE {?observation sosa:hasFeatureOfInterest ?location ; rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasResult ?quantity . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit . OPTIONAL {?quantity qudt:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}} ORDER BY ?label",
+      "forcedBindings": {
+        "location": {
+          "type": "uri",
+          "value": "arces-monitor:Mars"
+        }
+      }
+    },
+    "OBSERVATIONS_BY_UNIT": {
+      "sparql": "SELECT * FROM <http://swamp-project.org/observation/cbec> FROM <http://wot.arces.unibo.it/observation> WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasFeatureOfInterest ?location ; sosa:hasResult ?quantity . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit . OPTIONAL {?quantity qudt:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}}",
+      "forcedBindings": {
+        "unit": {
+          "type": "uri",
+          "value": "unit:DegreeCelsius"
+        }
+      }
+    },
+    "ALL_VALUES": {
+      "sparql": "SELECT * FROM <http://swamp-project.org/observation/cbec> FROM <http://wot.arces.unibo.it/observation> WHERE {?observation rdf:type sosa:Observation ; rdfs:label ?label ; sosa:hasFeatureOfInterest ?location ; sosa:hasResult ?quantity . ?quantity rdf:type qudt:QuantityValue ; qudt:unit ?unit OPTIONAL {?quantity qudt:numericValue ?value} . OPTIONAL {?observation sosa:resultTime ?timestamp}}",
+      "forcedBindings": {
+        "observation": {
+          "type": "uri",
+          "value": "arces-monitor:ObservationXYZ"
+        }
+      }
+    },
+    "MQTT_TOPICS_COUNT": {
+      "sparql": "SELECT (COUNT(DISTINCT ?topic) AS ?topics) WHERE {GRAPH <http://wot.arces.unibo.it/mqtt/message> {?message rdf:type mqtt:Message ; mqtt:topic ?topic}}"
+    },
+    "MQTT_TOPICS": {
+      "sparql": "SELECT DISTINCT * WHERE {GRAPH <http://wot.arces.unibo.it/mqtt/message> {?message rdf:type mqtt:Message ; mqtt:topic ?topic ; mqtt:hasBroker ?broker}}"
+    },
+    "MQTT_TOPIC_VALUE": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/mqtt/message> {?message rdf:type mqtt:Message ; mqtt:topic ?topic; mqtt:value ?value}}",
+      "forcedBindings": {
+        "topic": {
+          "type": "literal",
+          "value": "mqttTopicXYZ"
+        }
+      }
+    },
+    "MQTT_MESSAGES": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/mqtt/message> {?message rdf:type mqtt:Message ; mqtt:value ?value ; mqtt:topic ?topic ; mqtt:hasBroker ?broker;  time:inXSDDateTimeStamp ?timestamp}}"
+    },
+    "HISTORICAL_TRIPLES": {
+      "sparql": "SELECT (COUNT(?log) AS ?count) WHERE {GRAPH <http://wot.arces.unibo.it/observation/history> {?log ?x ?y}}"
+    },
+    "LIVE_TRIPLES": {
+      "sparql": "SELECT (COUNT(?log) AS ?count) FROM <http://swamp-project.org/observation/cbec> FROM <http://wot.arces.unibo.it/observation> WHERE {?log ?x ?y}"
+    },
+    "PLACES_COUNT": {
+      "sparql": "SELECT (COUNT(?place) AS ?count) WHERE {GRAPH <http://wot.arces.unibo.it/context> {?place rdf:type schema:Place}}"
+    },
+    "OBSERVATIONS_COUNT": {
+      "sparql": "SELECT (COUNT(?observation) AS ?count) FROM <http://swamp-project.org/observation/cbec> FROM <http://wot.arces.unibo.it/observation> FROM <http://wot.arces.unibo.it/context> WHERE {?location rdf:type schema:Place . ?observation sosa:hasFeatureOfInterest ?location ; rdf:type sosa:Observation}"
+    },
+    "FORECASTS_COUNT": {
+      "sparql": "SELECT (COUNT(?forecast) AS ?count) WHERE {GRAPH <http://wot.arces.unibo.it/forecast> {?forecast rdf:type swamp:Forecast}}"
+    },
+    "IRRIGATION_REQUESTS_BY_FIELD": {
+      "sparql": "SELECT DISTINCT ?reservationNumber ?scheduled ?satisfied FROM <http://swamp-project.org/cbec/irrigation/2021> WHERE {?irr rdf:type swamp2:IrrigationRequest ; swamp2:hasField ?fieldUri ; swamp2:reservationNumber ?reservationNumber ; swamp2:hasStatus ?status . ?status swamp2:requestStatus swamp2:Scheduled ; time:inXSDDateTimeStamp ?scheduled . OPTIONAL{?irr swamp2:hasStatus ?statusSatisfied . ?statusSatisfied swamp2:requestStatus swamp2:Satisfied ; time:inXSDDateTimeStamp ?satisfied}} ORDER BY xsd:decimal(?reservationNumber)",
+      "forcedBindings": {
+        "fieldUri": {
+          "type": "uri",
+          "value": "http://swamp-project.org/cbec/field_23566"
+        }
+      }
+    },
+    "IRRIGATION_REQUESTS_COUNT": {
+      "sparql": "SELECT * WHERE { GRAPH ?graph {?s ?p ?o} BIND (?graph as ?g)}",
+      "forcedBindings": {
+        "graph": {
+          "type": "uri"
+        }
+      }
+    },
+    "WEATHER_GRAPH": {
+      "sparql": "SELECT * WHERE { GRAPH weather:history { ?observation rdf:type sosa:Observation ; weather:recordCount ?recordCount ; sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property; sosa:resultTime ?time ; sosa:hasResult ?result . ?result qudt:unit ?unit ; qudt:numericValue ?value}}"
+    },
+    "FORECAST_GRAPH": {
+      "sparql": "SELECT * WHERE { GRAPH weather:forecast { ?observation rdf:type sosa:Observation ; weather:recordCount ?recordCount ; sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property; sosa:resultTime ?time ; sosa:phenomenonTime ?ptime ; sosa:hasResult ?result . ?result qudt:unit ?unit ; qudt:numericValue ?value}}"
+    },
+    "FORECAST_METEO_LOCATION_NT": {
+      "sparql": "SELECT ?id ?table ?label ?lat ?long ?height WHERE { GRAPH criteria:meteo_location { ?id rdf:type criteria:Meteo_location ; rdfs:label ?label ; schema:latitude ?lat ; schema:longitude ?long ; schema:elevation ?height ; criteria:table ?table ; criteria:waterTableAlpha ?alpha ; criteria:waterTbaleH0 ?h0 ; criteria:waterTableDays ?days  }}"
+    },
+    "GET_BULK_OUTPUT_FLAG": {
+      "sparql": "select DISTINCT ?time ?unit WHERE { GRAPH criteria:bulkFlag {?x schema:dateReceived ?time ; criteria:table ?unit}}"
+    },
+    "GET_BULK_RECORD_COUNT": {
+      "sparql": " SELECT * WHERE {   GRAPH weather:bulkHistory {  ?id  weather:observationCount  ?num  } }"
+    },
+    "GET_OUTPUT_FLAG": {
+      "sparql": "select DISTINCT ?time ?unit WHERE { GRAPH criteria:flag {?x schema:scheduledTime ?time ; criteria:table ?unit}}"
+    },
+    "GET_SENSORS": {
+      "sparql": "SELECT * WHERE { GRAPH criteria:units { ?id rdf:type criteria:Unit ; OPTIONAL {?id criteria:isSensorActive ?isSensorActive}.  OPTIONAL {?id criteria:sensorId ?sensorId }. }}"
+    },
+    "GET_SENSOR_DATA": {
+      "sparql": "SELECT * WHERE {GRAPH criteria:sensors {?observation rdf:type sosa:Observation ; criteria:layerNumber ?layer; criteria:sensorId ?sensorId ; sosa:observedProperty \"waterContent\" ; sosa:resultTime ?date ; sosa:hasResult ?result . ?result rdf:type qudt:QuantityValue ; rdf:type sosa:Result; sosa:isResultOf  ?observation; qudt:unit ?unit ; qudt:numericValue ?value }}",
+      "forcedBindings": {
+        "sensorId": {
+          "type": "literal"
+        },
+        "date": {
+          "type": "literal",
+          "datatype": "xsd:date"
+        }
+      }
+    },
+    "METEO_LOCATION": {
+      "sparql": "SELECT ?id ?table ?label ?lat ?long ?height ?time ?weatherType ?forecastType ?sensorId WHERE { GRAPH criteria:meteo_location { ?id rdf:type criteria:Meteo_location ; criteria:table ?table ; rdfs:label ?label ; schema:latitude ?lat ; schema:longitude ?long ; schema:elevation ?height ; criteria:waterTableAlpha ?alpha ; criteria:waterTbaleH0 ?h0 ; criteria:waterTableDays ?days . OPTIONAL { ?id schema:startTime ?time} OPTIONAL { ?id criteria:weatherType ?weatherType} OPTIONAL { ?id criteria:forecastType ?forecastType} OPTIONAL { ?id criteria:sensorId ?sensorId}}}"
+    },
+    "METEO_LOCATION_NT": {
+      "sparql": "SELECT ?id ?table ?label ?lat ?long ?height WHERE { GRAPH criteria:meteo_location { ?id rdf:type criteria:Meteo_location ; criteria:table ?table ; rdfs:label ?label ; schema:latitude ?lat ; schema:longitude ?long ; schema:elevation ?height ; criteria:waterTableAlpha ?alpha ; criteria:waterTbaleH0 ?h0 ; criteria:waterTableDays ?days }}"
+    },
+    "UNITS": {
+      "sparql": "SELECT * WHERE { GRAPH criteria:units { ?id rdf:type criteria:Unit ; criteria:hasIdCrop ?crop ; criteria:hasIdSoil ?soil ; criteria:hasIdMeteo ?meteo ; criteria:useNumericalSolution ?numerical ; criteria:useWaterRetentionFitting ?fitting . OPTIONAL {?id criteria:isSensorActive ?isSensorActive}.  OPTIONAL {?id criteria:sensorId ?sensorId }. OPTIONAL {?id criteria:sensorType ?sensorType }. OPTIONAL {?id schema:startTime ?time }  }}"
+    },
+    "UNITS_NT": {
+      "sparql": "SELECT * WHERE { GRAPH criteria:units { ?id rdf:type criteria:Unit ; criteria:hasIdCrop ?crop ; criteria:hasIdSoil ?soil ; criteria:hasIdMeteo ?meteo ; criteria:useNumericalSolution ?numerical ; criteria:useWaterRetentionFitting ?fitting . OPTIONAL {?id criteria:isSensorActive ?isSensorActive}.  OPTIONAL {?id criteria:sensorId ?sensorId }}}"
+    },
+    "bulkHistory": {
+      "sparql": "SELECT * WHERE {   GRAPH weather:bulkHistory {    ?observation rdf:type sosa:Observation ;      sosa:hasFeatureOfInterest ?feature ;      sosa:observedProperty ?property ;    weather:recordCount ?recordCount;  sosa:resultTime ?time ;      sosa:hasResult ?result .    ?result rdf:type qudt:QuantityValue ;      rdf:type sosa:Result;      sosa:isResultOf  ?observation;      qudt:unit ?unit ;      qudt:numericValue ?value .  } }",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri"
+        },
+        "property": {
+          "type": "uri"
+        }
+      }
+    },
+    "getAllCriteriaForecast": {
+      "sparql": "SELECT DISTINCT ?feature ?property ?time ?ptime ?value WHERE { GRAPH criteria:forecast { ?observation rdf:type sosa:Observation ; sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property ; sosa:resultTime ?time ;sosa:phenomenonTime ?ptime ;sosa:hasResult ?result .?result rdf:type qudt:QuantityValue ;rdf:type sosa:Result;sosa:isResultOf ?observation;qudt:unit ?unit ;qudt:numericValue ?value } }ORDER BY DESC(?ptime) ?feature ?property",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri"
+        }
+      }
+    },
+    "getAllWeatherForecastFromDate": {
+      "sparql": "SELECT * WHERE {   GRAPH weather:forecast {    ?observation rdf:type sosa:Observation ;      sosa:hasFeatureOfInterest ?feature ;      sosa:observedProperty ?property ;  weather:recordCount ?recordCount;    sosa:resultTime ?time ;      sosa:phenomenonTime ?ptime ;      sosa:hasResult ?result .    ?result rdf:type qudt:QuantityValue ;      rdf:type sosa:Result;      sosa:isResultOf  ?observation;      qudt:unit ?unit ;      qudt:numericValue ?value .  } FILTER(SUBSTR(STR(?time),1,10) = ?startDate && STR(?feature) = ?theFeature ) }",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri"
+        }
+      }
+    },
+    "getCriteriaForecast": {
+      "sparql": "SELECT DISTINCT ?feature ?property ?ptime ?value WHERE { GRAPH criteria:forecast { ?observation rdf:type sosa:Observation ; sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property ; sosa:resultTime ?time ;sosa:phenomenonTime ?ptime ;sosa:hasResult ?result .?result rdf:type qudt:QuantityValue ;rdf:type sosa:Result;sosa:isResultOf ?observation;qudt:unit ?unit ;qudt:numericValue ?value } bind( xsd:dateTime(concat(strbefore(str(now()),'T'),'T00:00:00.000Z')) as ?today) filter(?time >= ?today) }ORDER BY DESC(?ptime) ?feature ?property",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri"
+        }
+      }
+    },
+    "getCriteriaHistory": {
+      "sparql": "SELECT * WHERE { GRAPH criteria:history { ?observation rdf:type sosa:Observation ; sosa:hasFeatureOfInterest ?feature ; sosa:observedProperty ?property ; sosa:resultTime ?time ; sosa:phenomenonTime ?ptime ; sosa:hasResult ?result . ?result rdf:type qudt:QuantityValue ; rdf:type sosa:Result; sosa:isResultOf ?observation; qudt:unit ?unit ; qudt:numericValue ?value } filter(?time >= ?ptime) }ORDER BY DESC(?time)",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri"
+        },
+        "property": {
+          "type": "uri"
+        },
+        "time": {
+          "type": "literal",
+          "datatype": "xsd:DateTime"
+        }
+      }
+    },
+    "getForecast": {
+      "sparql": "SELECT * WHERE {   GRAPH weather:forecast {    ?observation rdf:type sosa:Observation ;      sosa:hasFeatureOfInterest ?feature ;      sosa:observedProperty ?property ;      sosa:resultTime ?time ;      sosa:phenomenonTime ?ptime ;      sosa:hasResult ?result .    ?result rdf:type qudt:QuantityValue ;      rdf:type sosa:Result;      sosa:isResultOf  ?observation;      qudt:unit ?unit ;      qudt:numericValue ?value} }",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri"
+        },
+        "property": {
+          "type": "uri"
+        }
+      }
+    },
+    "getHistory": {
+      "sparql": "SELECT * WHERE {   GRAPH weather:history {    ?observation rdf:type sosa:Observation ;      sosa:hasFeatureOfInterest ?feature ;      sosa:observedProperty ?property ;      sosa:resultTime ?time ;      sosa:hasResult ?result .    ?result rdf:type qudt:QuantityValue ;      rdf:type sosa:Result;      sosa:isResultOf  ?observation;      qudt:unit ?unit ;      qudt:numericValue ?value .     } }",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri"
+        },
+        "property": {
+          "type": "uri"
+        }
+      }
+    },
+    "getProps": {
+      "sparql": "SELECT DISTINCT ?property WHERE { ?observation sosa:observedProperty ?property }"
+    },
+    "history": {
+      "sparql": "SELECT * WHERE {   GRAPH weather:history {    ?observation rdf:type sosa:Observation ;      sosa:hasFeatureOfInterest ?feature ;      sosa:observedProperty ?property ;   weather:recordCount ?recordCount;   sosa:resultTime ?time ;      sosa:hasResult ?result .    ?result rdf:type qudt:QuantityValue ;      rdf:type sosa:Result;      sosa:isResultOf  ?observation;      qudt:unit ?unit ;      qudt:numericValue ?value .  } }",
+      "forcedBindings": {
+        "feature": {
+          "type": "uri"
+        },
+        "property": {
+          "type": "uri"
+        }
+      }
+    },
+    "https://tools.vaimee.com/log_observations/queries/observations": {
+      "sparql": "SELECT * WHERE {GRAPH ?graph {?observation rdf:type sosa:Observation ; sosa:hasResult ?quantity . ?quantity qudt:numericValue ?value . ?observation sosa:resultTime ?timestamp}}",
+      "forcedBindings": {
+        "graph": {
+          "type": "uri",
+          "value": "http://wot.arces.unibo.it/observation"
+        }
+      }
+    },
+    "https://tools.vaimee.com/mqtt_agent/queries/mqtt_adapter/mqtt_broker_topics": {
+      "sparql": "SELECT ?topic WHERE { GRAPH <http://wot.arces.unibo.it/mqtt> {?broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:user ?user ; mqtt:topic ?topic}}",
+      "forcedBindings": {
+        "url": {
+          "type": "literal",
+          "value": "giove.arces.unibo.it"
+        },
+        "port": {
+          "type": "literal",
+          "value": 52877,
+          "datatype": "xsd:integer"
+        },
+        "user": {
+          "type": "literal",
+          "value": ""
+        }
+      }
+    },
+    "https://tools.vaimee.com/mqtt_agent/queries/mqtt_brokers": {
+      "sparql": "SELECT * WHERE { GRAPH <http://wot.arces.unibo.it/mqtt> {?broker mqtt:url ?url ; rdf:type mqtt:Broker ; mqtt:port ?port ; mqtt:sslProtocol ?sslProtocol ; mqtt:user ?user ; mqtt:password ?password ; mqtt:sslCA ?caFile ; mqtt:clientId ?clientId}}"
+    },
+    "https://tools.vaimee.com/mqtt_mapper/queries/mqtt_mapper": {
+      "sparql": "SELECT ?topic ?regex {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapper rdf:type mqtt:Mapper ; mqtt:topic ?topic . OPTIONAL {?mapper mqtt:regex ?regex}}}",
+      "forcedBindings": {
+        "mapper": {
+          "type": "uri",
+          "value": "mqtt:GuaspariMapper"
+        }
+      }
+    },
+    "https://tools.vaimee.com/mqtt_mapper/queries/mqtt_mappers_topics": {
+      "sparql": "SELECT DISTINCT ?topic {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapper rdf:type mqtt:Mapper ; mqtt:topic ?topic}}"
+    },
+    "https://tools.vaimee.com/mqtt_mapper/queries/mqtt_mappings": {
+      "sparql": "SELECT * {GRAPH <http://wot.arces.unibo.it/mqtt> {?mapping rdf:type mqtt:Mapping ; mqtt:observation ?observation ; mqtt:topic ?topic}}"
+    },
+    "https://tools.vaimee.com/mqtt_mapper/queries/mqtt_messages": {
+      "sparql": "SELECT * WHERE {GRAPH <http://wot.arces.unibo.it/mqtt/message> {?message rdf:type mqtt:Message ; mqtt:value ?value ; mqtt:topic ?topic ; mqtt:hasBroker ?broker;  time:inXSDDateTimeStamp ?timestamp}}"
+    },
+    "https://tools.vaimee.com/queries/email": {
+      "sparql": "SELECT * WHERE {GRAPH ?graph {?mail rdf:type schema:EmailMessage ; schema:toRecipient ?rec ; schema:about ?about ; schema:text ?text . ?rec schema:email ?to . ?about schema:name ?subject}}",
+      "forcedBindings": {
+        "graph": {
+          "type": "uri",
+          "value": "http://graph/email/test"
+        }
+      }
+    },
+    "https://tools.vaimee.com/queries/graphs": {
+      "sparql": "SELECT ?graph WHERE {GRAPH ?graph {?s ?p ?o}}"
+    },
+    "recomputeOutputs": {
+      "sparql": "SELECT ?id ?startDate ?insertTime WHERE{ GRAPH criteria:outputs  { criteria:recomputeAll weather:recomputeData ?o . ?o weather:startDate ?startDate . ?o weather:insertTime ?insertTime . OPTIONAL{?o criteria:Meteo_location ?id} . }}",
+      "forcedBindings": {
+        "id": {
+          "type": "uri"
+        }
+      }
+    },
+    "reloadWeather": {
+      "sparql": "SELECT * WHERE {   GRAPH weather:history {  weather:reloadAll ?p ?o} }"
+    }
+  }
+}
