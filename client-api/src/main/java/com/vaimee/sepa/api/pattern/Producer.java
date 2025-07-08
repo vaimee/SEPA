@@ -70,7 +70,7 @@ public class Producer extends Client implements IProducer {
 				appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
 				appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
 				appProfile.addPrefixesAndReplaceBindings(sparqlUpdate,
-						addDefaultDatatype(forcedBindings, SPARQL_ID, false)),
+						addUpdateDefaultDatatype(forcedBindings, SPARQL_ID, false)),
 				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
 
@@ -89,7 +89,7 @@ public class Producer extends Client implements IProducer {
 				appProfile.getUpdateProtocolScheme(SPARQL_ID), appProfile.getUpdateHost(SPARQL_ID),
 				appProfile.getUpdatePort(SPARQL_ID), appProfile.getUpdatePath(SPARQL_ID),
 				appProfile.addPrefixesAndReplaceMultipleBindings(sparqlUpdate,
-						addDefaultDatatype(multipleForcedBindings.getBindings(), SPARQL_ID, false)),
+						addUpdateDefaultDatatype(multipleForcedBindings.getBindings(), SPARQL_ID, false)),
 				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
 

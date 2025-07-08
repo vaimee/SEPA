@@ -332,8 +332,8 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	private Response _update(String ID, String sparql, Bindings forced, long timeout, long nRetry)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		if (sparql == null)
-			sparql = appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLUpdate(ID), addDefaultDatatype(forced, ID, false));
-		else if (ID != null) sparql = appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, false));
+			sparql = appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLUpdate(ID), addUpdateDefaultDatatype(forced, ID,false));
+		else if (ID != null) sparql = appProfile.addPrefixesAndReplaceBindings(sparql, addUpdateDefaultDatatype(forced, ID,false));
 		
 		if (sparql == null)
 			throw new SEPAProtocolException("SPARQL update not found " + ID);
@@ -363,8 +363,8 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	private Response _query(String ID, String sparql, Bindings forced, long timeout, long nRetry)
 			throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException, SEPABindingsException {
 		if (sparql == null)
-			sparql = appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLQuery(ID), addDefaultDatatype(forced, ID, true));
-		else if (ID != null) sparql = appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true));
+			sparql = appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLQuery(ID), addUpdateDefaultDatatype(forced, ID, true));
+		else if (ID != null) sparql = appProfile.addPrefixesAndReplaceBindings(sparql, addUpdateDefaultDatatype(forced, ID, true));
 		
 		if (sparql == null)
 			throw new SEPAProtocolException("SPARQL query not found " + ID);
@@ -398,8 +398,8 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 			InterruptedException {
 
 		if (sparql == null)
-			sparql = appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLQuery(ID), addDefaultDatatype(forced, ID, true));
-		else if (ID != null) sparql = appProfile.addPrefixesAndReplaceBindings(sparql, addDefaultDatatype(forced, ID, true));
+			sparql = appProfile.addPrefixesAndReplaceBindings(appProfile.getSPARQLQuery(ID), addUpdateDefaultDatatype(forced, ID, true));
+		else if (ID != null) sparql = appProfile.addPrefixesAndReplaceBindings(sparql, addUpdateDefaultDatatype(forced, ID, true));
 		
 		if (sparql == null)
 			throw new SEPAProtocolException("SPARQL query not found " + ID);
