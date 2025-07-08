@@ -1,0 +1,37 @@
+{
+	"host": "sepa.vaimee.it",
+	"oauth": {
+		"enable": true,
+		"ssl": "TLSv1.2",
+		"trustall": true,
+		"register": "https://sepa.vaimee.it:8443/oauth/register",
+		"tokenRequest": "https://sepa.vaimee.it:8443/oauth/token"
+	},
+	"sparql11protocol": {
+		"protocol": "https",
+		"port": 8443,
+		"query": {
+			"path": "/secure/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/secure/update",
+			"method": "POST",
+			"format": "JSON"
+		}
+	},
+	"sparql11seprotocol": {
+		"protocol": "wss",
+		"availableProtocols": {
+			"ws": {
+				"port": 9000,
+				"path": "/subscribe"
+			},
+			"wss": {
+				"port": 9090,
+				"path": "/secure/subscribe"
+			}
+		}
+	}
+}

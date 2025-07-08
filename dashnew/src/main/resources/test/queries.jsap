@@ -1,0 +1,22 @@
+{
+	"queries": {
+		"WRONG": {
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {?x \"ვაიმეე\"}}"
+		},
+		"VAIMEE": {
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {?x ?y \"ვაიმეე\"}}"
+		},
+		"ALL": {
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {?x ?y ?z}}"
+		},
+		"RANDOM": {
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S sepa:P ?random}}"
+		},
+		"RANDOM1": {
+			"sparql": "SELECT * WHERE {GRAPH <http://sepatest/> {sepa:S1 sepa:P1 ?random1}}"
+		},
+		"COUNT": {
+			"sparql": "SELECT (COUNT(?x) AS ?n) WHERE {GRAPH <http://sepatest/> {?x ?y ?z}}"
+		}
+	}
+}
