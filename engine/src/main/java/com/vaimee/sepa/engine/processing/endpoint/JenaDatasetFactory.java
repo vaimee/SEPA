@@ -3,11 +3,11 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package it.unibo.arces.wot.sepa.engine.processing.endpoint;
+package com.vaimee.sepa.engine.processing.endpoint;
 
-import it.unibo.arces.wot.sepa.engine.acl.SEPAAcl;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
+import com.vaimee.sepa.engine.bean.EngineBeans;
+import com.vaimee.sepa.engine.core.EngineProperties;
+import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
@@ -19,7 +19,7 @@ import org.apache.jena.query.DatasetFactory;
 public class JenaDatasetFactory {
      public static Dataset newInstance(String mode,String path,DatasetACL acl) {
          Dataset ret = null;
-         switch(mode.trim().toUpperCase()) {
+         switch(mode.trim().toLowerCase()) {
              case EngineProperties.DS_MODE_MEM:
              default:
                  ret = DatasetFactory.createTxnMem(acl);
@@ -48,12 +48,11 @@ public class JenaDatasetFactory {
          Dataset ret = null;
          
          if (EngineBeans.isAclEnabled() && useACLIfPossible) {
-             final DatasetACL acl = SEPAAcl.getInstance(ACLTools.makeACLStorage());
+             final DatasetACL acl = SEPAAcl.getInstance(com.vaimee.sepa.engine.processing.endpoint.ACLTools.makeACLStorage());
              ret = newInstance(mode, path,acl);
          } else {
-            switch(mode.trim().toUpperCase()) {
+            switch(mode.trim().toLowerCase()) {
                 case EngineProperties.DS_MODE_MEM:
-                default:
                     ret = DatasetFactory.createTxnMem();
                     break;
 

@@ -1,13 +1,10 @@
-package com.vaimee.sepa.engine.dependability.acl;
+package com.vaimee.sepa.engine.dependability.authorization;
 
 import java.io.Console;
 import java.util.Scanner;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.security.Credentials;
-import com.vaimee.sepa.engine.dependability.authorization.JKSUtil;
-import com.vaimee.sepa.engine.dependability.authorization.LdapProperties;
-import com.vaimee.sepa.engine.dependability.authorization.LdapSecurityManager;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.security.Credentials;
 import com.vaimee.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
 import com.vaimee.sepa.engine.dependability.authorization.identities.DeviceIdentity;
 import com.vaimee.sepa.engine.dependability.authorization.identities.DigitalIdentity;

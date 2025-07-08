@@ -50,13 +50,13 @@ import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.JWTResponse;
-import com.vaimee.sepa.commons.response.RegistrationResponse;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.security.ClientAuthorization;
-import com.vaimee.sepa.commons.security.Credentials;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.JWTResponse;
+import com.vaimee.sepa.api.commons.response.RegistrationResponse;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.security.ClientAuthorization;
+import com.vaimee.sepa.api.commons.security.Credentials;
 import com.vaimee.sepa.engine.dependability.authorization.identities.ApplicationIdentity;
 import com.vaimee.sepa.logging.Logging;
 

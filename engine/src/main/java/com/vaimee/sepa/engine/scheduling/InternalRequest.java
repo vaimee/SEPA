@@ -17,8 +17,8 @@
 */
 package com.vaimee.sepa.engine.scheduling;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.security.ClientAuthorization;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.security.ClientAuthorization;
 
 public abstract class InternalRequest {
 	private ClientAuthorization auth;

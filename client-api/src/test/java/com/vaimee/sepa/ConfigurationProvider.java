@@ -1,17 +1,17 @@
 package com.vaimee.sepa;
 
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.request.QueryRequest;
-import com.vaimee.sepa.commons.request.SubscribeRequest;
-import com.vaimee.sepa.commons.request.UnsubscribeRequest;
-import com.vaimee.sepa.commons.request.UpdateRequest;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.security.OAuthProperties;
-import com.vaimee.sepa.commons.security.OAuthProperties.OAUTH_PROVIDER;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.request.QueryRequest;
+import com.vaimee.sepa.api.commons.request.SubscribeRequest;
+import com.vaimee.sepa.api.commons.request.UnsubscribeRequest;
+import com.vaimee.sepa.api.commons.request.UpdateRequest;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.security.OAuthProperties;
+import com.vaimee.sepa.api.commons.security.OAuthProperties.OAUTH_PROVIDER;
 import com.vaimee.sepa.logging.Logging;
-import com.vaimee.sepa.commons.security.ClientSecurityManager;
-import com.vaimee.sepa.pattern.JSAP;
+import com.vaimee.sepa.api.commons.security.ClientSecurityManager;
+import com.vaimee.sepa.api.pattern.JSAP;
 
 import java.io.Closeable;
 //import java.io.File;

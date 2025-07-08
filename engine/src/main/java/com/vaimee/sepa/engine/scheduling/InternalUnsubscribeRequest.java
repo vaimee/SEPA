@@ -18,7 +18,7 @@
 
 package com.vaimee.sepa.engine.scheduling;
 
-import com.vaimee.sepa.commons.security.ClientAuthorization;
+import com.vaimee.sepa.api.commons.security.ClientAuthorization;
 
 public class InternalUnsubscribeRequest extends InternalRequest {
 	protected String sid;

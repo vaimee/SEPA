@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package it.unibo.arces.wot.sepa.engine.gates.http;
+package com.vaimee.sepa.engine.gates.http;
 
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -26,16 +26,16 @@ import org.apache.http.impl.nio.bootstrap.HttpServer;
 import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPAProtocolException;
-import it.unibo.arces.wot.sepa.commons.exceptions.SEPASecurityException;
-import it.unibo.arces.wot.sepa.engine.bean.EngineBeans;
-import it.unibo.arces.wot.sepa.engine.core.EngineProperties;
-import it.unibo.arces.wot.sepa.engine.dependability.Dependability;
-import it.unibo.arces.wot.sepa.engine.protocol.oauth.JWTRequestHandler;
-import it.unibo.arces.wot.sepa.engine.protocol.oauth.RegisterHandler;
-import it.unibo.arces.wot.sepa.engine.protocol.sparql11.SecureSPARQL11Handler;
-import it.unibo.arces.wot.sepa.engine.scheduling.Scheduler;
-import it.unibo.arces.wot.sepa.logging.Logging;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.engine.bean.EngineBeans;
+import com.vaimee.sepa.engine.core.EngineProperties;
+import com.vaimee.sepa.engine.dependability.Dependability;
+import com.vaimee.sepa.engine.protocol.oauth.JWTRequestHandler;
+import com.vaimee.sepa.engine.protocol.oauth.RegisterHandler;
+import com.vaimee.sepa.engine.protocol.sparql11.SecureSPARQL11Handler;
+import com.vaimee.sepa.engine.scheduling.Scheduler;
+import com.vaimee.sepa.logging.Logging;
 
 public class HttpsGate {
 	protected EngineProperties properties;
@@ -49,15 +49,15 @@ public class HttpsGate {
 	public HttpsGate(EngineProperties properties, Scheduler scheduler) throws SEPASecurityException, SEPAProtocolException {
 
 		try {
-			final SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
-                        final SecureSPARQL11Handler aclHandler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getAclQueryPath(),properties.getSecurePath() + properties.getAclUpdatePath());
-
-			server = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpsPort()).setServerInfo(serverInfo)
+//			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getSecurePath() + properties.getQueryPath(),properties.getSecurePath() + properties.getUpdatePath());
+			SecureSPARQL11Handler handler = new SecureSPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
+			
+			server = ServerBootstrap.bootstrap().setListenerPort(443).setServerInfo(serverInfo)
 					.setIOReactorConfig(config).setSslContext(Dependability.getSSLContext())
 					.setExceptionLogger(ExceptionLogger.STD_ERR)
 					.registerHandler(properties.getRegisterPath(), new RegisterHandler())
-					.registerHandler(properties.getSecurePath() + properties.getQueryPath(),handler)
-					.registerHandler(properties.getSecurePath() + properties.getUpdatePath(),handler)
+					.registerHandler(properties.getQueryPath(),handler)
+					.registerHandler(properties.getUpdatePath(),handler)
 					.registerHandler(properties.getTokenRequestPath(), new JWTRequestHandler())
 					.registerHandler("/echo", new EchoHandler())
 					.registerHandler("", new EchoHandler()).create();
@@ -73,7 +73,6 @@ public class HttpsGate {
 
 		System.out.println("SPARQL 1.1 SE Query  | " + EngineBeans.getSecureQueryURL());
 		System.out.println("SPARQL 1.1 SE Update | " + EngineBeans.getSecureUpdateURL());
-                
 		System.out.println("Client registration  | " + EngineBeans.getRegistrationURL());
 		System.out.println("Token request        | " + EngineBeans.getTokenRequestURL());
 	}

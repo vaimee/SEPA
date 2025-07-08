@@ -21,8 +21,8 @@ package com.vaimee.sepa.engine.scheduling;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.bean.SEPABeans;
 import com.vaimee.sepa.engine.bean.SchedulerBeans;
 import com.vaimee.sepa.engine.core.EngineProperties;

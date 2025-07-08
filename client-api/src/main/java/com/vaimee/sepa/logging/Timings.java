@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package com.vaimee.sepa.logging;
 
-import com.vaimee.sepa.commons.request.Request;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.request.Request;
+import com.vaimee.sepa.api.commons.response.Response;
 
 public class Timings {
 	public static long getTime() {

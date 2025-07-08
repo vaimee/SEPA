@@ -18,7 +18,7 @@
 
 package com.vaimee.sepa.engine.bean;
 
-import com.vaimee.sepa.commons.properties.SPARQL11Properties;
+import com.vaimee.sepa.api.commons.properties.SPARQL11Properties;
 
 public class ProcessorBeans {
 	

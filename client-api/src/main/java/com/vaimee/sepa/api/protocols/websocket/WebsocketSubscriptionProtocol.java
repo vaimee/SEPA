@@ -24,18 +24,18 @@ import java.net.URISyntaxException;
 
 import com.vaimee.sepa.api.ISubscriptionHandler;
 import com.vaimee.sepa.api.SubscriptionProtocol;
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.properties.SubscriptionProtocolProperties;
-import com.vaimee.sepa.commons.request.Request;
-import com.vaimee.sepa.commons.request.SubscribeRequest;
-import com.vaimee.sepa.commons.request.UnsubscribeRequest;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.JWTResponse;
-import com.vaimee.sepa.commons.response.Notification;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.security.ClientSecurityManager;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.properties.SubscriptionProtocolProperties;
+import com.vaimee.sepa.api.commons.request.Request;
+import com.vaimee.sepa.api.commons.request.SubscribeRequest;
+import com.vaimee.sepa.api.commons.request.UnsubscribeRequest;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.JWTResponse;
+import com.vaimee.sepa.api.commons.response.Notification;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.security.ClientSecurityManager;
 import com.vaimee.sepa.logging.Logging;
 
 public class WebsocketSubscriptionProtocol extends SubscriptionProtocol implements ISubscriptionHandler {

@@ -14,7 +14,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
 import com.vaimee.sepa.logging.Logging;
 
 public class VirtuosoIsql implements IUsersAcl{

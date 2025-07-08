@@ -1,9 +1,9 @@
-<<<<<<< HEAD
 /jena-base/
 /logs/
-=======
 /endpoint.jpar
 /sepa.engine.csv
 /sepa.api.csv
-/jena-base/
->>>>>>> refs/heads/dev
+/nb-configuration.xml
+/nbactions.xml
+/pom.xml.eclipse
+/pom.xml.netbeans

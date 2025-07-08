@@ -22,8 +22,8 @@ import java.util.Date;
 
 import com.nimbusds.jwt.SignedJWT;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.security.Credentials;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.security.Credentials;
 import com.vaimee.sepa.engine.dependability.authorization.identities.DigitalIdentity;
 
 public interface IAuthorization {

@@ -20,14 +20,14 @@ package com.vaimee.sepa.api;
 
 import java.io.IOException;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.request.SubscribeRequest;
-import com.vaimee.sepa.commons.request.UnsubscribeRequest;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.request.SubscribeRequest;
+import com.vaimee.sepa.api.commons.request.UnsubscribeRequest;
 
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.security.ClientSecurityManager;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.security.ClientSecurityManager;
 import com.vaimee.sepa.logging.Logging;
 
 /**

@@ -18,8 +18,8 @@
 
 package com.vaimee.sepa.engine.processing;
 
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.response.UpdateResponse;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.UpdateResponse;
 import com.vaimee.sepa.engine.scheduling.InternalUpdateRequest;
 import com.vaimee.sepa.engine.scheduling.ScheduledRequest;
 import com.vaimee.sepa.logging.Logging;

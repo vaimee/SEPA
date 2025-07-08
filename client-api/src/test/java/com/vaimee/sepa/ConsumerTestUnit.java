@@ -2,14 +2,14 @@ package com.vaimee.sepa;
 
 import java.io.IOException;
 
-import com.vaimee.sepa.commons.exceptions.SEPABindingsException;
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.sparql.ARBindingsResults;
-import com.vaimee.sepa.commons.sparql.BindingsResults;
+import com.vaimee.sepa.api.commons.exceptions.SEPABindingsException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.sparql.ARBindingsResults;
+import com.vaimee.sepa.api.commons.sparql.BindingsResults;
 import com.vaimee.sepa.logging.Logging;
-import com.vaimee.sepa.pattern.Consumer;
+import com.vaimee.sepa.api.pattern.Consumer;
 
 public class ConsumerTestUnit extends Consumer {
 	protected static boolean notificationReceived = false;

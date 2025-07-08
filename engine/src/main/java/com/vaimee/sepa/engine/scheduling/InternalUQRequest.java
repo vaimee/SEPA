@@ -23,8 +23,8 @@ import java.time.ZoneOffset;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.vaimee.sepa.commons.exceptions.SEPASparqlParsingException;
-import com.vaimee.sepa.commons.security.ClientAuthorization;
+import com.vaimee.sepa.api.commons.exceptions.SEPASparqlParsingException;
+import com.vaimee.sepa.api.commons.security.ClientAuthorization;
 import com.vaimee.sepa.logging.Logging;
 
 /**

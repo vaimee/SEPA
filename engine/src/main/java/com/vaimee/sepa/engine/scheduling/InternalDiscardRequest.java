@@ -18,8 +18,8 @@
 
 package com.vaimee.sepa.engine.scheduling;
 
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.security.ClientAuthorization;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.security.ClientAuthorization;
 
 public class InternalDiscardRequest extends InternalRequest {
 

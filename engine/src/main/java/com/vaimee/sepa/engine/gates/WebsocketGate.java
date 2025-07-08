@@ -21,9 +21,9 @@ package com.vaimee.sepa.engine.gates;
 import org.java_websocket.WebSocket;
 import org.java_websocket.exceptions.WebsocketNotConnectedException;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.response.Notification;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.response.Notification;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.scheduling.Scheduler;
 import com.vaimee.sepa.logging.Logging;
 

@@ -18,7 +18,7 @@
 
 package com.vaimee.sepa.engine.timing;
 
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.scheduling.InternalRequest;
 import com.vaimee.sepa.logging.Logging;
 
