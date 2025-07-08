@@ -22,6 +22,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.PatternSyntaxException;
@@ -29,6 +30,7 @@ import java.util.regex.PatternSyntaxException;
 import javax.net.ssl.SSLContext;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.nimbusds.jose.jwk.RSAKey;
 
 import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
@@ -214,6 +216,7 @@ public class EngineProperties {
 		public String unsubscribe;
 		public String register;
 		public String tokenRequest;
+		JsonObject extensions = new JsonObject();
 
 		public Paths(){
 			update       = "/update";
@@ -773,8 +776,20 @@ public class EngineProperties {
 		Logging.logger.debug("-sparql11protocol.update.path: " + endpointProperties.getUpdatePath());
 		Logging.logger.debug("-sparql11protocol.update.method: " + endpointProperties.getUpdateMethod());
 		Logging.logger.debug("-sparql11protocol.update.format: " + endpointProperties.getUpdateAcceptHeader());
+
+		Logging.logger.debug("--- EXTENSIONS ---");
+		for (String ext : getExtensions().keySet()) {
+			Logging.logger.debug(ext+" : " + getExtensions().get(ext));
+		}
 	}
 
+	public HashMap<String,String> getExtensions() {
+		HashMap<String,String> ret = new HashMap<String,String>();
+		for (String key :  this.parameters.gates.paths.extensions.keySet()) {
+			ret.put(key,this.parameters.gates.paths.extensions.get(key).getAsString());
+		}
+		return ret;
+	}
 	public void setSecurity() throws SEPASecurityException {
 		parameters.gates.security.enabled = (secure.isEmpty() ? false : secure.get());
 		

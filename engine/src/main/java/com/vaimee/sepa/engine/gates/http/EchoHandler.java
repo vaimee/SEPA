@@ -18,10 +18,7 @@
 
 package com.vaimee.sepa.engine.gates.http;
 
-import java.io.IOException;
-
-import com.vaimee.sepa.engine.gates.http.HttpUtilities;
-import it.unibo.arces.wot.sepa.engine.extensions.Extension;
+import com.vaimee.sepa.engine.extensions.Extension;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;

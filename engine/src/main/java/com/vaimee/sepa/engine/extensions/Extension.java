@@ -1,4 +1,4 @@
-package it.unibo.arces.wot.sepa.engine.extensions;
+package com.vaimee.sepa.engine.extensions;
 
 import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
 import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
