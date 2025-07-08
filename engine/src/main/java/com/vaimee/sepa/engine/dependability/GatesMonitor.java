@@ -25,8 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.mina.util.ConcurrentHashSet;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.core.ResponseHandler;
 import com.vaimee.sepa.engine.gates.Gate;
 import com.vaimee.sepa.engine.scheduling.InternalUnsubscribeRequest;

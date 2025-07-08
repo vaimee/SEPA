@@ -18,8 +18,8 @@
 
 package com.vaimee.sepa.api;
 
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Notification;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Notification;
 
 /**
  * Handles SPARQL 1.1 subscription language events.

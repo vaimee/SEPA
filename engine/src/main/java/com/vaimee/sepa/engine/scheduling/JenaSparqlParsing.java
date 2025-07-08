@@ -22,10 +22,11 @@ import org.apache.jena.sparql.modify.request.UpdateModify;
 import org.apache.jena.sparql.syntax.Element;
 import org.apache.jena.sparql.syntax.ElementGroup;
 import org.apache.jena.sparql.syntax.ElementNamedGraph;
+import org.apache.jena.sparql.util.Context;
 import org.apache.jena.update.Update;
 import org.apache.jena.update.UpdateRequest;
 
-import com.vaimee.sepa.commons.exceptions.SEPASparqlParsingException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASparqlParsingException;
 import com.vaimee.sepa.logging.Logging;
 
 public class JenaSparqlParsing {
@@ -65,7 +66,8 @@ public class JenaSparqlParsing {
 	 */
 
 	public Set<String> getUpdateGraphURIs(String sparql) throws SEPASparqlParsingException {
-		UpdateRequest upd = new UpdateRequest(null);
+		UpdateRequest upd = new UpdateRequest(Context.emptyContext());
+
 		UpdateRequestSink sink = new UpdateRequestSink(upd);
 
 		Set<String> rdfDataSet = new HashSet<String>();

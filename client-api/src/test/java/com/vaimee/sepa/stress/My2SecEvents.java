@@ -12,17 +12,17 @@ import org.junit.jupiter.api.RepeatedTest;
 
 import com.vaimee.sepa.ConfigurationProvider;
 import com.vaimee.sepa.api.ISubscriptionHandler;
-import com.vaimee.sepa.commons.exceptions.SEPABindingsException;
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Notification;
-import com.vaimee.sepa.commons.response.QueryResponse;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.sparql.Bindings;
-import com.vaimee.sepa.pattern.GenericClient;
-import com.vaimee.sepa.pattern.Producer;
+import com.vaimee.sepa.api.commons.exceptions.SEPABindingsException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Notification;
+import com.vaimee.sepa.api.commons.response.QueryResponse;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.sparql.Bindings;
+import com.vaimee.sepa.api.pattern.GenericClient;
+import com.vaimee.sepa.api.pattern.Producer;
 
 public class My2SecEvents implements ISubscriptionHandler {
 	static ConfigurationProvider provider;

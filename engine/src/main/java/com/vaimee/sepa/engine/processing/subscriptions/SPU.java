@@ -26,12 +26,12 @@ import com.vaimee.sepa.engine.scheduling.InternalSubscribeRequest;
 import com.vaimee.sepa.engine.scheduling.InternalUpdateRequest;
 import com.vaimee.sepa.logging.Logging;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProcessingException;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Notification;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.response.UpdateResponse;
-import com.vaimee.sepa.commons.sparql.BindingsResults;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProcessingException;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Notification;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.UpdateResponse;
+import com.vaimee.sepa.api.commons.sparql.BindingsResults;
 
 /**
  * This class represents a Semantic Processing Unit (SPU)

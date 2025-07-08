@@ -18,7 +18,7 @@
 
 package com.vaimee.sepa.engine.dependability.authorization.identities;
 
-import com.vaimee.sepa.commons.security.Credentials;
+import com.vaimee.sepa.api.commons.security.Credentials;
 
 /**
  * A digital identity includes the credentials to get access to the SPARQL endpoint

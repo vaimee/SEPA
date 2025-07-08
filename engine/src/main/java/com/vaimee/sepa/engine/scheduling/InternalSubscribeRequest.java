@@ -19,10 +19,10 @@ package com.vaimee.sepa.engine.scheduling;
 
 import java.util.Set;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASparqlParsingException;
-import com.vaimee.sepa.commons.response.Notification;
-import com.vaimee.sepa.commons.security.ClientAuthorization;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASparqlParsingException;
+import com.vaimee.sepa.api.commons.response.Notification;
+import com.vaimee.sepa.api.commons.security.ClientAuthorization;
 import com.vaimee.sepa.engine.core.EventHandler;
 import com.vaimee.sepa.engine.gates.Gate;
 

@@ -20,8 +20,8 @@ package com.vaimee.sepa.engine.processing.subscriptions;
 
 import java.util.UUID;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.response.Notification;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.response.Notification;
 import com.vaimee.sepa.engine.scheduling.InternalSubscribeRequest;
 
 public class Subscriber {

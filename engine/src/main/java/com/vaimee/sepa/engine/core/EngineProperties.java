@@ -15,7 +15,7 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 package com.vaimee.sepa.engine.core;
 
 import java.io.FileReader;
@@ -31,14 +31,14 @@ import javax.net.ssl.SSLContext;
 import com.google.gson.Gson;
 import com.nimbusds.jose.jwk.RSAKey;
 
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.properties.QueryProperties.QueryHTTPMethod;
-import com.vaimee.sepa.commons.properties.QueryProperties.QueryResultsFormat;
-import com.vaimee.sepa.commons.properties.SPARQL11Properties;
-import com.vaimee.sepa.commons.properties.SPARQL11Properties.ProtocolScheme;
-import com.vaimee.sepa.commons.properties.UpdateProperties.UpdateHTTPMethod;
-import com.vaimee.sepa.commons.properties.UpdateProperties.UpdateResultsFormat;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.properties.QueryProperties.QueryHTTPMethod;
+import com.vaimee.sepa.api.commons.properties.QueryProperties.QueryResultsFormat;
+import com.vaimee.sepa.api.commons.properties.SPARQL11Properties;
+import com.vaimee.sepa.api.commons.properties.SPARQL11Properties.ProtocolScheme;
+import com.vaimee.sepa.api.commons.properties.UpdateProperties.UpdateHTTPMethod;
+import com.vaimee.sepa.api.commons.properties.UpdateProperties.UpdateResultsFormat;
 import com.vaimee.sepa.engine.dependability.Dependability;
 import com.vaimee.sepa.engine.dependability.authorization.IsqlProperties;
 import com.vaimee.sepa.engine.dependability.authorization.JKSUtil;
@@ -122,7 +122,10 @@ public class EngineProperties {
 		public Processor processor = new Processor();
 		public Spu spu = new Spu();
 		public Gates gates = new Gates();
-		
+
+		public Acl   acl = new Acl();
+		public DatasetConfiguration dsConfig = new DatasetConfiguration();
+
 		public String toString() {
 			return new Gson().toJson(this);
 		}
@@ -238,6 +241,114 @@ public class EngineProperties {
 		public String toString() {
 			return new Gson().toJson(this);
 		}
+	}
+
+	static private class Acl {
+		public  boolean     enabled     =   false;
+		public  String      type        =   ACL_TYPE_DS;  //allowed: dataset/json
+		public  String      mode        =   DS_MODE_MEM;     /*
+                                                                    Valid values depends on type :
+		 *) type == dataset
+                                                                        -) mode = tdb2  tdb2 persistency
+                                                                        -) mode = tdb1  tdb1 persistency
+                                                                        -) mode = mem   not persistent
+		 *) type == json : no value required
+
+		 */
+		public String       path = "./acl";             /*
+                                                                    Valid values depends on type :
+		 *) type == dataset/tdb1|tdb2
+                                                                        -) path = path of tdbx persistent data
+
+                                                                    *) type == json : full path of json file
+
+                                                                */
+
+
+		public String       queryPath       = "/acl/query/";
+		public String       updatePath      = "/acl/update/";
+
+	}
+
+	public boolean  isAclEnabled() {
+		return parameters.acl.enabled;
+	}
+
+	public void setAclEnabled(boolean enable) {
+		parameters.acl.enabled=enable;
+	}
+
+	public String getAclType() {
+		return parameters.acl.type;
+	}
+
+	public String getAclMode() {
+		return parameters.acl.mode;
+	}
+
+	public String getAclPath() {
+		return parameters.acl.path;
+	}
+
+
+	public String getAclQueryPath() {
+		return parameters.acl.queryPath;
+	}
+	public String getAclUpdatePath() {
+		return parameters.acl.updatePath;
+	}
+
+	private static class    DatasetData {
+		public  String      mode        =   DS_MODE_MEM ;     /*
+                                                                    -) mode = tdb2  tdb2 persistency
+                                                                    -) mode = tdb1  tdb1 persistency
+                                                                    -) mode = mem   not persistent
+		 */
+		public String       path        =   "";         //path of dataset is mode is tdb1 or tdb2
+	}
+	private static class    DatasetConfiguration {
+		public boolean          lutt = false;
+		public DatasetData      firstDS  = new DatasetData();
+		public DatasetData      secondDS = new DatasetData();
+
+
+	}
+
+	public static final String    DS_MODE_MEM     =   "mem";
+	public static final String    DS_MODE_TDB2    =   "tdb2";
+	public static final String    DS_MODE_TDB1    =   "tdb1";
+
+	public static final String    ACL_TYPE_DS     =   "dataset";
+	public static final String    ACL_TYPE_JSON   =   "json";
+
+	public boolean isLUTTEnabled() {
+		return parameters.dsConfig.lutt;
+	}
+
+	public void setLUTTEnabled(boolean enable) {
+		parameters.dsConfig.lutt=enable;
+	}
+
+
+	public String   getFirstDatasetMode() {
+		return parameters.dsConfig.firstDS.mode;
+	}
+	public String   getFirstDatasetPath() {
+		return parameters.dsConfig.firstDS.path;
+	}
+	public String   getSecondDatasetMode() {
+		return parameters.dsConfig.secondDS.mode;
+	}
+	public String   getSecondDatasetPath() {
+		return parameters.dsConfig.secondDS.path;
+	}
+
+	public void setAclPath(String s ) {
+		parameters.acl.path = s;
+	}
+
+	public void setAclMode(String s) {
+		parameters.acl.mode = s;
 	}
 	
 	private int wsShutdownTimeout = 5000;
@@ -774,5 +885,5 @@ public class EngineProperties {
 	public int getSchedulerTimeout() {
 		return this.parameters.scheduler.timeout;
 	}
-	
+
 }

@@ -21,8 +21,8 @@ package com.vaimee.sepa.engine.protocol.sparql11;
 import org.apache.http.Header;
 import org.apache.http.HttpRequest;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.security.ClientAuthorization;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.security.ClientAuthorization;
 import com.vaimee.sepa.engine.bean.SEPABeans;
 import com.vaimee.sepa.engine.dependability.Dependability;
 import com.vaimee.sepa.engine.scheduling.Scheduler;

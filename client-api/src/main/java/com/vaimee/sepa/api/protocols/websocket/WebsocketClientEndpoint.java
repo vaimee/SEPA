@@ -38,11 +38,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 
 import com.vaimee.sepa.api.ISubscriptionHandler;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Notification;
-import com.vaimee.sepa.commons.security.ClientSecurityManager;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Notification;
+import com.vaimee.sepa.api.commons.security.ClientSecurityManager;
 import com.vaimee.sepa.logging.Logging;
 
 

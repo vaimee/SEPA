@@ -20,9 +20,9 @@ package com.vaimee.sepa.engine.processing.subscriptions;
 
 import java.io.IOException;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.sparql.BindingsResults;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.sparql.BindingsResults;
 import com.vaimee.sepa.engine.scheduling.InternalUpdateRequest;
 
 interface ISPU {
