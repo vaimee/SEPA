@@ -1,8 +1,0 @@
-{
-	"oauth": {
-		"enable": true,
-		"ssl": "TLSv1.2",
-		"trustall": true,
-		"register": "https://sepa.vaimee.it:8443/oauth/register"
-	}
-}
