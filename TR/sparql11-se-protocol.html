@@ -1,0 +1,511 @@
+<html>
+
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="content-type">
+<title>SPARQL 1.1 Secure Event Protocol</title>
+
+<!-- RESPEC CONFIGURATION -->
+<script src="https://www.w3.org/Tools/respec/respec-w3c-common"
+	class="remove"></script>
+<script class='remove'>
+	var respecConfig = {
+
+		// document info
+		specStatus : "unofficial",
+		shortName : "sparql-11-se-protocol",
+		copyrightStart : "2018",
+		edDraftURI : "https://vaimee.org/TR/sparql11-se-protocol.html",
+		extraCSS : [ "css/respec.css" ],
+
+		// editors
+		editors : [{
+			name : "Luca Roffia",
+			mailto : "luca.roffia@unibo.it",
+			company: "University of Bologna",
+			companyURL: "https://www.unibo.it/sitoweb/luca.roffia/en"
+		} ],
+		
+		formerEditors: [{
+			name : "Cristiano Aguzzi",
+			mailto : "cristiano.aguzzi@unibo.it"
+		}, {
+			name : "Francesco Antoniazzi",
+			mailto : "francesco.antoniazzi@unibo.it"
+		},
+		{
+			name : "Fabio Viola",
+			mailto : "fabio.viola@unibo.it"
+		} ],
+
+		// WG
+		wg : "Dynamic Linked Data and Web of Things working group @ ARCES",
+		wgURI : "https://site.unibo.it/wot/en",
+	};
+</script>
+
+</head>
+
+<body>
+
+	<!-- ABSTRACT -->
+	<section id="abstract">
+		This document describes the SPARQL 1.1 Secure Event (SE) Protocol that
+		MUST be implemented by a generic <a
+			href="https://vaimee.org/TR/sepa.html">SPARQL SE Service</a>.
+	</section>
+	<!-- STATUS OF THIS DOCUMENT -->
+	<section id="sotd">This is a first draft.</section>
+
+	<section id="intro">
+		<h2>Introduction</h2>
+		<p>
+			The SPARQL 1.1 SE Protocol wraps the SPARQL 1.1 Protocol
+			[[sparql11-protocol]] to support subscriptions and secure
+			connections. It is framed within W3C Recommendations as shown in the
+			following figure. <img src="media/sparql11seprotocol.jpg">
+		<p>Fig. 1 - The SPARQL 1.1 Secure Event Protocol</p>
+
+		The SPARQL 1.1 SE protocol targets the application contexts where
+		security MUST be supported (e.g., the
+
+		<p>The SPARQL 1.1 SE Protocol aims at:</p>
+		<ul>
+			<li>Extending the SPARQL 1.1 Protocol [[sparql11-protocol]] to
+				support SPARQL subscriptions</li>
+			<li>Providing clients authentication based on OAuth 2.0
+				[[!RFC6749]]</li>
+			<li>Providing data encryption, server authentication and message
+				integrity</li>
+		</ul>
+
+		<p>On one hand, the SPARQL 1.1 SE Protocol MUST transparently
+			support the HTTP methods provided by the [[sparql11-protocol]] to
+			transport SPARQL 1.1 Queries [[sparql11-query]] and Updates
+			[[sparql11-update]]. On the other hand, subscriptions need a two-way
+			communication between subscribers and the SEPA broker. A SEPA broker
+			is RECOMMENDED to provide this kind of communication by using
+			Websockets [[!RFC6455]].</p>
+
+		<section id="conventions">
+			<h3>Document conventions</h3>
+			When this document uses the words MUST, MUST NOT, SHOULD, SHOULD NOT,
+			MAY and RECOMMENDED, and the words appear as emphasized text, they
+			must be interpreted as described in RFC 2119 [[!RFC2119]].
+		</section>
+
+		<section id="terms">
+			<h3>Terminology</h3>
+			<dl>
+				<dt>SEPA</dt>
+				<dd>
+					<a href="http://vaimee.org/TR/sepa.html">SPARQL Event
+						Processing Architecture</a>
+				</dd>
+
+				<dt>SEPA broker</dt>
+				<dd>
+					The server component of the SEPA. It implements the
+					publish-subscribe mechanisms and algorithms. Clients interact with
+					a SEPA broker with the <a
+						href="http://vaimee.org/TR/sparql11-se-protocol.html">SPARQL
+						1.1 SE Protocol</a>
+				</dd>
+
+				<dt>SPARQL 1.1 Subscribe Language</dt>
+				<dd>
+					The <a href="http://vaimee.org/TR/sparql11-subscribe.html">subscription
+						language</a> introduced by the SEPA
+				</dd>
+
+				<dt>SPARQL 1.1 SE Protocol</dt>
+				<dd>
+					The <a
+						href="http://vaimee.org/TR/sparql11-se-protocol.html">protocol</a>
+					implemented by a SEPA broker and defined in this document
+				</dd>
+
+				<dt>SPARQL 1.1 Update Language</dt>
+				<dd>As defined by [[sparql11-update]]</dd>
+
+				<dt>SPARQL 1.1 Query Language</dt>
+				<dd>As defined by [[sparql11-query]]</dd>
+			</dl>
+		</section>
+	</section>
+
+	<section id="SPARQL11Query">
+		<h3>SPARQL 1.1 Query</h3>
+		<p>SPARQL 1.1 Queries [[sparql11-query]] SHOULD be transparently
+			supported by a SPARQL SE Protocol Service as described in
+			[[sparql11-protocol]].
+		<p>A SEPA broker is RECOMMENDED to :</p>
+
+		<ul>
+			<li>implement the POST method of the SPARQL 1.1 Protocol
+				[[sparql11-protocol]]</li>
+			<li>follow the SPARQL 1.1 Query Results JSON format
+				[[sparql11-results-json]]</li>
+			<li>reply as shown <a href='#ErrorResponses'>here</a> in case of
+				error
+			</li>
+		</ul>
+
+		<p>An example of a query request and response follows:</p>
+
+<aside class="example" title="Query request (via POST)">
+<br>Request 
+<pre>POST http://vaimee.org:8000/query</pre>
+
+Headers
+<pre>Content-Type: application/sparql-query
+Accept: application/sparql-results+json</pre>
+
+Body
+<pre>SELECT * WHERE {?vaimee ?deda ?didi}</pre>
+</aside>
+
+		<p>Test the example with</p>
+<aside class="example" title='Query example on Bash'>
+  <p>Test the query example with the following
+  <pre>
+curl -X POST -d "select * where {?vaimee ?deda ?didi}" -H "Content-Type: application/sparql-query" -H "Accept: application/sparql-results+json" http://localhost:8000/query
+  </pre>
+</aside>
+
+		<aside class="example" title="Query response">
+<br>Headers 
+<pre>Content-Type: application/json</pre>
+
+Body
+<pre>
+{ "head": { "vars": ["vaimee","deda","didi"] },
+  "results": {
+   "bindings": [{ 
+     "vaimee": {"type": "uri", "value" : "http://wot.arces.unibo.it/example#Subject"}, 
+     "deda": {"type": "uri", "value": "http://wot.arces.unibo.it/example#Predicate"}, 
+     "didi": {"type": "literal","value": "&#x10D5;&#x10D0;&#x10D8;&#x10DB;&#x10D4;&#x10D4;"} }]}}
+     </pre>
+		</aside>
+		
+		
+	</section>
+
+	<section id="SPARQL11Update">
+		<h3>SPARQL 1.1 Update</h3>
+		<p>SPARQL 1.1 Updates [[sparql11-update]] SHOULD be transparently
+			supported by a SPARQL SE Protocol Service as described in
+			[[sparql11-protocol]].</p>
+		<p>
+			A SEPA broker is RECOMMENDED supporting the POST method of the SPARQL
+			1.1 Protocol [[sparql11-protocol]] and replying in case of error as
+			shown <a href='#ErrorResponses'>here</a>. In case of success, is
+			RECOMMENDED to return the 200 HTTP status code and the response body
+			MAY be like the one shown in the following example.
+		</p>
+
+		<p>An example of a query request and response follows:</p>
+<aside class="example" title="Update request (via POST)">
+<br>Request
+<pre>POST http://vaimee.org:8000/update</pre>
+
+Headers
+<pre>Content-Type: application/sparql-update
+Accept: application/sparql-results+json</pre>
+
+Body
+<pre>PREFIX wot:&lt;http://wot.arces.unibo.it/example#&gt;
+INSERT DATA {GRAPH &lt;http://wot.arces.unibo.it/graph&gt; {wot:Subject wot:Predicate "&#x10D5;&#x10D0;&#x10D8;&#x10DB;&#x10D4;&#x10D4;"}}
+</pre>
+</aside>
+
+		<p>Test the example with</p>
+<aside class="example" title='Update example on Bash'>
+  <p>Test the update example with the following
+  <pre>
+curl -X POST -d "PREFIX wot: &lt;http://wot.arces.unibo.it/example#&gt; INSERT DATA {GRAPH &lt;http://wot.arces.unibo.it/graph&gt; {wot:Subject wot:Predicate \"vaimee\"}}" -H "Content-Type: application/sparql-update" -H "Accept: application/sparql-results+json" http://localhost:8000/update
+  </pre>
+</aside>
+
+<aside class="example" title="Update response">
+<br>Headers
+<pre>Content-Type: application/json</pre>
+	
+Body
+<pre>{ "response" : {
+    "isJsonBody": <code>true</code>,
+    "body": {"ACustomJSONObject":"WithACustomSetOfMembers"}
+}}</pre>
+<br>or<br>
+<pre>{ "response" : {
+    "isJsonBody": <code>false</code>,
+    "body": "A response string"
+}}</pre>
+
+</aside>
+
+	</section>
+
+	<section id="SPARQL11Subscription">
+		<h3>SPARQL 1.1 Subscribe</h3>
+		<p>
+			A SEPA broker implementation is RECOMMENDED to use <i>Websockets</i>
+			[[!RFC6455]] as protocol for the subscription mechanism.
+			Subscribe/unsubscribe requests and notification are expressed
+			according to the <a
+				href="http://vaimee.org/TR/sparql11-subscribe.html">SPARQL
+				1.1 Subscribe language</a>.
+	</section>
+
+	<section id="Security">
+		<h3>Security</h3>
+		<p>A SEPA implementation is RECOMMENDED to :</p>
+		<ul>
+			<li>provide data encryption, server authentication and message
+				integrity according to [[!RFC5246]]</li>
+			<li>support HTTPS [[!RFC2818]] and WSS [[!RFC6455]] protocols</li>
+			<li>be compliant with the <a
+				href="http://w3c.github.io/wot/current-practices/wot-practices.html#security-mechanisms">security
+					mechanism</a> RECOMMENDED by the Web of Things interest group.
+			</li>
+		</ul>
+
+		<section id="Registration">
+			<h4>Registration</h4>
+			<p>
+				Registration allows a client to obtain the credentials needed to
+				request (or renew) a JSON Web Token [[!RFC7519]]. Every SEPA
+				implementation MUST support the <a
+					href="https://tools.ietf.org/html/rfc6749#section-1.3.4 client credentials">client
+					credentials</a> authorization grant. Other authorization grants and
+				registration mechanisms MAY be supported. To obtain the credentials,
+				a client MUST own an <b>application specific identifier</b>, known
+				as
+				<code>client_identity</code>
+				. The
+				<code>client_identity</code>
+				MAY correspond to the device serial number, the MAC address, the
+				Electronic Product Code or any other sort of identifier defined by
+				the application.
+			</p>
+
+			<p>
+			<p class="note" title="Multiple registration requests">
+				For the scope of this document, registration can be done once.
+				Multiple registration requests (using the same
+				<code>client_identity</code>
+				) are not allowed. Re-registration policies and mechanisms are out
+				of the scope of this document.
+			<p></p>
+
+			<p>An example of a client registration request and response
+				follows:</p>
+
+
+<aside class="example" title="Registration request">
+<br>Request 
+<pre>POST https://vaimee.org:8443/oauth/register</pre>
+
+Headers
+<pre>Content-Type: application/json 
+Accept: application/json</pre>
+
+Body
+<pre>{ "register":{
+    "client_identity":"68:a8:6d:1a:9c:04", 
+    "grant_types":["client_credentials"]
+}}
+</pre>
+</aside>
+
+<pre class="example" title="Registration response">
+{"credentials":{
+   "client_id":"5b60a155-bada-4499-bc6f-26b4d37bc1ef",
+   "client_secret":"40e18d77-421c-48ce-a44a-14da1238e923",
+   "signature":{
+     "kty":"RSA",
+     "e":"AQAB",
+     "x5t":"...",
+     "kid":"sepacertificate",
+     "x5c":["..."],
+     "n":"..."}}}
+</pre>
+
+			<p>
+				All SEPA implementations MUST support this JSON response. The JSON
+				object contains the client credentials (
+				<code>client_id</code>
+				and
+				<code>client_secret</code>
+				) and the
+				<code>signature</code>
+				. The latter SHALL be used to verify the JWT on the client side.
+			</p>
+			<p>
+				In case of error, it is RECOMMENDED to reply as shown <a
+					href='#ErrorResponses'>here</a>.
+			</p>
+		</section>
+
+		<section id="Authentication">
+			<h4>Authentication</h4>
+			<p>Once a client registered and holds the credentials, it can
+				request a JWT by sending a request like the following:</p>
+
+<aside class="example" title="Token request">
+<br>Request
+<pre>POST https://vaimee.org:8443/oauth/token</pre>
+
+Headers
+<pre>Content-Type: application/json
+Accept: application/json
+Authorization: Basic NWI2MGExNTUtYmFkYS00NDk5LWJjNmYtMjZiNGQzN2JjMWVmOjQwZTE4ZDc3LTQyMWMtNDhjZS1hNDRhLTE0ZGExMjM4ZTkyMw==
+</pre></aside>
+
+			<p>
+				The
+				<code>authorization</code>
+				header uses the "basic" authentication scheme [[!RFC2617]] having as
+				value the <b>base64 encoding</b> [[!RFC4648]] of the string <b><code>"client_id:client_secret"</code></b>
+				(e.g.,
+				"5b60a155-bada-4499-bc6f-26b4d37bc1ef:40e18d77-421c-48ce-a44a-14da1238e923").
+				A SEPA broker implementation MUST respond to a token request with a
+				JSON object like the following one:
+			</p>
+
+<pre class="example" title="Token response">			
+{"token":{
+  "access_token":"xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oyeoFFePUX8MQIuqd3TIcjOhoPgYWd0E+L/EN5wItL5/n78pX/8mVZcpxdyNNqr3bVvrCi0I84mIAefwQ0GyPxFhUHu9PtVNQnXchZuFgppX/YDtOesZSxfIoffUpHFPBY3u4FRIYwpSZX96Knnp0J22RQm+0l8yobik3z6jftw0jbF5+/YC6PnfZT3Wzb6PRJPuVkDzpo+BTC9eKx87GEj8VjtfXjbYRTeZNumD+59wL5kV/OrntNqNQD+IzAYoIZk4rlRbNouNnvT0laEhV012tSD1uAfNUxAlZjSbSMTp5bPNp7PoutMr5q6zPYfAC1PTKnVdkD1CDNqZnhB838WDeISfVzXsf7dsZ0+SkNPtx2kMUYCOYsxNJxyzza3lmaCuvxfnDT3g5F41/p/zX1tXYy6emVfdOWSkJNm1z0FJB/ZIUES0WAA5UEM3kejND++vvIQr38ar72HdFzRvP2V29CsaE5PMRRRZIE5ru9Zwgdb5lfMdwDi4sZkQdNRGHiOfRCT9D92mFVps6s6kv7HKojx05R9WKMDG8bEmSgMYSYQlQzLm93Ardw/hpDoB1/DfNRxbc/GVNZEVOoRVMye8/vICZtxvVeKmu4QawWKSBtrXelWUT8AHTG6v/c88pZjtJWDzy6YIIXLDQ2eJPu30mt3gLfS2ukIV4Tl5Oqu3T1IIghmNgek8vwWNeuG/JGeKrfUp6X6mMH9hdmj5+naOIr8V5rUKCjXnlWLAsrGdOvV8vuYYbx2IFQScZQJD/sTKj3gs6yeYpOwQ2iEs9asA=",
+  "token_type":"Bearer",
+  "expires_in":3600
+}}
+</pre>
+			<p>
+				The JSON response MUST contain the following keys:
+				<code>access_token</code>
+				is the JWT,
+				<code>token_type</code>
+				to specify the token type (i.e., the default is
+				<code>bearer</code>
+				) and
+				<code>expires_in</code>
+				as the number of seconds after which the token will expire. Once a
+				token is expired, the client can request a new token by using its
+				credentials. Requesting a token while the current one is not expired
+				generates an error.
+			</p>
+			<p>
+				In case of error, it is RECOMMENDED to reply as shown <a
+					href='#ErrorResponses'>here</a>.
+			</p>
+		</section>
+
+		<section id="Access">
+			<h4>Secure access</h4>
+			<p>
+				HTTPS requests (e.g., https://vaimee.org:8443/secure/update)
+				MUST include the
+				<code>authorization</code>
+				header as shown in the following example:
+			</p>
+
+<pre class="example" title="HTTPS access">
+Authorization: Bearer xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oyeoFFePUX8MQIuqd3TIcjOhoPgYWd0E+L/EN5wItL5/n78pX/8mVZcpxdyNNqr3bVvrCi0I84mIAefwQ0GyPxFhUHu9PtVNQnXchZuFgppX/YDtOesZSxfIoffUpHFPBY3u4FRIYwpSZX96Knnp0J22RQm+0l8yobik3z6jftw0jbF5+/YC6PnfZT3Wzb6PRJPuVkDzpo+BTC9eKx87GEj8VjtfXjbYRTeZNumD+59wL5kV/OrntNqNQD+IzAYoIZk4rlRbNouNnvT0laEhV012tSD1uAfNUxAlZjSbSMTp5bPNp7PoutMr5q6zPYfAC1PTKnVdkD1CDNqZnhB838WDeISfVzXsf7dsZ0+SkNPtx2kMUYCOYsxNJxyzza3lmaCuvxfnDT3g5F41/p/zX1tXYy6emVfdOWSkJNm1z0FJB/ZIUES0WAA5UEM3kejND++vvIQr38ar72HdFzRvP2V29CsaE5PMRRRZIE5ru9Zwgdb5lfMdwDi4sZkQdNRGHiOfRCT9D92mFVps6s6kv7HKojx05R9WKMDG8bEmSgMYSYQlQzLm93Ardw/hpDoB1/DfNRxbc/GVNZEVOoRVMye8/vICZtxvVeKmu4QawWKSBtrXelWUT8AHTG6v/c88pZjtJWDzy6YIIXLDQ2eJPu30mt3gLfS2ukIV4Tl5Oqu3T1IIghmNgek8vwWNeuG/JGeKrfUp6X6mMH9hdmj5+naOIr8V5rUKCjXnlWLAsrGdOvV8vuYYbx2IFQScZQJD/sTKj3gs6yeYpOwQ2iEs9asA=
+</pre>
+			<p>
+				WSS requests (e.g., wss://vaimee.org:9443/secure/subscribe)
+				MUST include the
+				<code>authorization</code>
+				member as described in the <a
+					href="http://vaimee.org/TR/sparql11-subscribe.html">SPARQL
+					1.1 Subscribe</a> document.
+			<p>
+				In case of error, it is RECOMMENDED to reply as shown <a
+					href='#ErrorResponses'>here</a>.
+			</p>
+		</section>
+	</section>
+	<section id="ErrorResponses">
+		<h3>Error responses</h3>
+		<p>In case of error, a SEPA broker implementation SHOULD reply
+			with a JSON object like the following:</p>
+
+<pre class="example" title="Error response">
+ {
+   "error" : "unauthorized_client",
+   "error_description" : "Client is not authorized",
+   "status_code" : 401
+ }
+ </pre>
+
+		<p>
+			The
+			<code>error</code>
+			member is a string representing the error. Refer to [[!RFC6749]] for
+			all OAuth related errors. Otherwise it would be a SPARQL 1.1 SE
+			Protocol specific error string.
+		</p>
+		<p>
+			The
+			<code>error_description</code>
+			member is optional and if present it provides a human readable
+			description of the error.
+		</p>
+		<p>
+			The
+			<code>status_code</code>
+			member is an integer representing the error. The use of use of HTTP
+			status codes [[!RFC2616]] is RECOMMENDED. As reference, a list of
+			common HTTP status codes follows. Implementation specific error codes
+			MAY also be used.
+		<pre>
+400 Bad Request
+401 Unauthorized
+402 Payment Required
+403 Forbidden
+404 Not Found
+405 Method Not Allowed
+406 Not Acceptable
+407 Proxy Authentication Required
+408 Request Timeout
+409 Conflict
+410 Gone
+411 Length Required
+412 Precondition Failed
+413 Request Entity Too Large
+414 Request-URI Too Long
+415 Unsupported Media Type
+416 Requested Range Not Satisfiable
+417 Expectation Failed
+
+500 Internal Server Error
+501 Not Implemented
+502 Bad Gateway
+503 Service Unavailable
+504 Gateway Timeout
+505 HTTP Version Not Supported
+	</pre>
+	</section>
+
+
+	<!-- APPENDIX -->
+	<section class="appendix">
+
+		<!-- ACKNOWLEDGEMENTS -->
+		<h2>Acknowledgements</h2>
+
+		<p>
+			Editors would like to thanks the <a
+				href="http://www.arces.unibo.it/en">Advanced Research Center on
+				Electronic Systems "Ercole De Castro" (ARCES)</a> and the <a
+				href="http://www.cse.unibo.it/en/index.html">Computer Science
+				and Engineering Department (DISI)</a> of the <a
+				href="http://http://www.unibo.it/en/homepage">University of
+				Bologna</a>, the <a href="https://ec.europa.eu/commission/index_en">European
+				Commission</a> and all the partners of the <a
+				href="https://artemis-ia.eu/">ARTEMIS</a> projects who inspired the
+			SPARQL Event Processing Architecture (SEPA).
+		</p>
+	</section>
+</body>
+
+</html>
