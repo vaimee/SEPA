@@ -28,8 +28,6 @@ public class UnsubscribeRequest extends Request {
 	/**
 	 * Instantiates a new unsubscribe request.
 	 *
-	 * @param token
-	 *            the token
 	 * @param subId
 	 *            the sub id
 	 */

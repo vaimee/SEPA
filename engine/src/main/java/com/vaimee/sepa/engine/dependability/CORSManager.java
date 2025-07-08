@@ -35,7 +35,6 @@ class CORSManager {
 	 * <a href="https://www.w3.org/wiki/CORS">CORS wiki</a><br>
 	 * <a href="https://fetch.spec.whatwg.org/">CORS specification</a><br>
 	 *
-	 * @param httpExchange the http exchange
 	 * @return true, if the pre-flight request has been successfully handled
 	 */
 	public static boolean processCORSRequest(HttpAsyncExchange exchange){

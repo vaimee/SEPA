@@ -201,7 +201,6 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 	 * 
 	 * Create client credentials for an authorized identity
 	 * 
-	 * @param identity the client identity to be registered
 	 * @throws SEPASecurityException
 	 */
 	public synchronized Response register(String uid) {

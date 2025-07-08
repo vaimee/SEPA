@@ -24,9 +24,9 @@ import com.vaimee.sepa.api.commons.sparql.BindingsResults;
 /**
  * This class represents the response to a SPARQL 1.1 Subscribe (see SPARQL 1.1
  * Subscription Language)
- *
+ * <p>
  * The JSON serialization is the following:
- *
+ * <p>
  * {"notification" : {"spuid":"SPUID","alias":"ALIAS"(optional),"addedResults":<BindingsResults>,"removedResults:{},"sequence":0}}
  */
 
@@ -39,8 +39,6 @@ public class SubscribeResponse extends Response {
 	/**
 	 * Instantiates a new subscribe response.
 	 *
-	 * @param token
-	 *            the token
 	 * @param spuid
 	 *            the spuid
 	 * @param alias

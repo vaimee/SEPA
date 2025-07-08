@@ -22,7 +22,7 @@ import com.google.gson.JsonObject;
 
 /**
  * This class represents the content of a SEPA notification
- * 
+ * <p>
  * It includes the added and removed bindings since the previous notification.
  */
 

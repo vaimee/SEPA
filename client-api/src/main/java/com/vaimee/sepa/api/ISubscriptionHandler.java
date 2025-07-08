@@ -24,7 +24,6 @@ import com.vaimee.sepa.api.commons.response.Notification;
 /**
  * Handles SPARQL 1.1 subscription language events.
  *
- * @see SPARQL11SEProtocol#SPARQL11SEProtocol(SPARQL11SEProperties, ISubscriptionHandler)
  * @see <a href="http://wot.arces.unibo.it/TR/sparql11-subscribe.html">SPARQL 1.1 Subscribe Language</a>
  */
 public interface ISubscriptionHandler {

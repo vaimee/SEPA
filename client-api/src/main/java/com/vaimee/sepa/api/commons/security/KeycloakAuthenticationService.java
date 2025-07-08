@@ -39,7 +39,7 @@ public class KeycloakAuthenticationService extends AuthenticationService {
 
 	/**
 	 * Client Registration Request
-	 * 
+	 * <p>
 curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/clients-registrations/default' \
 --header 'Content-Type: application/json' \
 --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI4Y2E2ZGNiNC1jZmY5LTQzNGUtODNhNi05NTk4MzQ1NjUxZGMifQ.eyJleHAiOjAsImlhdCI6MTU5OTgwNTYzMywianRpIjoiMzNkZjRjZDYtMjJkZC00M2UxLWFmMzItYWE3NTMwMmJmZGUzIiwiaXNzIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwiYXVkIjoiaHR0cHM6Ly9zZXBhLnZhaW1lZS5pdDo4NDQzL2F1dGgvcmVhbG1zL01PTkFTIiwidHlwIjoiSW5pdGlhbEFjY2Vzc1Rva2VuIn0.edceIxjn2Fdc3NzXYIu--lWbDVBF0YXQfrUJ1R94myc' \

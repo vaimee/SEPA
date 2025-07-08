@@ -1,4 +1,4 @@
-package com.vaimee.sepa.engine.dependability.authorization;
+package com.vaimee.sepa.engine.dependability.acl;
 
 import java.io.Console;
 import java.util.Scanner;

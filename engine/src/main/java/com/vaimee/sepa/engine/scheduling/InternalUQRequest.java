@@ -29,7 +29,7 @@ import com.vaimee.sepa.logging.Logging;
 
 /**
  * An internal request has been validated and graph URIs are extracted.
- * 
+ * <p>
  * Functions are also evaluated (e.g., now())
  * */
 public abstract class InternalUQRequest extends InternalRequest {

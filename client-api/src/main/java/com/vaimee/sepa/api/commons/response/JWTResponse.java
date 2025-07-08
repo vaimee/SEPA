@@ -29,7 +29,7 @@ import com.vaimee.sepa.logging.Logging;
 
 /**
  * Produce JWT compliant with WoT W3C recommendations
- * 
+ * <p>
  * {"access_token":"eyJhbGciOiJSUzI1NiJ9.
  * eyJzdWIiOiJTRVBBRW5naW5lIiwiYXVkIjpbImh0dHBzOlwvXC93b3QuYXJjZXMudW5pYm8uaXQ6ODQ0M
  * 1wvc3BhcnFsIiwid3NzOlwvXC93b3QuYXJjZXMudW5pYm8uaXQ6OTQ0M1wvc3BhcnFsIl0sIm5iZiI6MT
@@ -39,9 +39,9 @@ import com.vaimee.sepa.logging.Logging;
  * Guhes4s9GE6sikh0rPtJg4QtY1DFT3OZ3WDF05OCwsBCe6dkNOn__68-e_9cEoiFY4s4KQ8heRQHpyRuD
  * QK0vTOefpgumKtRHrlCe0JGHBnPNqo8Zp7cVivZnin8NsePcuweFgZxWfaOC-EH5ClpqjPEbjj65g",
  * "token_type":"bearer", "expires_in":3600}
- * 
+ * <p>
  * Keycloak OpenID Connect token
- * 
+ * <p>
  * {"access_token":"..isSaVqlen4bH0C5oAg1--",
  * "expires_in":18000,
  * "refresh_expires_in":1800,

@@ -43,9 +43,9 @@ public class RDFTermBNode extends RDFTerm {
 	 * @param t
 	 *            the t
 	 * @return true, if successful
-	 * 
+	 * <p>
 	 * https://www.w3.org/TR/rdf-concepts/#section-blank-nodes
-	 * 
+	 * <p>
 	 * 6.6 Blank Nodes
 
 The blank nodes in an RDF graph are drawn from an infinite set. 

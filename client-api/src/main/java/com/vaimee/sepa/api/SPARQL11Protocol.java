@@ -395,7 +395,7 @@ public class SPARQL11Protocol implements Closeable {
 
 	/**
 	 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
-	 *
+	 * <p>
 	 * *
 	 * 
 	 * <pre>

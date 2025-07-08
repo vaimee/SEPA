@@ -50,14 +50,14 @@ public class KeyCloakSecurityManager extends SecurityManager {
 	}
 
 	/** Requesting Party Token 
-	 * 
+	 * <p>
 	 * If you want to validate these tokens without a call to the remote introspection endpoint, you can decode the RPT and query for its validity locally. 
 	 * Once you decode the token, you can also use the permissions within the token to enforce authorization decisions.
-	 * 
+	 * <p>
 	 * This is essentially what the policy enforcers do. Be sure to:
 	 * 1) Validate the signature of the RPT (based on the realm’s public key)
 	 * 2) Query for token validity based on its exp, iat, and aud claims
-	 * 
+	 * <p>
 	 * The claim "preferred_username" is used to identify the user
 	 * */
 	@Override

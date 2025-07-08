@@ -251,7 +251,6 @@ public class OAuthProperties {
 	/**
 	 * Store properties.
 	 *
-	 * @param propertiesFile the properties file
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
 	 * @throws IOException             Signals that an I/O exception has occurred.
