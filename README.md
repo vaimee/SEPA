@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://github.com/arces-wot/SEPA">
+  <a href="https://github.com/vaimee/SEPA">
     <img width="300px" src="./doc/logo.png">
   </a>
   <br>
@@ -10,10 +10,10 @@
   <a href="https://bintray.com/arces-wot/sepa-java-libs/client-api">
     <img  src="https://img.shields.io/badge/client%20api-latest-cyan.svg">
   </a>
-  <a href="https://github.com/arces-wot/SEPA/releases">
+  <a href="https://github.com/vaimee/SEPA/releases">
     <img  src="https://img.shields.io/github/downloads/arces-wot/SEPA/total.svg?colorB=blue">
   </a>
-  <a href="https://github.com/arces-wot/SEPA/tree/dev">
+  <a href="https://github.com/vaimee/SEPA/tree/dev">
     <img  src="https://img.shields.io/badge/unstable-dev-violet.svg">
   </a>
   <a href="https://gitter.im/sepa_dev/Lobby#">
@@ -41,10 +41,10 @@
 
 ## Introduction
 SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of generic SPARQL endpoints (conformant with [SPARQL 1.1 protocol](https://www.w3.org/TR/sparql11-protocol/)) where publishers and subscribers use standard **SPARQL 1.1** [Updates](https://www.w3.org/TR/sparql11-update/) and [Queries](https://www.w3.org/TR/sparql11-query/). Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refer to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm). SEPA proposal has been formalized in the following *unofficial dratfs*:
-- [SPARQL Event Processing Architecture (SEPA)](http://mml.arces.unibo.it/TR/sepa.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sepa.html)
-- [SPARQL 1.1 Secure Event Protocol](http://mml.arces.unibo.it/TR/sparql11-se-protocol.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sparql11-se-protocol.html)
-- [SPARQL 1.1 Subscribe Language](http://mml.arces.unibo.it/TR/sparql11-subscribe.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sparql11-subscribe.html)
-- [JSON SPARQL Application Profile (JSAP)](http://mml.arces.unibo.it/TR/jsap.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/jsap.html)
+- [SPARQL Event Processing Architecture (SEPA)](https://vaimee.org/TR/sepa.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sepa.html)
+- [SPARQL 1.1 Secure Event Protocol](https://vaimee.org/TR/sparql11-se-protocol.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sparql11-se-protocol.html)
+- [SPARQL 1.1 Subscribe Language](http://vaimee.org/TR/sparql11-subscribe.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/sparql11-subscribe.html)
+- [JSON SPARQL Application Profile (JSAP)](http://vaimee.org/TR/jsap.html) contribute [here](https://github.com/arces-wot/SEPADocs/blob/master/jsap.html)
 
 ## Demo
 
@@ -52,7 +52,7 @@ SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscri
 
 ## Quick start
 
-- Download the [SEPA Engine](https://github.com/arces-wot/SEPA/releases/latest) and run it: `java -jar engine-x.y.z.jar`
+- Download the [SEPA Engine](https://github.com/vaimee/SEPA/releases/latest) and run it: `java -jar engine-x.y.z.jar`
 
 - Download [Blazegraph](https://github.com/blazegraph/database/releases/latest) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
 
@@ -85,7 +85,7 @@ The default version of `endpoint.jpar` configures the engine to use use a local 
     "method":"POST",
     "format":"JSON"}}}
 ```
-The default version of  `engine.jpar` configures the engine to listen for incoming [SPARQL 1.1 SE Protocol](http://mml.arces.unibo.it/TR/sparql11-se-protocol/) requests at the following URLs:
+The default version of  `engine.jpar` configures the engine to listen for incoming [SPARQL 1.1 SE Protocol](http://vaimee.org/TR/sparql11-se-protocol/) requests at the following URLs:
 
 1. Query: http://localhost:8000/query
 2. Update: http://localhost:8000/update
@@ -93,7 +93,7 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
 4. SECURE Query: https://localhost:8443/secure/query
 5. SECURE Update: https://localhost:8443/secure/update
 6. SECURE Subscribe/Unsubscribe: wss://localhost:9443/secure/subscribe 
-7. Regitration: https://localhost:8443/oauth/register
+7. Registration: https://localhost:8443/oauth/register
 8. Token request: https://localhost:8443/oauth/token
 ```json
 {"parameters":{
