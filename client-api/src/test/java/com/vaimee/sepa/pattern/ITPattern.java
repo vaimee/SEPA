@@ -1,16 +1,18 @@
 package com.vaimee.sepa.pattern;
 
+import com.vaimee.sepa.api.pattern.GenericClient;
+import com.vaimee.sepa.api.pattern.Producer;
 import org.junit.jupiter.api.*;
 
 import com.vaimee.sepa.AggregatorTestUnit;
 import com.vaimee.sepa.ConfigurationProvider;
 import com.vaimee.sepa.ConsumerTestUnit;
 import com.vaimee.sepa.Sync;
-import com.vaimee.sepa.commons.exceptions.SEPABindingsException;
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPABindingsException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.logging.Logging;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;

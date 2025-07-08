@@ -15,13 +15,13 @@
 
 package com.vaimee.sepa.engine.processing.subscriptions;
 
-import com.vaimee.sepa.commons.exceptions.SEPANotExistsException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Notification;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.response.SubscribeResponse;
-import com.vaimee.sepa.commons.response.UnsubscribeResponse;
+import com.vaimee.sepa.api.commons.exceptions.SEPANotExistsException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Notification;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.SubscribeResponse;
+import com.vaimee.sepa.api.commons.response.UnsubscribeResponse;
 import com.vaimee.sepa.engine.bean.SEPABeans;
 import com.vaimee.sepa.engine.bean.SPUManagerBeans;
 import com.vaimee.sepa.engine.core.EventHandler;

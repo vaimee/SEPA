@@ -17,9 +17,9 @@
 */
 package com.vaimee.sepa.engine.core;
 
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
 
 import com.vaimee.sepa.engine.bean.EngineBeans;
 import com.vaimee.sepa.engine.bean.SEPABeans;

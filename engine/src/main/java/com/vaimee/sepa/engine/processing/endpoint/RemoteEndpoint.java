@@ -1,10 +1,10 @@
 package com.vaimee.sepa.engine.processing.endpoint;
 
 import com.vaimee.sepa.api.SPARQL11Protocol;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.request.QueryRequest;
-import com.vaimee.sepa.commons.request.UpdateRequest;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.request.QueryRequest;
+import com.vaimee.sepa.api.commons.request.UpdateRequest;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.dependability.acl.SEPAUserInfo;
 
 public class RemoteEndpoint implements SPARQLEndpoint {

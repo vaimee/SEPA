@@ -41,7 +41,7 @@ import org.apache.http.util.EntityUtils;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import com.vaimee.sepa.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
 import com.vaimee.sepa.logging.Logging;
 
 public class HttpUtilities {

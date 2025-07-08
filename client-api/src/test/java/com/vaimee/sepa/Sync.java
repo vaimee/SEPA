@@ -3,8 +3,8 @@ package com.vaimee.sepa;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.vaimee.sepa.api.ISubscriptionHandler;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Notification;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Notification;
 import com.vaimee.sepa.logging.Logging;
 
 public class Sync implements ISubscriptionHandler {

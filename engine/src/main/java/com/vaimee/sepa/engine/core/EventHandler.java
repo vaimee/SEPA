@@ -18,8 +18,8 @@
 
 package com.vaimee.sepa.engine.core;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.response.Notification;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.response.Notification;
 
 public interface EventHandler {
 	public void notifyEvent(Notification notify) throws SEPAProtocolException;

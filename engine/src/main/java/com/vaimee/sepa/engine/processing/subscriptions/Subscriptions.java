@@ -23,9 +23,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.vaimee.sepa.commons.exceptions.SEPANotExistsException;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.response.Notification;
+import com.vaimee.sepa.api.commons.exceptions.SEPANotExistsException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.response.Notification;
 import com.vaimee.sepa.engine.bean.SPUManagerBeans;
 import com.vaimee.sepa.engine.dependability.Dependability;
 import com.vaimee.sepa.engine.scheduling.InternalSubscribeRequest;

@@ -20,11 +20,11 @@ package com.vaimee.sepa.api;
 
 import java.io.Closeable;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.request.SubscribeRequest;
-import com.vaimee.sepa.commons.request.UnsubscribeRequest;
-import com.vaimee.sepa.commons.security.ClientSecurityManager;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.request.SubscribeRequest;
+import com.vaimee.sepa.api.commons.request.UnsubscribeRequest;
+import com.vaimee.sepa.api.commons.security.ClientSecurityManager;
 
 public abstract class SubscriptionProtocol implements Closeable {
 	protected ISubscriptionHandler handler;

@@ -18,7 +18,7 @@
 
 package com.vaimee.sepa.engine.processing;
 
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.scheduling.InternalUnsubscribeRequest;
 import com.vaimee.sepa.engine.scheduling.ScheduledRequest;
 import com.vaimee.sepa.logging.Logging;

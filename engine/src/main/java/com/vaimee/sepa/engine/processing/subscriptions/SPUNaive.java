@@ -18,17 +18,17 @@
 
 package com.vaimee.sepa.engine.processing.subscriptions;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProcessingException;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.Notification;
-import com.vaimee.sepa.commons.response.QueryResponse;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.response.SubscribeResponse;
-import com.vaimee.sepa.commons.response.UpdateResponse;
-import com.vaimee.sepa.commons.sparql.ARBindingsResults;
-import com.vaimee.sepa.commons.sparql.Bindings;
-import com.vaimee.sepa.commons.sparql.BindingsResults;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProcessingException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.Notification;
+import com.vaimee.sepa.api.commons.response.QueryResponse;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.SubscribeResponse;
+import com.vaimee.sepa.api.commons.response.UpdateResponse;
+import com.vaimee.sepa.api.commons.sparql.ARBindingsResults;
+import com.vaimee.sepa.api.commons.sparql.Bindings;
+import com.vaimee.sepa.api.commons.sparql.BindingsResults;
 import com.vaimee.sepa.engine.scheduling.InternalSubscribeRequest;
 import com.vaimee.sepa.engine.scheduling.InternalUpdateRequest;
 import com.vaimee.sepa.logging.Logging;

@@ -1,6 +1,6 @@
 package com.vaimee.sepa.engine.dependability.authorization.identities;
 
-import com.vaimee.sepa.commons.security.Credentials;
+import com.vaimee.sepa.api.commons.security.Credentials;
 
 public class UserIdentity extends DigitalIdentity {
 

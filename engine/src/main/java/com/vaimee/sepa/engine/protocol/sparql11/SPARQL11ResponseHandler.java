@@ -23,8 +23,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
 
 
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.bean.HTTPHandlerBeans;
 import com.vaimee.sepa.engine.core.ResponseHandler;
 import com.vaimee.sepa.engine.gates.http.HttpUtilities;
