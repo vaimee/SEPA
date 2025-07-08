@@ -9,11 +9,11 @@
 		<version>${revision}</version>
 	</parent>
 	
-	<artifactId>chat</artifactId>
+	<artifactId>example-chat</artifactId>
 	
 	
 	<packaging>jar</packaging>
-	<name>chat</name>
+	<name>example-chat</name>
 
 	<description>Part of a collection of SEPA based tools developed by VAIMEE</description>
 
@@ -44,7 +44,7 @@
 							<outputDirectory>/target</outputDirectory>
 							<resources>
 								<resource>
-									<directory>${basedir}/src/main/resources</directory>
+									<directory>/src/main/resources</directory>
 								</resource>
 							</resources>
 						</configuration>

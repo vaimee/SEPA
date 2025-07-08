@@ -1,0 +1,356 @@
+{
+	"namespaces": {
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+		"rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+		"time": "http://www.w3.org/2006/time#",
+		"xsd": "http://www.w3.org/2001/XMLSchema#",
+		"owl": "http://www.w3.org/2002/07/owl#"
+	},
+	"updates": {
+		"___DASHBOARD_INSERT_DATA_URI": {
+			"sparql": "INSERT DATA {GRAPH ?graph {?subject ?predicate ?object}}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri"
+				},
+				"subject": {
+					"type": "uri"
+				},
+				"object": {
+					"type": "uri"
+				},
+				"predicate": {
+					"type": "uri"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": [],
+				"using-named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_INSERT_DATA_URI_DEFAULT": {
+			"sparql": "INSERT DATA {?subject ?predicate ?object}",
+			"forcedBindings": {
+				"subject": {
+					"type": "uri"
+				},
+				"object": {
+					"type": "uri"
+				},
+				"predicate": {
+					"type": "uri"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": [],
+				"using-named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_INSERT_DATA_LITERAL": {
+			"sparql": "INSERT DATA {GRAPH ?graph {?subject ?predicate ?object}}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri"
+				},
+				"subject": {
+					"type": "uri"
+				},
+				"object": {
+					"type": "literal"
+				},
+				"predicate": {
+					"type": "uri"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": [],
+				"using-named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_INSERT_DATA_LITERAL_DEFAULT": {
+			"sparql": "INSERT DATA {?subject ?predicate ?object}",
+			"forcedBindings": {
+				"subject": {
+					"type": "uri"
+				},
+				"object": {
+					"type": "literal"
+				},
+				"predicate": {
+					"type": "uri"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": [],
+				"using-named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_UPDATE_LITERAL": {
+			"sparql": "WITH ?graph DELETE {?subject ?predicate ?old} INSERT {?subject ?predicate ?object} WHERE {?subject ?predicate ?old}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri"
+				},
+				"subject": {
+					"type": "uri"
+				},
+				"object": {
+					"type": "literal"
+				},
+				"predicate": {
+					"type": "uri"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": [],
+				"using-named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_UPDATE_LITERAL_DEFAULT": {
+			"sparql": "DELETE {?subject ?predicate ?old} INSERT {?subject ?predicate ?object} WHERE {?subject ?predicate ?old}",
+			"forcedBindings": {
+				"subject": {
+					"type": "uri"
+				},
+				"object": {
+					"type": "literal"
+				},
+				"predicate": {
+					"type": "uri"
+				}
+			}
+		},
+		"___DASHBOARD_UPDATE_LITERAL_BNODE": {
+			"sparql": "WITH ?graph DELETE {?s ?predicate ?old} INSERT {?s ?predicate ?object} WHERE {?s rdf:type ?class . FILTER (sameTerm(?subject, ?s))}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri"
+				},
+				"subject": {
+					"type": "bnode"
+				},
+				"object": {
+					"type": "literal"
+				},
+				"predicate": {
+					"type": "uri"
+				},
+				"class": {
+					"type": "uri"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": [],
+				"using-named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_UPDATE_LITERAL_BNODE_DEFAULT": {
+			"sparql": "DELETE {?s ?predicate ?old} INSERT {?s ?predicate ?object} WHERE {?s rdf:type ?class . FILTER (sameTerm(?subject, ?s))}",
+			"forcedBindings": {
+				"subject": {
+					"type": "bnode"
+				},
+				"object": {
+					"type": "literal"
+				},
+				"predicate": {
+					"type": "uri"
+				},
+				"class": {
+					"type": "uri"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": [],
+				"using-named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_UPDATE_URI": {
+			"sparql": "WITH ?graph DELETE {?subject ?predicate ?old} INSERT {?subject ?predicate ?object} WHERE {?subject ?predicate ?old}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri"
+				},
+				"subject": {
+					"type": "uri"
+				},
+				"object": {
+					"type": "uri"
+				},
+				"predicate": {
+					"type": "uri"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": [],
+				"using-named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_UPDATE_URI_DEFAULT": {
+			"sparql": "DELETE {?subject ?predicate ?old} INSERT {?subject ?predicate ?object} WHERE {?subject ?predicate ?old}",
+			"forcedBindings": {
+				"subject": {
+					"type": "uri"
+				},
+				"object": {
+					"type": "uri"
+				},
+				"predicate": {
+					"type": "uri"
+				}
+			}
+		},
+		"___DASHBOARD_DROP_GRAPH": {
+			"sparql": "DROP SILENT GRAPH ?graph",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri"
+				}
+			},
+			"graphs": {
+				"using-graph-uri": [],
+				"using-named-graph-uri": []
+			}
+		}
+	},
+	"queries": {
+		"___DASHBOARD_CLASSES": {
+			"sparql": "SELECT DISTINCT ?class ?label FROM ?graph WHERE {{?s rdf:type ?class} UNION {?class rdf:type owl:Class} . OPTIONAL {?class rdfs:label ?label}}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri",
+					"value": "https://sepa.vaimee.com/default/graph"
+				}
+			},
+			"graphs": {
+				"default-graph-uri": [],
+				"named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_CLASSES_DEFAULT": {
+			"sparql": "SELECT DISTINCT ?class ?label WHERE {{?s rdf:type ?class} UNION {?class rdf:type owl:Class} . OPTIONAL {?class rdfs:label ?label}}"
+		},
+		"___DASHBOARD_TOP_CLASSES": {
+			"sparql": "SELECT DISTINCT ?class ?label FROM ?graph WHERE {{?s rdf:type ?class} UNION {?class rdf:type owl:Class} . OPTIONAL {?class rdfs:label ?label} FILTER NOT EXISTS{?class rdfs:subClassOf ?top} }",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri",
+					"value": "https://sepa.vaimee.com/default/graph"
+				}
+			},
+			"graphs": {
+				"default-graph-uri": [],
+				"named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_TOP_CLASSES_DEFAULT": {
+			"sparql": "SELECT DISTINCT ?class ?label WHERE {{?s rdf:type ?class} UNION {?class rdf:type owl:Class} . OPTIONAL {?class rdfs:label ?label} FILTER NOT EXISTS{?class rdfs:subClassOf ?top} }"
+		},
+		"___DASHBOARD_SUB_CLASSES": {
+			"sparql": "SELECT DISTINCT ?class ?label FROM ?graph WHERE {?class rdfs:subClassOf ?top . OPTIONAL {?class rdfs:label ?label}}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri",
+					"value": "https://sepa.vaimee.com/default/graph"
+				},
+				"top": {
+					"type": "uri",
+					"value": "rdfs:Class"
+				}
+			},
+			"graphs": {
+				"default-graph-uri": [],
+				"named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_SUB_CLASSES_DEFAULT": {
+			"sparql": "SELECT DISTINCT ?class ?label WHERE {?class rdfs:subClassOf ?top . OPTIONAL {?class rdfs:label ?label}}"
+		},
+		"___DASHBOARD_INDIVIDUALS": {
+			"sparql": "SELECT DISTINCT ?instance ?label FROM ?graph WHERE {?instance rdf:type ?class . OPTIONAL {?instance rdfs:label ?label}}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri",
+					"value": "https://sepa.vaimee.com/default/graph"
+				},
+				"class": {
+					"type": "uri",
+					"value": "http://qudt.org/schema/qudt#TimeUnit"
+				}
+			},
+			"graphs": {
+				"default-graph-uri": [],
+				"named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_INDIVIDUALS_DEFAULT": {
+			"sparql": "SELECT DISTINCT ?instance ?label WHERE {?instance rdf:type ?class . OPTIONAL {?instance rdfs:label ?label}}"
+		},
+		"___DASHBOARD_URI_GRAPH": {
+			"sparql": "SELECT ?predicate ?label ?object FROM ?graph WHERE {?subject ?predicate ?object . OPTIONAL {?predicate rdfs:label ?label}}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri",
+					"value": "https://sepa.vaimee.com/default/graph"
+				},
+				"subject": {
+					"type": "uri",
+					"value": "http://qudt.org/vocab/unit#Hour"
+				}
+			},
+			"graphs": {
+				"default-graph-uri": [],
+				"named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_URI_GRAPH_DEFAULT": {
+			"sparql": "SELECT ?predicate ?label ?object WHERE {?subject ?predicate ?object . OPTIONAL {?predicate rdfs:label ?label}}",
+			"forcedBindings": {
+				"subject": {
+					"type": "uri",
+					"value": "http://qudt.org/vocab/unit#Hour"
+				}
+			}
+		},
+		"___DASHBOARD_BNODE_GRAPH": {
+			"sparql": "SELECT ?subject ?predicate ?label ?object FROM ?graph WHERE {?subject rdf:type ?parent . ?subject ?predicate ?object . OPTIONAL {?predicate rdfs:label ?label}}",
+			"forcedBindings": {
+				"graph": {
+					"type": "uri",
+					"value": "https://sepa.vaimee.com/default/graph"
+				},
+				"parent": {
+					"type": "uri",
+					"value": "http://qudt.org/vocab/unit#Hour"
+				}
+			},
+			"graphs": {
+				"default-graph-uri": [],
+				"named-graph-uri": []
+			}
+		},
+		"___DASHBOARD_BNODE_GRAPH_DEFAULT": {
+			"sparql": "SELECT ?subject ?predicate ?label ?object WHERE {?subject rdf:type ?parent . ?subject ?predicate ?object . OPTIONAL {?predicate rdfs:label ?label}}",
+			"forcedBindings": {
+				"parent": {
+					"type": "uri",
+					"value": "http://qudt.org/vocab/unit#Hour"
+				}
+			}
+		},
+		"___DASHBOARD_GRAPHS": {
+			"sparql": "SELECT ?graph (COUNT(?s) as ?count) WHERE {graph ?graph {?s ?p ?o } }  GROUP BY ?graph HAVING (COUNT(?s) < ?max)",
+			"forcedBindings": {
+				"max": {
+					"type": "literal",
+					"value": "1000",
+					"datatype" : "xsd:integer"
+				}
+			},
+			"graphs": {
+				"default-graph-uri": [],
+				"named-graph-uri": []
+			}
+		}
+	}
+}

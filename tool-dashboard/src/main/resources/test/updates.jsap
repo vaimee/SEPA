@@ -1,0 +1,19 @@
+{
+	"updates": {
+		"WRONG": {
+			"sparql": "WITH <http://sepatest/> DELETE {?x ?y} WHERE {?y ?z}"
+		},
+		"DELETE_ALL": {
+			"sparql": "WITH <http://sepatest/> DELETE {?x ?y ?z} WHERE {?x ?y ?z}"
+		},
+		"VAIMEE": {
+			"sparql": "WITH <http://sepatest/> DELETE {sepa:SV sepa:PV ?o}  WHERE {sepa:SV sepa:PV ?o} ; INSERT DATA {GRAPH<http://sepatest/> {sepa:SV sepa:PV \"ვაიმეე\"}}"
+		},
+		"RANDOM": {
+			"sparql": "WITH <http://sepatest/> DELETE {sepa:S sepa:P ?o} WHERE {sepa:S sepa:P ?o} ; WITH <http://sepatest/> INSERT {sepa:S sepa:P ?random} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random)}"
+		},
+		"RANDOM1": {
+			"sparql": "WITH <http://sepatest/> DELETE {sepa:S1 sepa:P1 ?o} WHERE {sepa:S1 sepa:P1 ?o} ; WITH <http://sepatest/> INSERT {sepa:S1 sepa:P1 ?random1} WHERE {BIND(IRI(CONCAT(\"http://wot.arces.unibo.it/sepa#Random-\",STRUUID())) AS ?random1)}"
+		}
+	}
+}
