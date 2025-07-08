@@ -1,0 +1,35 @@
+{
+	"host": "mml.arces.unibo.it",
+	"oauth": {
+		"enable": false,
+		"register": "https://mml.arces.unibo.it:8443/oauth/register",
+		"tokenRequest": "https://mml.arces.unibo.it:8443/oauth/token"
+	},
+	"sparql11protocol": {
+		"protocol": "http",
+		"port": 8666,
+		"query": {
+			"path": "/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/update",
+			"method": "POST",
+			"format": "JSON"
+		}
+	},
+	"sparql11seprotocol": {
+		"protocol": "ws",
+		"availableProtocols": {
+			"ws": {
+				"port": 9666,
+				"path": "/subscribe"
+			},
+			"wss": {
+				"port": 9443,
+				"path": "/secure/subscribe"
+			}
+		}
+	}
+}

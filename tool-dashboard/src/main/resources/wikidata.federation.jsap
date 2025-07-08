@@ -1,0 +1,24 @@
+{
+	"include" : ["localhost.jsap"],
+	"namespaces": {
+		"test" : "http://sepa/test#"
+	},
+	"queries": {
+		"ID": {
+			"sparql": "select * from <http://test/federation> where {?s test:id ?id}"
+		},
+		"FEDERATED": {
+			"sparql": "SELECT ?id ?work ?workLabel WHERE {GRAPH <http://test/federation> {?s test:id ?id} BIND(uri(concat(\"https://data.cervantesvirtual.com/person/\", ?id)) as ?bvmcID) SERVICE <http://data.cervantesvirtual.com/openrdf-sesame/repositories/data> { ?bvmcID <http://rdaregistry.info/Elements/a/otherPFCManifestationOf> ?work .?work rdfs:label ?workLabel}}"
+		}
+	},
+	"updates": {
+		"ID": {
+			"sparql": "INSERT {GRAPH <http://test/federation> {_:b test:id ?id}} WHERE {}",
+			"forcedBindings": {
+				"id": {
+					"type": "literal"
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,35 @@
+{
+	"host": "localhost",
+	"sparql11protocol": {
+		"protocol": "http",
+		"port": 8000,
+		"query": {
+			"path": "/query",
+			"method": "POST",
+			"format": "JSON"
+		},
+		"update": {
+			"path": "/update",
+			"method": "POST",
+			"format": "JSON"
+		}
+	},
+	"sparql11seprotocol": {
+		"protocol": "ws",
+		"availableProtocols": {
+			"ws": {
+				"port": 9000,
+				"path": "/subscribe"
+			},
+			"wss": {
+				"port": 9090,
+				"path": "/secure/subscribe"
+			}
+		}
+	},
+	"namespaces": {
+		"sepa": "http://wot.arces.unibo.it/sepa#",
+		"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+	},
+	"#include" : ["file:///queries.jsap","file:///updates.jsap"]
+}
