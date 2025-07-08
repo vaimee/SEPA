@@ -221,9 +221,11 @@ other IDEs work fine.
 The project is cloned. Enjoy!
 
 ### Build with Maven
-SEPA engine is a Maven project composed by two sub-projects:
+SEPA engine is a Maven project composed by four sub-projects:
 - Client-api
 - Engine
+- Dashboard
+- Chat
 
 As first, you need to build client-api skipping JUnit tests:
 ```bash
