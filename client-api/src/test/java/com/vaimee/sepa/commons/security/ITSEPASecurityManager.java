@@ -4,13 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 
+import com.vaimee.sepa.api.commons.security.ClientSecurityManager;
+import com.vaimee.sepa.api.commons.security.OAuthProperties;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.vaimee.sepa.ConfigurationProvider;
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.Response;
 
 public class ITSEPASecurityManager {
 	private static ConfigurationProvider provider;

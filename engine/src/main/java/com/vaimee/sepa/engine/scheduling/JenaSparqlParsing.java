@@ -26,7 +26,7 @@ import org.apache.jena.sparql.util.Context;
 import org.apache.jena.update.Update;
 import org.apache.jena.update.UpdateRequest;
 
-import com.vaimee.sepa.commons.exceptions.SEPASparqlParsingException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASparqlParsingException;
 import com.vaimee.sepa.logging.Logging;
 
 public class JenaSparqlParsing {

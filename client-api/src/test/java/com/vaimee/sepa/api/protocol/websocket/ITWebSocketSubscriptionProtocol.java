@@ -14,12 +14,12 @@ import org.junit.jupiter.api.Timeout;
 import com.vaimee.sepa.ConfigurationProvider;
 import com.vaimee.sepa.api.ISubscriptionHandler;
 import com.vaimee.sepa.api.protocols.websocket.WebsocketSubscriptionProtocol;
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.properties.SubscriptionProtocolProperties;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Notification;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.properties.SubscriptionProtocolProperties;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Notification;
 
 public class ITWebSocketSubscriptionProtocol implements ISubscriptionHandler {
 	private static ConfigurationProvider provider;	

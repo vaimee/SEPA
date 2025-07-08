@@ -27,7 +27,7 @@ import org.apache.http.impl.nio.bootstrap.HttpServer;
 import org.apache.http.impl.nio.bootstrap.ServerBootstrap;
 import org.apache.http.impl.nio.reactor.IOReactorConfig;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
 import com.vaimee.sepa.engine.bean.EngineBeans;
 import com.vaimee.sepa.engine.core.EngineProperties;
 

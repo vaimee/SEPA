@@ -12,8 +12,8 @@ import javax.net.ssl.SSLContext;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.RSAKey;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.security.SSLManager;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.security.SSLManager;
 import com.vaimee.sepa.logging.Logging;
 
 public class JKSUtil {

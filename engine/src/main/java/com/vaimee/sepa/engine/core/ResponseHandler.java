@@ -18,8 +18,8 @@
 
 package com.vaimee.sepa.engine.core;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.response.Response;
 
 public interface ResponseHandler {	
 	public abstract void sendResponse(Response response) throws SEPAProtocolException;

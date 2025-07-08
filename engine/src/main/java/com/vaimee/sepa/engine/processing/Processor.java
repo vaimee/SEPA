@@ -20,13 +20,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.http.HttpStatus;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProcessingException;
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.exceptions.SEPASparqlParsingException;
-import com.vaimee.sepa.commons.properties.SPARQL11Properties.ProtocolScheme;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProcessingException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASparqlParsingException;
+import com.vaimee.sepa.api.commons.properties.SPARQL11Properties.ProtocolScheme;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.bean.ProcessorBeans;
 import com.vaimee.sepa.engine.bean.QueryProcessorBeans;
 import com.vaimee.sepa.engine.bean.SEPABeans;

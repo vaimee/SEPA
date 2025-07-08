@@ -1,8 +1,8 @@
 package com.vaimee.sepa.engine.processing.endpoint;
 
-import com.vaimee.sepa.commons.request.QueryRequest;
-import com.vaimee.sepa.commons.request.UpdateRequest;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.request.QueryRequest;
+import com.vaimee.sepa.api.commons.request.UpdateRequest;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.dependability.acl.SEPAUserInfo;
 
 public interface SPARQLEndpoint {

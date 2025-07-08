@@ -22,8 +22,8 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.DefaultSSLWebSocketServerFactory;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
 import com.vaimee.sepa.engine.dependability.Dependability;
 import com.vaimee.sepa.engine.gates.SecureWebsocketGate;
 import com.vaimee.sepa.engine.scheduling.Scheduler;

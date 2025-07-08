@@ -20,9 +20,9 @@ package com.vaimee.sepa.engine.processing;
 
 import java.io.IOException;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.scheduling.InternalQueryRequest;
 import com.vaimee.sepa.engine.scheduling.ScheduledRequest;
 import com.vaimee.sepa.logging.Logging;

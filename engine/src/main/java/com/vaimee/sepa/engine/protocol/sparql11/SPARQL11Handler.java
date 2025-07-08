@@ -42,10 +42,10 @@ import org.apache.http.nio.protocol.HttpAsyncRequestHandler;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.exceptions.SEPASparqlParsingException;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.security.ClientAuthorization;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASparqlParsingException;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.security.ClientAuthorization;
 import com.vaimee.sepa.engine.bean.HTTPHandlerBeans;
 import com.vaimee.sepa.engine.bean.SEPABeans;
 import com.vaimee.sepa.engine.dependability.Dependability;

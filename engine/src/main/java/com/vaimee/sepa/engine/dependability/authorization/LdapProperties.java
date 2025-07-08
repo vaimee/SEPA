@@ -1,6 +1,6 @@
 package com.vaimee.sepa.engine.dependability.authorization;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
 
 public class LdapProperties {
 	private final String host;

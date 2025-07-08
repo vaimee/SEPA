@@ -11,7 +11,7 @@ import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
 import com.vaimee.sepa.logging.Logging;
 
 public class SyncLdap implements IUsersSync {

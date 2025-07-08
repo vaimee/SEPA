@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.vaimee.sepa.api.SPARQL11Protocol;
-import com.vaimee.sepa.commons.exceptions.SEPAPropertiesException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.logging.Logging;
 
 public class Publisher extends Thread implements Closeable {

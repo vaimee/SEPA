@@ -22,7 +22,7 @@ package com.vaimee.sepa.engine.scheduling;
 import java.util.Vector;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.bean.SchedulerBeans;
 import com.vaimee.sepa.engine.core.ResponseHandler;
 import com.vaimee.sepa.logging.Logging;

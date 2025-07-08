@@ -109,15 +109,6 @@
 		</plugins>
 	</build>
 	<dependencies>
-		<!-- <dependency> -->
-		<!-- <groupId>org.slf4j</groupId> -->
-		<!-- <artifactId>slf4j-log4j12</artifactId> -->
-		<!-- <version>1.7.25</version> -->
-		<!-- </dependency> -->
-		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
-		<!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
-
-		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-libs</artifactId>
@@ -191,8 +182,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore-nio -->
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore-nio</artifactId>
@@ -204,8 +193,6 @@
 			<artifactId>client-api</artifactId>
 			<version>${revision}</version>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/org.apache.directory.api/api-all -->
 		<dependency>
 			<groupId>org.apache.directory.api</groupId>
 			<artifactId>api-all</artifactId>
@@ -323,11 +310,10 @@
 			<version>1.0.0-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>it.unibo.arces.wot</groupId>
+			<groupId>com.vaimee</groupId>
 			<artifactId>client-api</artifactId>
 			<version>${revision}</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -337,6 +323,12 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
 			<version>1.7.36</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket -->
+		<dependency>
+			<groupId>org.java-websocket</groupId>
+			<artifactId>Java-WebSocket</artifactId>
+			<version>1.6.0</version>
 		</dependency>
 	</dependencies>
 

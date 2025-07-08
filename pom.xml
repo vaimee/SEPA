@@ -55,10 +55,10 @@
 	</scm>
 
 	<properties>
-		<java.version>21</java.version>
-		<maven.compiler.release>21</maven.compiler.release>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<java.version>23</java.version>
+		<maven.compiler.release>23</maven.compiler.release>
+		<maven.compiler.source>23</maven.compiler.source>
+		<maven.compiler.target>23</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<revision>1.0.0-SNAPSHOT</revision>
 		<update>0</update>
@@ -160,18 +160,6 @@
 		<url>https://vaimee.com/</url>
 	</organization>
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.apache.jena/apache-jena-libs -->
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-libs</artifactId>
-			<version>1.0.0-SNAPSHOT</version>
-			<type>pom</type>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-api</artifactId>
-			<version>2.23.1</version>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.logging.log4j</groupId>
 			<artifactId>log4j-core</artifactId>
@@ -187,19 +175,11 @@
 			<artifactId>nimbus-jose-jwt</artifactId>
 			<version>9.40</version>
 		</dependency>
-		<!--
-		https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
 			<version>5.11.3</version>
 			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.java-websocket</groupId>
-			<artifactId>Java-WebSocket</artifactId>
-			<version>1.5.7</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -2,13 +2,13 @@ package com.vaimee.sepa.engine.processing.endpoint;
 
 import org.apache.http.HttpStatus;
 
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.request.QueryRequest;
-import com.vaimee.sepa.commons.request.UpdateRequest;
-import com.vaimee.sepa.commons.response.ErrorResponse;
-import com.vaimee.sepa.commons.response.Response;
-import com.vaimee.sepa.commons.response.UpdateResponseWithAR;
-import com.vaimee.sepa.commons.security.ClientAuthorization;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.request.QueryRequest;
+import com.vaimee.sepa.api.commons.request.UpdateRequest;
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
+import com.vaimee.sepa.api.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.UpdateResponseWithAR;
+import com.vaimee.sepa.api.commons.security.ClientAuthorization;
 import com.vaimee.sepa.engine.dependability.acl.SEPAUserInfo;
 import com.vaimee.sepa.engine.dependability.Dependability;
 

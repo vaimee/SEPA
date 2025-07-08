@@ -21,11 +21,11 @@ package com.vaimee.sepa.engine.processing;
 
 import java.io.IOException;
 
-import com.vaimee.sepa.commons.exceptions.SEPAProtocolException;
-import com.vaimee.sepa.commons.exceptions.SEPASecurityException;
-import com.vaimee.sepa.commons.properties.SPARQL11Properties;
-import com.vaimee.sepa.commons.request.UpdateRequest;
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
+import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
+import com.vaimee.sepa.api.commons.properties.SPARQL11Properties;
+import com.vaimee.sepa.api.commons.request.UpdateRequest;
+import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.bean.SEPABeans;
 import com.vaimee.sepa.engine.bean.UpdateProcessorBeans;
 import com.vaimee.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;

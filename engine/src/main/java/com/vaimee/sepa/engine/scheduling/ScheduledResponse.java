@@ -20,7 +20,7 @@ package com.vaimee.sepa.engine.scheduling;
 
 import java.util.Date;
 
-import com.vaimee.sepa.commons.response.Response;
+import com.vaimee.sepa.api.commons.response.Response;
 
 public class ScheduledResponse {
 	private int token = -1;
