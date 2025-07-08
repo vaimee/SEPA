@@ -1,0 +1,252 @@
+<html>
+
+  <head>
+    <title>How-to: writing documentation with respec</title>
+    <script src="https://www.w3.org/Tools/respec/respec-w3c-common" class="remove"></script>
+    <script class='remove'>
+      var respecConfig = {
+      
+        // document info
+        specStatus:           "unofficial",
+        shortName:            "respec",      
+        copyrightStart:       "2017",
+        edDraftURI:           "http://github.com/desmovalvo/sepa-documentation",
+        extraCSS:             ["css/respec.css"],
+      
+        // editors
+        editors:  [{ 
+          name: "Fabio Viola", 
+          url: "http://wot.arces.unibo.it",
+          mailto: "fabio.viola@unibo.it",
+          company: "ARCES", 
+          companyURL: "http://wot.arces.unibo.it" 
+        }],
+      
+        // WG
+        wg:           "Web of Things working group of the ARCES laboratory",
+        wgURI:        "http://wot.arces.unibo.it/",
+      };
+    </script>
+  </head>
+
+  
+  <body>
+
+    <section id="abstract">
+      <p>
+	This document describes how to use respec to build documentation
+	according to the W3C style.
+      </p>
+    </section>
+
+
+    <section id="sotd">
+      This is a first draft.
+    </section>   
+
+    
+    <section>
+      <h2>Introduction</h2>
+      <p>
+	To write documentation using the W3C format there are several tools
+	available. Currently the best choice is *respec*. The documentation is
+	composed by an HTML file properly structured as follows.
+      </p>
+    </section>
+
+    
+    <section>
+      <h2>The head section</h2>
+
+      <section>
+	<h3>Title of the document</h3>
+	<p>
+	  The head section of the HTML file must contain the title of
+	  the page using
+	  tags <code>&lt;title&lt;...&lt;/title&gt;</code>. respec will
+	  automatically extract the title and put it into
+	  the <code>&lt;h1&gt;...&lt;/h1&gt;</code> tags of the body.
+	</p>
+      </section>
+
+      <section>
+	<h3>Including respec</h3>
+	<p>
+	  The respec script is included in the head section of the html
+	  file with:
+	  
+	  <pre class="example">
+	    &lt;script src="http://pandora.aptest.com/w3c/respec-style/builds/respec-w3c-common.js"
+	    class="remove"&gt;
+	    &lt;/script&gt;
+	  </pre>
+	  
+	</p>
+
+	<p>
+	  Online it is possible to find other URLs through which import respec,
+	  but using them I experienced problems, so I strongly advice to use
+	  this one from aptest.
+	</p>
+      </section>
+
+      <section>
+	<h3>Settings for respec</h3>
+	<p>
+	  Writing documentation is as simple as writing an HTML file, but a few
+	  lines of javascript are necessary to set respec parameters. An example
+	  is reported here:
+	  
+	  <pre class="example">
+&lt;script class='remove'&gt;
+    var respecConfig = {
+
+    // document info
+    specStatus:           "ED",
+    shortName:            "sap",
+    copyrightStart:       "2017",
+    edDraftURI:           "http://github.com/desmovalvo/sap-documentation",
+    extraCSS:             ["css/respec.css"],
+
+    // editors
+    editors:  [{
+        name: "Fabio Viola",
+        url: "http://wot.arces.unibo.it",
+        mailto: "fabio.viola@unibo.it",
+        company: "ARCES",
+        companyURL: "http://wot.arces.unibo.it"
+    },
+    {
+        name: "Luca Roffia",
+        url: "http://wot.arces.unibo.it",
+        mailto: "luca.roffia@unibo.it",
+        company: "ARCES",
+        companyURL: "http://wot.arces.unibo.it"
+    }],
+
+    // WG
+    wg:           "Web of Things working group of the ARCES laboratory",
+    wgURI:        "http://wot.arces.unibo.it/",
+};
+&lt;/script&gt;
+	  </pre>
+	</p>
+	
+	
+	<p>
+	  For a complete list of javascript variables have a look at
+	  the <a href="https://github.com/w3c/respec/wiki/">respec wiki
+	    on github</a>
+	</p>
+	</section>
+    </section>
+    
+    <section>
+      <h2>The body section</h2>
+      <p>
+	The body of the HTML page is structured defining one or more
+	(eventually
+	nested) <code>&lt;section&gt;...&lt;/section&gt;</code>
+	blocks, each one provided with a
+	proper <code>&lt;h*&gt;...&lt;/h*&gt;</code> tag (to state the
+	title of the (sub)section).
+      </p>
+
+      <section>
+	<h3>The abstract</h3>
+	<p>
+	  The first <code>&lt;section&gt;...&lt;/section&gt;</code>
+	  block should be named abstract and should contain the
+	  abstract of the document. Here's an example:
+
+	  <pre class="example">
+&lt;section id="abstract"&gt;
+    &lt;p&gt;
+        This is a simple abstract for my document.
+    &lt;/p&gt;
+&lt;/section&gt;
+	  </pre>
+	  
+	</p>
+      </section>
+
+      <section>
+	<h3>Status of the document</h3>
+
+	<p>
+	If a section named <code>sotd</code> is present, then respec will build the
+	section "Status of this document".
+	
+	Inside every section, text should be organized in paragraphs using
+	<code>&lt;p&gt;...&lt;/p&gt;</code>.
+	
+	Examples of source code should be enclosed
+							      between <code>&lt;pre
+							      class="example"&gt;...&lt;/pre&gt;</code>,
+							      while
+							      short
+							      pieces
+							      of code
+							      should
+							      be
+							      enclosed
+							      between <code>&lt;code&gt;...&lt;/code&gt;</code>.
+
+	</p>
+      </section>
+
+      <section>
+	<h3>Keywords</h3>
+	<p>
+	  respec automatically recognizes the
+	  following keywords: MUST, MUST NOT, REQUIRED, SHALL, SHALL
+	  NOT, SHOULD, SHOULD NOT, RECOMMENDED, NOT RECOMMENDED, MAY,
+	</p>
+      </section>
+
+      <section>
+	<h3>References</h3>
+	<p>
+	  If you need to refer to a document present
+	  on <a href="http://www.specref.org/"><b>SpecRef</b></a> (pay
+	  attention, specref, not respec!), the process is really
+	  easy! Find the document and take note of the friendly
+	  name. Then, references can be included in an easy way with a
+	  couple of double square brackets surrounding the friendly
+	  name. If this name is preceeded by an exclamation mark, then
+	  it is a <b>normative reference</b>, otherwise it is
+	  an <b>informative reference</b>.
+
+	  For example to refer to the JSON RFC, we simply look for
+	  JSON on specref and find that <code>&#91;&#91;rfc7159&#93;&#93;</code> may
+	  be right for us. It produces: [[rfc7159]].
+	</p>	
+      </section>
+      
+      <section>
+	<h3>Writing acknowledgements</h3>
+
+	<p>
+	  To include acknowlegements
+	  in a document a particular section belonging to
+	  class <code>appendix</code> must be created.
+	</p>
+      </section>
+      
+      
+    </section>
+
+    <!-- APPENDIX -->
+    <section class="appendix">
+
+      <!-- ACKNOWLEDGEMENTS -->
+      <h2>Acknowledgements</h2>
+      <p>
+	Authors would like to thanks the Advanced Research Center on Electronic Systems (ARCES) of the University of Bologna.
+      </p>
+
+    </section>
+
+
+  </body>
+</html>

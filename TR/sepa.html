@@ -1,0 +1,273 @@
+<html>
+
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="content-type">
+<title>SPARQL Event Processing Architecture (SEPA)</title>
+
+<!-- RESPEC CONFIGURATION -->
+<script src="https://www.w3.org/Tools/respec/respec-w3c-common"
+	class="remove"></script>
+<script class='remove'>
+	var respecConfig = {
+
+		// document info
+		specStatus : "unofficial",
+		shortName : "sepa",
+		copyrightStart : "2018",
+		edDraftURI : "https:/vaimee.org/TR/sepa.html",
+		extraCSS : [ "css/respec.css" ],
+
+		// editors
+		editors : [{
+			name : "Luca Roffia",
+			mailto : "luca.roffia@unibo.it",
+			company: "University of Bologna",
+			companyURL: "https://www.unibo.it/sitoweb/luca.roffia/en"
+		} ],
+		
+		formerEditors: [{
+			name : "Cristiano Aguzzi",
+			mailto : "cristiano.aguzzi@unibo.it"
+		}, {
+			name : "Francesco Antoniazzi",
+			mailto : "francesco.antoniazzi@unibo.it"
+		},
+		{
+			name : "Fabio Viola",
+			mailto : "fabio.viola@unibo.it"
+		} ],
+
+		// WG
+		wg : "Dynamic Linked Data and Web of Things working group @ ARCES",
+		wgURI : "https://site.unibo.it/wot/en",
+	};
+</script>
+
+</head>
+
+<body>
+
+	<!-- ABSTRACT -->
+	<section id="abstract">
+		This document describes the <b>SPARQL Event Processing
+			Architecture (SEPA)</b>. SEPA consists of the following components: the <i>SPARQL
+			Secure Event (SE) Protocol Service</i> (also known as SEPA broker), the <a
+			href="http://vaimee.org/TR/sparql11-se-protocol.html">SPARQL
+			1.1 Secure Event (SE) Protocol</a> and the <a
+			href="http://vaimee.org/TR/sparql11-subscribe.html">SPARQL
+			1.1 Subscribe Language</a>. SEPA aims supporting the development of
+		distributed, Web based and context aware applications, in particular
+		with reference to <b>dynamic contexts</b> where detecting and reacting
+		to events is critical. In such contexts, the use of SPARQL queries
+		[[sparql11-query]] MAY be inefficient and MAY not guarantee to detect
+		all the events because of their asynchronous nature. Furthermore, SEPA
+		is built around a <b>security layer</b> (e.g.,TLS [[!RFC5246]]) and it
+		allows <b>clients authentication</b> by means of JSON Web Tokens
+		[[!RFC7519]]. Eventually, the publish-subscribe mechanism offered by
+		SEPA MAY support <b>semantic driven coordination and discovery</b>. To
+		increase software reuse and interoperability, SEPA also proposes an <b><a
+			href="http://vaimee.org/TR/jsap.html">application design
+				pattern</a></b> where each client can be categorized as producer, consumer
+		or aggregator.
+	</section>
+
+	<!-- STATUS OF THIS DOCUMENT -->
+	<section id="sotd">This is a first draft.</section>
+
+	<!-- INTRODUCTION -->
+	<section id="intro">
+		<h2>Introduction</h2>
+
+		<p>In the Web of Data, a SPARQL protocol client can update and
+			query a SPARQL endpoint using respectively the SPARQL 1.1 Update
+			Language [[sparql11-update]] and the SPARQL 1.1 Query Language
+			[[sparql11-query]]. Updates and queries can be conveyed through the
+			SPARQL 1.1 protocol [[sparql11-protocol]].</p>
+
+		<p>The development of applications over the Web of Data requires
+			synchronization mechanisms that can be provided by SEPA. Thanks to
+			the publish-subscribe mechanism implemented by a SEPA broker, clients
+			can react to changes in the Web of Data and use such events to
+			synchronize with other clients. The Web of Data becomes a Web of
+			Dynamic Data. The default push based notification mechanism provided
+			by a SEPA broker can also be complemented by a pull based one like
+			for example the Linked Data Notifications [[ldn]] protocol.</p>
+		<p>
+
+			<img src="media/DLD.jpg"
+				title="SEPA enables the development of Dymanic Linked Data applications"><br>
+		<p>Fig. 1 - SEPA enables the development of Dymanic Linked Data
+			applications</p>
+
+		<p>
+			Furthermore, SEPA promotes the use of the <a
+				href="http://vaimee.org/TR/jsap.html">JSON SPARQL
+				Application Profile</a> to improve extesibility and interoperability of
+			Dynamic Linked Data applications and services.
+		</p>
+
+		<p>
+			A SEPA broker MUST implement the <a
+				href="http://vaimee.org/TR/sparql11-se-protocol.html">SPARQL
+				1.1 Secure Event (SE) Protocol</a> that is proposed as an extension of
+			the SPARQL 1.1 Protocol [[sparql11-protocol]] to support subscribe
+			primitives (i.e., <b>Subscribe</b>, <b>Unsubscribe</b>) and notifications (i.e., <b>Notify</b>). The SPARQL
+			1.1 SE protocol is built around a <b>security layer</b> (e.g.,TLS
+			[[!RFC5246]]) and it allows <b>client authentication</b> by means of
+			JSON Web Tokens [[!RFC7519]]. The SEPA broker is built on top of a
+			SPARQL Protocol Service [[sparql11-protocol]].
+		</p>
+		<p>
+			The definition of the <a
+				href="http://vaimee.org/TR/sparql11-se-protocol.html">SPARQL
+				1.1 Secure Event (SE) Protocol</a> and the <a
+				href="http://vaimee.org/TR/sparql11-subscribe.html">SPARQL
+				1.1 Subscribe Language</a> are out of the scope of this document.
+		</p>
+
+		<section id="conventions">
+			<h3>Document conventions</h3>
+			When this document uses the words MUST, MUST NOT, SHOULD, SHOULD NOT,
+			MAY and RECOMMENDED, and the words appear as emphasized text, they
+			must be interpreted as described in RFC 2119 [[!RFC2119]].
+		</section>
+
+		<section id="terms">
+			<h3>Terminology</h3>
+
+			<dl>
+				<dt>SEPA</dt>
+				<dd>
+					The <a href="http://vaimee.org/TR/sepa.html">SPARQL
+						Event Processing Architecture</a> here described
+				</dd>
+
+				<dt>SEPA broker or engine</dt>
+				<dd>
+					The server component of the SEPA. It implements the
+					publish-subscribe mechanisms and algorithms. Clients interact with
+					a SEPA broker with the <a
+						href="http://vaimee.org/TR/sparql11-se-protocol.html">SPARQL
+						1.1 SE Protocol</a>
+				</dd>
+
+				<dt>SEPA client</dt>
+				<dd>
+					A software agent who interacts with a SEPA broker. To increase
+					software reuse and interoperability, a SEPA client can be
+					categorized as producer, consumer or aggregator. Developers are
+					invited to follow the application design pattern suggested here <a
+						href="http://vaimee.org/TR/jsap.html">JSON SPARQL
+						Application Profile</a>
+				</dd>
+
+				<dt>SPARQL 1.1 Subscribe Language</dt>
+				<dd>
+					The <a href="http://vaimee.org/TR/sparql11-subscribe.html">subscription
+						language</a> introduced by the SEPA
+				</dd>
+
+				<dt>SPARQL 1.1 SE Protocol</dt>
+				<dd>
+					The <a
+						href="http://vaimee.org/TR/sparql11-se-protocol.html">protocol</a>
+					implemented by a SEPA broker
+				</dd>
+
+				<dt>SPARQL 1.1 Update Language</dt>
+				<dd>As defined by [[sparql11-update]]</dd>
+
+				<dt>SPARQL 1.1 Query Language</dt>
+				<dd>As defined by [[sparql11-query]]</dd>
+
+				<dt>SPARQL 1.1 Protocol</dt>
+				<dd>As defined by [[sparql11-protocol]]</dd>
+
+			</dl>
+		</section>
+
+	</section>
+
+	<section id="SEPASubscriptionMechanism">
+		<h2>SPARQL publish-subscribe</h2>
+		<p>
+			The SEPA broker implements a <b>content based publish-subscribe</b>
+			mechanism where the content of events is expressed using the <i>SPARQL
+				1.1 Query Language</i> [[sparql11-query]]. A SPARQL subscription acts as
+			a persistent query: on every <i>SPARQL update</i>
+			[[sparql11-update]], the query is evaluated and the results returned.
+			Instead of returning all the results, the SEPA broker returns only
+			changes in the results (i.e., <i>added and removed bindings
+				results</i>). This allows saving network traffic (e.g., a relevant
+			aspect in low rates network typical of Web of Things systems) and
+			reducing processing cost on the client side (i.e., no need to compare
+			previous results with the current ones to understand what is
+			changed). Considering the previous results as the query results
+			before the update and the current results as the query results after
+			the update, the content of a notification includes the added and
+			removed results as shown in the following figure:
+		</p>
+
+		<img src="media/addedremoved.jpg"
+			title="The content of notifications: added and removed results"><br>
+		<p>Fig. 2 - The content of notifications: added and removed
+			results</p>
+
+		<p>The publish-subscribe mechanism implemented by a SEPA broker
+			acts as follows:</p>
+		<ul>
+			<li>On receiving a <b>subscribe</b> request:
+				<ol>
+					<li>It registers the subscription and returns to the
+						subscriber the subscription URI (named <i>SPUID</i>, Subscription
+						Processing Unit ID)
+					</li>
+					<li>It performs the <i>SPARQL 1.1 Query</i> [[sparql11-query]]
+						specified in the subscription request and notifies the subscriber
+						of the results (if any)
+					</li>
+				</ol>
+			</li>
+			<li>On receiving an <b>update</b> request:
+				<ol>
+					<li>It checks all the active subscriptions for results to be
+						notified (added, removed or both)</li>
+					<li>It sends notifications (if any) to the subscribers</li>
+				</ol>
+			</li>
+		</ul>
+
+		<p>
+			Clients can also request to unsubscribe by providing the
+			corresponding <i>SPUID</i>. The format of requests and notifications
+			are expressed according to the <a
+				href="http://vaimee.org/TR/sparql11-subscribe.html">SPARQL
+				1.1 Subscribe language</a>.
+		</p>
+
+	</section>
+
+	<!-- APPENDIX -->
+	<section class="appendix">
+
+		<!-- ACKNOWLEDGEMENTS -->
+		<h2>Acknowledgements</h2>
+
+		<p>
+			Editors would like to thanks the <a
+				href="http://www.arces.unibo.it/en">Advanced Research Center on
+				Electronic Systems "Ercole De Castro" (ARCES)</a> and the <a
+				href="http://www.cse.unibo.it/en/index.html">Computer Science
+				and Engineering Department (DISI)</a> of the <a
+				href="http://http://www.unibo.it/en/homepage">University of
+				Bologna</a>, the <a href="https://ec.europa.eu/commission/index_en">European
+				Commission</a> and all the partners of the <a
+				href="https://artemis-ia.eu/">ARTEMIS</a> projects who inspired the
+			SPARQL Event Processing Architecture (SEPA).
+		</p>
+	</section>
+
+
+</body>
+
+</html>

@@ -1,0 +1,420 @@
+<html>
+
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="content-type">
+<title>SPARQL 1.1 Subscribe Language</title>
+
+<!-- RESPEC CONFIGURATION -->
+<script src="https://www.w3.org/Tools/respec/respec-w3c-common"
+	class="remove"></script>
+<script class='remove'>
+	var respecConfig = {
+
+		// document info
+		specStatus : "unofficial",
+		shortName : "sparql11-subscribe",
+		copyrightStart : "2017",
+		edDraftURI : "https://vaimee.org/TR/sparql11-subscribe.html",
+		extraCSS : [ "css/respec.css" ],
+
+		// editors
+		editors : [{
+			name : "Luca Roffia",
+			mailto : "luca.roffia@unibo.it",
+			company: "University of Bologna",
+			companyURL: "https://www.unibo.it/sitoweb/luca.roffia/en"
+		} ],
+		
+		formerEditors: [{
+			name : "Cristiano Aguzzi",
+			mailto : "cristiano.aguzzi@unibo.it"
+		}, {
+			name : "Francesco Antoniazzi",
+			mailto : "francesco.antoniazzi@unibo.it"
+		},
+		{
+			name : "Fabio Viola",
+			mailto : "fabio.viola@unibo.it"
+		} ],
+
+		// WG
+		wg : "Dynamic Linked Data and Web of Things working group @ ARCES",
+		wgURI : "https://site.unibo.it/wot/en",
+	};
+</script>
+
+</head>
+
+<body>
+
+	<!-- ABSTRACT -->
+	<section id="abstract">
+		This document describes the SPARQL 1.1 Subscribe Language used within
+		the <a href="http://vaimee.org/TR/sepa.html">SPARQL Event
+			Processing Architecture</a> to describe subscription requests and
+		notifications.
+	</section>
+
+	<!-- STATUS OF THIS DOCUMENT -->
+	<section id="sotd">This is a first draft.</section>
+
+	<!-- INTRODUCTION -->
+	<section id="intro">
+		<h2>Introduction</h2>
+		<p>
+			The SPARQL 1.1 Subscribe Language defines the content of the
+			following elements: primitives (i.e., <i>subscribe</i> and <i>unsubscribe</i>)
+			and <i>notifications</i>. Every SEPA implementation MUST provide a
+			JSON serialization [[!RFC7159]] of the all these elements. Other
+			kinds of serialization formats MAY be provided. This document refers
+			to the REQUIRED JSON serialization.
+		</p>
+		<p>The SPARQL 1.1 Subscribe Language is framed within W3C
+			Recommendations as shown in the following figure.</p>
+
+		<img src="media/sparql11seprotocol.jpg">
+		<p>Fig. 1 - The SPARQL Event Processing Architecture (SEPA)</p>
+
+		<section id="conventions">
+			<h3>Document conventions</h3>
+			When this document uses the words MUST, MUST NOT, SHOULD, SHOULD NOT,
+			MAY and RECOMMENDED, and the words appear as emphasized text, they
+			must be interpreted as described in RFC 2119 [[!RFC2119]].
+		</section>
+
+		<section id="terms">
+			<h3>Terminology</h3>
+			<dl>
+				<dt>SEPA</dt>
+				<dd>
+					<a href="http://vaimee.org/TR/sepa.html">SPARQL Event
+						Processing Architecture</a>
+				</dd>
+
+				<dt>SEPA broker</dt>
+				<dd>
+					The server component of the SEPA. It implements the
+					publish-subscribe mechanisms and algorithms. Clients interact with
+					a SEPA broker with the <a
+						href="http://vaimee.org/TR/sparql11-se-protocol.html">SPARQL
+						1.1 SE Protocol</a>
+				</dd>
+
+				<dt>SPARQL 1.1 Subscribe Language</dt>
+				<dd>
+					The <a href="http://vaimee.org/TR/sparql11-subscribe.html">subscription
+						language</a> introduced by the SEPA
+				</dd>
+
+				<dt>SPARQL 1.1 SE Protocol</dt>
+				<dd>
+					The <a
+						href="http://vaimee.org/TR/sparql11-se-protocol.html">protocol</a>
+					implemented by a SEPA broker and defined in this document
+				</dd>
+
+				<dt>SPARQL 1.1 Update Language</dt>
+				<dd>As defined by [[sparql11-update]]</dd>
+
+				<dt>SPARQL 1.1 Query Language</dt>
+				<dd>As defined by [[sparql11-query]]</dd>
+			</dl>
+		</section>
+
+	</section>
+
+	<section id="Subscribe">
+		<h2>Subscribe</h2>
+		<section id="SubscribeRequest">
+			<h3>Request</h3>
+			A subscribe primitive is expressed as shown in the following example:
+			
+<pre class="example" title="Subscribe request">
+{"subscribe" : {
+   "sparql" : "select * where {?vaimee ?deda ?didi}",
+   "authorization" : "Bearer xabtQWoH8RJJk1FyKJ78J8h8i2PcWmAugfJ4J6nMd+1jVSoiipV4Pcv8bH+8wJLJ2yRaVage8/TzdZJiz2jdRP8bhkuNzFhGx6N1/1mgmvfKihLheMmcU0pLj5uKOYWFb+TB98n1IpNO4G69lia2YoR15LScBzibBPpmKWF+XAr5TeDDHDZQK4N3VBS/e3tFL/yOhkfC9Mw45s3mz83oyeoFFePUX8MQIuqd3TIcjOhoPgYWd0E+L/EN5wItL5/n78pX/8mVZcpxdyNNqr3bVvrCi0I84mIAefwQ0GyPxFhUHu9PtVNQnXchZuFgppX/YDtOesZSxfIoffUpHFPBY3u4FRIYwpSZX96Knnp0J22RQm+0l8yobik3z6jftw0jbF5+/YC6PnfZT3Wzb6PRJPuVkDzpo+BTC9eKx87GEj8VjtfXjbYRTeZNumD+59wL5kV/OrntNqNQD+IzAYoIZk4rlRbNouNnvT0laEhV012tSD1uAfNUxAlZjSbSMTp5bPNp7PoutMr5q6zPYfAC1PTKnVdkD1CDNqZnhB838WDeISfVzXsf7dsZ0+SkNPtx2kMUYCOYsxNJxyzza3lmaCuvxfnDT3g5F41/p/zX1tXYy6emVfdOWSkJNm1z0FJB/ZIUES0WAA5UEM3kejND++vvIQr38ar72HdFzRvP2V29CsaE5PMRRRZIE5ru9Zwgdb5lfMdwDi4sZkQdNRGHiOfRCT9D92mFVps6s6kv7HKojx05R9WKMDG8bEmSgMYSYQlQzLm93Ardw/hpDoB1/DfNRxbc/GVNZEVOoRVMye8/vICZtxvVeKmu4QawWKSBtrXelWUT8AHTG6v/c88pZjtJWDzy6YIIXLDQ2eJPu30mt3gLfS2ukIV4Tl5Oqu3T1IIghmNgek8vwWNeuG/JGeKrfUp6X6mMH9hdmj5+naOIr8V5rUKCjXnlWLAsrGdOvV8vuYYbx2IFQScZQJD/sTKj3gs6yeYpOwQ2iEs9asA=",
+   "alias" : "All",
+   "default-graph-uri" : ["http://example/uri_of_the_default_graph"],
+   "named-graph-uri" : ["http://example/uri_of_a_named_graph"]
+ }}</pre>
+			<p>
+				The value of the
+				<code>sparql</code>
+				member MUST be a SPARQL 1.1 Query [[sparql11-query]], the value of
+				the
+				<code>authorization</code>
+				member (if present) MUST be a
+				<code>Bearer</code>
+				JSON Web Token [[!RFC7519]] and the value of the
+				<code>alias</code>
+				member (if present ) is a string representing a friendly name of the
+				subscription.
+			</p>
+			<p>The first member is REQUIRED, while all the other are
+				optional.</p>
+			<p>
+				The
+				<code>authorization</code>
+				member is only REQUIRED for secure operations.
+			</p>
+			<p>
+				The value of the
+				<code>alias</code>
+				member, if present, it will be included in the subscribe response.
+				The use of the
+				<code>alias</code>
+				member is RECOMMENDED if the SEPA client sends multiple subscribe
+				requests. If needed, the SEPA client MAY store the subscription
+				alias and link it with the subscription URI [[!RFC3986]] contained
+				in the subscribe response message.
+			</p>
+			<p>
+				The value of the
+				<code>default-graph-uri</code>
+				and of the
+				<code>named-graph-uri</code>
+				(if present) have the same meaning and content of the corresponding
+				parameters defined in the SPARQL 1.1 Protocol [[sparql11-protocol]]
+			</p>
+		</section>
+
+		<section id="SubscribeResponse">
+			<h2>Response</h2>
+			<p>If the subscribe request is successfully processed, every SEPA
+				implementation MUST respond with a message like the following:</p>
+
+<pre class="example" title="Subscribe response">
+{"notification":{
+   "spuid" : "sepa://subscription/0d057ca5-cc10-4e8a-a5d9-59d7b36f71d6",
+   "sequence" : 0,
+   "alias" : "All",
+   "addedResults" :{ 
+     "head": { "vars": ["vaimee","deda","didi"] },
+     "results": {
+       "bindings": [{ 
+        "vaimee": {"type": "uri", "value" : "http://wot.arces.unibo.it/example#Subject"}, 
+        "deda": {"type": "uri", "value": "http://wot.arces.unibo.it/example#Predicate"}, 
+        "didi": {"type": "literal","value": "&#x10D5;&#x10D0;&#x10D8;&#x10DB;&#x10D4;&#x10D4;"} }]}},
+   "removedResults":{}}}
+</pre>
+
+			<p>
+				The value of the
+				<code>spuid</code>
+				member is an URI [[!RFC3986]], while the
+				<code>sequence</code>
+				member is a number and it will be always 0. Both members MUST be
+				present. The
+				<code>sequence</code>
+				member will be incremented by one on each following <a
+					href="#Notification">notification</a>.
+			</p>
+			<p>
+				The
+				<code>alias</code>
+				member (if present) has the same value of the corresponding
+				<code>alias</code>
+				member of the subscribe request.
+			</p>
+			<p>
+				Eventually, the value of the
+				<code>addedResults</code>
+				member corresponds to the results of the SPARQL query according to
+				the SPARQL 1.1 Query Results JSON format [[sparql11-results-json]],
+				while the value of the
+				<code>removedResults</code>
+				will be always an empty object.
+			</p>
+			<p>
+				In case of error, it is RECOMMENDED to reply as shown <a
+					href='#ErrorResponses'>here</a>
+			</p>
+		</section>
+	</section>
+
+	<section id="Unsubscribe">
+		<h2>Unsubscribe</h2>
+		<section id="UnsubscribeRequest">
+			<h3>Request</h3>
+			<p>A client MAY request to remove a specific subscription. This
+				can be done by sending a message like the following:
+			<p>
+<pre class="example" title="Unsubscribe request">
+{"unsubscribe":{
+   "spuid":"sepa://subscription/0d057ca5-cc10-4e8a-a5d9-59d7b36f71d6",
+   "authorization" :"Bearer eyJhbGciOiJIUzI....ONFh7HgQ"}}
+</pre>
+			<p>
+				The
+				<code>spuid</code>
+				member value is the subscription URI [[!RFC3986]] provided by the
+				subscribe response message.
+			</p>
+			<p>
+				The value of the
+				<code>authorization</code>
+				member (if present) MUST be a
+				<code>Bearer</code>
+				JSON Web Token [[!RFC7519]].
+			</p>
+			<p>The former member is REQUIRED, while the latter is only
+				REQUIRED for secure primitives.</p>
+		</section>
+
+		<section id="UnsubscribeResponse">
+			<h3>Response</h3>
+			<p>A SEPA broker implementation MUST reply to a unsubscribe
+				request with a message like the following:</p>
+<pre class="example" title="Unsubscribe response">
+{"unsubscribed":{
+   "spuid":"sepa://subscription/0d057ca5-cc10-4e8a-a5d9-59d7b36f71d6"}}</pre>
+			<p>
+				In case of error, it is RECOMMENDED to reply as shown <a
+					href='#ErrorResponses'>here</a>
+			</p>
+		</section>
+	</section>
+
+	<section id="Notification">
+		<h3>Notification</h3>
+		<p>An example of a content notification follows:</p>
+
+<pre class="example" title="Notification">
+{"notification":{
+   "spuid" : "sepa://subscription/0d057ca5-cc10-4e8a-a5d9-59d7b36f71d6",
+   "sequence" : 1,
+   "alias" : "All",
+   "addedResults" :{ 
+     "head": { "vars": ["vaimee","deda","didi"] },
+     "results": {
+       "bindings": [{  
+        "didi": {"type": "literal","value": "&#x10D6;&#x10D1;&#x10D9;&#x10DA;&#x10D5;&#x10D5;"} }]}},
+   "removedResults":{ 
+     "head": { "vars": ["vaimee","deda","didi"] },
+     "results": {
+       "bindings": [{ 
+        "didi": {"type": "literal","value": "&#x10D5;&#x10D0;&#x10D8;&#x10DB;&#x10D4;&#x10D4;"} }]}}}
+</pre>
+		<p>
+			The value of
+			<code>spuid</code>
+			member is the URI [[!RFC3986]] of the subscription who generates the
+			notification.
+		</p>
+		<p>
+			The value of the
+			<code>sequence</code>
+			member is a number (incremented by one at every new notification of
+			the same SPUID).
+		</p>
+		<p>
+			The
+			<code>addedResults</code>
+			and
+			<code>removedResults</code>
+			are two JSON objects whose content conform with the <a
+				href="https://www.w3.org/TR/sparql11-results-json//">SPARQL 1.1
+				Query Results JSON format </a>.
+		</p>
+
+	</section>
+	<!--  
+	<section id="Ping">
+		<h3>Ping</h3>
+		<p>The default content of a ping message follows:</p>
+		<pre class="example" title="Ping"> {"ping":"2017-12-05 08:51:54.919","spuid":"sepa://spuid/558a503d-1d7e-45fd-8bc8-4d5f9b7dd7ac"}</pre>
+		<p>
+			The
+			<code>ping</code>
+			member MUST be present and its value is the UTC time on the
+			SEPA broker represented as described in [[!RFC3339]].
+		</p>
+	</section>
+-->
+	<section id="ErrorResponses">
+		<h3>Error responses</h3>
+		<p>In case of error, a SEPA broker implementation SHOULD reply
+			with a JSON object like the following:</p>
+
+<pre class="example" title="Error response">
+ {
+   "error":"unauthorized_client",
+   "error_description" : "Client is not authorized",
+   "status_code" : 401
+ }
+ </pre>
+
+		<p>
+			The
+			<code>error</code>
+			member is a string representing the error. Refer to [[!RFC6749]] for
+			all OAuth related errors. Otherwise it would be a SPARQL 1.1 SE
+			Protocol specific error string.
+		</p>
+		<p>
+			The
+			<code>error_description</code>
+			member is optional and if present it provides a human readable
+			description of the error.
+		</p>
+		<p>
+			The
+			<code>status_code</code>
+			member is an integer representing the error. The use of use of HTTP
+			status codes [[!RFC2616]] is RECOMMENDED. As reference, a list of
+			common HTTP status codes follows. Implementation specific error codes
+			MAY also be used.
+		<pre>
+400 Bad Request
+401 Unauthorized
+402 Payment Required
+403 Forbidden
+404 Not Found
+405 Method Not Allowed
+406 Not Acceptable
+407 Proxy Authentication Required
+408 Request Timeout
+409 Conflict
+410 Gone
+411 Length Required
+412 Precondition Failed
+413 Request Entity Too Large
+414 Request-URI Too Long
+415 Unsupported Media Type
+416 Requested Range Not Satisfiable
+417 Expectation Failed
+
+500 Internal Server Error
+501 Not Implemented
+502 Bad Gateway
+503 Service Unavailable
+504 Gateway Timeout
+505 HTTP Version Not Supported
+	</pre>
+	</section>
+	<!-- APPENDIX -->
+	<section class="appendix">
+
+		<!-- ACKNOWLEDGEMENTS -->
+		<h2>Acknowledgements</h2>
+
+		<p>
+			Editors would like to thanks the <a
+				href="http://www.arces.unibo.it/en">Advanced Research Center on
+				Electronic Systems "Ercole De Castro" (ARCES)</a> and the <a
+				href="http://www.cse.unibo.it/en/index.html">Computer Science
+				and Engineering Department (DISI)</a> of the <a
+				href="http://http://www.unibo.it/en/homepage">University of
+				Bologna</a>, the <a href="https://ec.europa.eu/commission/index_en">European
+				Commission</a> and all the partners of the <a
+				href="https://artemis-ia.eu/">ARTEMIS</a> projects who inspired the
+			SPARQL Event Processing Architecture (SEPA).
+		</p>
+	</section>
+
+	</section>
+
+
+</body>
+
+</html>
