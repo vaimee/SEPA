@@ -223,7 +223,6 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	 * @param ID      the identifier of the subscribe within the JSAP
 	 * @param sparql  if specified it replaces the default SPARQL in the JSAP
 	 * @param forced  the forced
-	 * @param handler the handler
 	 * @param timeout the timeout
 	 * @throws SEPAProtocolException   the SEPA protocol exception
 	 * @throws SEPASecurityException   the SEPA security exception
@@ -258,7 +257,6 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	 *
 	 * @param ID      the identifier of the subscribe within the JSAP
 	 * @param forced  the forced
-	 * @param handler the handler
 	 * @param timeout the timeout
 	 * @throws SEPAProtocolException   the SEPA protocol exception
 	 * @throws SEPASecurityException   the SEPA security exception
@@ -290,8 +288,6 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	/**
 	 * Unsubscribe.
 	 *
-	 * @param ID      the SPUID of the active subscription
-	 * @param timeout the timeout
 	 * @throws SEPASecurityException   the SEPA security exception
 	 * @throws SEPAPropertiesException the SEPA properties exception
 	 * @throws SEPAProtocolException   the SEPA protocol exception
@@ -388,7 +384,6 @@ public final class GenericClient extends Client implements ISubscriptionHandler 
 	 * @param ID      the identifier of the subscribe within the JSAP
 	 * @param sparql  if specified it replaces the default SPARQL in the JSAP
 	 * @param forced  the forced bindings
-	 * @param handler the handler
 	 * @param timeout the timeout
 	 * @throws SEPAProtocolException   the SEPA protocol exception
 	 * @throws SEPASecurityException   the SEPA security exception

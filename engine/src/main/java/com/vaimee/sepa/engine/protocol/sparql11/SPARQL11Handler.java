@@ -112,37 +112,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 		String requestUri = exchange.getRequest().getRequestLine().getUri();
 		
 		if (exchange.getRequest().getRequestLine().getMethod().toUpperCase().equals("GET")) {
-			/** <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
-			 * 
-			 * <pre>
-			 * 
-			 * 					| HTTP Method 	| Query String Parameters 	| Request Content Type 	| Request Message Body
-			 * ---------------------------------------------------------------------------------------------------------------------------------------- 
-			 * query via GET 	| GET 			|  query (exactly 1) 		|  None 	            | None
-			 *                                  | default-graph-uri (0 or more)
-			 *                                  | named-graph-uri (0 or more)
-			 * 
-			 * 2.1.4 Specifying an RDF Dataset
-			 * 
-			 * A SPARQL query is executed against an RDF Dataset. The RDF Dataset for a
-			 * query may be specified either via the default-graph-uri and named-graph-uri
-			 * parameters in the SPARQL Protocol or in the SPARQL query string using the
-			 * FROM and FROM NAMED keywords.
-			 * 
-			 * If different RDF Datasets are specified in both the protocol request and the
-			 * SPARQL query string, then the SPARQL service must execute the query using the
-			 * RDF Dataset given in the protocol request.
-			 * 
-			 * Note that a service may reject a query with HTTP response code 400 if the
-			 * service does not allow protocol clients to specify the RDF Dataset. If an RDF
-			 * Dataset is not specified in either the protocol request or the SPARQL query
-			 * string, then implementations may execute the query against an
-			 * implementation-defined default RDF dataset. 
-			 * 
-			 * 
-			 * </pre>
-			 */
-			if (!uri.getPath().equals(queryPath))
+            if (!uri.getPath().equals(queryPath))
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST,
 						"GET method available for query only. Wrong path: " + uri.getPath() + " expecting: "
 								+ queryPath);	
@@ -173,35 +143,8 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, e.getMessage());
 			}
 		} else if (exchange.getRequest().getRequestLine().getMethod().toUpperCase().equals("POST")) {
-			
-			/**
-			 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
-			 *
-			 * *
-			 * 
-			 * <pre>
-			 *                               HTTP Method   Query String Parameters           Request Content Type                Request Message Body
-			 *----------------------------------------------------------------------------------------------------------------------------------------
-			 * update via URL-encoded POST|   POST         None                              application/x-www-form-urlencoded   URL-encoded, ampersand-separated query parameters.
-			 *                            |                                                                                     update (exactly 1)
-			 *                            |                                                                                     using-graph-uri (0 or more)
-			 *                            |                                                                                     using-named-graph-uri (0 or more)
-			 *----------------------------------------------------------------------------------------------------------------------------------------																													
-			 * update via POST directly   |   POST        using-graph-uri (0 or more)        application/sparql-update           Unencoded SPARQL update request string
-			 *                                            using-named-graph-uri (0 or more)
-			 * ----------------------------------------------------------------------------------------------------------------------------------------												
-			 * query via URL-encoded POST |   POST         None                              application/x-www-form-urlencoded   URL-encoded, ampersand-separated query parameters.
-			 *                            |                                                                                     query (exactly 1)
-			 *                            |                                                                                     default-graph-uri (0 or more)
-			 *                            |                                                                                     named-graph-uri (0 or more)
-			 *----------------------------------------------------------------------------------------------------------------------------------------																													
-			 * query via POST directly    |   POST         default-graph-uri (0 or more)
-			 *                            |                named-graph-uri (0 or more)       application/sparql-query            Unencoded SPARQL query string
-			 * </pre>
-			 * 
-			 */
-			
-			Header[] headers = exchange.getRequest().getHeaders("Content-Type");
+
+            Header[] headers = exchange.getRequest().getHeaders("Content-Type");
 			if (headers.length != 1) {
 				Logging.logger.log(Logging.getLevel("http"),"Content-Type is missing or multiple");
 				throw new SPARQL11ProtocolException(HttpStatus.SC_BAD_REQUEST, "Content-Type is missing or multiple");
@@ -401,7 +344,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 
 	/**
 	 * <a href="https://www.w3.org/TR/sparql11-protocol/"> SPARQL 1.1 Protocol</a>
-	 *
+	 * <p>
 	 * *
 	 * 
 	 * <pre>

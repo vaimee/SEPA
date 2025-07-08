@@ -30,10 +30,10 @@ import com.vaimee.sepa.logging.Logging;
 // TODO: Auto-generated Javadoc
 /**
  * This class represents the results of a SPARQL 1.1 Query
- * 
+ * <p>
  * This conforms with the following: - SPARQL 1.1 Query Results JSON Format
  * https://www.w3.org/TR/2013/REC-sparql11-results-json-20130321/
- * 
+ * <p>
  * It uses https://github.com/google/gso as internal representation of the
  * results in JSON format
  * 

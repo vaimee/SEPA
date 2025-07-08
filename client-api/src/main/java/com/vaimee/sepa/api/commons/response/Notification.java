@@ -26,7 +26,7 @@ import com.vaimee.sepa.api.commons.sparql.BindingsResults;
 /**
  * This class represents a SPARQL Notification (see SPARQL 1.1 Subscription
  * Language)
- *
+ * <p>
  * The JSON serialization looks like: {@code
  * { "notification":{"alias" : "the alias if present", "spuid" : "SPUID" , "sequence" : "SEQUENTIAL NUMBER", "addedResults" : <JSON
  * Notification Results>, "removedResults" : <JSON Notification Results> }} }

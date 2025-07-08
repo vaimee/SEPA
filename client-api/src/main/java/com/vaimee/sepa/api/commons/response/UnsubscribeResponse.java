@@ -24,9 +24,9 @@ import com.google.gson.JsonPrimitive;
 /**
  * This class represents the response to a SPARQL 1.1 Unsubscribe (see SPARQL
  * 1.1 Subscription Language)
- *
+ * <p>
  * The JSON serialization is the following:
- *
+ * <p>
  * {"unsubscribed" : "SPUID"}
  *
  */

@@ -101,7 +101,7 @@ public abstract class Client implements java.io.Closeable {
 	 * value of the lexical form and an atomic datatype corresponding to the
 	 * datatype IRI. The returned typed values are mapped back to RDF typed literals
 	 * the same way.
-	 * 
+	 * <p>
 	 * SPARQL has additional operators which operate on specific subsets of RDF
 	 * terms. When referring to a type, the following terms denote a typed literal
 	 * with the corresponding XML Schema [XSDT] datatype IRI:

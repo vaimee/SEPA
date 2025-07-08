@@ -1,5 +1,5 @@
 /** Class for processing SPARQL 1.1 subscribe requests
- * 
+ * <p>
  * Author: Luca Roffia (luca.roffia@unibo.it)
 
     This program is free software: you can redistribute it and/or modify
