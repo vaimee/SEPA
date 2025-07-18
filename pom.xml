@@ -48,6 +48,14 @@
 			<organizationUrl>http://vaimee.com/</organizationUrl>
 		</developer>
 	</developers>
+
+	<repositories>
+  		<repository>
+    			<id>github</id>
+    			<url>https://maven.pkg.github.com/vaimee/sjenar</url>
+  		</repository>
+	</repositories>
+	
 	<scm>
 		<connection>scm:git:git://github.com/vaimee/sepa.git</connection>
 		<developerConnection>scm:git:ssh://github.com/vaimee/sepa.git</developerConnection>
@@ -60,7 +68,7 @@
 		<maven.compiler.source>23</maven.compiler.source>
 		<maven.compiler.target>23</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<revision>1.0.0-SNAPSHOT</revision>
+		<revision>0.99</revision>
 		<update>0</update>
 	</properties>
 	<distributionManagement>
