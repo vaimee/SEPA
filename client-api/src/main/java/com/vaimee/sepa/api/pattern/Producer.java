@@ -45,7 +45,7 @@ public class Producer extends Client implements IProducer {
 		super(appProfile);
 
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
-			Logging.logger.fatal("UPDATE ID [" + updateID + "] not found");
+			Logging.getLogger().fatal("UPDATE ID [" + updateID + "] not found");
 			throw new IllegalArgumentException("UPDATE ID [" + updateID + "] not found");
 		}
 
@@ -74,11 +74,11 @@ public class Producer extends Client implements IProducer {
 				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
 
-		Logging.logger.trace(req);
+		Logging.getLogger().trace(req);
 		
 		Response retResponse = client.update(req);
 
-		Logging.logger.trace(retResponse);
+		Logging.getLogger().trace(retResponse);
 
 		return retResponse;
 	}
@@ -93,11 +93,11 @@ public class Producer extends Client implements IProducer {
 				appProfile.getUsingGraphURI(SPARQL_ID), appProfile.getUsingNamedGraphURI(SPARQL_ID),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
 
-		Logging.logger.trace(req);
+		Logging.getLogger().trace(req);
 
 		Response retResponse = client.update(req);
 
-		Logging.logger.trace(retResponse);
+		Logging.getLogger().trace(retResponse);
 
 		return retResponse;
 	}

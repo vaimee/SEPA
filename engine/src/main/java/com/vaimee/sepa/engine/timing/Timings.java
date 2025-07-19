@@ -30,7 +30,7 @@ public class Timings {
 	
 	public synchronized static void log(String tag,long start,long stop) {
 		String message = String.format("%d,%d,%s",System.currentTimeMillis(),stop-start,tag);
-		Logging.logger.log(Logging.getLevel("timing"),message);
+		Logging.getLogger().log(Logging.getLevel("timing"),message);
 	}
 	
 	public synchronized static void log(InternalRequest request) {

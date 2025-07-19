@@ -36,26 +36,26 @@ public class ConfigurationProvider implements Closeable {
 
 //		if (System.getProperty("testConfiguration") != null) {
 //			jsapFileName = System.getProperty("testConfiguration");
-//			Logging.logger.debug("JSAP from property testConfiguration: " + jsapFileName);
+//			Logging.getLogger().debug("JSAP from property testConfiguration: " + jsapFileName);
 //		} else if (System.getProperty("secure") != null) {
 //			jsapFileName = "sepatest-secure.jsap";
-//			Logging.logger.debug("JSAP secure default: " + jsapFileName);
+//			Logging.getLogger().debug("JSAP secure default: " + jsapFileName);
 //		}
 //
 //		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
 //		File f = new File(jsapPath);
 //		if (!f.exists()) {
-//			Logging.logger.error("File not found: " + jsapPath);
+//			Logging.getLogger().error("File not found: " + jsapPath);
 //			throw new SEPAPropertiesException("File not found: " + jsapPath);
 //		}
 //
-//		Logging.logger.debug("Loading JSAP from: " + f.getPath());
+//		Logging.getLogger().debug("Loading JSAP from: " + f.getPath());
 
 		try {
 //			appProfile = new JSAP(URI.create(f.getPath()));
 			appProfile = new JSAP(jsapFileName);
 		} catch (SEPAPropertiesException e) {
-			Logging.logger.error(e.getMessage());
+			Logging.getLogger().error(e.getMessage());
 			throw new RuntimeException(e);
 		}
 
@@ -69,7 +69,7 @@ public class ConfigurationProvider implements Closeable {
 			TIMEOUT = appProfile.getExtendedData().get("timeout").getAsLong();
 		}
 		catch(Exception e) {
-			Logging.logger.warn("Extended-timeout NOT FOUND. Use default 15 s");
+			Logging.getLogger().warn("Extended-timeout NOT FOUND. Use default 15 s");
 			TIMEOUT = 15000;
 		}
 		
@@ -77,14 +77,14 @@ public class ConfigurationProvider implements Closeable {
 			NRETRY = appProfile.getExtendedData().get("nretry").getAsLong();
 		}
 		catch(Exception e) {
-			Logging.logger.warn("Extended-nretry NOT FOUND. Use default 3");
+			Logging.getLogger().warn("Extended-nretry NOT FOUND. Use default 3");
 			NRETRY = 3;
 			
 		}
 
 		sm = buildSecurityManager();
 		
-		Logging.logger.debug("Loaded JSAP: " + appProfile);
+		Logging.getLogger().debug("Loaded JSAP: " + appProfile);
 	}
 
 	private String getSPARQLUpdate(String id) {

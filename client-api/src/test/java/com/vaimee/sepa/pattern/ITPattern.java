@@ -119,22 +119,22 @@ public class ITPattern {
 	@Timeout(10)
 	public void aggregation() throws InterruptedException, SEPASecurityException, IOException, SEPAPropertiesException,
 			SEPAProtocolException, SEPABindingsException {
-		Logging.logger.debug("Aggregator");
+		Logging.getLogger().debug("Aggregator");
 		
 		consumerRandom1.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
-		Logging.logger.debug("Aggregator first subscribe ok");
+		Logging.getLogger().debug("Aggregator first subscribe ok");
 
 		
 		randomAggregator.syncSubscribe(provider.TIMEOUT, provider.NRETRY);
-		Logging.logger.debug("Aggregator second subscribe ok");
+		Logging.getLogger().debug("Aggregator second subscribe ok");
 
 		Response ret = randomProducer.update(provider.TIMEOUT, provider.NRETRY);
 		assertFalse(ret.isError(),ret.toString());
-		Logging.logger.debug("Aggregator Update Done");
+		Logging.getLogger().debug("Aggregator Update Done");
 
 		randomAggregator.waitNotification();
 		consumerRandom1.waitNotification();
-		Logging.logger.debug("Aggregator stop");
+		Logging.getLogger().debug("Aggregator stop");
 		
 		consumerRandom1.syncUnsubscribe(provider.TIMEOUT, provider.NRETRY);
 		randomAggregator.syncUnsubscribe(provider.TIMEOUT, provider.NRETRY);

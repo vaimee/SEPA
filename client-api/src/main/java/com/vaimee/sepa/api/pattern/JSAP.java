@@ -24,7 +24,7 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.Map.Entry;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.jena.atlas.io.IndentedLineBuffer;
 import org.apache.jena.atlas.io.IndentedWriter;
 import org.apache.jena.query.QueryParseException;
@@ -262,13 +262,13 @@ public class JSAP extends SPARQL11SEProperties {
 
 		Map<String, String> envs = System.getenv();
 		for(String var : envs.keySet()) {
-			Logging.logger.trace("Environmental variable "+var+" : "+envs.get(var));
+			Logging.getLogger().trace("Environmental variable "+var+" : "+envs.get(var));
 			setJsapParameter("-"+var, envs.get(var));
 		}
 
 		if (args != null)
 			for (int i = 0; i < args.length; i++) {
-				Logging.logger.trace("Argument  "+args[i]);
+				Logging.getLogger().trace("Argument  "+args[i]);
 				String[] params = args[i].split("=");
 				if (params.length == 2) {
 					setJsapParameter(params[0], params[1]);
@@ -424,14 +424,14 @@ public class JSAP extends SPARQL11SEProperties {
 			prefixes.setNsPrefix(prefix, namespaces.get(prefix));
 			// prefixes += "PREFIX " + prefix + ":<" + namespaces.get(prefix) + "> ";
 		}
-		Logging.logger.trace("Prefixes map: " + prefixes.toString());
+		Logging.getLogger().trace("Prefixes map: " + prefixes.toString());
 		prologue = "";
 		StringBuilder sb = new StringBuilder();
 		for (String pre : getPrefixes().getNsPrefixMap().keySet()) {
 			sb.append("PREFIX ").append(pre).append(":<").append(getPrefixes().getNsPrefixURI(pre)).append("> ");
         }
 		prologue = sb.toString();
-		Logging.logger.trace("Prefixes SPARQL: " + prologue);
+		Logging.getLogger().trace("Prefixes SPARQL: " + prologue);
 
 	}
 
@@ -893,14 +893,14 @@ public class JSAP extends SPARQL11SEProperties {
 					bindingValue = new RDFTermBNode(value);
 					break;
 				default:
-					Logging.logger.error("JSAP unknown type: " + binding.getValue().type);
+					Logging.getLogger().error("JSAP unknown type: " + binding.getValue().type);
 					continue;
 				}
 
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
-			Logging.logger.error("getUpdateBindings " + id + " exception: " + e.getMessage());
+			Logging.getLogger().error("getUpdateBindings " + id + " exception: " + e.getMessage());
 		}
 
 		return ret;
@@ -937,14 +937,14 @@ public class JSAP extends SPARQL11SEProperties {
 					bindingValue = new RDFTermBNode(value);
 					break;
 				default:
-					Logging.logger.error("JSAP unknown type: " + binding);
+					Logging.getLogger().error("JSAP unknown type: " + binding);
 					continue;
 				}
 
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
-			Logging.logger.error("getUpdateBindings " + id + " exception: " + e.getMessage());
+			Logging.getLogger().error("getUpdateBindings " + id + " exception: " + e.getMessage());
 		}
 
 		return ret;
@@ -981,14 +981,14 @@ public class JSAP extends SPARQL11SEProperties {
 					bindingValue = new RDFTermBNode(value);
 					break;
 				default:
-					Logging.logger.error("JSAP unknown type: " + binding);
+					Logging.getLogger().error("JSAP unknown type: " + binding);
 					continue;
 				}
 
 				ret.addBinding(binding.getKey(), bindingValue);
 			}
 		} catch (Exception e) {
-			Logging.logger.error("getQueryBindings " + id + " exception: " + e.getMessage());
+			Logging.getLogger().error("getQueryBindings " + id + " exception: " + e.getMessage());
 		}
 
 		return ret;
@@ -1182,7 +1182,7 @@ public class JSAP extends SPARQL11SEProperties {
 					try {
 						uri = new URI(datatype);
 					} catch (URISyntaxException e) {
-						Logging.logger.error(e.getMessage());
+						Logging.getLogger().error(e.getMessage());
 					}
 
 					if (uri != null) {
@@ -1217,7 +1217,7 @@ public class JSAP extends SPARQL11SEProperties {
 				try {
 					uri = new URI(value);
 				} catch (URISyntaxException e) {
-					Logging.logger.error(e.getMessage());
+					Logging.getLogger().error(e.getMessage());
 				}
 
 				if (uri != null) {
@@ -1226,7 +1226,7 @@ public class JSAP extends SPARQL11SEProperties {
 				}
 			} else {
 				// A blank node
-				Logging.logger.trace("Blank node: " + value);
+				Logging.getLogger().trace("Blank node: " + value);
 
 				// Not a BLANK_NODE_LABEL
 				// [142] BLANK_NODE_LABEL ::= '_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')*
@@ -1347,7 +1347,7 @@ public class JSAP extends SPARQL11SEProperties {
 						try {
 							uri = new URI(datatype);
 						} catch (URISyntaxException e) {
-							Logging.logger.error(e.getMessage());
+							Logging.getLogger().error(e.getMessage());
 						}
 
 						if (uri != null) {
@@ -1382,7 +1382,7 @@ public class JSAP extends SPARQL11SEProperties {
 					try {
 						uri = new URI(value);
 					} catch (URISyntaxException e) {
-						Logging.logger.error(e.getMessage());
+						Logging.getLogger().error(e.getMessage());
 					}
 
 					if (uri != null) {
@@ -1391,7 +1391,7 @@ public class JSAP extends SPARQL11SEProperties {
 					}
 				} else {
 					// A blank node
-					Logging.logger.trace("Blank node: " + value);
+					Logging.getLogger().trace("Blank node: " + value);
 
 					// Not a BLANK_NODE_LABEL
 					// [142] BLANK_NODE_LABEL ::= '_:' ( PN_CHARS_U | [0-9] ) ((PN_CHARS|'.')*

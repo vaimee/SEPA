@@ -40,18 +40,18 @@ public class WebsocketGate extends Gate {
 	public void send(Response ret) throws SEPAProtocolException {
 		try{
 			socket.send(ret.toString());
-			Logging.logger.trace("Sent: "+ret);
+			Logging.getLogger().trace("Sent: "+ret);
 		}
 		catch(WebsocketNotConnectedException e){
-			Logging.logger.error("WebsocketNotConnectedException "+e.getMessage());
+			Logging.getLogger().error("WebsocketNotConnectedException "+e.getMessage());
 			isConnected = false;
 			if (ret.isNotification()) {
 				Notification notify = (Notification) ret;
-				Logging.logger.error("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
+				Logging.getLogger().error("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
 				throw new SEPAProtocolException("WebsocketNotConnectedException failed to send notification SPUID: "+notify.getSpuid()+" Sequence: "+notify.getSequence());
 			}
 			else {
-				Logging.logger.error("WebsocketNotConnectedException failed to send error response "+ret);
+				Logging.getLogger().error("WebsocketNotConnectedException failed to send error response "+ret);
 				throw new SEPAProtocolException("WebsocketNotConnectedException failed to send error response "+ret);
 			}
 		}	

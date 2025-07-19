@@ -44,7 +44,7 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 			client.subscribe(provider.buildSubscribeRequest(id));
 			//if (sm != null) sm.close();
 		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException  e2) {
-			Logging.logger.error(e2.getMessage());
+			Logging.getLogger().error(e2.getMessage());
 			return;
 		}
 
@@ -64,7 +64,7 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 				try {
 					client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
 				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
-					Logging.logger.error(e.getMessage());
+					Logging.getLogger().error(e.getMessage());
 				}
 			client.notify();
 			client.close();
@@ -75,35 +75,35 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 
 	@Override
 	public void onSemanticEvent(Notification notify) {
-		Logging.logger.debug(notify);
+		Logging.getLogger().debug(notify);
 		handler.onSemanticEvent(notify);
 	}
 
 	@Override
 	public void onBrokenConnection(ErrorResponse errorResponse) {
 		if (errorResponse.getStatusCode() != 1000)
-			Logging.logger.error(errorResponse);
+			Logging.getLogger().error(errorResponse);
 		else
-			Logging.logger.warn(errorResponse);
+			Logging.getLogger().warn(errorResponse);
 		handler.onBrokenConnection(errorResponse);
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		Logging.logger.error(errorResponse);
+		Logging.getLogger().error(errorResponse);
 		handler.onError(errorResponse);
 	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		Logging.logger.debug("onSubscribe: " + spuid + " alias: " + alias);
+		Logging.getLogger().debug("onSubscribe: " + spuid + " alias: " + alias);
 		this.spuid = spuid;
 		handler.onSubscribe(spuid, alias);
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		Logging.logger.debug("onUnsubscribe: " + spuid);
+		Logging.getLogger().debug("onUnsubscribe: " + spuid);
 		handler.onUnsubscribe(spuid);
 	}
 }

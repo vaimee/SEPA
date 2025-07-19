@@ -64,25 +64,25 @@ class QueryProcessor implements QueryProcessorMBean {
 			long stop = Timings.getTime();
 			
 			UpdateProcessorBeans.timings(start, stop);
-			Logging.logger.trace("Response: " + ret.toString());
+			Logging.getLogger().trace("Response: " + ret.toString());
 			Timings.log("QUERY_PROCESSING_TIME", start, stop);
 			
 			n++;
 			
 			if (ret.isTimeoutError()) {
 				QueryProcessorBeans.timedOutRequest();
-				Logging.logger.error("*** TIMEOUT *** ("+n+"/"+QueryProcessorBeans.getTimeoutNRetry()+") "+req);
+				Logging.getLogger().error("*** TIMEOUT *** ("+n+"/"+QueryProcessorBeans.getTimeoutNRetry()+") "+req);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					Logging.logger.warn("Failed to sleep...");
+					Logging.getLogger().warn("Failed to sleep...");
 				}
 			}
 		} while(ret.isTimeoutError() && n < QueryProcessorBeans.getTimeoutNRetry());
 		
 		// Request ABORTED
 		if (ret.isTimeoutError()) {
-			Logging.logger.error("*** REQUEST ABORTED *** "+request);
+			Logging.getLogger().error("*** REQUEST ABORTED *** "+request);
 			QueryProcessorBeans.abortedRequest();
 		}
 		

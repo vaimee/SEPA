@@ -69,7 +69,7 @@ public class JWTResponse extends Response {
 		try {
 			json.add("expires_in", new JsonPrimitive(token.getJWTClaimsSet().getExpirationTime().getTime()-token.getJWTClaimsSet().getIssueTime().getTime()));
 		} catch (ParseException e) {
-			Logging.logger.error(e.getMessage());
+			Logging.getLogger().error(e.getMessage());
 			throw new SEPASecurityException(e);
 		}
 	}

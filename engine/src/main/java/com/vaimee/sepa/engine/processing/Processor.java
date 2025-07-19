@@ -154,7 +154,7 @@ public class Processor implements ProcessorMBean {
 
 		// STOP processing?
 		if (ret.isError()) {
-			Logging.logger.error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
+			Logging.getLogger().error("*** UPDATE ENDPOINT PROCESSING FAILED *** " + ret);
 			spuManager.abortSubscriptionsProcessing();
 			return ret;
 		}

@@ -54,7 +54,7 @@ class UpdateProcessor implements UpdateProcessorMBean {
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
 				req.getDefaultGraphUri(), req.getNamedGraphUri(), req.getBasicAuthorizationHeader(),
 				UpdateProcessorBeans.getTimeout(), 0);
-		Logging.logger.trace(request);
+		Logging.getLogger().trace(request);
 
 		Response ret;
 		int n = 0;
@@ -65,24 +65,24 @@ class UpdateProcessor implements UpdateProcessorMBean {
 
 			UpdateProcessorBeans.timings(start, stop);
 
-			Logging.logger.trace("Response: " + ret.toString());
+			Logging.getLogger().trace("Response: " + ret.toString());
 			Timings.log("UPDATE_PROCESSING_TIME", start, stop);
 
 			n++;
 
 			if (ret.isTimeoutError()) {
 				UpdateProcessorBeans.timedOutRequest();
-				Logging.logger.error("*TIMEOUT* (" + n + "/" + UpdateProcessorBeans.getTimeoutNRetry() + ") " + req);
+				Logging.getLogger().error("*TIMEOUT* (" + n + "/" + UpdateProcessorBeans.getTimeoutNRetry() + ") " + req);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					Logging.logger.warn("Failed to sleep...");
+					Logging.getLogger().warn("Failed to sleep...");
 				}
 			}
 		} while (ret.isTimeoutError() && n < UpdateProcessorBeans.getTimeoutNRetry());
 
 		if (ret.isTimeoutError()) {
-			Logging.logger.error("*** REQUEST ABORTED *** " + request);
+			Logging.getLogger().error("*** REQUEST ABORTED *** " + request);
 			UpdateProcessorBeans.abortedRequest();
 		}
 

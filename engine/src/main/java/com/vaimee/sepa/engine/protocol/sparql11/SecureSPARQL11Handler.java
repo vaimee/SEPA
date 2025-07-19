@@ -99,17 +99,17 @@ According to RFC6749, the error member can assume the following values: invalid_
 		Header[] bearer = request.getHeaders("Authorization");
 
 		if (bearer.length == 0) {
-			Logging.logger.error("Authorization header is missing");
+			Logging.getLogger().error("Authorization header is missing");
 			return new ClientAuthorization("invalid_request","Authorization header is missing");
 		}
 
 		if (bearer.length > 1) {
-			Logging.logger.error("Multiple authorization headers not allowed");
+			Logging.getLogger().error("Multiple authorization headers not allowed");
 			return new ClientAuthorization("invalid_request","Multiple authorization headers not allowed");
 		}
 		
 		if (!bearer[0].getValue().toUpperCase().startsWith("BEARER ")) {
-			Logging.logger.error("Authorization must be ***Bearer JWT***");
+			Logging.getLogger().error("Authorization must be ***Bearer JWT***");
 			return new ClientAuthorization("unsupported_grant_type","Authorization header must be ***Bearer JWT***");
 		}
 

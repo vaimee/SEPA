@@ -44,7 +44,7 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 			try {
 				url = new URI(scheme + provider.getJsap().getSubscribeHost() + provider.getJsap().getSubscribePath());
 			} catch (URISyntaxException e) {
-				Logging.logger.error(e.getMessage());
+				Logging.getLogger().error(e.getMessage());
 				throw new SEPAProtocolException(e);
 			}
 		else
@@ -52,7 +52,7 @@ public class ITWebsocketClientEndpoint implements ISubscriptionHandler {
 				url = new URI(scheme + provider.getJsap().getSubscribeHost() + ":"
 						+ provider.getJsap().getSubscribePort() + provider.getJsap().getSubscribePath());
 			} catch (URISyntaxException e) {
-				Logging.logger.error(e.getMessage());
+				Logging.getLogger().error(e.getMessage());
 				throw new SEPAProtocolException(e);
 			}
 	}
