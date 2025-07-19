@@ -147,7 +147,7 @@ public class SPARQL11Properties {
 			try {
 				jsap = new Gson().fromJson(in, SPARQL11Properties.class);
 			} catch (JsonSyntaxException | JsonIOException  e) {
-				Logging.logger.error(e.getMessage());
+				Logging.getLogger().error(e.getMessage());
 				throw new SEPAPropertiesException(e);
 			}
 
@@ -164,14 +164,14 @@ public class SPARQL11Properties {
 
 		Map<String, String> envs = System.getenv();
 		for(String var : envs.keySet()) {
-			Logging.logger.trace("Environmental variable "+var+" : "+envs.get(var));
+			Logging.getLogger().trace("Environmental variable "+var+" : "+envs.get(var));
 			setParameter("-"+var, envs.get(var));
 		}
 
 		if (args != null)
 			// Setting values: -key=value
 			for (int i = 0; i < args.length; i++) {
-				Logging.logger.trace("Argument  "+args[i]);
+				Logging.getLogger().trace("Argument  "+args[i]);
 				String[] params = args[i].split("=");
 				if (params.length == 2) {
 					setParameter(params[0], params[1]);
@@ -227,26 +227,26 @@ public class SPARQL11Properties {
 	protected Reader getReaderFromUri(URI uri) throws SEPAPropertiesException {
 		Reader in;
 
-		Logging.logger.trace("Get reader from URI, trying STREAM: "+uri);
+		Logging.getLogger().trace("Get reader from URI, trying STREAM: "+uri);
 		try {
 			in = new BufferedReader(
 					new InputStreamReader(uri.toURL().openStream()));
-			Logging.logger.trace("Success");
+			Logging.getLogger().trace("Success");
 		} catch (IOException | IllegalArgumentException e) {
-			Logging.logger.trace("Failed to get input stream: "+e.getMessage());
+			Logging.getLogger().trace("Failed to get input stream: "+e.getMessage());
 			try {
-				Logging.logger.trace("Get reader from URI, trying FILE: "+uri);
+				Logging.getLogger().trace("Get reader from URI, trying FILE: "+uri);
 				in = new FileReader(Path.of(uri.toASCIIString()).toFile());
-				Logging.logger.trace("Success");
+				Logging.getLogger().trace("Success");
 			} catch (FileNotFoundException ex) {
-				Logging.logger.trace("Failed to get file reader: "+ex.getMessage());
-				Logging.logger.trace("Get reader from URI, trying RESOURCE: "+uri);
+				Logging.getLogger().trace("Failed to get file reader: "+ex.getMessage());
+				Logging.getLogger().trace("Get reader from URI, trying RESOURCE: "+uri);
 				if (getClass().getClassLoader().getResourceAsStream(uri.toASCIIString()) == null) {
-					Logging.logger.trace("Resource not found: "+uri);
+					Logging.getLogger().trace("Resource not found: "+uri);
 					throw new SEPAPropertiesException("Resource not found: "+uri);
 				}
 				in = new InputStreamReader(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(uri.toASCIIString())));
-				Logging.logger.trace("Success");
+				Logging.getLogger().trace("Success");
 			}
 		}
 

@@ -47,7 +47,7 @@ public abstract class InternalUQRequest extends InternalRequest {
 		this.sparql = evaluateFunctions(sparql);
 		
 		rdfDataSet = getGraphURIs(sparql);
-		Logging.logger.debug("getGraphURIs: "+rdfDataSet);
+		Logging.getLogger().debug("getGraphURIs: "+rdfDataSet);
 		
 		if (defaultGraphUri != null) this.defaultGraphUri = defaultGraphUri;
 		if (namedGraphUri != null) this.namedGraphUri = namedGraphUri;
@@ -58,7 +58,7 @@ public abstract class InternalUQRequest extends InternalRequest {
 		rdfDataSet.addAll(this.defaultGraphUri);
 		rdfDataSet.addAll(this.namedGraphUri);
 		
-		Logging.logger.debug("RDF DATASET: "+ rdfDataSet);
+		Logging.getLogger().debug("RDF DATASET: "+ rdfDataSet);
 	}
 	
 	protected abstract Set<String> getGraphURIs(String sparql) throws SEPASparqlParsingException;

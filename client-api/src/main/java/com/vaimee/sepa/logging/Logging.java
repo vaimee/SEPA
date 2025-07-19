@@ -15,18 +15,18 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 
 public class Logging {
+	public static Level Level;
+//	private final Logger _logger;
+//	public Logging() {
+//		init();
+//		_logger = LogManager.getLogger();
+//	}
 
-	private final Logger _logger;
-	public Logging() {
-		//init();
-		_logger = LogManager.getLogger();
+	public static Logger getLogger(){
+		return LogManager.getLogger();
 	}
 
-	public Logger getLogger(){
-		return _logger;
-	}
-
-	public static final Logger logger = LogManager.getLogger();
+//	public static final Logger logger = LogManager.getLogger();
 
 	public static Level getLevel(String level) {
 		return (Level.getLevel(level) == null ? Level.DEBUG : Level.getLevel(level));
@@ -57,7 +57,7 @@ public class Logging {
 			}
 		}
 		
-		System.out.println("| Logger level: " + logger.getLevel().toString());
+		System.out.println("| Logger level: " + getLogger().getLevel().toString());
 		System.out.println("|---------------------------------");
 	}
 }

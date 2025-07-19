@@ -42,12 +42,12 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		super(appProfile, subscribeID);
 
 		if (updateID == null) {
-			Logging.logger.fatal("Update ID is null");
+			Logging.getLogger().fatal("Update ID is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Update ID is null null"));
 		}
 
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
-			Logging.logger.fatal("UPDATE ID " + updateID + " not found");
+			Logging.getLogger().fatal("UPDATE ID " + updateID + " not found");
 			throw new IllegalArgumentException("UPDATE ID " + updateID + " not found");
 		}
 
@@ -73,7 +73,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 					appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addUpdateDefaultDatatype(updateForcedBindings,updateId,false)),
 					appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),authorizationHeader,timeout,nRetry);
 		
-		Logging.logger.trace("UPDATE "+req);
+		Logging.getLogger().trace("UPDATE "+req);
 		
 		 Response retResponse = sparql11.update(req);
 		 
@@ -93,11 +93,11 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		long stop = Timings.getTime();
 		Timings.log("multipleUpdate create UpdateRequest", start, stop);
 		
-		Logging.logger.trace(req);
+		Logging.getLogger().trace(req);
 
 		Response retResponse = sparql11.update(req);
 
-		Logging.logger.trace(retResponse);
+		Logging.getLogger().trace(retResponse);
 
 		return retResponse;
 	}

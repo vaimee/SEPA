@@ -51,12 +51,12 @@ public abstract class Client implements java.io.Closeable {
 	
 	public Client(JSAP appProfile) throws SEPAProtocolException, SEPASecurityException, SEPAPropertiesException {
 		if (appProfile == null) {
-			Logging.logger.fatal("Application profile is null. Client cannot be initialized");
+			Logging.getLogger().fatal("Application profile is null. Client cannot be initialized");
 			throw new SEPAProtocolException(new IllegalArgumentException("Application profile is null"));
 		}
 		this.appProfile = appProfile;
 
-		Logging.logger.trace("SEPA parameters: " + appProfile);
+		Logging.getLogger().trace("SEPA parameters: " + appProfile);
 
 		// Security manager
 		if (appProfile.isSecure()) {
@@ -70,7 +70,7 @@ public abstract class Client implements java.io.Closeable {
 			if (oauth.isTokenExpired()) {
 				Response ret = sm.refreshToken();
 				if (ret.isError()) {
-					Logging.logger.error(ret);
+					Logging.getLogger().error(ret);
 					throw new SEPASecurityException(ret.toString());
 				}
 			}

@@ -35,8 +35,6 @@ import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.modify.UpdateResult;
 import org.apache.jena.system.Txn;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
@@ -55,7 +53,7 @@ urn:x-arq:DefaultGraph	The default graph of the dataset, used when the default g
 */
 
 public class JenaInMemoryEndpoint implements SPARQLEndpoint{
-	protected static final Logger logger = LogManager.getLogger();
+//	protected static final Logger logger = LogManager.getLogger();
 
 	private static Dataset dataset;
         private static boolean       hasInit;

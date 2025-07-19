@@ -50,8 +50,8 @@ class QueryProcessingThread extends Thread{
 			try {
 				ret = processor.processQuery(query);
 			} catch (SEPASecurityException | IOException e) {
-				Logging.logger.error(e.getMessage());
-				if (Logging.logger.isTraceEnabled()) e.printStackTrace();
+				Logging.getLogger().error(e.getMessage());
+				if (Logging.getLogger().isTraceEnabled()) e.printStackTrace();
 				ret = new ErrorResponse(401,"SEPASecurityException",e.getMessage());
 			}
 			

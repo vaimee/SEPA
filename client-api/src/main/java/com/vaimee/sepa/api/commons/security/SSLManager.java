@@ -112,23 +112,23 @@ public class SSLManager implements HostnameVerifier {
 	
 	static TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
 		public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-			Logging.logger.debug("getAcceptedIssuers");
+			Logging.getLogger().debug("getAcceptedIssuers");
 			return new X509Certificate[0];
 		}
 
 		public void checkClientTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			Logging.logger.debug("checkClientTrusted");
+			Logging.getLogger().debug("checkClientTrusted");
 		}
 
 		public void checkServerTrusted(java.security.cert.X509Certificate[] certs, String authType) {
-			Logging.logger.debug("checkServerTrusted");
+			Logging.getLogger().debug("checkServerTrusted");
 		}
 	} };
 	
 	@Override
 	public boolean verify(String hostname, SSLSession session) {
 		// TODO IMPORTANT Verify X.509 certificate
-		Logging.logger.debug("*** Hostname always VERIFIED ***" + hostname + " SSLSession: " + session);
+		Logging.getLogger().debug("*** Hostname always VERIFIED ***" + hostname + " SSLSession: " + session);
 
 		return true;
 	}
@@ -142,7 +142,7 @@ public class SSLManager implements HostnameVerifier {
 			ctx.init(null, trustAllCerts, new java.security.SecureRandom());
 			sslsf = new SSLConnectionSocketFactory(ctx, protocols, null, this);
 		} catch (KeyManagementException | NoSuchAlgorithmException e) {
-			Logging.logger.error(e.getMessage());
+			Logging.getLogger().error(e.getMessage());
 			throw new SEPASecurityException(e.getMessage());
 		}
 		HttpClientBuilder clientFactory = HttpClients.custom().setSSLSocketFactory(sslsf);
@@ -161,7 +161,7 @@ public class SSLManager implements HostnameVerifier {
 			sslsf = new SSLConnectionSocketFactory(ctx, protocols, null, this);
 		} catch (KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException
 				| IOException e) {
-			Logging.logger.error(e.getMessage());
+			Logging.getLogger().error(e.getMessage());
 			throw new SEPASecurityException(e.getMessage());
 		}
 		HttpClientBuilder clientFactory = HttpClients.custom().setSSLSocketFactory(sslsf);
@@ -191,7 +191,7 @@ public class SSLManager implements HostnameVerifier {
 					.build();
 		} catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException | CertificateException |
                  IOException | UnrecoverableKeyException e) {
-			Logging.logger.error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
+			Logging.getLogger().error("getSSLContextFromJKS jksName:"+jksName+" jksPassword:"+jksPassword+" error:"+e.getMessage());
 
 		}
         return sslContext;

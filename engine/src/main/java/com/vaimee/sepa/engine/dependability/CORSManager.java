@@ -39,25 +39,25 @@ class CORSManager {
 	 */
 	public static boolean processCORSRequest(HttpAsyncExchange exchange){
 		if(exchange.getRequest().getRequestLine().getMethod().toUpperCase().equals("OPTIONS")) {
-			Logging.logger.debug("CORS pre-flight request");
+			Logging.getLogger().debug("CORS pre-flight request");
 	
 			/*
 			 * If the Origin header is not present terminate this set of steps. The request is outside the scope of this specification.
 			 */
-			Logging.logger.debug("Get Origin header");
+			Logging.getLogger().debug("Get Origin header");
 			Header[] origins = exchange.getRequest().getHeaders("Origin");
 			if (origins.length != 1) {
-				Logging.logger.debug("Origin header is not present. Number of origin headers: "+origins.length);
+				Logging.getLogger().debug("Origin header is not present. Number of origin headers: "+origins.length);
 				return false;
 			}
 			
 			String allowOrigin = origins[0].getValue();	
-			Logging.logger.debug("Check origin: "+allowOrigin);
+			Logging.getLogger().debug("Check origin: "+allowOrigin);
 			if(!allowedOrigin(allowOrigin)) {
-				Logging.logger.debug("Origin: "+allowOrigin+" is not allowed");
+				Logging.getLogger().debug("Origin: "+allowOrigin+" is not allowed");
 				return false;
 			}
-			Logging.logger.debug("Origin: "+allowOrigin+ " ALLOWED");
+			Logging.getLogger().debug("Origin: "+allowOrigin+ " ALLOWED");
 			
 			/*
 			 * Let method be the value as result of parsing the Access-Control-Request-Method header.
@@ -65,20 +65,20 @@ class CORSManager {
 			 * The request is outside the scope of this specification.
 			 */
 			
-			Logging.logger.debug("Get Access-Control-Request-Method header");
+			Logging.getLogger().debug("Get Access-Control-Request-Method header");
 			Header[] methods = exchange.getRequest().getHeaders("Access-Control-Request-Method" );
 			if (methods.length != 1) {
-				Logging.logger.debug("Method not specified. Number of methods:"+methods.length);
+				Logging.getLogger().debug("Method not specified. Number of methods:"+methods.length);
 				return false;
 			}
 			
 			String allowMethod = methods[0].getValue();
-			Logging.logger.debug("Check method: "+allowMethod);
+			Logging.getLogger().debug("Check method: "+allowMethod);
 			if(!allowedMethod(allowMethod)) {
-				Logging.logger.debug("Method: "+allowMethod+ " NOT allowed");
+				Logging.getLogger().debug("Method: "+allowMethod+ " NOT allowed");
 				return false;
 			}
-			Logging.logger.debug("Method: "+allowMethod+ " ALLOWED");
+			Logging.getLogger().debug("Method: "+allowMethod+ " ALLOWED");
 			
 			/*
 			 * Let header field-names be the values as result of parsing the Access-Control-Request-Headers headers.
@@ -114,14 +114,14 @@ class CORSManager {
 			if (!fieldNames.equals("")) exchange.getResponse().addHeader("Access-Control-Allow-Headers", fieldNames);		   
 			
 			for (Header head : exchange.getResponse().getAllHeaders())
-				Logging.logger.debug(head);
+				Logging.getLogger().debug(head);
 			return true;
 		}
 		else {
 			/*
 			 * If the Origin header is not present terminate this set of steps. The request is outside the scope of this specification.
 			 */
-			Logging.logger.trace("Method: "+ exchange.getRequest().getRequestLine().getMethod().toUpperCase()+" should be OPTIONS");
+			Logging.getLogger().trace("Method: "+ exchange.getRequest().getRequestLine().getMethod().toUpperCase()+" should be OPTIONS");
 			
 			String allowOrigin = null;
 			
@@ -151,7 +151,7 @@ class CORSManager {
 	 */
 	private static boolean allowedMethod(String allowMethod) {
 		//TODO check method against a list of allowed methods
-		Logging.logger.debug("All methods are allowed");
+		Logging.getLogger().debug("All methods are allowed");
 		return true;
 	}
 
@@ -160,7 +160,7 @@ class CORSManager {
 	 */
 	private static boolean allowedOrigin(String allowOrigin) {
 		//TODO check origin against a list of allowed origins
-		Logging.logger.debug("All origins are allowed");
+		Logging.getLogger().debug("All origins are allowed");
 		return true;
 	}
 

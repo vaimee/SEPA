@@ -45,7 +45,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 
 	public Scheduler(EngineProperties properties) {
 		if (properties == null) {
-			Logging.logger.error("Properties are null");
+			Logging.getLogger().error("Properties are null");
 			throw new IllegalArgumentException("Properties are null");
 		}
 
@@ -61,7 +61,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 
 	public ScheduledRequest schedule(InternalRequest request, ResponseHandler handler) {
 		if (request == null || handler == null) {
-			Logging.logger.error("Request handler or request are null");
+			Logging.getLogger().error("Request handler or request are null");
 			return null;
 		}
 
@@ -73,19 +73,19 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			// No more tokens
 			if (scheduled == null) {
 				SchedulerBeans.newRequest(request, false);
-				Logging.logger.error("Request refused: too many pending requests: " + request);
+				Logging.getLogger().error("Request refused: too many pending requests: " + request);
 				return null;
 			}
 
-			Logging.logger.debug(">> " + scheduled);
-			Logging.logger.trace(scheduled.getRequest());
+			Logging.getLogger().debug(">> " + scheduled);
+			Logging.getLogger().trace(scheduled.getRequest());
 			
 			Timings.log(request);
 
 			SchedulerBeans.newRequest(request, true);
 
 			// Register response handlers
-			Logging.logger.trace("Register handler: " + handler + " token: " + scheduled.getToken());
+			Logging.getLogger().trace("Register handler: " + handler + " token: " + scheduled.getToken());
 			responders.put(scheduled.getToken(), handler);
 		}
 
@@ -102,8 +102,8 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			try {
 				// Wait for response
 				ScheduledResponse response = queue.waitResponse();
-				Logging.logger.debug("<< " + response);
-				Logging.logger.trace(response.getResponse());
+				Logging.getLogger().debug("<< " + response);
+				Logging.getLogger().trace(response.getResponse());
 
 				// The token
 				int token = response.getToken();
@@ -112,14 +112,14 @@ public class Scheduler extends Thread implements SchedulerMBean {
 				synchronized (responders) {
 					ResponseHandler handler = responders.get(token);
 					if (handler == null) {
-						Logging.logger.warn("Response handler is null (token #" + token + "). Timeout already expired?");
+						Logging.getLogger().warn("Response handler is null (token #" + token + "). Timeout already expired?");
 
 					} else {
-						Logging.logger.trace("Handler: " + handler + " response: " + response);
+						Logging.getLogger().trace("Handler: " + handler + " response: " + response);
 						try {
 							handler.sendResponse(response.getResponse());
 						} catch (SEPAProtocolException e) {
-							Logging.logger.warn(e.getMessage());
+							Logging.getLogger().warn(e.getMessage());
 						}
 					}
 

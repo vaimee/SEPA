@@ -73,7 +73,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
+				<version>3.5.0</version>
 				<executions>
 					<!-- Run shade goal on package phase -->
 					<execution>
@@ -93,12 +93,24 @@
 								</transformer>
 							</transformers>
 							<filters>
+								<!-- Filtro generico: esclude metadati duplicati -->
 								<filter>
 									<artifact>*:*</artifact>
 									<excludes>
-										<exclude>META-INF/*.SF</exclude>
-										<exclude>META-INF/*.DSA</exclude>
-										<exclude>META-INF/*.RSA</exclude>
+										<exclude>module-info.class</exclude>
+										<exclude>META-INF/versions/**/module-info.class</exclude>
+										<exclude>META-INF/LICENSE*</exclude>
+										<exclude>META-INF/NOTICE*</exclude>
+										<exclude>META-INF/DEPENDENCIES</exclude>
+										<exclude>META-INF/LICENSE</exclude>
+										<exclude>META-INF/LICENSE.txt</exclude>
+										<exclude>META-INF/LICENSE.md</exclude>
+										<exclude>META-INF/NOTICE.md</exclude>
+										<exclude>META-INF/NOTICE.txt</exclude>
+										<exclude>META-INF/MANIFEST.MF</exclude>
+										<exclude>OSGI-INF/bundle.info</exclude>
+										<exclude>META-INF/maven/**</exclude>
+										<exclude>log4j2.xml</exclude>
 									</excludes>
 								</filter>
 							</filters>
@@ -110,225 +122,66 @@
 	</build>
 	<dependencies>
 		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-libs</artifactId>
-			<version>1.0.0</version>
-			<type>pom</type>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>jcl-over-slf4j</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-simple</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-log4j12</artifactId>
-				</exclusion>
-
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.glassfish</groupId>
-					<artifactId>jakarta.json</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.jena</groupId>
-					<artifactId>jena-arq</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.jena</groupId>
-					<artifactId>jena-dboe-base</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.jena</groupId>
-					<artifactId>jena-dboe-index</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.jena</groupId>
-					<artifactId>jena-dboe-storage</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.jena</groupId>
-					<artifactId>jena-rdfconnection</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.jena</groupId>
-					<artifactId>jena-shacl</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.jena</groupId>
-					<artifactId>jena-shex</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.jena</groupId>
-					<artifactId>jena-tdb</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.jena</groupId>
-					<artifactId>jena-tdb2</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpcore-nio</artifactId>
 			<version>4.4.16</version>
-		</dependency>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpcore</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-codec</groupId>
+					<artifactId>commons-codec</artifactId>
+				</exclusion>
 
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>client-api</artifactId>
-			<version>${revision}</version>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.directory.api</groupId>
 			<artifactId>api-all</artifactId>
-			<version>2.1.6</version>
+			<version>2.1.7</version>
 			<exclusions>
 				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>jcl-over-slf4j</artifactId>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-simple</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-log4j12</artifactId>
+					<groupId>commons-codec</groupId>
+					<artifactId>commons-codec</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-arq</artifactId>
-			<version>1.0.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.fasterxml.jackson</groupId>
-					<artifactId>jackson-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson</groupId>
-					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson</groupId>
-					<artifactId>jackson-annotations</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>jcl-over-slf4j</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-dboe-base</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-dboe-index</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-dboe-storage</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-dboe-trans-data</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-rdfconnection</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-shacl</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-shex</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-tdb</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-tdb2</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-core</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-base</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-iri</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-shaded-guava</artifactId>
-			<version>1.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-dboe-transaction</artifactId>
-			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>client-api</artifactId>
 			<version>${revision}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.commons</groupId>
+					<artifactId>commons-lang3</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpcore</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-codec</groupId>
+					<artifactId>commons-codec</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.36</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.36</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.java-websocket/Java-WebSocket -->
 		<dependency>
 			<groupId>org.java-websocket</groupId>
 			<artifactId>Java-WebSocket</artifactId>
 			<version>1.6.0</version>
+			<exclusions>
+
+			</exclusions>
 		</dependency>
 	</dependencies>
 

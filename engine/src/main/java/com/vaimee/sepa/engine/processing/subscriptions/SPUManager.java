@@ -90,14 +90,14 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		if (update.getClass().equals(InternalUpdateRequestWithQuads.class))
 			activeSpus = Subscriptions.filterOnQuads(activeSpus, (InternalUpdateRequestWithQuads) update);
 
-		Logging.logger.log(Logging.getLevel("SPUManager"), "*** subscriptionsProcessingPreUpdate ***");
+		Logging.getLogger().log(Logging.getLevel("SPUManager"), "*** subscriptionsProcessingPreUpdate ***");
 
 		// Start processing
 		long start = Timings.getTime();
 
 		// Copy active SPU pool
 		synchronized (activeSpus) {
-			Logging.logger.log(Logging.getLevel("SPUManager"),
+			Logging.getLogger().log(Logging.getLevel("SPUManager"),
 					"*** subscriptionsProcessing *** create processing pool. Active SPUs: " + activeSpus.size());
 
 			synchronized (processingPool) {
@@ -110,15 +110,15 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		}
 
 		synchronized (processingPool) {
-			Logging.logger.log(Logging.getLevel("SPUManager"), "*** subscriptionsProcessing *** start processing");
+			Logging.getLogger().log(Logging.getLevel("SPUManager"), "*** subscriptionsProcessing *** start processing");
 			for (SPU spu : processingPool) {
-				Logging.logger.log(Logging.getLevel("SPUManager"),
+				Logging.getLogger().log(Logging.getLevel("SPUManager"),
 						"*** subscriptionsProcessing *** start SPU: " + spu.getSPUID());
 
 				spu.preUpdateProcessing(update);
 			}
 
-			Logging.logger.log(Logging.getLevel("SPUManager"),
+			Logging.getLogger().log(Logging.getLevel("SPUManager"),
 					"*** PRE-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
 
 			// Wait all SPUs to complete processing
@@ -131,7 +131,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 					activeSpus.remove(spu);
 					processingPool.remove(spu);
 				}
-				Logging.logger.log(Logging.getLevel("SPUManager"),
+				Logging.getLogger().log(Logging.getLevel("SPUManager"),
 						String.format("Wait (%d ms) for %d SPUs to complete processing...",
 								SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size(),
 								processingPool.size()));
@@ -139,8 +139,8 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 				try {
 					if (!processingPool.isEmpty()) processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
 				} catch (InterruptedException e) {
-					Logging.logger.error(e.getMessage());
-					Logging.logger.error(e.getMessage());
+					Logging.getLogger().error(e.getMessage());
+					Logging.getLogger().error(e.getMessage());
 					brokenSpus.clear();
 					for (SPU spu : activeSpus) {
 						if (!spu.isAlive()) brokenSpus.add(spu);
@@ -157,18 +157,18 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		SPUManagerBeans.preProcessingTimings(start, stop);
 
-		Logging.logger.log(Logging.getLevel("SPUManager"), "*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
+		Logging.getLogger().log(Logging.getLevel("SPUManager"), "*** PRE-PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
 	public void subscriptionsProcessingPostUpdate(Response updateResponse) {
-		Logging.logger.log(Logging.getLevel("SPUManager"), "*** subscriptionsProcessingPostUpdate ***");
+		Logging.getLogger().log(Logging.getLevel("SPUManager"), "*** subscriptionsProcessingPostUpdate ***");
 
 		// Start processing
 		long start = Timings.getTime();
 
 		// Copy active SPU pool
 		synchronized (activeSpus) {
-			Logging.logger.log(Logging.getLevel("SPUManager"),
+			Logging.getLogger().log(Logging.getLevel("SPUManager"),
 					"*** subscriptionsProcessing *** create processing pool. Active SPUs: " + activeSpus.size());
 
 			synchronized (processingPool) {
@@ -181,15 +181,15 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		}
 
 		synchronized (processingPool) {
-			Logging.logger.log(Logging.getLevel("SPUManager"), "*** subscriptionsProcessing *** start processing");
+			Logging.getLogger().log(Logging.getLevel("SPUManager"), "*** subscriptionsProcessing *** start processing");
 			for (SPU spu : processingPool) {
-				Logging.logger.log(Logging.getLevel("SPUManager"),
+				Logging.getLogger().log(Logging.getLevel("SPUManager"),
 						"*** subscriptionsProcessing *** start SPU: " + spu.getSPUID());
 
 				spu.postUpdateProcessing(updateResponse);
 			}
 
-			Logging.logger.log(Logging.getLevel("SPUManager"),
+			Logging.getLogger().log(Logging.getLevel("SPUManager"),
 					"*** POST-PROCESSING UPDATE *** SPU processing pool size: " + processingPool.size());
 
 			// Wait all SPUs to complete processing
@@ -202,7 +202,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 					activeSpus.remove(spu);
 					processingPool.remove(spu);
 				}
-				Logging.logger.log(Logging.getLevel("SPUManager"),
+				Logging.getLogger().log(Logging.getLevel("SPUManager"),
 						String.format("Wait (%d ms) for %d SPUs to complete processing...",
 								SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size(),
 								processingPool.size()));
@@ -210,7 +210,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 				try {
 					if (!processingPool.isEmpty()) processingPool.wait(SPUManagerBeans.getSPUProcessingTimeout() * processingPool.size());
 				} catch (InterruptedException e) {
-					Logging.logger.error(e.getMessage());
+					Logging.getLogger().error(e.getMessage());
 					brokenSpus.clear();
 					for (SPU spu : activeSpus) {
 						if (!spu.isAlive()) brokenSpus.add(spu);
@@ -227,22 +227,22 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		SPUManagerBeans.postProcessingTimings(start, stop);
 
-		Logging.logger.log(Logging.getLevel("SPUManager"), "*** POST-PROCESSING SUBSCRIPTIONS END *** ");
+		Logging.getLogger().log(Logging.getLevel("SPUManager"), "*** POST-PROCESSING SUBSCRIPTIONS END *** ");
 	}
 
 	void endOfProcessing(SPU s) {
-		Logging.logger.log(Logging.getLevel("SPUManager"), "@endOfProcessing  SPUID: " + s.getSPUID());
+		Logging.getLogger().log(Logging.getLevel("SPUManager"), "@endOfProcessing  SPUID: " + s.getSPUID());
 
 		synchronized (processingPool) {
-			Logging.logger.log(Logging.getLevel("SPUManager"), "@endOfProcessing remove: " + s.getSPUID());
+			Logging.getLogger().log(Logging.getLevel("SPUManager"), "@endOfProcessing remove: " + s.getSPUID());
 			processingPool.remove(s);
-			Logging.logger.log(Logging.getLevel("SPUManager"), "@endOfProcessing notify processing pool");
+			Logging.getLogger().log(Logging.getLevel("SPUManager"), "@endOfProcessing notify processing pool");
 			processingPool.notify();
 		}
 	}
 
 	public Response subscribe(InternalSubscribeRequest req) {
-		Logging.logger.log(Logging.getLevel("SPUManager"), "@subscribe");
+		Logging.getLogger().log(Logging.getLevel("SPUManager"), "@subscribe");
 
 		SPUManagerBeans.subscribeRequest();
 
@@ -256,17 +256,17 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			// Initialize SPU
 			Response init;
 			try {
-				Logging.logger.log(Logging.getLevel("SPUManager"), "init SPU");
+				Logging.getLogger().log(Logging.getLevel("SPUManager"), "init SPU");
 				init = spu.init();
 			} catch (SEPASecurityException | IOException e) {
-				Logging.logger.error(e.getMessage());
-				if (Logging.logger.isTraceEnabled())
+				Logging.getLogger().error(e.getMessage());
+				if (Logging.getLogger().isTraceEnabled())
 					e.printStackTrace();
 				init = new ErrorResponse(401, "SEPASecurityException", e.getMessage());
 			}
 
 			if (init.isError()) {
-				Logging.logger.error("@subscribe SPU initialization failed: " + init);
+				Logging.getLogger().error("@subscribe SPU initialization failed: " + init);
 				if (req.getAlias() != null) {
 					((ErrorResponse) init).setAlias(req.getAlias());
 				}
@@ -275,12 +275,12 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			}
 
 			// Register request
-			Logging.logger.log(Logging.getLevel("SPUManager"), "Register SPU");
+			Logging.getLogger().log(Logging.getLevel("SPUManager"), "Register SPU");
 			Subscriptions.registerSubscribe(req, spu);
 
 			// Start the SPU thread
 			spu.setName(spu.getSPUID());
-			Logging.logger.log(Logging.getLevel("SPUManager"), "Start SPU");
+			Logging.getLogger().log(Logging.getLevel("SPUManager"), "Start SPU");
 			spu.start();
 		}
 
@@ -290,18 +290,18 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 	}
 
 //	public Response unsubscribe(String sid, String gid) {
-//		Logging.logger.log(Level.getLevel("SPUManager"), "@unsubscribe " + sid + " " + gid);
+//		Logging.getLogger().log(Level.getLevel("SPUManager"), "@unsubscribe " + sid + " " + gid);
 //		return internalUnsubscribe(sid, gid, true);
 //	}
 
 //	public void killSubscription(String sid, String gid) {
-//		Logging.logger.log(Level.getLevel("SPUManager"), "@killSubscription " + sid + " " + gid);
+//		Logging.getLogger().log(Level.getLevel("SPUManager"), "@killSubscription " + sid + " " + gid);
 //		internalUnsubscribe(sid, gid, false);
 //	}
 
 	public Response unsubscribe(String sid, String gid) {
 //	private Response internalUnsubscribe(String sid, String gid, boolean dep) {
-		Logging.logger.log(Logging.getLevel("SPUManager"), "@internalUnsubscribe " + sid + " " + gid);// + " " + dep);
+		Logging.getLogger().log(Logging.getLevel("SPUManager"), "@internalUnsubscribe " + sid + " " + gid);// + " " + dep);
 
 		try {
 //			Subscriber sub = Subscriptions.getSubscriber(sid);
@@ -315,7 +315,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			Subscriptions.removeSubscriber(sid);
 
 		} catch (SEPANotExistsException e) {
-			Logging.logger.warn("@internalUnsubscribe SID not found: " + sid);
+			Logging.getLogger().warn("@internalUnsubscribe SID not found: " + sid);
 			return new ErrorResponse(500, "sid_not_found", "Unregistering a not existing subscriber: " + sid);
 		}
 
@@ -327,10 +327,10 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 	@Override
 	public void notifyEvent(Notification notify) {
-		Logging.logger.log(Logging.getLevel("SPUManager"), "@notifyEvent");
+		Logging.getLogger().log(Logging.getLevel("SPUManager"), "@notifyEvent");
 
 		if (notify == null) {
-			Logging.logger.warn("Nothing to be notified");
+			Logging.getLogger().warn("Nothing to be notified");
 			return;
 		}
 

@@ -69,14 +69,14 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		try {
 			session = client.connectToServer(this, url);
 		} catch (DeploymentException | IOException e) {
-			Logging.logger.error("Connect to: "+url+" exception "+e.getClass().getName()+" "+e.getMessage());
+			Logging.getLogger().error("Connect to: "+url+" exception "+e.getClass().getName()+" "+e.getMessage());
 			throw new SEPAProtocolException(e.getMessage());
 		}
 	}
 
 	@Override
 	public void close() throws IOException {
-		Logging.logger.trace("Close");
+		Logging.getLogger().trace("Close");
 		
 		if (session != null)
 			session.close();
@@ -85,21 +85,21 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 	}
 
 	public void onOpen(Session session, EndpointConfig config) {
-		Logging.logger.trace("@onOpen session: " + session.getId());
+		Logging.getLogger().trace("@onOpen session: " + session.getId());
 
 		this.session = session;
 
 		session.addMessageHandler(String.class, new MessageHandler.Whole<String>() {
 			@Override
 			public void onMessage(String message) {
-				Logging.logger.trace("@onMessage: " + message);
+				Logging.getLogger().trace("@onMessage: " + message);
 
 				// Parse message
 				JsonObject jsonMessage = null;
 				try {
 					jsonMessage = new Gson().fromJson(message, JsonObject.class);
 				} catch (Exception e) {
-					Logging.logger.error("Exception on parsing message: " + message + " exception: " + e.getMessage());
+					Logging.getLogger().error("Exception on parsing message: " + message + " exception: " + e.getMessage());
 					return;
 				}
 
@@ -114,11 +114,11 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 						if (notification.has("alias"))
 							alias = notification.get("alias").getAsString();
 						try {
-							Logging.logger.trace("Subscribed: " + spuid + " alias: " + alias);
+							Logging.getLogger().trace("Subscribed: " + spuid + " alias: " + alias);
 							handler.onSubscribe(spuid, alias);
 						} catch (Exception e) {
 							e.printStackTrace();
-							Logging.logger.error("Exception on handling onSubscribe. Handler: " + handler + " Exception: "
+							Logging.getLogger().error("Exception on handling onSubscribe. Handler: " + handler + " Exception: "
 									+ e.getMessage());
 							return;
 						}
@@ -126,47 +126,47 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 
 					// Event
 					try {
-						Logging.logger.trace("Message received: " + jsonMessage);
+						Logging.getLogger().trace("Message received: " + jsonMessage);
 						Notification notify = new Notification(jsonMessage);
-						Logging.logger.trace("Notification: " + notify);
+						Logging.getLogger().trace("Notification: " + notify);
 						handler.onSemanticEvent(notify);
 					} catch (Exception e) {
-						Logging.logger.error("Exception on handling onSemanticEvent. Handler: " + handler + " Exception: "
+						Logging.getLogger().error("Exception on handling onSemanticEvent. Handler: " + handler + " Exception: "
 								+ e.getMessage());
 					}
 				} else if (jsonMessage.has("error")) {
 					ErrorResponse error = new ErrorResponse(jsonMessage.get("status_code").getAsInt(),
 							jsonMessage.get("error").getAsString(), jsonMessage.get("error_description").getAsString());
-					Logging.logger.error(error);
+					Logging.getLogger().error(error);
 					try {
 						handler.onError(error);
 					} catch (Exception e) {
 						e.printStackTrace();
-						Logging.logger.error(
+						Logging.getLogger().error(
 								"Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
 					}
 				} else if (jsonMessage.has("unsubscribed")) {
-					Logging.logger.debug("unsubscribed");
+					Logging.getLogger().debug("unsubscribed");
 					try {
 						handler.onUnsubscribe(
 								jsonMessage.get("unsubscribed").getAsJsonObject().get("spuid").getAsString());
 					} catch (Exception e) {
-						Logging.logger.error("Exception on handling onUnsubscribe. Handler: " + handler + " Exception: "
+						Logging.getLogger().error("Exception on handling onUnsubscribe. Handler: " + handler + " Exception: "
 								+ e.getMessage());
 					}
 				} else
-					Logging.logger.error("Unknown message: " + message);
+					Logging.getLogger().error("Unknown message: " + message);
 			}
 		});
 	}
 
 	public void onClose(Session session, CloseReason closeReason) {
-		Logging.logger.warn("onClose session: " + session + " reason: " + closeReason);
+		Logging.getLogger().warn("onClose session: " + session + " reason: " + closeReason);
 
 		try {
 			handler.onBrokenConnection(new ErrorResponse(closeReason.getCloseCode().getCode(), closeReason.getCloseCode().toString(), closeReason.getReasonPhrase()));
 		} catch (Exception e) {
-			Logging.logger.error(
+			Logging.getLogger().error(
 					"Exception on handling onBrokenConnection. Handler: " + handler + " Exception: " + e.getMessage());
 		}
 	}
@@ -185,14 +185,14 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		}
 		
 		if (error.getStatusCode() != 1000) {
-			Logging.logger.error(error);
+			Logging.getLogger().error(error);
 			try {
 				handler.onError(error);
 			} catch (Exception e) {
-				Logging.logger.error("Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
+				Logging.getLogger().error("Exception on handling onError. Handler: " + handler + " Exception: " + e.getMessage());
 			}
 		}
-		else Logging.logger.warn(error);
+		else Logging.getLogger().warn(error);
 
 	}
 

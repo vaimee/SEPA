@@ -83,7 +83,7 @@ public class HttpUtilities {
 				body = EntityUtils.toString(entity);
 			} catch (ParseException | IOException e) {
 				body = e.getMessage();
-				Logging.logger.error(body);
+				Logging.getLogger().error(body);
 			}
 		}
 		return new JsonPrimitive(body);

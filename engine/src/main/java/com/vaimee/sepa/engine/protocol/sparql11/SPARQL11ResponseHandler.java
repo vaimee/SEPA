@@ -46,7 +46,7 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 		if (response.isError()) {
 			ErrorResponse err = (ErrorResponse) response;
 			HttpUtilities.sendFailureResponse(handler,err);
-			Logging.logger.error(err);
+			Logging.getLogger().error(err);
 			jmx.timeoutRequest();
 		}
 		else
@@ -54,6 +54,6 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 		
 		Timings.log(response);
 		jmx.stop(handler);
-		Logging.logger.trace(response);	
+		Logging.getLogger().trace(response);	
 	}
 }

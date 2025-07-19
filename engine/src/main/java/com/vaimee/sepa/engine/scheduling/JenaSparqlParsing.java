@@ -75,9 +75,9 @@ public class JenaSparqlParsing {
 		try {
 			new ParserSPARQL11Update().parse(sink, new Prologue(),sparql);
 		} catch (Exception e) {
-			Logging.logger.error("SPARQL: "+sparql+" MESSAGE: "+e.getMessage());
+			Logging.getLogger().error("SPARQL: "+sparql+" MESSAGE: "+e.getMessage());
 			throw new SEPASparqlParsingException("SPARQL: "+sparql+" MESSAGE: "+e.getMessage());
-//			Logging.logger.warn("Parsing exception "+e.getMessage());
+//			Logging.getLogger().warn("Parsing exception "+e.getMessage());
 //			rdfDataSet.add("*");
 //			return rdfDataSet;
 		}
@@ -211,33 +211,33 @@ public class JenaSparqlParsing {
 			return ret;
 
 		Query q = null;
-		Logging.logger.trace("Parsing query: " + sparql);
+		Logging.getLogger().trace("Parsing query: " + sparql);
 		try{
 			q = QueryFactory.create(sparql);
 		}
 		catch(Exception e) {
-//			Logging.logger.error("FAILED TO CREATE QUERY WITH JENA "+e.getMessage()+" Query "+sparql);
+//			Logging.getLogger().error("FAILED TO CREATE QUERY WITH JENA "+e.getMessage()+" Query "+sparql);
 //			ret.add("*");
 //			return ret;
-			Logging.logger.error(e.getMessage());
+			Logging.getLogger().error(e.getMessage());
 			throw new SEPASparqlParsingException(e.getMessage());
 		}
 
-		Logging.logger.trace("Get dataset descriptiors");
+		Logging.getLogger().trace("Get dataset descriptiors");
 		if (q.hasDatasetDescription()) {
-			Logging.logger.trace("Get default graph URIs");
+			Logging.getLogger().trace("Get default graph URIs");
 			for (String gr : q.getDatasetDescription().getDefaultGraphURIs()) {
 				ret.add(gr);
 			}
-			Logging.logger.trace("Get named graph URIs");
+			Logging.getLogger().trace("Get named graph URIs");
 			for (String gr : q.getDatasetDescription().getNamedGraphURIs()) {
 				ret.add(gr);
 			}
 		}
 
-		Logging.logger.trace("Get graph URIs");
+		Logging.getLogger().trace("Get graph URIs");
 		List<String> graphs = q.getGraphURIs();
-		Logging.logger.trace("Get named graph URIs");
+		Logging.getLogger().trace("Get named graph URIs");
 		List<String> namedGraphs = q.getNamedGraphURIs();
 
 		ret.addAll(extractGraphs(q.getQueryPattern()));
@@ -253,7 +253,7 @@ public class JenaSparqlParsing {
 		if (e == null)
 			return ret;
 
-		Logging.logger.trace("Extract graphs " + e);
+		Logging.getLogger().trace("Extract graphs " + e);
 		if (e.getClass().equals(ElementGroup.class)) {
 			ElementGroup group = (ElementGroup) e;
 			for (Element element : group.getElements()) {

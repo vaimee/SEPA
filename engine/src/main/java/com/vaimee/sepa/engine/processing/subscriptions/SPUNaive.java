@@ -42,51 +42,51 @@ class SPUNaive extends SPU {
 
 		this.spuid = "sepa://spu/naive/" + UUID.randomUUID();
 
-		Logging.logger.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
+		Logging.getLogger().debug("SPU: " + this.getSPUID() + " request: " + subscribe);
 	}
 
 	@Override
 	public Response init() throws SEPASecurityException, IOException {
-		Logging.logger.log(Logging.getLevel("spu"),"@init");
+		Logging.getLogger().log(Logging.getLevel("spu"),"@init");
 
 		// Process the SPARQL query
 		Response ret = manager.processQuery(subscribe);
 
 		if (ret.isError()) {
-			Logging.logger.error("Not initialized");
+			Logging.getLogger().error("Not initialized");
 			return ret;
 		}
 
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
 
-		Logging.logger.trace("First results: " + lastBindings.toString());
+		Logging.getLogger().trace("First results: " + lastBindings.toString());
 
 		return new SubscribeResponse(getSPUID(), subscribe.getAlias(), lastBindings);
 	}
 
 	@Override
 	public void preUpdateInternalProcessing(InternalUpdateRequest req) throws SEPAProcessingException {
-		Logging.logger.log(Logging.getLevel("spu"),"@preUpdateInternalProcessing");
+		Logging.getLogger().log(Logging.getLevel("spu"),"@preUpdateInternalProcessing");
 	}
 
 	@Override
 	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException {
-		Logging.logger.log(Logging.getLevel("spu"),"@postUpdateInternalProcessing");
+		Logging.getLogger().log(Logging.getLevel("spu"),"@postUpdateInternalProcessing");
 		
 		Response ret = null;
 
 		// Query the SPARQL processing service
 		try {
-			Logging.logger.log(Logging.getLevel("spu"),"Query endpoint");
+			Logging.getLogger().log(Logging.getLevel("spu"),"Query endpoint");
 			ret = manager.processQuery(subscribe);
 		} catch (SEPASecurityException | IOException e) {
-			if (Logging.logger.isTraceEnabled()) e.printStackTrace();
-			Logging.logger.log(Logging.getLevel("spu"),"Exception on query procesing "+e.getMessage());
+			if (Logging.getLogger().isTraceEnabled()) e.printStackTrace();
+			Logging.getLogger().log(Logging.getLevel("spu"),"Exception on query procesing "+e.getMessage());
 			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+e.getMessage());
 		}
 
 		if (ret.isError()) {
-			Logging.logger.log(Logging.getLevel("spu"),"SEPAProcessingException "+ret);
+			Logging.getLogger().log(Logging.getLevel("spu"),"SEPAProcessingException "+ret);
 			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+ret.toString());
 		}
 
@@ -102,8 +102,8 @@ class SPUNaive extends SPU {
 		if (lastBindings == null)
 			lastBindings = new BindingsResults(null, null);
 
-		Logging.logger.trace("Current bindings: " + currentBindings);
-		Logging.logger.trace("Last bindings: " + lastBindings);
+		Logging.getLogger().trace("Current bindings: " + currentBindings);
+		Logging.getLogger().trace("Last bindings: " + lastBindings);
 
 		// Find removed bindings
 		long start = System.nanoTime();
@@ -114,7 +114,7 @@ class SPUNaive extends SPU {
 				results.remove(solution);
 		}
 		long stop = System.nanoTime();
-		Logging.logger.trace("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
+		Logging.getLogger().trace("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
 
 		// Find added bindings
 		start = System.nanoTime();
@@ -123,7 +123,7 @@ class SPUNaive extends SPU {
 				added.add(solution);
 		}
 		stop = System.nanoTime();
-		Logging.logger.trace("Added bindings: " + added + " found in " + (stop - start) + " ns");
+		Logging.getLogger().trace("Added bindings: " + added + " found in " + (stop - start) + " ns");
 
 		// Update the last bindings with the current ones
 		lastBindings = currentBindings;
@@ -132,11 +132,11 @@ class SPUNaive extends SPU {
 
 		// Send notification (or end processing indication)
 		if (!added.isEmpty() || !removed.isEmpty()) {
-			Logging.logger.log(Logging.getLevel("spu"),"Send notification");
+			Logging.getLogger().log(Logging.getLevel("spu"),"Send notification");
 			return new Notification(getSPUID(), new ARBindingsResults(added, removed));
 		}
 
-		Logging.logger.log(Logging.getLevel("spu"),"Nothing to be notified");
+		Logging.getLogger().log(Logging.getLevel("spu"),"Nothing to be notified");
 		return null;
 	}
 }

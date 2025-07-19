@@ -25,7 +25,7 @@ public class Sync implements ISubscriptionHandler {
 	}
 
 	public synchronized void reset() {
-		Logging.logger.trace("Sync reset");
+		Logging.getLogger().trace("Sync reset");
 		subscribes = 0;
 		events = 0;
 		unsubscribes = 0;
@@ -53,9 +53,9 @@ public class Sync implements ISubscriptionHandler {
 		synchronized (subscribesMutex) {
 			while (subscribes < total) {
 				try {
-					Logging.logger.trace("Thread id "+Thread.currentThread().threadId()+ " waitSubscribes");
+					Logging.getLogger().trace("Thread id "+Thread.currentThread().threadId()+ " waitSubscribes");
 					subscribesMutex.wait();
-					Logging.logger.trace("Thread id "+Thread.currentThread().threadId()+ " awaken from waitSubscribes");
+					Logging.getLogger().trace("Thread id "+Thread.currentThread().threadId()+ " awaken from waitSubscribes");
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e.getCause());
 				}
@@ -65,7 +65,7 @@ public class Sync implements ISubscriptionHandler {
 
 	public void onConnection() {
 		synchronized (connectionsMutex) {
-			Logging.logger.trace("onUnsubscribe");
+			Logging.getLogger().trace("onUnsubscribe");
 			connections++;
 			connectionsMutex.notify();
 		}
@@ -75,7 +75,7 @@ public class Sync implements ISubscriptionHandler {
 		synchronized (connectionsMutex) {
 			while (connections < total) {
 				try {
-					Logging.logger.trace("waitEvents");
+					Logging.getLogger().trace("waitEvents");
 					connectionsMutex.wait();
 				} catch (InterruptedException e) {
 					break;
@@ -88,9 +88,9 @@ public class Sync implements ISubscriptionHandler {
 		synchronized (eventsMutex) {
 			while (events < total) {
 				try {
-					Logging.logger.trace("Thread id "+Thread.currentThread().threadId()+ " waitEvents");
+					Logging.getLogger().trace("Thread id "+Thread.currentThread().threadId()+ " waitEvents");
 					eventsMutex.wait();
-					Logging.logger.trace("Thread id "+Thread.currentThread().threadId()+ " awaken from waitEvents");
+					Logging.getLogger().trace("Thread id "+Thread.currentThread().threadId()+ " awaken from waitEvents");
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e.getCause());
 				}
@@ -102,7 +102,7 @@ public class Sync implements ISubscriptionHandler {
 		synchronized (unsubscribesMutex) {
 			while (unsubscribes < total) {
 				try {
-					Logging.logger.trace("waitUnsubscribes");
+					Logging.getLogger().trace("waitUnsubscribes");
 					unsubscribesMutex.wait();
 				} catch (InterruptedException e) {
 					throw new RuntimeException(e.getCause());
@@ -114,7 +114,7 @@ public class Sync implements ISubscriptionHandler {
 	@Override
 	public void onSemanticEvent(Notification notify) {
 		synchronized (eventsMutex) {
-			Logging.logger.trace("onSemanticEvent");
+			Logging.getLogger().trace("onSemanticEvent");
 			events++;
 			eventsMutex.notify();
 		}
@@ -122,19 +122,19 @@ public class Sync implements ISubscriptionHandler {
 
 	@Override
 	public void onBrokenConnection(ErrorResponse errorResponse) {
-		if (errorResponse.getStatusCode() != 1000) Logging.logger.error(errorResponse);
-		else Logging.logger.warn(errorResponse);
+		if (errorResponse.getStatusCode() != 1000) Logging.getLogger().error(errorResponse);
+		else Logging.getLogger().warn(errorResponse);
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		Logging.logger.error(errorResponse);
+		Logging.getLogger().error(errorResponse);
 	}
 
 	@Override
 	public void onSubscribe(String id, String alias) {
 		synchronized (subscribesMutex) {
-			Logging.logger.trace("onSubscribe");
+			Logging.getLogger().trace("onSubscribe");
 			spuid.put(alias, id);
 			subscribes++;
 			subscribesMutex.notify();
@@ -144,7 +144,7 @@ public class Sync implements ISubscriptionHandler {
 	@Override
 	public void onUnsubscribe(String id) {
 		synchronized (unsubscribesMutex) {
-			Logging.logger.trace("onUnsubscribe");
+			Logging.getLogger().trace("onUnsubscribe");
 			spuid.remove(id);
 			unsubscribes++;
 			unsubscribesMutex.notify();
