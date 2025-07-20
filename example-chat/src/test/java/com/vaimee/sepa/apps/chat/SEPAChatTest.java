@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vaimee.sepa.logging.Logging;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeAll;
@@ -33,6 +34,8 @@ public class SEPAChatTest {
 
 	@BeforeAll
 	public static void init() throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
+		Logging.init();
+
 		cfg = new JSAPProvider();
 
 		BASE = cfg.getJsap().getExtendedData().get("base").getAsInt();
