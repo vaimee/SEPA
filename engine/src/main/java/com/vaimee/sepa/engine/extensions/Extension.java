@@ -27,7 +27,7 @@ public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>,
 
     public Extension() throws IllegalArgumentException {
         // JMX
-        SEPABeans.registerMBean("SEPA:type=" + this.getClass().getName(), this);
+        //SEPABeans.registerMBean("SEPA:type=" + this.getClass().getName(), this);
     }
 
     public static Extension build(String classPath) throws SEPAPropertiesException {

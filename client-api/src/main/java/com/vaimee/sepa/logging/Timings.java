@@ -21,8 +21,6 @@ package com.vaimee.sepa.logging;
 import com.vaimee.sepa.api.commons.request.Request;
 import com.vaimee.sepa.api.commons.response.Response;
 
-import static com.vaimee.sepa.logging.Logging.Level;
-
 public class Timings {
 	public static long getTime() {
 		return System.nanoTime();
@@ -30,12 +28,7 @@ public class Timings {
 	
 	public synchronized static void log(String tag,long start,long stop) {
 		String message = String.format("%d,%d,%d,%d,%s",System.currentTimeMillis(),(stop-start)/1000000,(stop-start)/1000,stop-start,tag);
-		if(Logging.getLevel("timing")==null) {
-			//default
-			Logging.getLogger().log(Level.TRACE,message);
-		}else {
-			Logging.getLogger().log(Logging.getLevel("timing"),message);
-		}
+		Logging.getLogger().log(Logging.getLevel("timing"),message);
 	}
 	
 	public synchronized static void log(Request request) {

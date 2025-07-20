@@ -14,7 +14,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.util.EntityUtils;
-//import org.apache.logging.log4j.Level;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -29,8 +28,6 @@ import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.logging.Logging;
 import com.vaimee.sepa.logging.Timings;
 
-import static com.vaimee.sepa.logging.Logging.Level;
-
 public class DefaultAuthenticationService extends AuthenticationService {
 	
 	public DefaultAuthenticationService(OAuthProperties oauthProperties)
@@ -41,7 +38,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 	public Response registerClient(String client_id, String username, String initialAccessToken, int timeout) throws SEPASecurityException {
 		if (client_id == null) throw new SEPASecurityException("Identity is null");
 			
-		Logging.getLogger().log(Level.getLevel("oauth"),"REGISTER " + client_id);
+		Logging.getLogger().log(Logging.getLevel("oauth"),"REGISTER " + client_id);
 
 		CloseableHttpResponse response = null;
 		long start = Timings.getTime();
@@ -60,7 +57,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 					.build();
 			httpRequest.setConfig(requestConfig);
 
-			Logging.getLogger().log(Level.getLevel("oauth"),"Request: "+httpRequest);
+			Logging.getLogger().log(Logging.getLevel("oauth"),"Request: "+httpRequest);
 
 			try {
 				response = httpClient.execute(httpRequest);
@@ -69,7 +66,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
 			}
 
-			Logging.getLogger().log(Level.getLevel("oauth"),"Response: " + response);
+			Logging.getLogger().log(Logging.getLevel("oauth"),"Response: " + response);
 			
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
@@ -127,7 +124,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 	}
 
 	public Response requestToken(String authorization,int timeout) {
-		Logging.getLogger().log(Level.getLevel("oauth"),"TOKEN_REQUEST: " + authorization);
+		Logging.getLogger().log(Logging.getLevel("oauth"),"TOKEN_REQUEST: " + authorization);
 
 		CloseableHttpResponse response = null;
 		long start = Timings.getTime();
@@ -153,7 +150,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
 			}
 
-			Logging.getLogger().log(Level.getLevel("oauth"),"Response: " + response);
+			Logging.getLogger().log(Logging.getLevel("oauth"),"Response: " + response);
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
 			EntityUtils.consume(entity);
