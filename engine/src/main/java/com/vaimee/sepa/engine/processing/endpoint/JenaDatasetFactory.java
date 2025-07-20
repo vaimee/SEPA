@@ -7,6 +7,7 @@ package com.vaimee.sepa.engine.processing.endpoint;
 
 import com.vaimee.sepa.engine.bean.EngineBeans;
 import com.vaimee.sepa.engine.core.EngineProperties;
+import com.vaimee.sepa.engine.dependability.acl.ACLTools;
 import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
@@ -43,12 +44,10 @@ public class JenaDatasetFactory {
      }
      
      public static Dataset newInstance(String mode,String path,boolean useACLIfPossible) {
-         
-         
          Dataset ret = null;
          
          if (EngineBeans.isAclEnabled() && useACLIfPossible) {
-             final DatasetACL acl = SEPAAcl.getInstance(com.vaimee.sepa.engine.processing.endpoint.ACLTools.makeACLStorage());
+             final DatasetACL acl = SEPAAcl.getInstance(ACLTools.makeACLStorage());
              ret = newInstance(mode, path,acl);
          } else {
             switch(mode.trim().toLowerCase()) {
