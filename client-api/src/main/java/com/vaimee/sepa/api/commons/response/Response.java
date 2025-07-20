@@ -24,10 +24,8 @@ import com.google.gson.JsonObject;
 * */
 
 public abstract class Response {
-	
 	/** The json. */
 	protected JsonObject json;
-
 	public boolean isError() {
 		return this instanceof ErrorResponse;
 	}
