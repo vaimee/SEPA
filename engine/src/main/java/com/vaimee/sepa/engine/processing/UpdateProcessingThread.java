@@ -55,6 +55,7 @@ class UpdateProcessingThread extends Thread {
 			// Process update
 			Logging.getLogger().trace("Start processing update...");
 			Response ret = processor.processUpdate(update);
+			Logging.getLogger().trace(ret);
 			Logging.getLogger().trace("Update processing COMPLETED");
 
 			// Notify update result
