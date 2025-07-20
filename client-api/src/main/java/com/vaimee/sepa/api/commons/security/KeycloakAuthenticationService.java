@@ -29,8 +29,6 @@ import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.logging.Logging;
 import com.vaimee.sepa.logging.Timings;
 
-import static com.vaimee.sepa.logging.Logging.Level;
-
 public class KeycloakAuthenticationService extends AuthenticationService {
 	String registrationAccessToken;
 
@@ -53,7 +51,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 		if (client_id == null)
 			throw new SEPASecurityException("client_id is null");
 
-		Logging.getLogger().log(Level.getLevel("oauth"),"REGISTER " + client_id);
+		Logging.getLogger().log(Logging.getLevel("oauth"),"REGISTER " + client_id);
 		
 		CloseableHttpResponse response = null;
 		long start = Timings.getTime();
@@ -105,7 +103,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 					.build();
 			httpRequest.setConfig(requestConfig);
 
-			Logging.getLogger().log(Level.getLevel("oauth"),"Request: "+httpRequest);
+			Logging.getLogger().log(Logging.getLevel("oauth"),"Request: "+httpRequest);
 
 			try {
 				response = httpClient.execute(httpRequest);
@@ -114,7 +112,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 				return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "HttpExecute", e.getMessage());
 			}
 
-			Logging.getLogger().log(Level.getLevel("oauth"),"Response: " + response);
+			Logging.getLogger().log(Logging.getLevel("oauth"),"Response: " + response);
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
 
@@ -172,7 +170,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 		 * 
 		 * grant_type=client_credentials
 		 **/
-		Logging.getLogger().log(Level.getLevel("oauth"),"TOKEN_REQUEST: " + authorization);
+		Logging.getLogger().log(Logging.getLevel("oauth"),"TOKEN_REQUEST: " + authorization);
 
 		CloseableHttpResponse response = null;
 		long start = Timings.getTime();
@@ -200,7 +198,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 				return err;
 			}
 
-			Logging.getLogger().log(Level.getLevel("oauth"),"Response: " + response);
+			Logging.getLogger().log(Logging.getLevel("oauth"),"Response: " + response);
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
 			EntityUtils.consume(entity);

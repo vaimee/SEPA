@@ -15,21 +15,17 @@ import org.apache.logging.log4j.core.config.Configuration;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 
 public class Logging {
-	public static Level Level;
-//	private final Logger _logger;
-//	public Logging() {
-//		init();
-//		_logger = LogManager.getLogger();
-//	}
+	private static Level defaultLevel = Level.DEBUG;
 
 	public static Logger getLogger(){
 		return LogManager.getLogger();
 	}
 
-//	public static final Logger logger = LogManager.getLogger();
-
+	public static void setDefaultLevel(Level level) {
+		defaultLevel = level;
+	}
 	public static Level getLevel(String level) {
-		return (Level.getLevel(level) == null ? Level.DEBUG : Level.getLevel(level));
+		return (Level.getLevel(level) == null ? defaultLevel : Level.getLevel(level));
 	}
 
 	public static void init() {

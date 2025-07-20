@@ -30,7 +30,7 @@
 	</Appenders>
 	<Loggers>
 		<Root level="${env:LOG_LEVEL:-error}">
-			<AppenderRef ref="Console" level="${env:LOG_LEVEL:-errorl}" />
+			<AppenderRef ref="Console" level="${env:LOG_LEVEL:-error}" />
 			<AppenderRef ref="Log" level="${env:LOG_LEVEL_FILE:-off}" />
 		</Root>
 	</Loggers>

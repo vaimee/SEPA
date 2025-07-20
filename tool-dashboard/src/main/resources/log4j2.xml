@@ -1,39 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
+	<Properties>
+		<Property name="logFilename">output</Property>
+	</Properties>
 	<CustomLevels>
-	<!-- 
-Standard Level	intLevel
-OFF					0
-FATAL				100
-ERROR				200
-WARN					300
-INFO					400
-DEBUG				500
-TRACE				600
-ALL					Integer.MAX_VALUE
-	 -->
-		<CustomLevel name="timing" intLevel="650" />
-		<CustomLevel name="SPUManager" intLevel="700" />
-		<CustomLevel name="spu" intLevel="700" />
-		<CustomLevel name="timing" intLevel="700" />
-		<CustomLevel name="subscriptions" intLevel="700" />
-		<CustomLevel name="http" intLevel="700" />
-		<CustomLevel name="oauth" intLevel="700" />
-		<CustomLevel name="ldap" intLevel="700" />
+		<!-- Standard Level intLevel OFF 0 FATAL 100 ERROR 200 WARN 300 INFO 400 
+			DEBUG 500 TRACE 600 ALL Integer.MAX_VALUE 
+		
+		Change the following to enable different loggging levels	
+		-->
+		<CustomLevel name="SPUManager" intLevel="${env:LOG_LEVEL_CUSTOM_SPUMANAGER:-700}" />
+		<CustomLevel name="spu" intLevel="${env:LOG_LEVEL_CUSTOM_SPU:-700}" />
+		<CustomLevel name="timing" intLevel="${env:LOG_LEVEL_CUSTOM_TIMING:-700}" />
+		<CustomLevel name="subscriptions" intLevel="${env:LOG_LEVEL_CUSTOM_SUBSCRIPTIONS:-700}" />
+		<CustomLevel name="http" intLevel="${env:LOG_LEVEL_CUSTOM_HTTP:-700}" />
+		<CustomLevel name="oauth" intLevel="${env:LOG_LEVEL_CUSTOM_OAUTH:-700}" />
+		<CustomLevel name="ldap" intLevel="${env:LOG_LEVEL_CUSTOM_LDAP:-700}" />
+		<CustomLevel name="ping" intLevel="${env:LOG_LEVEL_CUSTOM_PING:-700}" />
 	</CustomLevels>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
+			<PatternLayout
+				pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
 		</Console>
-		<!-- <File name="Log" fileName="logs/${sys:logFilename}.csv">
-			<PatternLayout pattern="%m\n"/>
+		<File name="Log" fileName="logs/sepa-test.csv">
+			<PatternLayout
+				pattern="%d{ISO8601}|[%-5level]|%t|(%F:%L)|%msg%n%throwable\n" />
 		</File>
-		 -->
 	</Appenders>
 	<Loggers>
-		<Root level="debug">
-			<AppenderRef ref="Console" level="debug"/>
-			<!--  <AppenderRef ref="Log" level="debug"/> -->
+		<Root level="${env:LOG_LEVEL:-error}">
+			<AppenderRef ref="Console" level="${env:LOG_LEVEL:-error}" />
+			<AppenderRef ref="Log" level="${env:LOG_LEVEL_FILE:-off}" />
 		</Root>
 	</Loggers>
 </Configuration>
