@@ -20,96 +20,71 @@ package com.vaimee.sepa.engine.bean;
 
 public class SPUManagerBeans {
 	private static long[] updateRequests = {0,0};
-	
 	private static float[] minTime = {-1,-1};
 	private static float[] averageTime = {-1,-1};
 	private static float[] maxTime = {-1,-1};
 	private static float[] time = {-1,-1};
-
 	private static long activeSPUs = 0;
 	private static long maxActiveSPUs = 0;
-
 	private static long subscribeRequests = 0;
 	private static long unsubscribeRequests = 0;
-
 	private static long SPUProcessingTimeout = 5000;
-
 	private static long unitScale = 1000000;
-
 	private static int subscribers = 0;
-
 	private static long subscribers_max = 0;
-
 	private static long filteringRequests = 0;
-	
 	private static float filteringTime;
 	private static float filteringMinTime;
 	private static float filteringMaxTime;
 	private static float filteringAverageTime;
-
 	private static long preProcessingExceptions;
 	private static long postProcessingExceptions;
 	private static long notifyExceptions;
-	
 	public static void scale_ms() {
 		unitScale = 1000000;
 	}
-	
 	public static void scale_us() {
 		unitScale = 1000;
 	}
-	
 	public static void scale_ns() {
 		unitScale = 1;
 	}
-	
 	public static String getUnitScale() {
 		if (unitScale == 1) return "ns";
 		else if (unitScale == 1000) return "us";
 		return "ms";
 	}
-	
 	public static long getPostProcessingUpdateRequests() {
 		return updateRequests[1];
 	}
-	
 	public static long getPreProcessingUpdateRequests() {
 		return updateRequests[0];
 	}
-	
 	public synchronized static long getSPUs_current() {
 		return activeSPUs;
 	}
-
 	public static long getSPUs_max() {
 		return maxActiveSPUs;
 	}
-	
 	public synchronized static  void setActiveSPUs(long n) {
 		activeSPUs = n;
 		if (activeSPUs > maxActiveSPUs) maxActiveSPUs = activeSPUs;
 	}
-	
 	public static void subscribeRequest() {
 		subscribeRequests++;
 	}
-	
 	public static void unsubscribeRequest() {
 		unsubscribeRequests++;
 	}
-	
 	public static void preProcessingException() {
 		preProcessingExceptions++;
 	}
-	
 	public static void postProcessingException() {
 		postProcessingExceptions++;
 	}
-	
 	public static void notifyException() {
 		notifyExceptions++;
 	}
-	
 	public synchronized static void preProcessingTimings(long start, long stop) {
 		updateRequests[0]++;
 		time[0] = stop - start;
@@ -129,7 +104,6 @@ public class SPUManagerBeans {
 		else
 			averageTime[0] = ((averageTime[0] * (updateRequests[0] - 1)) + time[0]) / updateRequests[0];
 	}
-	
 	public synchronized static void postProcessingTimings(long start, long stop) {
 		updateRequests[1]++;
 		time[1] = stop - start;

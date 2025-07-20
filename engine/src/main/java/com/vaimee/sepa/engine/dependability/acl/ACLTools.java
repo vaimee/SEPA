@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.vaimee.sepa.engine.processing.endpoint;
+package com.vaimee.sepa.engine.dependability.acl;
 
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage.ACLStorageId;
