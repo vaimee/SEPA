@@ -11,7 +11,7 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<revision>1.0.0</revision>
+		<revision>0.99.100</revision>
 		<sjenar>1.0.2</sjenar>
 
 		<update>0</update>
