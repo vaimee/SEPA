@@ -116,47 +116,6 @@
 							</filters>
 						</configuration>
 					</execution>
-					<!-- Run shade goal on package phase -->
-					<execution>
-						<phase>deploy</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<transformers>
-								<!-- add Main-Class to manifest file -->
-								<transformer
-										implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.vaimee.sepa.engine.core.Engine</mainClass>
-									<manifestEntries>
-										<Multi-Release>true</Multi-Release>
-									</manifestEntries>
-								</transformer>
-							</transformers>
-							<filters>
-								<!-- Filtro generico: esclude metadati duplicati -->
-								<filter>
-									<artifact>*:*</artifact>
-									<excludes>
-										<exclude>module-info.class</exclude>
-										<exclude>META-INF/versions/**/module-info.class</exclude>
-										<exclude>META-INF/LICENSE*</exclude>
-										<exclude>META-INF/NOTICE*</exclude>
-										<exclude>META-INF/DEPENDENCIES</exclude>
-										<exclude>META-INF/LICENSE</exclude>
-										<exclude>META-INF/LICENSE.txt</exclude>
-										<exclude>META-INF/LICENSE.md</exclude>
-										<exclude>META-INF/NOTICE.md</exclude>
-										<exclude>META-INF/NOTICE.txt</exclude>
-										<exclude>META-INF/MANIFEST.MF</exclude>
-										<exclude>OSGI-INF/bundle.info</exclude>
-										<exclude>META-INF/maven/**</exclude>
-										<exclude>log4j2.xml</exclude>
-									</excludes>
-								</filter>
-							</filters>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
 		</plugins>
