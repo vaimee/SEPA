@@ -3,10 +3,12 @@
 
 name: Maven Package
 
-on:
-  release:
-    types: [created]
+# Manual
+on: workflow_dispatch
 
+#on:
+# release:
+#  types: [created]
 jobs:
   build:
 
