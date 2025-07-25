@@ -42,7 +42,7 @@ import com.vaimee.sepa.logging.Logging;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.99.99";
+	private final static String version = "0.99.100";
 	private EngineProperties properties = null;
 
 	// Primitives scheduler/dispatcher
