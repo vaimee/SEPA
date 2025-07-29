@@ -3,6 +3,7 @@ package com.vaimee.sepa.api.commons.response;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.vaimee.sepa.api.commons.sparql.*;
+
 import org.apache.jena.sparql.core.Quad;
 
 import java.util.Set;

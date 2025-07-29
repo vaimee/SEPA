@@ -41,7 +41,7 @@ public class StressUsingSPARQLProtocol {
 
 		Response ret = client.update(provider.buildUpdateRequest("DELETE_ALL"));
 
-		Logging.getLogger().debug(ret);
+		Logging.debug(ret);
 
 		assertFalse(ret.isError(), String.valueOf(ret));
 

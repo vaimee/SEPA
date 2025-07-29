@@ -29,7 +29,6 @@ import com.vaimee.sepa.engine.bean.HTTPHandlerBeans;
 import com.vaimee.sepa.engine.core.ResponseHandler;
 import com.vaimee.sepa.engine.gates.http.HttpUtilities;
 import com.vaimee.sepa.logging.Logging;
-import com.vaimee.sepa.logging.Timings;
 
 public class SPARQL11ResponseHandler implements ResponseHandler {
 	private HttpAsyncExchange handler;
@@ -46,14 +45,14 @@ public class SPARQL11ResponseHandler implements ResponseHandler {
 		if (response.isError()) {
 			ErrorResponse err = (ErrorResponse) response;
 			HttpUtilities.sendFailureResponse(handler,err);
-			Logging.getLogger().error(err);
+			Logging.error(err);
 			jmx.timeoutRequest();
 		}
 		else
 			HttpUtilities.sendResponse(handler, HttpStatus.SC_OK, response.toString());
-		
-		Timings.log(response);
+
+		Logging.logTiming(response);
 		jmx.stop(handler);
-		Logging.getLogger().trace(response);	
+		Logging.trace(response);	
 	}
 }

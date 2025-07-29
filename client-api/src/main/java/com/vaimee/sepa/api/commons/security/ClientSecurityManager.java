@@ -65,7 +65,7 @@ public class ClientSecurityManager implements Closeable {
 			RegistrationResponse reg = (RegistrationResponse) ret;
 			oauthProperties.setCredentials(reg.getClientId(), reg.getClientSecret());
 		} else {
-			Logging.getLogger().error(ret);
+			Logging.error(ret);
 		}
 
 		return ret;
@@ -85,11 +85,11 @@ public class ClientSecurityManager implements Closeable {
 		if (ret.isJWTResponse()) {
 			JWTResponse jwt = (JWTResponse) ret;
 
-			Logging.getLogger().debug("New token: " + jwt);
+			Logging.debug("New token: " + jwt);
 
 			oauthProperties.setJWT(jwt);
 		} else {
-			Logging.getLogger().error("FAILED to refresh token " + new Date() + " Response: " + ret);
+			Logging.error("FAILED to refresh token " + new Date() + " Response: " + ret);
 		}
 
 		return ret;

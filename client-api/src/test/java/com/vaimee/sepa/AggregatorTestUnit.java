@@ -35,14 +35,14 @@ public class AggregatorTestUnit extends Aggregator {
 		
 		try {
 			Response ret = update();
-			if (ret.isError()) Logging.getLogger().error(ret);
+			if (ret.isError()) Logging.error(ret);
 		} catch (SEPASecurityException | SEPAProtocolException | SEPAPropertiesException | SEPABindingsException e) {
-			Logging.getLogger().error(e);
+			Logging.error(e);
 		}
 	}
 	
 	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
-		Logging.getLogger().debug("subscribe");
+		Logging.debug("subscribe");
 		
 		notificationReceived = false;
 		firstResultsReceived = false;
@@ -51,45 +51,45 @@ public class AggregatorTestUnit extends Aggregator {
 		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
-			Logging.getLogger().debug("subscribed");
+			Logging.debug("subscribed");
 			sync.onSubscribe();
 		}	
 	}
 	
 	public void syncUnsubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
-		Logging.getLogger().debug("unsubscribe");
+		Logging.debug("unsubscribe");
 		
 		super.unsubscribe(timeout,nretry);
 		
 		synchronized(this) {
 			while (isSubscribed()) wait();
-			Logging.getLogger().debug("unsubscribed");
+			Logging.debug("unsubscribed");
 			sync.onUnsubscribe();
 		}
 	}
 	
 	public void waitNotification() throws InterruptedException {
 		synchronized(this) {
-			Logging.getLogger().debug("waitNotification");
+			Logging.debug("waitNotification");
 			while (!notificationReceived) wait();
 			notificationReceived = false;
-			Logging.getLogger().debug("notify!");
+			Logging.debug("notify!");
 		}
 	}
 	
 	public void waitFirstNotification() throws InterruptedException {
 		synchronized(this) {
-			Logging.getLogger().debug("waitFirstNotification");
+			Logging.debug("waitFirstNotification");
 			while (!firstResultsReceived) wait();
 			firstResultsReceived = false;
-			Logging.getLogger().debug("first results received");
+			Logging.debug("first results received");
 		}
 	}
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
 		synchronized(this) {
-			Logging.getLogger().debug("onFirstResults");
+			Logging.debug("onFirstResults");
 			firstResultsReceived = true;
 			notify();
 		}	

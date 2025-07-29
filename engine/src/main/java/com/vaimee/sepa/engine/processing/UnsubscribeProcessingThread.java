@@ -37,20 +37,20 @@ class UnsubscribeProcessingThread extends Thread {
 			try {
 				// Wait request...
 				ScheduledRequest request = processor.waitUnsubscribeRequest();
-				Logging.getLogger().debug(">> " + request);
+				Logging.debug(">> " + request);
 
 				// Process request
 				String sid = ((InternalUnsubscribeRequest) request.getRequest()).getSID();
 				String gid = ((InternalUnsubscribeRequest) request.getRequest()).getGID();
 				Response response = processor.processUnsubscribe(sid,gid);
 				
-				Logging.getLogger().debug("<< " + response);
+				Logging.debug("<< " + response);
 
 				// Send back response
 				processor.addResponse(request.getToken(), response);
 
 			} catch (InterruptedException e) {
-				Logging.getLogger().warn("Exit");
+				Logging.warn("Exit");
 				return;
 			}
 		}

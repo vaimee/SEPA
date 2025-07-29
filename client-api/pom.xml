@@ -16,89 +16,19 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.14</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.18.0</version>
+		</dependency>
+		<dependency>
 			<groupId>com.vaimee</groupId>
-			<artifactId>vaimee-sjenar</artifactId>
+			<artifactId>sjenar-arq</artifactId>
 			<version>${sjenar}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-shaded-guava</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-tdb2</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-arq</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-cmds</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-rdfconnection</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-shex</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-dboe-index</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-dboe-base</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-iri</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-dboe-transaction</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-dboe-storage</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-tdb</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-shacl</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.vaimee</groupId>
-					<artifactId>sjenar-core</artifactId>
-				</exclusion>
-
-				<exclusion>
-					<groupId>jakarta.websocket</groupId>
-					<artifactId>jakarta.websocket-client-api</artifactId>
-				</exclusion>
-
-				<exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-lang3</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpcore</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-codec</groupId>
-					<artifactId>commons-codec</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
@@ -126,9 +56,9 @@
 			<version>${log4j2.version}</version>
 		</dependency>
 		<dependency>
-		<groupId>org.slf4j</groupId>
-		<artifactId>slf4j-log4j12</artifactId>
-		<version>1.7.36</version>
-	</dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.36</version>
+		</dependency>
 	</dependencies>
 </project>

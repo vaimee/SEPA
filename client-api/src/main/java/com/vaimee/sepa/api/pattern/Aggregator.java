@@ -20,7 +20,6 @@ package com.vaimee.sepa.api.pattern;
 
 import com.vaimee.sepa.api.commons.sparql.RDFTerm;
 import com.vaimee.sepa.logging.Logging;
-import com.vaimee.sepa.logging.Timings;
 import com.vaimee.sepa.api.SPARQL11Protocol;
 import com.vaimee.sepa.api.commons.exceptions.SEPABindingsException;
 import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
@@ -42,12 +41,12 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		super(appProfile, subscribeID);
 
 		if (updateID == null) {
-			Logging.getLogger().fatal("Update ID is null");
+			Logging.fatal("Update ID is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Update ID is null null"));
 		}
 
 		if (appProfile.getSPARQLUpdate(updateID) == null) {
-			Logging.getLogger().fatal("UPDATE ID " + updateID + " not found");
+			Logging.fatal("UPDATE ID " + updateID + " not found");
 			throw new IllegalArgumentException("UPDATE ID " + updateID + " not found");
 		}
 
@@ -73,7 +72,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 					appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addUpdateDefaultDatatype(updateForcedBindings,updateId,false)),
 					appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),authorizationHeader,timeout,nRetry);
 		
-		Logging.getLogger().trace("UPDATE "+req);
+		Logging.trace("UPDATE "+req);
 		
 		 Response retResponse = sparql11.update(req);
 		 
@@ -82,7 +81,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 
 	public final Response multipleUpdate(long timeout,long nRetry)
 			throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
-		long start = Timings.getTime();
+		long start = Logging.getTime();
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(updateId),
 				appProfile.getUpdateProtocolScheme(updateId), appProfile.getUpdateHost(updateId),
 				appProfile.getUpdatePort(updateId), appProfile.getUpdatePath(updateId),
@@ -90,14 +89,14 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 						addUpdateDefaultDatatype(multipleForcedBindings.getBindings(), updateId, false)),
 				appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
-		long stop = Timings.getTime();
-		Timings.log("multipleUpdate create UpdateRequest", start, stop);
+		long stop = Logging.getTime();
+		Logging.logTiming("multipleUpdate create UpdateRequest", start, stop);
 		
-		Logging.getLogger().trace(req);
+		Logging.trace(req);
 
 		Response retResponse = sparql11.update(req);
 
-		Logging.getLogger().trace(retResponse);
+		Logging.trace(retResponse);
 
 		return retResponse;
 	}

@@ -42,7 +42,7 @@ import com.vaimee.sepa.logging.Logging;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.99.99";
+	private final static String version = "0.99.101";
 	private EngineProperties properties = null;
 
 	// Primitives scheduler/dispatcher
@@ -109,7 +109,8 @@ public class Engine implements EngineMBean {
 				.println("# dc:publisher <https://github.com> .                                                    #");
 		System.out
 				.println("##########################################################################################");
-		System.out.println("");
+
+		Logging.init();
 
 		// Beans
 		SEPABeans.registerMBean("SEPA:type=" + this.getClass().getSimpleName(), this);
@@ -202,18 +203,16 @@ public class Engine implements EngineMBean {
 			System.out.println("----------------------");
 
 			// Welcome message
-			System.out.println("");
+			System.out.println("Version " + version);
 			System.out.println(
 					"*****************************************************************************************");
 			System.out.println(
-					"*                        SEPA Broker Ver is up and running                              *");
+					"*                          SEPA Broker is up and running                                *");
 			System.out.println(
 					"*                        Let Things Talk and Data Be Free!                              *");
 			System.out.println(
 					"*****************************************************************************************");
-			System.out.print("Version " + version);
 
-			Logging.init();
 
 		} catch (SEPASecurityException | IllegalArgumentException | SEPAProtocolException e) {
 			System.err.println(e.getMessage());

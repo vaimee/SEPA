@@ -41,19 +41,19 @@ public class SEPABeans {
       }
       catch (MalformedObjectNameException badObjectName)
       {
-    	  Logging.getLogger().error(badObjectName.getMessage());
+    	  Logging.error(badObjectName.getMessage());
       }
       catch (InstanceAlreadyExistsException duplicateMBeanInstance)
       {
-    	  Logging.getLogger().error(duplicateMBeanInstance.getMessage());
+    	  Logging.error(duplicateMBeanInstance.getMessage());
       }
       catch (MBeanRegistrationException mbeanRegistrationProblem)
       {
-    	  Logging.getLogger().error(mbeanRegistrationProblem.getMessage());
+    	  Logging.error(mbeanRegistrationProblem.getMessage());
       }
       catch (NotCompliantMBeanException badMBean)
       {
-    	  Logging.getLogger().error(badMBean.getMessage());
+    	  Logging.error(badMBean.getMessage());
       }
    }
 }

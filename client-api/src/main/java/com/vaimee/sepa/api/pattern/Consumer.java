@@ -51,12 +51,12 @@ public abstract class Consumer extends Client implements IConsumer {
 		super(appProfile);
 
 		if (subscribeID == null) {
-			Logging.getLogger().fatal("Subscribe ID is null");
+			Logging.fatal("Subscribe ID is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("Subscribe ID is null"));
 		}
 		
 		if (appProfile.getSPARQLQuery(subscribeID) == null) {
-			Logging.getLogger().fatal("SUBSCRIBE ID [" + subscribeID + "] not found");
+			Logging.fatal("SUBSCRIBE ID [" + subscribeID + "] not found");
 			throw new IllegalArgumentException(
 					"SUBSCRIBE ID [" + subscribeID + "] not found");
 		}
@@ -68,7 +68,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		forcedBindings = (ForcedBindings) appProfile.getQueryBindings(subscribeID);
 
 		if (sparqlSubscribe == null) {
-			Logging.getLogger().fatal("SPARQL subscribe is null");
+			Logging.fatal("SPARQL subscribe is null");
 			throw new SEPAProtocolException(new IllegalArgumentException("SPARQL subscribe is null"));
 		}
 
@@ -105,7 +105,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	}
 	
 	public final void unsubscribe(long timeout,long nRetry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException {
-		Logging.getLogger().debug("UNSUBSCRIBE " + spuid);
+		Logging.debug("UNSUBSCRIBE " + spuid);
 
 		String authorizationHeader = null;
 		
@@ -133,7 +133,7 @@ public abstract class Consumer extends Client implements IConsumer {
 		BindingsResults added = results.getAddedBindings();
 		BindingsResults removed = results.getRemovedBindings();
 
-		Logging.getLogger().trace("onSemanticEvent: "+notify.getSpuid()+" "+notify.getSequence());
+		Logging.trace("onSemanticEvent: "+notify.getSpuid()+" "+notify.getSequence());
 		
 		if (notify.getSequence() == 0) {
 			onFirstResults(added);
@@ -151,7 +151,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	
 	@Override
 	public final void onBrokenConnection(ErrorResponse errorResponse) {
-		Logging.getLogger().warn("onBrokenConnection");
+		Logging.warn("onBrokenConnection");
 		subscribed = false;
 		
 		// Auto reconnection mechanism
@@ -161,7 +161,7 @@ public abstract class Consumer extends Client implements IConsumer {
 				protocol = new WebsocketSubscriptionProtocol(appProfile.getSubscribeHost(subID),properties,this,sm);
 				client = new SPARQL11SEProtocol(protocol,sm);
 			} catch (SEPASecurityException | SEPAProtocolException e1) {
-				Logging.getLogger().error(e1.getMessage());
+				Logging.error(e1.getMessage());
 				return;
 			}	
 			
@@ -170,16 +170,16 @@ public abstract class Consumer extends Client implements IConsumer {
 					subscribe(TIMEOUT,NRETRY);
 				} catch (SEPASecurityException | SEPAPropertiesException | SEPAProtocolException
 						| SEPABindingsException e) {
-					Logging.getLogger().error(e.getMessage());
-					if (Logging.getLogger().isTraceEnabled()) e.printStackTrace();
+					Logging.error(e.getMessage());
+					if (Logging.isTraceEnabled()) e.printStackTrace();
 				}
 				try {
 					synchronized (client) {
 						client.wait(TIMEOUT);	
 					}
 				} catch (InterruptedException e) {
-					Logging.getLogger().error(e.getMessage());
-					if (Logging.getLogger().isTraceEnabled()) e.printStackTrace();
+					Logging.error(e.getMessage());
+					if (Logging.isTraceEnabled()) e.printStackTrace();
 				}
 			}
 		}
@@ -188,7 +188,7 @@ public abstract class Consumer extends Client implements IConsumer {
 	@Override
 	public final void onSubscribe(String spuid, String alias) {
 		synchronized(client) {
-			Logging.getLogger().trace("onSubscribe");
+			Logging.trace("onSubscribe");
 			subscribed = true;
 			this.spuid = spuid;
 			client.notify();
@@ -200,9 +200,9 @@ public abstract class Consumer extends Client implements IConsumer {
 
 	@Override
 	public final void onUnsubscribe(String spuid) {
-		Logging.getLogger().trace("onUnsubscribe");
+		Logging.trace("onUnsubscribe");
 		synchronized(client) {
-			Logging.getLogger().trace("onUnsubscribe");
+			Logging.trace("onUnsubscribe");
 			subscribed = false;
 			this.spuid = null;
 			client.notify();
@@ -214,27 +214,27 @@ public abstract class Consumer extends Client implements IConsumer {
 	
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		Logging.getLogger().error(errorResponse);
+		Logging.error(errorResponse);
 	}
 
 	
 	@Override
 	public void onAddedResults(BindingsResults results) {
-		Logging.getLogger().trace("Added results "+results);
+		Logging.trace("Added results "+results);
 	}
 
 	@Override
 	public void onRemovedResults(BindingsResults results) {
-		Logging.getLogger().trace("Removed results "+results);
+		Logging.trace("Removed results "+results);
 	}
 	
 	@Override
 	public void onResults(ARBindingsResults results) {
-		Logging.getLogger().trace("Results "+results);
+		Logging.trace("Results "+results);
 	}
 
 	@Override
 	public void onFirstResults(BindingsResults results) {
-		Logging.getLogger().trace("First results "+results);
+		Logging.trace("First results "+results);
 	}
 }

@@ -33,7 +33,6 @@ import com.vaimee.sepa.engine.processing.endpoint.RemoteEndpoint;
 import com.vaimee.sepa.engine.processing.endpoint.SPARQLEndpoint;
 import com.vaimee.sepa.engine.scheduling.InternalQueryRequest;
 import com.vaimee.sepa.logging.Logging;
-import com.vaimee.sepa.logging.Timings;
 
 class QueryProcessor implements QueryProcessorMBean {
 	protected final SPARQL11Properties properties;
@@ -59,30 +58,30 @@ class QueryProcessor implements QueryProcessorMBean {
 		int n = 0;
 		Response ret;
 		do {
-			long start = Timings.getTime();
+			long start = Logging.getTime();
 			ret = endpoint.query(request);
-			long stop = Timings.getTime();
+			long stop = Logging.getTime();
 			
 			UpdateProcessorBeans.timings(start, stop);
-			Logging.getLogger().trace("Response: " + ret.toString());
-			Timings.log("QUERY_PROCESSING_TIME", start, stop);
+			Logging.trace("Response: " + ret.toString());
+			Logging.logTiming("QUERY_PROCESSING_TIME", start, stop);
 			
 			n++;
 			
 			if (ret.isTimeoutError()) {
 				QueryProcessorBeans.timedOutRequest();
-				Logging.getLogger().error("*** TIMEOUT *** ("+n+"/"+QueryProcessorBeans.getTimeoutNRetry()+") "+req);
+				Logging.error("*** TIMEOUT *** ("+n+"/"+QueryProcessorBeans.getTimeoutNRetry()+") "+req);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					Logging.getLogger().warn("Failed to sleep...");
+					Logging.warn("Failed to sleep...");
 				}
 			}
 		} while(ret.isTimeoutError() && n < QueryProcessorBeans.getTimeoutNRetry());
 		
 		// Request ABORTED
 		if (ret.isTimeoutError()) {
-			Logging.getLogger().error("*** REQUEST ABORTED *** "+request);
+			Logging.error("*** REQUEST ABORTED *** "+request);
 			QueryProcessorBeans.abortedRequest();
 		}
 		

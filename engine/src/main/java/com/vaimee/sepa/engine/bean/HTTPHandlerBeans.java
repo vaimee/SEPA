@@ -20,9 +20,8 @@ package com.vaimee.sepa.engine.bean;
 
 import java.util.HashMap;
 
+import com.vaimee.sepa.logging.Logging;
 import org.apache.http.nio.protocol.HttpAsyncExchange;
-
-import com.vaimee.sepa.logging.Timings;
 
 public class HTTPHandlerBeans {
 	private long timeoutRequests = 0;
@@ -58,7 +57,7 @@ public class HTTPHandlerBeans {
 	}
 
 	public synchronized long start(HttpAsyncExchange handler) {
-		long start = Timings.getTime();
+		long start = Logging.getTime();
 		timings.put(handler, start );
 		return start;
 	}
@@ -68,7 +67,7 @@ public class HTTPHandlerBeans {
 		
 		if (timings.get(handler) == null) return 0;
 		
-		requestHandlingTime = Timings.getTime() - timings.get(handler);
+		requestHandlingTime = Logging.getTime() - timings.get(handler);
 		
 		timings.remove(handler);
 

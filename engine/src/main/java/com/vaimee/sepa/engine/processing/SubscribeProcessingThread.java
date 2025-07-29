@@ -37,18 +37,18 @@ class SubscribeProcessingThread extends Thread {
 			try {
 				// Wait request...
 				ScheduledRequest request = processor.waitSubscribeRequest();
-				Logging.getLogger().debug(">> " + request);
+				Logging.debug(">> " + request);
 
 				// Process request
 				Response response = processor.processSubscribe((InternalSubscribeRequest) request.getRequest());
 				
-				Logging.getLogger().debug("<< " + response);
+				Logging.debug("<< " + response);
 
 				// Send back response
 				processor.addResponse(request.getToken(), response);
 
 			} catch (InterruptedException e) {
-				Logging.getLogger().warn("Exit");
+				Logging.warn("Exit");
 				return;
 			}
 		}

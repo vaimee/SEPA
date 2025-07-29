@@ -31,8 +31,8 @@ public class SyncLdap implements IUsersSync {
 		endpointPasswordUid = "uid=endpointUsersPassword," +prop.getUsersDN()+","+prop.getBase();
 		usersUid = "ou=users," + (prop.getUsersDN() == null ? "" : prop.getUsersDN()+",") + prop.getBase();
 		
-		Logging.getLogger().log(Logging.getLevel("ldap"),"endpointPasswordUid: "+endpointPasswordUid);
-		Logging.getLogger().log(Logging.getLevel("ldap"),"usersUid: "+usersUid);
+		Logging.log("ldap","endpointPasswordUid: "+endpointPasswordUid);
+		Logging.log("ldap","usersUid: "+usersUid);
 		
 		endpointPassword = retrievePassword();
 		
@@ -41,7 +41,7 @@ public class SyncLdap implements IUsersSync {
 				try {
 					sync();
 				} catch (SEPASecurityException e) {
-					Logging.getLogger().error(e.getMessage());
+					Logging.error(e.getMessage());
 				}
 			}
 		}.start();
@@ -57,14 +57,14 @@ public class SyncLdap implements IUsersSync {
 		try {
 			bind();
 			
-			Logging.getLogger().log(Logging.getLevel("ldap"),"[LDAP] Sync LDAP "+ldap.getConfig().getLdapHost()+":"+ldap.getConfig().getLdapPort()+" Base DN: " + endpointPasswordUid);
+			Logging.log("ldap","[LDAP] Sync LDAP "+ldap.getConfig().getLdapHost()+":"+ldap.getConfig().getLdapPort()+" Base DN: " + endpointPasswordUid);
 
 			EntryCursor cursor = ldap.search(endpointPasswordUid, "(objectclass=simpleSecurityObject)", SearchScope.OBJECT);
 			
 			if (cursor.next()) {
 				// Password has to be store as "plain text"
 				ret = new String(cursor.get().get("userPassword").get().getBytes());
-				Logging.getLogger().log(Logging.getLevel("ldap"),"userPassword: "+ret);				
+				Logging.log("ldap","userPassword: "+ret);				
 			}
 			else throw new SEPASecurityException(endpointPasswordUid+" not found in LDAP");
 		} catch (LdapException | CursorException  e) {
@@ -82,19 +82,19 @@ public class SyncLdap implements IUsersSync {
 		try {
 			bind();
 			
-			Logging.getLogger().log(Logging.getLevel("ldap"),"[LDAP] Sync LDAP "+ldap.getConfig().getLdapHost()+":"+ldap.getConfig().getLdapPort()+" Base DN: " + usersUid);
+			Logging.log("ldap","[LDAP] Sync LDAP "+ldap.getConfig().getLdapHost()+":"+ldap.getConfig().getLdapPort()+" Base DN: " + usersUid);
 
 			EntryCursor cursor = ldap.search(usersUid, "(objectclass=inetOrgPerson)", SearchScope.ONELEVEL);
 			
 			for (org.apache.directory.api.ldap.model.entry.Entry entry: cursor) {
-				Logging.getLogger().log(Logging.getLevel("ldap"),entry.toString("--"));
+				Logging.log("ldap",entry.toString("--"));
 				
 				if (entry.get("uid") == null) {
-					Logging.getLogger().log(Logging.getLevel("ldap"),"Missing *uid*");
+					Logging.log("ldap","Missing *uid*");
 					continue;
 				}
 				if (entry.get("description") == null) {
-					Logging.getLogger().log(Logging.getLevel("ldap"),"Missing *description* "+entry.get("uid"));
+					Logging.log("ldap","Missing *description* "+entry.get("uid"));
 					continue;
 				}
 				String uid = entry.get("uid").getString();
@@ -103,7 +103,7 @@ public class SyncLdap implements IUsersSync {
 				ret.add(uid,new Gson().fromJson(description,JsonObject.class)); 
 			}
 		} catch (LdapException | SEPASecurityException  e) {
-			Logging.getLogger().error("[LDAP] LdapException|CursorException : " + e.getMessage());
+			Logging.error("[LDAP] LdapException|CursorException : " + e.getMessage());
 		} finally {
 			unbind();
 				
@@ -116,21 +116,21 @@ public class SyncLdap implements IUsersSync {
 		try {
 			if (prop.isTls()) ldap.startTls();
 		} catch (LdapException e1) {
-			Logging.getLogger().error(e1.getMessage());
+			Logging.error(e1.getMessage());
 		}
 		
 		if (prop.getUser() != null)
 			try {
 				ldap.bind(prop.getUser(), prop.getPass());
 			} catch (LdapException e) {
-				Logging.getLogger().error("[LDAP] Exception on binding: " + e.getMessage());
+				Logging.error("[LDAP] Exception on binding: " + e.getMessage());
 				throw new SEPASecurityException("Exception on LDAP binding: " + e.getMessage());
 			}
 		else
 			try {
 				ldap.bind();
 			} catch (LdapException e) {
-				Logging.getLogger().error("[LDAP] Exception on binding: " + e.getMessage());
+				Logging.error("[LDAP] Exception on binding: " + e.getMessage());
 				throw new SEPASecurityException("Exception on LDAP binding: " + e.getMessage());
 			}
 	}
@@ -141,10 +141,10 @@ public class SyncLdap implements IUsersSync {
 				cursor.close();
 			ldap.unBind();
 		} catch (IOException e) {
-			Logging.getLogger().error("[LDAP] IOException: " + e.getMessage());
+			Logging.error("[LDAP] IOException: " + e.getMessage());
 			throw new SEPASecurityException(e.getMessage());
 		} catch (LdapException e) {
-			Logging.getLogger().error("[LDAP] LdapException: " + e.getMessage());
+			Logging.error("[LDAP] LdapException: " + e.getMessage());
 			throw new SEPASecurityException(e.getMessage());
 		} finally {
 			cursor = null;

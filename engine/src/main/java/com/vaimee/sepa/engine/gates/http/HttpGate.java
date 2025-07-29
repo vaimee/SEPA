@@ -88,7 +88,7 @@ public class HttpGate {
 		try {
 			server.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
 		} catch (InterruptedException e) {
-			Logging.getLogger().debug(serverInfo+" interrupted: " + e.getMessage());
+			Logging.debug(serverInfo+" interrupted: " + e.getMessage());
 		}
 	}
 }

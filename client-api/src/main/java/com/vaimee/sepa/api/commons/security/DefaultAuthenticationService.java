@@ -26,7 +26,6 @@ import com.vaimee.sepa.api.commons.response.JWTResponse;
 import com.vaimee.sepa.api.commons.response.RegistrationResponse;
 import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.logging.Logging;
-import com.vaimee.sepa.logging.Timings;
 
 public class DefaultAuthenticationService extends AuthenticationService {
 	
@@ -38,10 +37,10 @@ public class DefaultAuthenticationService extends AuthenticationService {
 	public Response registerClient(String client_id, String username, String initialAccessToken, int timeout) throws SEPASecurityException {
 		if (client_id == null) throw new SEPASecurityException("Identity is null");
 			
-		Logging.getLogger().log(Logging.getLevel("oauth"),"REGISTER " + client_id);
+		Logging.log("oauth","REGISTER " + client_id);
 
 		CloseableHttpResponse response = null;
-		long start = Timings.getTime();
+		long start = Logging.getTime();
 
 		try {
 			URI uri = new URI(oauthProperties.getRegisterUrl());
@@ -57,16 +56,16 @@ public class DefaultAuthenticationService extends AuthenticationService {
 					.build();
 			httpRequest.setConfig(requestConfig);
 
-			Logging.getLogger().log(Logging.getLevel("oauth"),"Request: "+httpRequest);
+			Logging.log("oauth","Request: "+httpRequest);
 
 			try {
 				response = httpClient.execute(httpRequest);
 			} catch (IOException e) {
-				Logging.getLogger().error("HTTP EXECUTE: " + e.getMessage());
+				Logging.error("HTTP EXECUTE: " + e.getMessage());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
 			}
 
-			Logging.getLogger().log(Logging.getLevel("oauth"),"Response: " + response);
+			Logging.log("oauth","Response: " + response);
 			
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
@@ -81,7 +80,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 				String description = json.get("error_description").getAsString();
 
 				ErrorResponse ret = new ErrorResponse(code, error, description);
-				Logging.getLogger().error(ret);
+				Logging.error(ret.toString());
 
 				return ret;
 			}
@@ -90,44 +89,44 @@ public class DefaultAuthenticationService extends AuthenticationService {
 			String secret = json.get("credentials").getAsJsonObject().get("client_secret").getAsString();
 			JsonElement signature = json.get("credentials").getAsJsonObject().get("signature");
 
-			Timings.log("REGISTER", start, Timings.getTime());
+			Logging.logTiming("REGISTER", start, Logging.getTime());
 
 			return new RegistrationResponse(id, secret, signature);
 
 		} catch (URISyntaxException e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "URISyntaxException", e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",
 					e.getMessage());
 		} catch (ParseException e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ParseException", e.getMessage());
 		} catch (IOException e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 		} finally {
 			try {
 				if (response != null)
 					response.close();
 			} catch (IOException e) {
-				Logging.getLogger().error(e.getMessage());
-				Timings.log("REGISTER_ERROR", start, Timings.getTime());
+				Logging.error(e.getMessage());
+				Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
 		}
 	}
 
 	public Response requestToken(String authorization,int timeout) {
-		Logging.getLogger().log(Logging.getLevel("oauth"),"TOKEN_REQUEST: " + authorization);
+		Logging.log("oauth","TOKEN_REQUEST: " + authorization);
 
 		CloseableHttpResponse response = null;
-		long start = Timings.getTime();
+		long start = Logging.getTime();
 
 		try {
 			URI uri = new URI(oauthProperties.getTokenRequestUrl());
@@ -146,11 +145,11 @@ public class DefaultAuthenticationService extends AuthenticationService {
 				response = httpClient.execute(httpRequest);
 				// break;
 			} catch (IOException e) {
-				Logging.getLogger().error("HTTP EXECUTE: " + e.getMessage());
+				Logging.error("HTTP EXECUTE: " + e.getMessage());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "HttpExecute", e.getMessage());
 			}
 
-			Logging.getLogger().log(Logging.getLevel("oauth"),"Response: " + response);
+			Logging.log("oauth","Response: " + response);
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
 			EntityUtils.consume(entity);
@@ -159,7 +158,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 			JsonObject json = new Gson().fromJson(jsonResponse,JsonObject.class);
 
 			if (json.has("error")) {
-				Timings.log("TOKEN_REQUEST", start, Timings.getTime());
+				Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
 				ErrorResponse error = new ErrorResponse(json.get("status_code").getAsInt(),
 						json.get("error").getAsString(), json.get("error_description").getAsString());
 				return error;
@@ -167,16 +166,16 @@ public class DefaultAuthenticationService extends AuthenticationService {
 
 			return new JWTResponse(json);
 		} catch (Exception e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("TOKEN_REQUEST", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Exception", e.getMessage());
 		} finally {
 			try {
 				if (response != null)
 					response.close();
 			} catch (IOException e) {
-				Logging.getLogger().error(e.getMessage());
-				Timings.log("TOKEN_REQUEST", start, Timings.getTime());
+				Logging.error(e.getMessage());
+				Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
 		}

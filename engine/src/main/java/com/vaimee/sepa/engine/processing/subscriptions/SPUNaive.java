@@ -42,51 +42,51 @@ class SPUNaive extends SPU {
 
 		this.spuid = "sepa://spu/naive/" + UUID.randomUUID();
 
-		Logging.getLogger().debug("SPU: " + this.getSPUID() + " request: " + subscribe);
+		Logging.debug("SPU: " + this.getSPUID() + " request: " + subscribe);
 	}
 
 	@Override
 	public Response init() throws SEPASecurityException, IOException {
-		Logging.getLogger().log(Logging.getLevel("spu"),"@init");
+		Logging.log("spu","@init");
 
 		// Process the SPARQL query
 		Response ret = manager.processQuery(subscribe);
 
 		if (ret.isError()) {
-			Logging.getLogger().error("Not initialized");
+			Logging.error("Not initialized");
 			return ret;
 		}
 
 		lastBindings = ((QueryResponse) ret).getBindingsResults();
 
-		Logging.getLogger().trace("First results: " + lastBindings.toString());
+		Logging.trace("First results: " + lastBindings.toString());
 
 		return new SubscribeResponse(getSPUID(), subscribe.getAlias(), lastBindings);
 	}
 
 	@Override
 	public void preUpdateInternalProcessing(InternalUpdateRequest req) throws SEPAProcessingException {
-		Logging.getLogger().log(Logging.getLevel("spu"),"@preUpdateInternalProcessing");
+		Logging.log("spu","@preUpdateInternalProcessing");
 	}
 
 	@Override
 	public Notification postUpdateInternalProcessing(UpdateResponse res) throws SEPAProcessingException {
-		Logging.getLogger().log(Logging.getLevel("spu"),"@postUpdateInternalProcessing");
+		Logging.log("spu","@postUpdateInternalProcessing");
 		
 		Response ret = null;
 
 		// Query the SPARQL processing service
 		try {
-			Logging.getLogger().log(Logging.getLevel("spu"),"Query endpoint");
+			Logging.log("spu","Query endpoint");
 			ret = manager.processQuery(subscribe);
 		} catch (SEPASecurityException | IOException e) {
-			if (Logging.getLogger().isTraceEnabled()) e.printStackTrace();
-			Logging.getLogger().log(Logging.getLevel("spu"),"Exception on query procesing "+e.getMessage());
+			if (Logging.isTraceEnabled()) e.printStackTrace();
+			Logging.log("spu","Exception on query procesing "+e.getMessage());
 			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+e.getMessage());
 		}
 
 		if (ret.isError()) {
-			Logging.getLogger().log(Logging.getLevel("spu"),"SEPAProcessingException "+ret);
+			Logging.log("spu","SEPAProcessingException "+ret);
 			throw new SEPAProcessingException("postUpdateInternalProcessing exception "+ret.toString());
 		}
 
@@ -102,8 +102,8 @@ class SPUNaive extends SPU {
 		if (lastBindings == null)
 			lastBindings = new BindingsResults(null, null);
 
-		Logging.getLogger().trace("Current bindings: " + currentBindings);
-		Logging.getLogger().trace("Last bindings: " + lastBindings);
+		Logging.trace("Current bindings: " + currentBindings);
+		Logging.trace("Last bindings: " + lastBindings);
 
 		// Find removed bindings
 		long start = System.nanoTime();
@@ -114,7 +114,7 @@ class SPUNaive extends SPU {
 				results.remove(solution);
 		}
 		long stop = System.nanoTime();
-		Logging.getLogger().trace("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
+		Logging.trace("Removed bindings: " + removed + " found in " + (stop - start) + " ns");
 
 		// Find added bindings
 		start = System.nanoTime();
@@ -123,7 +123,7 @@ class SPUNaive extends SPU {
 				added.add(solution);
 		}
 		stop = System.nanoTime();
-		Logging.getLogger().trace("Added bindings: " + added + " found in " + (stop - start) + " ns");
+		Logging.trace("Added bindings: " + added + " found in " + (stop - start) + " ns");
 
 		// Update the last bindings with the current ones
 		lastBindings = currentBindings;
@@ -132,11 +132,11 @@ class SPUNaive extends SPU {
 
 		// Send notification (or end processing indication)
 		if (!added.isEmpty() || !removed.isEmpty()) {
-			Logging.getLogger().log(Logging.getLevel("spu"),"Send notification");
+			Logging.log("spu","Send notification");
 			return new Notification(getSPUID(), new ARBindingsResults(added, removed));
 		}
 
-		Logging.getLogger().log(Logging.getLevel("spu"),"Nothing to be notified");
+		Logging.log("spu","Nothing to be notified");
 		return null;
 	}
 }

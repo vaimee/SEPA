@@ -30,7 +30,7 @@ public class VirtuosoIsql implements IUsersAcl{
 	}
 	
 	public void createUser(String uid, JsonElement graphs) throws SEPASecurityException {
-		Logging.getLogger().info("createUser "+uid+" "+graphs);
+		Logging.info("createUser "+uid+" "+graphs);
 		new File("command.sql").delete();
 		
 		try {
@@ -62,7 +62,7 @@ public class VirtuosoIsql implements IUsersAcl{
 	}
 
 	public void updateUser(String uid, JsonObject addGraphs, JsonArray removeGraphs) throws SEPASecurityException {
-		Logging.getLogger().info("updateUser "+uid+" add:"+addGraphs+" remove:"+removeGraphs);
+		Logging.info("updateUser "+uid+" add:"+addGraphs+" remove:"+removeGraphs);
 		
 		if (new File("command.sql").exists()) new File("command.sql").delete();
 		
@@ -87,7 +87,7 @@ public class VirtuosoIsql implements IUsersAcl{
 	}
 
 	public void removeUser(String uid) throws SEPASecurityException {
-		Logging.getLogger().info("removeUser "+uid);
+		Logging.info("removeUser "+uid);
 		
 		if (new File("command.sql").exists()) new File("command.sql").delete();
 		
@@ -106,19 +106,19 @@ public class VirtuosoIsql implements IUsersAcl{
 	}
 	
 	private void isql() throws IOException, InterruptedException {
-		Logging.getLogger().log(Logging.getLevel("ldap"),"*** Execute isql *** ");
+		Logging.log("ldap","*** Execute isql *** ");
 
 		Process pr = ps.start();
 
 		BufferedReader in = new BufferedReader(new InputStreamReader(pr.getInputStream()));
 		String line;
 		while ((line = in.readLine()) != null) {
-			Logging.getLogger().log(Logging.getLevel("ldap"),line);
+			Logging.log("ldap",line);
 		}
 		pr.waitFor();
 
 		in.close();
 
-		Logging.getLogger().log(Logging.getLevel("ldap"),"*** Execute isql END ***");
+		Logging.log("ldap","*** Execute isql END ***");
 	}
 }

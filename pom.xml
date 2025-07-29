@@ -11,8 +11,9 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<revision>1.0.0</revision>
-		<sjenar>1.0.3</sjenar>
+		<revision>1.0.0-SNAPSHOT</revision>
+		<!-- Change this with the SJENAR version published on VAIMEE GitHub packages -->
+		<sjenar>1.0.0-SNAPSHOT</sjenar>
 
 		<update>0</update>
 
@@ -66,6 +67,11 @@
     			<id>github</id>
     			<url>https://maven.pkg.github.com/vaimee/sjenar</url>
   		</repository>
+		<repository>
+			<id>central</id>
+			<url>https://repo1.maven.org/maven2/</url>
+		</repository>
+
 	</repositories>
 	
 	<scm>
@@ -86,19 +92,32 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.9.0</version>
+				<version>3.14.0</version>
 				<configuration>
 					<release>21</release>
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>com.hbakkum.maven.plugins</groupId>
-				<artifactId>resolve-parent-version-maven-plugin</artifactId>
-				<version>0.8</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<version>1.7.2</version>
+				<configuration>
+					<updatePomFile>true</updatePomFile>
+					<flattenMode>resolveCiFriendliesOnly</flattenMode>
+				</configuration>
 				<executions>
 					<execution>
+						<id>flatten</id>
+						<phase>process-resources</phase>
 						<goals>
-							<goal>resolve-parent-version</goal>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
 						</goals>
 					</execution>
 				</executions>
@@ -124,6 +143,28 @@
 							<goal>integration-test</goal>
 							<goal>verify</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.3.1</version>
+				<executions>
+					<execution>
+						<id>copy-defaults</id>
+						<!-- here the phase you need -->
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/main/resources</directory>
+								</resource>
+							</resources>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

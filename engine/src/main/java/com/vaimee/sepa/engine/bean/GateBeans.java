@@ -18,7 +18,7 @@
 
 package com.vaimee.sepa.engine.bean;
 
-import com.vaimee.sepa.logging.Timings;
+import com.vaimee.sepa.logging.Logging;
 
 public class GateBeans {
 	private static long messages = 0;
@@ -47,7 +47,7 @@ public class GateBeans {
 	public static long unsubscribeTimings(long start) {
 		handledunsubscribes++;
 				
-		unsubscribeHandlingTime = Timings.getTime() - start;
+		unsubscribeHandlingTime = Logging.getTime() - start;
 
 		if (unsubscribeHandlingMinTime == -1)
 			unsubscribeHandlingMinTime = unsubscribeHandlingTime;
@@ -71,7 +71,7 @@ public class GateBeans {
 	public long subscribeTimings(long start) {
 		handledSubscribes++;
 		
-		subscribeHandlingTime = Timings.getTime() - start;
+		subscribeHandlingTime = Logging.getTime() - start;
 
 		if (subscribeHandlingMinTime == -1)
 			subscribeHandlingMinTime = subscribeHandlingTime;

@@ -83,7 +83,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 
 	@Override
 	public final void notifyEvent(Notification notify) throws SEPAProtocolException {
-		Logging.getLogger().trace("@notifyEvent: " + notify);
+		Logging.trace("@notifyEvent: " + notify);
 		send(notify);
 		
 		GateBeans.notification();
@@ -91,7 +91,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 
 	@Override
 	public final void sendResponse(Response response) throws SEPAProtocolException {
-		Logging.getLogger().trace("@sendResponse: " + response);
+		Logging.trace("@sendResponse: " + response);
 		send(response);
 
 		// JMX
@@ -101,7 +101,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			GateBeans.unsubscribeResponse();
 		} else if (response.isError()) {
 			GateBeans.errorResponse();
-			Logging.getLogger().error(response);
+			Logging.error(response);
 		}
 	}
 
@@ -133,19 +133,19 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		// Parse the request
 		InternalRequest req = parseRequest(message, auth);
 		if (req instanceof InternalDiscardRequest) {
-			Logging.getLogger().error("@onMessage " + getGID() + " failed to parse message: " + message);
+			Logging.error("@onMessage " + getGID() + " failed to parse message: " + message);
 			setAliasIfPresent(((InternalDiscardRequest) req).getError(), message);
 			sendResponse(((InternalDiscardRequest) req).getError());
 			return;
 		}
 
 		// Schedule the request
-		Logging.getLogger().trace("@onMessage: " + getGID() + " schedule request: " + req);
+		Logging.trace("@onMessage: " + getGID() + " schedule request: " + req);
 		ScheduledRequest request = scheduler.schedule(req, this);
 
 		// Request not scheduled
 		if (request == null) {
-			Logging.getLogger().error("@onMessage: " + getGID() + " out of tokens");
+			Logging.error("@onMessage: " + getGID() + " out of tokens");
 			ErrorResponse response = new ErrorResponse(500, "too_many_requests", "Too many pending requests");
 			setAliasIfPresent(response, message);
 			sendResponse(response);
@@ -217,7 +217,7 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 		try {
 			request = new Gson().fromJson(message,JsonObject.class);	
 		} catch (Exception e) {
-			Logging.getLogger().error(e.getMessage());
+			Logging.error(e.getMessage());
 			return new ClientAuthorization("invalid_request","Failed to parse JSON message: "+message);
 		}
 
@@ -230,35 +230,35 @@ public abstract class Gate implements ResponseHandler, EventHandler {
 			subUnsub = request.get("unsubscribe").getAsJsonObject();
 
 		if (subUnsub == null) {
-			Logging.getLogger().error("Neither subscribe or unsuscribe found");
+			Logging.error("Neither subscribe or unsuscribe found");
 			return new ClientAuthorization("invalid_request","Neither subscribe or unsuscribe found");
 		}
 
 		if (!subUnsub.has("authorization")) {
-			Logging.getLogger().error("authorization member is missing");
+			Logging.error("authorization member is missing");
 			return new ClientAuthorization("invalid_request","authorization member is missing");
 		}
 
 		try {
 			bearer = subUnsub.get("authorization").getAsString();
 		} catch (Exception e) {
-			Logging.getLogger().error("Authorization member is not a string");
+			Logging.error("Authorization member is not a string");
 			return new ClientAuthorization("invalid_request","authorization member is not a string");
 		}
 
 		if (!bearer.toUpperCase().startsWith("BEARER ")) {
-			Logging.getLogger().error("Authorization value MUST be of type Bearer");
+			Logging.error("Authorization value MUST be of type Bearer");
 			return new ClientAuthorization("unsupported_grant_type","Authorization value MUST be of type Bearer");
 		}
 
 		String jwt = bearer.substring(7);
 
 		if (jwt == null) {
-			Logging.getLogger().error("Token is null");
+			Logging.error("Token is null");
 			return new ClientAuthorization("invalid_request","Token is null");
 		}
 		if (jwt.equals("")) {
-			Logging.getLogger().error("Token is empty");
+			Logging.error("Token is empty");
 			return new ClientAuthorization("invalid_request","Token is empty");
 		}
 

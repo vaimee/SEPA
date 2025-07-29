@@ -28,7 +28,7 @@ public class JKSUtil {
 		try {
 			jks = KeyStore.getInstance("JKS");
 			jks.load(new FileInputStream(keystore), storepass.toCharArray());
-			Logging.getLogger().debug(jks);
+			Logging.debug(jks.toString());
 			return RSAKey.load(jks, keyalias, keypass.toCharArray());
 		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException | JOSEException e) {
 			throw new SEPASecurityException(e.getMessage());

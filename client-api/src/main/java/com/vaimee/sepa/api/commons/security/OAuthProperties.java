@@ -150,7 +150,7 @@ public class OAuthProperties {
 			} 
 		} 
 		} catch(Exception e) {
-			Logging.getLogger().error(e.getMessage());
+			Logging.error(e.getMessage());
 			throw new SEPAPropertiesException(e.getMessage());
 		}
 	}
@@ -213,7 +213,7 @@ public class OAuthProperties {
 	 * @param secret the password
 	 */
 	public void setCredentials(String id, String secret) throws SEPAPropertiesException, SEPASecurityException {
-		// Logging.getLogger().debug("@setCredentials Id: " + id + " Secret:" + secret);
+		// Logging.debug("@setCredentials Id: " + id + " Secret:" + secret);
 
 		clientId = id;
 		clientSecret = secret;
@@ -239,7 +239,7 @@ public class OAuthProperties {
 	 *
 	 */
 	public void setJWT(JWTResponse jwt) throws SEPASecurityException, SEPAPropertiesException {
-		Logging.getLogger().debug("@setJWT: " + jwt);
+		Logging.debug("@setJWT: " + jwt);
 
 		long now = new Date().getTime();
 		

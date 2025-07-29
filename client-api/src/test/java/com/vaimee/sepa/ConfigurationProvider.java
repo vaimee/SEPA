@@ -36,40 +36,36 @@ public class ConfigurationProvider implements Closeable {
 
 //		if (System.getProperty("testConfiguration") != null) {
 //			jsapFileName = System.getProperty("testConfiguration");
-//			Logging.getLogger().debug("JSAP from property testConfiguration: " + jsapFileName);
+//			Logging.debug("JSAP from property testConfiguration: " + jsapFileName);
 //		} else if (System.getProperty("secure") != null) {
 //			jsapFileName = "sepatest-secure.jsap";
-//			Logging.getLogger().debug("JSAP secure default: " + jsapFileName);
+//			Logging.debug("JSAP secure default: " + jsapFileName);
 //		}
 //
 //		jsapPath = getClass().getClassLoader().getResource(jsapFileName).getPath();
 //		File f = new File(jsapPath);
 //		if (!f.exists()) {
-//			Logging.getLogger().error("File not found: " + jsapPath);
+//			Logging.error("File not found: " + jsapPath);
 //			throw new SEPAPropertiesException("File not found: " + jsapPath);
 //		}
 //
-//		Logging.getLogger().debug("Loading JSAP from: " + f.getPath());
+//		Logging.debug("Loading JSAP from: " + f.getPath());
 
 		try {
 //			appProfile = new JSAP(URI.create(f.getPath()));
 			appProfile = new JSAP(jsapFileName);
 		} catch (SEPAPropertiesException e) {
-			Logging.getLogger().error(e.getMessage());
+			Logging.error(e.getMessage());
 			throw new RuntimeException(e);
 		}
 
-		prefixes = "";
-		for(String pre : appProfile.getPrefixes().getNsPrefixMap().keySet()) {
-			prefixes += "PREFIX "+pre+":<"+appProfile.getPrefixes().getNsPrefixURI(pre)+"> ";
-		}
-		
+		prefixes = appProfile.getPrologue();
 
 		try {
 			TIMEOUT = appProfile.getExtendedData().get("timeout").getAsLong();
 		}
 		catch(Exception e) {
-			Logging.getLogger().warn("Extended-timeout NOT FOUND. Use default 15 s");
+			Logging.warn("Extended-timeout NOT FOUND. Use default 15 s");
 			TIMEOUT = 15000;
 		}
 		
@@ -77,14 +73,14 @@ public class ConfigurationProvider implements Closeable {
 			NRETRY = appProfile.getExtendedData().get("nretry").getAsLong();
 		}
 		catch(Exception e) {
-			Logging.getLogger().warn("Extended-nretry NOT FOUND. Use default 3");
+			Logging.warn("Extended-nretry NOT FOUND. Use default 3");
 			NRETRY = 3;
 			
 		}
 
 		sm = buildSecurityManager();
 		
-		Logging.getLogger().debug("Loaded JSAP: " + appProfile);
+		Logging.debug("Loaded JSAP: " + appProfile);
 	}
 
 	private String getSPARQLUpdate(String id) {

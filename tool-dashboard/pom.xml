@@ -53,33 +53,9 @@
 										<!-- gson metainfo -->
 										<exclude>META-INF/maven/com.google.code.gson/gson/pom.xml</exclude>
 										<exclude>META-INF/maven/com.google.code.gson/gson/pom.properties</exclude>
-
-										<exclude>log4j2.xml</exclude>
 									</excludes>
 								</filter>
 							</filters>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.1</version>
-				<executions>
-					<execution>
-						<id>copy-defaults</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/target</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${basedir}/src/main/resources</directory>
-								</resource>
-							</resources>
 						</configuration>
 					</execution>
 				</executions>
@@ -90,10 +66,7 @@
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>client-api</artifactId>
-			<version>${revision}</version>
-			<exclusions>
-
-			</exclusions>
+			<version>${project.parent.version}</version>
 		</dependency>
 	</dependencies>
 </project>

@@ -25,7 +25,7 @@ public class ConsumerTestUnit extends Consumer {
 	}
 
 	public void syncSubscribe(long timeout,long nretry) throws SEPASecurityException, IOException, SEPAPropertiesException, SEPAProtocolException, InterruptedException, SEPABindingsException {
-		Logging.getLogger().debug("subscribe");
+		Logging.debug("subscribe");
 		
 		notificationReceived = false;
 		firstResultsReceived = false;
@@ -34,20 +34,20 @@ public class ConsumerTestUnit extends Consumer {
 		
 		synchronized(this) {
 			while (!isSubscribed()) wait();
-			Logging.getLogger().debug("subscribed");
+			Logging.debug("subscribed");
 		}
 		
 		sync.onSubscribe();
 	}
 	
 	public void syncUnsubscribe(long timeout,long nretry) throws SEPASecurityException, SEPAPropertiesException, SEPAProtocolException, InterruptedException {
-		Logging.getLogger().debug("unsubscribe");
+		Logging.debug("unsubscribe");
 		
 		super.unsubscribe(timeout,nretry);
 		
 		synchronized(this) {
 			while (isSubscribed()) wait();
-			Logging.getLogger().debug("unsubscribed");
+			Logging.debug("unsubscribed");
 		}
 		
 		sync.onUnsubscribe();
@@ -55,26 +55,26 @@ public class ConsumerTestUnit extends Consumer {
 	
 	public void waitNotification() throws InterruptedException {
 		synchronized(this) {
-			Logging.getLogger().debug("waitNotification");
+			Logging.debug("waitNotification");
 			while (!notificationReceived) wait();
 			notificationReceived = false;
-			Logging.getLogger().debug("notification received");
+			Logging.debug("notification received");
 		}
 	}
 	
 	public void waitFirstNotification() throws InterruptedException {
 		synchronized(this) {
-			Logging.getLogger().debug("waitFirstNotification");
+			Logging.debug("waitFirstNotification");
 			while (!firstResultsReceived) wait();
 			firstResultsReceived = false;
-			Logging.getLogger().debug("notification received");
+			Logging.debug("notification received");
 		}
 	}
 	
 	@Override
 	public void onResults(ARBindingsResults results) {
 		synchronized(this) {
-			Logging.getLogger().debug("onResults");
+			Logging.debug("onResults");
 			notificationReceived = true;
 			notify();
 			sync.onSemanticEvent();
@@ -84,7 +84,7 @@ public class ConsumerTestUnit extends Consumer {
 	@Override
 	public void onFirstResults(BindingsResults results) {
 		synchronized(this) {
-			Logging.getLogger().debug("onFirstResults");
+			Logging.debug("onFirstResults");
 			firstResultsReceived = true;
 			notify();
 		}	

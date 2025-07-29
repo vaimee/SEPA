@@ -27,14 +27,14 @@ public class UsersSync {
 					try {
 						Thread.sleep(5000);
 					} catch (InterruptedException e) {
-						Logging.getLogger().debug(e.getMessage());
+						Logging.debug(e.getMessage());
 						return;
 					}
 
 					try {
 						updateUsers(ldap.sync(), users);
 					} catch (SEPASecurityException e) {
-						Logging.getLogger().error(e.getMessage());
+						Logging.error(e.getMessage());
 					}
 				}
 			}

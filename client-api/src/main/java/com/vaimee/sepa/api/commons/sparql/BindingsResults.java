@@ -245,7 +245,7 @@ public class BindingsResults {
 						break;
 					}
 				} catch (SEPABindingsException e) {
-					Logging.getLogger().error(e.getMessage());
+					Logging.error(e.getMessage());
 					return false;
 				}						
 			}

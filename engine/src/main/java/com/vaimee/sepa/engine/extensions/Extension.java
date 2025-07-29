@@ -37,7 +37,7 @@ public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>,
         } catch (ClassNotFoundException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            Logging.getLogger().error(e.getMessage());
+            Logging.error(e.getMessage());
             throw new SEPAPropertiesException(e);
         }
 
@@ -48,7 +48,7 @@ public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>,
         } catch (NoSuchMethodException | SecurityException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            Logging.getLogger().error(e.getMessage());
+            Logging.error(e.getMessage());
             throw new SEPAPropertiesException(e);
         }
         Object ret = null;
@@ -58,7 +58,7 @@ public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>,
                  | InvocationTargetException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            Logging.getLogger().error(e.getMessage());
+            Logging.error(e.getMessage());
             throw new SEPAPropertiesException(e);
         }
         return (Extension) ret;
@@ -70,7 +70,7 @@ public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>,
 
     protected boolean corsHandling(HttpAsyncExchange exchange) {
         if (!Dependability.processCORSRequest(exchange)) {
-            Logging.getLogger().log(Logging.getLevel("http"),"CORS origin not allowed");
+            Logging.log("http","CORS origin not allowed");
             jmx.corsFailed();
             HttpUtilities.sendFailureResponse(exchange,
                     new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, "cors_error", "CORS origin not allowed"));
@@ -78,7 +78,7 @@ public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>,
         }
 
         if (Dependability.isPreFlightRequest(exchange)) {
-            Logging.getLogger().log(Logging.getLevel("http"),"Preflight request");
+            Logging.log("http","Preflight request");
             HttpUtilities.sendResponse(exchange, HttpStatus.SC_NO_CONTENT, "");
             return false;
         }
@@ -89,7 +89,7 @@ public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>,
     @Override
     public HttpAsyncRequestConsumer<HttpRequest> processRequest(HttpRequest request, HttpContext context)
             throws HttpException, IOException {
-        Logging.getLogger().log(Logging.getLevel("http"), "@processRequest " + request + " " + context);
+        Logging.log("http", "@processRequest " + request + " " + context);
         // Buffer request content in memory for simplicity
         return new BasicAsyncRequestConsumer();
     }
@@ -97,7 +97,7 @@ public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>,
     @Override
     public void handle(HttpRequest request, HttpAsyncExchange httpExchange, HttpContext context)
             throws HttpException, IOException {
-        Logging.getLogger().log(Logging.getLevel("http"), "@handle " + request + " " + context);
+        Logging.log("http", "@handle " + request + " " + context);
         // CORS
         if (!corsHandling(httpExchange))
             return;
@@ -113,7 +113,7 @@ public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>,
             return;
         }
         if (!oauth.isAuthorized()) {
-            Logging.getLogger().log(Logging.getLevel("oauth"),"*** NOT AUTHORIZED *** " + oauth.getDescription());
+            Logging.log("oauth","*** NOT AUTHORIZED *** " + oauth.getDescription());
             HttpUtilities.sendFailureResponse(httpExchange,
                     new ErrorResponse(HttpStatus.SC_UNAUTHORIZED, oauth.getError(), oauth.getDescription()));
             jmx.authorizingFailed();

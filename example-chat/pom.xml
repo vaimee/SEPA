@@ -10,8 +10,7 @@
 	</parent>
 	
 	<artifactId>example-chat</artifactId>
-	
-	
+
 	<packaging>jar</packaging>
 	<name>example-chat</name>
 
@@ -19,39 +18,6 @@
 
 	<build>
 		<plugins>
-			<!--
-			https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-deploy-plugin -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.8.2</version>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.1</version>
-				<executions>
-					<execution>
-						<id>copy-defaults</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>/target</outputDirectory>
-							<resources>
-								<resource>
-									<directory>/src/main/resources</directory>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -93,8 +59,6 @@
 										<!-- gson metainfo -->
 										<exclude>META-INF/maven/com.google.code.gson/gson/pom.xml</exclude>
 										<exclude>META-INF/maven/com.google.code.gson/gson/pom.properties</exclude>
-
-										<exclude>log4j2.xml</exclude>
 									</excludes>
 								</filter>
 							</filters>
@@ -109,7 +73,7 @@
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>client-api</artifactId>
-			<version>${revision}</version>
+			<version>${project.parent.version}</version>
 			<exclusions>
 
 			</exclusions>
