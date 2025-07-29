@@ -48,21 +48,26 @@
 								</transformer>
 							</transformers>
 							<filters>
+								<!-- Filtro generico: esclude metadati duplicati -->
 								<filter>
 									<artifact>*:*</artifact>
 									<excludes>
-										<!-- Moduli Java -->
 										<exclude>module-info.class</exclude>
 										<exclude>META-INF/versions/**/module-info.class</exclude>
-										<!-- Meta file duplicati comuni -->
 										<exclude>META-INF/LICENSE*</exclude>
 										<exclude>META-INF/NOTICE*</exclude>
 										<exclude>META-INF/DEPENDENCIES</exclude>
+										<exclude>META-INF/LICENSE</exclude>
+										<exclude>META-INF/LICENSE.txt</exclude>
+										<exclude>META-INF/LICENSE.md</exclude>
+										<exclude>META-INF/NOTICE.md</exclude>
+										<exclude>META-INF/NOTICE.txt</exclude>
 										<exclude>META-INF/MANIFEST.MF</exclude>
-										<!-- gson metainfo -->
-										<exclude>META-INF/maven/com.google.code.gson/gson/pom.xml</exclude>
-										<exclude>META-INF/maven/com.google.code.gson/gson/pom.properties</exclude>
-
+										<exclude>OSGI-INF/bundle.info</exclude>
+										<exclude>META-INF/maven/**</exclude>
+                                        <!-- gson metainfo -->
+                                        <exclude>META-INF/maven/com.google.code.gson/gson/pom.xml</exclude>
+                                        <exclude>META-INF/maven/com.google.code.gson/gson/pom.properties</exclude>
 										<exclude>log4j2.xml</exclude>
 									</excludes>
 								</filter>
@@ -73,7 +78,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -139,6 +143,9 @@
 			<groupId>org.java-websocket</groupId>
 			<artifactId>Java-WebSocket</artifactId>
 			<version>1.6.0</version>
+			<exclusions>
+
+			</exclusions>
 		</dependency>
 	</dependencies>
 

@@ -3,10 +3,12 @@
 
 name: Maven Package
 
-on:
-  release:
-    types: [created]
+# Manual
+on: workflow_dispatch
 
+#on:
+# release:
+#  types: [created]
 jobs:
   build:
 
@@ -22,12 +24,14 @@ jobs:
       with:
         java-version: '21'
         distribution: 'temurin'
-        server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+        server-id: sepa # Value of the distributionManagement/repository/id field of the pom.xml
         settings-path: ${{ github.workspace }} # location for the settings.xml file
 
     - name: Build with Maven
-      run: mvn -DskipTests -B package --file pom.xml
-
+      run: mvn -DskipTests -B package --file pom.xml -s $GITHUB_WORKSPACE/settings.xml
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        
     - name: Publish to GitHub Packages Apache Maven
       run: mvn -DskipTests deploy -s $GITHUB_WORKSPACE/settings.xml
       env:
