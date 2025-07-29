@@ -65,6 +65,7 @@
 										<exclude>META-INF/MANIFEST.MF</exclude>
 										<exclude>OSGI-INF/bundle.info</exclude>
 										<exclude>META-INF/maven/**</exclude>
+										<exclude>META-INF/services/org.apache.jena.sys.JenaSubsystemLifecycle</exclude>
                                         <!-- gson metainfo -->
                                         <exclude>META-INF/maven/com.google.code.gson/gson/pom.xml</exclude>
                                         <exclude>META-INF/maven/com.google.code.gson/gson/pom.properties</exclude>
@@ -122,22 +123,22 @@
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-rdfconnection</artifactId>
-			<version>${sjenar}</version>
+			<version>${sjenar.revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-tdb2</artifactId>
-			<version>${sjenar}</version>
+			<version>${sjenar.revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-tdb</artifactId>
-			<version>${sjenar}</version>
+			<version>${sjenar.revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-dboe-base</artifactId>
-			<version>${sjenar}</version>
+			<version>${sjenar.revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.java-websocket</groupId>
