@@ -16,16 +16,16 @@
         <repository>
           <id>sjenar</id>
           <url>https://maven.pkg.github.com/vaimee/sjenar</url>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
+<!--          <snapshots>-->
+<!--            <enabled>false</enabled>-->
+<!--          </snapshots>-->
         </repository>
         <repository>
           <id>sepa</id>
           <url>https://maven.pkg.github.com/vaimee/SEPA</url>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
+<!--          <snapshots>-->
+<!--            <enabled>false</enabled>-->
+<!--          </snapshots>-->
         </repository>
       </repositories>
     </profile>

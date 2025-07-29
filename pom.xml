@@ -12,8 +12,7 @@
 
 	<properties>
 		<revision>1.0.0-SNAPSHOT</revision>
-		<!-- Change this with the SJENAR version published on VAIMEE GitHub packages -->
-		<sjenar>1.0.0-SNAPSHOT</sjenar>
+		<sjenar.revision>1.0.0-SNAPSHOT</sjenar.revision>
 
 		<update>0</update>
 
@@ -64,16 +63,12 @@
 
 	<repositories>
   		<repository>
-    			<id>sjenar</id>
-    			<url>https://maven.pkg.github.com/vaimee/sjenar</url>
+    			<id>github</id>
+    			<url>https://maven.pkg.github.com/vaimee/sjenar/</url>
   		</repository>
         <repository>
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
-        </repository>
-        <repository>
-            <id>sepa</id>
-            <url>https://maven.pkg.github.com/vaimee/SEPA</url>
         </repository>
 	</repositories>
 	
@@ -95,9 +90,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.9.0</version>
+				<version>3.14.0</version>
 				<configuration>
 					<release>21</release>
+					<proc>none</proc>
 				</configuration>
 			</plugin>
 			<plugin>
