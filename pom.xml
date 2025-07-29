@@ -12,7 +12,7 @@
 
 	<properties>
 		<revision>1.0.0-SNAPSHOT</revision>
-		<sjenar.revision>1.0.0-SNAPSHOT</sjenar.revision>
+		<sjenar.revision>1.0.100</sjenar.revision>
 
 		<update>0</update>
 
