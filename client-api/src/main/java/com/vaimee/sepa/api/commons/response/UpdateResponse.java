@@ -21,11 +21,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-import java.util.Set;
-
-import org.apache.jena.sparql.core.Quad;
-
-
 /**
  * This class represents the response of a SPARQL 1.1 Update
  */

@@ -96,7 +96,7 @@ public class Encryption {
 		try {
 			c = Cipher.getInstance(ALGO);
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-			if (Logging.getLogger().isTraceEnabled())
+			if (Logging.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
@@ -104,7 +104,7 @@ public class Encryption {
 		try {
 			c.init(Cipher.DECRYPT_MODE, key);
 		} catch (InvalidKeyException e) {
-			if (Logging.getLogger().isTraceEnabled())
+			if (Logging.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
@@ -114,7 +114,7 @@ public class Encryption {
 			decoded = Base64.getDecoder().decode(encryptedData);
 		}
 		catch (IllegalArgumentException e) {
-			if (Logging.getLogger().isTraceEnabled())
+			if (Logging.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}
@@ -123,7 +123,7 @@ public class Encryption {
 		try {
 			decrypted = c.doFinal(decoded);
 		} catch (IllegalBlockSizeException | BadPaddingException e) {
-			if (Logging.getLogger().isTraceEnabled())
+			if (Logging.isTraceEnabled())
 				e.printStackTrace();
 			throw new SEPASecurityException(e.getMessage());
 		}

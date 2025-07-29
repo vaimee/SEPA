@@ -27,7 +27,6 @@ import com.vaimee.sepa.api.commons.response.JWTResponse;
 import com.vaimee.sepa.api.commons.response.RegistrationResponse;
 import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.logging.Logging;
-import com.vaimee.sepa.logging.Timings;
 
 public class KeycloakAuthenticationService extends AuthenticationService {
 	String registrationAccessToken;
@@ -51,10 +50,10 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 		if (client_id == null)
 			throw new SEPASecurityException("client_id is null");
 
-		Logging.getLogger().log(Logging.getLevel("oauth"),"REGISTER " + client_id);
+		Logging.log("oauth","REGISTER " + client_id);
 		
 		CloseableHttpResponse response = null;
-		long start = Timings.getTime();
+		long start = Logging.getTime();
 
 		try {
 			URI uri = new URI(oauthProperties.getRegisterUrl());
@@ -103,16 +102,16 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 					.build();
 			httpRequest.setConfig(requestConfig);
 
-			Logging.getLogger().log(Logging.getLevel("oauth"),"Request: "+httpRequest);
+			Logging.log("oauth","Request: "+httpRequest);
 
 			try {
 				response = httpClient.execute(httpRequest);
 			} catch (IOException e) {
-				Logging.getLogger().error("HTTP EXECUTE: " + e.getMessage());
+				Logging.error("HTTP EXECUTE: " + e.getMessage());
 				return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "HttpExecute", e.getMessage());
 			}
 
-			Logging.getLogger().log(Logging.getLevel("oauth"),"Response: " + response);
+			Logging.log("oauth","Response: " + response);
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
 
@@ -126,36 +125,36 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 				String description = json.get("error_description").getAsString();
 
 				ErrorResponse ret = new ErrorResponse(response.getStatusLine().getStatusCode(), error, description);
-				Logging.getLogger().error(ret);
+				Logging.error(ret);
 
 				return ret;
 			}
 			return new RegistrationResponse(client_id, json.get("secret").getAsString(), json);
 
 		} catch (URISyntaxException e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "URISyntaxException", e.getMessage());
 		} catch (UnsupportedEncodingException e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "UnsupportedEncodingException",
 					e.getMessage());
 		} catch (ParseException e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "ParseException", e.getMessage());
 		} catch (IOException e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("REGISTER_ERROR", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "IOException", e.getMessage());
 		} finally {
 			try {
 				if (response != null)
 					response.close();
 			} catch (IOException e) {
-				Logging.getLogger().error(e.getMessage());
-				Timings.log("REGISTER_ERROR", start, Timings.getTime());
+				Logging.error(e.getMessage());
+				Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
 				return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "IOException", e.getMessage());
 			}
 		}
@@ -170,10 +169,10 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 		 * 
 		 * grant_type=client_credentials
 		 **/
-		Logging.getLogger().log(Logging.getLevel("oauth"),"TOKEN_REQUEST: " + authorization);
+		Logging.log("oauth","TOKEN_REQUEST: " + authorization);
 
 		CloseableHttpResponse response = null;
-		long start = Timings.getTime();
+		long start = Logging.getTime();
 
 		try {
 			URI uri = new URI(oauthProperties.getTokenRequestUrl());
@@ -194,11 +193,11 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 				// break;
 			} catch (Exception e) {
 				ErrorResponse err = new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getClass().getName(), e.getMessage());
-				Logging.getLogger().error(err);
+				Logging.error(err);
 				return err;
 			}
 
-			Logging.getLogger().log(Logging.getLevel("oauth"),"Response: " + response);
+			Logging.log("oauth","Response: " + response);
 			HttpEntity entity = response.getEntity();
 			String jsonResponse = EntityUtils.toString(entity, Charset.forName("UTF-8"));
 			EntityUtils.consume(entity);
@@ -207,7 +206,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 			JsonObject json = new Gson().fromJson(jsonResponse,JsonObject.class);
 
 			if (json.has("error")) {
-				Timings.log("TOKEN_REQUEST", start, Timings.getTime());
+				Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
 				ErrorResponse error = new ErrorResponse(response.getStatusLine().getStatusCode(),"token_request",
 						json.get("error").getAsString());
 				return error;
@@ -215,16 +214,16 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 
 			return new JWTResponse(json);
 		} catch (Exception e) {
-			Logging.getLogger().error(e.getMessage());
-			Timings.log("TOKEN_REQUEST", start, Timings.getTime());
+			Logging.error(e.getMessage());
+			Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Exception", e.getMessage());
 		} finally {
 			try {
 				if (response != null)
 					response.close();
 			} catch (IOException e) {
-				Logging.getLogger().error(e.getMessage());
-				Timings.log("TOKEN_REQUEST", start, Timings.getTime());
+				Logging.error(e.getMessage());
+				Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
 		}

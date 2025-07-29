@@ -37,9 +37,9 @@ public class Publisher extends Thread implements Closeable {
 				//if (sm != null) sm.refreshToken();
 				Response ret = client.update(provider.buildUpdateRequest(id));
 				if (ret.isError())
-					Logging.getLogger().error(ret);
+					Logging.error(ret);
 			} catch (SEPAPropertiesException | SEPASecurityException e) {
-				Logging.getLogger().error(e.getMessage());
+				Logging.error(e.getMessage());
 			}
 			
 			running.set(running.get() - 1);
@@ -50,7 +50,7 @@ public class Publisher extends Thread implements Closeable {
 		try {
 			client.close();
 		} catch (IOException e) {
-			Logging.getLogger().error(e.getMessage());
+			Logging.error(e.getMessage());
 		}
 
 //		if (sm != null) sm.close();

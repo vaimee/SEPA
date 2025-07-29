@@ -32,7 +32,6 @@ import com.vaimee.sepa.engine.scheduling.InternalSubscribeRequest;
 import com.vaimee.sepa.engine.scheduling.InternalUpdateRequest;
 import com.vaimee.sepa.engine.scheduling.InternalUpdateRequestWithQuads;
 import com.vaimee.sepa.logging.Logging;
-import com.vaimee.sepa.logging.Timings;
 
 /**
  * A monitor class for subscription management
@@ -68,7 +67,7 @@ public class Subscriptions {
 	
 	//TODO: a different SPU can be created based on the InternalSubscribeRequest
 	public static SPU createSPU(InternalSubscribeRequest req, SPUManager manager) {
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"@createSPU");
+		Logging.log("subscriptions","@createSPU");
 		
 		try {
 			return new SPUNaive(req, manager);
@@ -79,7 +78,7 @@ public class Subscriptions {
 
 	// First level filtering on RDF data set (graph uris)
 	public synchronized static Collection<SPU> filterOnGraphs(InternalUpdateRequest update) {
-		long start = Timings.getTime();
+		long start = Logging.getTime();
 		
 		Collection<SPU> ret = new HashSet<>();
 		Set<String> target = update.getRdfDataSet();
@@ -103,11 +102,11 @@ public class Subscriptions {
 					}
 				}
 		}
-		long stop = Timings.getTime();
+		long stop = Logging.getTime();
 		
 		SPUManagerBeans.filteringTimings(start, stop);
 		
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"Filtered spus: " + ret.size());
+		Logging.log("subscriptions","Filtered spus: " + ret.size());
 		
 		return ret;
 	}
@@ -119,12 +118,12 @@ public class Subscriptions {
 	}
 	
 	public synchronized static boolean containsSubscribe(InternalSubscribeRequest req) {
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"@containsSubscribe");
+		Logging.log("subscriptions","@containsSubscribe");
 		return requests.containsKey(req);
 	}
 
 	public synchronized static void registerSubscribe(InternalSubscribeRequest req, SPU spu) {
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"@registerSubscribe");
+		Logging.log("subscriptions","@registerSubscribe");
 		
 		if (requests.containsKey(req)) return;
 		
@@ -139,7 +138,7 @@ public class Subscriptions {
 				
 		SPUManagerBeans.setActiveSPUs(handlers.size());
 				
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"@registerSubscribe SPU activated: " + spu.getSPUID() + " total (" + handlers.size() + ")");
+		Logging.log("subscriptions","@registerSubscribe SPU activated: " + spu.getSPUID() + " total (" + handlers.size() + ")");
 	}
 
 	public synchronized static SPU getSPU(InternalSubscribeRequest req) {
@@ -147,7 +146,7 @@ public class Subscriptions {
 	}
 
 	public synchronized static Subscriber addSubscriber(InternalSubscribeRequest req, SPU spu) {
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"@addSubscriber");
+		Logging.log("subscriptions","@addSubscriber");
 		
 		// Create a new subscriber
 		Subscriber sub = new Subscriber(spu, req);
@@ -167,7 +166,7 @@ public class Subscriptions {
 	}
 
 //	public synchronized static Subscriber getSubscriber(String sid) throws SEPANotExistsException {
-//		Logging.getLogger().log(Level.getLevel("subscriptions"),"@getSubscriber "+sid);
+//		Logging.log(Level.getLevel("subscriptions"),"@getSubscriber "+sid);
 //		
 //		Subscriber sub = subscribers.get(sid);
 //
@@ -181,16 +180,16 @@ public class Subscriptions {
 	 * */
 	public synchronized static boolean removeSubscriber(String sid) throws SEPANotExistsException {
 		if (!subscribers.containsKey(sid)) {
-			Logging.getLogger().warn("@removeSubscriber SID not found: " + sid);
+			Logging.warn("@removeSubscriber SID not found: " + sid);
 			throw new SEPANotExistsException("SID not found: " + sid);
 		}
 		
 		Subscriber sub = subscribers.get(sid);
 		String spuid = sub.getSPU().getSPUID();
 
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"@removeSubscriber "+sid+" "+spuid);
+		Logging.log("subscriptions","@removeSubscriber "+sid+" "+spuid);
 		
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"@removeSubscriber SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
+		Logging.log("subscriptions","@removeSubscriber SID: " + sid + " from SPU: " + spuid + " with active subscriptions: "
 				+ subscribers.size());
 
 		if (handlers.get(spuid) == null) return false;
@@ -202,20 +201,20 @@ public class Subscriptions {
 	
 		// No more handlers: return true
 		if (handlers.get(spuid).isEmpty()) {
-			Logging.getLogger().log(Logging.getLevel("subscriptions"),"@removeSubscriber no more subscribers. Kill SPU: " + sub.getSPU().getSPUID());
+			Logging.log("subscriptions","@removeSubscriber no more subscribers. Kill SPU: " + sub.getSPU().getSPUID());
 
 			requests.remove(sub.getSPU().getSubscribe());
 			handlers.remove(spuid);
 
 			// *** Kill SPU ***
-			Logging.getLogger().log(Logging.getLevel("subscriptions"), "Interrupt SPU " + spuid);
+			Logging.log("subscriptions", "Interrupt SPU " + spuid);
 			spus.get(spuid).interrupt();
 
 			// Clear
-			Logging.getLogger().log(Logging.getLevel("subscriptions"), "remove " + spuid);
+			Logging.log("subscriptions", "remove " + spuid);
 			spus.remove(spuid);
 
-			Logging.getLogger().log(Logging.getLevel("subscriptions"), "@removeSubscriber active SPUs: " + spus.size());
+			Logging.log("subscriptions", "@removeSubscriber active SPUs: " + spus.size());
 
 			SPUManagerBeans.setActiveSPUs(spus.size());
 			SPUManagerBeans.removeSubscriber();
@@ -228,7 +227,7 @@ public class Subscriptions {
 	}
 
 	public synchronized static void notifySubscribers(Notification notify) {
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"@notifySubscribers");
+		Logging.log("subscriptions","@notifySubscribers");
 		
 		String spuid = notify.getSpuid();
 
@@ -242,8 +241,8 @@ public class Subscriptions {
 			try {
 				client.notifyEvent(event);
 			} catch (SEPAProtocolException e) {
-				Logging.getLogger().error(e.getMessage());
-				if (Logging.getLogger().isTraceEnabled())
+				Logging.error(e.getMessage());
+				if (Logging.isTraceEnabled())
 					e.printStackTrace();
 				brokenSubscribers.add(client);
 			}
@@ -253,8 +252,8 @@ public class Subscriptions {
 			try {
 				removeSubscriber(client.getSID());
 			} catch (SEPANotExistsException e) {
-				Logging.getLogger().error(e.getMessage());
-				if (Logging.getLogger().isTraceEnabled())
+				Logging.error(e.getMessage());
+				if (Logging.isTraceEnabled())
 					e.printStackTrace();
 			}
 		}
@@ -265,7 +264,7 @@ public class Subscriptions {
 	}
 
 	public synchronized static boolean ping() {
-		Logging.getLogger().log(Logging.getLevel("subscriptions"),"@ping");
+		Logging.log("subscriptions","@ping");
 		
 		HashSet<Subscriber> brokenSubscribers = new HashSet<Subscriber>();		
 		
@@ -279,8 +278,8 @@ public class Subscriptions {
 			try {
 				removeSubscriber(client.getSID());
 			} catch (SEPANotExistsException e) {
-				Logging.getLogger().error(e.getMessage());
-				if (Logging.getLogger().isTraceEnabled())
+				Logging.error(e.getMessage());
+				if (Logging.isTraceEnabled())
 					e.printStackTrace();
 			}
 		}

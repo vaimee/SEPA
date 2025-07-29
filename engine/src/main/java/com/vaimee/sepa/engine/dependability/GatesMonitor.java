@@ -65,135 +65,135 @@ class GatesMonitor implements ResponseHandler{
 	private void pingGates() {
 		Set<Gate> brokenGates = new HashSet<Gate>();
 
-		Logging.getLogger().log(Logging.getLevel("ping"),"pingGates");
+		Logging.log("ping","pingGates");
 		
 		for (Gate g : gates) {
-			Logging.getLogger().log(Logging.getLevel("ping"),"ping "+g.getGID());
+			Logging.log("ping","ping "+g.getGID());
 			if (g.ping())
 				continue;
-			Logging.getLogger().log(Logging.getLevel("ping"),"broken gate "+g.getGID());
+			Logging.log("ping","broken gate "+g.getGID());
 			brokenGates.add(g);
 		}
 
 		for (Gate g : brokenGates) {
 			try {
-				Logging.getLogger().log(Logging.getLevel("ping"),"Close internal "+g.getGID());
+				Logging.log("ping","Close internal "+g.getGID());
 				onCloseInternal(g.getGID());
 			} catch (InterruptedException e) {
-				Logging.getLogger().warn("Exception on closing gate: " + g.getGID() + " exception: " + e.getMessage());
+				Logging.warn("Exception on closing gate: " + g.getGID() + " exception: " + e.getMessage());
 			}
 			gates.remove(g);
 		}
 	}
 
 	public synchronized void addGate(Gate g) {
-		Logging.getLogger().log(Logging.getLevel("ping"),"Add gate "+g.getGID());
+		Logging.log("ping","Add gate "+g.getGID());
 		gates.add(g);
 	}
 
 	public synchronized void removeGate(Gate g) {
-		Logging.getLogger().log(Logging.getLevel("ping"),"Remove gate "+g.getGID());
+		Logging.log("ping","Remove gate "+g.getGID());
 		gates.remove(g);
 	}
 
 	public synchronized void onSubscribe(String gid, String sid) {
-		Logging.getLogger().log(Logging.getLevel("ping"),"onSubscribe "+gid+" "+sid);
+		Logging.log("ping","onSubscribe "+gid+" "+sid);
 		
 		if (gid == null) {
-			Logging.getLogger().error("@onSubscribe GID is null");
+			Logging.error("@onSubscribe GID is null");
 			return;
 		}
 		if (sid == null) {
-			Logging.getLogger().error("@onSubscribe SID is null");
+			Logging.error("@onSubscribe SID is null");
 			return;
 		}
 
 		// Gate exists?
 		if (!SUBSCRIPTIONS_HASH_MAP.containsKey(gid)) {
 			// Create a new gate entry
-			Logging.getLogger().log(Logging.getLevel("ping"),"@onSubscribe create new gate: " + gid);
+			Logging.log("ping","@onSubscribe create new gate: " + gid);
 			SUBSCRIPTIONS_HASH_MAP.put(gid, new ArrayList<String>());
 		}
 
 		// Add subscription
 		SUBSCRIPTIONS_HASH_MAP.get(gid).add(sid);
 
-		Logging.getLogger().log(Logging.getLevel("spu"),"ADDED " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " "
+		Logging.log("spu","ADDED " + gid + " " + sid + " " + SUBSCRIPTIONS_HASH_MAP.size() + " "
 				+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 	}
 
 	public synchronized void onUnsubscribe(String gid, String sid) {
-		Logging.getLogger().log(Logging.getLevel("ping"),"onUnsubscribe "+gid+" "+sid);
+		Logging.log("ping","onUnsubscribe "+gid+" "+sid);
 		
 		if (gid == null) {
-			Logging.getLogger().error("@onUnsubscribe GID is null");
+			Logging.error("@onUnsubscribe GID is null");
 			return;
 		}
 		if (sid == null) {
-			Logging.getLogger().error("@onUnsubscribe SID is null");
+			Logging.error("@onUnsubscribe SID is null");
 			return;
 		}
 
 		if (SUBSCRIPTIONS_HASH_MAP.containsKey(gid)) {
-			Logging.getLogger().log(Logging.getLevel("spu"),"REMOVE " + gid + " " + sid + " --- " + SUBSCRIPTIONS_HASH_MAP.size() + " "
+			Logging.log("spu","REMOVE " + gid + " " + sid + " --- " + SUBSCRIPTIONS_HASH_MAP.size() + " "
 					+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 
 			// Remove subscription
 			SUBSCRIPTIONS_HASH_MAP.get(gid).remove(sid);
 		}
 		else {
-			Logging.getLogger().warn("@onUnsubscribe "+gid+" NOT FOUND. Broken subscription?");
+			Logging.warn("@onUnsubscribe "+gid+" NOT FOUND. Broken subscription?");
 		}
 	}
 
 	public void onClose(String gid) throws InterruptedException {
-		Logging.getLogger().log(Logging.getLevel("ping"),"onClose "+gid);
+		Logging.log("ping","onClose "+gid);
 		onCloseInternal(gid);
 	}
 
 	private synchronized void onCloseInternal(String gid) throws InterruptedException {
-		Logging.getLogger().log(Logging.getLevel("ping"),"onCloseInternal "+gid);
+		Logging.log("ping","onCloseInternal "+gid);
 		
 		if (gid == null) {
-			Logging.getLogger().error("@onClose GID is null");
+			Logging.error("@onClose GID is null");
 			return;
 		}
 		if (scheduler == null) {
-			Logging.getLogger().error("@onClose scheduler is null");
+			Logging.error("@onClose scheduler is null");
 			return;
 		}
 
 		// Gate exists?
 		if (!SUBSCRIPTIONS_HASH_MAP.containsKey(gid)) {
-			Logging.getLogger().warn("NOT_FOUND " + gid + " " + "---" + " " + SUBSCRIPTIONS_HASH_MAP.size() + " " + "-1");
+			Logging.warn("NOT_FOUND " + gid + " " + "---" + " " + SUBSCRIPTIONS_HASH_MAP.size() + " " + "-1");
 			return;
 		}
 
-		Logging.getLogger().log(Logging.getLevel("spu"),"CLOSE " + gid + " --- " + SUBSCRIPTIONS_HASH_MAP.size() + " "
+		Logging.log("spu","CLOSE " + gid + " --- " + SUBSCRIPTIONS_HASH_MAP.size() + " "
 				+ SUBSCRIPTIONS_HASH_MAP.get(gid).size());
 
 		// Kill all active subscriptions
 		for (String sid : SUBSCRIPTIONS_HASH_MAP.get(gid)) {
-			Logging.getLogger().log(Logging.getLevel("ping"),"kill "+sid+" "+gid);
+			Logging.log("ping","kill "+sid+" "+gid);
 			scheduler.schedule(new InternalUnsubscribeRequest(gid, sid, null), this);
 			//processor.killSubscription(sid, gid);
 			//processor.processUnsubscribe(sid, gid);
 		}
 
 		// Remove gate
-		Logging.getLogger().log(Logging.getLevel("ping"),"remove gate "+gid);
+		Logging.log("ping","remove gate "+gid);
 		SUBSCRIPTIONS_HASH_MAP.remove(gid);
 	}
 
 	public synchronized void onError(String gid, Exception e) {
-		Logging.getLogger().log(Logging.getLevel("ping"),"onError "+gid+ " "+e.getMessage());
+		Logging.log("ping","onError "+gid+ " "+e.getMessage());
 		
 		if (gid == null) {
-			Logging.getLogger().error("@onError GID is null");
+			Logging.error("@onError GID is null");
 			return;
 		}
 
-		Logging.getLogger().error("@onError GID:" + gid + " Exception:" + e);
+		Logging.error("@onError GID:" + gid + " Exception:" + e);
 	}
 
 	public synchronized long getNumberOfGates() {

@@ -81,7 +81,7 @@ public abstract class SPU extends Thread implements ISPU {
 	}
 
 	public void interrupt() {
-		Logging.getLogger().log(Logging.getLevel("spu"), "@interrupt");
+		Logging.log("spu", "@interrupt");
 		running.set(false);
 		super.interrupt();
 	}
@@ -104,7 +104,7 @@ public abstract class SPU extends Thread implements ISPU {
 	@Override
 	public final void postUpdateProcessing(Response res) {
 		synchronized (postProcessing) {
-			Logging.getLogger().log(Logging.getLevel("spu"), "@postUpdateProcessing");
+			Logging.log("spu", "@postUpdateProcessing");
 			response = res;
 			postProcessing.set(true);
 			postProcessing.notify();
@@ -114,7 +114,7 @@ public abstract class SPU extends Thread implements ISPU {
 	@Override
 	public final void preUpdateProcessing(InternalUpdateRequest req) {
 		synchronized (preProcessing) {
-			Logging.getLogger().log(Logging.getLevel("spu"), "@preUpdateProcessing");
+			Logging.log("spu", "@preUpdateProcessing");
 			request = req;
 			preProcessing.set(true);
 			preProcessing.notify();
@@ -123,7 +123,7 @@ public abstract class SPU extends Thread implements ISPU {
 	
 	public void abortProcessing() {
 		synchronized (postProcessing) {
-			Logging.getLogger().log(Logging.getLevel("spu"), "@abortProcessing");
+			Logging.log("spu", "@abortProcessing");
 			response = new ErrorResponse(0, "abort", "@postUpdateProcessing");
 			postProcessing.set(true);
 			postProcessing.notify();
@@ -136,65 +136,65 @@ public abstract class SPU extends Thread implements ISPU {
 			synchronized (preProcessing) {
 				try {
 					while (!preProcessing.get()) {
-						Logging.getLogger().log(Logging.getLevel("spu"), "Pre-processing wait...");
+						Logging.log("spu", "Pre-processing wait...");
 						preProcessing.wait();
 					}
 					preProcessing.set(false);
 				} catch (InterruptedException e) {
-					Logging.getLogger().log(Logging.getLevel("spu"), "SPU interrupted. Send EOP and exist.");
+					Logging.log("spu", "SPU interrupted. Send EOP and exist.");
 					manager.endOfProcessing(this);
 					return;
 				}
 
 				// PRE processing
-				Logging.getLogger().log(Logging.getLevel("spu"), "* PRE PROCESSING *");
+				Logging.log("spu", "* PRE PROCESSING *");
 				try {
 					preUpdateInternalProcessing(request);
 				} catch (SEPAProcessingException e) {
 					SPUManagerBeans.preProcessingException();
-					Logging.getLogger().error(e.getMessage());
-					if (Logging.getLogger().isTraceEnabled())
+					Logging.error(e.getMessage());
+					if (Logging.isTraceEnabled())
 						e.printStackTrace();
 				}
 			}
 			
 			// End of processing
-			Logging.getLogger().log(Logging.getLevel("spu"), "Send EOP");
+			Logging.log("spu", "Send EOP");
 			manager.endOfProcessing(this);
 
 			synchronized (postProcessing) {
 				try {
 					while (!postProcessing.get()) {
-						Logging.getLogger().log(Logging.getLevel("spu"), "Post-processing wait...");
+						Logging.log("spu", "Post-processing wait...");
 						postProcessing.wait();
 					}
 					postProcessing.set(false);
 				} catch (InterruptedException e) {
-					Logging.getLogger().log(Logging.getLevel("spu"), "SPU interrupted. Send EOP and exist.");
+					Logging.log("spu", "SPU interrupted. Send EOP and exist.");
 					manager.endOfProcessing(this);
 					return;
 				}
 
 				if (!response.isError()) {
 					// POST processing
-					Logging.getLogger().log(Logging.getLevel("spu"), "* POST PROCESSING *");
+					Logging.log("spu", "* POST PROCESSING *");
 					try {
 						Notification notify = postUpdateInternalProcessing((UpdateResponse) response);
 						if (notify != null) {
-							Logging.getLogger().log(Logging.getLevel("spu"), "notifyEvent");
+							Logging.log("spu", "notifyEvent");
 							manager.notifyEvent(notify);
 						}
 					} catch (SEPAProcessingException e) {
 						SPUManagerBeans.postProcessingException();
-						Logging.getLogger().error(e.getMessage());
-						if (Logging.getLogger().isTraceEnabled())
+						Logging.error(e.getMessage());
+						if (Logging.isTraceEnabled())
 							e.printStackTrace();
 					}
 				}
 			}
 
 			// End of processing
-			Logging.getLogger().log(Logging.getLevel("spu"), "Send EOP");
+			Logging.log("spu", "Send EOP");
 			manager.endOfProcessing(this);
 		}
 	}

@@ -71,14 +71,14 @@ class SchedulerQueue {
 	 */
 	private synchronized int getToken() {
 		if (tokens.size() == 0) {
-			Logging.getLogger().error("No tokens available");
+			Logging.error("No tokens available");
 			return -1;
 		}
 
 		Integer token = tokens.get(0);
 		tokens.removeElementAt(0);
 
-		Logging.getLogger().trace("Get token #" + token + " (Available: " + tokens.size() + ")");
+		Logging.trace("Get token #" + token + " (Available: " + tokens.size() + ")");
 
 		SchedulerBeans.tokenLeft(tokens.size());
 
@@ -96,11 +96,11 @@ class SchedulerQueue {
 			return false;
 
 		if (tokens.contains(token)) {
-			Logging.getLogger().warn("Token #" + token + " is available (Available tokens: " + tokens.size() + ")");
+			Logging.warn("Token #" + token + " is available (Available tokens: " + tokens.size() + ")");
 			return false;
 		} else {
 			tokens.insertElementAt(token, tokens.size());
-			Logging.getLogger().trace("Release token #" + token + " (Available: " + tokens.size() + ")");
+			Logging.trace("Release token #" + token + " (Available: " + tokens.size() + ")");
 
 			SchedulerBeans.tokenLeft(tokens.size());
 		}

@@ -33,7 +33,6 @@ import com.vaimee.sepa.engine.processing.endpoint.RemoteEndpoint;
 import com.vaimee.sepa.engine.processing.endpoint.SPARQLEndpoint;
 import com.vaimee.sepa.engine.scheduling.InternalUpdateRequest;
 import com.vaimee.sepa.logging.Logging;
-import com.vaimee.sepa.logging.Timings;
 
 class UpdateProcessor implements UpdateProcessorMBean {
 	protected final SPARQL11Properties properties;
@@ -54,35 +53,35 @@ class UpdateProcessor implements UpdateProcessorMBean {
 				properties.getHost(), properties.getPort(), properties.getUpdatePath(), req.getSparql(),
 				req.getDefaultGraphUri(), req.getNamedGraphUri(), req.getBasicAuthorizationHeader(),
 				UpdateProcessorBeans.getTimeout(), 0);
-		Logging.getLogger().trace(request);
+		Logging.trace(request);
 
 		Response ret;
 		int n = 0;
 		do {
-			long start = Timings.getTime();
+			long start = Logging.getTime();
 			ret = endpoint.update(request);
-			long stop = Timings.getTime();
+			long stop = Logging.getTime();
 
 			UpdateProcessorBeans.timings(start, stop);
 
-			Logging.getLogger().trace("Response: " + ret.toString());
-			Timings.log("UPDATE_PROCESSING_TIME", start, stop);
+			Logging.trace("Response: " + ret.toString());
+			Logging.logTiming("UPDATE_PROCESSING_TIME", start, stop);
 
 			n++;
 
 			if (ret.isTimeoutError()) {
 				UpdateProcessorBeans.timedOutRequest();
-				Logging.getLogger().error("*TIMEOUT* (" + n + "/" + UpdateProcessorBeans.getTimeoutNRetry() + ") " + req);
+				Logging.error("*TIMEOUT* (" + n + "/" + UpdateProcessorBeans.getTimeoutNRetry() + ") " + req);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-					Logging.getLogger().warn("Failed to sleep...");
+					Logging.warn("Failed to sleep...");
 				}
 			}
 		} while (ret.isTimeoutError() && n < UpdateProcessorBeans.getTimeoutNRetry());
 
 		if (ret.isTimeoutError()) {
-			Logging.getLogger().error("*** REQUEST ABORTED *** " + request);
+			Logging.error("*** REQUEST ABORTED *** " + request);
 			UpdateProcessorBeans.abortedRequest();
 		}
 

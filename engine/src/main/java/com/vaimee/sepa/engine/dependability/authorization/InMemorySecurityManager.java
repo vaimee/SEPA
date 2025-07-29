@@ -132,7 +132,7 @@ public class InMemorySecurityManager extends SecurityManager {
 	
 	@Override
 	public boolean isAuthorized(String uid) throws SEPASecurityException {
-		Logging.getLogger().debug("isAuthorized "+uid);
+		Logging.debug("isAuthorized "+uid);
 		
 		if (identities.containsKey(uid)) return identities.get(uid).isAuthorized();
 		
@@ -141,13 +141,13 @@ public class InMemorySecurityManager extends SecurityManager {
 	
 	@Override
 	public void addAuthorizedIdentity(DigitalIdentity identity) {
-		Logging.getLogger().debug("addIdentity "+identity.getUid());
+		Logging.debug("addIdentity "+identity.getUid());
 		
 		identities.put(identity.getUid(),new AuthorizedIdentity(identity));
 	}
 	@Override
 	public void removeAuthorizedIdentity(String uid) {
-		Logging.getLogger().debug("removeIdentity "+uid);
+		Logging.debug("removeIdentity "+uid);
 		
 		if (uid.equals("SEPATest")) return;
 		
@@ -157,7 +157,7 @@ public class InMemorySecurityManager extends SecurityManager {
 	// Client credentials
 	@Override
 	public boolean storeCredentials(DigitalIdentity identity, String client_secret) {
-		Logging.getLogger().debug("storeCredentials "+identity.getUid()+" : "+client_secret);
+		Logging.debug("storeCredentials "+identity.getUid()+" : "+client_secret);
 		
 		identities.put(identity.getUid(), new AuthorizedIdentity(identity));
 		identities.get(identity.getUid()).register(identity.getUid(),client_secret);
@@ -167,13 +167,13 @@ public class InMemorySecurityManager extends SecurityManager {
 	
 	@Override
 	public void removeCredentials(DigitalIdentity identity) throws SEPASecurityException {
-		Logging.getLogger().debug("removeCredentials "+identity.getUid());
+		Logging.debug("removeCredentials "+identity.getUid());
 		
 		if (identities.containsKey(identity.getUid())) identities.get(identity.getUid()).unregister();
 	}
 	@Override
 	public boolean containsCredentials(String id) {
-		Logging.getLogger().debug("containsCredentials "+id);
+		Logging.debug("containsCredentials "+id);
 		
 		if (identities.containsKey(id)) return identities.get(id).isRegistered();
 		
@@ -182,7 +182,7 @@ public class InMemorySecurityManager extends SecurityManager {
 	
 	@Override
 	public boolean checkCredentials(String id, String secret) {
-		Logging.getLogger().debug("checkCredentials "+id+" : "+secret);
+		Logging.debug("checkCredentials "+id+" : "+secret);
 		
 		if (identities.containsKey(id)) return identities.get(id).checkPassword(secret);
 		
@@ -192,7 +192,7 @@ public class InMemorySecurityManager extends SecurityManager {
 	// Client claims
 	@Override
 	public boolean containsJwt(String id) {
-		Logging.getLogger().debug("containsToken "+id);
+		Logging.debug("containsToken "+id);
 		
 		if (identities.containsKey(id)) return identities.get(id).containsToken();
 		
@@ -201,7 +201,7 @@ public class InMemorySecurityManager extends SecurityManager {
 	
 	@Override
 	public Date getTokenExpiringDate(String id) throws SEPASecurityException {
-		Logging.getLogger().debug("getTokenExpiringDate "+id);
+		Logging.debug("getTokenExpiringDate "+id);
 		
 		if (identities.containsKey(id)) return identities.get(id).getTokenExpiringDate();
 		
@@ -210,14 +210,14 @@ public class InMemorySecurityManager extends SecurityManager {
 	
 	@Override
 	public void addJwt(String id, SignedJWT jwt) throws SEPASecurityException {
-		Logging.getLogger().debug("addToken "+id+" "+jwt.serialize());
+		Logging.debug("addToken "+id+" "+jwt.serialize());
 		
 		if (identities.containsKey(id)) identities.get(id).addToken(jwt);
 	}
 	
 	@Override
 	public void removeJwt(String id) throws SEPASecurityException {
-		Logging.getLogger().debug("removeToken "+id);
+		Logging.debug("removeToken "+id);
 		
 		if (identities.containsKey(id)) identities.get(id).removeToken();
 	}
@@ -225,7 +225,7 @@ public class InMemorySecurityManager extends SecurityManager {
 	// JWT
 	@Override
 	public long getTokenExpiringPeriod(String id) throws SEPASecurityException {
-		Logging.getLogger().debug("getTokenExpiringPeriod "+id);
+		Logging.debug("getTokenExpiringPeriod "+id);
 		
 		if (identities.containsKey(id)) return identities.get(id).getExpiringPeriod();
 		
@@ -234,14 +234,14 @@ public class InMemorySecurityManager extends SecurityManager {
 	
 	@Override
 	public void setTokenExpiringPeriod(String id, long period) {
-		Logging.getLogger().debug("setTokenExpiringPeriod "+id+" : "+period);
+		Logging.debug("setTokenExpiringPeriod "+id+" : "+period);
 		
 		if (identities.containsKey(id)) identities.get(id).setExpiringPeriod(period);
 	}
 	
 	@Override
 	public SignedJWT getJwt(String id) {
-		Logging.getLogger().debug("getToken "+id);
+		Logging.debug("getToken "+id);
 		
 		if (identities.containsKey(id)) return identities.get(id).getToken();
 		
@@ -249,7 +249,7 @@ public class InMemorySecurityManager extends SecurityManager {
 	}
 	@Override
 	public DigitalIdentity getIdentity(String uid) throws SEPASecurityException {
-		Logging.getLogger().debug("getIdentity "+uid);
+		Logging.debug("getIdentity "+uid);
 		
 		if (identities.containsKey(uid)) return identities.get(uid).getIdentity();
 		
@@ -258,7 +258,7 @@ public class InMemorySecurityManager extends SecurityManager {
 	
 	@Override
 	public Credentials getEndpointCredentials(String uid) throws SEPASecurityException {
-		Logging.getLogger().debug("getEndpointCredentials "+uid);
+		Logging.debug("getEndpointCredentials "+uid);
 		
 		if (identities.containsKey(uid)) return identities.get(uid).getIdentity().getEndpointCredentials();	
 		

@@ -44,7 +44,7 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 			client.subscribe(provider.buildSubscribeRequest(id));
 			//if (sm != null) sm.close();
 		} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException  e2) {
-			Logging.getLogger().error(e2.getMessage());
+			Logging.error(e2.getMessage());
 			return;
 		}
 
@@ -64,7 +64,7 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 				try {
 					client.unsubscribe(provider.buildUnsubscribeRequest(spuid));
 				} catch (SEPAProtocolException | SEPASecurityException | SEPAPropertiesException e) {
-					Logging.getLogger().error(e.getMessage());
+					Logging.error(e.getMessage());
 				}
 			client.notify();
 			client.close();
@@ -75,35 +75,35 @@ public class Subscriber extends Thread implements Closeable, ISubscriptionHandle
 
 	@Override
 	public void onSemanticEvent(Notification notify) {
-		Logging.getLogger().debug(notify);
+		Logging.debug(notify);
 		handler.onSemanticEvent(notify);
 	}
 
 	@Override
 	public void onBrokenConnection(ErrorResponse errorResponse) {
 		if (errorResponse.getStatusCode() != 1000)
-			Logging.getLogger().error(errorResponse);
+			Logging.error(errorResponse);
 		else
-			Logging.getLogger().warn(errorResponse);
+			Logging.warn(errorResponse);
 		handler.onBrokenConnection(errorResponse);
 	}
 
 	@Override
 	public void onError(ErrorResponse errorResponse) {
-		Logging.getLogger().error(errorResponse);
+		Logging.error(errorResponse);
 		handler.onError(errorResponse);
 	}
 
 	@Override
 	public void onSubscribe(String spuid, String alias) {
-		Logging.getLogger().debug("onSubscribe: " + spuid + " alias: " + alias);
+		Logging.debug("onSubscribe: " + spuid + " alias: " + alias);
 		this.spuid = spuid;
 		handler.onSubscribe(spuid, alias);
 	}
 
 	@Override
 	public void onUnsubscribe(String spuid) {
-		Logging.getLogger().debug("onUnsubscribe: " + spuid);
+		Logging.debug("onUnsubscribe: " + spuid);
 		handler.onUnsubscribe(spuid);
 	}
 }

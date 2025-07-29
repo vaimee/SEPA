@@ -7,7 +7,10 @@
 		<artifactId>sepa</artifactId>
 		<version>${revision}</version>
 	</parent>
+
 	<artifactId>engine</artifactId>
+	<packaging>jar</packaging>
+	<name>engine</name>
 
 	<pluginRepositories>
 		<pluginRepository>
@@ -19,57 +22,9 @@
 			<url>http://dl.bintray.com/cy6ergn0m/maven</url>
 		</pluginRepository>
 	</pluginRepositories>
-	
+
 	<build>
 		<plugins>
-			<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-deploy-plugin -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.8.2</version>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<version>3.0.1</version>
-				<executions>
-					<execution>
-						<id>copy-defaults</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/target</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${basedir}/src/main/resources</directory>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-					<execution>
-						<id>copy-endpoints</id>
-						<!-- here the phase you need -->
-						<phase>package</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${basedir}/target/endpoints</outputDirectory>
-							<resources>
-								<resource>
-									<directory>${basedir}/endpoints</directory>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -93,23 +48,21 @@
 								</transformer>
 							</transformers>
 							<filters>
-								<!-- Filtro generico: esclude metadati duplicati -->
 								<filter>
 									<artifact>*:*</artifact>
 									<excludes>
+										<!-- Moduli Java -->
 										<exclude>module-info.class</exclude>
 										<exclude>META-INF/versions/**/module-info.class</exclude>
+										<!-- Meta file duplicati comuni -->
 										<exclude>META-INF/LICENSE*</exclude>
 										<exclude>META-INF/NOTICE*</exclude>
 										<exclude>META-INF/DEPENDENCIES</exclude>
-										<exclude>META-INF/LICENSE</exclude>
-										<exclude>META-INF/LICENSE.txt</exclude>
-										<exclude>META-INF/LICENSE.md</exclude>
-										<exclude>META-INF/NOTICE.md</exclude>
-										<exclude>META-INF/NOTICE.txt</exclude>
 										<exclude>META-INF/MANIFEST.MF</exclude>
-										<exclude>OSGI-INF/bundle.info</exclude>
-										<exclude>META-INF/maven/**</exclude>
+										<!-- gson metainfo -->
+										<exclude>META-INF/maven/com.google.code.gson/gson/pom.xml</exclude>
+										<exclude>META-INF/maven/com.google.code.gson/gson/pom.properties</exclude>
+
 										<exclude>log4j2.xml</exclude>
 									</excludes>
 								</filter>
@@ -120,6 +73,7 @@
 			</plugin>
 		</plugins>
 	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -159,29 +113,32 @@
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>client-api</artifactId>
-			<version>${revision}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-lang3</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpcore</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-codec</groupId>
-					<artifactId>commons-codec</artifactId>
-				</exclusion>
-			</exclusions>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vaimee</groupId>
+			<artifactId>sjenar-rdfconnection</artifactId>
+			<version>${sjenar}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vaimee</groupId>
+			<artifactId>sjenar-tdb2</artifactId>
+			<version>${sjenar}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vaimee</groupId>
+			<artifactId>sjenar-tdb</artifactId>
+			<version>${sjenar}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.vaimee</groupId>
+			<artifactId>sjenar-dboe-base</artifactId>
+			<version>${sjenar}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.java-websocket</groupId>
 			<artifactId>Java-WebSocket</artifactId>
 			<version>1.6.0</version>
-			<exclusions>
-
-			</exclusions>
 		</dependency>
 	</dependencies>
 

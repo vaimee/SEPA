@@ -32,7 +32,7 @@ public class EngineShutdownHook extends Thread {
 		try {
 			engine.shutdown();
 		} catch (InterruptedException e) {
-			Logging.getLogger().error(e.getMessage());
+			Logging.error(e.getMessage());
 		}
 	}
 }

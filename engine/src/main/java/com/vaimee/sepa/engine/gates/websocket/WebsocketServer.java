@@ -72,7 +72,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 		try {
 			address = Inet4Address.getLocalHost().getHostAddress();
 		} catch (UnknownHostException e) {
-			Logging.getLogger().error(e.getMessage());
+			Logging.error(e.getMessage());
 			throw new SEPAProtocolException(e);
 		}
 
@@ -93,7 +93,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 			fragmentedMessages.put(conn, null);
 
-			Logging.getLogger().debug("@onOpen (sockets: " + gates.size() + ") GID: " + gate.getGID() + " socket: " + conn);
+			Logging.debug("@onOpen (sockets: " + gates.size() + ") GID: " + gate.getGID() + " socket: " + conn);
 		}
 	}
 
@@ -105,7 +105,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	@Override
 	public void onClose(WebSocket conn, int code, String reason, boolean remote) {
 		synchronized (gates) {
-			Logging.getLogger().debug("@onClose socket: " + conn + " reason: " + reason + " remote: " + remote);
+			Logging.debug("@onClose socket: " + conn + " reason: " + reason + " remote: " + remote);
 
 			fragmentedMessages.remove(conn);
 
@@ -114,7 +114,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 				try {
 					gates.get(conn).close();
 				} catch (InterruptedException e) {
-					Logging.getLogger().warn(e.getMessage());
+					Logging.warn(e.getMessage());
 				}
 
 			Dependability.removeGate(gates.get(conn));
@@ -130,7 +130,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 		// Check path
 		if (!conn.getResourceDescriptor().equals(path)) {
-			Logging.getLogger().warn("@onMessage bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
+			Logging.warn("@onMessage bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 
 			ErrorResponse response = new ErrorResponse(HttpStatus.SC_NOT_FOUND, "wrong_path",
 					"Bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
@@ -138,7 +138,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 			try {
 				conn.send(response.toString());
 			} catch (Exception e) {
-				Logging.getLogger().warn(e.getMessage());
+				Logging.warn(e.getMessage());
 			}
 			return;
 		}
@@ -148,16 +148,16 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 				if (gates.get(conn) != null)
 					gates.get(conn).onMessage(message);
 				else {
-					Logging.getLogger().error("Gate NOT FOUND: " + conn);
+					Logging.error("Gate NOT FOUND: " + conn);
 				}
 			} catch (SEPAProtocolException | SEPASecurityException | SEPASparqlParsingException e) {
-				Logging.getLogger().error(e+" in message "+message);
+				Logging.error(e+" in message "+message);
 
 				ErrorResponse response = new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "parsing failed", e.getMessage());
 				try {
 					conn.send(response.toString());
 				} catch (Exception e1) {
-					Logging.getLogger().warn(e1.getMessage());
+					Logging.warn(e1.getMessage());
 				}
 			}
 		}
@@ -173,7 +173,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	// NOT IMPLEMENTED IN VERSION 1.5.5
 //	@Override
 //	public void onFragment(WebSocket conn, Framedata fragment) {
-//		Logging.getLogger().debug("@onFragment WebSocket: <" + conn + "> Fragment data:<" + fragment + ">");
+//		Logging.debug("@onFragment WebSocket: <" + conn + "> Fragment data:<" + fragment + ">");
 //
 //		if (!conn.getResourceDescriptor().equals(path))
 //			return;
@@ -184,7 +184,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 //			fragmentedMessages.put(conn, fragmentedMessages.get(conn)
 //					+ new String(fragment.getPayloadData().array(), Charset.forName("UTF-8")));
 //
-//		Logging.getLogger().debug("Fragmented message: " + fragmentedMessages.get(conn));
+//		Logging.debug("Fragmented message: " + fragmentedMessages.get(conn));
 //
 //		if (fragment.isFin()) {
 //			GateBeans.onFragmentedMessage();
@@ -197,22 +197,22 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
 		if (conn == null) {
-			Logging.getLogger().fatal("Failed to start. Cannot bind port. Exit");
+			Logging.fatal("Failed to start. Cannot bind port. Exit");
 			System.exit(-1);
 		}
 
-		Logging.getLogger().error("@onError " + conn.getResourceDescriptor() + " remote: " + conn.getRemoteSocketAddress() + " "
+		Logging.error("@onError " + conn.getResourceDescriptor() + " remote: " + conn.getRemoteSocketAddress() + " "
 				+ ex.getClass().getCanonicalName() + " " + ex.getMessage());
 
 		GateBeans.onError();
 
 		if (ex.getClass().equals(BindException.class)) {
-			Logging.getLogger().fatal("Failed to start. Exit");
+			Logging.fatal("Failed to start. Exit");
 			System.exit(-1);
 		}
 
 		if (!conn.getResourceDescriptor().equals(path)) {
-			Logging.getLogger().warn("@onError bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
+			Logging.warn("@onError bad resource descriptor: " + conn.getResourceDescriptor() + " Use: " + path);
 			return;
 		}
 	}

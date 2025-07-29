@@ -110,7 +110,7 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 				jsap = new Gson().fromJson(in, SPARQL11SEProperties.class);
 				sparql11seprotocol = jsap.sparql11seprotocol;
 			} catch (JsonSyntaxException | JsonIOException e2) {
-				Logging.getLogger().error(e2.getMessage());
+				Logging.error(e2.getMessage());
 				throw new SEPAPropertiesException(e2);
 			}
 
@@ -124,13 +124,13 @@ public class SPARQL11SEProperties extends SPARQL11Properties {
 
 		Map<String, String> envs = System.getenv();
 		for (String var : envs.keySet()) {
-			Logging.getLogger().trace("Environmental variable " + var + " : " + envs.get(var));
+			Logging.trace("Environmental variable " + var + " : " + envs.get(var));
 			setSeParameter("-" + var, envs.get(var));
 		}
 
 		if (args != null)
 			for (int i = 0; i < args.length; i++) {
-				Logging.getLogger().trace("Argument  " + args[i]);
+				Logging.trace("Argument  " + args[i]);
 				String[] params = args[i].split("=");
 				if (params.length == 2) {
 					setSeParameter(params[0], params[1]);

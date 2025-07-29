@@ -408,30 +408,30 @@ public class EngineProperties {
 
 		try {
 			if (engineJpar != null) {
-				Logging.getLogger().info("Reading from file: "+engineJpar);
+				Logging.info("Reading from file: "+engineJpar);
 				parameters = new Gson().fromJson(new FileReader(engineJpar), Parameters.class);
 			}
 			else {
-				Logging.getLogger().info("Reading from file: engine.jpar");
+				Logging.info("Reading from file: engine.jpar");
 				parameters = new Gson().fromJson(new FileReader("engine.jpar"), Parameters.class);
 			}
 		} catch (Exception e) {
-			Logging.getLogger().info("Engine parameters: using defaults");
+			Logging.info("Engine parameters: using defaults");
 			parameters = new Parameters();
 		}
 		
 		try {
 			if (endpointJpar != null) {
-				Logging.getLogger().info("Reading from file: "+endpointJpar);
+				Logging.info("Reading from file: "+endpointJpar);
 				endpointProperties = new SPARQL11Properties(URI.create(endpointJpar)); 
 			}
 			else {
-				Logging.getLogger().info("Reading from file: endpoint.jpar");
+				Logging.info("Reading from file: endpoint.jpar");
 				endpointProperties = new SPARQL11Properties(URI.create("endpoint.jpar")); 
 			}
 		} catch (SEPAPropertiesException  e) {
-			Logging.getLogger().warn(e.getMessage());
-			Logging.getLogger().info("Endpoint parameters: using defaults");
+			Logging.warn(e.getMessage());
+			Logging.info("Endpoint parameters: using defaults");
 			endpointProperties = new SPARQL11Properties();
 		}
 		
@@ -461,7 +461,7 @@ public class EngineProperties {
 		try {
 			setSecurity();
 		} catch (SEPASecurityException e) {
-			Logging.getLogger().error(e.getMessage());
+			Logging.error(e.getMessage());
 		}
 	}
 	
@@ -707,79 +707,79 @@ public class EngineProperties {
 				printUsage();
 				return;
 			}
-			Logging.getLogger().trace("Program arguments "+args[i]+" : "+ args[i+1]);
+			Logging.trace("Program arguments "+args[i]+" : "+ args[i+1]);
 			setParameter(args[i], args[i+1]);
 		}
 		
 		// Environmental variables (overrides)
 		Map<String, String> envs = System.getenv();
 		for(String var : envs.keySet()) {			
-			Logging.getLogger().trace("Environmental variable "+var+" : "+envs.get(var));
+			Logging.trace("Environmental variable "+var+" : "+envs.get(var));
 			setParameter("-"+var, envs.get(var));
 			setParameter("-"+var.replace("_", "."), envs.get(var));
 		}
 	}
 	
 	private void printParameters() {
-		Logging.getLogger().trace("--- SSL ---");
-		Logging.getLogger().trace("-cacertificate: " + caCertificate);
-		Logging.getLogger().trace("-capwd: " + caPassword);
-		Logging.getLogger().trace("-capath: " + caPath);
-		Logging.getLogger().trace("-sslstore: " + sslStoreName);
-		Logging.getLogger().trace("-sslpass: " + sslStorePass);
+		Logging.trace("--- SSL ---");
+		Logging.trace("-cacertificate: " + caCertificate);
+		Logging.trace("-capwd: " + caPassword);
+		Logging.trace("-capath: " + caPath);
+		Logging.trace("-sslstore: " + sslStoreName);
+		Logging.trace("-sslpass: " + sslStorePass);
 
-		Logging.getLogger().trace("--- JWT ---");
-		Logging.getLogger().trace("-jwtstore: " + jwtKeyStore);
-		Logging.getLogger().trace("-jwtpass: " + jwtKeyStorePass);
-		Logging.getLogger().trace("-jwtalias: " + jwtKeyAlias);
-		Logging.getLogger().trace("-jwtaliaspass: " + jwtKeyAliasPass);
+		Logging.trace("--- JWT ---");
+		Logging.trace("-jwtstore: " + jwtKeyStore);
+		Logging.trace("-jwtpass: " + jwtKeyStorePass);
+		Logging.trace("-jwtalias: " + jwtKeyAlias);
+		Logging.trace("-jwtaliaspass: " + jwtKeyAliasPass);
 
-		Logging.getLogger().trace("--- LDAP ---");
-		Logging.getLogger().trace("-ldaphost: " + ldapHost);
-		Logging.getLogger().trace("-ldapport: " + ldapPort);
-		Logging.getLogger().trace("-ldapdn: " + ldapDn);
-		Logging.getLogger().trace("-ldapusersdn: " + ldapUsersDn);
-		Logging.getLogger().trace("-ldapuser: " + ldapUser);
-		Logging.getLogger().trace("-ldappwd: " + ldapPwd);
+		Logging.trace("--- LDAP ---");
+		Logging.trace("-ldaphost: " + ldapHost);
+		Logging.trace("-ldapport: " + ldapPort);
+		Logging.trace("-ldapdn: " + ldapDn);
+		Logging.trace("-ldapusersdn: " + ldapUsersDn);
+		Logging.trace("-ldapuser: " + ldapUser);
+		Logging.trace("-ldappwd: " + ldapPwd);
 
-		Logging.getLogger().trace("--- ISQL ---");
-		Logging.getLogger().trace("-isqlpath: " + isqlPath);
-		Logging.getLogger().trace("-isqlhost: " + isqlHost);
-		Logging.getLogger().trace("-isqlport: " + isqlPort);
-		Logging.getLogger().trace("-isqluser: " + isqlUser);
-		Logging.getLogger().trace("-isqlpass: " + isqlPass);
+		Logging.trace("--- ISQL ---");
+		Logging.trace("-isqlpath: " + isqlPath);
+		Logging.trace("-isqlhost: " + isqlHost);
+		Logging.trace("-isqlport: " + isqlPort);
+		Logging.trace("-isqluser: " + isqlUser);
+		Logging.trace("-isqlpass: " + isqlPass);
 		
-		Logging.getLogger().debug("--- Engine/endpoint ---");
-		Logging.getLogger().debug("-engine: " + engineJpar);
-		Logging.getLogger().debug("-endpoint: " + endpointJpar);
-		Logging.getLogger().debug("-secure: " + secure);
+		Logging.debug("--- Engine/endpoint ---");
+		Logging.debug("-engine: " + engineJpar);
+		Logging.debug("-endpoint: " + endpointJpar);
+		Logging.debug("-secure: " + secure);
 		
-		Logging.getLogger().debug("--- ENGINE PARAMETERS ---");
-		Logging.getLogger().debug("-parameters.gates.ports.http: " + parameters.gates.ports.http);
-		Logging.getLogger().debug("-parameters.gates.ports.ws: " + parameters.gates.ports.ws);
-		Logging.getLogger().debug("-parameters.scheduler.queuesize: " + parameters.scheduler.queueSize);
-		Logging.getLogger().debug("-parameters.scheduler.timeout: " + parameters.scheduler.timeout);
-		Logging.getLogger().debug("-parameters.processor.updatetimeout: " + parameters.processor.updateTimeout);
-		Logging.getLogger().debug("-parameters.processor.querytimeout: " + parameters.processor.queryTimeout);
-		Logging.getLogger().debug("-parameters.gates.paths.update: " + parameters.gates.paths.update);
-		Logging.getLogger().debug("-parameters.gates.paths.query: " + parameters.gates.paths.query);
-		Logging.getLogger().debug("-parameters.gates.paths.subscribe: " + parameters.gates.paths.subscribe);
-		Logging.getLogger().debug("-parameters.gates.paths.unsubscribe: " + parameters.gates.paths.unsubscribe);
+		Logging.debug("--- ENGINE PARAMETERS ---");
+		Logging.debug("-parameters.gates.ports.http: " + parameters.gates.ports.http);
+		Logging.debug("-parameters.gates.ports.ws: " + parameters.gates.ports.ws);
+		Logging.debug("-parameters.scheduler.queuesize: " + parameters.scheduler.queueSize);
+		Logging.debug("-parameters.scheduler.timeout: " + parameters.scheduler.timeout);
+		Logging.debug("-parameters.processor.updatetimeout: " + parameters.processor.updateTimeout);
+		Logging.debug("-parameters.processor.querytimeout: " + parameters.processor.queryTimeout);
+		Logging.debug("-parameters.gates.paths.update: " + parameters.gates.paths.update);
+		Logging.debug("-parameters.gates.paths.query: " + parameters.gates.paths.query);
+		Logging.debug("-parameters.gates.paths.subscribe: " + parameters.gates.paths.subscribe);
+		Logging.debug("-parameters.gates.paths.unsubscribe: " + parameters.gates.paths.unsubscribe);
 		
-		Logging.getLogger().debug("--- ENDPOINT PARAMETERS---");
-		Logging.getLogger().debug("-host: " + endpointProperties.getHost());
-		Logging.getLogger().debug("-sparql11protocol.protocol: " + endpointProperties.getProtocolScheme());
-		Logging.getLogger().debug("-sparql11protocol.port: " + endpointProperties.getPort());
-		Logging.getLogger().debug("-sparql11protocol.query.path: " + endpointProperties.getQueryPath());
-		Logging.getLogger().debug("-sparql11protocol.query.method: " + endpointProperties.getQueryMethod());
-		Logging.getLogger().debug("-sparql11protocol.query.format: " + endpointProperties.getQueryAcceptHeader());
-		Logging.getLogger().debug("-sparql11protocol.update.path: " + endpointProperties.getUpdatePath());
-		Logging.getLogger().debug("-sparql11protocol.update.method: " + endpointProperties.getUpdateMethod());
-		Logging.getLogger().debug("-sparql11protocol.update.format: " + endpointProperties.getUpdateAcceptHeader());
+		Logging.debug("--- ENDPOINT PARAMETERS---");
+		Logging.debug("-host: " + endpointProperties.getHost());
+		Logging.debug("-sparql11protocol.protocol: " + endpointProperties.getProtocolScheme());
+		Logging.debug("-sparql11protocol.port: " + endpointProperties.getPort());
+		Logging.debug("-sparql11protocol.query.path: " + endpointProperties.getQueryPath());
+		Logging.debug("-sparql11protocol.query.method: " + endpointProperties.getQueryMethod());
+		Logging.debug("-sparql11protocol.query.format: " + endpointProperties.getQueryAcceptHeader());
+		Logging.debug("-sparql11protocol.update.path: " + endpointProperties.getUpdatePath());
+		Logging.debug("-sparql11protocol.update.method: " + endpointProperties.getUpdateMethod());
+		Logging.debug("-sparql11protocol.update.format: " + endpointProperties.getUpdateAcceptHeader());
 
-		Logging.getLogger().debug("--- EXTENSIONS ---");
+		Logging.debug("--- EXTENSIONS ---");
 		for (String ext : getExtensions().keySet()) {
-			Logging.getLogger().debug(ext+" : " + getExtensions().get(ext));
+			Logging.debug(ext+" : " + getExtensions().get(ext));
 		}
 	}
 
