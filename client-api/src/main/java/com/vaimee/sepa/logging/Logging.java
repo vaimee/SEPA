@@ -38,6 +38,7 @@ public class Logging {
 	}
 
 	public static void init() {
+		System.out.println("");
 		System.out.println("|------------ Logging ------------");
 
 		initLoggerFromJarDir();
@@ -62,6 +63,7 @@ public class Logging {
 		
 		System.out.println("| Logger level: " + LogManager.getLogger().getLevel().toString());
 		System.out.println("|---------------------------------");
+		System.out.println("");
 	}
 
 	public static long getTime() {
