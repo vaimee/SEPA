@@ -21,7 +21,7 @@
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout
-				pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
+				pattern="%d{ISO8601} [%-5level] [%t] %msg%n%throwable" />
 		</Console>
 		<File name="Log" fileName="logs/sepalog.csv">
 			<PatternLayout

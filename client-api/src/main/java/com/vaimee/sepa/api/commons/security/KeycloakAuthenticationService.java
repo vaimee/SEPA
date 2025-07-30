@@ -53,7 +53,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 		Logging.log("oauth","REGISTER " + client_id);
 		
 		CloseableHttpResponse response = null;
-		long start = Logging.getTime();
+		Logging.Timestamp start = new Logging.Timestamp();
 
 		try {
 			URI uri = new URI(oauthProperties.getRegisterUrl());
@@ -133,20 +133,20 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 
 		} catch (URISyntaxException e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+			Logging.logTiming("REGISTER_ERROR", start, new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "URISyntaxException", e.getMessage());
 		} catch (UnsupportedEncodingException e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+			Logging.logTiming("REGISTER_ERROR", start, new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "UnsupportedEncodingException",
 					e.getMessage());
 		} catch (ParseException e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+			Logging.logTiming("REGISTER_ERROR", start,new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_BAD_REQUEST, "ParseException", e.getMessage());
 		} catch (IOException e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+			Logging.logTiming("REGISTER_ERROR", start, new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "IOException", e.getMessage());
 		} finally {
 			try {
@@ -154,7 +154,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 					response.close();
 			} catch (IOException e) {
 				Logging.error(e.getMessage());
-				Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+				Logging.logTiming("REGISTER_ERROR", start, new Logging.Timestamp());
 				return new ErrorResponse(HttpStatus.SC_SERVICE_UNAVAILABLE, "IOException", e.getMessage());
 			}
 		}
@@ -172,7 +172,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 		Logging.log("oauth","TOKEN_REQUEST: " + authorization);
 
 		CloseableHttpResponse response = null;
-		long start = Logging.getTime();
+		Logging.Timestamp start = new Logging.Timestamp();
 
 		try {
 			URI uri = new URI(oauthProperties.getTokenRequestUrl());
@@ -206,7 +206,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 			JsonObject json = new Gson().fromJson(jsonResponse,JsonObject.class);
 
 			if (json.has("error")) {
-				Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
+				Logging.logTiming("TOKEN_REQUEST", start, new Logging.Timestamp());
 				ErrorResponse error = new ErrorResponse(response.getStatusLine().getStatusCode(),"token_request",
 						json.get("error").getAsString());
 				return error;
@@ -215,7 +215,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 			return new JWTResponse(json);
 		} catch (Exception e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
+			Logging.logTiming("TOKEN_REQUEST", start, new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Exception", e.getMessage());
 		} finally {
 			try {
@@ -223,7 +223,7 @@ curl --location --request POST 'https://sepa.vaimee.it:8443/auth/realms/MONAS/cl
 					response.close();
 			} catch (IOException e) {
 				Logging.error(e.getMessage());
-				Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
+				Logging.logTiming("TOKEN_REQUEST", start, new Logging.Timestamp());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
 		}

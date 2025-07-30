@@ -57,7 +57,7 @@ public class NgisLdHandlerBeans {
 	}
 
 	public synchronized long start(HttpAsyncExchange handler) {
-		long start = Logging.getTime();
+		long start = new Logging.Timestamp().get();
 		timings.put(handler, start );
 		return start;
 	}
@@ -67,7 +67,7 @@ public class NgisLdHandlerBeans {
 		
 		if (timings.get(handler) == null) return 0;
 		
-		requestHandlingTime = Logging.getTime() - timings.get(handler);
+		requestHandlingTime = new Logging.Timestamp().get() - timings.get(handler);
 		
 		timings.remove(handler);
 

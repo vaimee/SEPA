@@ -490,7 +490,7 @@ public class SPARQL11Handler implements HttpAsyncRequestHandler<HttpRequest>, SP
 		}
 
 		// Schedule request
-		Logging.logTiming(sepaRequest.toString(),Logging.getTime(),Logging.getTime());
+		Logging.logTiming(sepaRequest.toString());
 		ScheduledRequest req = scheduler.schedule(sepaRequest, new SPARQL11ResponseHandler(httpExchange, jmx));
 		if (req == null) {
 			Logging.error("Out of tokens");

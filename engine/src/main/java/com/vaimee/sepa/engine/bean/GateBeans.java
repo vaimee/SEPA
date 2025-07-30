@@ -47,7 +47,7 @@ public class GateBeans {
 	public static long unsubscribeTimings(long start) {
 		handledunsubscribes++;
 				
-		unsubscribeHandlingTime = Logging.getTime() - start;
+		unsubscribeHandlingTime = new Logging.Timestamp().get() - start;
 
 		if (unsubscribeHandlingMinTime == -1)
 			unsubscribeHandlingMinTime = unsubscribeHandlingTime;
@@ -71,7 +71,7 @@ public class GateBeans {
 	public long subscribeTimings(long start) {
 		handledSubscribes++;
 		
-		subscribeHandlingTime = Logging.getTime() - start;
+		subscribeHandlingTime = new Logging.Timestamp().get() - start;
 
 		if (subscribeHandlingMinTime == -1)
 			subscribeHandlingMinTime = subscribeHandlingTime;

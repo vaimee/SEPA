@@ -79,7 +79,7 @@ public class Scheduler extends Thread implements SchedulerMBean {
 			Logging.debug(">> " + scheduled);
 			Logging.trace(scheduled.getRequest().toString());
 
-			Logging.logTiming(request.toString(),Logging.getTime(),Logging.getTime());
+			Logging.logTiming(request.toString());
 
 			SchedulerBeans.newRequest(request, true);
 

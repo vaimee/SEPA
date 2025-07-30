@@ -81,7 +81,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 
 	public final Response multipleUpdate(long timeout,long nRetry)
 			throws SEPASecurityException, SEPAPropertiesException, SEPABindingsException, SEPAProtocolException {
-		long start = Logging.getTime();
+		Logging.Timestamp start = new Logging.Timestamp();
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(updateId),
 				appProfile.getUpdateProtocolScheme(updateId), appProfile.getUpdateHost(updateId),
 				appProfile.getUpdatePort(updateId), appProfile.getUpdatePath(updateId),
@@ -89,7 +89,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 						addUpdateDefaultDatatype(multipleForcedBindings.getBindings(), updateId, false)),
 				appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
-		long stop = Logging.getTime();
+		Logging.Timestamp stop = new Logging.Timestamp();
 		Logging.logTiming("multipleUpdate create UpdateRequest", start, stop);
 		
 		Logging.trace(req);

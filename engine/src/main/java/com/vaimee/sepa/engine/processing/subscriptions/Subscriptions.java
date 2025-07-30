@@ -78,7 +78,7 @@ public class Subscriptions {
 
 	// First level filtering on RDF data set (graph uris)
 	public synchronized static Collection<SPU> filterOnGraphs(InternalUpdateRequest update) {
-		long start = Logging.getTime();
+		long start = new Logging.Timestamp().get();
 		
 		Collection<SPU> ret = new HashSet<>();
 		Set<String> target = update.getRdfDataSet();
@@ -102,7 +102,7 @@ public class Subscriptions {
 					}
 				}
 		}
-		long stop = Logging.getTime();
+		long stop = new Logging.Timestamp().get();
 		
 		SPUManagerBeans.filteringTimings(start, stop);
 		

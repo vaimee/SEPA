@@ -58,11 +58,11 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		Response ret;
 		int n = 0;
 		do {
-			long start = Logging.getTime();
+			Logging.Timestamp start = new Logging.Timestamp();
 			ret = endpoint.update(request);
-			long stop = Logging.getTime();
+			Logging.Timestamp stop = new Logging.Timestamp();
 
-			UpdateProcessorBeans.timings(start, stop);
+			UpdateProcessorBeans.timings(start.get(), stop.get());
 
 			Logging.trace("Response: " + ret.toString());
 			Logging.logTiming("UPDATE_PROCESSING_TIME", start, stop);

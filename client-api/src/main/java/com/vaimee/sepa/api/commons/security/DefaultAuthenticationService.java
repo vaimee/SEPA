@@ -40,7 +40,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 		Logging.log("oauth","REGISTER " + client_id);
 
 		CloseableHttpResponse response = null;
-		long start = Logging.getTime();
+		Logging.Timestamp start = new Logging.Timestamp();
 
 		try {
 			URI uri = new URI(oauthProperties.getRegisterUrl());
@@ -89,26 +89,26 @@ public class DefaultAuthenticationService extends AuthenticationService {
 			String secret = json.get("credentials").getAsJsonObject().get("client_secret").getAsString();
 			JsonElement signature = json.get("credentials").getAsJsonObject().get("signature");
 
-			Logging.logTiming("REGISTER", start, Logging.getTime());
+			Logging.logTiming("REGISTER", start, new Logging.Timestamp());
 
 			return new RegistrationResponse(id, secret, signature);
 
 		} catch (URISyntaxException e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+			Logging.logTiming("REGISTER_ERROR", start, new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "URISyntaxException", e.getMessage());
 		} catch (UnsupportedEncodingException e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+			Logging.logTiming("REGISTER_ERROR", start, new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "UnsupportedEncodingException",
 					e.getMessage());
 		} catch (ParseException e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+			Logging.logTiming("REGISTER_ERROR", start, new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "ParseException", e.getMessage());
 		} catch (IOException e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+			Logging.logTiming("REGISTER_ERROR", start, new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 		} finally {
 			try {
@@ -116,7 +116,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 					response.close();
 			} catch (IOException e) {
 				Logging.error(e.getMessage());
-				Logging.logTiming("REGISTER_ERROR", start, Logging.getTime());
+				Logging.logTiming("REGISTER_ERROR", start, new Logging.Timestamp());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
 		}
@@ -126,7 +126,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 		Logging.log("oauth","TOKEN_REQUEST: " + authorization);
 
 		CloseableHttpResponse response = null;
-		long start = Logging.getTime();
+		Logging.Timestamp start = new Logging.Timestamp();
 
 		try {
 			URI uri = new URI(oauthProperties.getTokenRequestUrl());
@@ -158,7 +158,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 			JsonObject json = new Gson().fromJson(jsonResponse,JsonObject.class);
 
 			if (json.has("error")) {
-				Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
+				Logging.logTiming("TOKEN_REQUEST", start, new Logging.Timestamp());
 				ErrorResponse error = new ErrorResponse(json.get("status_code").getAsInt(),
 						json.get("error").getAsString(), json.get("error_description").getAsString());
 				return error;
@@ -167,7 +167,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 			return new JWTResponse(json);
 		} catch (Exception e) {
 			Logging.error(e.getMessage());
-			Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
+			Logging.logTiming("TOKEN_REQUEST", start, new Logging.Timestamp());
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "Exception", e.getMessage());
 		} finally {
 			try {
@@ -175,7 +175,7 @@ public class DefaultAuthenticationService extends AuthenticationService {
 					response.close();
 			} catch (IOException e) {
 				Logging.error(e.getMessage());
-				Logging.logTiming("TOKEN_REQUEST", start, Logging.getTime());
+				Logging.logTiming("TOKEN_REQUEST", start, new Logging.Timestamp());
 				return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "IOException", e.getMessage());
 			}
 		}
