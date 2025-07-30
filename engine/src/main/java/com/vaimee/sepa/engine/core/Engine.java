@@ -32,6 +32,7 @@ import com.vaimee.sepa.engine.gates.websocket.WebsocketServer;
 import com.vaimee.sepa.engine.processing.Processor;
 import com.vaimee.sepa.engine.scheduling.Scheduler;
 import com.vaimee.sepa.logging.Logging;
+import org.apache.jena.base.Sys;
 
 /**
  * This class represents the SPARQL Subscription Broker (Core) of the SPARQL
@@ -42,7 +43,7 @@ import com.vaimee.sepa.logging.Logging;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "0.99.101";
+	private final static String version = "1.0.0";
 	private EngineProperties properties = null;
 
 	// Primitives scheduler/dispatcher
@@ -102,7 +103,11 @@ public class Engine implements EngineMBean {
 		System.out
 				.println("# dc:contributor git:relu91 ;                                                            #");
 		System.out
+				.println("# dc:contributor git:FerrariAndrea ;                                                     #");
+		System.out
 				.println("# dc:contributor git:GregorioMonari ;                                                    #");
+		System.out
+				.println("# dc:contributor git:trivo78 ;                                                           #");
 		System.out
 				.println("# dc:format <https://java.com> ;                                                         #");
 		System.out
@@ -182,7 +187,7 @@ public class Engine implements EngineMBean {
 			// SPARQL 1.1 SE protocol gates
 			System.out.println("----------------------");
 			System.out.println("");
-			System.out.println("SPARQL 1.1 SE Protocol (http://mml.arces.unibo.it/TR/sparql11-se-protocol.html)");
+			System.out.println("SPARQL 1.1 SE Protocol (https://vaimee.org/TR/sparql11-se-protocol.html)");
 			System.out.println("----------------------");
 
 			if (!properties.isSecure()) {
@@ -203,17 +208,43 @@ public class Engine implements EngineMBean {
 			System.out.println("----------------------");
 
 			// Welcome message
-			System.out.println("Version " + version);
-			System.out.println(
-					"*****************************************************************************************");
-			System.out.println(
-					"*                          SEPA Broker is up and running                                *");
-			System.out.println(
-					"*                        Let Things Talk and Data Be Free!                              *");
+			String line = "*****************************************************************************************";
+			String title = "SEPA Broker is up and running";
+			String slogan = "Let Things Talk and Data Be Free!";
+			String verprint = "Version " + version;
+
 			System.out.println(
 					"*****************************************************************************************");
 
+			String text = title;
+			int spaces = ((line.length() - text.length())/2)-1;
+			System.out.print("*");
+			for (int i=0; i < spaces;i++) System.out.print(" ");
+			System.out.print(text);
+			int left = line.length()-spaces-text.length()-2;
+			for (int i=0; i < left;i++) System.out.print(" ");
+			System.out.println("*");
 
+			text = slogan;
+			spaces = ((line.length() - text.length())/2)-1;
+			System.out.print("*");
+			for (int i=0; i < spaces;i++) System.out.print(" ");
+			System.out.print(text);
+			left = line.length()-spaces-text.length()-2;
+			for (int i=0; i < left;i++) System.out.print(" ");
+			System.out.println("*");
+
+			text = verprint;
+			spaces = ((line.length() - text.length())/2)-1;
+			System.out.print("*");
+			for (int i=0; i < spaces;i++) System.out.print(" ");
+			System.out.print(text);
+			left = line.length()-spaces-text.length()-2;
+			for (int i=0; i < left;i++) System.out.print(" ");
+			System.out.println("*");
+
+			System.out.println(
+					"*****************************************************************************************");
 		} catch (SEPASecurityException | IllegalArgumentException | SEPAProtocolException e) {
 			System.err.println(e.getMessage());
 			System.exit(1);
