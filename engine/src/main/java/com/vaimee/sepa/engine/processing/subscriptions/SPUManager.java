@@ -92,7 +92,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		Logging.log("SPUManager", "*** subscriptionsProcessingPreUpdate ***");
 
 		// Start processing
-		long start = Logging.getTime();
+		long start = new Logging.Timestamp().get();
 
 		// Copy active SPU pool
 		synchronized (activeSpus) {
@@ -152,7 +152,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			}
 		}
 
-		long stop = Logging.getTime();
+		long stop = new Logging.Timestamp().get();
 
 		SPUManagerBeans.preProcessingTimings(start, stop);
 
@@ -163,7 +163,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 		Logging.log("SPUManager", "*** subscriptionsProcessingPostUpdate ***");
 
 		// Start processing
-		long start = Logging.getTime();
+		long start = new Logging.Timestamp().get();
 
 		// Copy active SPU pool
 		synchronized (activeSpus) {
@@ -222,7 +222,7 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 			}
 		}
 
-		long stop = Logging.getTime();
+		long stop = new Logging.Timestamp().get();
 
 		SPUManagerBeans.postProcessingTimings(start, stop);
 

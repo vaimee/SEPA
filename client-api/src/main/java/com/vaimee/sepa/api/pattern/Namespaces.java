@@ -272,7 +272,7 @@ public class Namespaces {
 
     private static String replaceMultipleBindings(String sparql, ArrayList<Bindings> multipleBindings)
             throws SEPABindingsException {
-        long start = Logging.getTime();
+        Logging.Timestamp start = new Logging.Timestamp();
         if (multipleBindings == null || sparql == null)
             return sparql;
 
@@ -431,7 +431,7 @@ public class Namespaces {
         int end = replacedSparql.lastIndexOf("}");
 
         String ret = replacedSparql.substring(0, end) + " VALUES " + VARS + VALUES + "}";
-        long stop = Logging.getTime();
+        Logging.Timestamp stop = new Logging.Timestamp();
         Logging.logTiming("replaceMultipleBindings", start, stop);
         return ret;
     }

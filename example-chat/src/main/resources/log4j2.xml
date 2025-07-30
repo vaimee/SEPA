@@ -15,16 +15,16 @@
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout
-				pattern="%d{ISO8601} [%-5level] %t (%F:%L) %msg%n%throwable" />
+				pattern="%d{ISO8601} [%-5level] %t %logger{36}:%L %msg%n%throwable" />
 		</Console>
 		<File name="Log" fileName="sepa.log.csv">
 			<PatternLayout pattern="%d{ISO8601}|[%-5level]|%t|(%F:%L)|%msg%n%throwable\n" />
 		</File>
 	</Appenders>
 	<Loggers>
-		<Root level="error">
+		<Root level="info">
 			<AppenderRef ref="Console" level="debug" />
-			<AppenderRef ref="Log" level="error" />
+			<AppenderRef ref="Log" level="info" />
 		</Root>
 	</Loggers>
 </Configuration>

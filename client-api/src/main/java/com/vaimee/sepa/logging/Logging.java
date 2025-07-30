@@ -13,6 +13,7 @@ import com.vaimee.sepa.api.commons.request.Request;
 import com.vaimee.sepa.api.commons.response.Response;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.config.AppenderRef;
 import org.apache.logging.log4j.core.config.Configuration;
@@ -20,6 +21,20 @@ import org.apache.logging.log4j.core.config.Configurator;
 import org.apache.logging.log4j.core.config.LoggerConfig;
 
 public class Logging {
+
+	public static class Timestamp {
+		private final long timestamp;
+		public Timestamp() {
+			timestamp = System.nanoTime();
+		}
+
+		public long get() {
+			return timestamp;
+		}
+	}
+
+	private static Logger logger = LogManager.getLogger();
+
 	private static void initLoggerFromJarDir() {
 		try {
 			File jarFile = new File(Logging.class.getProtectionDomain().getCodeSource().getLocation().toURI());
@@ -66,18 +81,12 @@ public class Logging {
 		System.out.println("");
 	}
 
-	public static long getTime() {
-		return System.nanoTime();
-	}
-
-	public synchronized static void logTiming(String tag, long start, long stop) {
-		String message = String.format("%d,%d,%d,%d,%s",System.currentTimeMillis(),(stop-start)/1000000,(stop-start)/1000,stop-start,tag);
-		LogManager.getLogger().log(Level.getLevel("timing"),message);
+	public synchronized static void logTiming(String tag, Timestamp start, Timestamp stop) {
+		String message = String.format("%d,%d,%d,%d,%s",System.currentTimeMillis(),(stop.get()-start.get())/1000000,(stop.get()-start.get())/1000,stop.get()-start.get(),tag);
+		logger.log(Level.getLevel("timing"),message);
 	}
 
 	public synchronized static void logTiming(Request request) {
-		long start = getTime();
-
 		String tag;
 		if (request.isUpdateRequest()) tag = "UPDATE_REQUEST";
 		else if (request.isSubscribeRequest()) tag = "SUBSCRIBE_REQUEST";
@@ -85,12 +94,14 @@ public class Logging {
 		else if(request.isUnsubscribeRequest()) tag = "UNSUBSCRIBE_REQUEST";
 		else tag = "UNKNOWN_REQUEST";
 
-		logTiming(tag,start,start);
+		logger.log(Level.getLevel("timing"),String.format("%d,0,0,0,%s",System.currentTimeMillis(),tag));
+	}
+
+	public static void logTiming(String s) {
+		logger.log(Level.getLevel("timing"),String.format("%d,0,0,0,%s",System.currentTimeMillis(),s));
 	}
 
 	public synchronized static void logTiming(Response response) {
-		long start = getTime();
-
 		String tag;
 		if (response.isUpdateResponse()) tag = "UPDATE_RESPONSE";
 		else if (response.isSubscribeResponse()) tag = "SUBSCRIBE_RESPONSE";
@@ -99,66 +110,80 @@ public class Logging {
 		else if(response.isError()) tag = "ERROR_RESPONSE";
 		else tag = "UNKNOWN_RESPONSE";
 
-		logTiming(tag,start,start);
+		logger.log(Level.getLevel("timing"),String.format("%d,0,0,0,%s",System.currentTimeMillis(),tag));
 	}
 
 	public static void debug(String s) {
-		LogManager.getLogger().debug(s);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.debug("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
 	public static void debug(Response s) {
-		LogManager.getLogger().debug(s);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.debug("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
 	public static boolean isTraceEnabled() {
-		return LogManager.getLogger().isTraceEnabled();
+		return logger.isTraceEnabled();
 	}
 
 	public static void trace(String s) {
-		LogManager.getLogger().trace(s);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.trace("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
 	public static void trace(Request s) {
-		LogManager.getLogger().trace(s);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.trace("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
 	public static void trace(Response s) {
-		LogManager.getLogger().trace(s);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.trace("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
 	public static void log(String customLevel,String message) {
-		LogManager.getLogger().log(Level.getLevel(customLevel),message);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.log(Level.getLevel(customLevel),"({}:{}) {}", caller.getClassName(), caller.getLineNumber(),message);
 	}
 
 	public static void log(String customLevel,String message,String context) {
-		LogManager.getLogger().log(Level.getLevel(customLevel),message,context);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.log(Level.getLevel(customLevel),"({}:{}) {}", caller.getClassName(), caller.getLineNumber(),message,context);
 	}
 
 	public static void warn(String s) {
-		LogManager.getLogger().warn(s);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.warn("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
 	public static void warn(Response s) {
-		LogManager.getLogger().warn(s.toString());
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.warn("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
 	public static void info(String s) {
-		LogManager.getLogger().info(s);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.info("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
-	public static void error(String message) {
-		LogManager.getLogger().error(message);
+	public static void error(String s) {
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.error("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
-	public static void error(Exception message) {
-		LogManager.getLogger().error(message);
+	public static void error(Exception s) {
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.error("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
-	public static void error(Response message) {
-		LogManager.getLogger().error(message.toString());
+	public static void error(Response s) {
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.error("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 
 	public static void fatal(String s) {
-		LogManager.getLogger().fatal(s);
+		StackTraceElement caller = Thread.currentThread().getStackTrace()[2];
+		logger.fatal("({}:{}) {}", caller.getClassName(), caller.getLineNumber(),s);
 	}
 }

@@ -133,11 +133,11 @@ public class SPARQL11Protocol implements Closeable {
 			// Execute HTTP request
 			Logging.trace(req.toString() + " " + request.toString() + " (timeout: " + request.getTimeout() + " ms) ");
 
-			long start = Logging.getTime();
+			Logging.Timestamp start = new Logging.Timestamp();
 
 			httpResponse = httpClient.execute(req);
 
-			long stop = Logging.getTime();
+			Logging.Timestamp stop = new Logging.Timestamp();
 
 			if (request.getClass().equals(UpdateRequest.class))
 				Logging.logTiming("HTTP_UPDATE_TIME", start, stop);
