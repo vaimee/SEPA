@@ -17,6 +17,14 @@
 	<description>Part of a collection of SEPA based tools developed by VAIMEE</description>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -35,7 +43,7 @@
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>
-										com.vaimee.sepa.apps.chat.SEPAChatTest</mainClass>
+										com.vaimee.sepa.apps.chat.client.SEPAChatTest</mainClass>
 									<manifestEntries>
 										<Multi-Release>true</Multi-Release>
 									</manifestEntries>

@@ -29,14 +29,14 @@ public class JSAPProvider {
 			logger.info("JSAP secure default: " + jsapFileName);
 		}
 
-		String path = getClass().getClassLoader().getResource(jsapFileName).getPath();
-		File f = new File(path);
-		if (!f.exists()) {
-			logger.error("File not found: " + path);
-			throw new SEPAPropertiesException("File not found: "+path);
-		}
+//		String path = getClass().getClassLoader().getResource(jsapFileName).getPath();
+//		File f = new File(path);
+//		if (!f.exists()) {
+//			logger.error("File not found: " + path);
+//			throw new SEPAPropertiesException("File not found: "+path);
+//		}
 		
-		appProfile = new JSAP(path);
+		appProfile = new JSAP(jsapFileName);
 	}
 	
 	public ClientSecurityManager getSecurityManager() throws SEPASecurityException {
