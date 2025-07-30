@@ -63,7 +63,7 @@
 
 	<repositories>
   		<repository>
-    			<id>github</id>
+    			<id>sjenar</id>
     			<url>https://maven.pkg.github.com/vaimee/sjenar/</url>
   		</repository>
         <repository>
