@@ -43,7 +43,7 @@ import org.apache.jena.base.Sys;
  */
 
 public class Engine implements EngineMBean {
-	private final static String version = "1.0.0";
+	private final static String version = "1.0.1";
 	private EngineProperties properties = null;
 
 	// Primitives scheduler/dispatcher
