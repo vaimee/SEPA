@@ -203,53 +203,15 @@ public class BindingsResults {
 	 * @return true, if successful
 	 */
 	public boolean contains(Bindings solution) {
-//		JsonArray solutionSet = getBindingsArray();
-//		JsonObject bindings = solution.toJson();
-//
-//		for (int i = 0; i < solutionSet.size(); i++) {
-//			JsonObject solutionX = solutionSet.get(i).getAsJsonObject();
-//			boolean match = true;
-//
-//			for (String key : bindings.keySet()) {
-//				if (!solutionX.has(key) || !solutionX.get(key).getAsString().equals(bindings.get(key).getAsString())) {
-//					match = false;
-//					break;
-//				}
-//			}
-//
-//			if (match) {
-//				return true;
-//			}
-//		}
-//		return false;
-
 		if (solution == null) return false;
 		
 		JsonArray bindings = getBindingsArray();
 		if (bindings == null) return false;		
 		if (bindings.size() == 0) return false;
-		
-		if(getVariables().size() != solution.getVariables().size()) return false;
-		if(!getVariables().containsAll(solution.getVariables())) return false;
-		
-				
+
 		for (JsonElement b : bindings) {
 			Bindings temp = new Bindings(b.getAsJsonObject());
-			boolean found = true;
-			for(String var : solution.getVariables()) {
-				try {
-					// Comparing BNODE between two different queries is not possible
-					if (solution.isBNode(var) && temp.isBNode(var)) continue;
-					if(!solution.getRDFTerm(var).equals(temp.getRDFTerm(var))) {
-						found = false;
-						break;
-					}
-				} catch (SEPABindingsException e) {
-					Logging.error(e.getMessage());
-					return false;
-				}						
-			}
-			if (found) return true;
+			if (temp.equals(solution)) return true;
 		}
 		
 		return false;

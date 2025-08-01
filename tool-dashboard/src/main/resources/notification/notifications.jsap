@@ -1,0 +1,218 @@
+{
+  "host": "localhost",
+  "sparql11protocol": {
+    "protocol": "http",
+    "port": 8000,
+    "query": {
+      "path": "/query",
+      "method": "URL_ENCODED_POST",
+      "format": "JSON"
+    },
+    "update": {
+      "path": "/update",
+      "method": "URL_ENCODED_POST",
+      "format": "JSON"
+    }
+  },
+  "sparql11seprotocol": {
+    "reconnect": true,
+    "protocol": "ws",
+    "availableProtocols": {
+      "ws": {
+        "port": 9000,
+        "path": "/subscribe",
+        "scheme": "ws"
+      },
+      "wss": {
+        "path": "/subscribe",
+        "port": 443,
+        "scheme": "wss"
+      }
+    }
+  },
+  "namespaces": {
+    "schema": "http://schema.org/",
+    "qudt": "http://qudt.org/schema/qudt#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "gn": "http://www.geonames.org/ontology#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "unit": "http://qudt.org/vocab/unit#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "wgs84_pos": "http://www.w3.org/2003/01/geo/wgs84_pos#",
+    "time": "http://www.w3.org/2006/time#",
+    "sosa": "http://www.w3.org/ns/sosa/",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "msg": "https://onto.vaimee.com/msg#",
+    "jsap": "https://onto.vaimee.com/jsap#",
+    "query": "https://onto.vaimee.com/query#",
+    "vaimee": "https://vaimee.com#",
+    "auth": "https://auth.vaimee.com/profile#"
+  },
+  "extended": {},
+  "updates": {
+    "CLEAN_GRAPH": {
+      "sparql": "DROP SILENT GRAPH ?graph",
+      "forcedBindings": {
+        "graph": {
+          "type": "uri",
+          "value": "vaimee:Place"
+        }
+      }
+    },
+    "ADD_TEMPLATE": {
+      "sparql": "INSERT {GRAPH msg:Templates{ ?id rdf:type msg:Template; schema:name ?name; msg:text ?text; msg:language ?language}} WHERE {BIND(uuid() as ?id)}",
+      "forcedBindings": {
+        "name": {
+          "type": "uri",
+          "value": "msg:template1"
+        },
+        "text": {
+          "type": "literal",
+          "value": "Hi! My name is ${name}"
+        },
+        "language": {
+          "type": "literal",
+          "value": "en"
+        }
+      }
+    },
+    "ADD_PLAIN_TEXT_MESSAGE":{
+      "sparql": "INSERT {GRAPH msg:Messages { ?id rdf:type schema:Message; msg:dateCreated ?dateCreated; msg:dateSent ?dateSent; schema:toRecipient ?webId; schema:messageAttachment ?attachmentNode; msg:about ?topic; msg:source ?source. ?attachmentNode rdf:type msg:TextContent; msg:text ?textContent. }} WHERE {BIND(uuid() as ?id) BIND(uuid() as ?attachmentNode)}",
+      "forcedBindings": {
+        "dateCreated": {
+          "type": "literal",
+          "value": "2025-02-25T12:00:00Z"
+        },
+        "dateSent": {
+          "type": "literal",
+          "value": "2025-02-25T12:00:00Z"
+        },
+        "webId":{
+          "type": "uri",
+          "value": "msg:webId-1"
+        },
+        "topic":{
+          "type": "uri",
+          "value": "query:queryId123"
+        },
+        "source":{
+          "type": "uri",
+          "value": "jsap:aggregatorId123"
+        },
+        "textContent":{
+          "type": "literal",
+          "value": "hi!"
+        }
+      }
+    },
+    "ADD_TEMPLATE_MESSAGE":{
+      "sparql": "INSERT {GRAPH msg:Messages { ?id rdf:type schema:Message; msg:dateCreated ?dateCreated; msg:dateSent ?dateSent; schema:toRecipient ?webId; schema:messageAttachment ?attachmentNode; msg:about ?topic; msg:source ?source. ?attachmentNode rdf:type msg:TemplateContent; msg:usesTemplate ?templateId; msg:hasVariable ?variableId. ?variableId rdf:type msg:Variable; msg:name ?variableKey; msg:hasValue ?variableValue. }} WHERE {BIND(uuid() as ?id) BIND(uuid() as ?attachmentNode) BIND(uuid() as ?variableId)}",
+      "forcedBindings": {
+        "dateCreated": {
+          "type": "literal",
+          "value": "2025-02-25T12:00:00Z"
+        },
+        "dateSent": {
+          "type": "literal",
+          "value": "2025-02-25T12:00:00Z"
+        },
+        "webId":{
+          "type": "uri",
+          "value": "msg:webId-1"
+        },
+        "topic":{
+          "type": "uri",
+          "value": "query:queryId123"
+        },
+        "source":{
+          "type": "uri",
+          "value": "jsap:aggregatorId123"
+        },
+        "templateId":{
+          "type": "uri",
+          "value": "msg:template1"
+        },
+        "variableKey":{
+          "type": "literal",
+          "value": "name"
+        },
+        "variableValue":{
+          "type": "literal",
+          "value": "Greg"
+        }
+      }
+    },
+    "ADD_USER":{
+      "sparql": "INSERT {GRAPH msg:Users {?webId rdf:type schema:Person.}} WHERE {}",
+      "forcedBindings":{
+        "webId":{
+          "type": "uri",
+          "value": "msg:webId-1"
+        }
+      }
+    },
+    "ADD_CONTACT_POINT_TO_USER":{
+      "sparql": "INSERT{GRAPH msg:Users{ ?webId schema:contactPoint ?contactPoint. ?contactPoint rdf:type ?type; msg:identifier ?identifier}} WHERE{}",
+      "forcedBindings":{
+        "webId":{
+          "type": "uri",
+          "value": "msg:webId-1"
+        },
+        "contactPoint":{
+          "type": "uri",
+          "value": "urn:uuid:1234"
+        },
+        "type":{
+          "type": "uri",
+          "value": "msg:WhatsApp"
+        },
+        "identifier":{
+          "type": "literal",
+          "value": "+1234567890"
+        }
+      }
+    },
+    "ADD_NOTIFICATION_PREFERENCE_TO_USER":{
+      "sparql": "INSERT{GRAPH msg:Users{ ?webId msg:notificationPreference ?notificationPreference. ?notificationPreference rdf:type msg:NotificationPreference; msg:notificationTopic ?topic; msg:notificationSource ?source; msg:notificationChannel ?contactPoint}} WHERE{BIND(uuid() as ?notificationPreference)}",
+      "forcedBindings":{
+        "webId":{
+          "type": "uri",
+          "value": "msg:webId-1"
+        },
+        "topic":{
+          "type": "uri",
+          "value": "query:queryId123"
+        },
+        "source":{
+          "type": "uri",
+          "value": "jsap:aggregatorId123"
+        },
+        "contactPoint": {
+          "type": "uri",
+          "value": "urn:uuid:1234"
+        }
+      }
+    },
+    "DELETE_USER":{
+      "sparql":"DELETE{GRAPH msg:Users { ?webId rdf:type schema:Person. ?webId msg:notificationPreference ?notificationPreference. ?notificationPreference rdf:type msg:NotificationPreference; msg:notificationTopic ?topic; msg:notificationChannel ?contactPoint; msg:notificationSource ?source. ?contactPoint rdf:type ?type; msg:identifier ?identifier. ?webId schema:contactPoint ?contactPoint }} WHERE {GRAPH msg:Users { ?webId rdf:type schema:Person. OPTIONAL{ ?webId msg:notificationPreference ?notificationPreference. ?notificationPreference rdf:type msg:NotificationPreference; msg:notificationTopic ?topic; msg:notificationChannel ?contactPoint. OPTIONAL{?notificationPreference msg:notificationSource ?source}. ?contactPoint rdf:type ?type; msg:identifier ?identifier }}}",
+      "forcedBindings":{
+        "webId":{
+          "type": "uri",
+          "value": "msg:webId-1"
+        }
+      }
+    }
+  },
+  "queries": {
+    "GET_USERS": {
+      "sparql": "SELECT * WHERE {GRAPH msg:Users { ?webId rdf:type schema:Person. OPTIONAL{ ?webId msg:notificationPreference ?notificationPreference. ?notificationPreference rdf:type msg:NotificationPreference; msg:notificationTopic ?topic; msg:notificationChannel ?contactPoint. OPTIONAL{?notificationPreference msg:notificationSource ?source}. ?contactPoint rdf:type ?type; msg:identifier ?identifier }}}"
+    },
+    "GET_MESSAGES":{
+      "sparql": "SELECT * WHERE {GRAPH msg:Messages { ?id rdf:type schema:Message; msg:dateCreated ?dateCreated; msg:dateSent ?dateSent; schema:toRecipient ?webId; schema:messageAttachment ?attachmentNode; msg:about ?topic; msg:source ?source. ?attachmentNode rdf:type ?contentType. OPTIONAL{?attachmentNode msg:text ?textContent.} OPTIONAL{?attachmentNode msg:usesTemplate ?templateId.} OPTIONAL{?attachmentNode msg:hasVariable ?variableId. ?variableId rdf:type msg:Variable; msg:name ?variableKey; msg:hasValue ?variableValue. } }}"
+    },
+    "GET_TEMPLATES":{
+      "sparql": "SELECT * WHERE {GRAPH msg:Templates{ ?id rdf:type msg:Template; schema:name ?name; msg:text ?text; msg:language ?language}}"
+    }
+  }
+}

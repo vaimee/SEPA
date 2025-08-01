@@ -244,6 +244,7 @@ public class Bindings {
 		if (!this.getVariables().containsAll(qs.getVariables())) return false;
 		for (String var : this.getVariables()) {
 			try {
+				if (this.isBNode(var) && qs.isBNode(var)) continue;
 				if(!this.getRDFTerm(var).equals(qs.getRDFTerm(var))) return false;
 			} catch (SEPABindingsException e) {
 				return false;
