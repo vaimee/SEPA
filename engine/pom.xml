@@ -130,6 +130,11 @@
 			<artifactId>sjenar-tdb2</artifactId>
 			<version>${sjenar.revision}</version>
 		</dependency>
+        <dependency>
+            <groupId>com.vaimee</groupId>
+            <artifactId>sjenar-geosparql</artifactId>
+            <version>${sjenar.revision}</version>
+        </dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
 			<artifactId>sjenar-tdb</artifactId>

@@ -34,7 +34,7 @@ public class QueryResponse extends Response {
 	 * @param body the body
 	 */
 
-	private String responseBody;
+	private final String responseBody;
 
 	public QueryResponse(String responseBody) {
 		super();
