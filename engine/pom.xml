@@ -46,6 +46,8 @@
 										<Multi-Release>true</Multi-Release>
 									</manifestEntries>
 								</transformer>
+
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
 							</transformers>
 							<filters>
 								<!-- Filtro generico: esclude metadati duplicati -->
