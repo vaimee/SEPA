@@ -32,6 +32,8 @@ import org.apache.jena.rdfconnection.RDFConnection;
 import org.apache.jena.rdfconnection.RDFConnectionFactory;
 import org.apache.jena.sparql.core.Quad;
 import org.apache.jena.sparql.modify.UpdateResult;
+import org.apache.jena.sparql.util.Context;
+import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.system.Txn;
 import org.glassfish.grizzly.http.util.HttpStatus;
 
@@ -51,10 +53,23 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class JenaInMemoryEndpoint implements SPARQLEndpoint {
     private static Dataset dataset;
+    private static final java.util.concurrent.atomic.AtomicBoolean done = new java.util.concurrent.atomic.AtomicBoolean(false);
 
     public JenaInMemoryEndpoint() {
-        dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(), true);
-        GeoSPARQLConfig.setupMemoryIndex();
+        if (done.compareAndSet(false,true)) {
+            JenaSystem.init();
+
+            ARQ.init();
+
+            Context c = ARQ.getContext();
+            if (c == null) {
+                throw new IllegalStateException("ARQ context is null: ARQ not initialized");
+            }
+
+            GeoSPARQLConfig.setupMemoryIndex();
+
+            dataset = JenaDatasetFactory.newInstance(EngineBeans.getFirstDatasetMode(), EngineBeans.getFirstDatasetPath(), true);
+        }
     }
 
     @Override
