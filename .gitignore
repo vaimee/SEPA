@@ -188,3 +188,4 @@ engine/run/*
 
 settings.xml
 .flattened-pom.xml
+/dashboard.properties
