@@ -354,7 +354,7 @@ public class Dashboard implements LoginListener {
 			if (jsapFiles.size() > 1) {
 				for (int i = 1; i < jsaps.length; i++) {
 					try {
-						JSAP temp = new JSAP("file://" + jsapFiles.get(i).replaceAll("\\\\", "/"));
+						JSAP temp = new JSAP("file:///" + jsapFiles.get(i).replaceAll("\\\\", "/"));
 						appProfile.merge(temp);
 					} catch (SEPAPropertiesException e) {
 						logger.error(e.getMessage());
@@ -370,7 +370,7 @@ public class Dashboard implements LoginListener {
 			try {
 
 				if (load) {
-					appProfile = new JSAP("file://" + file.replaceAll("\\\\", "/"));
+					appProfile = new JSAP("file:///" + file.replaceAll("\\\\", "/"));
 					// appProfile.read(file, true);
 
 					jsapFiles.clear();
