@@ -1,2 +1,11 @@
 .vscode
 .project
+.idea/.gitignore
+.idea/misc.xml
+.idea/modules.xml
+.idea/SEPA-Dashboard.iml
+.gitignore
+.idea/vcs.xml
+deploy/config.jsc-1.0.0-20251215142921
+deploy/index.html
+deploy/sepadashboard-1.0.0-20251215142921.js
