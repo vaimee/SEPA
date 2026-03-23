@@ -69,7 +69,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 		if (isSecure()) authorizationHeader = appProfile.getAuthenticationProperties().getBearerAuthorizationHeader();
 		
 		UpdateRequest req = new UpdateRequest(appProfile.getUpdateMethod(updateId), appProfile.getUpdateProtocolScheme(updateId),appProfile.getUpdateHost(updateId), appProfile.getUpdatePort(updateId),
-					appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addUpdateDefaultDatatype(updateForcedBindings,updateId,false)),
+					appProfile.getUpdatePath(updateId), appProfile.addPrefixesAndReplaceBindings(sparqlUpdate, addDefaultDatatype(updateForcedBindings,updateId,false)),
 					appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),authorizationHeader,timeout,nRetry);
 		
 		Logging.trace("UPDATE "+req);
@@ -86,7 +86,7 @@ public abstract class Aggregator extends Consumer implements IConsumer, IProduce
 				appProfile.getUpdateProtocolScheme(updateId), appProfile.getUpdateHost(updateId),
 				appProfile.getUpdatePort(updateId), appProfile.getUpdatePath(updateId),
 				appProfile.addPrefixesAndReplaceMultipleBindings(sparqlUpdate,
-						addUpdateDefaultDatatype(multipleForcedBindings.getBindings(), updateId, false)),
+						addDefaultDatatype(multipleForcedBindings.getBindings(), updateId, false)),
 				appProfile.getUsingGraphURI(updateId), appProfile.getUsingNamedGraphURI(updateId),
 				(appProfile.isSecure() ? appProfile.getAuthenticationProperties().getBearerAuthorizationHeader() : null), timeout,nRetry);
 		Logging.Timestamp stop = new Logging.Timestamp();
