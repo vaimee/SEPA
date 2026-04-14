@@ -9,6 +9,35 @@ DOCKER_USERNAME=""
 DOCKER_PASSWORD=""
 VERSION=""
 
+usage() {
+  cat <<EOF
+Usage: $0 -v VERSION -du DOCKER_USERNAME -dp DOCKER_PASSWORD
+
+Options:
+  -v   Version tag (required)
+  -du  Docker Hub username (required)
+  -dp  Docker Hub password (required)
+  -h   Show this help and exit
+EOF
+}
+
+# Parse args
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -v) VERSION="${2:-}"; shift 2 ;;
+    -du) DOCKER_USERNAME="${2:-}"; shift 2 ;;
+    -dp) DOCKER_PASSWORD="${2:-}"; shift 2 ;;
+    -h) usage; exit 0 ;;
+    *) echo "Unknown option: $1" >&2; usage; exit 2 ;;
+  esac
+done
+
+if [[ -z "$VERSION" || -z "$DOCKER_USERNAME" || -z "$DOCKER_PASSWORD" ]]; then
+  echo "Error: missing required arguments"
+  usage
+  exit 1
+fi
+
 # Parse args
 while [[ $# -gt 0 ]]; do
   case "$1" in

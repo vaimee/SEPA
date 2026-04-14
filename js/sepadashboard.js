@@ -15,6 +15,19 @@ let emptyMarker = {
 	clear: () => { },
 }
 
+// Bootstrap 5 helpers (Bootstrap 4 jQuery plugins are gone)
+function showTabById(tabLinkId) {
+	const el = document.getElementById(tabLinkId);
+	if (!el) return;
+	const tab = bootstrap.Tab.getOrCreateInstance(el);
+	tab.show();
+}
+function showLastSubscriptionTab() {
+	const last = document.querySelector("#pills-tab-subscriptions .nav-link:last-child");
+	if (!last) return;
+	bootstrap.Tab.getOrCreateInstance(last).show();
+}
+
 function onInit() {
 	console.log("### SEPA DASHBOARD ###")
 	console.log("loading editors...")
@@ -55,7 +68,7 @@ function onInit() {
 	if (env["SUBSCRIBE_PATH"] != null && env["SUBSCRIBE_PATH"] != "") $("#subscribePath").val(env["SUBSCRIBE_PATH"]);
 
 	//Initializing tree
-	$('#tree').treeview({ data: getTree() });
+	// $('#tree').treeview({ data: getTree() });
 }
 
 function getTree() {
@@ -95,43 +108,72 @@ function getTree() {
 	];
 }
 
-function loadEditors() {
-	YASQE.defaults.persistent = null
-	subEditor = YASQE.fromTextArea(document.getElementById('subscribeTextInput'))
-	queryEditor = YASQE.fromTextArea(document.getElementById('queryTextInput'))
-	updateEditor = YASQE.fromTextArea(document.getElementById('updateTextInput'))
+function refreshEditor(editor) {
+  editor.refresh();
+  // forzo anche la size: aiuta molto quando il container cambia layout
+  if (editor.setSize) editor.setSize("100%", null);
 
-	subEditor.prefixMarker = emptyMarker
-	queryEditor.prefixMarker = emptyMarker
-	updateEditor.prefixMarker = emptyMarker
-
-	$('#pills-subscribe-tab').on('shown.bs.tab', function handler(e) {
-		unFixGlobalNamespaces(subEditor)
-		subEditor.refresh()
-		YASQE.doAutoFormat(subEditor)
-		fixGlobalNamespaces(subEditor)
-	})
-
-	$('#pills-query-tab').on('shown.bs.tab', function handler(e) {
-
-		queryEditor.refresh()
-		unFixGlobalNamespaces(queryEditor)
-		YASQE.doAutoFormat(queryEditor)
-		fixGlobalNamespaces(queryEditor)
-	})
-
-	$('#pills-update-tab').on('shown.bs.tab', function handler(e) {
-		unFixGlobalNamespaces(updateEditor)
-		updateEditor.refresh()
-		YASQE.doAutoFormat(updateEditor)
-		fixGlobalNamespaces(updateEditor)
-	})
-
-	subEditor.setValue(subEditor.getTextArea().value)
-	queryEditor.setValue(queryEditor.getTextArea().value)
-	updateEditor.setValue(updateEditor.getTextArea().value)
-
+  requestAnimationFrame(() => {
+    editor.refresh();
+    if (editor.setSize) editor.setSize("100%", null);
+    editor.scrollIntoView({ line: 0, ch: 0 });
+  });
 }
+
+function loadEditors() {
+  YASQE.defaults.persistent = null;
+
+  subEditor = YASQE.fromTextArea(document.getElementById('subscribeTextInput'));
+  queryEditor = YASQE.fromTextArea(document.getElementById('queryTextInput'));
+  updateEditor = YASQE.fromTextArea(document.getElementById('updateTextInput'));
+
+  subEditor.prefixMarker = emptyMarker;
+  queryEditor.prefixMarker = emptyMarker;
+  updateEditor.prefixMarker = emptyMarker;
+
+  // setValue: ok
+  subEditor.setValue(subEditor.getTextArea().value);
+  queryEditor.setValue(queryEditor.getTextArea().value);
+  updateEditor.setValue(updateEditor.getTextArea().value);
+
+  // ✅ refresh SOLO dell’editor che è visibile al load
+  // Se per esempio al load è attivo "Query", usa queryEditor; altrimenti cambia qui.
+  setTimeout(() => refreshEditor(queryEditor), 0);
+
+  // ✅ handler tab: refresh dopo che Bootstrap ha finito di mostrare il pane
+  document.addEventListener('shown.bs.tab', (e) => {
+    const href = e.target.getAttribute('href') || e.target.getAttribute('data-bs-target');
+
+    if (href === '#pills-subscribe') {
+      unFixGlobalNamespaces(subEditor);
+      setTimeout(() => {
+        refreshEditor(subEditor);
+        YASQE.doAutoFormat(subEditor);
+        fixGlobalNamespaces(subEditor);
+      }, 0);
+    }
+
+    if (href === '#pills-query') {
+      unFixGlobalNamespaces(queryEditor);
+      setTimeout(() => {
+        refreshEditor(queryEditor);
+        YASQE.doAutoFormat(queryEditor);
+        fixGlobalNamespaces(queryEditor);
+      }, 0);
+    }
+
+    if (href === '#pills-update') {
+      unFixGlobalNamespaces(updateEditor);
+      setTimeout(() => {
+        refreshEditor(updateEditor);
+        YASQE.doAutoFormat(updateEditor);
+        fixGlobalNamespaces(updateEditor);
+      }, 0);
+    }
+  });
+}
+
+
 
 function getTimestamp() {
 	date = new Date();
@@ -181,11 +223,12 @@ function addNamespaceToAll(pr, ns) {
 
 	// actions cell
 	newCell = newRow.insertCell(2);
-	newCell.innerHTML = "<button action='button' class='btn btn-primary btn-sm' onclick='javascript:deleteNamespace("
+	newCell.innerHTML = "<button action='button' class='btn btn-danger btn-sm' onclick='javascript:deleteNamespace("
 		+ '"'
 		+ pr
 		+ '","' + ns + '"'
 		+ ");'><small><span class='glyphicon glyphicon-trash' aria-hidden='true''><i class='fas fa-trash-alt'></i>&nbsp;</span>Delete</small></button>";
+
 }
 
 function addNamespace() {
@@ -279,13 +322,12 @@ function injectMyJsonIntoEditor() {
 		li.innerHTML = q;
 		li.setAttribute("onclick",
 			"javascript:loadUQS(\"Q\", '" + q + "');");
-		li.setAttribute("data-toggle", "modal");
-		li.setAttribute("data-target", "#basicModal");
+		li.setAttribute("data-bs-toggle", "modal");
+		li.setAttribute("data-bs-target", "#basicModal");
 		li.classList.add("dropdown-item");
 		li.classList.add("small");
 		ul.appendChild(li);
-	}
-	;
+	};
 
 	// load subscribes
 	ul = document.getElementById("subscribeDropdown");
@@ -295,13 +337,12 @@ function injectMyJsonIntoEditor() {
 		li.innerHTML = q;
 		li.setAttribute("onclick",
 			"javascript:loadUQS(\"S\", '" + q + "');");
-		li.setAttribute("data-toggle", "modal");
-		li.setAttribute("data-target", "#basicModal");
+		li.setAttribute("data-bs-toggle", "modal");
+		li.setAttribute("data-bs-target", "#basicModal");
 		li.classList.add("dropdown-item");
 		li.classList.add("small");
 		ul.appendChild(li);
-	}
-	;
+	};
 
 	// load updates
 	ul = document.getElementById("updateDropdown");
@@ -311,8 +352,8 @@ function injectMyJsonIntoEditor() {
 		li.innerHTML = q;
 		li.setAttribute("onclick", "javascript:loadUQS(\"U\", '"
 			+ q + "');");
-		li.setAttribute("data-toggle", "modal");
-		li.setAttribute("data-target", "#basicModal");
+		li.setAttribute("data-bs-toggle", "modal");
+		li.setAttribute("data-bs-target", "#basicModal");
 		li.classList.add("dropdown-item");
 		li.classList.add("small");
 		ul.appendChild(li);
@@ -372,10 +413,6 @@ function loadForcedBindings(u, id) {
 	if ("forcedBindings" in myJson[key][id]) {
 		console.log(Object.keys(myJson[key][id]["forcedBindings"]).length);
 		if (Object.keys(myJson[key][id]["forcedBindings"]).length > 0) {
-			/*
-			 * <div class="form-group"> <label class="col-form-label-sm"><b>Forced
-			 * bindings</b></label> </div>
-			 */
 			label = document.createElement("label");
 			label.setAttribute("class", "col-form-label-sm");
 			label.innerHTML = "<b>Forced bindings</b>";
@@ -383,15 +420,6 @@ function loadForcedBindings(u, id) {
 			forcedBindings.appendChild(label);
 
 			for (fb in myJson[key][id]["forcedBindings"]) {
-
-				/*
-				 * <div class="input-group mb-3"> 
-				 * 	<div class="input-group-prepend"><span class="input-group-text">variable</span></div>
-				 * 	<input type="text" class="form-control" aria-label="Specify the binding value" id="variable name">
-				 *  <div class="input-group-append"> <span class="input-group-text">URI/literal</span></div>
-				 * </div>
-				 */
-
 				span = document.createElement("span");
 				span.setAttribute("class", "input-group-text");
 				span.innerHTML = fb;
@@ -418,11 +446,7 @@ function loadForcedBindings(u, id) {
 				span2.setAttribute("class", "input-group-text");
 				span2.innerHTML = type;
 
-				div2 = document.createElement("div");
-				div2.setAttribute("class", "input-group-append");
-				div2.appendChild(span2);
-
-				div.appendChild(div2);
+				div.appendChild(span2);
 
 				if (myJson[key][id]["forcedBindings"][fb]["lang"] != null)
 					lang = myJson[key][id]["forcedBindings"][fb]["lang"];
@@ -434,7 +458,7 @@ function loadForcedBindings(u, id) {
 					input2.type = "text";
 					input2.setAttribute("class", "form-control");
 					input2.setAttribute("aria-label", "Specify the binding language");
-					input2.setAttribute("id", fb+"@"+lang);
+					input2.setAttribute("id", fb + "@" + lang);
 					input2.setAttribute("lang", lang);
 
 					div.appendChild(input2);
@@ -443,11 +467,7 @@ function loadForcedBindings(u, id) {
 					span3.setAttribute("class", "input-group-text");
 					span3.innerHTML = lang;
 
-					div3 = document.createElement("div");
-					div3.setAttribute("class", "input-group-append");
-					div3.appendChild(span3);
-
-					div.appendChild(div3);
+					div.appendChild(span3);
 				}
 				forcedBindings.appendChild(div);
 			}
@@ -456,11 +476,6 @@ function loadForcedBindings(u, id) {
 }
 
 function loadUQS(usq, uqname) {
-	// check the value of u
-	// u === "U" -> update
-	// u === "Q" -> query
-	// u === "S" -> subscribe
-
 	if (usq == "U") {
 		document.getElementById("updateTextInput").value = myJson["updates"][uqname]["sparql"];
 		let tempNS = updateEditor.getPrefixesFromQuery()
@@ -469,8 +484,7 @@ function loadUQS(usq, uqname) {
 		unFixGlobalNamespaces(updateEditor)
 		YASQE.doAutoFormat(updateEditor)
 		fixGlobalNamespaces(updateEditor)
-		document.getElementById("updateLabel").innerHTML = "<b>" + uqname
-			+ "</b>";
+		document.getElementById("updateLabel").innerHTML = "<b>" + uqname + "</b>";
 	} else if (usq == "Q") {
 		document.getElementById("queryTextInput").value = myJson["queries"][uqname]["sparql"];
 		let tempNS = queryEditor.getPrefixesFromQuery()
@@ -479,8 +493,7 @@ function loadUQS(usq, uqname) {
 		unFixGlobalNamespaces(queryEditor)
 		YASQE.doAutoFormat(queryEditor)
 		fixGlobalNamespaces(queryEditor)
-		document.getElementById("queryLabel").innerHTML = "<b>" + uqname
-			+ "</b>";
+		document.getElementById("queryLabel").innerHTML = "<b>" + uqname + "</b>";
 	}
 	else {
 		document.getElementById("subscribeTextInput").value = myJson["queries"][uqname]["sparql"];
@@ -490,8 +503,7 @@ function loadUQS(usq, uqname) {
 		unFixGlobalNamespaces(subEditor)
 		YASQE.doAutoFormat(subEditor)
 		fixGlobalNamespaces(subEditor)
-		document.getElementById("subscribeLabel").innerHTML = "<b>" + uqname
-			+ "</b>";
+		document.getElementById("subscribeLabel").innerHTML = "<b>" + uqname + "</b>";
 		document.getElementById("subscriptionAlias").value = uqname;
 	}
 
@@ -499,10 +511,9 @@ function loadUQS(usq, uqname) {
 }
 
 function query() {
-	// read the query
-	let queryText = queryEditor.getValue()
-	let bench = new Sepajs.bench()
-	queryText = bench.sparql(queryText, getForcedBindings("Q"))
+	let queryText = queryEditor.getValue();
+	let bench = new Sepajs.bench();
+	queryText = bench.sparql(queryText, getForcedBindings("Q"));
 
 	const sepa = Sepajs.client;
 
@@ -522,7 +533,6 @@ function query() {
 	});
 }
 
-//Needed to optimize rendering with dataTables
 function renderQueryResultsWithDataTable(queryResponse, tableRef, tableId) {
 	console.log("Rendering query results with dataTable...")
 	if (queryDataTable != null) {
@@ -531,15 +541,16 @@ function renderQueryResultsWithDataTable(queryResponse, tableRef, tableId) {
 	}
 	$("#queryTable").remove();
 	$("#queryTableContainer").empty();
-	$("#queryTableContainer").append('<table id="queryTable"><thead><tr></tr></thead><tbody></tbody></table>');
+	$("#queryTableContainer").append('<table id="queryTable" class="table table-striped table-bordered table-sm mt-3"><thead><tr></tr></thead><tbody></tbody></table>');
 	queryDataTable = $("#queryTable").DataTable({
 		responsive: true,
 		scrollX: true,
+		order: [],
 		dom: `<"top d-flex justify-content-between"
 				<"left"l><"right d-flex align-items-center"fB>
 			  >
 			  	rt
-			  <"bottom"ip>`, // Add the buttons UI: top - table (rt) - bottom
+			  <"bottom"ip>`,
 		buttons: [
 			"copy",
 			"csv",
@@ -571,43 +582,9 @@ function renderQueryResultsWithDataTable(queryResponse, tableRef, tableId) {
 			}
 		},
 		initComplete: function () {
-			// Remove 'btn-secondary' from CSV button and add 'btn-success'
 			$('.btn', '.dt-buttons').removeClass('btn-secondary').addClass('btn-primary');
 		}
 	})
-}
-
-//!Deprecated
-function renderQueryResults(data) {
-	clearQueryResults();
-	for (name of data["head"]["vars"]) {
-		$("#queryTable thead tr").append("<th scope=\"col\">" + name + "</th>");
-	}
-	for (binding in data["results"]["bindings"]) {
-		$("#queryTable tbody").append("<tr></tr>");
-		tr = $("#queryTable tbody tr:last");
-
-		for (name of data["head"]["vars"]) {
-			value = null;
-			type = "literal";
-			if (data["results"]["bindings"][binding][name] != null) {
-				type = data["results"]["bindings"][binding][name]["type"];
-				value = data["results"]["bindings"][binding][name]["value"];
-			}
-
-			if (value === null) {
-				tr.append("<td class=\"table-danger\"></td>");
-			}
-			else {
-				if (type === "literal" || type === "typed-literal") {
-					if (type === "typed-literal") value = value + "^^" + data["results"]["bindings"][binding][name]["datatype"];
-					tr.append("<td class=\"table-primary\">" + value + "</td>");
-				}
-				else tr.append("<td class=\"table-success\">" + value + "</td>");
-			}
-
-		}
-	}
 }
 
 function clearQueryResults() {
@@ -616,7 +593,6 @@ function clearQueryResults() {
 }
 
 function update() {
-	// read the update
 	let updateText = updateEditor.getValue()
 	let bench = new Sepajs.bench()
 	updateText = bench.sparql(updateText, getForcedBindings("U"));
@@ -633,6 +609,7 @@ function update() {
 		$("#updateResultLabel").html("[" + getTimestamp() + "] " + err + " *** Update FAILED in " + (stop - start) + " ms ***")
 	});
 };
+
 function generateIdBySuggestion(suggestion) {
 	if (!suggestion || openSubscriptions.get(suggestion)) {
 		return suggestion + ++ids
@@ -640,12 +617,11 @@ function generateIdBySuggestion(suggestion) {
 		return suggestion
 	}
 }
+
 function subscribe() {
-	// read the query
 	let subscribeText = subEditor.getValue();
 	let bench = new Sepajs.bench()
 	subscribeText = bench.sparql(subscribeText, getForcedBindings("S"))
-
 
 	ws = $("#sparql11seprotocol").val();
 	config = { host: $("#host").val(), sparql11seprotocol: { protocol: ws, availableProtocols: { [ws]: { port: $("#sparql11seport").val(), path: $("#subscribePath").val() } } } };
@@ -655,7 +631,6 @@ function subscribe() {
 	let subscription = sepa.subscribe(subscribeText, config, id)
 	let tab = undefined
 	subscription.on("subscribed", (data) => {
-		// get the subscription id
 		spuid = data.spuid
 		let alias = data.alias
 
@@ -663,29 +638,26 @@ function subscribe() {
 		$("#notificationsInfoLabel").html("[" + getTimestamp() + "] New subscription " + spuid);
 
 		tabIndex = tabIndex + 1;
-
 		tab = tabIndex
 
-		// Create TAB entry
 		$("#pills-tab-subscriptions").append(
 			"<li class=\"nav-item\">" +
 			"	<a class=\"nav-link\" " +
 			"id=\"pills-" + tabIndex + "-tab\" " +
-			"data-toggle=\"pill\" " +
+			"data-bs-toggle=\"pill\" " +
 			"href=\"#pills-" + tabIndex + "\" " +
 			"role=\"tab\" " +
 			"aria-controls=\"pills-" + tabIndex + "\" " +
 			"aria-selected=\"false\">" + alias + "</a></li>");
 
-		// Create TAB content				
 		$("#pills-tabContent-subscriptions").append(
 			"<div class=\"tab-pane mt-3 fade\" " +
 			"id=\"pills-" + tabIndex + "\" " +
 			"role=\"tabpanel\" " +
 			"aria-labelledby=\"pills-" + tabIndex + "-tab\">" +
-			"<button action='button' class='btn btn-outline-danger btn-sm mb-3 float-right' " +
+			"<button action='button' class='btn btn-outline-danger btn-sm mb-3 float-end' " +
 			"onclick='javascript:unsubscribe(\"" + alias + "\")'>" +
-			"<small><i class='fas fa-trash-alt'></i>&nbspUnsubscribe</small>" +
+			"<small><i class='fas fa-trash-alt'></i>&nbsp;Unsubscribe</small>" +
 			"</button>" +
 			"<div class=\"table-responsive\">" +
 			"<div class=\"table-wrapper\">" +
@@ -695,34 +667,28 @@ function subscribe() {
 			"</div>" +
 			"</div>");
 
-		// SHOW tab
-		$('#pills-' + tabIndex + "-tab").tab('show');
+		showTabById('pills-' + tabIndex + "-tab");
 	})
 
 	subscription.on("notification", (data) => {
 		if (data) {
-			// get the subscription id
 			spuid = data.spuid
 
 			$("#notificationsInfoLabel").html("[" + getTimestamp() + "] Last notification: " + spuid + " (" + data.sequence + ")");
 
-			// TABLE HEADER
 			for (v in data["removedResults"]["head"]["vars"]) {
 				name = data["removedResults"]["head"]["vars"][v];
 
 				if (headers[spuid] == null) {
-					// NEW HEADER
 					headers[spuid] = [];
 					headers[spuid].push(name);
 
-					$("#activeSubscriptions #table-" + tab).append("<thead class=\"thead-light\"><tr><th scope=\"col\">" + "#" + "</th></tr></thead>");
+					$("#activeSubscriptions #table-" + tab).append("<thead class=\"table-light\"><tr><th scope=\"col\">#</th></tr></thead>");
 					$("#activeSubscriptions #table-" + tab + " thead tr").append("<th scope=\"col\">" + name + "</th>");
 
-					// NEW BODY
 					$("#activeSubscriptions #table-" + tab).append("<tbody id=\"tbody-" + tab + "\"></tbody>");
 				}
 				else if (!headers[spuid].includes(name)) {
-					// NEW VARIABLE
 					headers[spuid].push(name);
 					$("#activeSubscriptions #table-" + tab + " thead tr").append("<th scope=\"col\">" + name + "</th");
 				}
@@ -732,32 +698,20 @@ function subscribe() {
 				name = data["addedResults"]["head"]["vars"][v];
 
 				if (headers[spuid] == null) {
-					// NEW HEADER
 					headers[spuid] = [];
 					headers[spuid].push(name);
 
-					$("#activeSubscriptions #table-" + tab).append("<thead><tr><th scope=\"col\">" + "#" + "</th></tr></thead>");
+					$("#activeSubscriptions #table-" + tab).append("<thead class=\"table-light\"><tr><th scope=\"col\">#</th></tr></thead>");
 					$("#activeSubscriptions #table-" + tab + " thead tr").append("<th scope=\"col\">" + name + "</th>");
 
-					// NEW BODY
 					$("#activeSubscriptions #table-" + tab).append("<tbody id=\"tbody-" + tab + "\"></tbody>");
 				}
 				else if (!headers[spuid].includes(name)) {
-					// NEW VARIABLE
 					headers[spuid].push(name);
 					$("#activeSubscriptions #table-" + tab + " thead tr").append("<th scope=\"col\">" + name + "</th");
 				}
 			}
 
-
-			/*
-			 * <tbody> <tr class="table-danger"> <th scope="row">1</th> <td>Mark</td>
-			 * <td>Otto</td> <td>@mdo</td> </tr> <tr class="table-success">
-			 * <th scope="row">3</th> <td>Larry</td> <td>the Bird</td>
-			 * <td>@twitter</td> </tr> </tbody>
-			*/
-
-			// iterate over the REMOVED bindings to fill the table
 			for (index in data["removedResults"]["results"]["bindings"]) {
 				bindings = data["removedResults"]["results"]["bindings"][index];
 
@@ -774,7 +728,6 @@ function subscribe() {
 				}
 			}
 
-			// iterate over the ADDED bindings to fill the table
 			for (index in data["addedResults"]["results"]["bindings"]) {
 				bindings = data["addedResults"]["results"]["bindings"][index];
 
@@ -793,7 +746,6 @@ function subscribe() {
 		}
 		else {
 			console.log(msg);
-
 			$("#subscribeInfoLabel").html("[" + getTimestamp() + "] Subscribe FAILED @ " + msg);
 		}
 	})
@@ -805,19 +757,16 @@ function subscribe() {
 	})
 	subscription.on("unsubscribed", (not) => {
 		if (tab) closeSpuidTab(tab);
-
 		$("#subscribeInfoLabel").html("[" + getTimestamp() + "] Unsubscribed ");
 	})
 
 	openSubscriptions.set(id, subscription)
 }
 
-
 function closeSpuidTab(tab) {
 	$("#pills-tab-subscriptions #pills-" + tab + "-tab").remove();
 	$("#pills-tabContent-subscriptions #pills-" + tab).remove();
-
-	$("#pills-tab-subscriptions .nav-link:last").tab('show');
+	showLastSubscriptionTab();
 }
 
 function unsubscribe(alias) {

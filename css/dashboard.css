@@ -1,31 +1,54 @@
+:root{
+  --bs-primary: #0f3e65;
+  --bs-primary-rgb: 15, 62, 101;
+}
+
+/* YASQE */
 .yasqe{
-	width: 100%
-}
-.table-wrapper {
-	max-height : 200px;
-	overflow: auto;
-	display: inline_block;
+  width: 100%;
 }
 
-.non-editable {
-	background-color: #dcdcdc;
+/* Generic wrapper for scrollable tables (subscriptions, etc.) */
+.table-wrapper{
+  max-height: 200px;
+  overflow: auto;
+  display: block;
 }
 
-/*DataTable list n entries
-.dt-length {
+/* Used to mark fixed (read-only) prefix lines inside YASQE */
+.non-editable{
+  background-color: #dcdcdc;
+  cursor: not-allowed;
+}
 
-}*/
-/*DataTables search bar*/
-.dt-search {
-	margin-right: 10px; /* Adjust as needed */
+/* DataTables search bar */
+.dt-search{
+  margin-right: 10px;
 }
 .dt-search input{
-	width: 300px;
+  width: 100%;
+  max-width: 300px;
 }
 .dt-search label{
-	margin-right: 5px;
+  margin-right: 5px;
 }
-/*DataTables buttons style
-.dt-buttons .btn-secondary{
-	background-color: blue;
-}*/
+
+/* DataTables Buttons: keep aligned with Bootstrap primary */
+.dt-buttons .btn{
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+}
+
+
+/* Tabs inside navbar (pills on primary background) */
+.navbar .nav-pills .nav-link{
+  color: rgba(255,255,255,.9);
+}
+.navbar .nav-pills .nav-link:hover{
+  color: #fff;
+}
+.navbar .nav-pills .nav-link.active{
+  background-color: rgba(255,255,255,.18);
+}
