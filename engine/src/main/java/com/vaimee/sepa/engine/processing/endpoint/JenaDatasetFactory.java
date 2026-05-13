@@ -13,11 +13,23 @@ import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
 import org.apache.jena.query.DatasetFactory;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 /**
  *
  * @author Lorenzo
  */
 public class JenaDatasetFactory {
+     private static void ensureDirectoryExists(String path) {
+         try {
+             Files.createDirectories(Path.of(path));
+         } catch (IOException e) {
+             throw new IllegalStateException("Unable to create Jena dataset directory: " + path, e);
+         }
+     }
+
      public static Dataset newInstance(String mode,String path,DatasetACL acl) {
          Dataset ret = null;
          switch(mode.trim().toLowerCase()) {
@@ -27,6 +39,7 @@ public class JenaDatasetFactory {
                  break;
                  
              case EngineProperties.DS_MODE_TDB1: {
+                                     ensureDirectoryExists(path);
                 final org.apache.jena.tdb.base.file.Location loc = org.apache.jena.tdb.base.file.Location.create(path);
                 ret = org.apache.jena.tdb.TDBFactory.createDataset(loc, acl);
                  
@@ -34,6 +47,7 @@ public class JenaDatasetFactory {
              }
              
              case EngineProperties.DS_MODE_TDB2: {
+                                     ensureDirectoryExists(path);
                 final org.apache.jena.dboe.base.file.Location loc = org.apache.jena.dboe.base.file.Location.create(path);
                 ret = org.apache.jena.tdb2.TDB2Factory.connectDataset(loc,acl);       
                 break;
@@ -56,6 +70,7 @@ public class JenaDatasetFactory {
                     break;
 
                 case EngineProperties.DS_MODE_TDB1: {
+                   ensureDirectoryExists(path);
                    final org.apache.jena.tdb.base.file.Location loc = org.apache.jena.tdb.base.file.Location.create(path);
                    ret = org.apache.jena.tdb.TDBFactory.createDataset(loc);
 
@@ -63,6 +78,7 @@ public class JenaDatasetFactory {
                 }
 
                 case EngineProperties.DS_MODE_TDB2: {
+                   ensureDirectoryExists(path);
                    final org.apache.jena.dboe.base.file.Location loc = org.apache.jena.dboe.base.file.Location.create(path);
                    ret = org.apache.jena.tdb2.TDB2Factory.connectDataset(loc);       
                    break;

@@ -1,4 +1,4 @@
-/* This class implements a JENA base in-memory RDF data set
+/* This class implements a JENA-based RDF data set using the configured storage mode
  * 
  * Author: Luca Roffia (luca.roffia@unibo.it)
 
