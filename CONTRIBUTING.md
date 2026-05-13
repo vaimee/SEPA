@@ -20,7 +20,7 @@ succesful in your development enviroment. Use the following command:
 maven test
 ```
 Moreover the complex interactions with the underlaying SPARQL endpoint are tested with a set of integration tests. To run them first
-you need to have a running blazegraph instance in your localmachine and then use this following command inside the main folder of the project repository:
+you need a writable local Jena TDB2 dataset path and then use this following command inside the main folder of the project repository:
 ```bash
 maven verify
 ```

@@ -314,6 +314,12 @@ public class EngineProperties {
 		public DatasetData      firstDS  = new DatasetData();
 		public DatasetData      secondDS = new DatasetData();
 
+		public DatasetConfiguration() {
+			// Default the main dataset to a persistent local Jena TDB1 store.
+			firstDS.mode = DS_MODE_TDB1;
+			firstDS.path = "./data/jena";
+		}
+
 
 	}
 
