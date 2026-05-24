@@ -4,6 +4,7 @@ engine/sepa.jks
 
 # timing created by engine
 engine/logs
+data/jena/
 
 # timing created by maven tests
 logs
