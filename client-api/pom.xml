@@ -10,6 +10,8 @@
 	</parent>
 
 	<artifactId>client-api</artifactId>
+	<name>SEPA Client API</name>
+	<description>Client API library for the SEPA (SPARQL Event Processing Architecture) framework</description>
 
 	<properties>
 		<log4j2.version>2.25.1</log4j2.version>

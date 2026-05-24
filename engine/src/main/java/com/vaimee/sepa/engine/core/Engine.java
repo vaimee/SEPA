@@ -191,8 +191,10 @@ public class Engine implements EngineMBean {
 			System.out.println("----------------------");
 
 			if (!properties.isSecure()) {
+				Logging.debug("Starting websocket server on port "+properties.getWsPort());
 				wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler);
 			} else {
+				Logging.debug("Starting websocket server on port 443 (secure)");
 				wsServer = new SecureWebsocketServer(443, properties.getSubscribePath(), scheduler);
 			}
 

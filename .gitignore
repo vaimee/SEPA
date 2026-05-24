@@ -190,3 +190,4 @@ settings.xml
 .flattened-pom.xml
 /dashboard.properties
 .DS_Store
+.github/workflows/main.yml
