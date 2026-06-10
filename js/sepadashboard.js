@@ -51,13 +51,7 @@ function onInit() {
 	const env = getEnvVariables();
 	console.log("Host: " + env.HOST);
 	console.log("Jsap path: " + env.JSAP_PATH)
-	if (env.DEFAULT_JSAP != null && env.DEFAULT_JSAP != undefined && env.DEFAULT_JSAP != "") {
-		console.log("loading default jsap")
-		myJson = env.DEFAULT_JSAP;
-		injectMyJsonIntoEditor();
-	} else {
-		console.log("skipping load default jsap")
-	}
+	loadDefaultJsap(env);
 	//LOAD ENV
 	if (env["HOST"] != null && env["HOST"] != "") $("#host").val(env["HOST"]);
 	if (env["HTTP_PORT"] != null && env["HTTP_PORT"] != "") $("#sparql11port").val(env["HTTP_PORT"]);
@@ -82,6 +76,29 @@ function initJsapFileInput() {
 			? input.files[0].name
 			: "Please select a JSAP file";
 	});
+}
+
+function loadDefaultJsap(env) {
+	if (env.DEFAULT_JSAP != null && env.DEFAULT_JSAP != undefined && env.DEFAULT_JSAP != "") {
+		console.log("loading default jsap")
+		myJson = env.DEFAULT_JSAP;
+		injectMyJsonIntoEditor();
+		return;
+	}
+
+	console.log("loading default jsap from jsap/chat.jsap")
+	fetch("jsap/chat.jsap")
+		.then((response) => {
+			if (!response.ok) throw new Error("Default JSAP not found");
+			return response.json();
+		})
+		.then((json) => {
+			myJson = json;
+			injectMyJsonIntoEditor();
+		})
+		.catch((err) => {
+			console.log("skipping load default jsap", err);
+		});
 }
 
 function getTree() {
@@ -272,6 +289,32 @@ function unFixGlobalNamespaces(editor) {
 	editor.prefixMarker.clear()
 }
 
+function resetLoadedJsapUi() {
+	["queryDropdown", "subscribeDropdown", "updateDropdown"].forEach((id) => {
+		$("#" + id).empty();
+	});
+
+	["queryForcedBindings", "subscribeForcedBindings", "updateForcedBindings"].forEach((id) => {
+		$("#" + id).empty();
+	});
+
+	$("#queryLabel").text("Query");
+	$("#subscribeLabel").text("Subscribe");
+	$("#updateLabel").text("Update");
+	$("#queryResultLabel").text("Query info");
+	$("#updateResultLabel").text("Update info");
+	$("#subscribeInfoLabel").text("Info");
+
+	[queryEditor, subEditor, updateEditor].forEach((editor) => {
+		if (!editor) return;
+		unFixGlobalNamespaces(editor);
+		editor.setValue("");
+		editor.prefixMarker = emptyMarker;
+	});
+
+	clearQueryResults();
+}
+
 function loadJsap() {
 	// check if file reader is supported
 	if (!window.FileReader) {
@@ -299,6 +342,8 @@ function loadJsap() {
 };
 
 function injectMyJsonIntoEditor() {
+	resetLoadedJsapUi();
+
 	//myJson = JSON.parse(decodedData);
 	// get the namespaces table
 	table = document.getElementById("namespacesTable");
