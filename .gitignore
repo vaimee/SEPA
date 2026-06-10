@@ -191,3 +191,4 @@ settings.xml
 /dashboard.properties
 .DS_Store
 /data/
+.vscode/
