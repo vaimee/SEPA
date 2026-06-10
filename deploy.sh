@@ -71,6 +71,9 @@ html_copy="$DEPLOY_DIR/$html_base"
 echo "Copy index.html in $DEPLOY_DIR"
 cp "$HTML_FILE" "$html_copy"
 
+# Update version in HTML
+sed -i '' "s|__VERSION__|$VERSION|g" "$html_copy"
+
 # Scorro tutti i file nella cartella sorgente
 for f in "$SRC_DIR"/*; do
   [ -f "$f" ] || continue   # salta se non è un file
