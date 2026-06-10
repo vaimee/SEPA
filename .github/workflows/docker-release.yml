@@ -78,3 +78,16 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Trigger Portainer webhook
+        env:
+          PORTAINER_WEBHOOK_URL: ${{ secrets.PORTAINER_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${PORTAINER_WEBHOOK_URL}" ]; then
+            echo "PORTAINER_WEBHOOK_URL secret is not configured"
+            exit 1
+          fi
+
+          curl --fail --show-error --silent --request POST "${PORTAINER_WEBHOOK_URL}"
