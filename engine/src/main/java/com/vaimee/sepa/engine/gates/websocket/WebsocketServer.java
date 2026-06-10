@@ -197,7 +197,7 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	@Override
 	public void onError(WebSocket conn, Exception ex) {
 		if (conn == null) {
-			Logging.fatal("Failed to start. Cannot bind port. Exit");
+			Logging.fatal(ex.getClass().getCanonicalName() + " " + ex.getMessage());
 			System.exit(-1);
 		}
 

@@ -32,10 +32,15 @@
       <password>${env.GITHUB_TOKEN}</password>
     </server>
      <server>
-      <id>sepa</id>
-      <username>${env.GITHUB_ACTOR}</username>
-      <password>${env.GITHUB_TOKEN}</password>
-    </server>
-  </servers>
+       <id>sepa</id>
+       <username>${env.GITHUB_ACTOR}</username>
+       <password>${env.GITHUB_TOKEN}</password>
+     </server>
+     <server>
+       <id>ossrh</id>
+       <username>${env.OSSRH_USERNAME}</username>
+       <password>${env.OSSRH_PASSWORD}</password>
+     </server>
+   </servers>
 
 </settings>
