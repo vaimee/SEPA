@@ -9,8 +9,95 @@
 		<version>${revision}</version>
 	</parent>
 
-	<artifactId>client-api</artifactId>
+	<artifactId>sepa-client-api</artifactId>
 
+	<name>SEPA Client API</name>
+	<description>SPARQL Event Processing Architecture - Client API</description>
+	<url>https://github.com/vaimee/SEPA</url>
+	<licenses>
+		<license>
+			<name>GNU Lesser General Public License v3.0</name>
+			<url>https://www.gnu.org/licenses/lgpl-3.0.en.html</url>
+		</license>
+	</licenses>
+	<scm>
+		<connection>scm:git:git://github.com/vaimee/sepa.git</connection>
+		<developerConnection>scm:git:ssh://github.com/vaimee/sepa.git</developerConnection>
+		<url>https://github.com/vaimee/SEPA</url>
+	</scm>
+	<developers>
+		<developer>
+			<name>Luca Roffia</name>
+			<email>luca.roffia@vaimee.com</email>
+			<organization>VAIMEE</organization>
+			<organizationUrl>http://vaimee.com/</organizationUrl>
+		</developer>
+		<developer>
+			<name>Gregorio Monari</name>
+			<email>gregorio.monari@vaimee.com</email>
+			<organization>VAIMEE</organization>
+			<organizationUrl>http://vaimee.com/</organizationUrl>
+		</developer>
+	</developers>
+
+	<build>
+		<plugins>
+        <plugin>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>0.9.0</version>
+          <extensions>true</extensions>
+          <configuration>
+            <publishingServerId>central</publishingServerId>
+			<autoPublish>true</autoPublish>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>3.3.1</version>
+          <executions>
+            <execution>
+              <id>attach-sources</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <!-- Produces the Javadoc JAR required by Maven Central -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.11.2</version>
+          <configuration>
+            <doclint>none</doclint>
+          </configuration>
+          <executions>
+            <execution>
+              <id>attach-javadocs</id>
+              <goals>
+                <goal>jar</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>3.2.7</version>
+          <executions>
+            <execution>
+              <id>sign-artifacts</id>
+              <phase>verify</phase>
+              <goals>
+                <goal>sign</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+    </plugins>
+	</build>
 	<properties>
 		<log4j2.version>2.25.1</log4j2.version>
 	</properties>
@@ -19,10 +106,16 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
 			<version>4.5.14</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-arq</artifactId>
+			<artifactId>sepa-jena-arq</artifactId>
 			<version>${sjenar.revision}</version>
 		</dependency>
 		<dependency>
@@ -68,4 +161,57 @@
 			<version>3.18.0</version>
 		</dependency>
 	</dependencies>
+	<profiles>
+		<profile>
+			<id>with-sepa-engine</id>
+			<properties>
+				<sepa.engine.jar>${project.basedir}/../engine/target/sepa-engine-${project.version}.jar</sepa.engine.jar>
+				<sepa.engine.endpoint>${project.basedir}/../engine/src/main/resources/endpoints/jena-in-memory.jpar</sepa.engine.endpoint>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>3.5.0</version>
+						<executions>
+							<execution>
+								<id>start-sepa-engine</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>java</executable>
+									<arguments>
+										<argument>-jar</argument>
+										<argument>${sepa.engine.jar}</argument>
+										<argument>-endpoint</argument>
+										<argument>${sepa.engine.endpoint}</argument>
+									</arguments>
+									<async>true</async>
+									<asyncDestroyOnShutdown>true</asyncDestroyOnShutdown>
+									<outputFile>${project.build.directory}/sepa-engine.log</outputFile>
+								</configuration>
+							</execution>
+							<execution>
+								<id>wait-for-sepa-engine</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>exec</goal>
+								</goals>
+								<configuration>
+									<executable>bash</executable>
+									<arguments>
+										<argument>-c</argument>
+										<argument>for i in {1..30}; do nc -z localhost 8000 &gt;/dev/null 2&gt;&amp;1 &amp;&amp; nc -z localhost 9000 &gt;/dev/null 2&gt;&amp;1 &amp;&amp; exit 0; sleep 1; done; exit 1</argument>
+									</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>

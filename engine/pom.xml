@@ -8,7 +8,7 @@
 		<version>${revision}</version>
 	</parent>
 
-	<artifactId>engine</artifactId>
+	<artifactId>sepa-engine</artifactId>
 	<packaging>jar</packaging>
 	<name>engine</name>
 
@@ -119,32 +119,32 @@
 		</dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
-			<artifactId>client-api</artifactId>
+			<artifactId>sepa-client-api</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-rdfconnection</artifactId>
+			<artifactId>sepa-jena-rdfconnection</artifactId>
 			<version>${sjenar.revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-tdb2</artifactId>
+			<artifactId>sepa-jena-tdb2</artifactId>
 			<version>${sjenar.revision}</version>
 		</dependency>
         <dependency>
             <groupId>com.vaimee</groupId>
-            <artifactId>sjenar-geosparql</artifactId>
+            <artifactId>sepa-jena-geosparql</artifactId>
             <version>${sjenar.revision}</version>
         </dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-tdb</artifactId>
+			<artifactId>sepa-jena-tdb</artifactId>
 			<version>${sjenar.revision}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.vaimee</groupId>
-			<artifactId>sjenar-dboe-base</artifactId>
+			<artifactId>sepa-jena-dboe-base</artifactId>
 			<version>${sjenar.revision}</version>
 		</dependency>
 		<dependency>

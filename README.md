@@ -1,29 +1,30 @@
 <div align="center">
   <a href="https://github.com/vaimee/SEPA">
-    <img width="300px" src="img/logo.png">
+    <img width="96px" src="img/MilkDataWay_Icon_Color.svg" alt="Milky Data Way">
   </a>
+  <h1><font color="#10B1D8">SEPA - SPARQL Event Processing Architecture</font></h1>
   <br>
   <br>
-  <a href="https://travis-ci.org/arces-wot/SEPA">
-    <img  src="https://travis-ci.org/arces-wot/SEPA.svg?branch=master">
+  <a href="https://github.com/vaimee/SEPA/actions">
+    <img  src="https://github.com/vaimee/SEPA/actions/workflows/main.yml/badge.svg">
   </a>
-  <a href="https://bintray.com/arces-wot/sepa-java-libs/client-api">
-    <img  src="https://img.shields.io/badge/client%20api-latest-cyan.svg">
+  <a href="https://central.sonatype.com/search?q=g%3Acom.vaimee%20sepa">
+    <img  src="https://img.shields.io/badge/Maven%20Central-com.vaimee-cyan.svg">
   </a>
   <a href="https://github.com/vaimee/SEPA/releases">
-    <img  src="https://img.shields.io/github/downloads/arces-wot/SEPA/total.svg?colorB=blue">
+    <img  src="https://img.shields.io/github/downloads/vaimee/SEPA/total.svg?colorB=blue">
   </a>
   <a href="https://github.com/vaimee/SEPA/tree/dev">
     <img  src="https://img.shields.io/badge/unstable-dev-violet.svg">
   </a>
-  <a href="https://gitter.im/sepa_dev/Lobby#">
-    <img  src="https://img.shields.io/badge/chat-on%20gitter-red.svg">
+  <a href="https://discord.gg/TqX8F6hkx">
+    <img  src="https://img.shields.io/badge/chat-on%20Discord-5865F2.svg">
   </a>
   <br>
    <a href="https://www.gnu.org/licenses/gpl-3.0">
     <img  src="https://img.shields.io/badge/License-GPLv3-blue.svg">
   </a>
-  <a href="hhttps://www.gnu.org/licenses/lgpl-3.0">
+  <a href="https://www.gnu.org/licenses/lgpl-3.0">
     <img  src="https://img.shields.io/badge/License-LGPL%20v3-blue.svg">
   </a>
   
@@ -35,16 +36,17 @@
 - [Quick start](#quick-start)
 - [Configuration](#configuration)
 - [Usage](#usage)
+- [Build with Maven](#build-with-maven)
 - [Contributing](#contributing)
 - [History](#history)
 - [Credits](#credits)
 
 ## Introduction
-SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of generic SPARQL endpoints (conformant with [SPARQL 1.1 protocol](https://www.w3.org/TR/sparql11-protocol/)) where publishers and subscribers use standard **SPARQL 1.1** [Updates](https://www.w3.org/TR/sparql11-update/) and [Queries](https://www.w3.org/TR/sparql11-query/). Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refer to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm). SEPA proposal has been formalized in the following *unofficial dratfs*:
-- [SPARQL Event Processing Architecture (SEPA)](https://vaimee.org/TR/sepa.html) contribute [here](https://github.com/vaimee/SEPA/blob/master/TR/sepa.html)
-- [SPARQL 1.1 Secure Event Protocol](https://vaimee.org/TR/sparql11-se-protocol.html) contribute [here](https://github.com/vaimee/SEPA/blob/master/TR/sparql11-se-protocol.html)
-- [SPARQL 1.1 Subscribe Language](http://vaimee.org/TR/sparql11-subscribe.html) contribute [here](https://github.com/vaimee/SEPA/blob/master/TR/sparql11-subscribe.html)
-- [JSON SPARQL Application Profile (JSAP)](http://vaimee.org/TR/jsap.html) contribute [here](https://github.com/vaimee/SEPA/blob/master/TR/jsap.html)
+SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscribe architecture designed to support information level interoperability. The architecture is built on top of generic SPARQL endpoints (conformant with [SPARQL 1.1 protocol](https://www.w3.org/TR/sparql11-protocol/)) where publishers and subscribers use standard **SPARQL 1.1** [Updates](https://www.w3.org/TR/sparql11-update/) and [Queries](https://www.w3.org/TR/sparql11-query/). Notifications about events (i.e., changes in the **RDF** knowledge base) are expressed in terms of added and removed SPARQL binding results since the previous notification. To know more about SEPA architecture and vision please refer to this [paper](https://www.mdpi.com/1999-5903/10/4/36/htm). SEPA proposal has been formalized in the following *unofficial drafts*:
+- [SPARQL Event Processing Architecture (SEPA)](https://vaimee.org/TR/sepa.html) contribute [here](https://github.com/vaimee/SEPA/blob/main/TR/sepa.html)
+- [SPARQL 1.1 Secure Event Protocol](https://vaimee.org/TR/sparql11-se-protocol.html) contribute [here](https://github.com/vaimee/SEPA/blob/main/TR/sparql11-se-protocol.html)
+- [SPARQL 1.1 Subscribe Language](http://vaimee.org/TR/sparql11-subscribe.html) contribute [here](https://github.com/vaimee/SEPA/blob/main/TR/sparql11-subscribe.html)
+- [JSON SPARQL Application Profile (JSAP)](http://vaimee.org/TR/jsap.html) contribute [here](https://github.com/vaimee/SEPA/blob/main/TR/jsap.html)
 
 ## Demo
 
@@ -54,11 +56,13 @@ SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscri
 
 - Download the [SEPA Engine](https://github.com/vaimee/SEPA/releases/latest) and run it: `java -jar engine-x.y.z.jar`
 
-- Download [Blazegraph](https://github.com/blazegraph/database/releases/latest) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start) 
+- Download [Blazegraph](https://github.com/blazegraph/database/releases/latest) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start)
 
 - Use the [SEPA Playground](https://studio.sepa.vaimee.com) to check basic functionalities of the engine.
 
-### For Hackers 💻👩‍💻👨‍💻
+- To build SEPA from source, see [Build with Maven](#build-with-maven).
+
+### For Hackers
 <a href="https://asciinema.org/a/251211">
   <img width="300px" src="https://asciinema.org/a/251211.svg">
 </a>
@@ -68,7 +72,7 @@ The SEPA engine can be used with different SPARQL endpoints which must support S
 a JSON file `endpoint.jpar`. Furthermore, the engine has various parameters that can be used to configure the standard behavior; they
 can be set using another JSON file called `engine.jpar`.  
 In the repository, you will find some versions of `endpoint-{something}.jpar` file. According to your underlying SPARQL endpoint, you have to rename the correct file to `endpoint.jpar`.
-The default version of `endpoint.jpar` configures the engine to use use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service](https://www.w3.org/TR/sparql11-protocol/).
+The default version of `endpoint.jpar` configures the engine to use a local running instance of Blazegraph as [SPARQL 1.1 Protocol Service](https://www.w3.org/TR/sparql11-protocol/).
 
 ```json
 {
@@ -156,7 +160,7 @@ The SEPA engine is also distributed with a default [JMX](http://www.oracle.com/t
 ### Usage
 The SEPA engine can be configured from the command line. Run `java -jar engine-x.y.z.jar -help` for the list of available settings.
 
-`java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-secure=true] [-engine=engine.jpar] [-endpoint=endpoint.jpar] [JKS OPTIONS] [LDAP OPTIONS] [ISQL OPTIONS]`
+`java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-secure true] [-engine engine.jpar] [-endpoint endpoint.jpar] [JKS OPTIONS] [LDAP OPTIONS] [ISQL OPTIONS]`
 
 - `secure` : overwrite the current secure option of engine.jpar
 - `engine` : can be used to specify the JSON configuration parameters for the engine (default: engine.jpar)
@@ -194,6 +198,45 @@ The SEPA engine can be configured from the command line. Run `java -jar engine-x
 - `isqluser` <user> : user of Virtuoso     		 (default: dba)
 - `isqlpass` <pass> : password of Virtuoso     	 (default: dba)
 
+## Build with Maven
+SEPA is a Maven multi-module project composed of four sub-projects:
+- Client API
+- Engine
+- Dashboard
+- Chat
+
+Java 25 and Maven are required to build the current project.
+
+Build and install all modules locally with tests skipped:
+```bash
+mvn clean install -DskipTests -Dgpg.skip=true
+```
+
+`-DskipTests` is needed for the local reactor build because the `client-api` module includes integration tests that require a running SEPA engine. `-Dgpg.skip=true` skips artifact signing for local builds.
+
+The build creates executable shaded JARs in the module `target` directories, including the SEPA engine JAR:
+```bash
+engine/target/sepa-engine-<version>.jar
+```
+
+Run the `client-api` integration tests with a Maven-started in-memory SEPA engine:
+```bash
+mvn -pl client-api verify -Pwith-sepa-engine -Dgpg.skip=true
+```
+
+The `with-sepa-engine` profile requires the engine JAR to have already been built by the previous reactor command. It starts `engine/target/sepa-engine-<version>.jar` during the Maven `pre-integration-test` phase using `engine/src/main/resources/endpoints/jena-in-memory.jpar`, waits for ports `8000` and `9000`, runs the Failsafe integration tests, and stops the engine when Maven exits. Engine output is written to:
+```bash
+client-api/target/sepa-engine.log
+```
+
+The complete local verification flow is therefore:
+```bash
+mvn clean install -DskipTests -Dgpg.skip=true
+mvn -pl client-api verify -Pwith-sepa-engine -Dgpg.skip=true
+```
+
+To know more about Maven, refer to the [official documentation](https://maven.apache.org/).
+
 ## Contributing
 You are very welcome to be part of SEPA community. If you find any bug feel free to open an issue here on GitHub, but also feel free to
 ask any question. For more details check [Contributing guidelines](CONTRIBUTING.md). Besides, if you want to help the SEPA development follow this simple steps:
@@ -203,47 +246,17 @@ ask any question. For more details check [Contributing guidelines](CONTRIBUTING.
 3. Check some IDE specific instruction below
 4. Do your stuff
 5. Provide tests for your features if applicable
-5. Commit your changes: `git commit -am 'Add some feature'`
-6. Push to the branch: `git push origin my-new-feature`
-7. Submit a pull request :D
+6. Commit your changes: `git commit -am 'Add some feature'`
+7. Push to the branch: `git push origin my-new-feature`
+8. Submit a pull request :D
 
 Pull request with unit tests have an higher likelihood to be accepted, but we are not to restrictive. So do not be afraid to send your contribution!
 
-### Clone in Eclipse
-There is no particular restriction in your IDE choice. Here we provide a short guide to import the GitHub cloned project inside Eclipse. Any 
-other IDEs work fine. 
-
-1. Open Eclipse
-2. File > Import > Maven
-3. Choose "Check out Maven Projects from SCM"
-4. In the field SCM URL choose 'git' and add the clone address from Github. If 'git' is not found, tap into "Find more SCM connectors in the m2e Marketplace"
-5. go on...
-The project is cloned. Enjoy!
-
-### Build with Maven
-SEPA engine is a Maven project composed by four sub-projects:
-- Client-api
-- Engine
-- Dashboard
-- Chat
-
-As first, you need to build client-api skipping JUnit tests:
-```bash
-mvn install -DskipTests
-```
-In fact, clien-api JUnit tests include integration tests that require a SEPA engine running
-
-Then you can build the engine with this command:
-```bash
-mvn install
-```
-That create an executable inside the target directory. To know more about Maven please refer to the [official documentation](https://maven.apache.org/).
-
 ## History
 
-SEPA has been inspired and influenced by [Smart-M3](https://sourceforge.net/projects/smart-m3/). SEPA authors have been involved in the development of Smart-M3 since its [origin](https://artemis-ia.eu/project/4-sofia.html). 
+SEPA has been inspired and influenced by [Smart-M3](https://sourceforge.net/projects/smart-m3/). SEPA authors have been involved in the development of Smart-M3 since its [origin](https://artemis-ia.eu/project/4-sofia.html).
 
-The main differences beetween SEPA and Smart-M3 are the protocol (now compliant with the [SPARQL 1.1 Protocol](https://www.w3.org/TR/sparql11-protocol/)) and the introduction of a security layer (based on TLS and JSON Web Token for client authentication). 
+The main differences between SEPA and Smart-M3 are the protocol (now compliant with the [SPARQL 1.1 Protocol](https://www.w3.org/TR/sparql11-protocol/)) and the introduction of a security layer (based on TLS and JSON Web Token for client authentication).
 
 All the SEPA software components have been implemented from scratch.
 
@@ -253,4 +266,4 @@ SEPA stands for *SPARQL Event Processing Architecture*. SEPA is promoted and mai
 
 ## License
 
-SEPA Engine is released under the [GNU GPL](https://github.com/arces-wot/SEPA/blob/master/engine/LICENSE), SEPA APIs are released under the  [GNU LGPL](https://github.com/arces-wot/SEPA/blob/master/client-api/LICENSE)
+SEPA Engine is released under the [GNU GPL](https://github.com/vaimee/SEPA/blob/main/engine/LICENSE), SEPA APIs are released under the [GNU LGPL](https://github.com/vaimee/SEPA/blob/main/client-api/LICENSE)

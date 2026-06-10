@@ -21,6 +21,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class Extension implements HttpAsyncRequestHandler<HttpRequest>, SPARQL11HandlerMBean {
 
     protected HTTPHandlerBeans jmx = new HTTPHandlerBeans();

@@ -51,6 +51,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * urn:x-arq:DefaultGraph	The default graph of the dataset, used when the default graph of the query is the union graph.
  */
 
+@SuppressWarnings("deprecation")
 public class JenaInMemoryEndpoint implements SPARQLEndpoint {
     private static Dataset dataset;
     private static final java.util.concurrent.atomic.AtomicBoolean done = new java.util.concurrent.atomic.AtomicBoolean(false);
@@ -186,8 +187,8 @@ public class JenaInMemoryEndpoint implements SPARQLEndpoint {
                             }
                         }
 
-                        if (ur.addedTuples != null) {
-                            for (final Quad q : ur.addedTuples) {
+                        if (ur.updatedTuples != null) {
+                            for (final Quad q : ur.updatedTuples) {
                                 added.add(q);
                             }
                         }

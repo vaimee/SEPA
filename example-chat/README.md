@@ -5,7 +5,7 @@ This project is a simple SEPA based chat application. The application exemplifie
 1. [SPARQL 1.1 Secure Event (SE) protocol](http://mml.arces.unibo.it/TR/sparql11-se-protocol.html)
 2. [JSON SPARQL Application Profile (JSAP)](http://mml.arces.unibo.it/TR/jsap.html)
 
-The project shows the use of the API at both levels. The application uses the JAVA API which are included in the [SEPA Java reference implementation](https://github.com/arces-wot/SEPA), but the same concepts apply to all the other APIs (like JS and Python).
+The project shows the use of the API at both levels. The application uses the Java API included in the [SEPA Java reference implementation](https://github.com/vaimee/SEPA), but the same concepts apply to all the other APIs (like JS and Python).
 
 The main component is the `ChatClient` which consists of three SEPA agents:
 
@@ -275,4 +275,3 @@ When a notification is received, the client updates the receiving timestamp by c
 
 
 ## JSAP: a look into the SPARQL Application Profile
-

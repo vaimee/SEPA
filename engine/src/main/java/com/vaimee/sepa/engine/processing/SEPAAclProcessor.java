@@ -124,7 +124,7 @@ public class SEPAAclProcessor implements SEPAAclProcessorMBean {
         
         if (ret != null) {
             for(final Map.Entry<String, SEPAAcl.UserData> e : tmp.entrySet()) {
-                final List<Object> z = new ArrayList();
+                final List<Object> z = new ArrayList<>();
                 z.add(marshallAccessMap(e.getValue().graphACLs));
                 z.add(e.getValue().memberOf);
                 ret.put(e.getKey(), z);
@@ -290,14 +290,14 @@ public class SEPAAclProcessor implements SEPAAclProcessorMBean {
         String ret = "N/A";
         
         final SEPAAcl acl = SEPAAcl.getInstance();
-        final Class cargs[] = new Class[args.length];
+        final Class<?> cargs[] = new Class<?>[args.length];
         for(int i = 0 ; i < args.length;++i) {
             cargs[i] = args[i].getClass();
         }
         
         if (acl != null) {
             try {
-                final Class c = SEPAAcl.class;
+                final Class<?> c = SEPAAcl.class;
                 final Method m = c.getDeclaredMethod(name, cargs);
                 if (m != null) {
                     m.invoke(acl, args);
