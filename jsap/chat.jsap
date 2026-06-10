@@ -1,5 +1,5 @@
 {
-	"host": "dashboard.sepa.mdw.vaimee.com",
+	"host": "sepa.mdw.vaimee.com",
 	"oauth": {
 		"enable": false
 	},
