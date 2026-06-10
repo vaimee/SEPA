@@ -3,7 +3,7 @@
 ############################
 # Build stage
 ############################
-FROM maven:3.9.9-sapmachine-21 AS build
+FROM maven:3.9.9-sapmachine-25 AS build
 
 ARG REVISION=1.0.0-SNAPSHOT
 WORKDIR /workspace
@@ -41,7 +41,7 @@ RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
 ############################
 # Runtime stage
 ############################
-FROM sapmachine:21.0.6
+FROM sapmachine:25
 
 ARG REVISION=1.0.0-SNAPSHOT
 

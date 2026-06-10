@@ -28,11 +28,10 @@ import com.google.gson.JsonObject;
 
 import com.vaimee.sepa.api.commons.exceptions.SEPABindingsException;
 
-/**
+ /**
  * This class represents a query solution of a SPARQL 1.1 Query. An example of the internal representation as JSON object follows:
  * 
  <pre>
- 
  {
  "x" : { 
  	"type": "bnode", 
@@ -43,13 +42,13 @@ import com.vaimee.sepa.api.commons.exceptions.SEPABindingsException;
  "blurb" : { 
  	"datatype": "http://www.w3.org/1999/02/22-rdf-syntax-ns#XMLLiteral", 
  	"type": "literal",
- 	"value": "<p xmlns=\"http://www.w3.org/1999/xhtml\">My name is <b>alice</b></p>" },
+	"value": "{@code <p xmlns='http://www.w3.org/1999/xhtml'>My name is <b>alice</b></p>}" },
  "name" : { 
  	"type": "literal", 
  	"value": "Bob", 
  	"xml:lang": "en" } }
-  
-  NOTE: Virtuoso uses "typed-literal" as type when the "datatype" is specified
+ </pre>
+ NOTE: Virtuoso uses "typed-literal" as type when the "datatype" is specified
  */
 
 public class Bindings {	

@@ -253,7 +253,6 @@ public class OAuthProperties {
 	 *
 	 * @throws SEPAPropertiesException
 	 * @throws SEPASecurityException
-	 * @throws IOException             Signals that an I/O exception has occurred.
 	 */
 	public synchronized void storeProperties() throws SEPAPropertiesException, SEPASecurityException {
 		jsap.add("oauth", new JsonObject());

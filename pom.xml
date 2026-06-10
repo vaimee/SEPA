@@ -12,14 +12,14 @@
 
 	<properties>
 		<revision>1.0.0-SNAPSHOT</revision>
-		<sjenar.revision>1.0.100</sjenar.revision>
+		<sjenar.revision>4.3.2</sjenar.revision>
 
 		<update>0</update>
 
-		<java.version>21</java.version>
-		<maven.compiler.release>21</maven.compiler.release>
-		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<java.version>25</java.version>
+		<maven.compiler.release>25</maven.compiler.release>
+		<maven.compiler.source>25</maven.compiler.source>
+		<maven.compiler.target>25</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
@@ -60,22 +60,6 @@
 			<organizationUrl>http://vaimee.com/</organizationUrl>
 		</developer>
 	</developers>
-
-	<repositories>
-  		<repository>
-    			<id>sjenar</id>
-    			<url>https://maven.pkg.github.com/vaimee/sjenar/</url>
-  		</repository>
-        <repository>
-            <id>central</id>
-            <url>https://repo1.maven.org/maven2/</url>
-        </repository>
-		<repository>
-			<id>sepa</id>
-			<name>GitHub Packages</name>
-			<url>https://maven.pkg.github.com/vaimee/SEPA</url>
-		</repository>
-	</repositories>
 	
 	<scm>
 		<connection>scm:git:git://github.com/vaimee/sepa.git</connection>
@@ -83,13 +67,13 @@
 		<url>https://github.com/vaimee/SEPA</url>
 	</scm>
 
-	<distributionManagement>
+	<!-- <distributionManagement>
 		<repository>
 			<id>sepa</id>
 			<name>GitHub Packages</name>
 			<url>https://maven.pkg.github.com/vaimee/SEPA</url>
 		</repository>
-	</distributionManagement>
+	</distributionManagement> -->
 	<build>
 		<plugins>
 			<plugin>
@@ -97,7 +81,7 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.14.0</version>
 				<configuration>
-					<release>21</release>
+					<release>25</release>
 					<proc>none</proc>
 				</configuration>
 			</plugin>
@@ -107,7 +91,7 @@
 				<version>1.7.2</version>
 				<configuration>
 					<updatePomFile>true</updatePomFile>
-					<flattenMode>resolveCiFriendliesOnly</flattenMode>
+					<flattenMode>oss</flattenMode>
 				</configuration>
 				<executions>
 					<execution>

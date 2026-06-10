@@ -96,7 +96,7 @@ import com.vaimee.sepa.api.pattern.JSAPPrimitive.ForcedBinding;
 		"using-graph-uri": ["..."],
 		"using-named-graph-uri": ["..."]
 	},	
-	"extended" :{<Application specific extended data>},
+	"extended" :{{@code <Application specific extended data>}},
 	"namespaces" : {
 			"chat" : "http://wot.arces.unibo.it/chat#" ,
 			"rdf" : "http://www.w3.org/1999/02/22-rdf-syntax-ns#"},

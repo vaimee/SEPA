@@ -59,8 +59,6 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * be forwarded to the {@link ISubscriptionHandler} of this instance.
 	 *
 	 * @param request
-	 * @return A valid {@link Response} if the subscription is successful <br>
-	 *         an {@link ErrorResponse} otherwise
 	 * @throws SEPAProtocolException 
 	 * @throws SEPASecurityException 
 	 */
@@ -77,8 +75,6 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 	 * method.
 	 *
 	 * @param request
-	 * @return A valid {@link Response} if the unsubscription is successful <br>
-	 *         an {@link ErrorResponse} otherwise
 	 * @throws SEPAProtocolException 
 	 */
 	public void unsubscribe(UnsubscribeRequest request) throws SEPAProtocolException {
@@ -89,7 +85,6 @@ public class SPARQL11SEProtocol extends SPARQL11Protocol {
 
 	/**
 	 * Free the http connection manager and the WebSocket client.
-	 * @throws SEPAProtocolException 
 	 *
 	 * @throws IOException
 	 */

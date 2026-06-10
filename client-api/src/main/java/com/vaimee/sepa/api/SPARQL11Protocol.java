@@ -369,11 +369,11 @@ public class SPARQL11Protocol implements Closeable {
 	 * that contains an operation that uses the USING, USING NAMED, or WITH clause.
 	 * 
 	 * A SPARQL Update processor should treat each occurrence of the
-	 * using-graph-uri=g parameter in an update protocol operation as if a USING <g>
+	 * using-graph-uri=g parameter in an update protocol operation as if a USING {@code <g>}
 	 * clause were included for every operation in the SPARQL 1.1 Update request.
 	 * Similarly, a SPARQL Update processor should treat each occurrence of the
 	 * using-named-graph-uri=g parameter in an update protocol operation as if a
-	 * USING NAMED <g> clause were included for every operation in the SPARQL 1.1
+	 * USING NAMED {@code <g>} clause were included for every operation in the SPARQL 1.1
 	 * Update request.
 	 * 
 	 * UPDATE 2.2 update operation The response to an update request indicates

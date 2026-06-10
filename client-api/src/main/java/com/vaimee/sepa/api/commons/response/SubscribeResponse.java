@@ -27,7 +27,7 @@ import com.vaimee.sepa.api.commons.sparql.BindingsResults;
  * <p>
  * The JSON serialization is the following:
  * <p>
- * {"notification" : {"spuid":"SPUID","alias":"ALIAS"(optional),"addedResults":<BindingsResults>,"removedResults:{},"sequence":0}}
+ * {"notification" : {"spuid":"SPUID","alias":"ALIAS"(optional),"addedResults":{@code <BindingsResults>},"removedResults:{},"sequence":0}}
  */
 
 public class SubscribeResponse extends Response {
