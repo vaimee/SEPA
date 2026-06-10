@@ -32,6 +32,7 @@ function onInit() {
 	console.log("### SEPA DASHBOARD ###")
 	console.log("loading editors...")
 	loadEditors()
+	initJsapFileInput()
 	let type = getQueryVariable("mode");
 	switch (type) {
 		case "local":
@@ -69,6 +70,18 @@ function onInit() {
 
 	//Initializing tree
 	// $('#tree').treeview({ data: getTree() });
+}
+
+function initJsapFileInput() {
+	const input = document.getElementById("loadJsap");
+	const fileName = document.getElementById("jsapFileName");
+	if (!input || !fileName) return;
+
+	input.addEventListener("change", function () {
+		fileName.textContent = input.files && input.files[0]
+			? input.files[0].name
+			: "Please select a JSAP file";
+	});
 }
 
 function getTree() {
