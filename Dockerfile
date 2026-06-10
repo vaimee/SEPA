@@ -3,51 +3,34 @@
 ############################
 # Build stage
 ############################
-FROM maven:3.9.9-sapmachine-25 AS build
+FROM maven:3.9.11-eclipse-temurin-25 AS build
 
 ARG REVISION=1.0.0-SNAPSHOT
 WORKDIR /workspace
 
-# 1) Copia solo i POM per massimizzare la cache Maven
 COPY pom.xml .
 COPY engine/pom.xml engine/pom.xml
-# Se engine dipende da client-api (molto probabile), abilita anche questa riga:
 COPY client-api/pom.xml client-api/pom.xml
 COPY example-chat/pom.xml example-chat/pom.xml
 COPY tool-dashboard/pom.xml tool-dashboard/pom.xml
-COPY settings.xml /root/.m2/settings.xml
 
-# 2) Pre-fetch dipendenze (cache .m2) usando settings.xml come secret
-RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
-    --mount=type=secret,id=github_actor \
-    --mount=type=secret,id=github_token \
-    --mount=type=cache,target=/root/.m2 \
-    export GITHUB_ACTOR="$(cat /run/secrets/github_actor)" && \
-    export GITHUB_TOKEN="$(cat /run/secrets/github_token)" && \
-    mvn -B -DskipTests -Drevision=${REVISION} -pl engine -am dependency:go-offline
-# 3) Copia tutto il codice
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B -DskipTests -Dgpg.skip=true -Drevision=${REVISION} -pl engine -am dependency:go-offline
+
 COPY . .
 
-# 4) Build del modulo engine (e dipendenze necessarie)
-RUN --mount=type=secret,id=maven_settings,target=/root/.m2/settings.xml \
-    --mount=type=secret,id=github_actor \
-    --mount=type=secret,id=github_token \
-    --mount=type=cache,target=/root/.m2 \
-    export GITHUB_ACTOR="$(cat /run/secrets/github_actor)" && \
-    export GITHUB_TOKEN="$(cat /run/secrets/github_token)" && \
-    mvn -B -DskipTests -Drevision=${REVISION} -pl engine -am clean package
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B -DskipTests -Dgpg.skip=true -Drevision=${REVISION} -pl engine -am clean package
 
 
 ############################
 # Runtime stage
 ############################
-FROM sapmachine:25
+FROM eclipse-temurin:25-jre
 
 ARG REVISION=1.0.0-SNAPSHOT
 
-# Copia il JAR “giusto” (evita original-*)
-# Se il nome non è esattamente engine-${REVISION}.jar, dimmelo e lo allineiamo.
-COPY --from=build /workspace/engine/target/engine-${REVISION}.jar /engine.jar
+COPY --from=build /workspace/engine/target/sepa-engine-${REVISION}.jar /engine.jar
 
 COPY --from=build /workspace/engine/src/main/resources/run.sh /run.sh
 COPY --from=build /workspace/engine/src/main/resources/jmxremote.password /jmxremote.password
