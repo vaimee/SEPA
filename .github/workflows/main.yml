@@ -55,17 +55,33 @@ jobs:
           cache: maven
 
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          MAVEN_GPG_PRIVATE_KEY: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        run: |
+          PRIVATE_KEY="${GPG_PRIVATE_KEY:-$MAVEN_GPG_PRIVATE_KEY}"
+          PASSPHRASE="${GPG_PASSPHRASE:-$MAVEN_GPG_PASSPHRASE}"
+
+          if [ -z "$PRIVATE_KEY" ]; then
+            echo "Missing GPG private key secret. Configure GPG_PRIVATE_KEY or MAVEN_GPG_PRIVATE_KEY."
+            exit 1
+          fi
+
+          if [ -z "$PASSPHRASE" ]; then
+            echo "Missing GPG passphrase secret. Configure GPG_PASSPHRASE or MAVEN_GPG_PASSPHRASE."
+            exit 1
+          fi
+
+          echo "$PRIVATE_KEY" | gpg --batch --import
+          echo "GPG_PASSPHRASE=$PASSPHRASE" >> "$GITHUB_ENV"
 
       - name: Publish client API to Maven Central
         run: mvn -B -pl client-api deploy -DskipTests -Drevision="$RELEASE_VERSION" -s settings.xml
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
-          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
   publish-docker-hub:
     runs-on: ubuntu-latest
