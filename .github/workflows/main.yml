@@ -75,7 +75,7 @@ jobs:
           fi
 
           echo "$PRIVATE_KEY" | gpg --batch --import
-          echo "GPG_PASSPHRASE=$PASSPHRASE" >> "$GITHUB_ENV"
+          echo "MAVEN_GPG_PASSPHRASE=$PASSPHRASE" >> "$GITHUB_ENV"
 
       - name: Publish client API to Maven Central
         run: mvn -B -pl client-api deploy -DskipTests -Drevision="$RELEASE_VERSION" -s settings.xml
