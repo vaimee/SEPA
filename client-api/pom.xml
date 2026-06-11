@@ -45,11 +45,12 @@
         <plugin>
           <groupId>org.sonatype.central</groupId>
           <artifactId>central-publishing-maven-plugin</artifactId>
-          <version>0.9.0</version>
+          <version>0.10.0</version>
           <extensions>true</extensions>
           <configuration>
             <publishingServerId>central</publishingServerId>
-			<autoPublish>true</autoPublish>
+            <autoPublish>true</autoPublish>
+            <waitUntil>published</waitUntil>
           </configuration>
         </plugin>
         <plugin>
@@ -93,6 +94,14 @@
               <goals>
                 <goal>sign</goal>
               </goals>
+              <configuration>
+                <passphrase>${env.GPG_PASSPHRASE}</passphrase>
+                <gpgArguments>
+                  <arg>--batch</arg>
+                  <arg>--pinentry-mode</arg>
+                  <arg>loopback</arg>
+                </gpgArguments>
+              </configuration>
             </execution>
           </executions>
         </plugin>
