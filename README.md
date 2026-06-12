@@ -26,9 +26,9 @@
     <img  src="https://img.shields.io/badge/License-LGPL%20v3-blue.svg">
   </a>
   <br><br>
-  <h1><font color="#FFFFFF">A semantic event bus for AI-agent ecosystems</font></h1>
 </div>
 
+# A semantic event bus for AI-agent ecosystems
 ![...](img/SEPAMCP.gif)
 ## Table of Contents
 - 🚀 [Introduction](#introduction)
