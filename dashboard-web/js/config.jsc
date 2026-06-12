@@ -1,0 +1,14 @@
+___SEPA_DASHBOARD_INLINE_JSON_CONFIG___ = {}
+
+window.__APP_META__ = {
+  name: "SEPA App Suite",
+  version: "1.0.23",
+  company: "VAIMEE srl"
+  // environment: "local" // opzionale
+};
+window.__APP_META__ = {
+  name: "SEPA App Suite",
+  version: "1.0.23",
+  company: "VAIMEE srl"
+  // environment: "local" // opzionale
+};

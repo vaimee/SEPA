@@ -1,0 +1,108 @@
+:root{
+  --bs-primary: #0f3e65;
+  --bs-primary-rgb: 15, 62, 101;
+  --bs-body-font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body,
+button,
+input,
+textarea,
+select,
+.navbar,
+.card,
+.card-header,
+.dropdown-menu,
+.table,
+.alert,
+.badge,
+.btn,
+.form-control,
+.input-group-text,
+.yasqe,
+.CodeMirror,
+.CodeMirror pre{
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* YASQE */
+.yasqe{
+  width: 100%;
+}
+
+/* Generic wrapper for scrollable tables (subscriptions, etc.) */
+.table-wrapper{
+  max-height: 200px;
+  overflow: auto;
+  display: block;
+}
+
+/* Used to mark fixed (read-only) prefix lines inside YASQE */
+.non-editable{
+  background-color: #dcdcdc;
+  cursor: not-allowed;
+}
+
+/* DataTables search bar */
+.dt-search{
+  margin-right: 10px;
+}
+.dt-search input{
+  width: 100%;
+  max-width: 300px;
+}
+.dt-search label{
+  margin-right: 5px;
+}
+
+/* DataTables Buttons: keep aligned with Bootstrap primary */
+.dt-buttons .btn{
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+}
+
+
+/* Tabs inside navbar (pills on primary background) */
+.navbar .nav-pills .nav-link{
+  color: rgba(255,255,255,.9);
+}
+.navbar .nav-pills .nav-link:hover{
+  color: #fff;
+}
+.navbar .nav-pills .nav-link.active{
+  background-color: rgba(255,255,255,.18);
+}
+
+.vaimee-footer{
+  text-align: center;
+  padding: 28px 20px;
+  font-size: 13px;
+  color: #666;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 20px;
+  line-height: 1.8;
+}
+.vaimee-footer .brand{
+  font-size: 15px;
+  font-weight: 700;
+  color: #0F3E65;
+  letter-spacing: 1px;
+}
+.vaimee-footer .links{
+  margin-top: 6px;
+}
+.vaimee-footer .links a{
+  color: #10B1D8;
+  text-decoration: none;
+  margin: 0 8px;
+}
+.vaimee-footer .links a:hover{
+  text-decoration: underline;
+}
+.vaimee-footer .legal{
+  margin-top: 4px;
+  font-size: 12px;
+  color: #999;
+}

@@ -1,0 +1,33 @@
+version: "3.9"
+services:
+  nginx:
+    build: .
+    environment:
+      - JSAP_PATH=/usr/share/nginx/html/jsap/chat.jsap
+      - HOST=localhost
+      - HTTP_PORT=8000
+      - WS_PORT=9000
+      - HTTP_PROTOCOL=http
+      - WS_PROTOCOL=ws
+      - QUERY_PATH=/sparql
+      - UPDATE_PATH=/sparql
+      - SUBSCRIBE_PATH=/subscribe
+    #volumes:
+    #  - ./:/usr/share/nginx/html:ro
+    ports:
+      - 80:80
+
+  #sepa:
+  #  image: vaimee/sepa:v0.13.0
+  #  networks:
+  #    - default
+  #  environment:
+  #    #- endpoint=/endpoints/endpoint-blazegraph.jpar
+  #    #- host=blazegraph
+  #    - Dlog4j.configurationFile=log4j2-debug.xml
+  #    - JMX_HOSTNAME=localhost
+  #    - JMX_PORT=7090
+  #  ports:
+  #    - 8000:8000
+  #    - 9000:9000
+  #    - 7090:7090
