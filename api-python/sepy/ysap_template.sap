@@ -1,0 +1,76 @@
+host: {{ host_ip_address }}
+sparql11protocol:
+    protocol: {{ sparql11['protocol']}}
+    port: {{ sparql11['port'] }}
+    query:
+        path: {{ sparql11['query']['path'] }}
+        method: {{ sparql11['query']['method'] }}
+        format: {{ sparql11['query']['format'] }}
+    update:
+        path: {{ sparql11['update']['path'] }}
+        method: {{ sparql11['update']['method'] }}
+        format: {{ sparql11['update']['format'] }}
+sparql11seprotocol:
+    protocol: {{ sparql11se['protocol'] }}
+    {% if sparql11se['availableProtocols'] %}
+    availableProtocols:
+        {% for i,d in sparql11se['availableProtocols'].items() recursive %}
+    {% if d is mapping %}
+    {{ i|indent(4*loop.depth,first=True) }}: 
+{{ loop(d.items()) }}
+    {%- else %}
+    {{ i|indent(4*loop.depth,first=True) }}: {{ d }}
+    {% endif %}
+    {% endfor -%}
+    {% endif %}
+{% if oauth %}
+oauth:
+    {% for i,d in oauth.items() %}
+    {{ i }}: {{ d }}
+    {% endfor %}
+{% endif %}
+{% if namespaces %}
+namespaces:
+    {% for i,d in namespaces.items() %}
+    {{ i }}: {{ d }}
+    {% endfor %}
+{% endif %}
+{% if graphs %}
+graphs:
+    {% for i,d in graphs.items() %}
+    {{ i }}: {{ d }}
+    {% endfor %}
+{% endif %}
+{% if extended %}
+extended:
+    {% for i,d in extended.items() recursive %}
+    {% if d is mapping %}
+{{ i|indent(4*loop.depth,first=True) }}: 
+{{ loop(d.items()) }}
+    {%- else %}
+{{ i|indent(4*loop.depth,first=True) }}: {{ d }}
+    {% endif %}
+    {% endfor -%}
+{% endif %}
+{% if queries %}
+queries:
+    {% for i,d in queries.items() recursive %}
+    {% if d is mapping %}
+{{ i|indent(4*loop.depth,first=True) }}: 
+{{ loop(d.items()) }}
+    {%- else %}
+{{ i|indent(4*loop.depth,first=True) }}: {{ d }}
+    {% endif %}
+    {% endfor -%}
+{% endif %}
+{% if updates %}
+updates:
+    {% for i,d in updates.items() recursive %}
+    {% if d is mapping %}
+{{ i|indent(4*loop.depth,first=True) }}: 
+{{ loop(d.items()) }}
+    {%- else %}
+{{ i|indent(4*loop.depth,first=True) }}: {{ d }}
+    {% endif %}
+    {% endfor -%}
+{% endif %}

@@ -1,0 +1,4 @@
+build
+dist
+sepy/__pycache__
+sepy/tests/__pycache__

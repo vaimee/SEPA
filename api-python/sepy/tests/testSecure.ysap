@@ -1,0 +1,49 @@
+host: localhost
+oauth:
+    enable: false
+    register: https://localhost:8443/oauth/register
+    tokenRequest: https://localhost:8443/oauth/token
+sparql11protocol:
+    protocol: https
+    port: 8443
+    query:
+        path: secure/query
+        method: POST
+        format: JSON
+    update:
+        path: secure/update 
+        method: POST
+        format: JSON
+sparql11seprotocol:
+    protocol: wss
+    availableProtocols:
+        ws:
+            port: 9000
+            path: /subscribe
+        wss:
+            port: 9443
+            path: /secure/subscribe
+extended:
+    type: basic
+    base: 0
+    clients: 10
+    messages: 1
+namespaces:
+    schema: http://schema.org
+    rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+    test: http://wot.arces.unibo.it/test#
+updates:
+    INSERT_GREETING:
+        sparql: insert data {test:Francesco test:dice 'Ciao'}
+    INSERT_VARIABLE_GREETING:
+        sparql: insert data {?nome test:dice ?qualcosa}
+        forcedBindings:
+            nome:
+                type: uri
+                value: ""
+            qualcosa:
+                type: literal
+                value: ""
+queries:
+    QUERY_GREETINGS:
+        sparql: select * where {?nome test:dice ?qualcosa}
