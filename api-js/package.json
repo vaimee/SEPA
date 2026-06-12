@@ -1,0 +1,38 @@
+{
+  "name": "@vaimee/sepa-js",
+  "version": "0.14.5",
+  "description": "A js client library for Semantic Event Processing Architecture",
+  "main": "build/core.js",
+  "browser": "web/sepa.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arces-wot/SEPA-js/"
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:web": "node esbuild.mjs",
+    "pretest": "npm run build",
+    "test": "mocha",
+    "test:integration": "npm run build && mocha test/integration/*.js"
+  },
+  "keywords": [
+    "semantic",
+    "linked-data"
+  ],
+  "author": "Cristiano Aguzzi",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "deepmerge": "^4.2.2",
+    "isomorphic-ws": "^5.0.0",
+    "ws": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "esbuild": "^0.20.0",
+    "esbuild-plugins-node-modules-polyfill": "^1.6.2",
+    "mocha": "^10.3.0",
+    "sinon": "^7.2.2",
+    "typescript": "^5.3.3"
+  }
+}
