@@ -13,7 +13,7 @@
 	<properties>
 		<revision>1.0.0-SNAPSHOT</revision>
 		<sjenar.revision>4.3.2</sjenar.revision>
-		<jackson.version>2.17.2</jackson.version>
+		<jackson.version>2.18.6</jackson.version>
 
 		<update>0</update>
 
