@@ -3,23 +3,16 @@
     <img width="96px" src="img/MilkDataWay_Icon_Color.svg" alt="Milky Data Way">
   </a>
   <h1><font color="#10B1D8">SEPA - SPARQL Event Processing Architecture</font></h1>
-  <a href="https://github.com/vaimee/SEPA/actions">
-    <img  src="https://github.com/vaimee/SEPA/actions/workflows/main.yml/badge.svg">
+  <a href="https://github.com/vaimee/SEPA/releases/latest">
+    <img  src="https://img.shields.io/github/v/release/vaimee/SEPA?label=Release&color=blue">
   </a>
   <a href="https://central.sonatype.com/search?q=g%3Acom.vaimee%20sepa">
-    <img  src="https://img.shields.io/badge/Maven%20Central-com.vaimee-cyan.svg">
-  </a>
-  <a href="https://github.com/vaimee/SEPA/releases">
-    <img  src="https://img.shields.io/github/downloads/vaimee/SEPA/total.svg?colorB=blue">
-  </a>
-  <a href="https://github.com/vaimee/SEPA/tree/dev">
-    <img  src="https://img.shields.io/badge/unstable-dev-violet.svg">
+    <img  src="https://img.shields.io/badge/Maven%20Central-com.vaimee-blue.svg">
   </a>
   <a href="https://discord.gg/TqX8F6hkx">
-    <img  src="https://img.shields.io/badge/chat-on%20Discord-5865F2.svg">
+    <img  src="https://img.shields.io/badge/Chat-on%20Discord-blue.svg">
   </a>
-  <br>
-   <a href="https://www.gnu.org/licenses/gpl-3.0">
+  <a href="https://www.gnu.org/licenses/gpl-3.0">
     <img  src="https://img.shields.io/badge/License-GPLv3-blue.svg">
   </a>
   <a href="https://www.gnu.org/licenses/lgpl-3.0">
