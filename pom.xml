@@ -207,6 +207,21 @@
 				<artifactId>mina-core</artifactId>
 				<version>2.2.7</version>
 			</dependency>
+			<dependency>
+				<groupId>org.apache.sis.core</groupId>
+				<artifactId>sis-referencing</artifactId>
+				<version>1.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.sis.core</groupId>
+				<artifactId>sis-utility</artifactId>
+				<version>1.6</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.sis.core</groupId>
+				<artifactId>sis-metadata</artifactId>
+				<version>1.6</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
