@@ -192,6 +192,21 @@
 				<artifactId>protobuf-java</artifactId>
 				<version>3.25.5</version>
 			</dependency>
+			<dependency>
+				<groupId>org.apache.thrift</groupId>
+				<artifactId>libthrift</artifactId>
+				<version>0.23.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.jdom</groupId>
+				<artifactId>jdom2</artifactId>
+				<version>2.0.6.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.mina</groupId>
+				<artifactId>mina-core</artifactId>
+				<version>2.2.7</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
