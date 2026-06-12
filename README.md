@@ -3,8 +3,11 @@
     <img width="96px" src="img/MilkDataWay_Icon_Color.svg" alt="Milky Data Way">
   </a>
   <h1><font color="#10B1D8">SEPA - SPARQL Event Processing Architecture</font></h1>
-  <br>
-  <br>
+  <h1><font color="#FFFFFF">A semantic event bus for AI-agent ecosystems</font></h1>
+  <video src="img/SEPAMCP.mp4" width="960" controls autoplay loop muted playsinline>
+    <a href="img/SEPAMCP.mp4">Watch the SEPA Semantic Event Bus demo</a>
+  </video>
+  <br><br>
   <a href="https://github.com/vaimee/SEPA/actions">
     <img  src="https://github.com/vaimee/SEPA/actions/workflows/main.yml/badge.svg">
   </a>
@@ -27,18 +30,16 @@
   <a href="https://www.gnu.org/licenses/lgpl-3.0">
     <img  src="https://img.shields.io/badge/License-LGPL%20v3-blue.svg">
   </a>
-  
 </div>
 
 ## Table of Contents
-- [🚀 Introduction](#introduction)
-- [🎬 Demo](#demo)
-- [⚡ Quick Start](#quick-start)
-- [⚙️ Configuration](#configuration)
-- [🧰 Usage](#usage)
-- [🛠️ Build with Maven ](#build-with-maven)
-- [🤝 Contributing](#contributing)
-- [🙌 Credits](#credits)
+- 🚀 [Introduction](#introduction)
+- ⚡ [Quick Start](#quick-start)
+- ⚙️ [Configuration](#configuration)
+- 🧰 [Usage](#usage)
+- 🛠️ [Build with Maven ](#build-with-maven)
+- 🤝 [Contributing](#contributing)
+- 🙌 [Credits](#credits)
 
 <a id="introduction"></a>
 
@@ -55,10 +56,6 @@ SEPA has been formalized in the following *unofficial drafts*:
 - [SPARQL 1.1 Secure Event Protocol](https://vaimee.org/TR/sparql11-se-protocol.html) contribute [here](https://github.com/vaimee/SEPA/blob/main/TR/sparql11-se-protocol.html)
 - [SPARQL 1.1 Subscribe Language](http://vaimee.org/TR/sparql11-subscribe.html) contribute [here](https://github.com/vaimee/SEPA/blob/main/TR/sparql11-subscribe.html)
 - [JSON SPARQL Application Profile (JSAP)](http://vaimee.org/TR/jsap.html) contribute [here](https://github.com/vaimee/SEPA/blob/main/TR/jsap.html)
-
-<h2 id="demo">🎬 Demo - This is SEPA</h2>
-
-![Demo showing subscription and notifications](img/SEPADemo.gif)
 
 <h2 id="quick-start">⚡ Quick Start</h2>
 
