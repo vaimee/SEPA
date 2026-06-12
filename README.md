@@ -31,19 +31,18 @@
 </div>
 
 ## Table of Contents
-- [Introduction 🚀](#introduction)
-- [Demo 🎬](#demo)
-- [Quick Start ⚡](#quick-start)
-- [Configuration ⚙️](#configuration)
-- [Usage 🧰](#usage)
-- [Build with Maven 🛠️](#build-with-maven)
-- [Contributing 🤝](#contributing)
-- [History 📚](#history)
-- [Credits 🙌](#credits)
+- [🚀 Introduction](#introduction)
+- [🎬 Demo](#demo)
+- [⚡ Quick Start](#quick-start)
+- [⚙️ Configuration](#configuration)
+- [🧰 Usage](#usage)
+- [🛠️ Build with Maven ](#build-with-maven)
+- [🤝 Contributing](#contributing)
+- [🙌 Credits](#credits)
 
 <a id="introduction"></a>
 
-## Introduction 🚀
+## 🚀 Introduction
 
 SEPA (**S**PARQL **E**vent **P**rocessing **A**rchitecture) is a publish-subscribe architecture designed to support information level interoperability.
 
@@ -57,23 +56,56 @@ SEPA has been formalized in the following *unofficial drafts*:
 - [SPARQL 1.1 Subscribe Language](http://vaimee.org/TR/sparql11-subscribe.html) contribute [here](https://github.com/vaimee/SEPA/blob/main/TR/sparql11-subscribe.html)
 - [JSON SPARQL Application Profile (JSAP)](http://vaimee.org/TR/jsap.html) contribute [here](https://github.com/vaimee/SEPA/blob/main/TR/jsap.html)
 
-<h2 id="demo">Demo 🎬</h2>
+<h2 id="demo">🎬 Demo - This is SEPA</h2>
 
 ![Demo showing subscription and notifications](img/SEPADemo.gif)
 
+<h2 id="quick-start">⚡ Quick Start</h2>
+
 You can play with SEPA on our [dashboard](https://playground.sepa.mdw.vaimee.com). 🕹️
 
-<h2 id="quick-start">Quick Start ⚡</h2>
+🛠️ To build SEPA from source, see [Build with Maven](#build-with-maven).
 
-- 📦 Download the [SEPA Engine](https://github.com/vaimee/SEPA/releases/latest) and run it: `java -jar engine-x.y.z.jar`
+<h2 id="build-with-maven">🛠️ Build with Maven</h2>
+SEPA is a Maven multi-module project composed of four sub-projects:
+- Client API
+- Engine
+- Dashboard
+- Chat
 
-- 🧠 Download [Blazegraph](https://github.com/blazegraph/database/releases/latest) (or use any other SPARQL 1.1 Protocol compliant service) and run it as shown [here](https://wiki.blazegraph.com/wiki/index.php/Quick_Start)
+Java 25 and Maven are required to build the current project.
 
-- 🧪 Use the [SEPA Playground](https://studio.sepa.vaimee.com) to check basic functionalities of the engine.
+Build and install all modules locally with tests skipped:
+```bash
+mvn clean install -DskipTests -Dgpg.skip=true
+```
 
-- 🛠️ To build SEPA from source, see [Build with Maven](#build-with-maven).
+`-DskipTests` is needed for the local reactor build because the `client-api` module includes integration tests that require a running SEPA engine. `-Dgpg.skip=true` skips artifact signing for local builds.
 
-<h2 id="configuration">Configuration ⚙️</h2>
+The build creates executable shaded JARs in the module `target` directories, including the SEPA engine JAR:
+```bash
+engine/target/sepa-engine-<version>.jar
+```
+
+Run the `client-api` integration tests with a Maven-started in-memory SEPA engine:
+```bash
+mvn -pl client-api verify -Pwith-sepa-engine -Dgpg.skip=true
+```
+
+The `with-sepa-engine` profile requires the engine JAR to have already been built by the previous reactor command. It starts `engine/target/sepa-engine-<version>.jar` during the Maven `pre-integration-test` phase using `engine/src/main/resources/endpoints/jena-in-memory.jpar`, waits for ports `8000` and `9000`, runs the Failsafe integration tests, and stops the engine when Maven exits. Engine output is written to:
+```bash
+client-api/target/sepa-engine.log
+```
+
+The complete local verification flow is therefore:
+```bash
+mvn clean install -DskipTests -Dgpg.skip=true
+mvn -pl client-api verify -Pwith-sepa-engine -Dgpg.skip=true
+```
+
+To know more about Maven, refer to the [official documentation](https://maven.apache.org/).
+
+<h2 id="configuration">⚙️ Configuration</h2>
 The SEPA engine can be used with different SPARQL endpoints which must support SPARQL 1.1 protocol. The endpoint can be configured using
 a JSON file `endpoint.jpar`. Furthermore, the engine has various parameters that can be used to configure the standard behavior; they
 can be set using another JSON file called `engine.jpar`.  
@@ -135,12 +167,12 @@ The default version of  `engine.jpar` configures the engine to listen for incomi
     "ws":9000,
     "wss":9443}}}}
 ```
-### Logging 📝
+### 📝 Logging
 SEPA uses [log4j2](http://logging.apache.org/log4j/2.x/) by Apache. A default configuration is stored in the file log4j2.xml provided with the distribution. If the file resides in the engine folder, but it is not used, add the following JVM directive to force using it:
 
 java `-Dlog4j.configurationFile=./log4j2.xml` -jar engine-x.y.z.jar
 
-### Security 🔐
+### 🔐 Security
 By default, the engine implements a simple in-memory [OAuth 2.0 client-credential flow](https://auth0.com/docs/flows/client-credentials-flow). It uses a JKS for storing the keys and certificates for [SSL](http://docs.oracle.com/cd/E19509-01/820-3503/6nf1il6ek/index.html) and [JWT](https://tools.ietf.org/html/rfc7519) signing/verification. A default `sepa.jks` is provided including a single X.509 certificate (the password for both the store and the key is: `sepa2017`). If you face problems using the provided JKS, please delete the `sepa.jks` file and create a new one as follows: `keytool -genkey -keyalg RSA -alias sepakey -keystore sepa.jks -storepass sepa2017 -validity 360 -keysize 2048`
 Run `java -jar engine-x.y.z.jar -help` for a list of options. The Java [Keytool](https://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html) can be used to create, access and modify a JKS. 
 SEPA also implements other two security mechanisms:
@@ -160,10 +192,10 @@ where
 - `type` can assume one of the following values: `local`,`ldap`,`keycloak`
 - `tls` is used when `type`=`ldap` to enable or not LDAP StartTLS
 
-### JMX Monitoring 📊
+### 📊 JMX Monitoring
 The SEPA engine is also distributed with a default [JMX](http://www.oracle.com/technetwork/articles/java/javamanagement-140525.html) configuration `jmx.properties` (including the `jmxremote.password` and `jmxremote.access` files for password and user grants). Remember to change password file permissions using: `chmod 600 jmxremote.password`. To enable remote JMX, the engine must be run as follows: `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`. Using [`jconsole`](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) is possible to monitor and control the most important engine parameters. By default, the port is `5555` and the `root:root` credentials grant full control (read/write).
 
-<h3 id="usage">Usage 🧰</h3>
+<h3 id="usage">🧰 Usage</h3>
 The SEPA engine can be configured from the command line. Run `java -jar engine-x.y.z.jar -help` for the list of available settings.
 
 `java [JMX] [JVM] [LOG4J] -jar SEPAEngine_X.Y.Z.jar [-help] [-secure true] [-engine engine.jpar] [-endpoint endpoint.jpar] [JKS OPTIONS] [LDAP OPTIONS] [ISQL OPTIONS]`
@@ -204,46 +236,8 @@ The SEPA engine can be configured from the command line. Run `java -jar engine-x
 - `isqluser` <user> : user of Virtuoso     		 (default: dba)
 - `isqlpass` <pass> : password of Virtuoso     	 (default: dba)
 
-<h2 id="build-with-maven">Build with Maven 🛠️</h2>
-SEPA is a Maven multi-module project composed of four sub-projects:
-- Client API
-- Engine
-- Dashboard
-- Chat
 
-Java 25 and Maven are required to build the current project.
-
-Build and install all modules locally with tests skipped:
-```bash
-mvn clean install -DskipTests -Dgpg.skip=true
-```
-
-`-DskipTests` is needed for the local reactor build because the `client-api` module includes integration tests that require a running SEPA engine. `-Dgpg.skip=true` skips artifact signing for local builds.
-
-The build creates executable shaded JARs in the module `target` directories, including the SEPA engine JAR:
-```bash
-engine/target/sepa-engine-<version>.jar
-```
-
-Run the `client-api` integration tests with a Maven-started in-memory SEPA engine:
-```bash
-mvn -pl client-api verify -Pwith-sepa-engine -Dgpg.skip=true
-```
-
-The `with-sepa-engine` profile requires the engine JAR to have already been built by the previous reactor command. It starts `engine/target/sepa-engine-<version>.jar` during the Maven `pre-integration-test` phase using `engine/src/main/resources/endpoints/jena-in-memory.jpar`, waits for ports `8000` and `9000`, runs the Failsafe integration tests, and stops the engine when Maven exits. Engine output is written to:
-```bash
-client-api/target/sepa-engine.log
-```
-
-The complete local verification flow is therefore:
-```bash
-mvn clean install -DskipTests -Dgpg.skip=true
-mvn -pl client-api verify -Pwith-sepa-engine -Dgpg.skip=true
-```
-
-To know more about Maven, refer to the [official documentation](https://maven.apache.org/).
-
-<h2 id="contributing">Contributing 🤝</h2>
+<h2 id="contributing">🤝 Contributing</h2>
 You are very welcome to be part of SEPA community. If you find any bug feel free to open an issue here on GitHub, but also feel free to
 ask any question. For more details check [Contributing guidelines](CONTRIBUTING.md). Besides, if you want to help the SEPA development follow this simple steps:
 
@@ -258,7 +252,7 @@ ask any question. For more details check [Contributing guidelines](CONTRIBUTING.
 
 Pull request with unit tests have an higher likelihood to be accepted, but we are not to restrictive. So do not be afraid to send your contribution!
 
-<h2 id="history">History 📚</h2>
+<h2 id="credits">🙌 Credits</h2>
 
 SEPA has been inspired and influenced by [Smart-M3](https://sourceforge.net/projects/smart-m3/). SEPA authors have been involved in the development of Smart-M3 since its [origin](https://artemis-ia.eu/project/4-sofia.html).
 
@@ -266,10 +260,6 @@ The main differences between SEPA and Smart-M3 are the protocol (now compliant w
 
 All the SEPA software components have been implemented from scratch.
 
-<h2 id="credits">Credits 🙌</h2>
-
-SEPA stands for *SPARQL Event Processing Architecture*. SEPA is promoted and maintained by the [**Dynamic linked data and Web of Things Research Group**](https://site.unibo.it/wot/en) @ [**ARCES**](http://www.arces.unibo.it), the *Advanced Research Center on Electronic Systems "Ercole De Castro"* of the [**University of Bologna**](http://www.unibo.it).
-
-## License 📄
+## 📄 License
 
 SEPA Engine is released under the [GNU GPL](https://github.com/vaimee/SEPA/blob/main/engine/LICENSE), SEPA APIs are released under the [GNU LGPL](https://github.com/vaimee/SEPA/blob/main/client-api/LICENSE)
