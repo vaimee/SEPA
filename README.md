@@ -61,7 +61,7 @@ SEPA has been formalized in the following *unofficial drafts*:
 
 ![Demo showing subscription and notifications](img/SEPADemo.gif)
 
-You can play with SEPA on our [dashboard](https://dashboard.sepa.mdw.vaimee.com). 🕹️
+You can play with SEPA on our [dashboard](https://playground.sepa.mdw.vaimee.com). 🕹️
 
 <h2 id="quick-start">Quick Start ⚡</h2>
 
