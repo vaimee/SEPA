@@ -3,11 +3,6 @@
     <img width="96px" src="img/MilkDataWay_Icon_Color.svg" alt="Milky Data Way">
   </a>
   <h1><font color="#10B1D8">SEPA - SPARQL Event Processing Architecture</font></h1>
-  <h1><font color="#FFFFFF">A semantic event bus for AI-agent ecosystems</font></h1>
-  <video src="img/SEPAMCP.mp4" width="960" controls autoplay loop muted playsinline>
-    <a href="img/SEPAMCP.mp4">Watch the SEPA Semantic Event Bus demo</a>
-  </video>
-  <br><br>
   <a href="https://github.com/vaimee/SEPA/actions">
     <img  src="https://github.com/vaimee/SEPA/actions/workflows/main.yml/badge.svg">
   </a>
@@ -30,8 +25,11 @@
   <a href="https://www.gnu.org/licenses/lgpl-3.0">
     <img  src="https://img.shields.io/badge/License-LGPL%20v3-blue.svg">
   </a>
+  <br><br>
+  <h1><font color="#FFFFFF">A semantic event bus for AI-agent ecosystems</font></h1>
 </div>
 
+![...](img/SEPAMCP.gif)
 ## Table of Contents
 - 🚀 [Introduction](#introduction)
 - ⚡ [Quick Start](#quick-start)
