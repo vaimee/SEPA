@@ -68,27 +68,27 @@ Build and install all modules locally with tests skipped:
 mvn clean install -DskipTests -Dgpg.skip=true
 ```
 
-`-DskipTests` is needed for the local reactor build because the `client-api` module includes integration tests that require a running SEPA engine. `-Dgpg.skip=true` skips artifact signing for local builds.
+`-DskipTests` is needed for the local reactor build because the `api-java` module includes integration tests that require a running SEPA engine. `-Dgpg.skip=true` skips artifact signing for local builds.
 
 The build creates executable shaded JARs in the module `target` directories, including the SEPA engine JAR:
 ```bash
 engine/target/sepa-engine-<version>.jar
 ```
 
-Run the `client-api` integration tests with a Maven-started in-memory SEPA engine:
+Run the `api-java` integration tests with a Maven-started in-memory SEPA engine:
 ```bash
-mvn -pl client-api verify -Pwith-sepa-engine -Dgpg.skip=true
+mvn -pl api-java verify -Pwith-sepa-engine -Dgpg.skip=true
 ```
 
 The `with-sepa-engine` profile requires the engine JAR to have already been built by the previous reactor command. It starts `engine/target/sepa-engine-<version>.jar` during the Maven `pre-integration-test` phase using `engine/src/main/resources/endpoints/jena-in-memory.jpar`, waits for ports `8000` and `9000`, runs the Failsafe integration tests, and stops the engine when Maven exits. Engine output is written to:
 ```bash
-client-api/target/sepa-engine.log
+api-java/target/sepa-engine.log
 ```
 
 The complete local verification flow is therefore:
 ```bash
 mvn clean install -DskipTests -Dgpg.skip=true
-mvn -pl client-api verify -Pwith-sepa-engine -Dgpg.skip=true
+mvn -pl api-java verify -Pwith-sepa-engine -Dgpg.skip=true
 ```
 
 To know more about Maven, refer to the [official documentation](https://maven.apache.org/).
@@ -250,4 +250,4 @@ All the SEPA software components have been implemented from scratch.
 
 ## 📄 License
 
-SEPA Engine is released under the [GNU GPL](https://github.com/vaimee/SEPA/blob/main/engine/LICENSE), SEPA APIs are released under the [GNU LGPL](https://github.com/vaimee/SEPA/blob/main/client-api/LICENSE)
+SEPA Engine is released under the [GNU GPL](https://github.com/vaimee/SEPA/blob/main/engine/LICENSE), SEPA APIs are released under the [GNU LGPL](https://github.com/vaimee/SEPA/blob/main/api-java/LICENSE)

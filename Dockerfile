@@ -10,9 +10,9 @@ WORKDIR /workspace
 
 COPY pom.xml .
 COPY engine/pom.xml engine/pom.xml
-COPY client-api/pom.xml client-api/pom.xml
+COPY api-java/pom.xml api-java/pom.xml
 COPY example-chat/pom.xml example-chat/pom.xml
-COPY tool-dashboard/pom.xml tool-dashboard/pom.xml
+COPY dashboard-java/pom.xml dashboard-java/pom.xml
 
 RUN --mount=type=cache,target=/root/.m2 \
     mvn -B -DskipTests -Dgpg.skip=true -Drevision=${REVISION} -pl engine -am dependency:go-offline

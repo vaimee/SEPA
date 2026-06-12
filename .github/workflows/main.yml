@@ -27,14 +27,14 @@ jobs:
         run: mvn -B clean install -DskipTests -Dgpg.skip=true -Drevision="$RELEASE_VERSION"
 
       - name: Run client API integration tests
-        run: mvn -B -pl client-api verify -Pwith-sepa-engine -Dgpg.skip=true -Drevision="$RELEASE_VERSION"
+        run: mvn -B -pl api-java verify -Pwith-sepa-engine -Dgpg.skip=true -Drevision="$RELEASE_VERSION"
 
       - name: Upload engine log
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: sepa-engine-log
-          path: client-api/target/sepa-engine.log
+          path: api-java/target/sepa-engine.log
 
   publish-maven-central:
     runs-on: ubuntu-latest
@@ -78,7 +78,7 @@ jobs:
           echo "MAVEN_GPG_PASSPHRASE=$PASSPHRASE" >> "$GITHUB_ENV"
 
       - name: Publish client API to Maven Central
-        run: mvn -B -pl client-api deploy -DskipTests -Drevision="$RELEASE_VERSION" -s settings.xml
+        run: mvn -B -pl api-java deploy -DskipTests -Drevision="$RELEASE_VERSION" -s settings.xml
         env:
           OSSRH_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           OSSRH_PASSWORD: ${{ secrets.OSSRH_PASSWORD }}
@@ -141,11 +141,17 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build engine artifact
-        run: mvn -B -pl engine -am package -DskipTests -Dgpg.skip=true -Drevision="$RELEASE_VERSION"
+      - name: Build release artifacts
+        run: mvn -B package -DskipTests -Dgpg.skip=true -Drevision="$RELEASE_VERSION"
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          files: engine/target/sepa-engine-${{ env.RELEASE_VERSION }}.jar
+          files: |
+            api-java/target/sepa-client-api-${{ env.RELEASE_VERSION }}.jar
+            api-java/target/sepa-client-api-${{ env.RELEASE_VERSION }}-sources.jar
+            api-java/target/sepa-client-api-${{ env.RELEASE_VERSION }}-javadoc.jar
+            engine/target/sepa-engine-${{ env.RELEASE_VERSION }}.jar
+            example-chat/target/sepa-example-chat-${{ env.RELEASE_VERSION }}.jar
+            dashboard-java/target/sepa-dashboard-${{ env.RELEASE_VERSION }}.jar

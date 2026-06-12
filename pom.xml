@@ -33,10 +33,10 @@
 		Architecture using JAVA technologies, including APIs and tools</description>
 
 	<modules>
-		<module>client-api</module>
+		<module>api-java</module>
 		<module>engine</module>
 		<module>example-chat</module>
-		<module>tool-dashboard</module>
+		<module>dashboard-java</module>
 	</modules>
 
 	<name>SEPA Project</name>
