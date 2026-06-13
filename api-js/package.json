@@ -6,7 +6,8 @@
   "browser": "web/sepa.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/arces-wot/SEPA-js/"
+    "url": "https://github.com/vaimee/SEPA.git",
+    "directory": "api-js"
   },
   "scripts": {
     "build": "tsc",

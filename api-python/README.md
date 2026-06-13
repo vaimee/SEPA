@@ -1,19 +1,31 @@
-# SEPA-python3-APIs
-Client-side libraries for the SEPA platform (Python3)
+# SEPA Python API
 
-## Installation and usage
-```
-$ pip3 install sepy
-```
+Client-side libraries for the SEPA platform.
 
-Clone the repository.
+## Installation
+
+Install the published package:
 
 ```
-cd SEPA-python3-APIs
-sudo python3 setup.py build
-sudo python3 setup.py sdist
-sudo python3 setup.py install
+pip install sepy
 ```
+
+Or install it from this monorepo checkout:
+
+```
+cd api-python
+pip install .
+```
+
+Build the source distribution and wheel locally:
+
+```
+cd api-python
+python -m pip install build
+python -m build
+```
+
+## Usage
 
 To use the classes you have to import them in this way:
 ```
@@ -26,9 +38,9 @@ you have to write:
 from sepy.SAPObject import *
 ```
 
-This library consists of 5 modules that can be used for different purposes:
+This library consists of five modules that can be used for different purposes:
 
-- SAPObject: An handler class for SAP files
+- SAPObject: A handler class for SAP files
 - SEPA: A low-level class used to develop a client for SEPA
 - ConnectionHandler: A class for connection handling
 - Exceptions

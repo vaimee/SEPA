@@ -6,10 +6,9 @@
 </div>
 
 
-[![Build Status](https://travis-ci.org/arces-wot/SEPA-js.svg?branch=master)](https://travis-ci.org/arces-wot/SEPA-js)
-[![SEPA 0.9.7](https://img.shields.io/badge/SEPA-0.9.7-blue.svg)](https://github.com/arces-wot/SEPA/releases/download/0.9.7/engine-0.9.7.jar)
-[![npm version](https://badge.fury.io/js/%40arces-wot%2Fsepa-js.svg)](https://badge.fury.io/js/%40arces-wot%2Fsepa-js)
-[![Web Version](https://data.jsdelivr.com/v1/package/npm/@arces-wot/sepa-js/badge)](https://www.jsdelivr.com/package/npm/@arces-wot/sepa-js)
+[![API JS workflow](https://github.com/vaimee/SEPA/actions/workflows/api-js.yml/badge.svg)](https://github.com/vaimee/SEPA/actions/workflows/api-js.yml)
+[![npm version](https://img.shields.io/npm/v/%40vaimee%2Fsepa-js?color=blue)](https://www.npmjs.com/package/@vaimee/sepa-js)
+[![Web Version](https://data.jsdelivr.com/v1/package/npm/@vaimee/sepa-js/badge)](https://www.jsdelivr.com/package/npm/@vaimee/sepa-js)
 
 
 A minimal SEPA client for browser and nodejs environments.
@@ -17,11 +16,11 @@ A minimal SEPA client for browser and nodejs environments.
 
 ## Installation
 
-`npm i @arces-wot/sepa-js`
+`npm i @vaimee/sepa-js`
 
 or in your html document
 
-`<script src="https://cdn.jsdelivr.net/npm/@arces-wot/sepa-js/web/sepa.js"/>`
+`<script src="https://cdn.jsdelivr.net/npm/@vaimee/sepa-js/web/sepa.js"></script>`
 
 ## Usage
 SEPA-js comes with basic api to interact with the engine (Core API). But it also provides a rich interface to create Dynamic Linked Data applications with the support of **J**SON **S**emantic **A**pplication **P**rofile (JSAP).
@@ -30,7 +29,7 @@ SEPA-js comes with basic api to interact with the engine (Core API). But it also
 
 ##### Nodejs:
 ```javascript
-const sepa = require('@arces-wot/sepa-js').client
+const sepa = require('@vaimee/sepa-js').client
 ```
 ##### Browser:
 ```javascript
@@ -39,7 +38,7 @@ const sepa = Sepajs.client
 The variable presented above returns a pre-configured sepa client instace. The following constructor can be used to have more control about defaults and protocol paramenter.
 
 ```javascript
-const SEPA =  require('@arces-wot/sepa-js').SEPA
+const SEPA =  require('@vaimee/sepa-js').SEPA
 let client = new SEPA({/*...config...*/})
 ```
 the following is the list of the parameters that can be set in a SEPA client instance:
@@ -85,9 +84,9 @@ the following is the list of the parameters that can be set in a SEPA client ins
 	}
 }
 ```
-Refer to [official documentation](http://mml.arces.unibo.it/TR/jsap.html#protocol-parameters) for details of protocol parameters, while options field can be configured with the same properties defined in [axios](https://github.com/axios/axios) configuration schema.
+Refer to [official documentation](https://vaimee.org/TR/jsap.html#protocol-parameters) for details of protocol parameters, while options field can be configured with the same properties defined in [axios](https://github.com/axios/axios) configuration schema.
 #### Subscribe
-The subscribe primitive allows a client to receive notifications about a query result. More information about notification data format can be found [here](http://mml.arces.unibo.it/TR/sparql11-subscribe.html#SubscribeResponse). This function as all the others can accept a configuration object as second argument. The object specifies particular parameters that are
+The subscribe primitive allows a client to receive notifications about a query result. More information about notification data format can be found [here](https://vaimee.org/TR/sparql11-subscribe.html#SubscribeResponse). This function as all the others can accept a configuration object as second argument. The object specifies particular parameters that are
 valid only for this function call. The returned object is a subscription which can be revoked using the unsubscribe function.
 ```javascript
 const sub = sepa.subscribe("select * where{?sub ?obj ?pred}LIMIT 1",{host:"www.vaimee.com"})
@@ -122,13 +121,13 @@ sepa.query("select * where {?s ?p 'js'}", {host:"www.vaimee.com"})
 ### Security
 Core api supports secure connection with the endpoint. After obtaining `clientID` and `clientSecret` pair, a secure client can be instatieted with:
 ```javascript
-const SecSEPA = require('@arces-wot/sepa-js').client.secure
+const SecSEPA = require('@vaimee/sepa-js').client.secure
 
 const secClient = new SecSEPA(clientID,clientSecret)
 ```
 If your SEPA instance supports the `register` primitive you can use the corrisponding function in sepa-js.
 ```javascript
-const register = require('@arces-wot/sepa-js').client.secure.register
+const register = require('@vaimee/sepa-js').client.secure.register
 
 register("SEPATest").then(sClient =>{
 	return sclient.query("select * where {?s ?p 'js'}")
@@ -171,7 +170,7 @@ VfDUVhC465CzJcei94rxKyjWTuVl7CZA+6e2x5Ua/4tASi0sFFAlqGJIpiXr
 -----END CERTIFICATE-----
 `
 const httpsAgent = new https.Agent({ ca: [ca] })
-const SecSEPA = require('@arces-wot/sepa-js').secure
+const SecSEPA = require('@vaimee/sepa-js').secure
 
 const secClient = new SecSEPA(clientID,clientSecret,{ options : {
 	httpsAgent : httpsAgent
@@ -179,7 +178,7 @@ const secClient = new SecSEPA(clientID,clientSecret,{ options : {
 
 // Or using  register function
 
-const register = require('@arces-wot/sepa-js').client.secure.register
+const register = require('@vaimee/sepa-js').client.secure.register
 
 register("SEPATest",{ options : { httpsAgent : httpsAgent}}).then(sClient =>{
 	return sclient.query("select * where {?s ?p 'js'}")
@@ -190,7 +189,7 @@ register("SEPATest",{ options : { httpsAgent : httpsAgent}}).then(sClient =>{
 ### Query bench api
 From v0.10.0 SEPAjs provides apis to store query templates and substitutes variables. See the following example:
 ```javascript
-const Bench = require('sepajs').bench
+const Bench = require('@vaimee/sepa-js').bench
 
 bench = new Bench()
 query = bench.sparql("select * where{?a ?b ?c.}",{
@@ -201,7 +200,7 @@ query = bench.sparql("select * where{?a ?b ?c.}",{
 })
 // query : select * where{<urn:epc:id:gid:0.1.0102030405060708090A0B0C> ?b ?c}
 ```
-for futher details check query bench unit tests [here](./tests/querybench.js).
+for futher details check query bench unit tests [here](./test/querybench.js).
 
 **Note**: Inside broswers the bench api can be required with `const bench = new Sepajs.bench();` as for other Sepajs functionalities.
 
@@ -210,7 +209,7 @@ for futher details check query bench unit tests [here](./tests/querybench.js).
 
 #### Nodejs:
 ```javascript
-const App = require('sepa-js').Jsap
+const App = require('@vaimee/sepa-js').Jsap
 ```
 #### Browser:
 ```javascript
@@ -219,7 +218,7 @@ const JsapApi = Sepajs.Jsap
 
 ```javascript
 app = new JsapApi({
-	host: "mml.arces.unibo.it",
+	host: "localhost",
 	queries : {
 		simpleQuery : { sparql : "select * where {?a ?b ?c}"}
 	}
@@ -232,7 +231,7 @@ subscription.on("notification",console.log)
 #### JSAP object example:
 ```javascript
 jsap_example = {
-	host: "mml.arces.unibo.it",
+	host: "localhost",
 	oauth: {
 		enable : false,
 		register: "https://localhost:8443/oauth/register",
@@ -341,7 +340,7 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 **Note**: run tests with `npm run tests` and if succefull `npm run integration-test`. Additionally, integration tests needs a default SEPA instance 
-running on your local machine. Refer to [SEPA github page](https://github.com/arces-wot/SEPA) for information about the installation and configuration. 
+running on your local machine. Refer to the [SEPA GitHub page](https://github.com/vaimee/SEPA) for information about the installation and configuration. 
 
 ## License
 [LGPL](https://choosealicense.com/licenses/lgpl-3.0/)
