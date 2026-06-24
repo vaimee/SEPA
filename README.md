@@ -21,7 +21,7 @@
   <br><br>
 </div>
 
-# Killer application? As semantic event bus for AI-agent ecosystems
+# Killer application: semantic event bus for AI-agent ecosystems
 ![...](img/SEPAMCP.gif)
 ## Table of Contents
 - 🚀 [Introduction](#introduction)
