@@ -23,7 +23,7 @@
   "author": "Cristiano Aguzzi",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.21.1",
+    "axios": "^0.32.0",
     "deepmerge": "^4.2.2",
     "isomorphic-ws": "^5.0.0",
     "ws": "^6.0.0"
