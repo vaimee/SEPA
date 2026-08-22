@@ -48,6 +48,11 @@
         .studio-embedded .navbar .nav-pills {
             margin-left: 0 !important;
         }
+
+        .studio-embedded #configPanel,
+        .studio-embedded #jsapFilePicker {
+            display: none !important;
+        }
     </style>
     <script>
         if (new URLSearchParams(window.location.search).get('studio') === '1') {
@@ -294,7 +299,12 @@
         <div class="tab-pane fade show active mt-3" id="pills-configure" role="tabpanel"
             aria-labelledby="pills-configure-tab">
             <div class="container-fluid">
-                <div class="input-group mb-3">
+                <div class="input-group mb-3" id="jsapCatalogPicker">
+                    <span class="input-group-text">JSAP</span>
+                    <select class="form-select" id="jsapSelector" aria-label="Select JSAP"></select>
+                    <button class="btn btn-outline-secondary" type="button" onclick="javascript:loadSelectedJsap()">Load</button>
+                </div>
+                <div class="input-group mb-3" id="jsapFilePicker">
                     <label class="btn btn-outline-secondary mb-0" for="loadJsap">Select JSAP</label>
                     <span class="form-control" id="jsapFileName">Please select a JSAP file</span>
                     <input class="visually-hidden" type="file" id="loadJsap" aria-describedby="jsapFileName inputGroupFileAddon04">

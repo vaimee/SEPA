@@ -15,6 +15,17 @@ var studioAuth = null;
 var studioInstance = null;
 var studioInstanceApplied = false;
 
+const LOCAL_STUDIO_SEPA = {
+	host: "127.0.0.1",
+	httpProtocol: "http",
+	httpPort: "8000",
+	queryPath: "/sparql",
+	updatePath: "/sparql",
+	wsProtocol: "ws",
+	wsPort: "9000",
+	subscribePath: "/subscribe"
+};
+
 let emptyMarker = {
 	clear: () => { },
 }
@@ -38,6 +49,7 @@ function onInit() {
 	console.log("loading editors...")
 	loadEditors()
 	initJsapFileInput()
+	initJsapCatalog()
 	let type = getQueryVariable("mode");
 	switch (type) {
 		case "local":
@@ -66,10 +78,27 @@ function onInit() {
 	if (env["UPDATE_PATH"] != null && env["UPDATE_PATH"] != "") $("#updatePath").val(env["UPDATE_PATH"]);
 	if (env["QUERY_PATH"] != null && env["QUERY_PATH"] != "") $("#queryPath").val(env["QUERY_PATH"]);
 	if (env["SUBSCRIBE_PATH"] != null && env["SUBSCRIBE_PATH"] != "") $("#subscribePath").val(env["SUBSCRIBE_PATH"]);
+	applyStudioLocalConnection();
 
 	//Initializing tree
 	// $('#tree').treeview({ data: getTree() });
 	notifyStudioReady();
+}
+
+function isStudioEmbedded() {
+	return new URLSearchParams(window.location.search).get("studio") === "1";
+}
+
+function applyStudioLocalConnection() {
+	if (!isStudioEmbedded()) return;
+	$("#host").val(LOCAL_STUDIO_SEPA.host);
+	$("#sparql11protocol").val(LOCAL_STUDIO_SEPA.httpProtocol);
+	$("#sparql11port").val(LOCAL_STUDIO_SEPA.httpPort);
+	$("#queryPath").val(LOCAL_STUDIO_SEPA.queryPath);
+	$("#updatePath").val(LOCAL_STUDIO_SEPA.updatePath);
+	$("#sparql11seprotocol").val(LOCAL_STUDIO_SEPA.wsProtocol);
+	$("#sparql11seport").val(LOCAL_STUDIO_SEPA.wsPort);
+	$("#subscribePath").val(LOCAL_STUDIO_SEPA.subscribePath);
 }
 
 function initStudioBus() {
@@ -145,7 +174,57 @@ function initJsapFileInput() {
 	});
 }
 
+function initJsapCatalog() {
+	const selector = document.getElementById("jsapSelector");
+	if (!selector) return;
+
+	fetch("jsap/catalog.json")
+		.then((response) => {
+			if (!response.ok) throw new Error("JSAP catalog not found");
+			return response.json();
+		})
+		.then((catalog) => {
+			selector.innerHTML = "";
+			(catalog.items || []).forEach((item) => {
+				const option = document.createElement("option");
+				option.value = item.path;
+				option.textContent = item.label || item.path;
+				if (item.default) option.selected = true;
+				selector.appendChild(option);
+			});
+			if (isStudioEmbedded()) loadSelectedJsap();
+		})
+		.catch((err) => {
+			console.log("skipping JSAP catalog", err);
+		});
+}
+
+function loadSelectedJsap() {
+	const selector = document.getElementById("jsapSelector");
+	if (!selector || !selector.value) return;
+
+	fetch(selector.value)
+		.then((response) => {
+			if (!response.ok) throw new Error("JSAP not found: " + selector.value);
+			return response.json();
+		})
+		.then((json) => {
+			myJson = json;
+			injectMyJsonIntoEditor();
+		})
+		.catch((err) => {
+			console.error(err);
+			if (window.parent !== window) {
+				window.parent.postMessage({
+					type: "studio:error",
+					payload: { message: "Cannot load JSAP: " + selector.value }
+				}, "*");
+			}
+		});
+}
+
 function loadDefaultJsap(env) {
+	if (isStudioEmbedded()) return;
 	if (env.DEFAULT_JSAP != null && env.DEFAULT_JSAP != undefined && env.DEFAULT_JSAP != "") {
 		if (studioInstanceApplied) return;
 		console.log("loading default jsap")
@@ -440,6 +519,7 @@ function injectMyJsonIntoEditor() {
 	$("#sparql11seprotocol").val(ws);
 	$("#sparql11seport").val(myJson["sparql11seprotocol"]["availableProtocols"][ws]["port"]);
 	$("#subscribePath").val(myJson["sparql11seprotocol"]["availableProtocols"][ws]["path"]);
+	applyStudioLocalConnection();
 
 	// load queries
 	ul = document.getElementById("queryDropdown");

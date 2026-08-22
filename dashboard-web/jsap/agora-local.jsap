@@ -1,0 +1,74 @@
+{
+  "host": "127.0.0.1",
+  "sparql11protocol": {
+    "protocol": "http",
+    "port": 8000,
+    "query": { "path": "/sparql", "method": "POST", "format": "JSON" },
+    "update": { "path": "/sparql", "method": "POST", "format": "JSON" }
+  },
+  "sparql11seprotocol": {
+    "reconnect": false,
+    "protocol": "ws",
+    "availableProtocols": {
+      "ws": { "port": 9000, "path": "/subscribe", "scheme": "ws" }
+    }
+  },
+  "namespaces": {
+    "schema": "http://schema.org/",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "acl": "http://www.w3.org/ns/auth/acl#",
+    "auth": "https://auth.vaimee.com/profile#",
+    "criteria": "https://vaimee.com/criteria/",
+    "criteriaCrops": "https://vaimee.com/criteria/crops#",
+    "criteriaSoils": "https://vaimee.com/criteria/soils#",
+    "criteriaProperty": "https://vaimee.com/criteria/property#",
+    "sosa": "http://www.w3.org/ns/sosa/",
+    "qudt": "http://qudt.org/schema/qudt#",
+    "weather": "https://vaimee.com/weather/",
+    "log": "https://onto.vaimee.com/log#"
+  },
+  "queries": {
+    "ASK_ANY_DATA": {
+      "sparql": "ASK { ?s ?p ?o }",
+      "forcedBindings": {}
+    },
+    "GET_PUBLIC_SOILS": {
+      "sparql": "SELECT * WHERE { GRAPH criteriaSoils:public { ?soil rdf:type criteria:Soil ; schema:identifier ?code ; schema:name ?name ; schema:description ?description . } } ORDER BY ?code",
+      "forcedBindings": {}
+    },
+    "GET_USER_SOILS": {
+      "sparql": "SELECT * WHERE { GRAPH criteriaSoils:user { ?soil rdf:type criteria:Soil ; schema:identifier ?code ; schema:name ?name ; schema:description ?description . } } ORDER BY ?code",
+      "forcedBindings": {}
+    },
+    "GET_PUBLIC_CROPS": {
+      "sparql": "SELECT * WHERE { GRAPH criteriaCrops:public { ?crop rdf:type criteria:Crop ; schema:identifier ?code ; schema:name ?name ; schema:description ?description . } } ORDER BY ?name",
+      "forcedBindings": {}
+    },
+    "GET_USER_CROPS": {
+      "sparql": "SELECT * WHERE { GRAPH criteriaCrops:user { ?crop rdf:type criteria:Crop ; schema:identifier ?code ; schema:name ?name ; schema:description ?description . } } ORDER BY ?name",
+      "forcedBindings": {}
+    },
+    "GET_UNITS": {
+      "sparql": "SELECT * WHERE { GRAPH criteria:units { ?unit rdf:type criteria:Unit ; schema:name ?name ; schema:description ?description ; criteria:hasIdCrop ?crop ; criteria:hasIdSoil ?soil . OPTIONAL { ?unit schema:status ?status } OPTIONAL { ?unit schema:createdAt ?createdAt } } } ORDER BY DESC(?createdAt)",
+      "forcedBindings": {}
+    },
+    "GET_APP_ACL": {
+      "sparql": "SELECT * WHERE { GRAPH auth:Acl { ?acl acl:accessTo ?resource ; acl:mode ?mode ; acl:agent ?agent } } ORDER BY ?agent ?resource",
+      "forcedBindings": {}
+    },
+    "GET_SYSTEM_LOGS": {
+      "sparql": "SELECT * WHERE { GRAPH log:SystemLogs { ?id rdf:type log:Log ; log:timestamp ?timestamp ; log:level ?level ; log:source ?source ; log:message ?message } } ORDER BY DESC(?timestamp) LIMIT 100",
+      "forcedBindings": {}
+    }
+  },
+  "updates": {
+    "INSERT_TEST_TRIPLE": {
+      "sparql": "INSERT DATA { GRAPH <http://agora.vaimee.com/graphs/agents> { <urn:dashboard-test> <urn:updatedAt> ?timestamp } }",
+      "forcedBindings": {
+        "timestamp": { "type": "literal", "datatype": "xsd:dateTime", "value": "2026-01-01T00:00:00Z" }
+      }
+    }
+  }
+}

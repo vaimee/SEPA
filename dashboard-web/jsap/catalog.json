@@ -1,0 +1,15 @@
+{
+  "items": [
+    {
+      "id": "agora",
+      "label": "Agorà API local JSAP",
+      "path": "jsap/agora-local.jsap",
+      "default": true
+    },
+    {
+      "id": "acl-admin",
+      "label": "SEPA ACL admin",
+      "path": "jsap/acl-admin.jsap"
+    }
+  ]
+}
