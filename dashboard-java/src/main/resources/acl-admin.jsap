@@ -1,0 +1,137 @@
+{
+  "host": "127.0.0.1",
+  "oauth": {
+    "enable": false
+  },
+  "sparql11protocol": {
+    "protocol": "http",
+    "port": 8000,
+    "query": {
+      "path": "/sparql",
+      "method": "POST",
+      "format": "JSON"
+    },
+    "update": {
+      "path": "/sparql",
+      "method": "POST",
+      "format": "JSON"
+    }
+  },
+  "sparql11seprotocol": {
+    "reconnect": false,
+    "protocol": "ws",
+    "availableProtocols": {
+      "ws": {
+        "port": 9000,
+        "path": "/subscribe",
+        "scheme": "ws"
+      }
+    }
+  },
+  "namespaces": {
+    "sepaACL": "http://acl.sepa.com/",
+    "sepaACLGroups": "http://groups.acl.sepa.com/"
+  },
+  "updates": {
+    "ACL_ADD_USER": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> INSERT { GRAPH sepaACL:acl { ?user sepaACL:userName ?userName } } WHERE { FILTER NOT EXISTS { GRAPH sepaACL:acl { ?user sepaACL:userName ?userName } } }",
+      "forcedBindings": {
+        "user": {"type": "uri", "value": "sepaACL:248834386194072480"},
+        "userName": {"type": "literal", "value": "248834386194072480"}
+      }
+    },
+    "ACL_REMOVE_USER": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> DELETE { GRAPH sepaACL:acl { ?user ?p ?o . ?acl ?ap ?ao } } WHERE { GRAPH sepaACL:acl { ?user ?p ?o OPTIONAL { ?user sepaACL:accessInformation ?acl . ?acl ?ap ?ao } } }",
+      "forcedBindings": {
+        "user": {"type": "uri", "value": "sepaACL:248834386194072480"}
+      }
+    },
+    "ACL_ADD_USER_RIGHT": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> INSERT { GRAPH sepaACL:acl { ?user sepaACL:accessInformation [ sepaACL:graphName ?graph ; sepaACL:allowedRight ?right ] } } WHERE { FILTER NOT EXISTS { GRAPH sepaACL:acl { ?user sepaACL:accessInformation ?acl . ?acl sepaACL:graphName ?graph ; sepaACL:allowedRight ?right } } }",
+      "forcedBindings": {
+        "user": {"type": "uri", "value": "sepaACL:248834386194072480"},
+        "graph": {"type": "uri", "value": "http://example.com/graph"},
+        "right": {"type": "uri", "value": "sepaACL:query"}
+      }
+    },
+    "ACL_REPLACE_USER_GRAPH_RIGHT": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> DELETE { GRAPH sepaACL:acl { ?user sepaACL:accessInformation ?oldAcl . ?oldAcl ?p ?o } } INSERT { GRAPH sepaACL:acl { ?user sepaACL:accessInformation [ sepaACL:graphName ?graph ; sepaACL:allowedRight ?right ] } } WHERE { OPTIONAL { GRAPH sepaACL:acl { ?user sepaACL:accessInformation ?oldAcl . ?oldAcl sepaACL:graphName ?graph ; ?p ?o } } }",
+      "forcedBindings": {
+        "user": {"type": "uri", "value": "sepaACL:248834386194072480"},
+        "graph": {"type": "uri", "value": "http://example.com/graph"},
+        "right": {"type": "uri", "value": "sepaACL:update"}
+      }
+    },
+    "ACL_REMOVE_USER_GRAPH_RIGHTS": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> DELETE { GRAPH sepaACL:acl { ?user sepaACL:accessInformation ?acl . ?acl ?p ?o } } WHERE { GRAPH sepaACL:acl { ?user sepaACL:accessInformation ?acl . ?acl sepaACL:graphName ?graph ; ?p ?o } }",
+      "forcedBindings": {
+        "user": {"type": "uri", "value": "sepaACL:248834386194072480"},
+        "graph": {"type": "uri", "value": "http://example.com/graph"}
+      }
+    },
+    "ACL_SET_USER_GROUP": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> INSERT { GRAPH sepaACL:acl { ?user sepaACL:memberOf ?groupName } } WHERE { FILTER NOT EXISTS { GRAPH sepaACL:acl { ?user sepaACL:memberOf ?groupName } } }",
+      "forcedBindings": {
+        "user": {"type": "uri", "value": "sepaACL:248834386194072480"},
+        "groupName": {"type": "literal", "value": "operators"}
+      }
+    },
+    "ACL_REMOVE_USER_GROUP": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> DELETE { GRAPH sepaACL:acl { ?user sepaACL:memberOf ?groupName } } WHERE { GRAPH sepaACL:acl { ?user sepaACL:memberOf ?groupName } }",
+      "forcedBindings": {
+        "user": {"type": "uri", "value": "sepaACL:248834386194072480"},
+        "groupName": {"type": "literal", "value": "operators"}
+      }
+    },
+    "ACL_ADD_GROUP": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> INSERT { GRAPH sepaACL:aclGroups { ?group sepaACL:groupName ?groupName } } WHERE { FILTER NOT EXISTS { GRAPH sepaACL:aclGroups { ?group sepaACL:groupName ?groupName } } }",
+      "forcedBindings": {
+        "group": {"type": "uri", "value": "sepaACLGroups:operators"},
+        "groupName": {"type": "literal", "value": "operators"}
+      }
+    },
+    "ACL_ADD_GROUP_RIGHT": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> INSERT { GRAPH sepaACL:aclGroups { ?group sepaACL:accessInformation [ sepaACL:graphName ?graph ; sepaACL:allowedRight ?right ] } } WHERE { FILTER NOT EXISTS { GRAPH sepaACL:aclGroups { ?group sepaACL:accessInformation ?acl . ?acl sepaACL:graphName ?graph ; sepaACL:allowedRight ?right } } }",
+      "forcedBindings": {
+        "group": {"type": "uri", "value": "sepaACLGroups:operators"},
+        "graph": {"type": "uri", "value": "http://example.com/graph"},
+        "right": {"type": "uri", "value": "sepaACL:query"}
+      }
+    },
+    "ACL_REMOVE_GROUP": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> DELETE { GRAPH sepaACL:aclGroups { ?group ?p ?o . ?acl ?ap ?ao } GRAPH sepaACL:acl { ?user sepaACL:memberOf ?groupName } } WHERE { GRAPH sepaACL:aclGroups { ?group sepaACL:groupName ?groupName ; ?p ?o OPTIONAL { ?group sepaACL:accessInformation ?acl . ?acl ?ap ?ao } } OPTIONAL { GRAPH sepaACL:acl { ?user sepaACL:memberOf ?groupName } } }",
+      "forcedBindings": {
+        "group": {"type": "uri", "value": "sepaACLGroups:operators"}
+      }
+    },
+    "ACL_CLEAR_ALL": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> CLEAR GRAPH sepaACL:acl ; CLEAR GRAPH sepaACL:aclGroups"
+    }
+  },
+  "queries": {
+    "ACL_USERS": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> SELECT ?user ?userName WHERE { GRAPH sepaACL:acl { ?user sepaACL:userName ?userName } } ORDER BY ?userName"
+    },
+    "ACL_USER_RIGHTS": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> SELECT ?user ?userName ?groupName ?graph ?right WHERE { GRAPH sepaACL:acl { ?user sepaACL:userName ?userName OPTIONAL { ?user sepaACL:memberOf ?groupName } OPTIONAL { ?user sepaACL:accessInformation ?acl . ?acl sepaACL:graphName ?graph ; sepaACL:allowedRight ?right } } } ORDER BY ?userName ?graph ?right"
+    },
+    "ACL_USER_RIGHTS_BY_USER": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> SELECT ?userName ?groupName ?graph ?right WHERE { GRAPH sepaACL:acl { ?user sepaACL:userName ?userName OPTIONAL { ?user sepaACL:memberOf ?groupName } OPTIONAL { ?user sepaACL:accessInformation ?acl . ?acl sepaACL:graphName ?graph ; sepaACL:allowedRight ?right } } } ORDER BY ?graph ?right",
+      "forcedBindings": {
+        "user": {"type": "uri", "value": "sepaACL:248834386194072480"}
+      }
+    },
+    "ACL_GROUPS": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> SELECT ?group ?groupName WHERE { GRAPH sepaACL:aclGroups { ?group sepaACL:groupName ?groupName } } ORDER BY ?groupName"
+    },
+    "ACL_GROUP_RIGHTS": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> SELECT ?group ?groupName ?graph ?right WHERE { GRAPH sepaACL:aclGroups { ?group sepaACL:groupName ?groupName OPTIONAL { ?group sepaACL:accessInformation ?acl . ?acl sepaACL:graphName ?graph ; sepaACL:allowedRight ?right } } } ORDER BY ?groupName ?graph ?right"
+    },
+    "ACL_RAW_USERS_GRAPH": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> SELECT ?s ?p ?o WHERE { GRAPH sepaACL:acl { ?s ?p ?o } } ORDER BY ?s ?p ?o"
+    },
+    "ACL_RAW_GROUPS_GRAPH": {
+      "sparql": "PREFIX sepaACL: <http://acl.sepa.com/> SELECT ?s ?p ?o WHERE { GRAPH sepaACL:aclGroups { ?s ?p ?o } } ORDER BY ?s ?p ?o"
+    }
+  }
+}

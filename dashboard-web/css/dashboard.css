@@ -106,3 +106,12 @@ select,
   font-size: 12px;
   color: #999;
 }
+
+.studio-embedded .navbar-brand,
+.studio-embedded .vaimee-footer{
+  display: none !important;
+}
+
+.studio-embedded .navbar .nav-pills{
+  margin-left: 0 !important;
+}

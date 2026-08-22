@@ -11,6 +11,10 @@ let subEditor;
 let queryEditor;
 let updateEditor;
 
+var studioAuth = null;
+var studioInstance = null;
+var studioInstanceApplied = false;
+
 let emptyMarker = {
 	clear: () => { },
 }
@@ -30,6 +34,7 @@ function showLastSubscriptionTab() {
 
 function onInit() {
 	console.log("### SEPA DASHBOARD ###")
+	initStudioBus();
 	console.log("loading editors...")
 	loadEditors()
 	initJsapFileInput()
@@ -64,6 +69,68 @@ function onInit() {
 
 	//Initializing tree
 	// $('#tree').treeview({ data: getTree() });
+	notifyStudioReady();
+}
+
+function initStudioBus() {
+	window.addEventListener("message", function (event) {
+		if (!event.data || typeof event.data !== "object") return;
+
+		switch (event.data.type) {
+			case "studio:auth":
+				studioAuth = event.data.payload;
+				break;
+			case "studio:instance":
+				studioInstance = event.data.payload;
+				applyStudioInstance(studioInstance);
+				break;
+			case "studio:context":
+				// La dashboard SEPA non ha ancora selezioni di dominio condivise.
+				break;
+			default:
+				break;
+		}
+	});
+}
+
+function notifyStudioReady() {
+	if (window.parent === window) return;
+	window.parent.postMessage({ type: "studio:ready" }, "*");
+}
+
+function studioBearer() {
+	return studioAuth && studioAuth.token ? "Bearer " + studioAuth.token : null;
+}
+
+function withStudioAuthorization(config) {
+	var bearer = studioBearer();
+	if (!bearer) return config;
+
+	config.options = config.options || {};
+	config.options.headers = config.options.headers || {};
+	config.options.headers.Authorization = bearer;
+	config.options.authorization = bearer;
+	return config;
+}
+
+function applyStudioInstance(instance) {
+	if (!instance || !instance.sepaJsap) return;
+
+	try {
+		studioInstanceApplied = true;
+		myJson = typeof instance.sepaJsap === "string"
+			? JSON.parse(instance.sepaJsap)
+			: instance.sepaJsap;
+		injectMyJsonIntoEditor();
+	} catch (e) {
+		console.error("Invalid studio:instance sepaJsap", e);
+		if (window.parent !== window) {
+			window.parent.postMessage({
+				type: "studio:error",
+				payload: { message: "JSAP dell'istanza SEPA non valido" }
+			}, "*");
+		}
+	}
 }
 
 function initJsapFileInput() {
@@ -80,6 +147,7 @@ function initJsapFileInput() {
 
 function loadDefaultJsap(env) {
 	if (env.DEFAULT_JSAP != null && env.DEFAULT_JSAP != undefined && env.DEFAULT_JSAP != "") {
+		if (studioInstanceApplied) return;
 		console.log("loading default jsap")
 		myJson = env.DEFAULT_JSAP;
 		injectMyJsonIntoEditor();
@@ -93,6 +161,7 @@ function loadDefaultJsap(env) {
 			return response.json();
 		})
 		.then((json) => {
+			if (studioInstanceApplied) return;
 			myJson = json;
 			injectMyJsonIntoEditor();
 		})
@@ -575,7 +644,7 @@ function query() {
 
 	const sepa = Sepajs.client;
 
-	config = { host: $("#host").val(), sparql11protocol: { protocol: $("#sparql11protocol").val(), port: $("#sparql11port").val(), query: { "path": $("#queryPath").val() } } };
+	config = withStudioAuthorization({ host: $("#host").val(), sparql11protocol: { protocol: $("#sparql11protocol").val(), port: $("#sparql11port").val(), query: { "path": $("#queryPath").val() } } });
 
 	start = Date.now();
 	sepa.query(queryText, config).then((data) => {
@@ -655,7 +724,7 @@ function update() {
 	let bench = new Sepajs.bench()
 	updateText = bench.sparql(updateText, getForcedBindings("U"));
 
-	config = { host: $("#host").val(), sparql11protocol: { protocol: $("#sparql11protocol").val(), "port": $("#sparql11port").val(), update: { "path": $("#updatePath").val() } } };
+	config = withStudioAuthorization({ host: $("#host").val(), sparql11protocol: { protocol: $("#sparql11protocol").val(), "port": $("#sparql11port").val(), update: { "path": $("#updatePath").val() } } });
 
 	const sepa = Sepajs.client;
 	start = Date.now();
@@ -680,9 +749,14 @@ function subscribe() {
 	let subscribeText = subEditor.getValue();
 	let bench = new Sepajs.bench()
 	subscribeText = bench.sparql(subscribeText, getForcedBindings("S"))
+	var bearer = studioBearer();
+	if (bearer) {
+		subscribeWithStudioWebSocket(subscribeText, bearer);
+		return;
+	}
 
 	ws = $("#sparql11seprotocol").val();
-	config = { host: $("#host").val(), sparql11seprotocol: { protocol: ws, availableProtocols: { [ws]: { port: $("#sparql11seport").val(), path: $("#subscribePath").val() } } } };
+	config = withStudioAuthorization({ host: $("#host").val(), sparql11seprotocol: { protocol: ws, availableProtocols: { [ws]: { port: $("#sparql11seport").val(), path: $("#subscribePath").val() } } } });
 
 	const sepa = Sepajs.client;
 	let id = generateIdBySuggestion($('#subscriptionAlias').val())
@@ -819,6 +893,113 @@ function subscribe() {
 	})
 
 	openSubscriptions.set(id, subscription)
+}
+
+function subscribeWithStudioWebSocket(subscribeText, bearer) {
+	var protocol = $("#sparql11seprotocol").val();
+	var host = $("#host").val();
+	var port = $("#sparql11seport").val();
+	var path = $("#subscribePath").val();
+	var alias = generateIdBySuggestion($('#subscriptionAlias').val());
+	var url = protocol + "://" + host + ":" + port + path;
+	var socket = new WebSocket(url);
+	var spuid = null;
+	var tab = null;
+
+	socket.addEventListener("open", function () {
+		socket.send(JSON.stringify({
+			subscribe: {
+				sparql: subscribeText,
+				alias: alias,
+				authorization: bearer
+			}
+		}));
+	});
+
+	socket.addEventListener("message", function (event) {
+		var data = JSON.parse(event.data);
+		if (data.error) {
+			$("#subscribeInfoLabel").html("[" + getTimestamp() + "] " + data.error_description + " *** Subscribe FAILED @ " + host + " ***");
+			return;
+		}
+		if (!data.notification) return;
+
+		var notification = data.notification;
+		spuid = notification.spuid;
+		if (notification.sequence === 0 && tab == null) {
+			$("#subscribeInfoLabel").html("[" + getTimestamp() + "] New subscription " + spuid);
+			$("#notificationsInfoLabel").html("[" + getTimestamp() + "] New subscription " + spuid);
+			tabIndex = tabIndex + 1;
+			tab = tabIndex;
+			appendSubscriptionTab(tab, alias);
+			showTabById('pills-' + tabIndex + "-tab");
+		}
+		renderStudioNotification(notification, tab);
+	});
+
+	socket.addEventListener("error", function () {
+		$("#subscribeInfoLabel").html("[" + getTimestamp() + "] *** Subscribe FAILED @ " + host + " ***");
+	});
+
+	openSubscriptions.set(alias, {
+		unsubscribe: function () {
+			if (socket.readyState === WebSocket.OPEN && spuid) {
+				socket.send(JSON.stringify({ unsubscribe: { spuid: spuid, alias: alias, authorization: bearer } }));
+			}
+			socket.close();
+			if (tab) closeSpuidTab(tab);
+			openSubscriptions.delete(alias);
+		}
+	});
+}
+
+function appendSubscriptionTab(tab, alias) {
+	$("#pills-tab-subscriptions").append(
+		"<li class=\"nav-item\">" +
+		"<a class=\"nav-link\" id=\"pills-" + tab + "-tab\" data-bs-toggle=\"pill\" href=\"#pills-" + tab + "\" role=\"tab\" aria-controls=\"pills-" + tab + "\" aria-selected=\"false\">" + alias + "</a></li>");
+
+	$("#pills-tabContent-subscriptions").append(
+		"<div class=\"tab-pane mt-3 fade\" id=\"pills-" + tab + "\" role=\"tabpanel\" aria-labelledby=\"pills-" + tab + "-tab\">" +
+		"<button action='button' class='btn btn-outline-danger btn-sm mb-3 float-end' onclick='javascript:unsubscribe(\"" + alias + "\")'>" +
+		"<small><i class='fas fa-trash-alt'></i>&nbsp;Unsubscribe</small></button>" +
+		"<div class=\"table-responsive\"><div class=\"table-wrapper\"><table class=\"table table-bordered table-hover table-sm\" id=\"table-" + tab + "\"></table></div></div></div>");
+}
+
+function renderStudioNotification(data, tab) {
+	if (!data || tab == null) return;
+	var spuid = data.spuid;
+	$("#notificationsInfoLabel").html("[" + getTimestamp() + "] Last notification: " + spuid + " (" + data.sequence + ")");
+
+	["removedResults", "addedResults"].forEach(function (kind) {
+		var cssClass = kind === "removedResults" ? "table-danger" : "table-success";
+		var results = data[kind];
+		if (!results || !results.head || !results.results) return;
+
+		for (v in results.head.vars) {
+			name = results.head.vars[v];
+			if (headers[spuid] == null) {
+				headers[spuid] = [];
+				headers[spuid].push(name);
+				$("#activeSubscriptions #table-" + tab).append("<thead class=\"table-light\"><tr><th scope=\"col\">#</th></tr></thead>");
+				$("#activeSubscriptions #table-" + tab + " thead tr").append("<th scope=\"col\">" + name + "</th>");
+				$("#activeSubscriptions #table-" + tab).append("<tbody id=\"tbody-" + tab + "\"></tbody>");
+			} else if (!headers[spuid].includes(name)) {
+				headers[spuid].push(name);
+				$("#activeSubscriptions #table-" + tab + " thead tr").append("<th scope=\"col\">" + name + "</th>");
+			}
+		}
+
+		for (index in results.results.bindings) {
+			bindings = results.results.bindings[index];
+			$("#activeSubscriptions #tbody-" + tab).prepend("<tr class=\"" + cssClass + "\"></tr>");
+			tr = $("#activeSubscriptions #tbody-" + tab + " tr:first");
+			tr.append("<td>" + data.sequence + "</td>");
+			for (name of headers[spuid] || []) {
+				value = bindings[name] != null ? bindings[name]["value"] : "";
+				tr.append("<td>" + value + "</td>");
+			}
+		}
+	});
 }
 
 function closeSpuidTab(tab) {

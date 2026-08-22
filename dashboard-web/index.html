@@ -39,7 +39,21 @@
             width: 100%;
             min-height: 180px;
         }
+
+        .studio-embedded .navbar-brand,
+        .studio-embedded .vaimee-footer {
+            display: none !important;
+        }
+
+        .studio-embedded .navbar .nav-pills {
+            margin-left: 0 !important;
+        }
     </style>
+    <script>
+        if (new URLSearchParams(window.location.search).get('studio') === '1') {
+            document.documentElement.classList.add('studio-embedded');
+        }
+    </script>
 
     <!-- Sepa dashboard -->
     <!--<script src="https://cdn.jsdelivr.net/npm/@arces-wot/sepa-js@0.10.0/web/sepa.js"></script>-->
