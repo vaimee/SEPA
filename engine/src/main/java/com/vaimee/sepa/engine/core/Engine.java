@@ -179,7 +179,7 @@ public class Engine implements EngineMBean {
 			System.out.println("SPARQL 1.1 Protocol (https://www.w3.org/TR/sparql11-protocol/)");
 			System.out.println("----------------------");
 
-			if (!properties.isSecure())
+			if (!properties.isTls())
 				httpGate = new HttpGate(properties, scheduler);
 			else
 				httpsGate = new HttpsGate(properties, scheduler);
@@ -190,7 +190,7 @@ public class Engine implements EngineMBean {
 			System.out.println("SPARQL 1.1 SE Protocol (https://vaimee.org/TR/sparql11-se-protocol.html)");
 			System.out.println("----------------------");
 
-			if (!properties.isSecure()) {
+			if (!properties.isTls()) {
 				Logging.debug("Starting websocket server on port "+properties.getWsPort());
 				wsServer = new WebsocketServer(properties.getWsPort(), properties.getSubscribePath(), scheduler);
 			} else {

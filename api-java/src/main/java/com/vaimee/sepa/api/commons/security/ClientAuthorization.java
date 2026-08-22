@@ -26,6 +26,7 @@ public class ClientAuthorization {
 	
 	private String error = null;
 	private String description = null;
+	private String identity = null;
 	
 	private Credentials credentials = null;
 	
@@ -37,6 +38,15 @@ public class ClientAuthorization {
 	
 	public ClientAuthorization(Credentials credentials) {
 		this.credentials = credentials;
+	}
+
+	public ClientAuthorization(Credentials credentials, String identity) {
+		this.credentials = credentials;
+		this.identity = identity;
+	}
+
+	public ClientAuthorization(String identity) {
+		this.identity = identity;
 	}
 
 	// No authorization required
@@ -54,6 +64,10 @@ public class ClientAuthorization {
 	
 	public String getDescription() {
 		return description;
+	}
+
+	public String getIdentity() {
+		return identity;
 	}
 	
 	public String getBasicAuthorizationHeader() throws SEPASecurityException {

@@ -28,6 +28,7 @@ import com.vaimee.sepa.api.commons.request.UpdateRequest;
 import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.bean.SEPABeans;
 import com.vaimee.sepa.engine.bean.UpdateProcessorBeans;
+import com.vaimee.sepa.engine.dependability.acl.SEPAUserInfo;
 import com.vaimee.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 import com.vaimee.sepa.engine.processing.endpoint.RemoteEndpoint;
 import com.vaimee.sepa.engine.processing.endpoint.SPARQLEndpoint;
@@ -56,10 +57,11 @@ class UpdateProcessor implements UpdateProcessorMBean {
 		Logging.trace(request);
 
 		Response ret;
+		SEPAUserInfo userInfo = req.getIdentity() == null ? null : SEPAUserInfo.newInstance(req.getIdentity());
 		int n = 0;
 		do {
 			Logging.Timestamp start = new Logging.Timestamp();
-			ret = endpoint.update(request);
+			ret = endpoint.update(request, userInfo);
 			Logging.Timestamp stop = new Logging.Timestamp();
 
 			UpdateProcessorBeans.timings(start.get(), stop.get());

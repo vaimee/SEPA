@@ -8,6 +8,7 @@ package com.vaimee.sepa.engine.dependability.acl;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage.ACLStorageId;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageDataset;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageJSon;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageFactory;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageOperations;
 import com.vaimee.sepa.engine.bean.EngineBeans;
@@ -40,6 +41,7 @@ public class ACLTools {
         
         switch(id) {
             case aiJSon: {
+                paramMap.put(ACLStorageJSon.PARAM_JSONFILE, EngineBeans.getAclPath());
                 break;
             }
             case asiDataset: {

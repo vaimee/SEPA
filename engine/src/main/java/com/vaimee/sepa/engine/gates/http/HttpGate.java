@@ -33,8 +33,10 @@ import org.apache.http.impl.nio.reactor.IOReactorConfig;
 import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
 import com.vaimee.sepa.engine.bean.EngineBeans;
 import com.vaimee.sepa.engine.core.EngineProperties;
+import com.vaimee.sepa.engine.dependability.Dependability;
 
 import com.vaimee.sepa.engine.protocol.sparql11.SPARQL11Handler;
+import com.vaimee.sepa.engine.protocol.sparql11.SecureSPARQL11Handler;
 import com.vaimee.sepa.engine.scheduling.Scheduler;
 import com.vaimee.sepa.logging.Logging;
 
@@ -51,7 +53,9 @@ public class HttpGate {
 		this.properties = properties;
 		this.scheduler = scheduler;
 		
-		SPARQL11Handler handler = new SPARQL11Handler(scheduler,properties.getQueryPath(),properties.getUpdatePath());
+		SPARQL11Handler handler = Dependability.isSecure()
+				? new SecureSPARQL11Handler(scheduler, properties.getQueryPath(), properties.getUpdatePath())
+				: new SPARQL11Handler(scheduler, properties.getQueryPath(), properties.getUpdatePath());
 	
 		ServerBootstrap boot = ServerBootstrap.bootstrap().setListenerPort(properties.getHttpPort())
 				.setServerInfo(serverInfo).setIOReactorConfig(config).setExceptionLogger(ExceptionLogger.STD_ERR)

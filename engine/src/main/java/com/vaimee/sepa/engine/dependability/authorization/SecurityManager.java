@@ -722,6 +722,6 @@ public abstract class SecurityManager implements IAuthorization,ISecurityManager
 			return new ClientAuthorization("invalid_grant","Failed to get credentials ("+id+")");
 		}
 
-		return new ClientAuthorization(cred);
+		return new ClientAuthorization(cred, id);
 	}
 }

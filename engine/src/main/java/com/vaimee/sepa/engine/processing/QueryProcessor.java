@@ -28,6 +28,7 @@ import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.engine.bean.QueryProcessorBeans;
 import com.vaimee.sepa.engine.bean.SEPABeans;
 import com.vaimee.sepa.engine.bean.UpdateProcessorBeans;
+import com.vaimee.sepa.engine.dependability.acl.SEPAUserInfo;
 import com.vaimee.sepa.engine.processing.endpoint.JenaInMemoryEndpoint;
 import com.vaimee.sepa.engine.processing.endpoint.RemoteEndpoint;
 import com.vaimee.sepa.engine.processing.endpoint.SPARQLEndpoint;
@@ -57,9 +58,10 @@ class QueryProcessor implements QueryProcessorMBean {
 		
 		int n = 0;
 		Response ret;
+		SEPAUserInfo userInfo = req.getIdentity() == null ? null : SEPAUserInfo.newInstance(req.getIdentity());
 		do {
 			Logging.Timestamp start = new Logging.Timestamp();
-			ret = endpoint.query(request);
+			ret = endpoint.query(request, userInfo);
 			Logging.Timestamp stop = new Logging.Timestamp();
 			
 			UpdateProcessorBeans.timings(start.get(), stop.get());

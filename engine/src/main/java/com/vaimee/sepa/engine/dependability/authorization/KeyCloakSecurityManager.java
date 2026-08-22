@@ -142,7 +142,7 @@ public class KeyCloakSecurityManager extends SecurityManager {
 			return new ClientAuthorization("invalid_grant", "Failed to get credentials (" + uid + ")");
 		}
 
-		return new ClientAuthorization(cred);
+		return new ClientAuthorization(cred, uid);
 	}
 
 	@Override

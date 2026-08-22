@@ -45,6 +45,7 @@ import com.vaimee.sepa.engine.dependability.Dependability;
 import com.vaimee.sepa.engine.dependability.authorization.IsqlProperties;
 import com.vaimee.sepa.engine.dependability.authorization.JKSUtil;
 import com.vaimee.sepa.engine.dependability.authorization.LdapProperties;
+import com.vaimee.sepa.engine.dependability.authorization.ZitadelProperties;
 import com.vaimee.sepa.logging.Logging;
 
 /**
@@ -68,7 +69,7 @@ import com.vaimee.sepa.logging.Logging;
 		"gates": {
 			"security": {
 				"enabled" : true,
-				"type" : "local|ldap|keycloak",
+				"type" : "local|ldap|keycloak|zitadel",
 				"tls" : false
 			},
 			"ports": {
@@ -187,6 +188,7 @@ public class EngineProperties {
 		public boolean tls;
 		public boolean enabled;
 		public String type;
+		public Zitadel zitadel = new Zitadel();
 		
 		public Security(){
 			enabled = false;
@@ -197,6 +199,15 @@ public class EngineProperties {
 		public String toString() {
 			return new Gson().toJson(this);
 		}
+	}
+
+	static private class Zitadel {
+		public String issuer;
+		public String audience;
+		public String introspectionClientId;
+		public String introspectionClientSecret;
+		public String endpointUser;
+		public String endpointPassword;
 	}
 
 	static private class Gates {
@@ -398,6 +409,14 @@ public class EngineProperties {
 	private String isqlUser = "dba";
 	private String isqlPass = "dba";
 	private int isqlPort = 1111;
+
+	// Zitadel
+	private String zitadelIssuer = null;
+	private String zitadelAudience = null;
+	private String zitadelIntrospectionClientId = null;
+	private String zitadelIntrospectionClientSecret = null;
+	private String zitadelEndpointUser = null;
+	private String zitadelEndpointPassword = null;
 
 	// Security management
 	SSLContext ssl = null;
@@ -609,6 +628,37 @@ public class EngineProperties {
 		case "-isqlport":
 			isqlPort = Integer.parseInt(value);
 			break;
+
+		case "-zitadelissuer":
+		case "-parameters.gates.security.zitadel.issuer":
+			zitadelIssuer = value;
+			parameters.gates.security.zitadel.issuer = value;
+			break;
+		case "-zitadelaudience":
+		case "-parameters.gates.security.zitadel.audience":
+			zitadelAudience = value;
+			parameters.gates.security.zitadel.audience = value;
+			break;
+		case "-zitadelintrospectionclientid":
+		case "-parameters.gates.security.zitadel.introspectionclientid":
+			zitadelIntrospectionClientId = value;
+			parameters.gates.security.zitadel.introspectionClientId = value;
+			break;
+		case "-zitadelintrospectionclientsecret":
+		case "-parameters.gates.security.zitadel.introspectionclientsecret":
+			zitadelIntrospectionClientSecret = value;
+			parameters.gates.security.zitadel.introspectionClientSecret = value;
+			break;
+		case "-zitadelendpointuser":
+		case "-parameters.gates.security.zitadel.endpointuser":
+			zitadelEndpointUser = value;
+			parameters.gates.security.zitadel.endpointUser = value;
+			break;
+		case "-zitadelendpointpassword":
+		case "-parameters.gates.security.zitadel.endpointpassword":
+			zitadelEndpointPassword = value;
+			parameters.gates.security.zitadel.endpointPassword = value;
+			break;
 			
 		case "-parameters.gates.ports.http":
 			parameters.gates.ports.http = Integer.parseInt(value);
@@ -754,6 +804,12 @@ public class EngineProperties {
 		Logging.trace("-isqlport: " + isqlPort);
 		Logging.trace("-isqluser: " + isqlUser);
 		Logging.trace("-isqlpass: " + isqlPass);
+
+		Logging.trace("--- Zitadel ---");
+		Logging.trace("-zitadelissuer: " + parameters.gates.security.zitadel.issuer);
+		Logging.trace("-zitadelaudience: " + parameters.gates.security.zitadel.audience);
+		Logging.trace("-zitadelintrospectionclientid: " + parameters.gates.security.zitadel.introspectionClientId);
+		Logging.trace("-zitadelendpointuser: " + parameters.gates.security.zitadel.endpointUser);
 		
 		Logging.debug("--- Engine/endpoint ---");
 		Logging.debug("-engine: " + engineJpar);
@@ -797,7 +853,7 @@ public class EngineProperties {
 		return ret;
 	}
 	public void setSecurity() throws SEPASecurityException {
-		parameters.gates.security.enabled = (secure.isEmpty() ? false : secure.get());
+		parameters.gates.security.enabled = (secure.isEmpty() ? parameters.gates.security.enabled : secure.get());
 		
 		// OAUTH 2.0 Authorization Manager
 		if (isSecure()) {
@@ -811,6 +867,8 @@ public class EngineProperties {
 				Dependability.enableLDAPSecurity(ssl, jwt, ldap);
 			} else if (isKeycìCloakEnabled()) {
 				Dependability.enableKeyCloakSecurity(ssl, jwt, ldap, isql);
+			} else if (isZitadelEnabled()) {
+				Dependability.enableZitadelSecurity(ssl, jwt, getZitadelProperties());
 			}
 
 			// Check that SSL has been properly configured
@@ -845,6 +903,20 @@ public class EngineProperties {
 	
 	public boolean isKeycìCloakEnabled() {
 		return this.parameters.gates.security.type.equals("keycloak");
+	}
+
+	public boolean isZitadelEnabled() {
+		return this.parameters.gates.security.type.equals("zitadel");
+	}
+
+	private ZitadelProperties getZitadelProperties() {
+		return new ZitadelProperties(
+				zitadelIssuer != null ? zitadelIssuer : parameters.gates.security.zitadel.issuer,
+				zitadelAudience != null ? zitadelAudience : parameters.gates.security.zitadel.audience,
+				zitadelIntrospectionClientId != null ? zitadelIntrospectionClientId : parameters.gates.security.zitadel.introspectionClientId,
+				zitadelIntrospectionClientSecret != null ? zitadelIntrospectionClientSecret : parameters.gates.security.zitadel.introspectionClientSecret,
+				zitadelEndpointUser != null ? zitadelEndpointUser : parameters.gates.security.zitadel.endpointUser,
+				zitadelEndpointPassword != null ? zitadelEndpointPassword : parameters.gates.security.zitadel.endpointPassword);
 	}
 	
 	public int getMaxConcurrentRequests() {

@@ -38,6 +38,7 @@ import com.vaimee.sepa.api.commons.response.ErrorResponse;
 import com.vaimee.sepa.engine.bean.SEPABeans;
 import com.vaimee.sepa.engine.bean.GateBeans;
 import com.vaimee.sepa.engine.dependability.Dependability;
+import com.vaimee.sepa.engine.gates.SecureWebsocketGate;
 import com.vaimee.sepa.engine.gates.WebsocketGate;
 import com.vaimee.sepa.engine.scheduling.Scheduler;
 import com.vaimee.sepa.logging.Logging;
@@ -99,7 +100,9 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 
 	@Override
 	public void onOpen(WebSocket conn, ClientHandshake handshake) {
-		addGate(new WebsocketGate(conn, scheduler),conn);
+		addGate(Dependability.isSecure()
+				? new SecureWebsocketGate(conn, scheduler)
+				: new WebsocketGate(conn, scheduler), conn);
 	}
 
 	@Override

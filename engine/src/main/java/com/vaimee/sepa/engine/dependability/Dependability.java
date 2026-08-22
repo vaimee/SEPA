@@ -33,6 +33,8 @@ import com.vaimee.sepa.engine.dependability.authorization.KeyCloakSecurityManage
 import com.vaimee.sepa.engine.dependability.authorization.LdapProperties;
 import com.vaimee.sepa.engine.dependability.authorization.LdapSecurityManager;
 import com.vaimee.sepa.engine.dependability.authorization.SecurityManager;
+import com.vaimee.sepa.engine.dependability.authorization.ZitadelProperties;
+import com.vaimee.sepa.engine.dependability.authorization.ZitadelSecurityManager;
 import com.vaimee.sepa.engine.gates.Gate;
 import com.vaimee.sepa.engine.scheduling.Scheduler;
 
@@ -60,6 +62,11 @@ public class Dependability {
 
 	public static void enableKeyCloakSecurity(SSLContext ssl, RSAKey key,LdapProperties prop, IsqlProperties isqlprop) throws SEPASecurityException {
 		authManager = new  KeyCloakSecurityManager( ssl,  key, prop, isqlprop);
+		isSecure = true;
+	}
+
+	public static void enableZitadelSecurity(SSLContext ssl, RSAKey key, ZitadelProperties prop) throws SEPASecurityException {
+		authManager = new ZitadelSecurityManager(ssl, key, prop);
 		isSecure = true;
 	}
 

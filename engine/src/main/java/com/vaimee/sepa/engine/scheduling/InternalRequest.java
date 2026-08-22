@@ -47,6 +47,10 @@ public abstract class InternalRequest {
 	public String getBasicAuthorizationHeader() throws SEPASecurityException {
 		return auth.getBasicAuthorizationHeader();
 	}
+
+	public String getIdentity() {
+		return auth.getIdentity();
+	}
 	
 	public ClientAuthorization getClientAuthorization() {
 		return auth;
