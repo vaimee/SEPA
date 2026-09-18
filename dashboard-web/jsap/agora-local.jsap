@@ -3,8 +3,8 @@
   "sparql11protocol": {
     "protocol": "http",
     "port": 8000,
-    "query": { "path": "/sparql", "method": "POST", "format": "JSON" },
-    "update": { "path": "/sparql", "method": "POST", "format": "JSON" }
+    "query": { "path": "/query", "method": "URL_ENCODED_POST", "format": "JSON" },
+    "update": { "path": "/update", "method": "URL_ENCODED_POST", "format": "JSON" }
   },
   "sparql11seprotocol": {
     "reconnect": false,

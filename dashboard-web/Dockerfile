@@ -1,7 +1,7 @@
 FROM nginx
 
-COPY /deploy /usr/share/nginx/html/js
-COPY /deploy/index.html /usr/share/nginx/html/index.html
+COPY /js /usr/share/nginx/html/js
+COPY /index.html /usr/share/nginx/html/index.html
 COPY /css /usr/share/nginx/html/css
 COPY /fontawesome-free-5.0.6 /usr/share/nginx/html/fontawesome-free-5.0.6
 COPY /jsap /usr/share/nginx/html/jsap

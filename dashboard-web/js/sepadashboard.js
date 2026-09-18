@@ -19,8 +19,8 @@ const LOCAL_STUDIO_SEPA = {
 	host: "127.0.0.1",
 	httpProtocol: "http",
 	httpPort: "8000",
-	queryPath: "/sparql",
-	updatePath: "/sparql",
+	queryPath: "/query",
+	updatePath: "/update",
 	wsProtocol: "ws",
 	wsPort: "9000",
 	subscribePath: "/subscribe"
@@ -46,6 +46,7 @@ function showLastSubscriptionTab() {
 function onInit() {
 	console.log("### SEPA DASHBOARD ###")
 	initStudioBus();
+	applyStudioChrome();
 	console.log("loading editors...")
 	loadEditors()
 	initJsapFileInput()
@@ -87,6 +88,23 @@ function onInit() {
 
 function isStudioEmbedded() {
 	return new URLSearchParams(window.location.search).get("studio") === "1";
+}
+
+function applyStudioChrome() {
+	if (!isStudioEmbedded()) return;
+	const configureTab = document.getElementById("pills-configure-tab");
+	if (configureTab) configureTab.textContent = "JSAP";
+	const navbar = document.getElementById("mainNavbar");
+	const tabs = document.getElementById("pills-tab");
+	const jsapCatalog = document.getElementById("jsapCatalogPicker");
+	if (navbar && tabs && jsapCatalog) {
+		jsapCatalog.classList.add("navbar-jsap-picker");
+		navbar.insertBefore(jsapCatalog, tabs);
+	}
+	["jsapFilePicker", "jsapLoadButton"].forEach((id) => {
+		const element = document.getElementById(id);
+		if (element) element.remove();
+	});
 }
 
 function applyStudioLocalConnection() {
@@ -177,6 +195,7 @@ function initJsapFileInput() {
 function initJsapCatalog() {
 	const selector = document.getElementById("jsapSelector");
 	if (!selector) return;
+	selector.addEventListener("change", loadSelectedJsap);
 
 	fetch("jsap/catalog.json")
 		.then((response) => {

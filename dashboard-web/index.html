@@ -50,8 +50,24 @@
         }
 
         .studio-embedded #configPanel,
-        .studio-embedded #jsapFilePicker {
+        .studio-embedded #jsapFilePicker,
+        .studio-embedded #jsapLoadButton {
             display: none !important;
+        }
+
+        .studio-embedded #jsapCatalogPicker {
+            max-width: 360px;
+            margin: 0 1rem 0 0 !important;
+        }
+
+        .studio-embedded #jsapCatalogPicker .input-group-text {
+            color: #fff;
+            background: rgba(255, 255, 255, .12);
+            border-color: rgba(255, 255, 255, .24);
+        }
+
+        .studio-embedded #jsapCatalogPicker .form-select {
+            border-color: rgba(255, 255, 255, .24);
         }
     </style>
     <script>
@@ -64,7 +80,7 @@
     <!--<script src="https://cdn.jsdelivr.net/npm/@arces-wot/sepa-js@0.10.0/web/sepa.js"></script>-->
     <script type="text/javascript" src="js/sepa.js"></script>
     <script type="text/javascript" src="js/config.jsc"></script>
-    <script type="text/javascript" src="js/sepadashboard.js"></script>
+    <script type="text/javascript" src="js/sepadashboard.js?v=studio-jsap-menu-query-update"></script>
     <link rel="stylesheet" href="fontawesome-free-5.0.6/web-fonts-with-css/css/fontawesome-all.css">
     <link rel="stylesheet" href="css/dashboard.css?v=__VERSION__">
     <link href='https://cdn.jsdelivr.net/npm/yasgui-yasqe@2.11.22/dist/yasqe.min.css' rel='stylesheet'
@@ -302,7 +318,7 @@
                 <div class="input-group mb-3" id="jsapCatalogPicker">
                     <span class="input-group-text">JSAP</span>
                     <select class="form-select" id="jsapSelector" aria-label="Select JSAP"></select>
-                    <button class="btn btn-outline-secondary" type="button" onclick="javascript:loadSelectedJsap()">Load</button>
+                    <button class="btn btn-outline-secondary" type="button" id="jsapLoadButton" onclick="javascript:loadSelectedJsap()">Load</button>
                 </div>
                 <div class="input-group mb-3" id="jsapFilePicker">
                     <label class="btn btn-outline-secondary mb-0" for="loadJsap">Select JSAP</label>
@@ -365,7 +381,7 @@
                 </div>
             </div>
 
-            <div class="card border rounded-3 mt-3">
+            <div class="card border rounded-3 mt-3" id="namespacePanel">
                 <div class="card-header rounded-3 text-white bg-primary">
                     <i class="fas fa-list-ul"></i><span class="container-fluid me-1">Namespaces</span>
                 </div>
