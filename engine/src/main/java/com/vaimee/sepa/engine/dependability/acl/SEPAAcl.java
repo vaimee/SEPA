@@ -18,6 +18,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.jena.acl.DatasetACL;
+import com.vaimee.sepa.engine.processing.SEPAAclProcessor;
 
 /**
  *
@@ -28,7 +29,10 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
     
     //where persistence is archieved
     private final ACLStorageOperations                                aclStorage;
-    //private final SEPAAclProcessor jmx;
+    // Registers SEPAAclProcessorMBean, which is the only way to administer the
+    // ACL at runtime: the /acl/query/ and /acl/update/ paths are configured but
+    // never bound to a handler, and the data endpoint cannot reach this store.
+    private final SEPAAclProcessor jmx;
 
     @Override
     public void addUserToGroup(String user, String group) throws EngineACLException,ACLStorageException {
@@ -130,7 +134,7 @@ public class SEPAAcl extends DatasetACL implements ACLStorage,ACLStorageListable
         aclStorage = storage;
         cachedACL = aclStorage.loadUsers();
         cachedGroupsACL = aclStorage.loadGroups();
-        //jmx = new SEPAAclProcessor();
+        jmx = new SEPAAclProcessor();
     }
     public boolean checkGraphBase(aclId id, String graphName, String user) {
         if (user.equals(ADMIN_USER))
