@@ -18,6 +18,10 @@
 
 package com.vaimee.sepa.engine.processing;
 
+import org.apache.http.HttpStatus;
+import org.apache.jena.acl.ACLException;
+
+import com.vaimee.sepa.api.commons.response.ErrorResponse;
 import com.vaimee.sepa.api.commons.response.Response;
 import com.vaimee.sepa.api.commons.response.UpdateResponse;
 import com.vaimee.sepa.engine.scheduling.InternalUpdateRequest;
@@ -34,8 +38,8 @@ class UpdateProcessingThread extends Thread {
 
 	public void run() {
 		while (processor.isRunning()) {
+			ScheduledRequest request = null;
                     try {
-			ScheduledRequest request;
 			try {
 				Logging.trace("Wait for update requests...");
 				request = processor.waitUpdateRequest();
@@ -63,9 +67,22 @@ class UpdateProcessingThread extends Thread {
 				Logging.trace("Notify client of update processing (reliable)");
 				processor.addResponse(request.getToken(), ret);
 			}
-                    } catch(Throwable t) {
-                        System.err.println(t);
-                        t.printStackTrace(System.err);
+                    } catch (Throwable t) {
+                        /* Anything thrown here used to end on stderr and go no
+                         * further, so the client was never answered and waited
+                         * on the socket until its own timeout. An ACL refusal
+                         * arrives this way, which made a denied update look
+                         * like a hung one. */
+                        Logging.error("Update processing failed: " + t);
+
+                        if (request != null) {
+                            boolean denied = t instanceof ACLException
+                                    || t.getCause() instanceof ACLException;
+                            processor.addResponse(request.getToken(), new ErrorResponse(
+                                    denied ? HttpStatus.SC_FORBIDDEN : HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                                    denied ? "access_denied" : "update_failed",
+                                    String.valueOf(t.getMessage())));
+                        }
                     }
 		}
 	}

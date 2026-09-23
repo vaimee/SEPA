@@ -35,7 +35,7 @@ public class ACLStorageJSon implements ACLStorageOperations {
     }
     private final Map<String,Object>    params;
     private final String                jsonFile;
-    private JSonArchive                 jsonArchive;
+    private final JSonArchive           jsonArchive = new JSonArchive();
     private final Gson                  gson = new Gson();
     public ACLStorageJSon(Map<String,Object> params) throws ACLStorageException {
         this.params = params;
@@ -61,18 +61,8 @@ public class ACLStorageJSon implements ACLStorageOperations {
     
     @Override
     public Map<String, SEPAAcl.UserData> loadUsers() throws ACLStorageException {
-        
-        
-        try  {
-             byte[] bytes = Files.readAllBytes(Paths.get(jsonFile));
-            final String fileContent = new String (bytes);
-            jsonArchive  = gson.fromJson(fileContent, JSonArchive.class);
-            return jsonArchive.aclUserData;
-        } catch(Exception e ) {
-            throw new ACLStorageException("File not found " + jsonFile,ACLStorageId.aiJSon, params);
-        }
-        
-        
+        readInto(jsonArchive);
+        return jsonArchive.aclUserData;
     }
 
     @Override
@@ -152,24 +142,39 @@ public class ACLStorageJSon implements ACLStorageOperations {
         return gd;
     }
     public static class JSonArchive {
-        public  Map<String, SEPAAcl.UserData>           aclUserData;
-        public  Map<String, Map<String, Set<aclId>>>    aclGroupData;
+        public  Map<String, SEPAAcl.UserData>           aclUserData     = new TreeMap<>();
+        public  Map<String, Map<String, Set<aclId>>>    aclGroupData    = new TreeMap<>();
     };
+
+    /* Reads the file into the archive that is already there, rather than
+     * replacing it.
+     *
+     * loadUsers and loadGroups are both called at startup and each used to
+     * parse the file into a new archive. SEPAAcl keeps the maps they return,
+     * so after the second call its user map belonged to an archive nothing
+     * pointed at any more: users added at runtime were written into an object
+     * write() never serialised, and every enrolment was lost on restart.
+     * Groups survived only because they came from the later parse. */
+    private void readInto(JSonArchive target) throws ACLStorageException {
+        try {
+            final String content = new String(Files.readAllBytes(Paths.get(jsonFile)));
+            final JSonArchive parsed = gson.fromJson(content, JSonArchive.class);
+
+            target.aclUserData.clear();
+            target.aclGroupData.clear();
+            if (parsed != null) {
+                if (parsed.aclUserData != null)  target.aclUserData.putAll(parsed.aclUserData);
+                if (parsed.aclGroupData != null) target.aclGroupData.putAll(parsed.aclGroupData);
+            }
+        } catch (Exception e) {
+            throw new ACLStorageException("File not found " + jsonFile, ACLStorageId.aiJSon, params);
+        }
+    }
     
     @Override
     public Map<String, Map<String, Set<aclId>>> loadGroups() throws ACLStorageException {
-        
-        
-        try  {
-             byte[] bytes = Files.readAllBytes(Paths.get(jsonFile));
-            final String fileContent = new String (bytes);
-            jsonArchive  = gson.fromJson(fileContent, ACLStorageJSon.JSonArchive.class);
-            return jsonArchive.aclGroupData;
-        } catch(Exception e ) {
-            throw new ACLStorageException("File not found " + jsonFile,ACLStorage.ACLStorageId.aiJSon, params);
-        }
-        
-        
+        readInto(jsonArchive);
+        return jsonArchive.aclGroupData;
     }
 
     @Override
