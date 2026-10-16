@@ -107,16 +107,35 @@ function applyStudioChrome() {
 	});
 }
 
+// Nello Studio il SEPA è quello dello stack: lo descrivono le variabili del
+// container (HOST, HTTP_PORT, ...), che valgono sia in locale sia dietro
+// Traefik (https/wss sulla 443). LOCAL_STUDIO_SEPA resta solo come ripiego.
+function studioSepaConnection() {
+	const env = getEnvVariables();
+	const pick = (key, fallback) => env[key] != null && env[key] !== "" ? String(env[key]) : fallback;
+	return {
+		host: pick("HOST", LOCAL_STUDIO_SEPA.host),
+		httpProtocol: pick("HTTP_PROTOCOL", LOCAL_STUDIO_SEPA.httpProtocol),
+		httpPort: pick("HTTP_PORT", LOCAL_STUDIO_SEPA.httpPort),
+		queryPath: pick("QUERY_PATH", LOCAL_STUDIO_SEPA.queryPath),
+		updatePath: pick("UPDATE_PATH", LOCAL_STUDIO_SEPA.updatePath),
+		wsProtocol: pick("WS_PROTOCOL", LOCAL_STUDIO_SEPA.wsProtocol),
+		wsPort: pick("WS_PORT", LOCAL_STUDIO_SEPA.wsPort),
+		subscribePath: pick("SUBSCRIBE_PATH", LOCAL_STUDIO_SEPA.subscribePath)
+	};
+}
+
 function applyStudioLocalConnection() {
 	if (!isStudioEmbedded()) return;
-	$("#host").val(LOCAL_STUDIO_SEPA.host);
-	$("#sparql11protocol").val(LOCAL_STUDIO_SEPA.httpProtocol);
-	$("#sparql11port").val(LOCAL_STUDIO_SEPA.httpPort);
-	$("#queryPath").val(LOCAL_STUDIO_SEPA.queryPath);
-	$("#updatePath").val(LOCAL_STUDIO_SEPA.updatePath);
-	$("#sparql11seprotocol").val(LOCAL_STUDIO_SEPA.wsProtocol);
-	$("#sparql11seport").val(LOCAL_STUDIO_SEPA.wsPort);
-	$("#subscribePath").val(LOCAL_STUDIO_SEPA.subscribePath);
+	const sepa = studioSepaConnection();
+	$("#host").val(sepa.host);
+	$("#sparql11protocol").val(sepa.httpProtocol);
+	$("#sparql11port").val(sepa.httpPort);
+	$("#queryPath").val(sepa.queryPath);
+	$("#updatePath").val(sepa.updatePath);
+	$("#sparql11seprotocol").val(sepa.wsProtocol);
+	$("#sparql11seport").val(sepa.wsPort);
+	$("#subscribePath").val(sepa.subscribePath);
 }
 
 function initStudioBus() {
