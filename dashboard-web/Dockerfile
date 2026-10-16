@@ -7,6 +7,7 @@ COPY /fontawesome-free-5.0.6 /usr/share/nginx/html/fontawesome-free-5.0.6
 COPY /jsap /usr/share/nginx/html/jsap
 COPY docker_entrypoint.sh /usr/share/nginx/html/docker_entrypoint.sh
 COPY icon /usr/share/nginx/html/icon
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN chmod +x /usr/share/nginx/html/docker_entrypoint.sh
 RUN chmod +r "/usr/share/nginx/html/icon/MilkDataWay_Icon_ White.svg"
 
