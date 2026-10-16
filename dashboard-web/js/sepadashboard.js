@@ -183,10 +183,16 @@ function applyStudioInstance(instance) {
 	if (!instance || !instance.sepaJsap) return;
 
 	try {
-		studioInstanceApplied = true;
-		myJson = typeof instance.sepaJsap === "string"
+		const jsap = typeof instance.sepaJsap === "string"
 			? JSON.parse(instance.sepaJsap)
 			: instance.sepaJsap;
+		// Il JSAP dell'istanza Studio descrive solo la connessione (che qui viene
+		// dalle variabili del container): senza query né update non deve
+		// sostituire il JSAP scelto nel catalogo, altrimenti i menù restano vuoti.
+		const operations = Object.keys(jsap.queries || {}).length + Object.keys(jsap.updates || {}).length;
+		if (operations === 0) return;
+		studioInstanceApplied = true;
+		myJson = jsap;
 		injectMyJsonIntoEditor();
 	} catch (e) {
 		console.error("Invalid studio:instance sepaJsap", e);
