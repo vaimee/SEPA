@@ -80,10 +80,22 @@ public abstract class SPU extends Thread implements ISPU {
 		return lastBindings;
 	}
 
+	/**
+	 * Stops the SPU without Thread.interrupt(): an interrupt that reaches the
+	 * SPU while it is querying the dataset closes the Jena TDB file channels
+	 * (ClosedByInterruptException) and every later query of the engine fails
+	 * with ClosedChannelException until restart. The SPU is woken instead and
+	 * leaves its loop after the query it may be running.
+	 */
 	public void interrupt() {
 		Logging.log("spu", "@interrupt");
 		running.set(false);
-		super.interrupt();
+		synchronized (preProcessing) {
+			preProcessing.notifyAll();
+		}
+		synchronized (postProcessing) {
+			postProcessing.notifyAll();
+		}
 	}
 
 	@Override
@@ -135,9 +147,14 @@ public abstract class SPU extends Thread implements ISPU {
 		while (running.get()) {
 			synchronized (preProcessing) {
 				try {
-					while (!preProcessing.get()) {
+					while (!preProcessing.get() && running.get()) {
 						Logging.log("spu", "Pre-processing wait...");
 						preProcessing.wait();
+					}
+					if (!running.get()) {
+						Logging.log("spu", "SPU stopped. Send EOP and exit.");
+						manager.endOfProcessing(this);
+						return;
 					}
 					preProcessing.set(false);
 				} catch (InterruptedException e) {
@@ -164,9 +181,14 @@ public abstract class SPU extends Thread implements ISPU {
 
 			synchronized (postProcessing) {
 				try {
-					while (!postProcessing.get()) {
+					while (!postProcessing.get() && running.get()) {
 						Logging.log("spu", "Post-processing wait...");
 						postProcessing.wait();
+					}
+					if (!running.get()) {
+						Logging.log("spu", "SPU stopped. Send EOP and exit.");
+						manager.endOfProcessing(this);
+						return;
 					}
 					postProcessing.set(false);
 				} catch (InterruptedException e) {
