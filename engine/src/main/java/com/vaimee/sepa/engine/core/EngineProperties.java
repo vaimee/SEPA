@@ -376,6 +376,8 @@ public class EngineProperties {
 	// Properties files
 	private String engineJpar = null; // "engine.jpar";
 	private String endpointJpar = null; // "endpoint.jpar";
+	// JSAP whose "graphPolicy" says which graphs accept subscriptions
+	private String jsap = null;
 
 	// Secure option
 	private Optional<Boolean> secure = Optional.empty();
@@ -467,6 +469,10 @@ public class EngineProperties {
 		printParameters();
 	}
 	
+	public String getJsap() {
+		return jsap;
+	}
+
 	public SPARQL11Properties getEndpointProperties() {
 		return endpointProperties;
 	}
@@ -519,6 +525,8 @@ public class EngineProperties {
 		System.out.println("-jwtalias <alias> : alias for the JWT key   	(default: jwt)");
 		System.out.println("-jwtstorepass <pwd> : password for the JKS  	(default: sepakey)");
 		System.out.println("-jwtaliaspass <pwd> : password for the JWT key  (default: sepakey)");
+
+		System.out.println("-jsap <file> : JSAP with the graphPolicy (live/history graphs) for subscriptions (default: none)");
 
 		System.out.println("LDAP OPTIONS:");
 		System.out.println("-ldaphost <name> : host     		         (default: localhost)");
@@ -699,6 +707,9 @@ public class EngineProperties {
 			break;
 		case "-endpoint":
 			endpointJpar = value;
+			break;
+		case "-jsap":
+			jsap = value;
 			break;
 		
 		case "-sparql11protocol.protocol":

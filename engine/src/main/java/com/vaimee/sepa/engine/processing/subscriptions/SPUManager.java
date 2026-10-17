@@ -245,6 +245,14 @@ public class SPUManager implements SPUManagerMBean, EventHandler {
 
 		SPUManagerBeans.subscribeRequest();
 
+		// Only live graphs accept subscriptions
+		ErrorResponse refused = GraphPolicy.check(req.getSparql());
+		if (refused != null) {
+			Logging.warn("@subscribe " + refused.getErrorDescription());
+			if (req.getAlias() != null) refused.setAlias(req.getAlias());
+			return refused;
+		}
+
 		// Create or link to an existing SPU
 		SPU spu;
 		if (Subscriptions.containsSubscribe(req)) {

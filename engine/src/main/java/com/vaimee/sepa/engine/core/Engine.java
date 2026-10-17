@@ -17,6 +17,8 @@
 */
 package com.vaimee.sepa.engine.core;
 
+import com.vaimee.sepa.engine.processing.subscriptions.GraphPolicy;
+
 import com.vaimee.sepa.api.commons.exceptions.SEPAPropertiesException;
 import com.vaimee.sepa.api.commons.exceptions.SEPAProtocolException;
 import com.vaimee.sepa.api.commons.exceptions.SEPASecurityException;
@@ -129,6 +131,16 @@ public class Engine implements EngineMBean {
 			properties = new EngineProperties(args);
 
 			EngineBeans.setEngineProperties(properties);		
+
+			// Graphs that accept subscriptions
+			// (an unreadable policy stops the engine instead of leaving every graph open)
+			if (properties.getJsap() != null) {
+				try {
+					GraphPolicy.load(properties.getJsap());
+				} catch (java.io.IOException | RuntimeException e) {
+					throw new IllegalArgumentException("Invalid graph policy JSAP " + properties.getJsap() + ": " + e.getMessage(), e);
+				}
+			}
 
 			// SPARQL 1.1 SE request scheduler
 			scheduler = new Scheduler(properties);
