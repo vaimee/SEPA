@@ -214,6 +214,11 @@ public class EngineProperties {
 		public Security security = new Security();
 		public Paths paths = new Paths();
 		public Ports ports = new Ports();
+		// WebSocket ping interval in seconds (0 = off). Pings keep idle
+		// subscriptions alive through load balancers that drop idle TCP
+		// connections without telling either side (Docker swarm VIPs after
+		// 15 minutes, proxies), and close the connections of lost clients.
+		public int wsPing = 60;
 		
 		public String toString() {
 			return new Gson().toJson(this);
@@ -547,6 +552,7 @@ public class EngineProperties {
 		
 		System.out.println("parameters.gates.ports.http : specify the UDPATE/QUERY port                       (default: 8000)");
 		System.out.println("parameters.gates.ports.ws : specify the SUBSCRIBE port                            (default: 9000)");
+		System.out.println("parameters.gates.wsping : WebSocket ping interval in seconds, 0 = off             (default: 60)");
 		System.out.println("parameters.scheduler.queuesize : the size of the scheduler FIFO queue             (default: 1000)");
 		System.out.println("parameters.scheduler.timeout : the timeout of scheduling new request (ms)         (default: 5000)");
 		System.out.println("parameters.processor.updatetimeout : the timeout of updates (ms)                  (default: 5000)");  
@@ -670,6 +676,9 @@ public class EngineProperties {
 			
 		case "-parameters.gates.ports.http":
 			parameters.gates.ports.http = Integer.parseInt(value);
+			break;
+		case "-parameters.gates.wsping":
+			parameters.gates.wsPing = Integer.parseInt(value);
 			break;
 		case "-parameters.gates.ports.ws":
 			parameters.gates.ports.ws = Integer.parseInt(value);
@@ -948,6 +957,10 @@ public class EngineProperties {
 
 	public int getWsPort() {
 		return this.parameters.gates.ports.ws;
+	}
+
+	public int getWsPing() {
+		return this.parameters.gates.wsPing;
 	}
 
 	public int getHttpPort() {

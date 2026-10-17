@@ -57,7 +57,8 @@ public class WebsocketServer extends WebSocketServer implements WebsocketServerM
 	public WebsocketServer(int port, String path, Scheduler scheduler) throws SEPAProtocolException {
 		super(new InetSocketAddress(port));
 
-		// Connection lost timeout (0 = disabled)
+		// Connection lost timeout (0 = disabled): the engine sets it from
+		// parameters.gates.wsPing once the server is built
 		setConnectionLostTimeout(0);
 
 		if (path == null || scheduler == null)

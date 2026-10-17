@@ -209,6 +209,7 @@ public class Engine implements EngineMBean {
 				Logging.debug("Starting websocket server on port 443 (secure)");
 				wsServer = new SecureWebsocketServer(443, properties.getSubscribePath(), scheduler);
 			}
+			wsServer.setConnectionLostTimeout(properties.getWsPing());
 
 			// Start all
 			scheduler.start();
