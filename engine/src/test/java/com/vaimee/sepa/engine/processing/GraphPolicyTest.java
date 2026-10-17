@@ -32,6 +32,10 @@ public class GraphPolicyTest {
 		assertEquals(Set.of(LIVE, HISTORY), graphs("GRAPH <" + LIVE + "> { ?s ?p ?o } FILTER NOT EXISTS { GRAPH <" + HISTORY + "> { ?s ?q ?v } }"));
 		assertEquals(Set.of(LIVE, HISTORY), graphs("GRAPH <" + LIVE + "> { ?s ?p ?o } { SELECT ?s WHERE { GRAPH <" + HISTORY + "> { ?s ?q ?v } } }"));
 		assertEquals(Set.of(GraphPolicy.ANY_GRAPH), graphs("GRAPH ?g { ?s ?p ?o }"));
+		// Several channels bound with VALUES, as the SEPA clients do
+		assertEquals(Set.of(LIVE, OTHER), GraphPolicy.graphsOf("SELECT * WHERE { GRAPH ?graph { ?s ?p ?o } } VALUES (?graph ?p) { (<" + LIVE + "> <urn:p1>) (<" + OTHER + "> <urn:p2>) }"));
+		assertEquals(Set.of(LIVE), graphs("GRAPH ?graph { ?s ?p ?o } VALUES ?graph { <" + LIVE + "> }"));
+		assertEquals(Set.of(GraphPolicy.ANY_GRAPH), GraphPolicy.graphsOf("SELECT * WHERE { GRAPH ?graph { ?s ?p ?o } } VALUES (?graph ?p) { (<" + LIVE + "> <urn:p1>) (UNDEF <urn:p2>) }"));
 		assertEquals(Set.of(GraphPolicy.DEFAULT_GRAPH), graphs("?s ?p ?o"));
 		assertEquals(Set.of(LIVE), GraphPolicy.graphsOf("SELECT * FROM <" + LIVE + "> WHERE { ?s ?p ?o }"));
 		assertEquals(Set.of(LIVE), GraphPolicy.graphsOf("SELECT * FROM NAMED <" + LIVE + "> WHERE { GRAPH ?g { ?s ?p ?o } }"));
@@ -50,6 +54,8 @@ public class GraphPolicyTest {
 		assertNotNull(GraphPolicy.check("SELECT * WHERE { GRAPH <" + LIVE + "> { ?s ?p ?o } OPTIONAL { GRAPH <" + HISTORY + "> { ?s ?q ?v } } }"));
 		assertNotNull(GraphPolicy.check("SELECT * WHERE { GRAPH <" + OTHER + "> { ?s ?p ?o } }"));
 		assertNotNull(GraphPolicy.check("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } }"));
+		assertNull(GraphPolicy.check("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } } VALUES ?g { <" + LIVE + "> }"));
+		assertNotNull(GraphPolicy.check("SELECT * WHERE { GRAPH ?g { ?s ?p ?o } } VALUES ?g { <" + LIVE + "> <" + HISTORY + "> }"));
 		assertNotNull(GraphPolicy.check("SELECT * WHERE { ?s ?p ?o }"));
 		assertEquals(403, GraphPolicy.check("SELECT * WHERE { GRAPH <" + HISTORY + "> { ?s ?p ?o } }").getStatusCode());
 	}

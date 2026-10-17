@@ -4,8 +4,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -19,7 +21,9 @@ import org.apache.jena.sparql.algebra.OpWalker;
 import org.apache.jena.sparql.algebra.op.OpFilter;
 import org.apache.jena.sparql.algebra.op.OpGraph;
 import org.apache.jena.sparql.algebra.op.OpQuadPattern;
+import org.apache.jena.sparql.algebra.op.OpTable;
 import org.apache.jena.sparql.core.Quad;
+import org.apache.jena.sparql.core.Var;
 import org.apache.jena.sparql.expr.Expr;
 import org.apache.jena.sparql.expr.ExprFunctionOp;
 import org.apache.jena.sparql.expr.ExprVisitorBase;
@@ -49,7 +53,7 @@ import com.vaimee.sepa.logging.Logging;
  * update for nothing. With a policy, a subscription is accepted only if every
  * graph it reads matches a live pattern and none matches a history pattern;
  * the default graph and variable graphs (GRAPH ?g) are refused, since they can
- * read any graph. Without a policy every subscription is accepted.
+ * read any graph, unless VALUES gives the variable an IRI in every row. Without a policy every subscription is accepted.
  */
 public class GraphPolicy {
 	/** Marker of a variable graph (GRAPH ?g) in {@link #graphsOf(String)}. */
@@ -145,7 +149,16 @@ public class GraphPolicy {
 	public static Set<String> graphsOf(String sparql) {
 		Query query = QueryFactory.create(sparql);
 		Set<String> ret = new HashSet<>();
-		collect(Algebra.toQuadForm(Algebra.compile(query)), ret);
+		Set<Var> graphVars = new HashSet<>();
+		Map<Var, Set<String>> values = new HashMap<>();
+		collect(Algebra.toQuadForm(Algebra.compile(query)), ret, graphVars, values);
+		// GRAPH ?g with ?g given by VALUES (as clients bind several channels)
+		// reads only those graphs; otherwise ?g can be any graph.
+		for (Var v : graphVars) {
+			Set<String> bound = values.get(v);
+			if (bound == null) ret.add(ANY_GRAPH);
+			else ret.addAll(bound);
+		}
 		if (query.hasDatasetDescription()) {
 			List<String> from = query.getDatasetDescription().getDefaultGraphURIs();
 			if (ret.remove(DEFAULT_GRAPH)) {
@@ -159,35 +172,52 @@ public class GraphPolicy {
 		return ret;
 	}
 
-	private static void collect(Op op, Set<String> graphs) {
+	private static void collect(Op op, Set<String> graphs, Set<Var> graphVars, Map<Var, Set<String>> values) {
 		ExprVisitorBase exists = new ExprVisitorBase() {
 			@Override
 			public void visit(ExprFunctionOp funcOp) {
 				// Outside the enclosing GRAPH: an EXISTS inside GRAPH <g> reads
 				// as the default graph, which refuses more, never less.
-				collect(Algebra.toQuadForm(funcOp.getGraphPattern()), graphs);
+				collect(Algebra.toQuadForm(funcOp.getGraphPattern()), graphs, graphVars, values);
 			}
 		};
 		OpWalker.walk(op, new OpVisitorBase() {
 			@Override
 			public void visit(OpQuadPattern quads) {
-				add(quads.getGraphNode(), graphs);
+				add(quads.getGraphNode(), graphs, graphVars);
 			}
 
 			@Override
 			public void visit(OpGraph graph) {
-				add(graph.getNode(), graphs);
+				add(graph.getNode(), graphs, graphVars);
 			}
 
 			@Override
 			public void visit(OpFilter filter) {
 				for (Expr e : filter.getExprs()) Walker.walk(e, exists);
 			}
+
+			@Override
+			public void visit(OpTable table) {
+				// A variable counts as bound only if every row gives it an IRI
+				for (Var v : table.getTable().getVars()) {
+					Set<String> iris = new HashSet<>();
+					boolean all = true;
+					for (var rows = table.getTable().rows(); rows.hasNext();) {
+						Node n = rows.next().get(v);
+						if (n == null || !n.isURI()) all = false;
+						else iris.add(n.getURI());
+					}
+					if (!all) values.put(v, null);
+					else if (!values.containsKey(v)) values.put(v, iris);
+					else if (values.get(v) != null) values.get(v).addAll(iris);
+				}
+			}
 		});
 	}
 
-	private static void add(Node node, Set<String> graphs) {
-		if (node.isVariable()) graphs.add(ANY_GRAPH);
+	private static void add(Node node, Set<String> graphs, Set<Var> graphVars) {
+		if (node.isVariable()) graphVars.add(Var.alloc(node));
 		else if (Quad.isDefaultGraph(node)) graphs.add(DEFAULT_GRAPH);
 		else if (node.isURI()) graphs.add(node.getURI());
 	}
