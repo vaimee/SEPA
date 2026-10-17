@@ -60,6 +60,9 @@ public abstract class SPU extends Thread implements ISPU {
 	protected Response response;
 	protected final InternalSubscribeRequest subscribe;
 
+	// How often a waiting SPU checks whether it has been stopped
+	private static final long STOP_POLL_MS = 500;
+
 	private final AtomicBoolean preProcessing = new AtomicBoolean(false);
 	private final AtomicBoolean postProcessing = new AtomicBoolean(false);
 
@@ -84,18 +87,16 @@ public abstract class SPU extends Thread implements ISPU {
 	 * Stops the SPU without Thread.interrupt(): an interrupt that reaches the
 	 * SPU while it is querying the dataset closes the Jena TDB file channels
 	 * (ClosedByInterruptException) and every later query of the engine fails
-	 * with ClosedChannelException until restart. The SPU is woken instead and
-	 * leaves its loop after the query it may be running.
+	 * with ClosedChannelException until restart. The SPU polls the flag in its
+	 * waits and leaves its loop after the query it may be running.
+	 *
+	 * Takes no lock: it is called under the Subscriptions class lock, while
+	 * the SPU holds its own monitor when it notifies through Subscriptions,
+	 * so locking here deadlocks the engine.
 	 */
 	public void interrupt() {
 		Logging.log("spu", "@interrupt");
 		running.set(false);
-		synchronized (preProcessing) {
-			preProcessing.notifyAll();
-		}
-		synchronized (postProcessing) {
-			postProcessing.notifyAll();
-		}
 	}
 
 	@Override
@@ -147,10 +148,9 @@ public abstract class SPU extends Thread implements ISPU {
 		while (running.get()) {
 			synchronized (preProcessing) {
 				try {
-					while (!preProcessing.get() && running.get()) {
-						Logging.log("spu", "Pre-processing wait...");
-						preProcessing.wait();
-					}
+					Logging.log("spu", "Pre-processing wait...");
+					while (!preProcessing.get() && running.get())
+						preProcessing.wait(STOP_POLL_MS);
 					if (!running.get()) {
 						Logging.log("spu", "SPU stopped. Send EOP and exit.");
 						manager.endOfProcessing(this);
@@ -181,10 +181,9 @@ public abstract class SPU extends Thread implements ISPU {
 
 			synchronized (postProcessing) {
 				try {
-					while (!postProcessing.get() && running.get()) {
-						Logging.log("spu", "Post-processing wait...");
-						postProcessing.wait();
-					}
+					Logging.log("spu", "Post-processing wait...");
+					while (!postProcessing.get() && running.get())
+						postProcessing.wait(STOP_POLL_MS);
 					if (!running.get()) {
 						Logging.log("spu", "SPU stopped. Send EOP and exit.");
 						manager.endOfProcessing(this);
