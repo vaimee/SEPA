@@ -9,6 +9,7 @@ import com.vaimee.sepa.engine.dependability.acl.EngineACLException;
 import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
 import com.vaimee.sepa.engine.dependability.acl.SEPAAcl.UserData;
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -61,6 +62,25 @@ public class ACLStorageDataset implements ACLStorageOperations {
     
     //here are defined all ontologies
     private static final  String    SEPACL_NS_PFIX              =          "<http://acl.sepa.com/>";
+
+    /*
+     * The ACL graph names that are not IRIs ($$ALL$$, $$DEFAULT$$) are stored as fixed absolute
+     * IRIs: written as <$$ALL$$> they would be resolved against a base and not read back.
+     */
+    private static final String STORED_ALL     = "http://acl.sepa.com/graph/ALL";
+    private static final String STORED_DEFAULT = "http://acl.sepa.com/graph/DEFAULT";
+
+    private static String storedGraphName(String graph) {
+        if (DatasetACL.ACL_GRAPH_NAME_ALL.equals(graph)) return STORED_ALL;
+        if (DatasetACL.ACL_GRAPH_NAME_DEFAULT.equals(graph)) return STORED_DEFAULT;
+        return graph;
+    }
+
+    private static String graphNameFromStore(String stored) {
+        if (STORED_ALL.equals(stored)) return DatasetACL.ACL_GRAPH_NAME_ALL;
+        if (STORED_DEFAULT.equals(stored)) return DatasetACL.ACL_GRAPH_NAME_DEFAULT;
+        return stored;
+    }
     private static final  String    SEPACL_NS_GRP_PFIX          =          "<http://groups.acl.sepa.com/>";
     private static final  String    SEPACL_GRAPH_NAME           =          "sepaACL:acl";
     private static final  String    SEPACL_GRAPH_GROUP_NAME     =          "sepaACL:aclGroups";
@@ -166,7 +186,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                   "sepaACL:$$USERNAME sepaACL:accessInformation ?bnode."    + System.lineSeparator()   +
                   "?bnode ?a ?b "                                           + System.lineSeparator()   +
                 "}}";
-        final String finalQuery = baseQuery.replaceAll("\\$\\$USERNAME", user);
+        final String finalQuery = baseQuery.replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(user));
         
         LocalDatasetActions.update(finalQuery, dsConnection);
 
@@ -185,8 +205,8 @@ public class ACLStorageDataset implements ACLStorageOperations {
                   "} "                                                          + System.lineSeparator()            +		 
                 "}                ";
         
-        final String finalQuery = baseQuery.replaceAll("\\$\\$USERNAME", user)
-                                            .replaceAll("\\$\\$GRAPHNAME", graph);
+        final String finalQuery = baseQuery.replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(user))
+                                            .replaceAll("\\$\\$GRAPHNAME", Matcher.quoteReplacement(storedGraphName(graph)));
         
         
         LocalDatasetActions.update(finalQuery, dsConnection);
@@ -203,7 +223,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
 //                "        sepaACL:accessInformation 	[]" + System.lineSeparator()   +
                 "        }}";
         
-        final String finalInsertQuery = insertQuery.replaceAll("\\$\\$USERNAME", user);
+        final String finalInsertQuery = insertQuery.replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(user));
         
         LocalDatasetActions.insertData(storageDataset, finalInsertQuery);
     }
@@ -224,9 +244,9 @@ public class ACLStorageDataset implements ACLStorageOperations {
                 "	}"                                                                      + System.lineSeparator()   +		 
                 "}";
         
-        final String finalQuery = baseQuery.replaceAll("\\$\\$USERNAME", user)
-                                            .replaceAll("\\$\\$GRAPHNAME", graph)
-                                            .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
+        final String finalQuery = baseQuery.replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(user))
+                                            .replaceAll("\\$\\$GRAPHNAME", Matcher.quoteReplacement(storedGraphName(graph)))
+                                            .replaceAll("\\$\\$RIGHTNAME", Matcher.quoteReplacement(encodeUriRight(id)));
         
         
         LocalDatasetActions.update(finalQuery, dsConnection);
@@ -286,13 +306,13 @@ public class ACLStorageDataset implements ACLStorageOperations {
             "    <$$USERNAME> sepaACL:memberOf ?groupName"                  + System.lineSeparator()   +
             "  }"                                                           + System.lineSeparator()   +                
             "}}";                
-        final String finalSelectRightsQuery = selectRightsQuery.replaceAll("\\$\\$USERNAME", userUri);
+        final String finalSelectRightsQuery = selectRightsQuery.replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(userUri));
         final  ResultSet rsRights = LocalDatasetActions.query(finalSelectRightsQuery, dsConnection);
         
         
         while(rsRights.hasNext()) {
             final QuerySolution qs = rsRights.next();
-            final String  graphName = qs.get("graphName").toString();
+            final String  graphName = graphNameFromStore(qs.get("graphName").toString());
             final String  allowedRight = qs.get("right").toString();
             
             Set<DatasetACL.aclId> r = ret.graphACLs.get(graphName);
@@ -316,7 +336,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
             "    <$$USERNAME> sepaACL:memberOf ?groupName"                  + System.lineSeparator()   +
             "  }"                                                           + System.lineSeparator()   +                
             "}}";                
-        final String finalSelectMembershipQuery = selectRightsQuery.replaceAll("\\$\\$USERNAME", userUri);
+        final String finalSelectMembershipQuery = selectRightsQuery.replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(userUri));
         final  ResultSet rsMembership = LocalDatasetActions.query(finalSelectMembershipQuery, dsConnection);
         
         
@@ -342,13 +362,13 @@ public class ACLStorageDataset implements ACLStorageOperations {
             "}}";                
                  
         
-        final String finalSelectQuery = selectQuery.replaceAll("\\$\\$GROUPNAME", groupUri);
+        final String finalSelectQuery = selectQuery.replaceAll("\\$\\$GROUPNAME", Matcher.quoteReplacement(groupUri));
         final  ResultSet rs = LocalDatasetActions.query(finalSelectQuery, dsConnection);
         
         
         while(rs.hasNext()) {
             final QuerySolution qs = rs.next();
-            final String  graphName = qs.get("graphName").toString();
+            final String  graphName = graphNameFromStore(qs.get("graphName").toString());
             final String  allowedRight = qs.get("right").toString();
             
             Set<DatasetACL.aclId> r = ret.get(graphName);
@@ -435,9 +455,9 @@ public class ACLStorageDataset implements ACLStorageOperations {
 	                "}"                                                             + System.lineSeparator()            +		 
                 "}                ";
         
-        final String finalQuery = baseQuery.replaceAll("\\$\\$USERNAME", user)
-                                            .replaceAll("\\$\\$GRAPHNAME", graph)
-                                            .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
+        final String finalQuery = baseQuery.replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(user))
+                                            .replaceAll("\\$\\$GRAPHNAME", Matcher.quoteReplacement(storedGraphName(graph)))
+                                            .replaceAll("\\$\\$RIGHTNAME", Matcher.quoteReplacement(encodeUriRight(id)));
         
         
         LocalDatasetActions.update(finalQuery, dsConnection);
@@ -455,7 +475,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
                   "sepaACLGroups:$$GROUPNAME sepaACL:accessInformation ?bnode."     + System.lineSeparator()   +
                   "?bnode ?a ?b "                                                   + System.lineSeparator()   +
                 "}}";
-        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", group);
+        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", Matcher.quoteReplacement(group));
         
         LocalDatasetActions.update(finalQuery, dsConnection);
     }
@@ -475,8 +495,8 @@ public class ACLStorageDataset implements ACLStorageOperations {
                   "} "                                                                  + System.lineSeparator()            +		 
                 "}                ";
         
-        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", group)
-                                            .replaceAll("\\$\\$GRAPHNAME", graph);
+        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", Matcher.quoteReplacement(group))
+                                            .replaceAll("\\$\\$GRAPHNAME", Matcher.quoteReplacement(storedGraphName(graph)));
         
         
         LocalDatasetActions.update(finalQuery, dsConnection);
@@ -502,9 +522,9 @@ public class ACLStorageDataset implements ACLStorageOperations {
 	                "}"                                                                     + System.lineSeparator()            +		 
                 "}                ";
         
-        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", group)
-                                            .replaceAll("\\$\\$GRAPHNAME", graph)
-                                            .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
+        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", Matcher.quoteReplacement(group))
+                                            .replaceAll("\\$\\$GRAPHNAME", Matcher.quoteReplacement(storedGraphName(graph)))
+                                            .replaceAll("\\$\\$RIGHTNAME", Matcher.quoteReplacement(encodeUriRight(id)));
         
         
         LocalDatasetActions.update(finalQuery, dsConnection);
@@ -522,7 +542,7 @@ public class ACLStorageDataset implements ACLStorageOperations {
 //                "        sepaACL:accessInformation 	[]"             + System.lineSeparator()            +
                 "        }}";
         
-        final String finalInsertQuery = insertQuery.replaceAll("\\$\\$GROUPNAME", group);
+        final String finalInsertQuery = insertQuery.replaceAll("\\$\\$GROUPNAME", Matcher.quoteReplacement(group));
         
         LocalDatasetActions.insertData(storageDataset, finalInsertQuery);
 
@@ -546,9 +566,9 @@ public class ACLStorageDataset implements ACLStorageOperations {
                 "	}"                                                                      + System.lineSeparator()   +		 
                 "}";
         
-        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", group)
-                                            .replaceAll("\\$\\$GRAPHNAME", graph)
-                                            .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(id));
+        final String finalQuery = baseQuery.replaceAll("\\$\\$GROUPNAME", Matcher.quoteReplacement(group))
+                                            .replaceAll("\\$\\$GRAPHNAME", Matcher.quoteReplacement(storedGraphName(graph)))
+                                            .replaceAll("\\$\\$RIGHTNAME", Matcher.quoteReplacement(encodeUriRight(id)));
         
         
         LocalDatasetActions.update(finalQuery, dsConnection);
@@ -562,8 +582,8 @@ public class ACLStorageDataset implements ACLStorageOperations {
                 "   sepaACL:$$USERNAME sepaACL:memberOf     \"$$GROUPNAME\" "   + System.lineSeparator()    +  
                 "}}";
         
-        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", group)
-                                            .replaceAll("\\$\\$USERNAME", user);
+        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", Matcher.quoteReplacement(group))
+                                            .replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(user));
         
         LocalDatasetActions.insertData(storageDataset, finalQuery);
 
@@ -577,8 +597,8 @@ public class ACLStorageDataset implements ACLStorageOperations {
                 "   sepaACL:$$USERNAME sepaACL:memberOf     \"$$GROUPNAME\" "   + System.lineSeparator()    +  
                 "}}";
         
-        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", group)
-                                            .replaceAll("\\$\\$USERNAME", user);
+        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", Matcher.quoteReplacement(group))
+                                            .replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(user));
         
         LocalDatasetActions.update(finalQuery, dsConnection);
 
@@ -601,9 +621,9 @@ public class ACLStorageDataset implements ACLStorageOperations {
                 "  } "                                                                      + System.lineSeparator()  +
                 "}                ";
         
-        final String finalQuery = baseQuery .replaceAll("\\$\\$USERNAME", user)
-                                            .replaceAll("\\$\\$GRAPHNAME", graph)
-                                            .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(firstId));
+        final String finalQuery = baseQuery .replaceAll("\\$\\$USERNAME", Matcher.quoteReplacement(user))
+                                            .replaceAll("\\$\\$GRAPHNAME", Matcher.quoteReplacement(storedGraphName(graph)))
+                                            .replaceAll("\\$\\$RIGHTNAME", Matcher.quoteReplacement(encodeUriRight(firstId)));
         
         
         LocalDatasetActions.insertData(storageDataset, finalQuery);
@@ -627,9 +647,9 @@ public class ACLStorageDataset implements ACLStorageOperations {
                 "  } "                                                                      + System.lineSeparator()  +
                 "}                ";
         
-        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", group)
-                                            .replaceAll("\\$\\$GRAPHNAME", graph)
-                                            .replaceAll("\\$\\$RIGHTNAME", encodeUriRight(firstId));
+        final String finalQuery = baseQuery .replaceAll("\\$\\$GROUPNAME", Matcher.quoteReplacement(group))
+                                            .replaceAll("\\$\\$GRAPHNAME", Matcher.quoteReplacement(storedGraphName(graph)))
+                                            .replaceAll("\\$\\$RIGHTNAME", Matcher.quoteReplacement(encodeUriRight(firstId)));
         
         
         LocalDatasetActions.insertData(storageDataset, finalQuery);

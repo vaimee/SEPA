@@ -12,3 +12,6 @@ api-java/logs/
 *.csv
 *.md
 *.log
+
+# build output of any module
+**/target/

@@ -45,7 +45,7 @@ public class ACLTools {
                 break;
             }
             case asiDataset: {
-                switch(EngineBeans.getAclMode().trim().toUpperCase()) {
+                switch(EngineBeans.getAclMode().trim().toLowerCase()) { // the DS_MODE_* constants are lower case
                     case EngineProperties.DS_MODE_MEM:
                         paramMap.put(ACLStorageDataset.PARAM_DATASETPERSISTENCY, ACLStorageDataset.PARAM_DATASETPERSISTENCY_VALUE_NONE);
                         break;
