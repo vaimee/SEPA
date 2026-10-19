@@ -166,6 +166,7 @@ Run `java -jar engine-x.y.z.jar -help` for a list of options. The Java [Keytool]
 SEPA also implements other two security mechanisms:
 - LDAP: it extends the default one by storing clients's information into an LDAP server (tested with [Apache Directory](https://directory.apache.org/))
 - KEYCLOAK: authentication based on OpenID Connect in managed by [Keycloak](https://www.keycloak.org/)
+- ZITADEL: access tokens issued by [Zitadel](https://zitadel.com/), with a per-graph dataset ACL managed at runtime over JMX/HTTP (see [docs/security-and-acl.md](docs/security-and-acl.md))
 
 Security is configured within the `engine.jpar` as follows:
 ```json
@@ -177,8 +178,11 @@ Security is configured within the `engine.jpar` as follows:
 }}}
 ```
 where 
-- `type` can assume one of the following values: `local`,`ldap`,`keycloak`
+- `type` can assume one of the following values: `local`,`ldap`,`keycloak`,`zitadel`
 - `tls` is used when `type`=`ldap` to enable or not LDAP StartTLS
+
+### 📚 Documentation of the `studio` branch
+The changes made for Agorà Studio (Zitadel security and ACL, subscriptions on live graphs only, JSAP forced bindings and optional bindings, engine fixes, dashboard in Studio) are documented in [docs/](docs/README.md).
 
 ### 📊 JMX Monitoring
 The SEPA engine is also distributed with a default [JMX](http://www.oracle.com/technetwork/articles/java/javamanagement-140525.html) configuration `jmx.properties` (including the `jmxremote.password` and `jmxremote.access` files for password and user grants). Remember to change password file permissions using: `chmod 600 jmxremote.password`. To enable remote JMX, the engine must be run as follows: `java -Dcom.sun.management.config.file=jmx.properties -jar engine-x.y.z.jar`. Using [`jconsole`](http://docs.oracle.com/javase/7/docs/technotes/guides/management/jconsole.html) is possible to monitor and control the most important engine parameters. By default, the port is `5555` and the `root:root` credentials grant full control (read/write).
