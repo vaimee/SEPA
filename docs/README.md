@@ -12,6 +12,7 @@ features below, each documented in its own page.
 | JSAP | Forced bindings: types, datatypes, defaults, multiple bindings (`VALUES`) and **optional bindings** (no value: the variable stays free), in the Java and JavaScript clients | [jsap-forced-bindings.md](jsap-forced-bindings.md) |
 | Engine | `-jsap` option, WebSocket ping, SPU stop without deadlocks, denied updates answered, Docker build context | [engine.md](engine.md) |
 | Dashboard | Web dashboard embedded in Studio: Studio token, JSAP catalogue, ACL admin JSAP | [engine.md](engine.md#web-dashboard) |
+| Tests | Unit, integration and chat tests, also against a secure engine with the ACL; the fixes made to enable them | [testing.md](testing.md) |
 
 Commits (oldest first):
 
