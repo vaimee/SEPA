@@ -60,6 +60,15 @@ printed on stderr and the client was never answered: it waited on the socket
 until its own timeout. The client now gets `403 access_denied` for an ACL
 refusal and `500 update_failed` otherwise.
 
+## A denied update no longer blocks the next ones (#118)
+
+The SPUs of an update do their pre-update processing, then wait for the
+post-update. An ACL refusal is a `RuntimeException` thrown by the endpoint:
+it skipped `abortSubscriptionsProcessing()`, so those SPUs kept waiting and the
+next update waited for their pre-update forever. With the ACL on, one denied
+update stopped every later update until restart. `Processor.processUpdate` now
+aborts the SPUs on every exit that skips the post-update.
+
 ## Docker build
 
 `.dockerignore` excludes `**/target/`, so building the image does not send

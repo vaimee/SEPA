@@ -145,11 +145,19 @@ public class Processor implements ProcessorMBean {
 		spuManager.subscriptionsProcessingPreUpdate(preRequest);
 
 		// Endpoint UPDATE
+		// The SPUs did their pre-update processing and now wait for the post-update:
+		// every exit that skips it must abort them, or the next pre-update waits for
+		// them forever (#118). An ACL refusal is a RuntimeException: it still goes up
+		// to UpdateProcessingThread, which answers 403.
 		Response ret;
 		try {
 			ret = updateEndpoint(preRequest);
 		} catch (SEPASecurityException | IOException e) {
+			spuManager.abortSubscriptionsProcessing();
 			return new ErrorResponse(HttpStatus.SC_INTERNAL_SERVER_ERROR, "sparql11endpoint", e.getMessage());
+		} catch (RuntimeException e) {
+			spuManager.abortSubscriptionsProcessing();
+			throw e;
 		}
 
 		// STOP processing?
