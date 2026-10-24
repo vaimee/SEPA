@@ -96,7 +96,8 @@ public class SEPAAclStorageTest {
 
     private void testNewInstanceDataset(final Map<String,Object> paramMap,boolean fMem ) throws Exception {
         System.out.println(this.getClass().getName() + "testNewInstanceDataset()");
-        final ACLStorageOperations obj  = ACLStorageFactory.newInstance(ACLStorage.ACLStorageId.asiDataset, paramMap);
+        // Not the factory: it keeps one storage per JVM, shared with the other tests
+        final ACLStorageOperations obj  = new ACLStorageDataset(paramMap);
         assertNotEquals(null, obj);
         
         if (obj instanceof ACLStorageDataset && fMem) {

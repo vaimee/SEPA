@@ -129,7 +129,7 @@ public class ACLStorageFactoryTest {
         final Map<String,UserData> aclData = as.loadUsers();
         final String graph1 = GRAPH1.replace("mp:", "http://mysparql.com/");
         final String graph2 = GRAPH2.replace("mp:", "http://mysparql.com/");
-        assertEquals(2, aclData.size());
+        assertEquals(2, aclData.size(), aclData.keySet().toString());
         assertTrue(aclData.containsKey(USER1));
         assertTrue(aclData.containsKey(USER2));
         assertFalse(aclData.containsKey(USER3));
@@ -170,7 +170,7 @@ public class ACLStorageFactoryTest {
         final String graph3 = GRAPH3.replace("mp:", "http://mysparql.com/");
         final String graph4 = GRAPH4.replace("mp:", "http://mysparql.com/");
         
-        assertEquals(2, aclData.size());
+        assertEquals(2, aclData.size(), aclData.keySet().toString());
         assertTrue(aclData.containsKey(GROUP1));
         assertTrue(aclData.containsKey(GROUP2));
         assertFalse(aclData.containsKey(GROUP3));

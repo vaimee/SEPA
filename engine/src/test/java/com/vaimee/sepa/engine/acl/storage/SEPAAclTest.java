@@ -33,72 +33,72 @@ import org.junit.jupiter.api.Test;
  */
 public class SEPAAclTest {
     
-//     private final String initQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"          + System.lineSeparator() +
-//                            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() +
-//                            "INSERT DATA { GRAPH sepaACL:acl { "                        + System.lineSeparator() +
-//                            "   sepaACL:monger"                                         + System.lineSeparator() +
-//                            "       sepaACL:userName    \"monger\" ;"                   + System.lineSeparator() +
-//                            "       sepaACL:memberOf	\"group1\" ;"                   + System.lineSeparator() +
-//                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() +
-//                            "           sepaACL:graphName   	mp:graph1;"             + System.lineSeparator() +
-//                            "           sepaACL:allowedRight	sepaACL:query;"         + System.lineSeparator() +
-//                            "       ];"                                                 + System.lineSeparator() +
-//                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() +
-//                            "           sepaACL:graphName   	mp:graph5;"             + System.lineSeparator() +
-//                            "           sepaACL:allowedRight	sepaACL:query  "        + System.lineSeparator() +
-//                            "       ]."                                                 + System.lineSeparator() +
-//
-//                            "   sepaACL:gonger"                                         + System.lineSeparator() +
-//                            "       sepaACL:userName    \"gonger\" ;"                   + System.lineSeparator() +
-//                            "       sepaACL:memberOf	\"group2\" ;"                   + System.lineSeparator() +
-//                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() +
-//                            "           sepaACL:graphName   	mp:graph2;"             + System.lineSeparator() +
-//                            "           sepaACL:allowedRight	sepaACL:update;"        + System.lineSeparator() +
-//                            "           sepaACL:allowedRight	sepaACL:insertData;"    + System.lineSeparator() +
-//                            "           sepaACL:allowedRight	sepaACL:deleteData;"    + System.lineSeparator() +
-//                            "           sepaACL:allowedRight	sepaACL:query"          + System.lineSeparator() +
-//                            "   ];"                                                     + System.lineSeparator() +
-//                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() +
-//                            "           sepaACL:graphName   	mp:graph6;"             + System.lineSeparator() +
-//                            "           sepaACL:allowedRight	sepaACL:query     "     + System.lineSeparator() +
-//                            "   ]."                                                     + System.lineSeparator() +
-//
-//                            "}}"                                                        + System.lineSeparator();
-//
-//     private final String initGroupsQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"            + System.lineSeparator() +
-//                            "PREFIX sepaACLGroups: <http://groups.acl.sepa.com/>"               + System.lineSeparator() +
-//                            "PREFIX mp: <http://mysparql.com/>"                                 + System.lineSeparator() +
-//                            ""                                                                  + System.lineSeparator() +
-//                            "INSERT DATA { GRAPH sepaACL:aclGroups {"                           + System.lineSeparator() +
-//                            "    sepaACLGroups:group1		 "                              + System.lineSeparator() +
-//                            "    sepaACL:groupName    \"group1\" ; "                            + System.lineSeparator() +
-//                            "    sepaACL:accessInformation 	["                              + System.lineSeparator() +
-//                            "       sepaACL:graphName   	mp:graph1;"                     + System.lineSeparator() +
-//                            "       sepaACL:allowedRight	sepaACL:update;"                + System.lineSeparator() +
-//                            "       sepaACL:allowedRight	sepaACL:query  "                + System.lineSeparator() +
-//                            "   ];"                                                             + System.lineSeparator() +
-//                            "   sepaACL:accessInformation 	["                              + System.lineSeparator() +
-//                            "       sepaACL:graphName   	mp:graph3;"                     + System.lineSeparator() +
-//                            "       sepaACL:allowedRight	sepaACL:query  "                + System.lineSeparator() +
-//                            "   ]."                                                             + System.lineSeparator() +
-//
-//                            ""                                                                  + System.lineSeparator() +
-//                            ""                                                                  + System.lineSeparator() +
-//                            "   sepaACLGroups:group2"                                           + System.lineSeparator() +
-//                            "   sepaACL:groupName    \"group2\" ; "                             + System.lineSeparator() +
-//                            "   sepaACL:accessInformation 	["                              + System.lineSeparator() +
-//                            "       sepaACL:graphName   	mp:graph2;"                     + System.lineSeparator() +
-//                            "       sepaACL:allowedRight	sepaACL:update;"                + System.lineSeparator() +
-//                            "       sepaACL:allowedRight	sepaACL:query     "             + System.lineSeparator() +
-//                            "   ];"                                                             + System.lineSeparator() +
-//                            "   sepaACL:accessInformation 	["                              + System.lineSeparator() +
-//                            "       sepaACL:graphName   	mp:graph4;"                     + System.lineSeparator() +
-//                            "       sepaACL:allowedRight	sepaACL:query     "             + System.lineSeparator() +
-//                            "   ]."                                                             + System.lineSeparator() +
-//
-//                            ""                                                                  + System.lineSeparator() +
-//                            ""                                                                  + System.lineSeparator() +
-//                            "}}";
+     private final String initQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"          + System.lineSeparator() +
+                            "PREFIX mp: <http://mysparql.com/> "                        + System.lineSeparator() +
+                            "INSERT DATA { GRAPH sepaACL:acl { "                        + System.lineSeparator() +
+                            "   sepaACL:monger"                                         + System.lineSeparator() +
+                            "       sepaACL:userName    \"monger\" ;"                   + System.lineSeparator() +
+                            "       sepaACL:memberOf	\"group1\" ;"                   + System.lineSeparator() +
+                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() +
+                            "           sepaACL:graphName   	mp:graph1;"             + System.lineSeparator() +
+                            "           sepaACL:allowedRight	sepaACL:query;"         + System.lineSeparator() +
+                            "       ];"                                                 + System.lineSeparator() +
+                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() +
+                            "           sepaACL:graphName   	mp:graph5;"             + System.lineSeparator() +
+                            "           sepaACL:allowedRight	sepaACL:query  "        + System.lineSeparator() +
+                            "       ]."                                                 + System.lineSeparator() +
+
+                            "   sepaACL:gonger"                                         + System.lineSeparator() +
+                            "       sepaACL:userName    \"gonger\" ;"                   + System.lineSeparator() +
+                            "       sepaACL:memberOf	\"group2\" ;"                   + System.lineSeparator() +
+                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() +
+                            "           sepaACL:graphName   	mp:graph2;"             + System.lineSeparator() +
+                            "           sepaACL:allowedRight	sepaACL:update;"        + System.lineSeparator() +
+                            "           sepaACL:allowedRight	sepaACL:insertData;"    + System.lineSeparator() +
+                            "           sepaACL:allowedRight	sepaACL:deleteData;"    + System.lineSeparator() +
+                            "           sepaACL:allowedRight	sepaACL:query"          + System.lineSeparator() +
+                            "   ];"                                                     + System.lineSeparator() +
+                            "       sepaACL:accessInformation 	["                      + System.lineSeparator() +
+                            "           sepaACL:graphName   	mp:graph6;"             + System.lineSeparator() +
+                            "           sepaACL:allowedRight	sepaACL:query     "     + System.lineSeparator() +
+                            "   ]."                                                     + System.lineSeparator() +
+
+                            "}}"                                                        + System.lineSeparator();
+
+     private final String initGroupsQuery = "PREFIX sepaACL: <http://acl.sepa.com/>"            + System.lineSeparator() +
+                            "PREFIX sepaACLGroups: <http://groups.acl.sepa.com/>"               + System.lineSeparator() +
+                            "PREFIX mp: <http://mysparql.com/>"                                 + System.lineSeparator() +
+                            ""                                                                  + System.lineSeparator() +
+                            "INSERT DATA { GRAPH sepaACL:aclGroups {"                           + System.lineSeparator() +
+                            "    sepaACLGroups:group1		 "                              + System.lineSeparator() +
+                            "    sepaACL:groupName    \"group1\" ; "                            + System.lineSeparator() +
+                            "    sepaACL:accessInformation 	["                              + System.lineSeparator() +
+                            "       sepaACL:graphName   	mp:graph1;"                     + System.lineSeparator() +
+                            "       sepaACL:allowedRight	sepaACL:update;"                + System.lineSeparator() +
+                            "       sepaACL:allowedRight	sepaACL:query  "                + System.lineSeparator() +
+                            "   ];"                                                             + System.lineSeparator() +
+                            "   sepaACL:accessInformation 	["                              + System.lineSeparator() +
+                            "       sepaACL:graphName   	mp:graph3;"                     + System.lineSeparator() +
+                            "       sepaACL:allowedRight	sepaACL:query  "                + System.lineSeparator() +
+                            "   ]."                                                             + System.lineSeparator() +
+
+                            ""                                                                  + System.lineSeparator() +
+                            ""                                                                  + System.lineSeparator() +
+                            "   sepaACLGroups:group2"                                           + System.lineSeparator() +
+                            "   sepaACL:groupName    \"group2\" ; "                             + System.lineSeparator() +
+                            "   sepaACL:accessInformation 	["                              + System.lineSeparator() +
+                            "       sepaACL:graphName   	mp:graph2;"                     + System.lineSeparator() +
+                            "       sepaACL:allowedRight	sepaACL:update;"                + System.lineSeparator() +
+                            "       sepaACL:allowedRight	sepaACL:query     "             + System.lineSeparator() +
+                            "   ];"                                                             + System.lineSeparator() +
+                            "   sepaACL:accessInformation 	["                              + System.lineSeparator() +
+                            "       sepaACL:graphName   	mp:graph4;"                     + System.lineSeparator() +
+                            "       sepaACL:allowedRight	sepaACL:query     "             + System.lineSeparator() +
+                            "   ]."                                                             + System.lineSeparator() +
+
+                            ""                                                                  + System.lineSeparator() +
+                            ""                                                                  + System.lineSeparator() +
+                            "}}";
     
     public SEPAAclTest() {
         
@@ -153,7 +153,8 @@ public class SEPAAclTest {
 
     private void testNewInstanceDataset(final Map<String,Object> paramMap,boolean fMem ) throws Exception {
         System.out.println(this.getClass().getName() + "testNewInstanceDataset()");
-        final ACLStorageOperations obj  = ACLStorageFactory.newInstance(ACLStorage.ACLStorageId.asiDataset, paramMap);
+        // Not the factory: it keeps one storage per JVM, shared with the other tests
+        final ACLStorageOperations obj  = new ACLStorageDataset(paramMap);
         assertNotEquals(null, obj);
         
         if (obj instanceof ACLStorageDataset && fMem) {
@@ -162,8 +163,9 @@ public class SEPAAclTest {
                 final Field f = ACLStorageDataset.class.getDeclaredField("storageDataset");
                 f.setAccessible(true);
                 final  Dataset ds = ( Dataset) f.get(obj);
-                LocalDatasetActions.insertData(ds, Constants.initQuery);
-                LocalDatasetActions.insertData(ds, Constants.initGroupsQuery);
+                // This test's own ACL (the table in Constants): the shared one grants monger RW on graph1 and nothing on graph5
+                LocalDatasetActions.insertData(ds, initQuery);
+                LocalDatasetActions.insertData(ds, initGroupsQuery);
                 
             } catch(Exception e ) {
                 System.err.println(e);

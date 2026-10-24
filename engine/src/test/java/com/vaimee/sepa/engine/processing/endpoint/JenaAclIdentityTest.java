@@ -1,8 +1,7 @@
 package com.vaimee.sepa.engine.processing.endpoint;
 
 import com.vaimee.sepa.engine.dependability.acl.SEPAAcl;
-import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorage;
-import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageFactory;
+import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageDataset;
 import com.vaimee.sepa.engine.dependability.acl.storage.ACLStorageOperations;
 import org.apache.jena.acl.DatasetACL;
 import org.apache.jena.query.Dataset;
@@ -44,9 +43,8 @@ class JenaAclIdentityTest {
     }
 
     private SEPAAcl aclWithReadOnlyUserOnGraph(String user, String graph) throws Exception {
-        ACLStorageOperations storage = ACLStorageFactory.newInstance(
-                ACLStorage.ACLStorageId.asiDataset,
-                new TreeMap<String, Object>());
+        // Not the factory: it keeps one storage per JVM, shared with the other tests
+        ACLStorageOperations storage = new ACLStorageDataset(new TreeMap<String, Object>());
         SEPAAcl acl = SEPAAcl.newInstance(storage);
         acl.addUser(user);
         acl.addUserPermission(user, graph, DatasetACL.aclId.aiQuery);
