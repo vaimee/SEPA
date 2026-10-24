@@ -48,6 +48,7 @@ import com.vaimee.sepa.logging.Logging;
 
 public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 	protected final ISubscriptionHandler handler;
+	private final ClientSecurityManager sm;
 
 	protected final ClientManager client;
 	protected Session session;
@@ -56,16 +57,22 @@ public class WebsocketClientEndpoint extends Endpoint implements Closeable {
 		client = ClientManager.createClient();
 		client.getProperties().put("org.glassfish.tyrus.incomingBufferSize", 200*1024*1024);
 		
-		if (sm != null) {
-			SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext());
-			config.setHostVerificationEnabled(false);
-			client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, config);
-		}
-		
+		this.sm = sm;
 		this.handler = handler;
 	}
 	
 	public void connect(URI url) throws SEPAProtocolException {
+		// TLS only on wss: a secure profile (e.g. bearer tokens) may still use ws, and a TLS engine there fails the connection
+		if (sm != null && "wss".equalsIgnoreCase(url.getScheme())) {
+			try {
+				SslEngineConfigurator config = new SslEngineConfigurator(sm.getSSLContext());
+				config.setHostVerificationEnabled(false);
+				client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, config);
+			} catch (SEPASecurityException e) {
+				throw new SEPAProtocolException(e.getMessage());
+			}
+		} else client.getProperties().remove(ClientProperties.SSL_ENGINE_CONFIGURATOR);
+
 		try {
 			session = client.connectToServer(this, url);
 		} catch (DeploymentException | IOException e) {
