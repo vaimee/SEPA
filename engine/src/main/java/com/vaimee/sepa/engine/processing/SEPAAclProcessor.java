@@ -40,8 +40,9 @@ public class SEPAAclProcessor implements SEPAAclProcessorMBean {
     
     private static DatasetACL.aclId decodeACLId(String u) {
         DatasetACL.aclId ret = null;
-        if (decodeMap.containsKey(u.trim().toLowerCase())) {
-            ret = decodeMap.get(u);
+        // Case-insensitive: insertData and insertdata are the same permission
+        if (u != null && decodeMap.containsKey(u.trim().toLowerCase())) {
+            ret = decodeMap.get(u.trim().toLowerCase());
         }
         return ret;
     }
@@ -292,6 +293,8 @@ public class SEPAAclProcessor implements SEPAAclProcessorMBean {
         final SEPAAcl acl = SEPAAcl.getInstance();
         final Class<?> cargs[] = new Class<?>[args.length];
         for(int i = 0 ; i < args.length;++i) {
+            // A permission name decodeACLId does not know
+            if (args[i] == null) return "ERROR: unknown or missing argument " + (i + 1);
             cargs[i] = args[i].getClass();
         }
         
