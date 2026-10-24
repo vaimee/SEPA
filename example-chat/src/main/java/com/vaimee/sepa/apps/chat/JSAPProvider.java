@@ -24,19 +24,16 @@ public class JSAPProvider {
 		if (System.getProperty("testConfiguration") != null) {
 			jsapFileName = System.getProperty("testConfiguration");
 			logger.info("JSAP from property testConfiguration: " + jsapFileName);
-		} else if (System.getProperty("secure") != null) {
-			jsapFileName = "chat-secure.jsap";
-			logger.info("JSAP secure default: " + jsapFileName);
 		}
 
-//		String path = getClass().getClassLoader().getResource(jsapFileName).getPath();
-//		File f = new File(path);
-//		if (!f.exists()) {
-//			logger.error("File not found: " + path);
-//			throw new SEPAPropertiesException("File not found: "+path);
-//		}
-		
-		appProfile = new JSAP(jsapFileName);
+		// Secure engine (Zitadel security and ACL): every request carries this bearer token
+		String token = System.getProperty("sepaToken", System.getenv("SEPA_TOKEN"));
+		if (token != null && !token.isBlank()) {
+			logger.info("Requests authorized with the bearer token from SEPA_TOKEN / -DsepaToken");
+			appProfile = new BearerTokenJSAP(jsapFileName, token.trim());
+		} else {
+			appProfile = new JSAP(jsapFileName);
+		}
 	}
 	
 	public ClientSecurityManager getSecurityManager() throws SEPASecurityException {
